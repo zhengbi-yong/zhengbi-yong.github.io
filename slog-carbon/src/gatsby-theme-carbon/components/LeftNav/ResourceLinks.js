@@ -4,15 +4,15 @@ import ResourceLinks from 'gatsby-theme-carbon/src/components/LeftNav/ResourceLi
 const links = [
   {
     title: 'Github',
-    href: 'https://github.com/carbon-design-system/gatsby-theme-carbon',
+    href: 'https://github.com/zhengbi-yong',
   },
   {
-    title: 'Carbon',
-    href: 'https://www.carbondesignsystem.com',
+    title: '知乎',
+    href: 'https://www.zhihu.com/people/peter-79-84',
   },
   {
-    title: 'Configuration guide',
-    href: '/guides/configuration',
+    title: 'BiliBili',
+    href: 'https://space.bilibili.com/514023785',
   },
 ];
 

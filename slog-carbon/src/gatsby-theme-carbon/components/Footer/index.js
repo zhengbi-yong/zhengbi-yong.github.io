@@ -4,21 +4,10 @@ import Footer from 'gatsby-theme-carbon/src/components/Footer';
 const Content = ({ buildTime }) => (
   <>
     <p>
-      The <code>Content</code> component receives a <code>buildTime</code> prop
-      that to display your site's build time: {buildTime}
+      最后一次部署的时间：<code>{buildTime}</code>
     </p>
     <p>
-      By importing the <strong>Footer</strong> component from
-      gatsby-theme-carbon, we can supply our own props.
-    </p>
-    <p>
-      The default export from a shadowed component will replace that component
-      in the theme.
-    </p>
-    <p>
-      <a href="https://www.gatsbyjs.org/docs/themes/api-reference/#component-shadowing">
-        More about component shadowing
-      </a>
+      本网站受到 <a href="https://www.gatsbyjs.com/"> Gatsby </a>和 <a href="https://gatsby-theme-carbon.vercel.app"> Gatsby theme Carbon </a> 的支持。
     </p>
   </>
 );

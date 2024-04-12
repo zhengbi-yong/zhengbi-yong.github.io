@@ -1,3 +1,6 @@
+- title: 灵巧手
+  pages:
+    - path: /灵巧手
 - title: Getting started
   pages:
     - path: /getting-started
@@ -82,3 +85,4 @@
       path: /components/Title
     - title: Video
       path: /components/Video
+

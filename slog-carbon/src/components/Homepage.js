@@ -9,7 +9,7 @@ const FirstLeftText = () => <p>个人简介</p>;
 
 const FirstRightText = () => (
   <p>
-    本人是清华大学自动化系2019级本科学生，2024年预计在北京理工大学自动化学院继续学习。对<code>深度学习</code>、<code>强化学习</code>、<code>机器人</code>、<code>计算机视觉</code>和<code>多模态</code>等领域具有研究兴趣。
+    <code>清华大学</code>自动化系2019级本科生，<code>北京理工大学</code>自动化学院2024级硕士生。研究兴趣：深度学习、强化学习、机器人、计算机视觉和多模态。
     <a
       className={calloutLink}
       href="https://zhengbi-yong.github.io">
