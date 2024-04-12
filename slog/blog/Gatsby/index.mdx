@@ -7,7 +7,9 @@ hero_image_alt: "Random Picture"
 hero_image_credit_text: "Random Person"
 hero_image_credit_link: "https://zhengbi-yong.github.io"
 ---
-# 简介
+# 零——简介
+
+[官方教程](https://www.gatsbyjs.com/docs/tutorial/getting-started/part-0/)
 
 ## 需要用到的语言
 
@@ -31,14 +33,42 @@ hero_image_credit_link: "https://zhengbi-yong.github.io"
 * Gatsby command line interface
 * Visual Studio Code
 
-## Node.js
+### Node.js
 
 可以直接从[Node.js](https://nodejs.org/en)的官网上下载相应的版本，但更加推荐使用 nvm 对 Node.js 的版本进行管理，nvm-windows 可以在其 [GitHub 仓库](https://github.com/coreybutler/nvm-windows)下载。
 
-```bash
-nvm install latest #安装最新版本node.js
-nvm use 14.3.0 #使用某一具体版本
+```shell
+nvm --help #使用该命令查询详细操作的方法
+nvm install v20.12.1 #本项目使用 20.12.1 版本进行构建
+nvm use 20.12.1 #使用某一具体版本
 nvm list #列出当前已安装的所有版本
-nvm uninstall 14.2.0 #卸载某一具体版本
+nvm uninstall 20.12.1 #卸载某一具体版本
 ```
 
+### Git
+
+可以从[Git](https://git-scm.com)官网上下载合适的版本。
+
+### Gatsby CLI
+
+通过命令行以及之前安装好的Node.js进行安装。
+
+```shell
+npm install -g gatsby-cli #使用该命令进行CLI的安装
+gatsby --version #查看安装是否成功以及gatsby的版本
+gatsby --help #查询gatsby详细操作的方法
+```
+
+### VS Code
+
+可以直接从[VS Code](https://code.visualstudio.com)官网上下载相应的版本。
+
+# 壹——创建Gatsby站点
+
+[官方教程](https://www.gatsbyjs.com/docs/tutorial/getting-started/part-1/)
+
+# 贰——使用React组件
+
+[官方教程](https://www.gatsbyjs.com/docs/tutorial/getting-started/part-2/)
+
+# 使用Gatsby的主题

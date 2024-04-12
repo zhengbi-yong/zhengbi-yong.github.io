@@ -1,31 +1,41 @@
-import * as React from 'react'
-import { Link, graphql } from 'gatsby'
-import Layout from '../../components/layout'
-import Seo from '../../components/seo'
+import * as React from 'react';
+import { Link, graphql } from 'gatsby';
+import Layout from '../../components/layout';
+import Seo from '../../components/seo';
+import { Typography, Card, CardContent, CardActions, Button } from '@mui/material';
 
 const BlogPage = ({ data }) => {
   return (
     <Layout pageTitle="My Blog Posts">
-      {
-        data.allMdx.nodes.map((node) => (
-          <article key={node.id}>
-            <h2>
-              <Link to={`/blog/${node.frontmatter.slug}`}>
+      {data.allMdx.nodes.map((node) => (
+        <Card key={node.id} sx={{ marginBottom: 2 }}>
+          <CardContent>
+            <Typography variant="h5" component="h2">
+              <Link to={`/blog/${node.frontmatter.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 {node.frontmatter.title}
               </Link>
-            </h2>
-            <p>Posted: {node.frontmatter.date}</p>
-            <p>{node.excerpt}</p>
-          </article>
-        ))
-      }
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Posted: {node.frontmatter.date}
+            </Typography>
+            <Typography variant="body1">{node.excerpt}</Typography>
+          </CardContent>
+          <CardActions>
+            <Button size="small" color="primary">
+              <Link to={`/blog/${node.frontmatter.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                Read More
+              </Link>
+            </Button>
+          </CardActions>
+        </Card>
+      ))}
     </Layout>
-  )
-}
+  );
+};
 
 export const query = graphql`
   query {
-    allMdx(sort: { frontmatter: { date: DESC }}) {
+    allMdx(sort: { frontmatter: { date: DESC } }) {
       nodes {
         frontmatter {
           date(formatString: "MMMM D, YYYY")
@@ -37,8 +47,8 @@ export const query = graphql`
       }
     }
   }
-`
+`;
 
-export const Head = () => <Seo title="My Blog Posts" />
+export const Head = () => <Seo title="My Blog Posts" />;
 
-export default BlogPage
+export default BlogPage;
