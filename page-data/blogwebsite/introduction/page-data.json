@@ -1,0 +1,5 @@
+{
+    "componentChunkName": "component---src-pages-blogwebsite-introduction-mdx",
+    "path": "/blogwebsite/introduction/",
+    "result": {"pageContext":{"frontmatter":{"title":"简介","description":"对灵巧手的简要介绍"},"relativePagePath":"/blogwebsite/introduction.mdx","titleType":"page","MdxNode":{"id":"1d0a3a48-95cf-584a-a1e7-a8dd43e68c57","children":[],"parent":"142c87f5-4ce1-5632-85c5-ac3d23a34705","internal":{"content":"---\ntitle: 简介\ndescription: 对灵巧手的简要介绍\n---\n\n<PageDescription>\n\n对灵巧手的简要介绍\n\n</PageDescription>\n\n## 简介","type":"Mdx","contentDigest":"a3d929986b41c829a63f1c7e481f5166","owner":"gatsby-plugin-mdx","counter":164},"frontmatter":{"title":"简介","description":"对灵巧手的简要介绍"},"exports":{},"rawBody":"---\ntitle: 简介\ndescription: 对灵巧手的简要介绍\n---\n\n<PageDescription>\n\n对灵巧手的简要介绍\n\n</PageDescription>\n\n## 简介","fileAbsolutePath":"/home/runner/work/zhengbi-yong.github.io/zhengbi-yong.github.io/slog-carbon/src/pages/blogwebsite/introduction.mdx"}}},
+    "staticQueryHashes": ["1364590287","137577622","2102389209","2456312558","2746626797","3018647132","3037994772","768070550"]}

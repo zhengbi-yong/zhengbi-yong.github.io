@@ -1,0 +1,5 @@
+{
+    "componentChunkName": "component---src-pages-dexteroushand-software-mdx",
+    "path": "/dexteroushand/software/",
+    "result": {"pageContext":{"frontmatter":{"title":"软件","description":"灵巧手的相关软件"},"relativePagePath":"/dexteroushand/software.mdx","titleType":"page","MdxNode":{"id":"7e50c5fe-a3dc-5b4e-ad9e-b579571164c4","children":[],"parent":"75df2c44-5dba-5d94-8aa7-f8fb1a195b99","internal":{"content":"---\ntitle: 软件\ndescription: 灵巧手的相关软件\n---\n\n<PageDescription>\n\n灵巧手的相关软件\n\n</PageDescription>\n\n## 软件","type":"Mdx","contentDigest":"8d5667df14517226496b2a676aa2e991","owner":"gatsby-plugin-mdx","counter":167},"frontmatter":{"title":"软件","description":"灵巧手的相关软件"},"exports":{},"rawBody":"---\ntitle: 软件\ndescription: 灵巧手的相关软件\n---\n\n<PageDescription>\n\n灵巧手的相关软件\n\n</PageDescription>\n\n## 软件","fileAbsolutePath":"/home/runner/work/zhengbi-yong.github.io/zhengbi-yong.github.io/slog-carbon/src/pages/dexteroushand/software.mdx"}}},
+    "staticQueryHashes": ["1364590287","137577622","2102389209","2456312558","2746626797","3018647132","3037994772","768070550"]}

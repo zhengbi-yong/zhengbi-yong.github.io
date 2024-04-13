@@ -1,0 +1,5 @@
+{
+    "componentChunkName": "component---src-pages-dexteroushand-introduction-mdx",
+    "path": "/dexteroushand/introduction/",
+    "result": {"pageContext":{"frontmatter":{"title":"简介","description":"对灵巧手的简要介绍"},"relativePagePath":"/dexteroushand/introduction.mdx","titleType":"page","MdxNode":{"id":"73f12770-96a0-514c-b181-2072aa333adb","children":[],"parent":"cf8e6d51-99f3-52ec-872e-054f80b78bc4","internal":{"content":"---\ntitle: 简介\ndescription: 对灵巧手的简要介绍\n---\n\n<PageDescription>\n\n对灵巧手的简要介绍\n\n</PageDescription>\n\n## 简介","type":"Mdx","contentDigest":"f97fada92010228161e819b12ca360fc","owner":"gatsby-plugin-mdx","counter":166},"frontmatter":{"title":"简介","description":"对灵巧手的简要介绍"},"exports":{},"rawBody":"---\ntitle: 简介\ndescription: 对灵巧手的简要介绍\n---\n\n<PageDescription>\n\n对灵巧手的简要介绍\n\n</PageDescription>\n\n## 简介","fileAbsolutePath":"/home/runner/work/zhengbi-yong.github.io/zhengbi-yong.github.io/slog-carbon/src/pages/dexteroushand/introduction.mdx"}}},
+    "staticQueryHashes": ["1364590287","137577622","2102389209","2456312558","2746626797","3018647132","3037994772","768070550"]}
