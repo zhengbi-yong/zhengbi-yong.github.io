@@ -1,0 +1,5 @@
+{
+    "componentChunkName": "component---src-pages-灵巧手-硬件-mdx",
+    "path": "/灵巧手/硬件/",
+    "result": {"pageContext":{"frontmatter":{"title":"硬件","description":"灵巧手的相关硬件"},"relativePagePath":"/灵巧手/硬件.mdx","titleType":"page","MdxNode":{"id":"1e5fd9ce-c16b-5799-835f-cacda215c735","children":[],"parent":"533a025d-2270-5a9c-a73c-582fd47678d1","internal":{"content":"---\ntitle: 硬件\ndescription: 灵巧手的相关硬件\n---\n\n<PageDescription>\n\n灵巧手的相关硬件\n\n</PageDescription>\n\n## 硬件","type":"Mdx","contentDigest":"3ed01891284555dd1aa5a816bb3f9714","owner":"gatsby-plugin-mdx","counter":166},"frontmatter":{"title":"硬件","description":"灵巧手的相关硬件"},"exports":{},"rawBody":"---\ntitle: 硬件\ndescription: 灵巧手的相关硬件\n---\n\n<PageDescription>\n\n灵巧手的相关硬件\n\n</PageDescription>\n\n## 硬件","fileAbsolutePath":"/home/runner/work/zhengbi-yong.github.io/zhengbi-yong.github.io/slog-carbon/src/pages/灵巧手/硬件.mdx"}}},
+    "staticQueryHashes": ["1364590287","137577622","2102389209","2456312558","2746626797","3018647132","3037994772","768070550"]}

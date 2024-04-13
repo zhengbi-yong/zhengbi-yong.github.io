@@ -1,0 +1,5 @@
+{
+    "componentChunkName": "component---src-pages-个人博客-环境设置-mdx",
+    "path": "/个人博客/环境设置/",
+    "result": {"pageContext":{"frontmatter":{"title":"简介","description":"对灵巧手的简要介绍"},"relativePagePath":"/个人博客/环境设置.mdx","titleType":"page","MdxNode":{"id":"bd886ea8-dfc0-5bd1-8235-c7ed1b7f1e84","children":[],"parent":"e4c4eae7-49a5-5299-ab56-70f325855105","internal":{"content":"---\ntitle: 简介\ndescription: 对灵巧手的简要介绍\n---\n\n<PageDescription>\n\n对灵巧手的简要介绍\n\n</PageDescription>\n\n## 简介","type":"Mdx","contentDigest":"b5c5f426f5ad0060b20432b923f4bfbb","owner":"gatsby-plugin-mdx","counter":163},"frontmatter":{"title":"简介","description":"对灵巧手的简要介绍"},"exports":{},"rawBody":"---\ntitle: 简介\ndescription: 对灵巧手的简要介绍\n---\n\n<PageDescription>\n\n对灵巧手的简要介绍\n\n</PageDescription>\n\n## 简介","fileAbsolutePath":"/home/runner/work/zhengbi-yong.github.io/zhengbi-yong.github.io/slog-carbon/src/pages/个人博客/环境设置.mdx"}}},
+    "staticQueryHashes": ["1364590287","137577622","2102389209","2456312558","2746626797","3018647132","3037994772","768070550"]}

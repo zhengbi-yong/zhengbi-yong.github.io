@@ -1,5 +1,0 @@
-{
-    "componentChunkName": "component---src-pages-灵巧手-index-mdx",
-    "path": "/灵巧手/",
-    "result": {"pageContext":{"frontmatter":{"title":"灵巧手","description":"高自由度灵巧机械手的相关研究"},"relativePagePath":"/灵巧手/index.mdx","titleType":"page","MdxNode":{"id":"4ad1dbab-f98f-5bec-9fac-edf088044957","children":[],"parent":"f8b312c0-d5df-5c41-af25-e82d3367499c","internal":{"content":"---\ntitle: 灵巧手\ndescription: 高自由度灵巧机械手的相关研究\n---\n\n<PageDescription>\n\n高自由度灵巧机械手的相关研究\n\n</PageDescription>\n\n## 简介","type":"Mdx","contentDigest":"44aa1341e5ade8ce958232d78da6fbf3","owner":"gatsby-plugin-mdx","counter":197},"frontmatter":{"title":"灵巧手","description":"高自由度灵巧机械手的相关研究"},"exports":{},"rawBody":"---\ntitle: 灵巧手\ndescription: 高自由度灵巧机械手的相关研究\n---\n\n<PageDescription>\n\n高自由度灵巧机械手的相关研究\n\n</PageDescription>\n\n## 简介","fileAbsolutePath":"/home/runner/work/zhengbi-yong.github.io/zhengbi-yong.github.io/slog-carbon/src/pages/灵巧手/index.mdx"}}},
-    "staticQueryHashes": ["1364590287","137577622","2102389209","2456312558","2746626797","3018647132","3037994772","768070550"]}
