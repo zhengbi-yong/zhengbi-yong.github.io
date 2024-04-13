@@ -22,6 +22,11 @@ jobs:
       run: |
         cd slog-carbon
         npm install
+        
+    - name: Clean Gatsby Cache
+      run: |
+        cd slog-carbon
+        rm -rf .cache public
 
     - name: Build
       run: |
