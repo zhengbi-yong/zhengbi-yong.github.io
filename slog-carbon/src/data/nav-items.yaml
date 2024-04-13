@@ -1,99 +1,99 @@
 - title: 灵巧手
   pages:
     - title: 简介
-      path: /灵巧手/简介
+      path: /dexteroushand/introduction
     - title: 硬件
-      path: /灵巧手/硬件
+      path: /dexteroushand/hardware
     - title: 软件
-      path: /灵巧手/软件
-- title: 个人博客
+      path: /dexteroushand/software
+- title: 网站
   pages:
-    - title: 环境设置
-      path: /个人博客/环境设置
-    - title: 组件使用
-      path: /个人博客/组件使用
+    - title: 简介
+      path: /blogwebsite/introduction
+    - title: 组件
+      path: /blogwebsite/components
 # - title: Getting started
 #   pages:
-#     - path: /getting-started
+#     - path: /docs/getting-started
 # - title: Demo
 #   pages:
-#     - path: /demo
+#     - path: /docs/demo
 # - title: Gallery
 #   pages:
-#     - path: /gallery
+#     - path: /docs/gallery
 # - title: Contributions
 #   pages:
-#     - path: /contributions
+#     - path: /docs/contributions
 # - title: Guides
 #   pages:
 #     - title: Authoring MDX
-#       path: /guides/MDX
+#       path: /docs/guides/MDX
 #     - title: Configuration
-#       path: /guides/configuration
+#       path: /docs/guides/configuration
 #     - title: Gatsby Sketch kit
-#       path: /guides/sketch-kit
+#       path: /docs/guides/sketch-kit
 #     - title: Hosting
-#       path: /guides/hosting
+#       path: /docs/guides/hosting
 #     - title: Navigation
-#       path: /guides/navigation/sidebar
+#       path: /docs/guides/navigation/sidebar
 #     - title: npm scripts
-#       path: /guides/npm-scripts
+#       path: /docs/guides/npm-scripts
 #     - title: Shadowing
-#       path: /guides/shadowing
+#       path: /docs/guides/shadowing
 #     - title: Styling
-#       path: /guides/styling
+#       path: /docs/guides/styling
 #     - title: v2.0 Migration
-#       path: /guides/v2-migration
+#       path: /docs/guides/v2-migration
 # - title: Components
 #   pages:
 #     - title: Accordion
-#       path: /components/Accordion
+#       path: /docs/components/Accordion
 #     - title: AnchorLinks
-#       path: /components/AnchorLinks
+#       path: /docs/components/AnchorLinks
 #     - title: ArtDirection
-#       path: /components/ArtDirection
+#       path: /docs/components/ArtDirection
 #     - title: ArticleCard
-#       path: /components/ArticleCard
+#       path: /docs/components/ArticleCard
 #     - title: Aside
-#       path: /components/Aside
+#       path: /docs/components/Aside
 #     - title: Caption
-#       path: /components/Caption
+#       path: /docs/components/Caption
 #     - title: Code blocks
-#       path: /components/code-blocks
+#       path: /docs/components/code-blocks
 #     - title: DoDontExample
-#       path: /components/DoDontExample
+#       path: /docs/components/DoDontExample
 #     - title: DoDontRow
-#       path: /components/DoDontRow
+#       path: /docs/components/DoDontRow
 #     - title: FeatureCard
-#       path: /components/FeatureCard
+#       path: /docs/components/FeatureCard
 #     - title: FeedbackDialog
-#       path: /components/FeedbackDialog
+#       path: /docs/components/FeedbackDialog
 #     - title: GifPlayer
-#       path: /components/GifPlayer
+#       path: /docs/components/GifPlayer
 #     - title: Grid
-#       path: /components/Grid
+#       path: /docs/components/Grid
 #     - title: ImageCard
-#       path: /components/ImageCard
+#       path: /docs/components/ImageCard
 #     - title: ImageGallery
-#       path: /components/ImageGallery
+#       path: /docs/components/ImageGallery
 #     - title: InlineNotification
-#       path: /components/InlineNotification
+#       path: /docs/components/InlineNotification
 #     - title: Markdown
-#       path: /components/markdown
+#       path: /docs/components/markdown
 #     - title: MediumPosts
-#       path: /components/MediumPosts
+#       path: /docs/components/MediumPosts
 #     - title: MiniCard
-#       path: /components/MiniCard
+#       path: /docs/components/MiniCard
 #     - title: PageDescription
-#       path: /components/PageDescription
+#       path: /docs/components/PageDescription
 #     - title: ResourceCard
-#       path: /components/ResourceCard
+#       path: /docs/components/ResourceCard
 #     - title: SquareCard
-#       path: /components/SquareCard
+#       path: /docs/components/SquareCard
 #     - title: Tabs
-#       path: /components/Tabs
+#       path: /docs/components/Tabs
 #     - title: Title
-#       path: /components/Title
+#       path: /docs/components/Title
 #     - title: Video
-#       path: /components/Video
+#       path: /docs/components/Video
 

@@ -13,7 +13,7 @@ const FirstRightText = () => (
     <a
       className={calloutLink}
       href="https://zhengbi-yong.github.io">
-      个人主页 →
+      了解更多 →
     </a>
   </p>
 );
