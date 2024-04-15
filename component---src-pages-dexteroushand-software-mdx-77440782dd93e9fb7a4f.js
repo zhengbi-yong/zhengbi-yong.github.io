@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkexample=self.webpackChunkexample||[]).push([[7905],{9641:function(n,t,e){e.r(t),e.d(t,{_frontmatter:function(){return s},default:function(){return f}});var o=e(45),u=(e(6540),e(5680)),r=e(29);const c=["components"],s={},a={_frontmatter:s},p=r.A;function f(n){let{components:t}=n,e=(0,o.A)(n,c);return(0,u.yg)(p,Object.assign({},a,e,{components:t,mdxType:"MDXLayout"}),(0,u.yg)("h2",null,"软件"))}f.isMDXComponent=!0}}]);
+//# sourceMappingURL=component---src-pages-dexteroushand-software-mdx-77440782dd93e9fb7a4f.js.map
