@@ -1,17 +1,9 @@
 - title: 灵巧手
-  pages:
-    - title: 简介
-      path: /dexteroushand/introduction
-    - title: 硬件
-      path: /dexteroushand/hardware
-    - title: 软件
-      path: /dexteroushand/software
+  pages: 
+    - path: /dexteroushand/introduction
 - title: 网站
   pages:
-    - title: 简介
-      path: /blogwebsite/introduction
-    - title: 组件
-      path: /blogwebsite/components
+    - path: /blogwebsite/introduction
 # - title: Getting started
 #   pages:
 #     - path: /docs/getting-started
