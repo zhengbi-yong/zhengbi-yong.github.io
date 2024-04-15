@@ -1,8 +1,9 @@
 module.exports = {
   siteMetadata: {
-    title: 'Sisyphus\' Blog',
+    title: '雍征彼',
     description: 'Blog of Zheng Biyong, a student of Tsinghua University and Beijing Institute of Technology. Research interests: deep learning, reinforcement learning, robotics, computer vision and multimodal.',
-    keywords: 'blog, deep learning, reinforcement learning, robotics, computer vision, multimodal, Zheng Biyong, Tsinghua University, Beijing Institute of Technology, student, undergraduate, master, 2019, 2024, 2019级, 2024级, 本科生, 硕士生, 清华大学, 北京理工大学, 学生, 深度学习, 强化学习, 机器人, 计算机视觉, 多模态'
+    keywords: 'blog, deep learning, reinforcement learning, robotics, computer vision, multimodal, Zheng Biyong, Tsinghua University, Beijing Institute of Technology, student, undergraduate, master, 2019, 2024, 2019级, 2024级, 本科生, 硕士生, 清华大学, 北京理工大学, 学生, 深度学习, 强化学习, 机器人, 计算机视觉, 多模态',
+    lang: 'zh',
   },
   pathPrefix: `/gtc`,
   plugins: [

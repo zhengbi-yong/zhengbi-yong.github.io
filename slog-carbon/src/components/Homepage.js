@@ -15,7 +15,7 @@ const FirstRightText = () => (
   </p>
 );
 
-const BannerText = () => <h1>Sisyphus' Blog</h1>;
+const BannerText = () => <h1>雍征彼</h1>;
 
 const customProps = {
   Banner: <HomepageBanner renderText={BannerText} image={Carbon} />,
