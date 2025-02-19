@@ -2,7 +2,7 @@
 const siteMetadata = {
   title: 'Zhengbi Yong',
   author: '雍征彼',
-  headerTitle: 'Zhengbi\'s Site',
+  headerTitle: 'Zhengbi Yong',
   description: '踏平坎坷成大道，斗罢艰险又出发。',
   language: 'zh-CN',
   theme: 'system', // system, dark or light
