@@ -33,7 +33,6 @@ export default function Home({ posts }) {
             <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
               电话：(+86) 186 0050 8939
             </p>
-            <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">籍贯：四川</p>
             <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
               地址：中国北京市海淀区
             </p>
