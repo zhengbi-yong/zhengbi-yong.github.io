@@ -7,10 +7,10 @@ interface Project {
 
 const projectsData: Project[] = [
   {
-    title: 'LEAP Hand',
-    description: `Dexterous manipulation base on LEAP Hand.`,
+    title: '基于 LeRobot 和 LEAP Hand 的双臂灵巧操纵系统',
+    description: `基于开源项目。`,
     imgSrc: '/static/images/shadowhand.png',
-    href: 'https://www.google.com',
+    href: '/blog/robotics/dexmani',
   },
   {
     title: 'PPG',
