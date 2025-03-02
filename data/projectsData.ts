@@ -9,14 +9,14 @@ const projectsData: Project[] = [
   {
     title: '基于 LeRobot 和 LEAP Hand 的双臂灵巧操纵系统',
     description: `基于开源项目。`,
-    imgSrc: '/static/images/shadowhand.png',
+    imgSrc: '/static/images/robotics/SO-100.webp',
     href: '/blog/robotics/dexmani',
   },
   {
-    title: 'PPG',
-    description: `Use PPG signal to detect heart rate and blood pressure, etc.`,
+    title: '论文阅读',
+    description: `阅读并整理最新的论文。`,
     imgSrc: '/static/images/units.jpg',
-    href: '/blog/the-time-machine',
+    href: '/blog/robotics/dexmani',
   },
 ];
 
