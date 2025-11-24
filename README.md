@@ -20,7 +20,8 @@
 - **语言**: TypeScript
 - **样式**: Tailwind CSS 4.0.5
 - **内容管理**: Contentlayer2 0.5.4
-- **UI 组件**: Headless UI, Radix UI, Shadcn
+- **UI 组件**: Headless UI, Radix UI, Shadcn UI
+- **动画**: Framer Motion 12.23.24, Tailwind CSS Animate
 - **3D 渲染**: Three.js, URDF Loader
 - **其他**: Pliny (分析、评论、搜索), MDX, KaTeX, Prism
 
@@ -48,6 +49,10 @@
 - ✅ 搜索功能（Kbar 命令面板）
 - ✅ 评论系统（Giscus）
 - ✅ 分析统计（Umami）
+- ✅ 滚动触发动画（基于 Intersection Observer）
+- ✅ Framer Motion 高级动画支持
+- ✅ MDX 动画组件（FadeIn、SlideIn、ScaleIn）
+- ✅ Shadcn UI 组件库集成
 
 ## 环境要求
 
@@ -191,6 +196,248 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 3. 文章支持完整的 Markdown 语法，以及 MDX（可在 Markdown 中使用 React 组件）
+
+### 在 MDX 文件中使用动画和组件
+
+本博客系统支持在 MDX 文件中直接使用动画组件和 UI 组件，让您的文章更加生动有趣。
+
+#### 可用的动画组件
+
+##### 第一阶段：基础动画组件（基于 CSS）
+
+**AnimatedSection** - 滚动触发动画组件
+
+```mdx
+<AnimatedSection direction="up" delay={100}>
+  <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+    <h3>这是一个会淡入并上滑的内容块</h3>
+    <p>当用户滚动到这个区域时，内容会以动画形式出现。</p>
+  </div>
+</AnimatedSection>
+```
+
+**参数说明**：
+- `direction`: `'up' | 'down' | 'left' | 'right'` - 动画方向，默认 `'up'`
+- `delay`: `number` - 延迟时间（毫秒），默认 `0`
+- `className`: `string` - 自定义 CSS 类名
+
+**AnimatedList** - 交错动画列表组件
+
+```mdx
+<AnimatedList staggerDelay={100}>
+  <div>第一个项目</div>
+  <div>第二个项目</div>
+  <div>第三个项目</div>
+</AnimatedList>
+```
+
+**参数说明**：
+- `staggerDelay`: `number` - 每个子元素之间的延迟（毫秒），默认 `100`
+- `className`: `string` - 自定义 CSS 类名
+
+##### 第二阶段：Framer Motion 动画组件（更流畅）
+
+**FadeIn** - 淡入动画
+
+```mdx
+<FadeIn delay={0.2} duration={0.5} whileInView={true}>
+  <div className="p-4 bg-blue-100 dark:bg-blue-900 rounded-lg">
+    <h3>淡入效果</h3>
+    <p>这个内容会在滚动到视口时淡入显示。</p>
+  </div>
+</FadeIn>
+```
+
+**参数说明**：
+- `delay`: `number` - 延迟时间（秒），默认 `0`
+- `duration`: `number` - 动画时长（秒），默认 `0.5`
+- `whileInView`: `boolean` - 是否在进入视口时触发，默认 `false`
+- `className`: `string` - 自定义 CSS 类名
+
+**SlideIn** - 滑入动画
+
+```mdx
+<SlideIn direction="up" delay={0.1} whileInView={true}>
+  <div className="p-4 bg-green-100 dark:bg-green-900 rounded-lg">
+    <h3>向上滑入</h3>
+    <p>内容会从下方滑入并淡入显示。</p>
+  </div>
+</SlideIn>
+
+<SlideIn direction="left" delay={0.2} whileInView={true}>
+  <div className="p-4 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+    <h3>向左滑入</h3>
+    <p>内容会从右侧滑入。</p>
+  </div>
+</SlideIn>
+```
+
+**参数说明**：
+- `direction`: `'up' | 'down' | 'left' | 'right'` - 滑动方向，默认 `'up'`
+- `delay`: `number` - 延迟时间（秒），默认 `0`
+- `duration`: `number` - 动画时长（秒），默认 `0.5`
+- `distance`: `number` - 滑动距离（像素），默认 `20`
+- `whileInView`: `boolean` - 是否在进入视口时触发，默认 `false`
+- `className`: `string` - 自定义 CSS 类名
+
+**ScaleIn** - 缩放进入动画
+
+```mdx
+<ScaleIn scale={0.8} delay={0.2} whileInView={true}>
+  <div className="p-4 bg-purple-100 dark:bg-purple-900 rounded-lg">
+    <h3>缩放进入</h3>
+    <p>内容会从 0.8 倍缩放并淡入显示。</p>
+  </div>
+</ScaleIn>
+```
+
+**参数说明**：
+- `scale`: `number` - 初始缩放比例，默认 `0.8`
+- `delay`: `number` - 延迟时间（秒），默认 `0`
+- `duration`: `number` - 动画时长（秒），默认 `0.5`
+- `whileInView`: `boolean` - 是否在进入视口时触发，默认 `false`
+- `className`: `string` - 自定义 CSS 类名
+
+#### 组合使用示例
+
+您可以将多个动画组件组合使用，创建更丰富的视觉效果：
+
+```mdx
+<SlideIn direction="up" delay={0} whileInView={true}>
+  <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white">
+    <h2>组合动画示例</h2>
+    <p className="mb-4">外层使用滑入动画</p>
+    
+    <ScaleIn delay={0.3} whileInView={true}>
+      <button className="px-4 py-2 bg-white text-blue-500 rounded hover:bg-gray-100">
+        内部按钮使用缩放动画
+      </button>
+    </ScaleIn>
+  </div>
+</SlideIn>
+```
+
+#### 使用场景建议
+
+1. **AnimatedSection / SlideIn** - 适合用于：
+   - 突出显示重要内容块
+   - 代码示例或演示
+   - 图片说明
+   - 引用块
+
+2. **FadeIn** - 适合用于：
+   - 文章段落
+   - 列表项
+   - 需要柔和出现的内容
+
+3. **ScaleIn** - 适合用于：
+   - 按钮和交互元素
+   - 卡片式内容
+   - 需要强调的元素
+
+4. **AnimatedList** - 适合用于：
+   - 步骤列表
+   - 功能特性列表
+   - 多个相关内容的展示
+
+#### 注意事项
+
+1. **性能考虑**：
+   - 不要过度使用动画，避免影响页面性能
+   - 建议每个页面使用 3-5 个动画组件
+   - 使用 `whileInView={true}` 可以确保动画只在元素进入视口时触发
+
+2. **可访问性**：
+   - 动画应该增强用户体验，而不是干扰阅读
+   - 如果用户设置了 `prefers-reduced-motion`，动画会自动降级
+
+3. **向后兼容**：
+   - 第一阶段的组件（AnimatedSection、AnimatedList）仍然可用
+   - 建议新文章使用 Framer Motion 组件（FadeIn、SlideIn、ScaleIn）以获得更好的性能
+
+#### 完整示例
+
+以下是一个完整的 MDX 文章示例，展示了如何使用动画组件：
+
+```mdx
+---
+title: '使用动画组件增强文章'
+date: '2025-01-15'
+tags: ['Tutorial']
+draft: false
+summary: '学习如何在 MDX 文章中使用动画组件'
+---
+
+## 介绍
+
+这篇文章展示了如何在 MDX 中使用动画组件。
+
+<FadeIn delay={0.2} whileInView={true}>
+  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+    <h3>重要提示</h3>
+    <p>这个提示框使用了淡入动画。</p>
+  </div>
+</FadeIn>
+
+## 步骤说明
+
+<AnimatedList staggerDelay={150}>
+  <div className="p-4 mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+    <h4>步骤 1：准备</h4>
+    <p>准备所需材料...</p>
+  </div>
+  <div className="p-4 mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+    <h4>步骤 2：实施</h4>
+    <p>按照计划实施...</p>
+  </div>
+  <div className="p-4 mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+    <h4>步骤 3：验证</h4>
+    <p>验证结果...</p>
+  </div>
+</AnimatedList>
+
+## 代码示例
+
+<SlideIn direction="up" delay={0.1} whileInView={true}>
+  <div className="p-4 bg-gray-900 rounded-lg">
+    <pre className="text-green-400">
+      <code>{`// 这是一个代码示例
+function example() {
+  return "Hello, World!";
+}`}</code>
+    </pre>
+  </div>
+</SlideIn>
+```
+
+#### 查看更多示例
+
+访问 `/experiment` 页面可以查看所有动画组件的交互式示例和演示效果。
+
+#### 使用其他组件
+
+除了动画组件，您还可以在 MDX 文件中使用其他 React 组件。如果组件已经在 `components/MDXComponents.tsx` 中注册，可以直接使用组件名；如果需要使用未注册的组件，可以在 MDX 文件顶部导入：
+
+```mdx
+---
+title: '使用自定义组件'
+date: '2025-01-15'
+tags: ['Tutorial']
+---
+
+import { Button } from '@/components/components/ui/button'
+import { Badge } from '@/components/components/ui/badge'
+
+## 使用 Shadcn UI 组件
+
+<Button onClick={() => alert('按钮被点击！')}>
+  点击我
+</Button>
+
+<Badge variant="secondary">标签</Badge>
+```
+
+**注意**：在 MDX 文件中导入组件时，确保路径正确，并且组件支持客户端渲染（使用 `'use client'` 指令）。
 
 ### 可用的脚本命令
 
