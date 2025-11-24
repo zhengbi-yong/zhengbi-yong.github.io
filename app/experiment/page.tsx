@@ -64,6 +64,11 @@ const ThreeJSViewer = dynamic(() => import('@/components/ThreeJSViewer'), {
 // 动态导入 ParticleBackground 组件（可选，进一步优化）
 const ParticleBackground = dynamic(() => import('@/components/ParticleBackground'), {
   ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <p className="text-sm text-gray-500">加载粒子动画中...</p>
+    </div>
+  ),
 })
 
 export default function Projects() {
