@@ -94,6 +94,12 @@ module.exports = () => {
         use: ['@svgr/webpack'],
       })
 
+      // Add alias for contentlayer/generated to fix Windows path resolution
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'contentlayer/generated': require('path').resolve(__dirname, '.contentlayer/generated'),
+      }
+
       return config
     },
   })
