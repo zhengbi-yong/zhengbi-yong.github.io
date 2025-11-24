@@ -508,13 +508,38 @@ EXPORT=1 UNOPTIMIZED=1 yarn build
 **手动部署**:
 将 `out/` 目录上传到您的 Web 服务器（Nginx、Apache 等）
 
-#### 3. Nginx 配置示例
+#### 3. 服务器端配置（Nginx）
+
+##### 3.1 安装 Nginx（如果未安装）
+
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install nginx -y
+
+# 启动 Nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+```
+
+##### 3.2 创建 Nginx 配置文件
+
+```bash
+# 创建配置文件
+sudo nano /etc/nginx/sites-available/blog
+```
+
+将以下配置内容复制到文件中（**重要：请根据实际情况修改 `server_name` 和 `root` 路径**）：
 
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com;  # 替换为您的域名或 IP
-    root /path/to/out;  # 替换为您的实际路径（如 /home/ubuntu/PersonalBlog/out）
+    server_name your-domain.com 152.136.43.194;  # 替换为您的域名或 IP
+
+    # 静态资源根目录（必须指向 out 目录的完整路径）
+    root /home/ubuntu/PersonalBlog/out;  # 替换为您的实际路径
+    
+    # 默认首页配置
     index index.html;
 
     # 启用 gzip 压缩
@@ -523,42 +548,179 @@ server {
     gzip_min_length 1024;
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json application/javascript;
 
-    # 处理 Next.js 静态导出路由
-    # 关键：必须正确处理 .html 文件扩展名
-    location / {
-        # 首先尝试直接文件，然后尝试 .html 文件，最后尝试目录，最后回退到 index.html
+    # 处理博客文章路由（必须在通用 location 之前）
+    # Next.js 静态导出会生成 /blog/robotics/dexmani.html
+    # 但链接是 /blog/robotics/dexmani（没有 .html）
+    location ~ ^/blog/ {
+        # 关键：必须包含 $uri.html 来处理 Next.js 静态导出
         try_files $uri $uri.html $uri/ /index.html;
     }
 
-    # 处理博客文章路由（嵌套路径，如 /blog/robotics/dexmani）
-    location ~ ^/blog/ {
-        # 尝试文件、.html 文件、目录，最后回退到 index.html
+    # 处理所有其他请求
+    location / {
+        # 关键：必须包含 $uri.html 来处理 Next.js 静态导出
+        # 顺序：先尝试文件 -> 再尝试 .html 文件 -> 再尝试目录 -> 最后回退到 index.html
         try_files $uri $uri.html $uri/ /index.html;
     }
 
     # 处理 _next 静态资源（长期缓存）
     location /_next/static {
         expires 365d;
+        access_log off;
         add_header Cache-Control "public, immutable";
     }
 
-    # 处理其他静态资源
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
-        expires 30d;
+    # 静态资源缓存配置
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 365d;
+        access_log off;
         add_header Cache-Control "public, immutable";
     }
 
-    # 错误页面
+    # 错误页面配置
     error_page 404 /404.html;
-    error_page 500 502 503 504 /500.html;
+    error_page 500 502 503 504 /50x.html;
 }
 ```
 
+**配置说明**：
+- `server_name`: 替换为您的域名或 IP 地址（多个用空格分隔）
+- `root`: 替换为 `out` 目录在服务器上的完整路径
+- `try_files $uri.html`: **这是关键配置**，必须包含，用于处理 Next.js 静态导出的 `.html` 文件
+
+##### 3.3 启用站点配置
+
+```bash
+# 创建符号链接启用站点
+sudo ln -s /etc/nginx/sites-available/blog /etc/nginx/sites-enabled/
+
+# 如果存在默认配置，可以禁用它（可选）
+sudo rm /etc/nginx/sites-enabled/default
+```
+
+##### 3.4 测试 Nginx 配置
+
+```bash
+# 检查配置语法
+sudo nginx -t
+```
+
+如果显示 `syntax is ok` 和 `test is successful`，说明配置正确。
+
+##### 3.5 设置文件权限
+
+```bash
+# 确保 Nginx 可以访问文件
+sudo chown -R www-data:www-data /home/ubuntu/PersonalBlog/out
+sudo chmod -R 755 /home/ubuntu/PersonalBlog/out
+```
+
+**注意**：将路径替换为您的实际 `out` 目录路径。
+
+##### 3.6 重新加载 Nginx
+
+```bash
+# 重新加载 Nginx 配置（不中断服务）
+sudo systemctl reload nginx
+
+# 或者重启 Nginx（会短暂中断服务）
+sudo systemctl restart nginx
+```
+
+##### 3.7 验证部署
+
+1. 访问网站首页：`http://your-domain.com` 或 `http://152.136.43.194`
+2. 访问博客列表：`http://your-domain.com/blog`
+3. 访问博客文章：`http://your-domain.com/blog/robotics/dexmani`
+
+如果博客文章能正常显示，说明部署成功！
+
+##### 3.8 常见问题排查
+
+**问题 1：博客文章点击后跳转到首页**
+
+**原因**：Nginx 配置中缺少 `$uri.html`
+
+**解决**：
+1. 检查配置文件中的 `try_files` 是否包含 `$uri.html`
+2. 检查配置文件位置是否正确：`/etc/nginx/sites-available/blog`
+3. 运行 `sudo nginx -t` 检查语法
+4. 运行 `sudo systemctl reload nginx` 重新加载配置
+
+**问题 2：403 Forbidden 错误**
+
+**原因**：文件权限不正确
+
+**解决**：
+```bash
+# 检查文件权限
+ls -la /home/ubuntu/PersonalBlog/out
+
+# 设置正确的权限
+sudo chown -R www-data:www-data /home/ubuntu/PersonalBlog/out
+sudo chmod -R 755 /home/ubuntu/PersonalBlog/out
+```
+
+**问题 3：404 Not Found 错误**
+
+**原因**：文件路径不正确或文件未同步
+
+**解决**：
+```bash
+# 检查文件是否存在
+ls -la /home/ubuntu/PersonalBlog/out/blog/robotics/
+
+# 检查 Nginx root 配置是否正确
+sudo cat /etc/nginx/sites-available/blog | grep root
+
+# 查看 Nginx 错误日志
+sudo tail -f /var/log/nginx/error.log
+```
+
+**问题 4：静态资源加载失败**
+
+**原因**：`_next/static` 目录权限或路径问题
+
+**解决**：
+```bash
+# 检查 _next 目录
+ls -la /home/ubuntu/PersonalBlog/out/_next/static
+
+# 确保权限正确
+sudo chown -R www-data:www-data /home/ubuntu/PersonalBlog/out/_next
+```
+
+##### 3.9 查看日志
+
+```bash
+# 查看 Nginx 访问日志
+sudo tail -f /var/log/nginx/access.log
+
+# 查看 Nginx 错误日志
+sudo tail -f /var/log/nginx/error.log
+
+# 查看 Nginx 状态
+sudo systemctl status nginx
+```
+
+##### 3.10 更新部署后的操作
+
+每次使用 `sync.ps1` 同步文件后，通常不需要重启 Nginx，但如果遇到问题，可以：
+
+```bash
+# 重新加载配置（推荐，不中断服务）
+sudo systemctl reload nginx
+
+# 或者重启 Nginx
+sudo systemctl restart nginx
+```
+
 **重要提示**：
-- 确保 `root` 路径指向正确的 `out` 目录
-- `try_files` 配置必须包含 `$uri.html`，这是处理 Next.js 静态导出的关键
-- 如果博客文章仍然跳转到首页，检查 Nginx 错误日志：`tail -f /var/log/nginx/error.log`
-- 配置修改后，运行 `sudo nginx -t` 检查语法，然后 `sudo systemctl reload nginx` 重新加载配置
+- ✅ `try_files` 配置必须包含 `$uri.html`，这是处理 Next.js 静态导出的关键
+- ✅ 确保 `root` 路径指向正确的 `out` 目录
+- ✅ 确保文件权限正确（Nginx 用户 `www-data` 可以读取）
+- ✅ 配置修改后必须运行 `sudo nginx -t` 检查语法
+- ✅ 配置修改后必须运行 `sudo systemctl reload nginx` 重新加载配置
 
 ### 方式二：Vercel 部署
 
