@@ -9,14 +9,14 @@ $env:UNOPTIMIZED = 1
 yarn build
 
 # 开始同步
-$sourceFolder = "C:\blog\out\"
+$sourceFolder = Join-Path (Get-Location).Path "out"
 $remoteUser = "ubuntu"    
 $remoteIP = "152.136.43.194"     
 $remotePort = 22                   
 $remotePath = "/home/ubuntu/PersonalBlog/out/"
-$cygwinSource = (C:\cygwin64\bin\cygpath.exe -u $sourceFolder).Trim()
+$cygwinSource = (& "C:\cygwin64\bin\cygpath.exe" -u $sourceFolder).Trim()
 if (-not (Test-Path $sourceFolder)) {
-    Write-Host "错误：Windows路径不存在" -ForegroundColor Red
+    Write-Host "错误：Windows路径不存在: $sourceFolder" -ForegroundColor Red
     exit 1
 }
 & "C:\cygwin64\bin\rsync.exe" -avztP --delete  `
