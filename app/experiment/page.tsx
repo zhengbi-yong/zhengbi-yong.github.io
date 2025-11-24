@@ -26,6 +26,8 @@ import { Separator } from '@/components/components/ui/separator'
 import FadeIn from '@/components/animations/FadeIn'
 import SlideIn from '@/components/animations/SlideIn'
 import ScaleIn from '@/components/animations/ScaleIn'
+import ParticleBackground from '@/components/ParticleBackground'
+
 export default function Projects() {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef(new THREE.Scene())
@@ -466,6 +468,43 @@ export default function Projects() {
                 </ScaleIn>
               </div>
             </SlideIn>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* 粒子背景特效示例 */}
+      <div className="space-y-6 py-6">
+        <h2 className="text-2xl font-bold">粒子背景特效</h2>
+        <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
+          使用 Canvas API 实现的轻量级粒子背景效果
+        </p>
+
+        <div className="relative h-64 w-full overflow-hidden rounded-lg border bg-gray-50 dark:bg-gray-900">
+          <ParticleBackground particleCount={50} speed={0.5} />
+          <div className="relative z-10 flex h-full items-center justify-center">
+            <div className="rounded-lg bg-white/80 p-6 shadow-lg backdrop-blur-sm dark:bg-gray-800/80">
+              <h3 className="mb-2 text-xl font-bold">粒子背景示例</h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                这个区域展示了粒子背景特效，粒子会自动移动并连接形成网络效果。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="relative h-48 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-blue-500 to-purple-500">
+            <ParticleBackground particleCount={30} color="rgba(255, 255, 255, 0.2)" speed={0.3} />
+            <div className="relative z-10 flex h-full items-center justify-center">
+              <p className="text-white">较少粒子，较慢速度</p>
+            </div>
+          </div>
+          <div className="relative h-48 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-green-500 to-teal-500">
+            <ParticleBackground particleCount={80} color="rgba(255, 255, 255, 0.15)" speed={0.8} />
+            <div className="relative z-10 flex h-full items-center justify-center">
+              <p className="text-white">较多粒子，较快速度</p>
+            </div>
           </div>
         </div>
       </div>
