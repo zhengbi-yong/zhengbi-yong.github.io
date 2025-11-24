@@ -513,15 +513,52 @@ EXPORT=1 UNOPTIMIZED=1 yarn build
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com;
-    root /path/to/out;
+    server_name your-domain.com;  # 替换为您的域名或 IP
+    root /path/to/out;  # 替换为您的实际路径（如 /home/ubuntu/PersonalBlog/out）
     index index.html;
 
+    # 启用 gzip 压缩
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json application/javascript;
+
+    # 处理 Next.js 静态导出路由
+    # 关键：必须正确处理 .html 文件扩展名
     location / {
-        try_files $uri $uri.html $uri/ =404;
+        # 首先尝试直接文件，然后尝试 .html 文件，最后尝试目录，最后回退到 index.html
+        try_files $uri $uri.html $uri/ /index.html;
     }
+
+    # 处理博客文章路由（嵌套路径，如 /blog/robotics/dexmani）
+    location ~ ^/blog/ {
+        # 尝试文件、.html 文件、目录，最后回退到 index.html
+        try_files $uri $uri.html $uri/ /index.html;
+    }
+
+    # 处理 _next 静态资源（长期缓存）
+    location /_next/static {
+        expires 365d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # 处理其他静态资源
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # 错误页面
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /500.html;
 }
 ```
+
+**重要提示**：
+- 确保 `root` 路径指向正确的 `out` 目录
+- `try_files` 配置必须包含 `$uri.html`，这是处理 Next.js 静态导出的关键
+- 如果博客文章仍然跳转到首页，检查 Nginx 错误日志：`tail -f /var/log/nginx/error.log`
+- 配置修改后，运行 `sudo nginx -t` 检查语法，然后 `sudo systemctl reload nginx` 重新加载配置
 
 ### 方式二：Vercel 部署
 
