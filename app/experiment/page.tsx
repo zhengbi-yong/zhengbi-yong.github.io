@@ -20,9 +20,36 @@ import {
   TooltipTrigger,
 } from '@/components/components/ui/tooltip'
 import { Separator } from '@/components/components/ui/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/components/ui/dropdown-menu'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/components/ui/tabs'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/components/ui/accordion'
+import { Alert, AlertDescription, AlertTitle } from '@/components/components/ui/alert'
+import { Progress } from '@/components/components/ui/progress'
 import FadeIn from '@/components/animations/FadeIn'
 import SlideIn from '@/components/animations/SlideIn'
 import ScaleIn from '@/components/animations/ScaleIn'
+import RotateIn from '@/components/animations/RotateIn'
+import BounceIn from '@/components/animations/BounceIn'
 
 // 动态导入 Three.js 相关组件，实现代码分割
 const ThreeJSViewer = dynamic(() => import('@/components/ThreeJSViewer'), {
@@ -214,6 +241,115 @@ export default function Projects() {
             <p>分隔线下方的内容</p>
           </div>
         </div>
+
+        <Separator />
+
+        {/* Dialog 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Dialog 组件</h3>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>打开对话框</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>对话框标题</DialogTitle>
+                <DialogDescription>
+                  这是一个对话框示例，可以用于显示重要信息或收集用户输入。
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <p>对话框内容区域</p>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <Separator />
+
+        {/* DropdownMenu 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">DropdownMenu 组件</h3>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">打开菜单</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>我的账户</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>个人资料</DropdownMenuItem>
+              <DropdownMenuItem>设置</DropdownMenuItem>
+              <DropdownMenuItem>退出登录</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <Separator />
+
+        {/* Tabs 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Tabs 组件</h3>
+          <Tabs defaultValue="account" className="w-full">
+            <TabsList>
+              <TabsTrigger value="account">账户</TabsTrigger>
+              <TabsTrigger value="password">密码</TabsTrigger>
+              <TabsTrigger value="settings">设置</TabsTrigger>
+            </TabsList>
+            <TabsContent value="account">账户相关的内容</TabsContent>
+            <TabsContent value="password">密码相关的内容</TabsContent>
+            <TabsContent value="settings">设置相关的内容</TabsContent>
+          </Tabs>
+        </div>
+
+        <Separator />
+
+        {/* Accordion 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Accordion 组件</h3>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="item-1">
+              <AccordionTrigger>第一个项目</AccordionTrigger>
+              <AccordionContent>这是第一个项目的内容。</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-2">
+              <AccordionTrigger>第二个项目</AccordionTrigger>
+              <AccordionContent>这是第二个项目的内容。</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-3">
+              <AccordionTrigger>第三个项目</AccordionTrigger>
+              <AccordionContent>这是第三个项目的内容。</AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+
+        <Separator />
+
+        {/* Alert 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Alert 组件</h3>
+          <div className="space-y-2">
+            <Alert>
+              <AlertTitle>提示</AlertTitle>
+              <AlertDescription>这是一个默认的提示信息。</AlertDescription>
+            </Alert>
+            <Alert variant="destructive">
+              <AlertTitle>错误</AlertTitle>
+              <AlertDescription>这是一个错误提示信息。</AlertDescription>
+            </Alert>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Progress 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Progress 组件</h3>
+          <div className="space-y-2">
+            <Progress value={33} />
+            <Progress value={66} />
+            <Progress value={100} />
+          </div>
+        </div>
       </div>
 
       <Separator />
@@ -297,6 +433,54 @@ export default function Projects() {
                 <p>从 0.9 倍缩放</p>
               </div>
             </ScaleIn>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* RotateIn 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">RotateIn - 旋转进入动画</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <RotateIn delay={0} angle={90} whileInView={true}>
+              <div className="rounded-lg border bg-indigo-100 p-4 dark:bg-indigo-900">
+                <p>旋转 90 度</p>
+              </div>
+            </RotateIn>
+            <RotateIn delay={0.2} angle={180} whileInView={true}>
+              <div className="rounded-lg border bg-violet-100 p-4 dark:bg-violet-900">
+                <p>旋转 180 度</p>
+              </div>
+            </RotateIn>
+            <RotateIn delay={0.4} angle={360} whileInView={true}>
+              <div className="rounded-lg border bg-fuchsia-100 p-4 dark:bg-fuchsia-900">
+                <p>旋转 360 度</p>
+              </div>
+            </RotateIn>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* BounceIn 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">BounceIn - 弹跳进入动画</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <BounceIn delay={0} whileInView={true}>
+              <div className="rounded-lg border bg-cyan-100 p-4 dark:bg-cyan-900">
+                <p>弹跳进入 1</p>
+              </div>
+            </BounceIn>
+            <BounceIn delay={0.2} whileInView={true}>
+              <div className="rounded-lg border bg-teal-100 p-4 dark:bg-teal-900">
+                <p>弹跳进入 2</p>
+              </div>
+            </BounceIn>
+            <BounceIn delay={0.4} whileInView={true}>
+              <div className="rounded-lg border bg-emerald-100 p-4 dark:bg-emerald-900">
+                <p>弹跳进入 3</p>
+              </div>
+            </BounceIn>
           </div>
         </div>
 

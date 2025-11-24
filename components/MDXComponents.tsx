@@ -10,6 +10,8 @@ import AnimatedList from './AnimatedList'
 import FadeIn from './animations/FadeIn'
 import SlideIn from './animations/SlideIn'
 import ScaleIn from './animations/ScaleIn'
+import RotateIn from './animations/RotateIn'
+import BounceIn from './animations/BounceIn'
 
 export const components: MDXComponents = {
   Image,
@@ -25,4 +27,6 @@ export const components: MDXComponents = {
   FadeIn,
   SlideIn,
   ScaleIn,
+  RotateIn,
+  BounceIn,
 }
