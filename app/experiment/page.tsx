@@ -4,9 +4,25 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import URDFLoader from 'urdf-loader'
 import projectsData from '@/data/projectsData'
-import Card from '@/components/Card'
+import ProjectCard from '@/components/Card'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Button } from '@/components/components/ui/button'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/components/ui/card'
+import { Badge } from '@/components/components/ui/badge'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/components/ui/tooltip'
+import { Separator } from '@/components/components/ui/separator'
 export default function Projects() {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef(new THREE.Scene())
@@ -184,8 +200,166 @@ export default function Projects() {
         style={{ backgroundColor: '#f0f0f0' }}
       />
       <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">Shadcn 组件集成</p>
-      <div>
-        <Button>点击我</Button>
+      <div className="space-y-6 py-6">
+        {/* Button 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Button 组件</h3>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => {
+                alert('默认按钮被点击！')
+              }}
+            >
+              默认按钮
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                alert('次要按钮被点击！')
+              }}
+            >
+              次要按钮
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                alert('轮廓按钮被点击！')
+              }}
+            >
+              轮廓按钮
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                alert('幽灵按钮被点击！')
+              }}
+            >
+              幽灵按钮
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                alert('危险按钮被点击！')
+              }}
+            >
+              危险按钮
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                alert('小按钮被点击！')
+              }}
+            >
+              小按钮
+            </Button>
+            <Button
+              size="lg"
+              onClick={() => {
+                alert('大按钮被点击！')
+              }}
+            >
+              大按钮
+            </Button>
+            <Button
+              disabled
+              onClick={() => {
+                alert('这个按钮被禁用了，不应该触发')
+              }}
+            >
+              禁用按钮
+            </Button>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Badge 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Badge 组件</h3>
+          <div className="flex flex-wrap gap-2">
+            <Badge>默认</Badge>
+            <Badge variant="secondary">次要</Badge>
+            <Badge variant="destructive">危险</Badge>
+            <Badge variant="outline">轮廓</Badge>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Card 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Card 组件</h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>卡片标题</CardTitle>
+                <CardDescription>这是卡片的描述信息</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>这是卡片的内容区域，可以放置任何内容。</p>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={() => {
+                    alert('卡片中的按钮被点击！')
+                  }}
+                >
+                  操作按钮
+                </Button>
+              </CardFooter>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>另一个卡片</CardTitle>
+                <CardDescription>展示不同的卡片样式</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>Card 组件非常适合展示项目、文章摘要等内容。</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Tooltip 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Tooltip 组件</h3>
+          <div className="flex gap-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline">悬停查看提示</Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>这是一个工具提示</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline">另一个提示</Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>提示信息可以包含更多内容</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Separator 组件 */}
+        <div>
+          <h3 className="mb-2 text-lg font-semibold">Separator 组件</h3>
+          <div className="space-y-2">
+            <p>分隔线上方的内容</p>
+            <Separator />
+            <p>分隔线下方的内容</p>
+          </div>
+        </div>
       </div>
     </div>
   )
