@@ -1001,11 +1001,11 @@
 ## 任务进度
 
 ### 待执行步骤
-- [ ] 步骤 1: 优化 experiment 页面代码分割
-- [ ] 步骤 2: 创建 ThreeJSViewer 组件
-- [ ] 步骤 3: 优化动画性能 - 添加 will-change 属性
-- [ ] 步骤 4: 优化 Intersection Observer 配置
-- [ ] 步骤 5: 移动设备动画优化
+- [x] 步骤 1: 优化 experiment 页面代码分割 ✅
+- [x] 步骤 2: 创建 ThreeJSViewer 组件 ✅
+- [x] 步骤 3: 优化动画性能 - 添加 will-change 属性 ✅
+- [x] 步骤 4: 优化 Intersection Observer 配置 ✅
+- [x] 步骤 5: 移动设备动画优化 ✅
 - [ ] 步骤 6: 创建 RotateIn 动画组件
 - [ ] 步骤 7: 创建 BounceIn 动画组件
 - [ ] 步骤 8: 更新 MDXComponents 添加新动画组件
@@ -1044,5 +1044,64 @@
 
 **最后更新**: 2025-11-24
 
-如有问题，请参考任务文件或联系开发者。
+---
+
+## 第四阶段执行记录
+
+**[2025-11-24] 第四阶段：性能优化 - 部分完成**
+
+**已完成的步骤**：
+1. ✅ 步骤 1: 优化 experiment 页面代码分割
+   - 创建了 `components/ThreeJSViewer.tsx` 组件
+   - 使用 `dynamic` 导入 ThreeJSViewer 和 ParticleBackground
+   - **结果**：experiment 页面 Bundle 大小从 186 kB + 328 kB 减少到 28.8 kB + 171 kB（显著优化）
+
+2. ✅ 步骤 2: 创建 ThreeJSViewer 组件
+   - 将 Three.js 相关代码从 experiment 页面分离
+   - 支持动态导入，按需加载
+   - 保持所有原有功能（URDF 加载、轨道控制、光照等）
+
+3. ✅ 步骤 3: 优化动画性能 - 添加 will-change 属性
+   - 在 AnimatedSection 组件中添加 `will-change: transform, opacity`
+   - 动画完成后自动移除 will-change 以释放 GPU 资源
+   - 提升动画性能，启用 GPU 加速
+
+4. ✅ 步骤 4: 优化 Intersection Observer 配置
+   - 根据动画方向动态设置 rootMargin
+   - 提前 50px 触发动画，提供更好的视觉体验
+   - 优化动画触发时机
+
+5. ✅ 步骤 5: 移动设备动画优化
+   - 创建 `lib/utils/device.ts` 设备检测工具
+   - AnimatedSection: 移动设备使用较小的 translate 距离和更短的动画时长
+   - FadeIn, SlideIn, ScaleIn: 移动设备缩短动画时长
+   - ParticleBackground: 移动设备减少粒子数量和速度
+   - 更新 tsconfig.json 和 jsconfig.json 添加 `@/lib/*` 路径映射
+
+**修改的文件**：
+- `components/ThreeJSViewer.tsx` (新建)
+- `app/experiment/page.tsx` (修改，使用动态导入)
+- `components/AnimatedSection.tsx` (修改，添加 will-change 和移动设备优化)
+- `components/animations/FadeIn.tsx` (修改，添加移动设备优化)
+- `components/animations/SlideIn.tsx` (修改，添加移动设备优化)
+- `components/animations/ScaleIn.tsx` (修改，添加移动设备优化)
+- `components/ParticleBackground.tsx` (修改，添加移动设备优化)
+- `lib/utils/device.ts` (新建)
+- `tsconfig.json` (修改，添加路径映射)
+- `jsconfig.json` (修改，添加路径映射)
+
+**构建结果**：
+- ✅ 构建成功
+- ✅ 无编译错误
+- ✅ TypeScript 类型检查通过
+- ✅ experiment 页面 Bundle 大小显著减小
+
+**性能改进**：
+- experiment 页面初始 Bundle: 从 328 kB 减少到 171 kB（减少 ~48%）
+- Three.js 代码按需加载，不影响其他页面
+- 移动设备动画性能提升
+- GPU 加速优化
+
+**下一步**：
+- 继续执行第五阶段：功能扩展（中优先级）
 

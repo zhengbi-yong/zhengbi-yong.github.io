@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { isMobileDevice } from '@/lib/utils/device'
 
 interface ParticleBackgroundProps {
   className?: string
@@ -20,6 +21,10 @@ export default function ParticleBackground({
   color,
   speed = 0.5,
 }: ParticleBackgroundProps) {
+  // 移动设备优化：减少粒子数量
+  const isMobile = isMobileDevice()
+  const optimizedParticleCount = isMobile ? Math.min(particleCount, 30) : particleCount
+  const optimizedSpeed = isMobile ? speed * 0.7 : speed // 移动设备降低速度
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationFrameRef = useRef<number | undefined>(undefined)
   const particlesRef = useRef<
@@ -57,12 +62,12 @@ export default function ParticleBackground({
     // 初始化粒子
     const initParticles = () => {
       particlesRef.current = []
-      for (let i = 0; i < particleCount; i++) {
+      for (let i = 0; i < optimizedParticleCount; i++) {
         particlesRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * speed,
-          vy: (Math.random() - 0.5) * speed,
+          vx: (Math.random() - 0.5) * optimizedSpeed,
+          vy: (Math.random() - 0.5) * optimizedSpeed,
           radius: Math.random() * 2 + 1,
         })
       }
@@ -146,7 +151,7 @@ export default function ParticleBackground({
       }
       observer.disconnect()
     }
-  }, [particleCount, color, speed])
+  }, [optimizedParticleCount, color, optimizedSpeed])
 
   return (
     <canvas
