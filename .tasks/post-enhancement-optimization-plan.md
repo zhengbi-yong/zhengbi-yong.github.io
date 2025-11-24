@@ -1006,12 +1006,12 @@
 - [x] 步骤 3: 优化动画性能 - 添加 will-change 属性 ✅
 - [x] 步骤 4: 优化 Intersection Observer 配置 ✅
 - [x] 步骤 5: 移动设备动画优化 ✅
-- [ ] 步骤 6: 创建 RotateIn 动画组件
-- [ ] 步骤 7: 创建 BounceIn 动画组件
-- [ ] 步骤 8: 更新 MDXComponents 添加新动画组件
-- [ ] 步骤 9: 添加更多 Shadcn UI 组件
-- [ ] 步骤 10: 创建滚动进度指示器组件
-- [ ] 步骤 11: 创建返回顶部按钮组件
+- [x] 步骤 6: 创建 RotateIn 动画组件 ✅
+- [x] 步骤 7: 创建 BounceIn 动画组件 ✅
+- [x] 步骤 8: 更新 MDXComponents 添加新动画组件 ✅
+- [x] 步骤 9: 添加更多 Shadcn UI 组件 ✅
+- [x] 步骤 10: 创建滚动进度指示器组件 ✅
+- [x] 步骤 11: 创建返回顶部按钮组件 ✅
 - [ ] 步骤 12: 实现页面过渡动画
 - [ ] 步骤 13: 添加 prefers-reduced-motion 支持
 - [ ] 步骤 14: 优化键盘导航
@@ -1104,4 +1104,72 @@
 
 **下一步**：
 - 继续执行第五阶段：功能扩展（中优先级）
+
+---
+
+**[2025-01-XX] 第五阶段：功能扩展 - 部分完成**
+
+**已完成的步骤**：
+6. ✅ 步骤 6: 创建 RotateIn 动画组件
+   - 创建了 `components/animations/RotateIn.tsx` 组件
+   - 支持旋转角度配置（默认 180 度）
+   - 支持移动设备优化
+   - 支持 `whileInView` 模式
+
+7. ✅ 步骤 7: 创建 BounceIn 动画组件
+   - 创建了 `components/animations/BounceIn.tsx` 组件
+   - 使用 Framer Motion 的 spring 动画类型实现弹跳效果
+   - 支持移动设备优化
+   - 支持 `whileInView` 模式
+
+8. ✅ 步骤 8: 更新 MDXComponents 添加新动画组件
+   - 在 `components/MDXComponents.tsx` 中添加了 RotateIn 和 BounceIn 组件映射
+   - 新组件现在可以在 MDX 文件中使用
+
+9. ✅ 步骤 9: 添加更多 Shadcn UI 组件
+   - 添加了 Dialog 组件
+   - 添加了 DropdownMenu 组件
+   - 添加了 Tabs 组件
+   - 添加了 Accordion 组件
+   - 添加了 Alert 组件
+   - 添加了 Progress 组件
+   - 在 `app/experiment/page.tsx` 中添加了所有新组件的使用示例
+   - 修复了 Alert 组件的 ESLint 错误
+
+10. ✅ 步骤 10: 创建滚动进度指示器组件
+    - 创建了 `components/ScrollProgress.tsx` 组件
+    - 使用 `requestAnimationFrame` 优化性能
+    - 支持自定义高度、颜色和位置
+    - 支持深色/浅色主题自动适配
+    - 添加了 ARIA 标签以提升可访问性
+
+11. ✅ 步骤 11: 创建返回顶部按钮组件
+    - 创建了 `components/BackToTop.tsx` 组件
+    - 使用 lucide-react 的 ArrowUp 图标
+    - 支持自定义阈值和显示位置
+    - 支持平滑滚动
+    - 使用 `requestAnimationFrame` 优化性能
+
+**修改的文件**：
+- `components/animations/RotateIn.tsx` (新建)
+- `components/animations/BounceIn.tsx` (新建)
+- `components/MDXComponents.tsx` (修改，添加新动画组件映射)
+- `components/components/ui/dialog.tsx` (新建)
+- `components/components/ui/dropdown-menu.tsx` (新建)
+- `components/components/ui/tabs.tsx` (新建)
+- `components/components/ui/accordion.tsx` (新建)
+- `components/components/ui/alert.tsx` (新建，修复 ESLint 错误)
+- `components/components/ui/progress.tsx` (新建)
+- `app/experiment/page.tsx` (修改，添加新组件示例)
+- `components/ScrollProgress.tsx` (新建)
+- `components/BackToTop.tsx` (新建)
+
+**构建结果**：
+- ✅ 构建成功
+- ✅ 无编译错误
+- ✅ TypeScript 类型检查通过
+- ✅ ESLint 检查通过
+
+**下一步**：
+- 继续执行第六阶段：可访问性增强（中优先级）
 
