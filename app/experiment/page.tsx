@@ -71,6 +71,23 @@ const ParticleBackground = dynamic(() => import('@/components/ParticleBackground
   ),
 })
 
+// 动态导入动画组件
+const ConfettiAnimation = dynamic(() => import('@/components/animations/ConfettiAnimation'), {
+  ssr: false,
+})
+
+const FireworksAnimation = dynamic(() => import('@/components/animations/FireworksAnimation'), {
+  ssr: false,
+})
+
+const ExplosionAnimation = dynamic(() => import('@/components/animations/ExplosionAnimation'), {
+  ssr: false,
+})
+
+const SparklesAnimation = dynamic(() => import('@/components/animations/SparklesAnimation'), {
+  ssr: false,
+})
+
 export default function Projects() {
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -542,6 +559,86 @@ export default function Projects() {
             <ParticleBackground particleCount={80} color="rgba(255, 255, 255, 0.15)" speed={0.8} />
             <div className="relative z-10 flex h-full items-center justify-center">
               <p className="text-white">较多粒子，较快速度</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* 炫酷动画效果展示 */}
+      <div className="space-y-6 py-6">
+        <h2 className="text-2xl font-bold">炫酷动画效果</h2>
+        <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
+          高性能动画库展示：彩带、烟花、爆炸和闪烁效果
+        </p>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {/* 彩带动画 */}
+          <div className="relative h-64 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-pink-500 to-purple-600 dark:from-pink-600 dark:to-purple-700">
+            <ConfettiAnimation autoPlay interval={2000} />
+            <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
+              <h3 className="mb-2 text-xl font-bold text-white">彩带动画</h3>
+              <p className="text-center text-sm text-white/90">
+                使用 canvas-confetti 实现的高性能彩带效果
+              </p>
+            </div>
+          </div>
+
+          {/* 烟花动画 */}
+          <div className="relative h-64 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-700 dark:to-indigo-800">
+            <FireworksAnimation autoPlay interval={3000} />
+            <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
+              <h3 className="mb-2 text-xl font-bold text-white">烟花动画</h3>
+              <p className="text-center text-sm text-white/90">
+                绚丽的烟花爆炸效果，自动循环播放
+              </p>
+            </div>
+          </div>
+
+          {/* 爆炸动画 */}
+          <div className="relative h-64 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-orange-500 to-red-600 dark:from-orange-600 dark:to-red-700">
+            <ExplosionAnimation autoPlay interval={2000} />
+            <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
+              <h3 className="mb-2 text-xl font-bold text-white">爆炸动画</h3>
+              <p className="text-center text-sm text-white/90">
+                使用 Canvas API 实现的粒子爆炸效果
+              </p>
+            </div>
+          </div>
+
+          {/* 闪烁动画 */}
+          <div className="relative h-64 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-yellow-500 to-amber-600 dark:from-yellow-600 dark:to-amber-700">
+            <SparklesAnimation particleCount={30} />
+            <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
+              <h3 className="mb-2 text-xl font-bold text-white">闪烁动画</h3>
+              <p className="text-center text-sm text-white/90">
+                优雅的闪烁粒子效果，持续播放
+              </p>
+            </div>
+          </div>
+
+          {/* 组合动画 1 */}
+          <div className="relative h-64 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-cyan-500 to-teal-600 dark:from-cyan-600 dark:to-teal-700">
+            <ConfettiAnimation autoPlay interval={2500} />
+            <SparklesAnimation particleCount={20} />
+            <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
+              <h3 className="mb-2 text-xl font-bold text-white">组合动画 1</h3>
+              <p className="text-center text-sm text-white/90">
+                彩带 + 闪烁效果组合
+              </p>
+            </div>
+          </div>
+
+          {/* 组合动画 2 */}
+          <div className="relative h-64 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-violet-500 to-fuchsia-600 dark:from-violet-600 dark:to-fuchsia-700">
+            <FireworksAnimation autoPlay interval={3500} />
+            <SparklesAnimation particleCount={15} />
+            <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
+              <h3 className="mb-2 text-xl font-bold text-white">组合动画 2</h3>
+              <p className="text-center text-sm text-white/90">
+                烟花 + 闪烁效果组合
+              </p>
             </div>
           </div>
         </div>
