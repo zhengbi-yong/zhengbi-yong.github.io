@@ -1,6 +1,11 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import Particles, { initParticlesEngine } from '@tsparticles/react'
+import { loadSlim } from '@tsparticles/slim'
+import { loadFull } from 'tsparticles'
+import type { Engine } from '@tsparticles/engine'
+import { useTheme } from 'next-themes'
 import { isMobileDevice } from '@/lib/utils/device'
 
 interface ParticleBackgroundProps {
@@ -12,152 +17,239 @@ interface ParticleBackgroundProps {
 
 /**
  * ParticleBackground - 粒子背景特效组件
- * 使用 Canvas API 创建轻量级动态粒子系统
+ * 使用 tsparticles 高性能粒子库实现
  * 支持深色/浅色主题自动适配
  */
 export default function ParticleBackground({
   className = '',
-  particleCount = 50,
+  particleCount = 40,
   color,
   speed = 0.5,
 }: ParticleBackgroundProps) {
   // 移动设备优化：减少粒子数量
   const isMobile = isMobileDevice()
   const optimizedParticleCount = isMobile ? Math.min(particleCount, 30) : particleCount
-  const optimizedSpeed = isMobile ? speed * 0.7 : speed // 移动设备降低速度
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animationFrameRef = useRef<number | undefined>(undefined)
-  const particlesRef = useRef<
-    Array<{
-      x: number
-      y: number
-      vx: number
-      vy: number
-      radius: number
-    }>
-  >([])
 
+  // 使用 next-themes 检测主题
+  const { resolvedTheme } = useTheme()
+  
+  // 客户端挂载状态
+  const [mounted, setMounted] = useState(false)
+  
+  // 实际检测到的主题状态
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  
+  // 主题状态，用于触发重新渲染
+  const [themeKey, setThemeKey] = useState(0)
+  
+  // 引擎初始化状态
+  const [init, setInit] = useState(false)
+
+  // 确保在客户端挂载后才检测主题
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // 设置画布大小
-    const resizeCanvas = () => {
-      canvas.width = canvas.offsetWidth
-      canvas.height = canvas.offsetHeight
+    setMounted(true)
+    
+    // 检测当前主题
+    const checkTheme = () => {
+      if (typeof window === 'undefined') return false
+      // 直接检查 DOM，这是最可靠的方法
+      const hasDarkClass = document.documentElement.classList.contains('dark')
+      setIsDarkMode(hasDarkClass)
+      return hasDarkClass
     }
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-
-    // 获取主题颜色
-    const getThemeColor = () => {
-      if (color) return color
-      const isDark = document.documentElement.classList.contains('dark')
-      return isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-    }
-
-    // 初始化粒子
-    const initParticles = () => {
-      particlesRef.current = []
-      for (let i = 0; i < optimizedParticleCount; i++) {
-        particlesRef.current.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * optimizedSpeed,
-          vy: (Math.random() - 0.5) * optimizedSpeed,
-          radius: Math.random() * 2 + 1,
-        })
-      }
-    }
-    initParticles()
-
-    // 绘制粒子
-    const drawParticles = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      const particleColor = getThemeColor()
-
-      particlesRef.current.forEach((particle) => {
-        ctx.beginPath()
-        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
-        ctx.fillStyle = particleColor
-        ctx.fill()
-      })
-
-      // 绘制连线（距离较近的粒子之间）
-      particlesRef.current.forEach((particle, i) => {
-        particlesRef.current.slice(i + 1).forEach((otherParticle) => {
-          const dx = particle.x - otherParticle.x
-          const dy = particle.y - otherParticle.y
-          const distance = Math.sqrt(dx * dx + dy * dy)
-
-          if (distance < 150) {
-            ctx.beginPath()
-            ctx.moveTo(particle.x, particle.y)
-            ctx.lineTo(otherParticle.x, otherParticle.y)
-            ctx.strokeStyle = particleColor.replace('0.1', String(0.1 * (1 - distance / 150)))
-            ctx.lineWidth = 0.5
-            ctx.stroke()
-          }
-        })
-      })
-    }
-
-    // 更新粒子位置
-    const updateParticles = () => {
-      particlesRef.current.forEach((particle) => {
-        particle.x += particle.vx
-        particle.y += particle.vy
-
-        // 边界检测
-        if (particle.x < 0 || particle.x > canvas.width) {
-          particle.vx *= -1
-        }
-        if (particle.y < 0 || particle.y > canvas.height) {
-          particle.vy *= -1
-        }
-
-        // 确保粒子在画布内
-        particle.x = Math.max(0, Math.min(canvas.width, particle.x))
-        particle.y = Math.max(0, Math.min(canvas.height, particle.y))
-      })
-    }
-
-    // 动画循环
-    const animate = () => {
-      updateParticles()
-      drawParticles()
-      animationFrameRef.current = requestAnimationFrame(animate)
-    }
-    animate()
-
-    // 监听主题变化
+    
+    // 使用 setTimeout 确保 DOM 已完全加载
+    const timer = setTimeout(() => {
+      checkTheme()
+    }, 0)
+    
+    // 立即检测一次（作为备用）
+    checkTheme()
+    
+    // 监听 DOM 变化
     const observer = new MutationObserver(() => {
-      // 主题变化时重新绘制
-      drawParticles()
+      checkTheme()
+      setThemeKey((prev) => prev + 1)
     })
+    
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['class'],
     })
-
-    // 清理函数
+    
     return () => {
-      window.removeEventListener('resize', resizeCanvas)
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-      }
+      clearTimeout(timer)
       observer.disconnect()
     }
-  }, [optimizedParticleCount, color, optimizedSpeed])
+  }, [])
+
+  // 预初始化 tsparticles 引擎
+  useEffect(() => {
+    if (init) return
+
+    initParticlesEngine(async (engine: Engine) => {
+      try {
+        await loadSlim(engine)
+      } catch (error) {
+        try {
+          await loadFull(engine)
+        } catch (fullError) {
+          throw fullError
+        }
+      }
+    })
+      .then(() => {
+        setInit(true)
+      })
+      .catch(() => {
+        // 静默处理错误，避免影响用户体验
+      })
+  }, [init])
+
+  // 初始化回调（用于兼容，但主要使用预初始化）
+  const particlesInit = useCallback(async (_engine: Engine) => {
+    // 引擎已经通过 initParticlesEngine 初始化
+  }, [])
+
+  // 粒子加载完成回调
+  const particlesLoaded = useCallback(async (_container: any) => {
+    // 粒子加载完成
+  }, [])
+
+  // 检测主题颜色
+  const getThemeColor = useCallback(() => {
+    if (color) return color
+    
+    // 如果还未挂载，默认返回黑色（白天模式）
+    if (!mounted) {
+      return '#000000'
+    }
+    
+    // 使用实际检测到的主题状态
+    // 白天模式（浅色背景）使用深色粒子，夜晚模式（深色背景）使用浅色粒子
+    return isDarkMode ? '#ffffff' : '#000000'
+  }, [color, isDarkMode, mounted])
+
+  // 监听主题变化，更新粒子颜色
+  useEffect(() => {
+    if (!mounted) return
+    // 当 isDarkMode 变化时，更新 key 触发重新渲染
+    setThemeKey((prev) => prev + 1)
+  }, [isDarkMode, mounted])
+
+  // 粒子配置
+  const particlesOptions = useMemo(() => {
+    // 直接计算主题颜色，不依赖 getThemeColor
+    let themeColor = color
+    if (!themeColor) {
+      if (!mounted) {
+        themeColor = '#000000' // 默认黑色
+      } else {
+        themeColor = isDarkMode ? '#ffffff' : '#000000'
+      }
+    }
+
+    return {
+      background: {
+        color: {
+          value: 'transparent',
+        },
+      },
+      fpsLimit: 60,
+      particles: {
+        number: {
+          value: optimizedParticleCount,
+          density: {
+            enable: true,
+            value_area: 800,
+          },
+        },
+        color: {
+          value: themeColor,
+        },
+        shape: {
+          type: 'circle',
+        },
+        opacity: {
+          value: 0.3,
+          random: false,
+          anim: {
+            enable: false,
+          },
+        },
+        size: {
+          value: { min: 1, max: 3 },
+          random: true,
+          anim: {
+            enable: false,
+          },
+        },
+        links: {
+          enable: true,
+          distance: 150,
+          color: themeColor,
+          opacity: 0.2,
+          width: 0.5,
+          triangles: {
+            enable: false,
+          },
+        },
+        move: {
+          enable: true,
+          speed: speed * 2,
+          direction: 'none',
+          random: false,
+          straight: false,
+          outModes: {
+            default: 'bounce',
+          },
+        },
+        collisions: {
+          enable: false,
+        },
+      },
+      interactivity: {
+        detectsOn: 'window',
+        events: {
+          onHover: {
+            enable: false,
+          },
+          onClick: {
+            enable: false,
+          },
+          resize: true,
+        },
+        modes: {},
+      },
+      detectRetina: true,
+      pauseOnBlur: true,
+      pauseOnOutsideViewport: true,
+    }
+  }, [optimizedParticleCount, speed, color, isDarkMode, mounted, themeKey])
+
+  // 等待引擎初始化完成
+  if (!init) {
+    return (
+      <div
+        className={`pointer-events-none absolute inset-0 ${className}`}
+        style={{ zIndex: 0, width: '100%', height: '100%' }}
+      />
+    )
+  }
 
   return (
-    <canvas
-      ref={canvasRef}
+    <div
       className={`pointer-events-none absolute inset-0 ${className}`}
-      style={{ zIndex: 0 }}
-    />
+      style={{ zIndex: 0, width: '100%', height: '100%' }}
+    >
+      <Particles
+        key={`tsparticles-${themeKey}`}
+        id={`tsparticles-${themeKey}`}
+        init={particlesInit}
+        loaded={particlesLoaded}
+        options={particlesOptions}
+        style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+      />
+    </div>
   )
 }
