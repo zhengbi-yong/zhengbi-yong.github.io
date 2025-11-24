@@ -8,7 +8,7 @@ import type { Blog } from 'contentlayer/generated'
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
-import AnimatedSection from '@/components/AnimatedSection'
+import SlideIn from '@/components/animations/SlideIn'
 
 interface PaginationProps {
   totalPages: number
@@ -120,7 +120,13 @@ export default function ListLayout({
           {displayPosts.map((post, index) => {
             const { path, date, title, summary, tags } = post
             return (
-              <AnimatedSection key={path} direction="up" delay={index * 50} className="py-4">
+              <SlideIn
+                key={path}
+                direction="up"
+                delay={index * 0.1}
+                className="py-4"
+                whileInView={true}
+              >
                 <li>
                   <article className="space-y-2 xl:grid xl:grid-cols-4 xl:items-baseline xl:space-y-0">
                     <dl>
@@ -146,7 +152,7 @@ export default function ListLayout({
                     </div>
                   </article>
                 </li>
-              </AnimatedSection>
+              </SlideIn>
             )
           })}
         </ul>

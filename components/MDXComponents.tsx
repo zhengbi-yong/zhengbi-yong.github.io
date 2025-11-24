@@ -7,6 +7,9 @@ import CustomLink from './Link'
 import TableWrapper from './TableWrapper'
 import AnimatedSection from './AnimatedSection'
 import AnimatedList from './AnimatedList'
+import FadeIn from './animations/FadeIn'
+import SlideIn from './animations/SlideIn'
+import ScaleIn from './animations/ScaleIn'
 
 export const components: MDXComponents = {
   Image,
@@ -15,7 +18,11 @@ export const components: MDXComponents = {
   pre: Pre,
   table: TableWrapper,
   BlogNewsletterForm,
-  // 动画组件
+  // 第一阶段动画组件（向后兼容）
   AnimatedSection,
   AnimatedList,
+  // Framer Motion 动画组件
+  FadeIn,
+  SlideIn,
+  ScaleIn,
 }

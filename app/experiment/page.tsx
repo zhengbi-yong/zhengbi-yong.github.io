@@ -23,6 +23,9 @@ import {
   TooltipTrigger,
 } from '@/components/components/ui/tooltip'
 import { Separator } from '@/components/components/ui/separator'
+import FadeIn from '@/components/animations/FadeIn'
+import SlideIn from '@/components/animations/SlideIn'
+import ScaleIn from '@/components/animations/ScaleIn'
 export default function Projects() {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef(new THREE.Scene())
@@ -358,6 +361,111 @@ export default function Projects() {
             <p>分隔线上方的内容</p>
             <Separator />
             <p>分隔线下方的内容</p>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Framer Motion 动画组件示例 */}
+      <div className="space-y-6 py-6">
+        <h2 className="text-2xl font-bold">Framer Motion 动画组件</h2>
+        <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
+          使用 Framer Motion 实现的高级动画效果
+        </p>
+
+        {/* FadeIn 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">FadeIn - 淡入动画</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <FadeIn delay={0} duration={0.5}>
+              <div className="rounded-lg border bg-gray-100 p-4 dark:bg-gray-800">
+                <p>无延迟淡入</p>
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.2} duration={0.5}>
+              <div className="rounded-lg border bg-gray-100 p-4 dark:bg-gray-800">
+                <p>延迟 0.2s 淡入</p>
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.4} duration={0.5} whileInView={true}>
+              <div className="rounded-lg border bg-gray-100 p-4 dark:bg-gray-800">
+                <p>滚动触发淡入</p>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* SlideIn 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">SlideIn - 滑入动画</h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <SlideIn direction="up" delay={0} whileInView={true}>
+              <div className="rounded-lg border bg-blue-100 p-4 dark:bg-blue-900">
+                <p>向上滑入</p>
+              </div>
+            </SlideIn>
+            <SlideIn direction="down" delay={0.1} whileInView={true}>
+              <div className="rounded-lg border bg-green-100 p-4 dark:bg-green-900">
+                <p>向下滑入</p>
+              </div>
+            </SlideIn>
+            <SlideIn direction="left" delay={0.2} whileInView={true}>
+              <div className="rounded-lg border bg-yellow-100 p-4 dark:bg-yellow-900">
+                <p>向左滑入</p>
+              </div>
+            </SlideIn>
+            <SlideIn direction="right" delay={0.3} whileInView={true}>
+              <div className="rounded-lg border bg-purple-100 p-4 dark:bg-purple-900">
+                <p>向右滑入</p>
+              </div>
+            </SlideIn>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* ScaleIn 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">ScaleIn - 缩放进入动画</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <ScaleIn delay={0} scale={0.5} whileInView={true}>
+              <div className="rounded-lg border bg-red-100 p-4 dark:bg-red-900">
+                <p>从 0.5 倍缩放</p>
+              </div>
+            </ScaleIn>
+            <ScaleIn delay={0.2} scale={0.8} whileInView={true}>
+              <div className="rounded-lg border bg-orange-100 p-4 dark:bg-orange-900">
+                <p>从 0.8 倍缩放</p>
+              </div>
+            </ScaleIn>
+            <ScaleIn delay={0.4} scale={0.9} whileInView={true}>
+              <div className="rounded-lg border bg-pink-100 p-4 dark:bg-pink-900">
+                <p>从 0.9 倍缩放</p>
+              </div>
+            </ScaleIn>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* 组合动画示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">组合动画示例</h3>
+          <div className="space-y-4">
+            <SlideIn direction="up" delay={0} whileInView={true}>
+              <div className="rounded-lg border bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white">
+                <h4 className="mb-2 text-xl font-bold">组合动画卡片</h4>
+                <p className="mb-4">这个卡片使用了滑入和淡入的组合效果</p>
+                <ScaleIn delay={0.3} whileInView={true}>
+                  <button className="rounded bg-white px-4 py-2 text-blue-500 hover:bg-gray-100">
+                    点击按钮
+                  </button>
+                </ScaleIn>
+              </div>
+            </SlideIn>
           </div>
         </div>
       </div>

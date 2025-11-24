@@ -1105,3 +1105,55 @@ yarn add @react-three/fiber @react-three/drei
 **下一步**：
 - 等待用户确认修复后功能正常，可进入第二阶段（Framer Motion 集成）
 
+---
+
+## 第二阶段完成记录
+
+**[2025-01-XX] 第二阶段：Framer Motion 集成 - 已完成**
+
+**已完成的步骤**：
+1. ✅ 安装 Framer Motion（版本 12.23.24）
+2. ✅ 创建 `components/PageTransition.tsx` 组件
+3. ✅ 创建 `components/animations/FadeIn.tsx` 组件
+4. ✅ 创建 `components/animations/SlideIn.tsx` 组件
+5. ✅ 创建 `components/animations/ScaleIn.tsx` 组件
+6. ✅ 创建 `components/hooks/useScrollAnimation.ts` Hook
+7. ✅ 更新 `layouts/ListLayout.tsx` 使用 SlideIn 组件
+8. ✅ 更新 `layouts/PostLayout.tsx` 使用 FadeIn 组件
+9. ✅ 更新 `components/MDXComponents.tsx` 添加 Framer Motion 组件映射
+10. ✅ 在 `app/experiment/page.tsx` 添加 Framer Motion 动画示例
+11. ✅ 构建验证通过
+
+**修改的文件**：
+- `components/PageTransition.tsx` (新建)
+- `components/animations/FadeIn.tsx` (新建)
+- `components/animations/SlideIn.tsx` (新建)
+- `components/animations/ScaleIn.tsx` (新建)
+- `components/hooks/useScrollAnimation.ts` (新建)
+- `layouts/ListLayout.tsx` (修改，使用 SlideIn)
+- `layouts/PostLayout.tsx` (修改，使用 FadeIn)
+- `components/MDXComponents.tsx` (修改，添加 Framer Motion 组件)
+- `app/experiment/page.tsx` (修改，添加示例)
+- `package.json` (添加 framer-motion 依赖)
+
+**构建结果**：
+- ✅ 构建成功
+- ✅ 无编译错误
+- ✅ TypeScript 类型检查通过
+- ✅ 代码格式已修复
+
+**技术细节**：
+- Framer Motion 版本：12.23.24
+- 使用 `as const` 类型断言解决 ease 类型问题
+- 所有动画组件支持 `whileInView` 选项用于滚动触发
+- 保持向后兼容，第一阶段组件（AnimatedSection、AnimatedList）仍然可用
+
+**功能验证**：
+- ✅ 博客列表使用 SlideIn 动画（向上滑入，错开延迟）
+- ✅ 文章内容使用 FadeIn 动画（淡入效果）
+- ✅ 在 `/experiment` 页面可以查看所有 Framer Motion 动画示例
+- ✅ MDX 文件中可以使用 FadeIn、SlideIn、ScaleIn 组件
+
+**下一步**：
+- 等待用户确认第二阶段功能正常，可进入第三阶段（可选的高级特效）或完成项目
+
