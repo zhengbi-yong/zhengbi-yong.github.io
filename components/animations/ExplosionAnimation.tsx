@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface Particle {
   x: number
@@ -33,33 +33,39 @@ export default function ExplosionAnimation({
   const animationFrameRef = useRef<number | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  const colors = ['#FF6B6B', '#FF8E53', '#FF6B9D', '#C44569', '#F8B500', '#FFD93D']
+  const colors = useMemo(
+    () => ['#FF6B6B', '#FF8E53', '#FF6B9D', '#C44569', '#F8B500', '#FFD93D'],
+    []
+  )
 
-  const createExplosion = (x: number, y: number) => {
-    const particleCount = 50
-    const newParticles: Particle[] = []
+  const createExplosion = useCallback(
+    (x: number, y: number) => {
+      const particleCount = 50
+      const newParticles: Particle[] = []
 
-    for (let i = 0; i < particleCount; i++) {
-      const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5
-      const speed = 2 + Math.random() * 4
-      const life = 30 + Math.random() * 40
+      for (let i = 0; i < particleCount; i++) {
+        const angle = (Math.PI * 2 * i) / particleCount + Math.random() * 0.5
+        const speed = 2 + Math.random() * 4
+        const life = 30 + Math.random() * 40
 
-      newParticles.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life,
-        maxLife: life,
-        size: 2 + Math.random() * 3,
-        color: colors[Math.floor(Math.random() * colors.length)],
-      })
-    }
+        newParticles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life,
+          maxLife: life,
+          size: 2 + Math.random() * 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+        })
+      }
 
-    particlesRef.current.push(...newParticles)
-  }
+      particlesRef.current.push(...newParticles)
+    },
+    [colors]
+  )
 
-  const animate = () => {
+  const animate = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -93,7 +99,7 @@ export default function ExplosionAnimation({
     })
 
     animationFrameRef.current = requestAnimationFrame(animate)
-  }
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -135,7 +141,7 @@ export default function ExplosionAnimation({
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [autoPlay, interval])
+  }, [animate, autoPlay, createExplosion, interval])
 
   return (
     <canvas

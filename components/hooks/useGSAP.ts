@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { registerGSAPPlugins, cleanupScrollTrigger } from '@/lib/utils/gsap'
@@ -22,6 +22,7 @@ export function useGSAP(
   const hasInitialized = useRef(false)
   const animationRef = useRef<gsap.core.Tween | gsap.core.Timeline | null>(null)
   const scrollTriggerRef = useRef<ScrollTrigger[]>([])
+  const dependenciesKey = useMemo(() => JSON.stringify(dependencies), [dependencies])
 
   useEffect(() => {
     // 只在客户端执行
@@ -70,7 +71,7 @@ export function useGSAP(
         animationRef.current = null
       }
     }
-  }, dependencies)
+  }, [callback, dependenciesKey])
 
   return animationRef.current
 }

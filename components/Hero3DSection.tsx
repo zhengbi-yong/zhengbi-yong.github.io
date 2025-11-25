@@ -33,8 +33,30 @@ export default function Hero3DSection() {
   const [visualMode, setVisualMode] = useState<HeroVisualMode>('standard')
   const [mounted, setMounted] = useState(false)
   const [manualOverride, setManualOverride] = useState<HeroVisualMode | null>(null)
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const { isLowPerformance } = useGSAPPerformance()
-  const animationParams = useMemo(() => getPerformanceOptimizedParams(1.2, 80), [])
+  const animationParams = useMemo(() => {
+    const durationScale = visualMode === 'enhanced' ? 1.2 : visualMode === 'standard' ? 1 : 0.8
+    const distance = visualMode === 'enhanced' ? 90 : visualMode === 'standard' ? 70 : 50
+    return getPerformanceOptimizedParams(durationScale, distance)
+  }, [visualMode])
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      const matches = 'matches' in event ? event.matches : event.matches
+      setPrefersReducedMotion(matches)
+    }
+    handleChange(media)
+    media.addEventListener('change', handleChange)
+    return () => media.removeEventListener('change', handleChange)
+  }, [])
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setManualOverride('minimal')
+    }
+  }, [prefersReducedMotion])
 
   useEffect(() => {
     setMounted(true)
@@ -113,10 +135,19 @@ export default function Hero3DSection() {
       <div className={heroClasses}>
         {(visualMode === 'enhanced' || visualMode === 'standard') && (
           <div className="absolute inset-0">
-            {visualMode === 'enhanced' ? (
-              <ParticleBackground className="opacity-60" particleCount={60} speed={0.5} />
-            ) : null}
+            <div
+              className="absolute inset-0 opacity-60 blur-3xl"
+              style={{
+                background:
+                  'radial-gradient(circle at 20% 20%, rgba(59,130,246,0.35), transparent 55%)',
+              }}
+            />
             <div className="from-primary-500/10 absolute inset-0 bg-gradient-to-tr to-transparent" />
+            <ParticleBackground
+              className={visualMode === 'enhanced' ? 'opacity-70' : 'opacity-35'}
+              particleCount={visualMode === 'enhanced' ? 80 : 30}
+              speed={visualMode === 'enhanced' ? 0.55 : 0.25}
+            />
           </div>
         )}
         <div className="relative z-10 grid gap-10 lg:grid-cols-2">
@@ -154,6 +185,7 @@ export default function Hero3DSection() {
               </div>
               <div className="mt-2 text-xs text-gray-400">
                 自动策略：{loadingStrategy} | 动画距离 {animationParams.distance}px
+                {prefersReducedMotion && ' · 已启用低动效模式'}
               </div>
             </div>
           </div>
