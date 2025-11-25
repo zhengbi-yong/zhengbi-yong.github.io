@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import NextImage, { ImageProps } from 'next/image'
 import { ImageSkeleton } from '@/components/loaders'
 
 const basePath = process.env.BASE_PATH
 
-const Image = ({ src, ...rest }: ImageProps) => {
+const Image = memo(function Image({ src, ...rest }: ImageProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 
@@ -41,6 +41,8 @@ const Image = ({ src, ...rest }: ImageProps) => {
       />
     </div>
   )
-}
+})
+
+Image.displayName = 'Image'
 
 export default Image

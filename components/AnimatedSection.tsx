@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { isMobileDevice } from '@/lib/utils/device'
 
 interface AnimatedSectionProps {
@@ -14,7 +14,7 @@ interface AnimatedSectionProps {
  * AnimatedSection - 滚动触发动画组件
  * 使用 Intersection Observer API 检测元素进入视口，触发淡入和滑动动画
  */
-export default function AnimatedSection({
+const AnimatedSection = memo(function AnimatedSection({
   children,
   className = '',
   delay = 0,
@@ -27,15 +27,17 @@ export default function AnimatedSection({
     const element = ref.current
     if (!element) return
 
+    // 检测是否为移动设备（只检测一次）
+    const isMobile = isMobileDevice()
+
     // 如果是移动设备，直接显示内容，不应用动画
-    if (isMobileDevice()) {
+    if (isMobile) {
       element.style.opacity = '1'
       element.style.transform = 'translateY(0) translateX(0)'
       return
     }
 
     // 根据方向设置初始 translate 值（使用内联样式，避免 Tailwind 动态类名问题）
-    const isMobile = isMobileDevice()
     const translateDistance = isMobile ? 4 : 8 // 移动设备：4px，桌面：8px
     const duration = isMobile ? 300 : 500 // 移动设备：300ms，桌面：500ms
 
@@ -154,4 +156,8 @@ export default function AnimatedSection({
       {children}
     </div>
   )
-}
+})
+
+AnimatedSection.displayName = 'AnimatedSection'
+
+export default AnimatedSection

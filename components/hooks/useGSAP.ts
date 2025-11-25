@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { registerGSAPPlugins, cleanupScrollTrigger } from '@/lib/utils/gsap'
+import { registerGSAPPlugins } from '@/lib/utils/gsap'
 
 /**
  * useGSAP Hook
