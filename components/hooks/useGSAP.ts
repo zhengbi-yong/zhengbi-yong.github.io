@@ -42,7 +42,7 @@ export function useGSAP(
       (animation instanceof gsap.core.Timeline || animation instanceof gsap.core.Tween)
     ) {
       animationRef.current = animation
-      
+
       // 如果动画有 ScrollTrigger，保存引用
       if (animation.scrollTrigger) {
         scrollTriggerRef.current.push(animation.scrollTrigger)
