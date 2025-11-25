@@ -27,10 +27,22 @@ export function getGSAPMobileOptimizedParams(
   baseDuration: number = 1,
   baseEase: string = 'power2.out'
 ) {
+  if (typeof window === 'undefined') {
+    return {
+      duration: baseDuration,
+      ease: baseEase,
+    }
+  }
+
   const isMobile = isMobileDevice()
+
+  // 检测是否为低性能设备
+  const hardwareConcurrency = navigator.hardwareConcurrency || 2
+  const isLowPerformance = isMobile || hardwareConcurrency < 4
+
   return {
-    duration: isMobile ? baseDuration * 0.7 : baseDuration,
-    ease: isMobile ? 'power1.out' : baseEase, // 移动设备使用更简单的缓动
+    duration: isLowPerformance ? baseDuration * 0.6 : baseDuration,
+    ease: isLowPerformance ? 'power1.out' : baseEase, // 低性能设备使用更简单的缓动
   }
 }
 

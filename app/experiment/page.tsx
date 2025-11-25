@@ -113,6 +113,15 @@ const AdvancedScrollAnimation = dynamic(
   }
 )
 
+// 动态导入 SVG 动画组件
+const SVGPathAnimation = dynamic(() => import('@/components/animations/SVGPathAnimation'), {
+  ssr: false,
+})
+
+const SVGShapeMorph = dynamic(() => import('@/components/animations/SVGShapeMorph'), {
+  ssr: false,
+})
+
 export default function Projects() {
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -694,6 +703,73 @@ export default function Projects() {
                 <p>这个元素在滚动时会同时改变透明度、缩放和旋转</p>
               </div>
             </AdvancedScrollAnimation>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* SVG 动画示例 */}
+      <div className="space-y-6 py-6">
+        <h2 className="text-2xl font-bold">SVG 动画效果</h2>
+        <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
+          使用 GSAP 实现的 SVG 路径动画和形状变形效果
+        </p>
+
+        {/* SVGPathAnimation 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">SVGPathAnimation - SVG 路径描边动画</h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-lg border bg-gray-50 p-4 dark:bg-gray-900">
+              <SVGPathAnimation
+                path="M 10,50 Q 25,10 50,50 T 90,50"
+                strokeColor="#3b82f6"
+                strokeWidth={3}
+                duration={2}
+                autoPlay={true}
+              />
+              <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                自动播放路径描边
+              </p>
+            </div>
+            <div className="rounded-lg border bg-gray-50 p-4 dark:bg-gray-900">
+              <SVGPathAnimation
+                path="M 20,20 L 50,80 L 80,20"
+                strokeColor="#10b981"
+                strokeWidth={2}
+                duration={1.5}
+                autoPlay={false}
+                start="top 80%"
+              />
+              <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                滚动触发路径描边
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* SVGShapeMorph 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">SVGShapeMorph - SVG 形状变形</h3>
+          <div className="rounded-lg border bg-gray-50 p-4 dark:bg-gray-900">
+            <SVGShapeMorph
+              paths={[
+                'M 20,50 Q 50,20 80,50 T 20,50',
+                'M 50,20 Q 80,50 50,80 T 50,20',
+                'M 20,50 Q 50,80 80,50 T 20,50',
+                'M 50,20 Q 20,50 50,80 T 50,20',
+              ]}
+              duration={2}
+              strokeColor="#8b5cf6"
+              strokeWidth={2}
+              fill="rgba(139, 92, 246, 0.1)"
+              start="top 80%"
+            />
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              滚动触发形状变形动画
+            </p>
           </div>
         </div>
       </div>

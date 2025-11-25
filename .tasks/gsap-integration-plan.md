@@ -1197,6 +1197,79 @@ yarn start  # 本地测试
 
 ---
 
+**[2025-11-24] 第三阶段：SVG 动画与性能优化 - 已完成**
+
+**已完成的步骤**：
+12. ✅ 创建 `components/animations/SVGPathAnimation.tsx` 组件
+    - 实现了 SVG 路径描边动画
+    - 支持自定义路径、颜色和宽度
+    - 支持自动播放和滚动触发
+
+13. ✅ 创建 `components/animations/SVGShapeMorph.tsx` 组件
+    - 实现了 SVG 形状变形动画
+    - 支持多个形状之间的变形
+    - 支持滚动触发
+
+14. ✅ 创建 `lib/utils/gsap-loader.ts` 动态加载器
+    - 实现了 GSAP 核心和插件的按需加载
+    - 优化初始 Bundle 大小
+
+15. ✅ 更新所有 GSAP 组件使用动态导入
+    - 所有组件已通过 Next.js dynamic import 实现按需加载
+    - 无需额外修改
+
+16. ✅ 创建 `components/hooks/useGSAPPerformance.ts` 性能监控 Hook
+    - 实现了动画帧率监控
+    - 实现了设备性能等级检测
+    - 提供了性能优化参数函数
+
+17. ✅ 完善移动设备优化
+    - 增强了移动设备检测（包括低性能设备检测）
+    - 优化了动画参数（时长和缓动函数）
+    - 在低性能设备上自动降级动画效果
+
+18. ✅ 更新 `app/experiment/page.tsx` 添加 SVG 动画示例
+    - 添加了 SVGPathAnimation 组件示例
+    - 添加了 SVGShapeMorph 组件示例
+    - 展示了自动播放和滚动触发两种模式
+
+19. ✅ 最终验证和测试
+    - 所有新创建的文件通过 lint 检查
+    - 修复了类型错误（any 类型）
+    - 构建过程中发现一些现有代码的类型错误（非本次引入）
+
+**修改的文件**：
+- `components/animations/SVGPathAnimation.tsx` (新建)
+- `components/animations/SVGShapeMorph.tsx` (新建)
+- `lib/utils/gsap-loader.ts` (新建)
+- `components/hooks/useGSAPPerformance.ts` (新建)
+- `lib/utils/gsap.ts` (增强移动设备优化)
+- `app/experiment/page.tsx` (添加 SVG 动画示例)
+- `components/animations/AdvancedScrollAnimation.tsx` (修复类型错误)
+
+**构建结果**：
+- ✅ 代码格式已修复
+- ✅ 新代码无类型错误
+- ⚠️ 构建过程中发现现有代码的类型错误（ConfettiAnimation、FireworksAnimation），这些错误在实施前就存在
+
+**技术细节**：
+- SVG 路径动画使用 strokeDasharray 和 strokeDashoffset 实现描边效果
+- SVG 形状变形使用 GSAP 的 attr 动画实现路径变形
+- 性能监控 Hook 使用 requestAnimationFrame 监控帧率
+- 移动设备优化包括硬件并发数和内存检测
+
+**功能验证**：
+- ✅ SVGPathAnimation 组件支持路径描边动画
+- ✅ SVGShapeMorph 组件支持形状变形动画
+- ✅ 性能监控 Hook 可以检测设备性能等级
+- ✅ 在 `/experiment` 页面可以查看所有 SVG 动画示例
+- ✅ 所有组件支持移动设备优化
+
+**下一步**：
+- 等待用户确认第三阶段功能正常，可进入最终审查阶段
+
+---
+
 ## 最终审查
 
 待所有步骤完成后，将进行最终审查，包括：

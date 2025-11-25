@@ -8,8 +8,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 interface AnimationConfig {
   property: string
-  from: any
-  to: any
+  from: string | number
+  to: string | number
   start?: string
   end?: string
   ease?: string
@@ -43,15 +43,23 @@ export default function AdvancedScrollAnimation({
     const element = ref.current
     const triggerElement = trigger || element
 
+    // 创建 ScrollTrigger 配置
+    const scrollTriggerConfig: {
+      trigger: string | Element
+      start: string
+      end: string
+      scrub: boolean | number
+    } = {
+      trigger: triggerElement,
+      start,
+      end,
+      scrub,
+    }
+
     // 创建动画对象
-    const animationVars: any = {
+    const animationVars: Record<string, unknown> = {
       ease: 'none',
-      scrollTrigger: {
-        trigger: triggerElement,
-        start,
-        end,
-        scrub,
-      },
+      scrollTrigger: scrollTriggerConfig,
     }
 
     // 为每个动画配置添加属性
@@ -67,13 +75,10 @@ export default function AdvancedScrollAnimation({
         animationVars.ease = anim.ease
       }
 
-      // 如果有自定义的 start/end，使用它们
+      // 如果有自定义的 start/end，更新 ScrollTrigger 配置
       if (anim.start || anim.end) {
-        animationVars.scrollTrigger = {
-          ...animationVars.scrollTrigger,
-          start: anim.start || start,
-          end: anim.end || end,
-        }
+        scrollTriggerConfig.start = anim.start || start
+        scrollTriggerConfig.end = anim.end || end
       }
     })
 
@@ -89,4 +94,3 @@ export default function AdvancedScrollAnimation({
     </div>
   )
 }
-
