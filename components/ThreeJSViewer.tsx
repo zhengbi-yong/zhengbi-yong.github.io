@@ -5,6 +5,7 @@ import * as THREE from 'three'
 import URDFLoader from 'urdf-loader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Spinner } from '@/components/loaders'
+import { logger } from '@/lib/utils/logger'
 
 interface QualityProfile {
   pixelRatio?: number
@@ -36,6 +37,7 @@ export default function ThreeJSViewer({
   const animationId = useRef<number | null>(null)
   const retryCountRef = useRef(0)
   const modelRef = useRef<THREE.Object3D | null>(null)
+  const isVisibleRef = useRef<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const maxRetries = 3
@@ -48,11 +50,14 @@ export default function ThreeJSViewer({
     const currentScene = sceneRef.current
     const currentContainer = containerRef.current
 
+    // 初始化页面可见性状态
+    isVisibleRef.current = !document.hidden
+
     // 检查容器尺寸
     const width = container.clientWidth
     const height = container.clientHeight
     if (width === 0 || height === 0) {
-      console.warn('ThreeJSViewer: 容器尺寸为 0，等待容器渲染')
+      logger.warn('ThreeJSViewer: 容器尺寸为 0，等待容器渲染')
       // 等待容器渲染
       const checkSize = setInterval(() => {
         if (container.clientWidth > 0 && container.clientHeight > 0) {
@@ -119,21 +124,15 @@ export default function ThreeJSViewer({
 
       const manager = new THREE.LoadingManager(
         () => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('全部资源加载完成')
-          }
+          logger.log('全部资源加载完成')
           setIsLoading(false)
           setError(null)
         },
         (url, loaded, total) => {
-          if (process.env.NODE_ENV === 'development') {
-            console.log(`加载进度: ${((loaded / total) * 100).toFixed(1)}%`)
-          }
+          logger.log(`加载进度: ${((loaded / total) * 100).toFixed(1)}%`)
         },
         (url) => {
-          if (process.env.NODE_ENV === 'development') {
-            console.error('资源加载失败:', url)
-          }
+          logger.error('资源加载失败:', url)
           // 单个资源失败不中断整个加载过程
         }
       )
@@ -149,16 +148,12 @@ export default function ThreeJSViewer({
       const urdfPath =
         modelPath || '/models/SO_5DOF_ARM100_05d.SLDASM/urdf/SO_5DOF_ARM100_05d.SLDASM.urdf'
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`正在加载URDF (尝试 ${retryCount + 1}/${maxRetries}):`, urdfPath)
-      }
+      logger.log(`正在加载URDF (尝试 ${retryCount + 1}/${maxRetries}):`, urdfPath)
 
       // 设置超时
       const timeoutId = setTimeout(() => {
         if (retryCount < maxRetries - 1) {
-          if (process.env.NODE_ENV === 'development') {
-            console.warn(`加载超时，准备重试 (${retryCount + 1}/${maxRetries})`)
-          }
+          logger.warn(`加载超时，准备重试 (${retryCount + 1}/${maxRetries})`)
           setTimeout(() => loadRobot(retryCount + 1), 1000) // 1秒后重试
         } else {
           setError('模型加载超时')
@@ -170,9 +165,7 @@ export default function ThreeJSViewer({
         urdfPath,
         (robot) => {
           clearTimeout(timeoutId)
-          if (process.env.NODE_ENV === 'development') {
-            console.log('模型加载成功')
-          }
+          logger.log('模型加载成功')
           robot.rotation.x = -Math.PI / 2
           if (modelRef.current) {
             sceneRef.current.remove(modelRef.current)
@@ -201,24 +194,16 @@ export default function ThreeJSViewer({
             typeof progress.loaded === 'number' &&
             typeof progress.total === 'number'
           ) {
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`加载进度: ${((progress.loaded / progress.total) * 100).toFixed(1)}%`)
-            }
+            logger.log(`加载进度: ${((progress.loaded / progress.total) * 100).toFixed(1)}%`)
           } else {
-            if (process.env.NODE_ENV === 'development') {
-              console.log('加载中...')
-            }
+            logger.log('加载中...')
           }
         },
         (error) => {
           clearTimeout(timeoutId)
-          if (process.env.NODE_ENV === 'development') {
-            console.error('加载失败:', error)
-          }
+          logger.error('加载失败:', error)
           if (retryCount < maxRetries - 1) {
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`准备重试 (${retryCount + 1}/${maxRetries})`)
-            }
+            logger.log(`准备重试 (${retryCount + 1}/${maxRetries})`)
             setTimeout(() => loadRobot(retryCount + 1), 1000) // 1秒后重试
           } else {
             setError(`模型加载失败: ${error.message || '未知错误'}`)
@@ -228,9 +213,18 @@ export default function ThreeJSViewer({
       )
     }
 
+    // 页面可见性变化处理
+    const handleVisibilityChange = () => {
+      isVisibleRef.current = !document.hidden
+    }
+
     // 渲染循环
     const animate = () => {
       animationId.current = requestAnimationFrame(animate)
+      // 仅在页面可见时执行渲染
+      if (!isVisibleRef.current) {
+        return
+      }
       if (controlsRef.current) {
         controlsRef.current.update() // 必须调用以启用阻尼效果
       }
@@ -255,13 +249,14 @@ export default function ThreeJSViewer({
     }
 
     window.addEventListener('resize', handleResize)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     try {
       initThree()
       loadRobot()
       animate()
     } catch (err) {
-      console.error('ThreeJSViewer 初始化失败:', err)
+      logger.error('ThreeJSViewer 初始化失败:', err)
       setError(`初始化失败: ${err instanceof Error ? err.message : '未知错误'}`)
       setIsLoading(false)
     }
@@ -269,6 +264,7 @@ export default function ThreeJSViewer({
     // 清理函数
     return () => {
       window.removeEventListener('resize', handleResize)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       const currentAnimationId = animationId.current
       const currentControls = controlsRef.current
       const currentRenderer = rendererRef.current

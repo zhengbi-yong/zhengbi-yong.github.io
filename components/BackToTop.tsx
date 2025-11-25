@@ -26,24 +26,24 @@ export default function BackToTop({
 
   // 使用useCallback缓存updateVisibility函数
   const updateVisibility = useCallback(() => {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop
-    const documentHeight = document.documentElement.scrollHeight
-    const windowHeight = window.innerHeight
+      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      const documentHeight = document.documentElement.scrollHeight
+      const windowHeight = window.innerHeight
 
-    // 检查是否超过阈值或是否在底部（如果启用 showAtBottom）
-    const isOverThreshold = scrollTop > threshold
-    const isAtBottom = showAtBottom && scrollTop + windowHeight >= documentHeight - 10
+      // 检查是否超过阈值或是否在底部（如果启用 showAtBottom）
+      const isOverThreshold = scrollTop > threshold
+      const isAtBottom = showAtBottom && scrollTop + windowHeight >= documentHeight - 10
 
-    setIsVisible(isOverThreshold || isAtBottom)
+      setIsVisible(isOverThreshold || isAtBottom)
     tickingRef.current = false
   }, [threshold, showAtBottom])
 
   // 使用useCallback缓存handleScroll函数
   const handleScroll = useCallback(() => {
     if (!tickingRef.current) {
-      window.requestAnimationFrame(updateVisibility)
+        window.requestAnimationFrame(updateVisibility)
       tickingRef.current = true
-    }
+      }
   }, [updateVisibility])
 
   // 使用useCallback缓存scrollToTop函数
