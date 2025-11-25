@@ -12,6 +12,11 @@ export const generateStaticParams = async () => {
   }))
 }
 
+// 缓存配置：动态模式时1小时重新验证
+// 注意：静态导出模式下，revalidate 不需要设置（页面已经是静态的）
+// 对于动态部署，使用 3600 秒（1小时）的重新验证时间
+export const revalidate = 3600
+
 export default async function Page(props: { params: Promise<{ page: string }> }) {
   const params = await props.params
   const sortedPosts = getSortedPosts()

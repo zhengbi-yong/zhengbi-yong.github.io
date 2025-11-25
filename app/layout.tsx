@@ -13,6 +13,7 @@ import { FocusManager } from '@/components/FocusManager'
 import siteMetadata from '@/data/siteMetadata'
 import { ThemeProviders } from './theme-providers'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import { Metadata } from 'next'
 
 const space_grotesk = Space_Grotesk({
@@ -98,6 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
+        <ServiceWorkerRegister />
         <ThemeProviders>
           <ErrorBoundary>
             <KeyboardNavigation />
