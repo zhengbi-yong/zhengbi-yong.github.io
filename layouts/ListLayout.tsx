@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { formatDate } from 'pliny/utils/formatDate'
 import { CoreContent } from 'pliny/utils/contentlayer'
@@ -10,6 +10,7 @@ import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
 import SlideIn from '@/components/animations/SlideIn'
 import { ListSkeleton } from '@/components/loaders'
+import { useBlogStore } from '@/lib/store/blog-store'
 
 interface PaginationProps {
   totalPages: number
@@ -73,16 +74,45 @@ export default function ListLayout({
   pagination,
 }: ListLayoutProps) {
   const [searchValue, setSearchValue] = useState('')
+  const { allPosts, setAllPosts, isCacheValid, searchQuery, setSearchQuery } = useBlogStore()
+  
+  // 缓存管理：首次加载时写入缓存，后续优先使用缓存
+  useEffect(() => {
+    // 如果传入的 posts 不为空，且缓存无效或为空，则更新缓存
+    if (posts.length > 0 && (!isCacheValid() || allPosts.length === 0)) {
+      setAllPosts(posts)
+    }
+  }, [posts, allPosts.length, isCacheValid, setAllPosts])
+  
+  // 恢复搜索状态
+  useEffect(() => {
+    if (searchQuery) {
+      setSearchValue(searchQuery)
+    }
+  }, [searchQuery])
+  
+  // 保存搜索状态
+  useEffect(() => {
+    setSearchQuery(searchValue)
+  }, [searchValue, setSearchQuery])
+  
+  // 优先使用缓存的博客列表（如果缓存有效），否则使用传入的 posts
+  const effectivePosts = useMemo(() => {
+    if (isCacheValid() && allPosts.length > 0) {
+      return allPosts
+    }
+    return posts
+  }, [isCacheValid, allPosts, posts])
   
   // 使用 useMemo 优化搜索过滤性能
   const filteredBlogPosts = useMemo(() => {
-    if (!searchValue) return posts
+    if (!searchValue) return effectivePosts
     const lowerSearchValue = searchValue.toLowerCase()
-    return posts.filter((post) => {
+    return effectivePosts.filter((post) => {
       const searchContent = post.title + post.summary + post.tags?.join(' ')
       return searchContent.toLowerCase().includes(lowerSearchValue)
     })
-  }, [posts, searchValue])
+  }, [effectivePosts, searchValue])
 
   // If initialDisplayPosts exist, display it if no searchValue is specified
   const displayPosts = useMemo(() => {
