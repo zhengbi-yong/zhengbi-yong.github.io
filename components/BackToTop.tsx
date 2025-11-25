@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { ArrowUp } from 'lucide-react'
 import { Button } from '@/components/components/ui/button'
 
@@ -22,31 +22,43 @@ export default function BackToTop({
   showAtBottom = false,
 }: BackToTopProps) {
   const [isVisible, setIsVisible] = useState(false)
+  const tickingRef = useRef(false)
+
+  // 使用useCallback缓存updateVisibility函数
+  const updateVisibility = useCallback(() => {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop
+    const documentHeight = document.documentElement.scrollHeight
+    const windowHeight = window.innerHeight
+
+    // 检查是否超过阈值或是否在底部（如果启用 showAtBottom）
+    const isOverThreshold = scrollTop > threshold
+    const isAtBottom = showAtBottom && scrollTop + windowHeight >= documentHeight - 10
+
+    setIsVisible(isOverThreshold || isAtBottom)
+    tickingRef.current = false
+  }, [threshold, showAtBottom])
+
+  // 使用useCallback缓存handleScroll函数
+  const handleScroll = useCallback(() => {
+    if (!tickingRef.current) {
+      window.requestAnimationFrame(updateVisibility)
+      tickingRef.current = true
+    }
+  }, [updateVisibility])
+
+  // 使用useCallback缓存scrollToTop函数
+  const scrollToTop = useCallback(() => {
+    if (smooth) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      })
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }, [smooth])
 
   useEffect(() => {
-    // 节流函数，限制 scroll 事件处理频率
-    let ticking = false
-
-    const updateVisibility = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop
-      const documentHeight = document.documentElement.scrollHeight
-      const windowHeight = window.innerHeight
-
-      // 检查是否超过阈值或是否在底部（如果启用 showAtBottom）
-      const isOverThreshold = scrollTop > threshold
-      const isAtBottom = showAtBottom && scrollTop + windowHeight >= documentHeight - 10
-
-      setIsVisible(isOverThreshold || isAtBottom)
-      ticking = false
-    }
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(updateVisibility)
-        ticking = true
-      }
-    }
-
     // 初始检查
     updateVisibility()
 
@@ -57,18 +69,7 @@ export default function BackToTop({
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', updateVisibility)
     }
-  }, [threshold, showAtBottom])
-
-  const scrollToTop = () => {
-    if (smooth) {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      })
-    } else {
-      window.scrollTo(0, 0)
-    }
-  }
+  }, [handleScroll, updateVisibility])
 
   if (!isVisible) return null
 
