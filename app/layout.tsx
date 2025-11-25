@@ -3,17 +3,16 @@ import 'pliny/search/algolia.css'
 import 'remark-github-blockquote-alert/alert.css'
 
 import { Space_Grotesk } from 'next/font/google'
-import { Analytics, AnalyticsConfig } from 'pliny/analytics'
 import { SearchProvider, SearchConfig } from 'pliny/search'
+import type { AnalyticsConfig } from 'pliny/analytics'
 import Header from '@/components/Header'
 import SectionContainer from '@/components/SectionContainer'
 import Footer from '@/components/Footer'
-import { KeyboardNavigation } from '@/components/KeyboardNavigation'
-import { FocusManager } from '@/components/FocusManager'
 import siteMetadata from '@/data/siteMetadata'
 import { ThemeProviders } from './theme-providers'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
+import LazyLoadedComponents from '@/components/LazyLoadedComponents'
 import { Metadata } from 'next'
 
 const space_grotesk = Space_Grotesk({
@@ -98,13 +97,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
+      {/* 资源优先级优化：预加载关键 CSS */}
+      <link rel="preload" href={`${basePath}/css/tailwind.css`} as="style" />
+      <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
         <ServiceWorkerRegister />
         <ThemeProviders>
           <ErrorBoundary>
-            <KeyboardNavigation />
-            <FocusManager />
-            <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+            {/* 延迟加载的组件（Analytics、KeyboardNavigation、FocusManager） */}
+            <LazyLoadedComponents
+              analyticsConfig={siteMetadata.analytics as AnalyticsConfig}
+            />
             <SectionContainer>
               <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
                 <Header />

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import type { LinkProps } from 'next/link'
 import { AnchorHTMLAttributes, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import prefetchManager from '@/lib/utils/prefetch-manager'
 
 // 使用 Omit 排除冲突的属性，然后合并类型
 interface CustomLinkProps
@@ -50,16 +51,14 @@ const CustomLink = ({
   const isInternalLink = hrefString && hrefString.startsWith('/')
   const isAnchorLink = hrefString && hrefString.startsWith('#')
 
-  // 悬停预取处理
+  // 悬停预取处理（使用 PrefetchManager 管理）
   const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (prefetchOnHover && isInternalLink && !prefetchedRef.current && hrefString) {
-      // 使用 Next.js 的 router.prefetch 进行预取
-      try {
-        router.prefetch(hrefString)
+    if (prefetchOnHover && isInternalLink && hrefString) {
+      // 检查是否已预取
+      if (!prefetchManager.hasPrefetched(hrefString) && !prefetchedRef.current) {
+        // 使用 PrefetchManager 进行预取（自动管理队列和并发）
+        prefetchManager.prefetch(hrefString, 'medium')
         prefetchedRef.current = true
-      } catch (error) {
-        // 预取失败不影响功能
-        console.debug('Prefetch failed:', error)
       }
     }
     // 调用原有的 onMouseEnter（如果存在）
