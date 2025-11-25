@@ -64,6 +64,8 @@ const unoptimized = process.env.UNOPTIMIZED ? true : undefined
  **/
 module.exports = () => {
   const plugins = [withContentlayer, withBundleAnalyzer]
+  const isStaticExport = output === 'export'
+  
   return plugins.reduce((acc, next) => next(acc), {
     output,
     basePath,
@@ -81,14 +83,21 @@ module.exports = () => {
       ],
       unoptimized,
     },
-    async headers() {
-      return [
-        {
-          source: '/(.*)',
-          headers: securityHeaders,
-        },
-      ]
-    },
+    // 兼容性处理：静态导出模式下 headers 不生效，避免警告
+    // 静态导出时需要在服务器层（如 Nginx、Apache）配置安全头
+    // 动态部署模式下保留完整的 headers 配置
+    ...(isStaticExport
+      ? {}
+      : {
+          async headers() {
+            return [
+              {
+                source: '/(.*)',
+                headers: securityHeaders,
+              },
+            ]
+          },
+        }),
     webpack: (config, options) => {
       config.module.rules.push({
         test: /\.svg$/,

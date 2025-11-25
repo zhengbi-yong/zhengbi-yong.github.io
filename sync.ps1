@@ -69,9 +69,11 @@ foreach ($tool in $requiredTools) {
 Write-Success "所有必需的工具都已找到"
 
 # 步骤 1: 代码检查
-Write-Step "步骤 1/4: 运行代码检查 (yarn lint --fix)"
+# 注意：Next.js 16 的 lint 命令不支持 --fix 选项
+# 如需自动修复，可手动运行: npx eslint --fix
+Write-Step "步骤 1/4: 运行代码检查 (yarn lint)"
 try {
-    $lintResult = yarn lint --fix 2>&1
+    $lintResult = yarn lint 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "代码检查发现一些问题，但继续执行..."
         Write-Host $lintResult
