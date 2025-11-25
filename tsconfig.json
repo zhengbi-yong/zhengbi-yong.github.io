@@ -12,7 +12,9 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
-    "composite": true,
+    // 移除 composite 配置以避免项目引用警告
+    // 如果将来需要使用 TypeScript 项目引用，可以重新启用
+    // "composite": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
