@@ -45,6 +45,15 @@ import {
 } from '@/components/components/ui/accordion'
 import { Alert, AlertDescription, AlertTitle } from '@/components/components/ui/alert'
 import { Progress } from '@/components/components/ui/progress'
+import {
+  Spinner,
+  Skeleton,
+  ArticleSkeleton,
+  CardSkeleton,
+  ListSkeleton,
+  ImageSkeleton,
+  ComponentLoader,
+} from '@/components/loaders'
 import FadeIn from '@/components/animations/FadeIn'
 import SlideIn from '@/components/animations/SlideIn'
 import ScaleIn from '@/components/animations/ScaleIn'
@@ -56,7 +65,10 @@ const ThreeJSViewer = dynamic(() => import('@/components/ThreeJSViewer'), {
   ssr: false,
   loading: () => (
     <div className="flex h-96 items-center justify-center rounded-lg border bg-gray-100 dark:bg-gray-800">
+      <div className="flex flex-col items-center gap-4">
+        <Spinner size="lg" />
       <p className="text-gray-600 dark:text-gray-400">加载 3D 模型中...</p>
+      </div>
     </div>
   ),
 })
@@ -66,7 +78,10 @@ const ParticleBackground = dynamic(() => import('@/components/ParticleBackground
   ssr: false,
   loading: () => (
     <div className="absolute inset-0 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-2">
+        <Spinner size="md" />
       <p className="text-sm text-gray-500">加载粒子动画中...</p>
+      </div>
     </div>
   ),
 })
@@ -880,6 +895,103 @@ export default function Projects() {
               <p className="text-center text-sm text-white/90">烟花 + 闪烁效果组合</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* 加载组件示例 */}
+      <div className="space-y-6 py-6">
+        <h2 className="text-2xl font-bold">加载动画组件</h2>
+        <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
+          统一的加载动画系统，支持多种加载场景
+        </p>
+
+        {/* Spinner 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">Spinner - 旋转加载器</h3>
+          <div className="flex items-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <Spinner size="sm" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">小号</p>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Spinner size="md" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">中号</p>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Spinner size="lg" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">大号</p>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Skeleton 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">Skeleton - 基础骨架屏</h3>
+          <div className="space-y-4">
+            <Skeleton height={20} width="100%" />
+            <Skeleton height={20} width="80%" />
+            <Skeleton height={20} width="60%" />
+            <Skeleton height={100} width="100%" />
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* ArticleSkeleton 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">ArticleSkeleton - 文章骨架屏</h3>
+          <ArticleSkeleton />
+        </div>
+
+        <Separator />
+
+        {/* CardSkeleton 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">CardSkeleton - 卡片骨架屏</h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            <CardSkeleton />
+            <CardSkeleton showImage={false} />
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* ListSkeleton 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">ListSkeleton - 列表骨架屏</h3>
+          <ListSkeleton itemCount={3} />
+        </div>
+
+        <Separator />
+
+        {/* ImageSkeleton 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">ImageSkeleton - 图片骨架屏</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <ImageSkeleton width={300} height={200} showSpinner={true} />
+            <ImageSkeleton aspectRatio="16/9" showSpinner={true} />
+            <ImageSkeleton width="100%" height={150} showSpinner={false} />
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* ComponentLoader 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">ComponentLoader - 组件加载包装器</h3>
+          <ComponentLoader
+            isLoading={false}
+            message="加载中..."
+            spinner={true}
+          >
+            <div className="rounded-lg border bg-green-100 p-4 dark:bg-green-900">
+              <p>内容已加载完成</p>
+            </div>
+          </ComponentLoader>
         </div>
       </div>
     </div>

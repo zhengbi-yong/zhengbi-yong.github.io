@@ -1,0 +1,76 @@
+/**
+ * 加载策略工具函数
+ * 根据设备性能、网络状态和移动设备检测，返回最优的加载策略
+ */
+
+import { isMobileDevice } from './device'
+
+export type LoadingStrategy = 'minimal' | 'standard' | 'enhanced'
+
+/**
+ * 获取加载策略
+ * 根据设备性能、网络状态和移动设备检测返回最优策略
+ * @returns 加载策略类型
+ */
+export function getLoadingStrategy(): LoadingStrategy {
+  if (typeof window === 'undefined') {
+    return 'standard'
+  }
+
+  // 移动设备默认使用 minimal 策略
+  if (isMobileDevice()) {
+    return 'minimal'
+  }
+
+  // 检测设备性能
+  const hardwareConcurrency = navigator.hardwareConcurrency || 2
+  const deviceMemory = (navigator as any).deviceMemory || 4 // 默认 4GB
+
+  // 检测网络状态
+  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
+  const effectiveType = connection?.effectiveType || '4g'
+  const downlink = connection?.downlink || 10 // 默认 10 Mbps
+
+  // 高性能设备 + 快速网络 = enhanced
+  if (hardwareConcurrency >= 8 && deviceMemory >= 8 && effectiveType === '4g' && downlink >= 10) {
+    return 'enhanced'
+  }
+
+  // 低性能设备或慢速网络 = minimal
+  if (hardwareConcurrency <= 2 || deviceMemory <= 2 || effectiveType === '2g' || downlink < 1) {
+    return 'minimal'
+  }
+
+  // 默认使用 standard
+  return 'standard'
+}
+
+/**
+ * 判断是否应该使用粒子动画
+ * @returns 是否应该使用粒子动画
+ */
+export function shouldUseParticles(): boolean {
+  const strategy = getLoadingStrategy()
+  return strategy === 'enhanced'
+}
+
+/**
+ * 获取最优粒子数量
+ * @param baseCount 基础粒子数量
+ * @returns 优化后的粒子数量
+ */
+export function getOptimalParticleCount(baseCount: number): number {
+  const strategy = getLoadingStrategy()
+
+  switch (strategy) {
+    case 'minimal':
+      return Math.max(10, Math.floor(baseCount * 0.3))
+    case 'standard':
+      return Math.floor(baseCount * 0.6)
+    case 'enhanced':
+      return baseCount
+    default:
+      return baseCount
+  }
+}
+
