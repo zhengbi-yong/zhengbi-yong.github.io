@@ -88,6 +88,15 @@ const SparklesAnimation = dynamic(() => import('@/components/animations/Sparkles
   ssr: false,
 })
 
+// 动态导入 GSAP 动画组件
+const ScrollReveal = dynamic(() => import('@/components/animations/ScrollReveal'), {
+  ssr: false,
+})
+
+const TimelineAnimation = dynamic(() => import('@/components/animations/TimelineAnimation'), {
+  ssr: false,
+})
+
 export default function Projects() {
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -529,6 +538,56 @@ export default function Projects() {
 
       <Separator />
 
+      {/* GSAP 动画组件示例 */}
+      <div className="space-y-6 py-6">
+        <h2 className="text-2xl font-bold">GSAP 动画组件</h2>
+        <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
+          使用 GSAP 和 ScrollTrigger 实现的高性能滚动动画效果
+        </p>
+
+        {/* ScrollReveal 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">ScrollReveal - 滚动触发动画</h3>
+          <div className="grid gap-4 md:grid-cols-3">
+            <ScrollReveal direction="up" duration={1}>
+              <div className="rounded-lg border bg-blue-100 p-4 dark:bg-blue-900">
+                <p>向上滑入</p>
+              </div>
+            </ScrollReveal>
+            <ScrollReveal direction="left" duration={1} delay={0.2}>
+              <div className="rounded-lg border bg-green-100 p-4 dark:bg-green-900">
+                <p>向左滑入</p>
+              </div>
+            </ScrollReveal>
+            <ScrollReveal direction="scale" duration={1} delay={0.4}>
+              <div className="rounded-lg border bg-purple-100 p-4 dark:bg-purple-900">
+                <p>缩放进入</p>
+              </div>
+            </ScrollReveal>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* TimelineAnimation 示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">TimelineAnimation - 时间线动画</h3>
+          <TimelineAnimation stagger={0.2} duration={0.6}>
+            <div className="mb-2 rounded-lg border bg-red-100 p-4 dark:bg-red-900">
+              <p>时间线动画项 1</p>
+            </div>
+            <div className="mb-2 rounded-lg border bg-orange-100 p-4 dark:bg-orange-900">
+              <p>时间线动画项 2</p>
+            </div>
+            <div className="mb-2 rounded-lg border bg-yellow-100 p-4 dark:bg-yellow-900">
+              <p>时间线动画项 3</p>
+            </div>
+          </TimelineAnimation>
+        </div>
+      </div>
+
+      <Separator />
+
       {/* 粒子背景特效示例 */}
       <div className="space-y-6 py-6">
         <h2 className="text-2xl font-bold">粒子背景特效</h2>
@@ -590,9 +649,7 @@ export default function Projects() {
             <FireworksAnimation autoPlay interval={3000} />
             <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
               <h3 className="mb-2 text-xl font-bold text-white">烟花动画</h3>
-              <p className="text-center text-sm text-white/90">
-                绚丽的烟花爆炸效果，自动循环播放
-              </p>
+              <p className="text-center text-sm text-white/90">绚丽的烟花爆炸效果，自动循环播放</p>
             </div>
           </div>
 
@@ -612,9 +669,7 @@ export default function Projects() {
             <SparklesAnimation particleCount={30} />
             <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
               <h3 className="mb-2 text-xl font-bold text-white">闪烁动画</h3>
-              <p className="text-center text-sm text-white/90">
-                优雅的闪烁粒子效果，持续播放
-              </p>
+              <p className="text-center text-sm text-white/90">优雅的闪烁粒子效果，持续播放</p>
             </div>
           </div>
 
@@ -624,9 +679,7 @@ export default function Projects() {
             <SparklesAnimation particleCount={20} />
             <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
               <h3 className="mb-2 text-xl font-bold text-white">组合动画 1</h3>
-              <p className="text-center text-sm text-white/90">
-                彩带 + 闪烁效果组合
-              </p>
+              <p className="text-center text-sm text-white/90">彩带 + 闪烁效果组合</p>
             </div>
           </div>
 
@@ -636,9 +689,7 @@ export default function Projects() {
             <SparklesAnimation particleCount={15} />
             <div className="relative z-10 flex h-full flex-col items-center justify-center p-4">
               <h3 className="mb-2 text-xl font-bold text-white">组合动画 2</h3>
-              <p className="text-center text-sm text-white/90">
-                烟花 + 闪烁效果组合
-              </p>
+              <p className="text-center text-sm text-white/90">烟花 + 闪烁效果组合</p>
             </div>
           </div>
         </div>

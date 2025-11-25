@@ -36,10 +36,10 @@ export default function ParticleBackground({
 
   // 使用 next-themes 检测主题
   const { resolvedTheme } = useTheme()
-  
+
   // 引擎初始化状态
   const [init, setInit] = useState(engineInitialized)
-  
+
   // 客户端挂载状态
   const [mounted, setMounted] = useState(false)
 
@@ -83,14 +83,16 @@ export default function ParticleBackground({
   // 计算主题颜色
   const themeColor = useMemo(() => {
     if (color) return color
-    
+
     if (!mounted) return '#000000'
-    
+
     // 使用 resolvedTheme，如果未定义则检查 DOM
-    const isDark = resolvedTheme === 'dark' || 
-      (resolvedTheme === undefined && typeof window !== 'undefined' && 
-       document.documentElement.classList.contains('dark'))
-    
+    const isDark =
+      resolvedTheme === 'dark' ||
+      (resolvedTheme === undefined &&
+        typeof window !== 'undefined' &&
+        document.documentElement.classList.contains('dark'))
+
     return isDark ? '#ffffff' : '#000000'
   }, [color, resolvedTheme, mounted])
 

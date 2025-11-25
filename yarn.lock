@@ -2419,6 +2419,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@gsap/react@npm:^2.1.2":
+  version: 2.1.2
+  resolution: "@gsap/react@npm:2.1.2"
+  peerDependencies:
+    gsap: ^3.12.5
+    react: ">=17"
+  checksum: 237288d9923a5c0f243a7986e655cb09ab600db7cc117d6329334f1e895e31567635ca53587aabf65924e0cc02887b054aeda5f0b04c7d2091c95e75f7d8162d
+  languageName: node
+  linkType: hard
+
 "@headlessui/react@npm:2.2.0":
   version: 2.2.0
   resolution: "@headlessui/react@npm:2.2.0"
@@ -8421,6 +8431,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"gsap@npm:^3.13.0":
+  version: 3.13.0
+  resolution: "gsap@npm:3.13.0"
+  checksum: 40884726718b5bed8cdd6faa621b3eaec64541b6fc163a0af810d3626d750e5d010f7300f4b106327d4474623a9fd5f915a48081d7744eec38c57a1fce20fb62
+  languageName: node
+  linkType: hard
+
 "gzip-size@npm:^6.0.0":
   version: 6.0.0
   resolution: "gzip-size@npm:6.0.0"
@@ -13850,6 +13867,7 @@ __metadata:
     "@emotion/is-prop-valid": ^1.4.0
     "@eslint/eslintrc": ^3.2.0
     "@eslint/js": ^9.16.0
+    "@gsap/react": ^2.1.2
     "@headlessui/react": 2.2.0
     "@next/bundle-analyzer": 15.1.4
     "@radix-ui/react-accordion": ^1.2.12
@@ -13889,6 +13907,7 @@ __metadata:
     github-slugger: ^2.0.0
     globals: ^15.12.0
     gray-matter: ^4.0.2
+    gsap: ^3.13.0
     hast-util-from-html-isomorphic: ^2.0.0
     husky: ^9.0.0
     image-size: 1.0.0
