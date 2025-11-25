@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { formatDate } from 'pliny/utils/formatDate'
 import { CoreContent } from 'pliny/utils/contentlayer'
@@ -73,14 +73,21 @@ export default function ListLayout({
   pagination,
 }: ListLayoutProps) {
   const [searchValue, setSearchValue] = useState('')
-  const filteredBlogPosts = posts.filter((post) => {
-    const searchContent = post.title + post.summary + post.tags?.join(' ')
-    return searchContent.toLowerCase().includes(searchValue.toLowerCase())
-  })
+  
+  // 使用 useMemo 优化搜索过滤性能
+  const filteredBlogPosts = useMemo(() => {
+    if (!searchValue) return posts
+    const lowerSearchValue = searchValue.toLowerCase()
+    return posts.filter((post) => {
+      const searchContent = post.title + post.summary + post.tags?.join(' ')
+      return searchContent.toLowerCase().includes(lowerSearchValue)
+    })
+  }, [posts, searchValue])
 
   // If initialDisplayPosts exist, display it if no searchValue is specified
-  const displayPosts =
-    initialDisplayPosts.length > 0 && !searchValue ? initialDisplayPosts : filteredBlogPosts
+  const displayPosts = useMemo(() => {
+    return initialDisplayPosts.length > 0 && !searchValue ? initialDisplayPosts : filteredBlogPosts
+  }, [initialDisplayPosts, searchValue, filteredBlogPosts])
 
   return (
     <>

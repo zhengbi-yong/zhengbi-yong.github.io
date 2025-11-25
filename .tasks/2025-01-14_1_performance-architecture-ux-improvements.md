@@ -1297,6 +1297,17 @@ module.exports = {
 
 ## 修复的问题
 
+### 动画执行两次问题修复 ✅
+1. **问题**：动画会执行两次
+   - 原因：`PageTransition` 组件的 `AnimatePresence` 与页面内动画组件（如 `SlideIn`）同时触发
+   - 修复：移除 `PageTransition` 组件，避免与页面内动画冲突
+   - 修改文件：`app/layout.tsx` - 移除 PageTransition 包装
+
+2. **MDX 组件包装器优化** ✅
+   - 移除动画组件包装器的 `memo`，因为 MDX 组件每次渲染都会创建新的 props 对象
+   - `memo` 在这种情况下无法有效优化，反而可能导致问题
+   - 修改文件：`components/MDXComponents.tsx`
+
 ### 构建错误修复
 1. **AnimationSkeleton 导入错误** ✅
    - 问题：`Skeleton` 是默认导出，但使用了命名导入
@@ -1309,6 +1320,27 @@ module.exports = {
 3. **tailwind.config.js 类型错误** ✅
    - 问题：JavaScript 文件中不能使用 TypeScript 类型注解
    - 修复：使用 `@ts-ignore` 注释忽略类型检查
+
+## 额外优化（第二轮）
+
+### 性能优化增强
+1. **博客文章页面缓存优化** ✅
+   - 修改 `app/blog/[...slug]/page.tsx`，使用 `getSortedPosts()` 缓存函数
+   - 消除博客文章页面的重复计算
+
+2. **MDX 组件性能优化** ✅
+   - 为所有动画组件包装器添加 `memo` 优化
+   - 减少不必要的重新渲染
+
+3. **ListLayout 搜索性能优化** ✅
+   - 使用 `useMemo` 优化搜索过滤逻辑
+   - 缓存 `displayPosts` 计算结果
+   - 提升搜索响应性能
+
+### 修改文件（第二轮）：
+1. `app/blog/[...slug]/page.tsx` - 使用缓存函数
+2. `components/MDXComponents.tsx` - 添加 memo 优化
+3. `layouts/ListLayout.tsx` - 添加 useMemo 优化搜索
 
 ## 下一步
 1. 运行测试验证所有功能
