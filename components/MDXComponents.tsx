@@ -35,6 +35,7 @@ const BounceIn = dynamic(() => import('./animations/BounceIn').then((mod) => mod
 })
 
 // 包装动画组件，添加错误边界和 Suspense
+// 注意：不使用 memo，因为 MDX 组件每次渲染都会创建新的 props 对象
 const WrappedFadeIn = (props: any) => (
   <AnimationErrorBoundary>
     <Suspense fallback={<AnimationSkeleton />}>
