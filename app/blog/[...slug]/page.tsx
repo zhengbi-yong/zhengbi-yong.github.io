@@ -16,6 +16,7 @@ import siteMetadata from '@/data/siteMetadata'
 import { notFound } from 'next/navigation'
 import { CoreContent } from 'pliny/utils/contentlayer'
 import type { ReactNode } from 'react'
+import CachedPostContent from '@/components/CachedPostContent'
 
 interface LayoutProps {
   content: CoreContent<Blog>
@@ -98,6 +99,9 @@ export const generateStaticParams = async () => {
   return allBlogs.map((p) => ({ slug: p.slug.split('/').map((name) => decodeURI(name)) }))
 }
 
+// 缓存配置：静态导出时永久缓存，动态模式时1小时重新验证
+export const revalidate = 3600
+
 export default async function Page(props: { params: Promise<{ slug: string[] }> }) {
   const params = await props.params
   const slug = decodeURI(params.slug.join('/'))
@@ -137,6 +141,8 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {/* 自动缓存文章内容，后续访问瞬间打开 */}
+      <CachedPostContent slug={slug} post={post} />
       <Layout content={mainContent} authorDetails={authorDetails} next={next} prev={prev}>
         <MDXLayoutRenderer code={post.body.code} components={components} toc={post.toc} />
       </Layout>

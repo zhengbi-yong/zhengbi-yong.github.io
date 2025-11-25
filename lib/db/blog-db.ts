@@ -22,6 +22,9 @@ interface BlogDB {
   getBlogs: () => Promise<CoreContent<Blog>[] | null>
   savePost: (slug: string, content: any) => Promise<void>
   getPost: (slug: string) => Promise<any | null>
+  savePostFull: (slug: string, post: Blog) => Promise<void>
+  getPostFull: (slug: string) => Promise<Blog | null>
+  isPostCacheValid: (slug: string, maxAge?: number) => Promise<boolean>
   clearCache: () => Promise<void>
 }
 
@@ -202,6 +205,95 @@ const blogDB: BlogDB = {
     } catch (error) {
       console.error('[IndexedDB] Failed to get post:', error)
       return null
+    }
+  },
+
+  /**
+   * 保存完整文章数据（包括 MDX code、metadata 等）
+   */
+  async savePostFull(slug: string, post: Blog) {
+    if (!this.db || !isIndexedDBSupported()) {
+      return
+    }
+
+    try {
+      const transaction = this.db.transaction([STORES.POSTS], 'readwrite')
+      const store = transaction.objectStore(STORES.POSTS)
+      await store.put({
+        slug,
+        post,
+        cachedAt: Date.now(),
+        lastModified: post.lastmod ? new Date(post.lastmod).getTime() : new Date(post.date).getTime(),
+      })
+      console.log(`[IndexedDB] Post saved: ${slug}`)
+    } catch (error) {
+      console.error('[IndexedDB] Failed to save post full:', error)
+    }
+  },
+
+  /**
+   * 获取完整文章数据
+   */
+  async getPostFull(slug: string): Promise<Blog | null> {
+    if (!this.db || !isIndexedDBSupported()) {
+      return null
+    }
+
+    try {
+      const transaction = this.db.transaction([STORES.POSTS], 'readonly')
+      const store = transaction.objectStore(STORES.POSTS)
+      const request = store.get(slug)
+
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          const result = request.result
+          if (result && result.post) {
+            resolve(result.post as Blog)
+          } else {
+            resolve(null)
+          }
+        }
+        request.onerror = () => {
+          reject(request.error)
+        }
+      })
+    } catch (error) {
+      console.error('[IndexedDB] Failed to get post full:', error)
+      return null
+    }
+  },
+
+  /**
+   * 检查文章缓存是否有效
+   */
+  async isPostCacheValid(slug: string, maxAge: number = 24 * 60 * 60 * 1000): Promise<boolean> {
+    if (!this.db || !isIndexedDBSupported()) {
+      return false
+    }
+
+    try {
+      const transaction = this.db.transaction([STORES.POSTS], 'readonly')
+      const store = transaction.objectStore(STORES.POSTS)
+      const request = store.get(slug)
+
+      return new Promise((resolve, reject) => {
+        request.onsuccess = () => {
+          const result = request.result
+          if (!result || !result.cachedAt) {
+            resolve(false)
+            return
+          }
+
+          const age = Date.now() - result.cachedAt
+          resolve(age < maxAge)
+        }
+        request.onerror = () => {
+          reject(request.error)
+        }
+      })
+    } catch (error) {
+      console.error('[IndexedDB] Failed to check post cache validity:', error)
+      return false
     }
   },
 
