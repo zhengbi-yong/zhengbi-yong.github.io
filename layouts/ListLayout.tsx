@@ -11,6 +11,7 @@ import siteMetadata from '@/data/siteMetadata'
 import SlideIn from '@/components/animations/SlideIn'
 import { ListSkeleton } from '@/components/loaders'
 import { useBlogStore } from '@/lib/store/blog-store'
+import postPreloader from '@/lib/utils/post-preloader'
 
 interface PaginationProps {
   totalPages: number
@@ -95,7 +96,7 @@ export default function ListLayout({
   useEffect(() => {
     setSearchQuery(searchValue)
   }, [searchValue, setSearchQuery])
-  
+
   // 优先使用缓存的博客列表（如果缓存有效），否则使用传入的 posts
   const effectivePosts = useMemo(() => {
     if (isCacheValid() && allPosts.length > 0) {
@@ -103,6 +104,39 @@ export default function ListLayout({
     }
     return posts
   }, [isCacheValid, allPosts, posts])
+
+  // 激进预加载：页面加载后，使用 requestIdleCallback 批量预加载所有文章
+  useEffect(() => {
+    if (effectivePosts.length === 0) {
+      return
+    }
+
+    // 提取所有文章的 slug
+    const slugs = effectivePosts.map((post) => {
+      // 从 path 中提取 slug（例如：blog/2024/01/post-name -> 2024/01/post-name）
+      const pathParts = post.path.split('/')
+      if (pathParts[0] === 'blog') {
+        return pathParts.slice(1).join('/')
+      }
+      return post.path.replace(/^blog\//, '')
+    })
+
+    // 使用 requestIdleCallback 批量预加载（低优先级，不阻塞主线程）
+    const preloadAllPosts = () => {
+      postPreloader.preloadPosts(slugs, 'low')
+      // 开始处理队列
+      postPreloader.processQueueIdle()
+    }
+
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(preloadAllPosts, { timeout: 5000 })
+      } else {
+        // 降级方案：延迟 2 秒后执行
+        setTimeout(preloadAllPosts, 2000)
+      }
+    }
+  }, [effectivePosts])
   
   // 使用 useMemo 优化搜索过滤性能
   const filteredBlogPosts = useMemo(() => {
