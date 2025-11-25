@@ -97,6 +97,22 @@ const TimelineAnimation = dynamic(() => import('@/components/animations/Timeline
   ssr: false,
 })
 
+// 动态导入高级 GSAP 动画组件
+const ParallaxScroll = dynamic(() => import('@/components/animations/ParallaxScroll'), {
+  ssr: false,
+})
+
+const PinElement = dynamic(() => import('@/components/animations/PinElement'), {
+  ssr: false,
+})
+
+const AdvancedScrollAnimation = dynamic(
+  () => import('@/components/animations/AdvancedScrollAnimation'),
+  {
+    ssr: false,
+  }
+)
+
 export default function Projects() {
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -583,6 +599,102 @@ export default function Projects() {
               <p>时间线动画项 3</p>
             </div>
           </TimelineAnimation>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* 高级 GSAP 动画示例 */}
+      <div className="space-y-6 py-6">
+        <h2 className="text-2xl font-bold">高级 GSAP 动画效果</h2>
+        <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
+          视差滚动、元素固定和高级滚动动画效果
+        </p>
+
+        {/* ParallaxScroll 视差滚动示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">ParallaxScroll - 视差滚动</h3>
+          <div className="space-y-4">
+            <div className="relative h-48 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-blue-500 to-purple-600">
+              <ParallaxScroll speed={0.5} direction="vertical">
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-xl font-bold text-white">视差速度 0.5</p>
+                </div>
+              </ParallaxScroll>
+            </div>
+            <div className="relative h-48 w-full overflow-hidden rounded-lg border bg-gradient-to-br from-green-500 to-teal-600">
+              <ParallaxScroll speed={-0.3} direction="vertical">
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-xl font-bold text-white">反向视差 -0.3</p>
+                </div>
+              </ParallaxScroll>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* PinElement 固定元素示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">PinElement - 固定元素</h3>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              滚动页面时，下面的元素会在到达顶部时固定，继续滚动后释放
+            </p>
+            <div className="h-screen space-y-4">
+              <div className="h-32 rounded-lg border bg-gray-100 p-4 dark:bg-gray-800">
+                <p>滚动前的普通内容</p>
+              </div>
+              <PinElement
+                start="top top"
+                end="+=300%"
+                onPinStart={() => console.log('元素已固定')}
+                onPinEnd={() => console.log('元素已释放')}
+              >
+                <div className="rounded-lg border bg-gradient-to-r from-pink-500 to-rose-600 p-8 text-white">
+                  <h4 className="mb-2 text-2xl font-bold">固定元素示例</h4>
+                  <p>这个元素会在滚动时固定，继续滚动后释放</p>
+                </div>
+              </PinElement>
+              <div className="h-32 rounded-lg border bg-gray-100 p-4 dark:bg-gray-800">
+                <p>滚动后的普通内容</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* AdvancedScrollAnimation 高级滚动动画示例 */}
+        <div>
+          <h3 className="mb-4 text-lg font-semibold">AdvancedScrollAnimation - 高级滚动动画</h3>
+          <div className="space-y-4">
+            <AdvancedScrollAnimation
+              animations={[
+                {
+                  property: 'opacity',
+                  from: 0,
+                  to: 1,
+                },
+                {
+                  property: 'scale',
+                  from: 0.8,
+                  to: 1,
+                },
+                {
+                  property: 'rotation',
+                  from: -10,
+                  to: 0,
+                },
+              ]}
+              scrub={true}
+            >
+              <div className="rounded-lg border bg-gradient-to-r from-indigo-500 to-purple-600 p-8 text-white">
+                <h4 className="mb-2 text-2xl font-bold">高级滚动动画</h4>
+                <p>这个元素在滚动时会同时改变透明度、缩放和旋转</p>
+              </div>
+            </AdvancedScrollAnimation>
+          </div>
         </div>
       </div>
 
