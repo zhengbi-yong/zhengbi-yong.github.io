@@ -127,7 +127,14 @@ export default function Hero3DSection() {
     }
   }
 
-  const loadingStrategy = getLoadingStrategy()
+  // 使用 state 存储 loadingStrategy，避免 SSR/CSR 不匹配
+  const [loadingStrategy, setLoadingStrategy] = useState<LoadingStrategy>('standard')
+
+  useEffect(() => {
+    if (mounted) {
+      setLoadingStrategy(getLoadingStrategy())
+    }
+  }, [mounted])
 
   return (
     <section className="mb-12">

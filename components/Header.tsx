@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react'
 import siteMetadata from '@/data/siteMetadata'
 import headerNavLinks from '@/data/headerNavLinks'
 import Logo from '@/data/logo.svg'
@@ -6,14 +7,20 @@ import MobileNav from './MobileNav'
 import ThemeSwitch from './ThemeSwitch'
 import SearchButton from './SearchButton'
 
-const Header = () => {
-  let headerClass = 'flex items-center w-full bg-white dark:bg-gray-950 justify-between py-10'
-  if (siteMetadata.stickyNav) {
-    headerClass += ' sticky top-0 z-50'
-  }
+const Header = memo(() => {
+  const headerClass = useMemo(() => {
+    let baseClass = 'flex items-center w-full bg-white dark:bg-gray-950 justify-between py-10'
+    if (siteMetadata.stickyNav) {
+      baseClass += ' sticky top-0 z-50'
+    }
+    return baseClass
+  }, [])
 
-  const headerLabel =
-    typeof siteMetadata.headerTitle === 'string' ? siteMetadata.headerTitle : siteMetadata.title
+  const headerLabel = useMemo(
+    () =>
+      typeof siteMetadata.headerTitle === 'string' ? siteMetadata.headerTitle : siteMetadata.title,
+    []
+  )
 
   return (
     <header className={headerClass}>
@@ -51,6 +58,8 @@ const Header = () => {
       </div>
     </header>
   )
-}
+})
+
+Header.displayName = 'Header'
 
 export default Header

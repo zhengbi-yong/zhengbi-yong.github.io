@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 
 interface ScrollProgressProps {
   className?: string
@@ -20,34 +20,34 @@ export default function ScrollProgress({
   position = 'top',
 }: ScrollProgressProps) {
   const [progress, setProgress] = useState(0)
+  const tickingRef = useRef(false)
+
+  // 使用useCallback缓存updateProgress函数
+  const updateProgress = useCallback(() => {
+    const windowHeight = window.innerHeight
+    const documentHeight = document.documentElement.scrollHeight
+    const scrollTop = window.scrollY || document.documentElement.scrollTop
+    const scrollableHeight = documentHeight - windowHeight
+
+    if (scrollableHeight > 0) {
+      const percentage = (scrollTop / scrollableHeight) * 100
+      setProgress(Math.min(100, Math.max(0, percentage)))
+    } else {
+      setProgress(0)
+    }
+
+    tickingRef.current = false
+  }, [])
+
+  // 使用useCallback缓存handleScroll函数
+  const handleScroll = useCallback(() => {
+    if (!tickingRef.current) {
+      window.requestAnimationFrame(updateProgress)
+      tickingRef.current = true
+    }
+  }, [updateProgress])
 
   useEffect(() => {
-    // 节流函数，限制 scroll 事件处理频率
-    let ticking = false
-
-    const updateProgress = () => {
-      const windowHeight = window.innerHeight
-      const documentHeight = document.documentElement.scrollHeight
-      const scrollTop = window.scrollY || document.documentElement.scrollTop
-      const scrollableHeight = documentHeight - windowHeight
-
-      if (scrollableHeight > 0) {
-        const percentage = (scrollTop / scrollableHeight) * 100
-        setProgress(Math.min(100, Math.max(0, percentage)))
-      } else {
-        setProgress(0)
-      }
-
-      ticking = false
-    }
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(updateProgress)
-        ticking = true
-      }
-    }
-
     // 初始计算
     updateProgress()
 
@@ -58,18 +58,22 @@ export default function ScrollProgress({
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', updateProgress)
     }
-  }, [])
+  }, [handleScroll, updateProgress])
 
-  // 获取进度条颜色
-  const getProgressColor = () => {
+  // 使用useMemo缓存进度条颜色计算
+  const progressColor = useMemo(() => {
     if (color) return color
 
     // 根据主题自动选择颜色
-    const isDarkMode = document.documentElement.classList.contains('dark')
-    return isDarkMode ? 'rgba(59, 130, 246, 1)' : 'rgba(37, 99, 235, 1)' // blue-500
-  }
+    if (typeof window !== 'undefined') {
+      const isDarkMode = document.documentElement.classList.contains('dark')
+      return isDarkMode ? 'rgba(59, 130, 246, 1)' : 'rgba(37, 99, 235, 1)' // blue-500
+    }
+    return 'rgba(37, 99, 235, 1)' // 默认颜色
+  }, [color])
 
-  const positionClass = position === 'top' ? 'top-0' : 'bottom-0'
+  // 使用useMemo缓存positionClass计算
+  const positionClass = useMemo(() => (position === 'top' ? 'top-0' : 'bottom-0'), [position])
 
   return (
     <div
@@ -85,7 +89,7 @@ export default function ScrollProgress({
         className="h-full transition-all duration-150 ease-out"
         style={{
           width: `${progress}%`,
-          backgroundColor: getProgressColor(),
+          backgroundColor: progressColor,
         }}
       />
     </div>
