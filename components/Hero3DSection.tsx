@@ -6,11 +6,8 @@ import Image from 'next/image'
 import siteMetadata from '@/data/siteMetadata'
 import { Button } from '@/components/components/ui/button'
 import { Spinner } from '@/components/loaders'
-import {
-  getPerformanceOptimizedParams,
-  useGSAPPerformance,
-} from '@/components/hooks/useGSAPPerformance'
-import { getHeroVisualMode, HeroVisualMode, getLoadingStrategy } from '@/lib/utils/loading-strategy'
+import { getPerformanceOptimizedParams } from '@/components/hooks/useGSAPPerformance'
+import { getHeroVisualMode, HeroVisualMode, getLoadingStrategy, LoadingStrategy } from '@/lib/utils/loading-strategy'
 
 const ThreeJSViewer = dynamic(() => import('@/components/ThreeJSViewer'), {
   ssr: false,
@@ -34,10 +31,9 @@ export default function Hero3DSection() {
   const [mounted, setMounted] = useState(false)
   const [manualOverride, setManualOverride] = useState<HeroVisualMode | null>(null)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const { isLowPerformance } = useGSAPPerformance()
   const animationParams = useMemo(() => {
-    const durationScale = visualMode === 'enhanced' ? 1.2 : visualMode === 'standard' ? 1 : 0.8
-    const distance = visualMode === 'enhanced' ? 90 : visualMode === 'standard' ? 70 : 50
+    const durationScale = visualMode === 'enhanced' ? 1.2 : 1
+    const distance = visualMode === 'enhanced' ? 90 : 70
     return getPerformanceOptimizedParams(durationScale, distance)
   }, [visualMode])
   useEffect(() => {
@@ -51,11 +47,8 @@ export default function Hero3DSection() {
     return () => media.removeEventListener('change', handleChange)
   }, [])
 
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      setManualOverride('minimal')
-    }
-  }, [prefersReducedMotion])
+  // 移除 prefersReducedMotion 强制设置为 minimal 的逻辑
+  // 如果用户偏好减少动画，getHeroVisualMode() 会返回 'standard'
 
   useEffect(() => {
     setMounted(true)
@@ -75,16 +68,11 @@ export default function Hero3DSection() {
 
   useEffect(() => {
     if (!mounted) return
+    // 移除低性能模式限制，始终使用 standard 或 enhanced
     const mode = manualOverride ?? getHeroVisualMode()
-    setVisualMode(mode)
+    // 确保不会设置为 minimal
+    setVisualMode(mode === 'minimal' ? 'standard' : mode)
   }, [manualOverride, mounted])
-
-  useEffect(() => {
-    if (!mounted || manualOverride) return
-    if (isLowPerformance) {
-      setVisualMode('minimal')
-    }
-  }, [isLowPerformance, manualOverride, mounted])
 
   const devicePixelRatio = typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1
 
@@ -98,18 +86,13 @@ export default function Hero3DSection() {
           maxDistance: 2.5,
         }
       case 'standard':
+      default:
+        // 移除 minimal 模式，default 使用 standard 配置
         return {
           pixelRatio: 1,
           enableShadows: false,
           lightIntensity: 0.8,
           maxDistance: 1.8,
-        }
-      default:
-        return {
-          pixelRatio: 1,
-          enableShadows: false,
-          lightIntensity: 0.4,
-          maxDistance: 1.2,
         }
     }
   }, [devicePixelRatio, visualMode])
@@ -118,10 +101,11 @@ export default function Hero3DSection() {
     'relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-900/70 to-gray-800 p-8 text-white shadow-2xl'
 
   const handleModeToggle = () => {
-    if (visualMode === 'minimal') {
+    // 移除 minimal 模式切换，改为在 enhanced 和 standard 之间切换
+    if (visualMode === 'enhanced') {
       setManualOverride('standard')
     } else {
-      setManualOverride('minimal')
+      setManualOverride('enhanced')
     }
   }
 
@@ -137,23 +121,22 @@ export default function Hero3DSection() {
   return (
     <section className="mb-12">
       <div className={heroClasses}>
-        {(visualMode === 'enhanced' || visualMode === 'standard') && (
-          <div className="absolute inset-0">
-            <div
-              className="absolute inset-0 opacity-60 blur-3xl"
-              style={{
-                background:
-                  'radial-gradient(circle at 20% 20%, rgba(59,130,246,0.35), transparent 55%)',
-              }}
-            />
-            <div className="from-primary-500/10 absolute inset-0 bg-gradient-to-tr to-transparent" />
-            <ParticleBackground
-              className={visualMode === 'enhanced' ? 'opacity-70' : 'opacity-35'}
-              particleCount={visualMode === 'enhanced' ? 80 : 30}
-              speed={visualMode === 'enhanced' ? 0.55 : 0.25}
-            />
-          </div>
-        )}
+        {/* 移除低性能模式限制，始终显示粒子背景 */}
+        <div className="absolute inset-0">
+          <div
+            className="absolute inset-0 opacity-60 blur-3xl"
+            style={{
+              background:
+                'radial-gradient(circle at 20% 20%, rgba(59,130,246,0.35), transparent 55%)',
+            }}
+          />
+          <div className="from-primary-500/10 absolute inset-0 bg-gradient-to-tr to-transparent" />
+          <ParticleBackground
+            className={visualMode === 'enhanced' ? 'opacity-70' : 'opacity-35'}
+            particleCount={visualMode === 'enhanced' ? 80 : 30}
+            speed={visualMode === 'enhanced' ? 0.55 : 0.25}
+          />
+        </div>
         <div className="relative z-10 grid gap-10 lg:grid-cols-2">
           <div className="space-y-6">
             <p className="text-primary-300 text-sm tracking-[0.3em] uppercase">Zhengbi Yong</p>
@@ -176,7 +159,7 @@ export default function Hero3DSection() {
                 onClick={handleModeToggle}
                 className="bg-primary-500 hover:bg-primary-400"
               >
-                {visualMode === 'minimal' ? '切换至交互模式' : '切换至简约模式'}
+                {visualMode === 'enhanced' ? '切换至标准模式' : '切换至增强模式'}
               </Button>
               <Button variant="outline" size="lg">
                 了解更多
@@ -194,34 +177,19 @@ export default function Hero3DSection() {
             </div>
           </div>
           <div className="relative min-h-[22rem] rounded-2xl border border-white/10 bg-black/20 backdrop-blur">
-            {visualMode === 'minimal' ? (
-              <div className="flex h-full flex-col items-center justify-center gap-4 p-6 text-center">
-                <Image
-                  src={siteMetadata.socialBanner}
-                  width={600}
-                  height={340}
-                  alt="hero fallback"
-                  className="rounded-xl border border-white/10 object-cover shadow-lg"
-                  priority
-                />
-                <p className="text-sm text-gray-300">
-                  正在低功耗模式下展示内容，可随时切换恢复实时 3D。
-                </p>
-              </div>
-            ) : (
-              <div className="h-full w-full">
-                <Suspense
-                  fallback={
-                    <div className="flex h-full flex-col items-center justify-center gap-3">
-                      <Spinner size="lg" />
-                      <p className="text-sm text-gray-300">加载 3D 场景中...</p>
-                    </div>
-                  }
-                >
-                  <ThreeJSViewer className="h-full w-full" qualityProfile={qualityProfile} />
-                </Suspense>
-              </div>
-            )}
+            {/* 移除 minimal 模式，始终显示 3D 场景 */}
+            <div className="h-full w-full">
+              <Suspense
+                fallback={
+                  <div className="flex h-full flex-col items-center justify-center gap-3">
+                    <Spinner size="lg" />
+                    <p className="text-sm text-gray-300">加载 3D 场景中...</p>
+                  </div>
+                }
+              >
+                <ThreeJSViewer className="h-full w-full" qualityProfile={qualityProfile} />
+              </Suspense>
+            </div>
             <div className="pointer-events-none absolute inset-x-6 bottom-6 flex justify-between text-xs tracking-[0.4em] text-gray-400 uppercase">
               <span>Adaptive 3D</span>
               <span>Realtime</span>

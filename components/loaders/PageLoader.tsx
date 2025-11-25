@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import Spinner from './Spinner'
 import { Progress } from '@/components/components/ui/progress'
-import { shouldUseParticles, getOptimalParticleCount } from '@/lib/utils/loading-strategy'
+import { getOptimalParticleCount } from '@/lib/utils/loading-strategy'
 import dynamic from 'next/dynamic'
 
 // 动态导入 ParticleBackground，减少初始 bundle 大小
@@ -30,15 +30,10 @@ export default function PageLoader({
 }: PageLoaderProps) {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [shouldShowParticles, setShouldShowParticles] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    // 使用智能策略决定是否显示粒子动画
-    if (showParticles && shouldUseParticles()) {
-      setShouldShowParticles(true)
-    }
-  }, [showParticles])
+  }, [])
 
   if (!mounted) {
     return null
@@ -54,8 +49,8 @@ export default function PageLoader({
       aria-label="页面加载中"
       role="status"
     >
-      {/* 可选的粒子背景 */}
-      {shouldShowParticles && (
+      {/* 可选的粒子背景 - 移除低性能模式限制，始终显示（如果 showParticles 为 true） */}
+      {showParticles && (
         <div className="absolute inset-0">
           <ParticleBackground particleCount={getOptimalParticleCount(20)} speed={0.3} />
         </div>
