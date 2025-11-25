@@ -43,5 +43,12 @@ module.exports = {
       }),
     },
   },
-  plugins: [require('@tailwindcss/forms'), require('@tailwindcss/typography')],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+    // @ts-ignore - Tailwind plugin function
+    function ({ addVariant }) {
+      addVariant('high-contrast', '@media (prefers-contrast: high)')
+    },
+  ],
 }
