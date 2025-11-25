@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { memo, useEffect, useState, useCallback, useRef } from 'react'
 import { ArrowUp } from 'lucide-react'
 import { Button } from '@/components/components/ui/button'
 
@@ -15,7 +15,7 @@ interface BackToTopProps {
  * BackToTop - 返回顶部按钮组件
  * 当页面滚动超过一定距离时显示按钮，点击按钮平滑滚动到页面顶部
  */
-export default function BackToTop({
+const BackToTop = memo(function BackToTop({
   className = '',
   threshold = 400,
   smooth = true,
@@ -83,4 +83,8 @@ export default function BackToTop({
       <ArrowUp className="h-5 w-5" />
     </Button>
   )
-}
+})
+
+BackToTop.displayName = 'BackToTop'
+
+export default BackToTop

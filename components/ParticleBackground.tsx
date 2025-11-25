@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import Particles, { initParticlesEngine } from '@tsparticles/react'
 import { loadSlim } from '@tsparticles/slim'
 import { loadFull } from 'tsparticles'
@@ -43,9 +43,13 @@ export default function ParticleBackground({
   // 客户端挂载状态
   const [mounted, setMounted] = useState(false)
 
+  // 组件挂载状态引用，用于防止已卸载组件的状态更新
+  const isMountedRef = useRef(true)
+
   // 客户端挂载和引擎初始化
   useEffect(() => {
     setMounted(true)
+    isMountedRef.current = true
 
     // 如果引擎已经初始化，直接设置状态
     if (engineInitialized) {
@@ -56,7 +60,9 @@ export default function ParticleBackground({
     // 如果正在初始化，等待完成
     if (engineInitPromise) {
       engineInitPromise.then(() => {
-        setInit(true)
+        if (isMountedRef.current) {
+          setInit(true)
+        }
       })
       return
     }
@@ -72,12 +78,19 @@ export default function ParticleBackground({
     })
       .then(() => {
         engineInitialized = true
-        setInit(true)
+        if (isMountedRef.current) {
+          setInit(true)
+        }
       })
       .catch(() => {
         // 静默处理错误
         engineInitPromise = null
       })
+
+    // 清理函数：标记组件已卸载
+    return () => {
+      isMountedRef.current = false
+    }
   }, [])
 
   // 计算主题颜色

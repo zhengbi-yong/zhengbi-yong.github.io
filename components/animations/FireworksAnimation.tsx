@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import confetti from 'canvas-confetti'
 
 interface FireworksAnimationProps {
@@ -13,13 +13,14 @@ interface FireworksAnimationProps {
  * FireworksAnimation - 烟花动画组件
  * 使用 canvas-confetti 实现烟花爆炸效果
  */
-export default function FireworksAnimation({
+const FireworksAnimation = memo(function FireworksAnimation({
   className = '',
   autoPlay = true,
   interval = 3000,
 }: FireworksAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const isVisibleRef = useRef(true)
 
   useEffect(() => {
     if (!autoPlay || !canvasRef.current) return
@@ -35,8 +36,30 @@ export default function FireworksAnimation({
     resize()
     window.addEventListener('resize', resize)
 
+    // 初始化页面可见性状态
+    isVisibleRef.current = !document.hidden
+
+    // 页面可见性变化处理
+    const handleVisibilityChange = () => {
+      const wasVisible = isVisibleRef.current
+      isVisibleRef.current = !document.hidden
+
+      if (!isVisibleRef.current) {
+        // 页面不可见时暂停定时器
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+          intervalRef.current = null
+        }
+      } else if (wasVisible !== isVisibleRef.current && autoPlay) {
+        // 页面重新可见时恢复定时器
+        intervalRef.current = setInterval(triggerFirework, interval)
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     const triggerFirework = () => {
-      if (!canvas) return
+      if (!canvas || !isVisibleRef.current) return
 
       const rect = canvas.getBoundingClientRect()
       const x = rect.left + rect.width * (0.2 + Math.random() * 0.6)
@@ -93,6 +116,7 @@ export default function FireworksAnimation({
 
     return () => {
       window.removeEventListener('resize', resize)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
       }
@@ -106,4 +130,8 @@ export default function FireworksAnimation({
       style={{ pointerEvents: 'none' }}
     />
   )
-}
+})
+
+FireworksAnimation.displayName = 'FireworksAnimation'
+
+export default FireworksAnimation

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, ReactNode, useEffect } from 'react'
+import { memo, useRef, ReactNode, useEffect } from 'react'
 import { useGSAP } from '@/components/hooks/useGSAP'
 import { getGSAPMobileOptimizedParams } from '@/lib/utils/gsap'
 import { gsap } from 'gsap'
@@ -14,7 +14,7 @@ interface TimelineAnimationProps {
   autoPlay?: boolean
 }
 
-export default function TimelineAnimation({
+const TimelineAnimation = memo(function TimelineAnimation({
   children,
   className = '',
   stagger = 0.1,
@@ -91,4 +91,17 @@ export default function TimelineAnimation({
       {children}
     </div>
   )
-}
+}, (prevProps, nextProps) => {
+  // 自定义比较函数：仅比较 props，不比较 children（children 可能频繁变化）
+  return (
+    prevProps.className === nextProps.className &&
+    prevProps.stagger === nextProps.stagger &&
+    prevProps.duration === nextProps.duration &&
+    prevProps.autoPlay === nextProps.autoPlay &&
+    prevProps.onComplete === nextProps.onComplete
+  )
+})
+
+TimelineAnimation.displayName = 'TimelineAnimation'
+
+export default TimelineAnimation
