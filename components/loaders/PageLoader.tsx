@@ -1,8 +1,7 @@
 'use client'
 
+import { memo, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
 import Spinner from './Spinner'
 import { Progress } from '@/components/components/ui/progress'
 import { getOptimalParticleCount } from '@/lib/utils/loading-strategy'
@@ -23,12 +22,11 @@ interface PageLoaderProps {
  * PageLoader - 全局页面加载组件
  * 支持粒子动画、进度条和自定义消息
  */
-export default function PageLoader({
+const PageLoader = memo(function PageLoader({
   progress,
   message = '加载中...',
   showParticles = true,
 }: PageLoaderProps) {
-  const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -71,4 +69,8 @@ export default function PageLoader({
       </div>
     </motion.div>
   )
-}
+})
+
+PageLoader.displayName = 'PageLoader'
+
+export default PageLoader

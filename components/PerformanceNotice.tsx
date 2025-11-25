@@ -1,44 +1,40 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/components/ui/button'
 import { Badge } from '@/components/components/ui/badge'
 import { LoadingStrategy, getLoadingStrategy } from '@/lib/utils/loading-strategy'
 
-export default function PerformanceNotice() {
+const PerformanceNotice = memo(function PerformanceNotice() {
   const [strategy, setStrategy] = useState<LoadingStrategy>('standard')
 
   useEffect(() => {
     setStrategy(getLoadingStrategy())
   }, [])
 
-  const handleForceMinimal = () => {
-    window.dispatchEvent(new CustomEvent('hero:set-mode', { detail: 'minimal' }))
-  }
-
   const handleForceEnhanced = () => {
     window.dispatchEvent(new CustomEvent('hero:set-mode', { detail: 'enhanced' }))
   }
 
-  const strategyDetail: Record<LoadingStrategy, { label: string; tone: string; desc: string }> = {
-    minimal: {
-      label: '低功耗',
-      tone: 'bg-amber-100 text-amber-800 dark:bg-amber-400/10 dark:text-amber-200',
-      desc: '关闭粒子与重型阴影，确保流畅度。',
-    },
-    standard: {
-      label: '均衡',
-      tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200',
-      desc: '适量特效与中等分辨率。',
-    },
-    enhanced: {
-      label: '全特效',
-      tone: 'bg-sky-100 text-sky-800 dark:bg-sky-400/10 dark:text-sky-200',
-      desc: '启用粒子+高像素比，追求极致视觉。',
-    },
-  }
+  // 使用 useMemo 缓存策略详情，移除 minimal 模式
+  const strategyDetail = useMemo(
+    () =>
+      ({
+        standard: {
+          label: '均衡',
+          tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-400/10 dark:text-emerald-200',
+          desc: '适量特效与中等分辨率。',
+        },
+        enhanced: {
+          label: '全特效',
+          tone: 'bg-sky-100 text-sky-800 dark:bg-sky-400/10 dark:text-sky-200',
+          desc: '启用粒子+高像素比，追求极致视觉。',
+        },
+      }) as Record<'standard' | 'enhanced', { label: string; tone: string; desc: string }>,
+    []
+  )
 
-  const detail = strategyDetail[strategy]
+  const detail = strategyDetail[strategy === 'minimal' ? 'standard' : strategy]
 
   return (
     <div className="rounded-3xl border border-emerald-200/70 bg-emerald-50/70 p-6 text-emerald-900 shadow-inner dark:border-emerald-500/20 dark:bg-emerald-900/20 dark:text-emerald-100">
@@ -62,10 +58,11 @@ export default function PerformanceNotice() {
         >
           追求极致效果
         </Button>
-        <Button variant="outline" onClick={handleForceMinimal}>
-          进入省电模式
-        </Button>
       </div>
     </div>
   )
-}
+})
+
+PerformanceNotice.displayName = 'PerformanceNotice'
+
+export default PerformanceNotice

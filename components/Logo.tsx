@@ -5,9 +5,9 @@
  */
 'use client'
 
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 
-export default function Logo() {
+const Logo = memo(function Logo() {
   const [LogoComponent, setLogoComponent] = useState<React.ComponentType<React.SVGProps<SVGSVGElement>> | null>(null)
 
   useEffect(() => {
@@ -49,5 +49,9 @@ export default function Logo() {
       </g>
     </svg>
   )
-}
+})
+
+Logo.displayName = 'Logo'
+
+export default Logo
 
