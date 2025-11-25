@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import URDFLoader from 'urdf-loader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { Spinner } from '@/components/loaders'
 
 interface ThreeJSViewerProps {
   className?: string
@@ -263,8 +264,14 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
       style={{ backgroundColor: '#f0f0f0' }}
     >
       {isLoading && !error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80 dark:bg-gray-800/80">
-          <p className="text-gray-600 dark:text-gray-400">加载 3D 模型中...</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100/90 dark:bg-gray-800/90 backdrop-blur-sm">
+          <Spinner size="lg" className="mb-4" />
+          <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">
+            加载 3D 模型中...
+          </p>
+          <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
+            这可能需要几秒钟
+          </p>
         </div>
       )}
       {error && (
