@@ -6,6 +6,7 @@
 import { isMobileDevice } from './device'
 
 export type LoadingStrategy = 'minimal' | 'standard' | 'enhanced'
+export type HeroVisualMode = 'minimal' | 'standard' | 'enhanced'
 
 // 扩展 Navigator 接口以支持设备内存和网络连接 API
 interface NavigatorWithDeviceMemory extends Navigator {
@@ -28,6 +29,10 @@ interface NetworkInformation {
 export function getLoadingStrategy(): LoadingStrategy {
   if (typeof window === 'undefined') {
     return 'standard'
+  }
+
+  if (prefersReducedMotion()) {
+    return 'minimal'
   }
 
   // 移动设备默认使用 minimal 策略
@@ -86,4 +91,39 @@ export function getOptimalParticleCount(baseCount: number): number {
     default:
       return baseCount
   }
+}
+
+/**
+ * 英雄区域是否可以启用 3D
+ */
+export function shouldUseHero3D(): boolean {
+  const mode = getHeroVisualMode()
+  return mode !== 'minimal'
+}
+
+/**
+ * 获取英雄区域视觉模式
+ */
+export function getHeroVisualMode(): HeroVisualMode {
+  if (typeof window === 'undefined') {
+    return 'standard'
+  }
+
+  if (prefersReducedMotion()) {
+    return 'minimal'
+  }
+
+  const strategy = getLoadingStrategy()
+  if (strategy === 'enhanced') {
+    return 'enhanced'
+  }
+  if (strategy === 'minimal') {
+    return 'minimal'
+  }
+  return 'standard'
+}
+
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 }

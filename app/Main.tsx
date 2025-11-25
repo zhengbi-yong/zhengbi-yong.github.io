@@ -1,65 +1,91 @@
-// import Link from '@/components/Link'
-// import Tag from '@/components/Tag'
-// import siteMetadata from '@/data/siteMetadata'
-// import { formatDate } from 'pliny/utils/formatDate'
-// import NewsletterForm from 'pliny/ui/NewsletterForm'
-import Image from 'next/image'
-// import BackgroundCanvas from '@/components/BackgroundCanvas'
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
+import Hero3DSection from '@/components/Hero3DSection'
+import PerformanceNotice from '@/components/PerformanceNotice'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/components/ui/card'
+import { Badge } from '@/components/components/ui/badge'
 
 interface HomeProps {
   posts: CoreContent<Blog>[]
 }
 
+const infoItems = [
+  { label: '姓名', value: '雍征彼（Zhengbi Yong）' },
+  { label: '邮箱', value: 'zhengbi.yong@outlook.com' },
+  { label: '电话', value: '(+86) 186 0050 8939' },
+  { label: '地址', value: '中国 · 北京 · 海淀' },
+]
+
+const eduItems = [
+  {
+    school: '清华大学 · 自动化系',
+    detail: '本科 · 人机交互 / 控制理论',
+  },
+  {
+    school: '北京理工大学 · 自动化学院',
+    detail: '硕士 · 智能机器人 · 导师：史大威（David Shi）',
+  },
+]
+
 export default function Home({ posts }: HomeProps) {
+  void posts
   return (
-    <>
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-          {/* 新增头像模块 */}
-          <div className="mb-8 flex justify-center">
-            <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-gray-200 dark:border-gray-700">
-              {/* <img
-                src="/static/images/avatar.jpg" // 替换为实际路径
-                alt="avatar"
-                className="h-full w-full object-cover"
-              /> */}
-              <Image src="/static/images/avatar.jpg" alt="avatar" width={128} height={128} />
+    <div className="space-y-10 py-6">
+      <Hero3DSection />
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Card className="border-none bg-gradient-to-br from-white/80 to-white/40 shadow-xl dark:from-gray-900/70 dark:to-gray-900/30">
+          <CardHeader>
+            <CardTitle>基本信息</CardTitle>
+            <CardDescription>联系方式与常驻地</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {infoItems.map((item) => (
+              <div
+                key={item.label}
+                className="flex flex-col rounded-2xl border border-gray-100/60 p-4 dark:border-gray-800/60"
+              >
+                <span className="text-xs tracking-[0.3em] text-gray-500 uppercase">
+                  {item.label}
+                </span>
+                <span className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        <Card className="border-none bg-gradient-to-br from-gray-900 to-gray-800 text-white shadow-xl">
+          <CardHeader>
+            <CardTitle>教育与特长</CardTitle>
+            <CardDescription className="text-gray-300">
+              聚焦机器人、自动化与交互体验
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {eduItems.map((item) => (
+              <div key={item.school} className="rounded-3xl border border-white/10 p-4">
+                <p className="text-base font-semibold">{item.school}</p>
+                <p className="text-sm text-gray-300">{item.detail}</p>
+              </div>
+            ))}
+            <div className="flex flex-wrap gap-2">
+              <Badge>机器人控制</Badge>
+              <Badge variant="secondary">交互设计</Badge>
+              <Badge variant="outline" className="text-white">
+                算法工程
+              </Badge>
+              <Badge variant="secondary">GSAP / Three.js</Badge>
             </div>
-          </div>
-          {/* 基本信息模块 */}
-          <section className="py-8">
-            <h2 className="mb-4 text-2xl font-bold dark:text-gray-100">基本信息</h2>
-            <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-              姓名：雍征彼（Zhengbi Yong)
-            </p>
-            <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-              邮箱：zhengbi.yong@outlook.com
-            </p>
-            <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-              电话：(+86) 186 0050 8939
-            </p>
-            <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-              地址：中国北京市海淀区
-            </p>
-          </section>
-          {/* 教育经历模块 */}
-          <section className="py-8">
-            <h2 className="mb-4 text-2xl font-bold dark:text-gray-100">教育经历</h2>
-            <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-              本科：清华大学自动化系（TsingHua University，Department of Automation）
-            </p>
-            <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
-              硕士：北京理工大学自动化学院（Beijing Institute of Technology，School of
-              Automation）导师：史大威（David Shi）
-            </p>
-          </section>
-          {/* 工作经历模块 */}
-          {/* 技能证书模块 */}
-          {/* 项目案例模块 */}
-        </div>
-      </div>
-    </>
+          </CardContent>
+        </Card>
+      </section>
+      <PerformanceNotice />
+    </div>
   )
 }
