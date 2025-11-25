@@ -13,9 +13,19 @@ import PostBanner from '@/layouts/PostBanner'
 import { Metadata } from 'next'
 import siteMetadata from '@/data/siteMetadata'
 import { notFound } from 'next/navigation'
+import { CoreContent } from 'pliny/utils/contentlayer'
+import type { ReactNode } from 'react'
+
+interface LayoutProps {
+  content: CoreContent<Blog>
+  authorDetails: CoreContent<Authors>[]
+  next?: { path: string; title: string }
+  prev?: { path: string; title: string }
+  children: ReactNode
+}
 
 const defaultLayout = 'PostLayout'
-const layouts = {
+const layouts: Record<string, React.ComponentType<LayoutProps>> = {
   PostSimple,
   PostLayout,
   PostBanner,

@@ -1,0 +1,25 @@
+app/blog/[...slug]/page.tsx(107,18): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ PostSimple: ({ content, next, prev, children }: LayoutProps) => Element; PostLayout: ({ content, authorDetails, next, prev, children }: LayoutProps) => Element; PostBanner: ({ content, next, prev, children }: LayoutProps) => Element; }'.
+  No index signature with a parameter of type 'string' was found on type '{ PostSimple: ({ content, next, prev, children }: LayoutProps) => Element; PostLayout: ({ content, authorDetails, next, prev, children }: LayoutProps) => Element; PostBanner: ({ content, next, prev, children }: LayoutProps) => Element; }'.
+app/Main.tsx(8,32): error TS7031: Binding element 'posts' implicitly has an 'any' type.
+components/animations/ConfettiAnimation.tsx(53,9): error TS2353: Object literal may only specify known properties, and 'useWorker' does not exist in type 'Options'.
+components/animations/FireworksAnimation.tsx(58,9): error TS2353: Object literal may only specify known properties, and 'useWorker' does not exist in type 'Options'.
+components/animations/FireworksAnimation.tsx(72,11): error TS2353: Object literal may only specify known properties, and 'useWorker' does not exist in type 'Options'.
+components/animations/FireworksAnimation.tsx(83,11): error TS2353: Object literal may only specify known properties, and 'useWorker' does not exist in type 'Options'.
+components/Card.tsx(4,17): error TS7031: Binding element 'title' implicitly has an 'any' type.
+components/Card.tsx(4,24): error TS7031: Binding element 'description' implicitly has an 'any' type.
+components/Card.tsx(4,37): error TS7031: Binding element 'imgSrc' implicitly has an 'any' type.
+components/Card.tsx(4,45): error TS7031: Binding element 'href' implicitly has an 'any' type.
+components/MobileNav.tsx(4,78): error TS7016: Could not find a declaration file for module 'body-scroll-lock'. 'D:/YZB/blog/node_modules/body-scroll-lock/lib/bodyScrollLock.min.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/body-scroll-lock` if it exists or add a new declaration (.d.ts) file containing `declare module 'body-scroll-lock';`
+components/ParticleBackground.tsx(200,9): error TS2322: Type '{ background: { color: { value: string; }; }; fpsLimit: number; particles: { number: { value: number; density: { enable: boolean; value_area: number; }; }; color: { value: string; }; shape: { type: string; }; opacity: { ...; }; size: { ...; }; links: { ...; }; move: { ...; }; collisions: { ...; }; }; interactivity: ...' is not assignable to type 'RecursivePartial<IOptions>'.
+  The types of 'interactivity.detectsOn' are incompatible between these types.
+    Type 'string' is not assignable to type '"canvas" | "parent" | "window" | InteractivityDetect | undefined'.
+components/TableWrapper.tsx(1,25): error TS7031: Binding element 'children' implicitly has an 'any' type.
+components/ThreeJSViewer.tsx(6,31): error TS7016: Could not find a declaration file for module 'three/examples/jsm/controls/OrbitControls'. 'D:/YZB/blog/node_modules/three/examples/jsm/controls/OrbitControls.js' implicitly has an 'any' type.
+  If the 'three' package actually exposes this module, consider sending a pull request to amend 'https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/three'
+contentlayer.config.ts(65,31): error TS7006: Parameter 'allBlogs' implicitly has an 'any' type.
+contentlayer.config.ts(67,21): error TS7006: Parameter 'file' implicitly has an 'any' type.
+contentlayer.config.ts(69,26): error TS7006: Parameter 'tag' implicitly has an 'any' type.
+contentlayer.config.ts(83,28): error TS7006: Parameter 'allBlogs' implicitly has an 'any' type.
+layouts/PostLayout.tsx(14,18): error TS7006: Parameter 'path' implicitly has an 'any' type.
+layouts/PostLayout.tsx(15,21): error TS7006: Parameter 'path' implicitly has an 'any' type.

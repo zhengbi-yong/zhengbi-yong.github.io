@@ -5,7 +5,14 @@
 // import NewsletterForm from 'pliny/ui/NewsletterForm'
 import Image from 'next/image'
 // import BackgroundCanvas from '@/components/BackgroundCanvas'
-export default function Home({ posts }) {
+import type { CoreContent } from 'pliny/utils/contentlayer'
+import type { Blog } from 'contentlayer/generated'
+
+interface HomeProps {
+  posts: CoreContent<Blog>[]
+}
+
+export default function Home({ posts }: HomeProps) {
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
