@@ -6,6 +6,7 @@ import type { LinkProps } from 'next/link'
 import { AnchorHTMLAttributes, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import prefetchManager from '@/lib/utils/prefetch-manager'
+import postPreloader from '@/lib/utils/post-preloader'
 
 // 使用 Omit 排除冲突的属性，然后合并类型
 interface CustomLinkProps
@@ -51,9 +52,20 @@ const CustomLink = ({
   const isInternalLink = hrefString && hrefString.startsWith('/')
   const isAnchorLink = hrefString && hrefString.startsWith('#')
 
-  // 悬停预取处理（使用 PrefetchManager 管理）
+  // 悬停预取处理（使用 PrefetchManager 和 PostPreloader 管理）
   const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (prefetchOnHover && isInternalLink && hrefString) {
+      // 检查是否是文章链接
+      const isPostLink = hrefString.startsWith('/blog/') && hrefString !== '/blog'
+      if (isPostLink) {
+        // 提取 slug
+        const slug = hrefString.replace('/blog/', '')
+        // 立即预加载文章（最高优先级）
+        postPreloader.preloadPost(slug, 'high')
+        // 立即处理队列（高优先级任务）
+        // 注意：preloadPost 内部会自动处理高优先级任务，这里不需要手动调用
+      }
+
       // 检查是否已预取
       if (!prefetchManager.hasPrefetched(hrefString) && !prefetchedRef.current) {
         // 使用 PrefetchManager 进行预取（自动管理队列和并发）

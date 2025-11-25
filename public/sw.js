@@ -54,8 +54,14 @@ self.addEventListener('fetch', (event) => {
   }
 
   // HTML 页面：Network First 策略
+  // 特别处理文章页面，实现更激进的缓存
   if (CACHE_PATTERNS.html.test(url.pathname)) {
-    event.respondWith(networkFirstStrategy(request))
+    // 文章页面使用增强的 Network First 策略
+    if (url.pathname.startsWith('/blog/') && url.pathname !== '/blog') {
+      event.respondWith(enhancedNetworkFirstStrategy(request))
+    } else {
+      event.respondWith(networkFirstStrategy(request))
+    }
     return
   }
 
@@ -112,5 +118,47 @@ async function cacheFirstStrategy(request) {
     // 网络失败，返回错误
     throw error
   }
+}
+
+// 增强的 Network First 策略：针对文章页面
+// 优先网络，但缓存响应更快，后台更新缓存
+async function enhancedNetworkFirstStrategy(request) {
+  // 先检查缓存
+  const cachedResponse = await caches.match(request)
+  
+  // 尝试从网络获取（不等待）
+  const networkPromise = fetch(request)
+    .then((networkResponse) => {
+      // 如果响应成功，更新缓存
+      if (networkResponse.ok) {
+        const cache = caches.open(CACHE_NAME)
+        cache.then((c) => {
+          c.put(request, networkResponse.clone())
+        })
+      }
+      return networkResponse
+    })
+    .catch(() => null) // 网络失败时返回 null
+
+  // 如果有缓存，立即返回缓存，后台更新
+  if (cachedResponse) {
+    // 后台更新缓存（不阻塞响应）
+    networkPromise.then((networkResponse) => {
+      if (networkResponse && networkResponse.ok) {
+        // 缓存已更新
+        console.log('[Service Worker] Cache updated for:', request.url)
+      }
+    })
+    return cachedResponse
+  }
+
+  // 没有缓存，等待网络响应
+  const networkResponse = await networkPromise
+  if (networkResponse) {
+    return networkResponse
+  }
+
+  // 网络失败，返回错误
+  throw new Error('Network request failed')
 }
 
