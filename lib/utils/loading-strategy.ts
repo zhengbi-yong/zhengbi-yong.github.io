@@ -31,13 +31,15 @@ export function getLoadingStrategy(): LoadingStrategy {
     return 'standard'
   }
 
+  // 移除低性能模式限制，所有设备都使用标准或增强模式
+  // 如果用户偏好减少动画，仍然返回 standard（保留可访问性）
   if (prefersReducedMotion()) {
-    return 'minimal'
+    return 'standard'
   }
 
-  // 移动设备默认使用 minimal 策略
+  // 移动设备使用 standard 策略（不再使用 minimal）
   if (isMobileDevice()) {
-    return 'minimal'
+    return 'standard'
   }
 
   // 检测设备性能
@@ -55,9 +57,9 @@ export function getLoadingStrategy(): LoadingStrategy {
     return 'enhanced'
   }
 
-  // 低性能设备或慢速网络 = minimal
+  // 低性能设备或慢速网络 = standard（不再使用 minimal）
   if (hardwareConcurrency <= 2 || deviceMemory <= 2 || effectiveType === '2g' || downlink < 1) {
-    return 'minimal'
+    return 'standard'
   }
 
   // 默认使用 standard
@@ -66,60 +68,55 @@ export function getLoadingStrategy(): LoadingStrategy {
 
 /**
  * 判断是否应该使用粒子动画
- * @returns 是否应该使用粒子动画
+ * @returns 是否应该使用粒子动画（始终返回 true，移除低性能模式限制）
  */
 export function shouldUseParticles(): boolean {
-  const strategy = getLoadingStrategy()
-  return strategy === 'enhanced'
+  return true
 }
 
 /**
  * 获取最优粒子数量
  * @param baseCount 基础粒子数量
- * @returns 优化后的粒子数量
+ * @returns 优化后的粒子数量（移除 minimal 模式限制）
  */
 export function getOptimalParticleCount(baseCount: number): number {
   const strategy = getLoadingStrategy()
 
   switch (strategy) {
-    case 'minimal':
-      return Math.max(10, Math.floor(baseCount * 0.3))
-    case 'standard':
-      return Math.floor(baseCount * 0.6)
     case 'enhanced':
       return baseCount
+    case 'standard':
     default:
-      return baseCount
+      // standard 模式也使用较多的粒子，确保动画连续性
+      return Math.floor(baseCount * 0.9)
   }
 }
 
 /**
- * 英雄区域是否可以启用 3D
+ * 英雄区域是否可以启用 3D（始终返回 true，移除低性能模式限制）
  */
 export function shouldUseHero3D(): boolean {
-  const mode = getHeroVisualMode()
-  return mode !== 'minimal'
+  return true
 }
 
 /**
- * 获取英雄区域视觉模式
+ * 获取英雄区域视觉模式（移除 minimal 模式，始终返回 standard 或 enhanced）
  */
 export function getHeroVisualMode(): HeroVisualMode {
   if (typeof window === 'undefined') {
     return 'standard'
   }
 
+  // 如果用户偏好减少动画，返回 standard（保留可访问性）
   if (prefersReducedMotion()) {
-    return 'minimal'
+    return 'standard'
   }
 
   const strategy = getLoadingStrategy()
   if (strategy === 'enhanced') {
     return 'enhanced'
   }
-  if (strategy === 'minimal') {
-    return 'minimal'
-  }
+  // 不再返回 minimal，统一使用 standard
   return 'standard'
 }
 

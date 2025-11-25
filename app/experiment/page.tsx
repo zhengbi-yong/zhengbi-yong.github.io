@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState, type ComponentType } from 'react'
+import { type ComponentType } from 'react'
 import ExperimentModule from '@/components/ExperimentModule'
-import { getLoadingStrategy, LoadingStrategy } from '@/lib/utils/loading-strategy'
 
 type ModuleConfig = {
   title: string
@@ -33,14 +32,7 @@ const moduleConfigs: ModuleConfig[] = [
 ]
 
 export default function ExperimentPage() {
-  const [strategy, setStrategy] = useState<LoadingStrategy>('standard')
-
-  useEffect(() => {
-    setStrategy(getLoadingStrategy())
-  }, [])
-
-  const isMinimal = strategy === 'minimal'
-
+  // 移除低性能模式检查，所有功能都正常显示
   return (
     <div className="space-y-10 py-6">
       <header className="space-y-2">
@@ -53,12 +45,6 @@ export default function ExperimentPage() {
         </p>
       </header>
 
-      {isMinimal && (
-        <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-800 dark:border-amber-400/40 dark:bg-amber-900/30 dark:text-amber-100">
-          当前处于低功耗策略，部分实验默认禁用。切换至桌面设备或更高性能模式可解锁全部内容。
-        </div>
-      )}
-
       <div className="space-y-8">
         {moduleConfigs.map((module) => (
           <ExperimentModule
@@ -66,8 +52,8 @@ export default function ExperimentPage() {
             title={module.title}
             description={module.description}
             loader={module.loader}
-            defaultOpen={module.defaultOpen && !isMinimal}
-            disabled={module.requiresEnhanced && isMinimal}
+            defaultOpen={module.defaultOpen}
+            disabled={false}
           />
         ))}
       </div>

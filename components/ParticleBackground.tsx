@@ -26,13 +26,13 @@ let engineInitPromise: Promise<void> | null = null
  */
 export default function ParticleBackground({
   className = '',
-  particleCount = 40,
+  particleCount = 60, // 增加默认粒子数量，确保动画连续性
   color,
   speed = 0.5,
 }: ParticleBackgroundProps) {
-  // 移动设备优化：减少粒子数量
+  // 移动设备优化：减少粒子数量（但仍然保持足够的数量以确保连续性）
   const isMobile = isMobileDevice()
-  const optimizedParticleCount = isMobile ? Math.min(particleCount, 30) : particleCount
+  const optimizedParticleCount = isMobile ? Math.min(particleCount, 50) : particleCount
 
   // 使用 next-themes 检测主题
   const { resolvedTheme } = useTheme()
@@ -136,14 +136,20 @@ export default function ParticleBackground({
           value: 0.3,
           random: false,
           anim: {
-            enable: false,
+            enable: true, // 启用透明度动画，让粒子有更长的可见时间
+            speed: 0.3, // 较慢的动画速度，确保连续性
+            opacity_min: 0.1, // 最小透明度
+            sync: false,
           },
         },
         size: {
           value: { min: 1, max: 3 },
           random: true,
           anim: {
-            enable: false,
+            enable: true, // 启用大小动画，增加视觉连续性
+            speed: 0.5,
+            size_min: 0.5,
+            sync: false,
           },
         },
         links: {
@@ -155,15 +161,25 @@ export default function ParticleBackground({
           triangles: {
             enable: false,
           },
+          // 确保连线保持连续性
+          frequency: 0.05, // 降低连线频率，但保持连续性
         },
         move: {
           enable: true,
-          speed: speed * 2,
+          speed: speed * 1.5, // 稍微降低速度，让动画更平滑连续
           direction: 'none',
           random: false,
           straight: false,
           outModes: {
-            default: 'bounce',
+            default: 'bounce', // 确保粒子在边界处反弹，保持连续性
+          },
+          // 添加吸引和排斥效果，增加动画连续性
+          attract: {
+            enable: false,
+            rotate: {
+              x: 0,
+              y: 0,
+            },
           },
         },
         collisions: {
