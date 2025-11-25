@@ -5,6 +5,7 @@
 
 import type { AnalyticsConfig } from 'pliny/analytics'
 import type { SearchConfig } from 'pliny/search'
+import type { CommentsConfig } from 'pliny/comments'
 import type { ReactNode } from 'react'
 
 export type Theme = 'system' | 'dark' | 'light'
@@ -40,35 +41,11 @@ export type NewsletterProvider =
   | 'buttondown'
   | 'convertkit'
   | 'klaviyo'
-  | 'revue'
   | 'emailoctopus'
-  | 'beehive'
+  | 'beehiiv'
 
 export interface Newsletter {
   provider: NewsletterProvider
-}
-
-export type CommentsProvider = 'giscus' | 'utterances' | 'disqus'
-
-export type GiscusMapping = 'pathname' | 'url' | 'title'
-
-export interface GiscusConfig {
-  repo?: string
-  repositoryId?: string
-  category?: string
-  categoryId?: string
-  mapping?: GiscusMapping
-  reactions?: '1' | '0'
-  metadata?: '1' | '0'
-  theme?: string
-  darkTheme?: string
-  themeURL?: string
-  lang?: string
-}
-
-export interface Comments {
-  provider: CommentsProvider
-  giscusConfig?: GiscusConfig
 }
 
 export type SearchProvider = 'kbar' | 'algolia'
@@ -103,6 +80,7 @@ export interface SiteMetadata {
   mastodon?: string
   email: string
   github?: string
+  bluesky?: string
   x?: string
   twitter?: string
   facebook?: string
@@ -110,11 +88,12 @@ export interface SiteMetadata {
   linkedin?: string
   threads?: string
   instagram?: string
+  medium?: string
   locale: string
   stickyNav: boolean
   analytics: Analytics & AnalyticsConfig
   newsletter: Newsletter
-  comments: Comments
+  comments: CommentsConfig
   search: Search & SearchConfig
 }
 
@@ -137,4 +116,60 @@ export function isValidSiteMetadata(data: unknown): data is SiteMetadata {
     typeof metadata.email === 'string'
   )
 }
+
+const siteMetadata: SiteMetadata = {
+  title: 'Zhengbi Yong',
+  author: '雍征彼',
+  headerTitle: 'Zhengbi Yong',
+  description: '踏平坎坷成大道，斗罢艰险又出发。',
+  language: 'zh-CN',
+  theme: 'system',
+  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
+  siteRepo: 'https://github.com/timlrx/tailwind-nextjs-starter-blog',
+  siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.svg`,
+  socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,
+  mastodon: 'https://mastodon.social/@mastodonuser',
+  email: 'zhengbi.yong@outlook.com',
+  github: 'https://github.com/zhengbi-yong',
+  x: 'https://twitter.com/x',
+  facebook: 'https://facebook.com',
+  youtube: 'https://youtube.com',
+  linkedin: 'https://www.linkedin.com',
+  threads: 'https://www.threads.net',
+  instagram: 'https://www.instagram.com',
+  locale: 'zh-CN',
+  stickyNav: false,
+  analytics: {
+    umamiAnalytics: {
+      umamiWebsiteId: process.env.NEXT_UMAMI_ID ?? '',
+    },
+  },
+  newsletter: {
+    provider: 'buttondown',
+  },
+  comments: {
+    provider: 'giscus',
+    giscusConfig: {
+      repo: process.env.NEXT_PUBLIC_GISCUS_REPO ?? '',
+      repositoryId: process.env.NEXT_PUBLIC_GISCUS_REPOSITORY_ID ?? '',
+      category: process.env.NEXT_PUBLIC_GISCUS_CATEGORY ?? '',
+      categoryId: process.env.NEXT_PUBLIC_GISCUS_CATEGORY_ID ?? '',
+      mapping: 'pathname',
+      reactions: '1',
+      metadata: '0',
+      theme: 'light',
+      darkTheme: 'transparent_dark',
+      themeURL: '',
+      lang: 'en',
+    },
+  },
+  search: {
+    provider: 'kbar',
+    kbarConfig: {
+      searchDocumentsPath: `${process.env.BASE_PATH || ''}/search.json`,
+    },
+  },
+}
+
+export default siteMetadata
 

@@ -194,9 +194,6 @@ export default function ParticleBackground({
     >
       <Particles
         id="tsparticles"
-        init={async () => {
-          // 引擎已通过 initParticlesEngine 初始化
-        }}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         options={particlesOptions as any}
         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}

@@ -24,11 +24,20 @@ interface LayoutProps {
   children: ReactNode
 }
 
-const defaultLayout = 'PostLayout'
-const layouts: Record<string, React.ComponentType<LayoutProps>> = {
+const layouts = {
   PostSimple,
   PostLayout,
   PostBanner,
+} satisfies Record<string, React.ComponentType<LayoutProps>>
+
+const defaultLayout: keyof typeof layouts = 'PostLayout'
+
+function isAuthorEntry(author: Authors | undefined): author is Authors {
+  return Boolean(author)
+}
+
+function isLayoutKey(key: string): key is keyof typeof layouts {
+  return key in layouts
 }
 
 export async function generateMetadata(props: {
@@ -38,10 +47,11 @@ export async function generateMetadata(props: {
   const slug = decodeURI(params.slug.join('/'))
   const post = allBlogs.find((p) => p.slug === slug)
   const authorList = post?.authors || ['default']
-  const authorDetails = authorList.map((author) => {
-    const authorResults = allAuthors.find((p) => p.slug === author)
-    return coreContent(authorResults as Authors)
-  })
+  const authorDetails = authorList
+    .map((author) => allAuthors.find((p) => p.slug === author))
+    .filter(isAuthorEntry)
+    .map((author) => coreContent(author))
+
   if (!post) {
     return
   }
@@ -99,12 +109,15 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
 
   const prev = sortedCoreContents[postIndex + 1]
   const next = sortedCoreContents[postIndex - 1]
-  const post = allBlogs.find((p) => p.slug === slug) as Blog
-  const authorList = post?.authors || ['default']
-  const authorDetails = authorList.map((author) => {
-    const authorResults = allAuthors.find((p) => p.slug === author)
-    return coreContent(authorResults as Authors)
-  })
+  const post = allBlogs.find((p) => p.slug === slug)
+  if (!post) {
+    return notFound()
+  }
+  const authorList = post.authors || ['default']
+  const authorDetails = authorList
+    .map((author) => allAuthors.find((p) => p.slug === author))
+    .filter(isAuthorEntry)
+    .map((author) => coreContent(author))
   const mainContent = coreContent(post)
   const jsonLd = post.structuredData
   jsonLd['author'] = authorDetails.map((author) => {
@@ -114,7 +127,8 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
     }
   })
 
-  const Layout = layouts[post.layout || defaultLayout]
+  const layoutKey = post.layout && isLayoutKey(post.layout) ? post.layout : defaultLayout
+  const Layout = layouts[layoutKey]
 
   return (
     <>
