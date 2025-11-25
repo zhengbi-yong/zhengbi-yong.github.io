@@ -69,9 +69,9 @@ module.exports = () => {
     basePath,
     reactStrictMode: true,
     pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
-    eslint: {
-      dirs: ['app', 'components', 'layouts', 'scripts'],
-    },
+    // Note: eslint configuration moved to eslint.config.mjs in Next.js 16
+    // Use `next lint --dir app --dir components --dir layouts --dir scripts` instead
+    turbopack: {}, // Empty config to allow webpack config to work with Turbopack
     images: {
       remotePatterns: [
         {
