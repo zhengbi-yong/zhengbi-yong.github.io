@@ -6,16 +6,28 @@ import URDFLoader from 'urdf-loader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Spinner } from '@/components/loaders'
 
+interface QualityProfile {
+  pixelRatio?: number
+  enableShadows?: boolean
+  lightIntensity?: number
+  maxDistance?: number
+}
+
 interface ThreeJSViewerProps {
   className?: string
   modelPath?: string
+  qualityProfile?: QualityProfile
 }
 
 /**
  * ThreeJSViewer - 3D URDF 模型查看器组件
  * 独立的、可复用的 3D 模型查看器，支持 URDF 格式的机器人模型
  */
-export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSViewerProps) {
+export default function ThreeJSViewer({
+  className = '',
+  modelPath,
+  qualityProfile,
+}: ThreeJSViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef(new THREE.Scene())
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
@@ -23,6 +35,7 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
   const controlsRef = useRef<InstanceType<typeof OrbitControls> | null>(null)
   const animationId = useRef<number | null>(null)
   const retryCountRef = useRef(0)
+  const modelRef = useRef<THREE.Object3D | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const maxRetries = 3
@@ -66,7 +79,9 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
         alpha: true, // 启用透明背景
       })
       rendererRef.current.setSize(width, height)
-      rendererRef.current.setPixelRatio(Math.min(window.devicePixelRatio, 2)) // 性能优化
+      const desiredPixelRatio =
+        qualityProfile?.pixelRatio ?? Math.min(window.devicePixelRatio || 1, 2)
+      rendererRef.current.setPixelRatio(desiredPixelRatio) // 性能优化
       container.appendChild(rendererRef.current.domElement)
 
       // 轨道控制器配置
@@ -75,16 +90,22 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
       controlsRef.current.dampingFactor = 0.05
       controlsRef.current.screenSpacePanning = false
       controlsRef.current.minDistance = 0.2
-      controlsRef.current.maxDistance = 2
+      controlsRef.current.maxDistance = qualityProfile?.maxDistance ?? 2
       controlsRef.current.maxPolarAngle = Math.PI / 2 // 限制垂直旋转角度
 
       // 添加环境光
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+      const ambientLight = new THREE.AmbientLight(
+        0xffffff,
+        (qualityProfile?.lightIntensity ?? 1) * 0.4
+      )
       sceneRef.current.add(ambientLight)
 
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+      const directionalLight = new THREE.DirectionalLight(
+        0xffffff,
+        qualityProfile?.lightIntensity ?? 1
+      )
       directionalLight.position.set(5, 5, 5)
-      directionalLight.castShadow = true // 启用阴影
+      directionalLight.castShadow = Boolean(qualityProfile?.enableShadows)
       sceneRef.current.add(directionalLight)
     }
 
@@ -98,15 +119,21 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
 
       const manager = new THREE.LoadingManager(
         () => {
-          console.log('全部资源加载完成')
+          if (process.env.NODE_ENV === 'development') {
+            console.log('全部资源加载完成')
+          }
           setIsLoading(false)
           setError(null)
         },
         (url, loaded, total) => {
-          console.log(`加载进度: ${((loaded / total) * 100).toFixed(1)}%`)
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`加载进度: ${((loaded / total) * 100).toFixed(1)}%`)
+          }
         },
         (url) => {
-          console.error('资源加载失败:', url)
+          if (process.env.NODE_ENV === 'development') {
+            console.error('资源加载失败:', url)
+          }
           // 单个资源失败不中断整个加载过程
         }
       )
@@ -122,12 +149,16 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
       const urdfPath =
         modelPath || '/models/SO_5DOF_ARM100_05d.SLDASM/urdf/SO_5DOF_ARM100_05d.SLDASM.urdf'
 
-      console.log(`正在加载URDF (尝试 ${retryCount + 1}/${maxRetries}):`, urdfPath)
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`正在加载URDF (尝试 ${retryCount + 1}/${maxRetries}):`, urdfPath)
+      }
 
       // 设置超时
       const timeoutId = setTimeout(() => {
         if (retryCount < maxRetries - 1) {
-          console.warn(`加载超时，准备重试 (${retryCount + 1}/${maxRetries})`)
+          if (process.env.NODE_ENV === 'development') {
+            console.warn(`加载超时，准备重试 (${retryCount + 1}/${maxRetries})`)
+          }
           setTimeout(() => loadRobot(retryCount + 1), 1000) // 1秒后重试
         } else {
           setError('模型加载超时')
@@ -139,8 +170,15 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
         urdfPath,
         (robot) => {
           clearTimeout(timeoutId)
-          console.log('模型加载成功')
+          if (process.env.NODE_ENV === 'development') {
+            console.log('模型加载成功')
+          }
           robot.rotation.x = -Math.PI / 2
+          if (modelRef.current) {
+            sceneRef.current.remove(modelRef.current)
+            disposeObject(modelRef.current)
+          }
+          modelRef.current = robot
           sceneRef.current.add(robot)
 
           // 自动调整视角
@@ -163,16 +201,24 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
             typeof progress.loaded === 'number' &&
             typeof progress.total === 'number'
           ) {
-            console.log(`加载进度: ${((progress.loaded / progress.total) * 100).toFixed(1)}%`)
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`加载进度: ${((progress.loaded / progress.total) * 100).toFixed(1)}%`)
+            }
           } else {
-            console.log('加载中...')
+            if (process.env.NODE_ENV === 'development') {
+              console.log('加载中...')
+            }
           }
         },
         (error) => {
           clearTimeout(timeoutId)
-          console.error('加载失败:', error)
+          if (process.env.NODE_ENV === 'development') {
+            console.error('加载失败:', error)
+          }
           if (retryCount < maxRetries - 1) {
-            console.log(`准备重试 (${retryCount + 1}/${maxRetries})`)
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`准备重试 (${retryCount + 1}/${maxRetries})`)
+            }
             setTimeout(() => loadRobot(retryCount + 1), 1000) // 1秒后重试
           } else {
             setError(`模型加载失败: ${error.message || '未知错误'}`)
@@ -248,14 +294,16 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
             }
           }
         })
+        currentScene.clear()
         if (currentContainer && currentRenderer.domElement.parentNode === currentContainer) {
           currentContainer.removeChild(currentRenderer.domElement)
         }
         rendererRef.current = null
       }
+      modelRef.current = null
       cameraRef.current = null
     }
-  }, [modelPath])
+  }, [modelPath, qualityProfile])
 
   return (
     <div
@@ -287,4 +335,17 @@ export default function ThreeJSViewer({ className = '', modelPath }: ThreeJSView
       )}
     </div>
   )
+}
+
+function disposeObject(object: THREE.Object3D) {
+  object.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      child.geometry.dispose()
+      if (Array.isArray(child.material)) {
+        child.material.forEach((material) => material.dispose())
+      } else if (child.material) {
+        child.material.dispose()
+      }
+    }
+  })
 }
