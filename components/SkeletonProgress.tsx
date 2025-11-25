@@ -16,7 +16,7 @@ export default function SkeletonProgress({
   className = '',
 }: SkeletonProgressProps) {
   const [value, setValue] = useState(10)
-  const rafRef = useRef<number>()
+  const rafRef = useRef<number | null>(null)
 
   useEffect(() => {
     const start = performance.now()

@@ -43,11 +43,10 @@ export default function Hero3DSection() {
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
-      const matches = 'matches' in event ? event.matches : event.matches
-      setPrefersReducedMotion(matches)
+    const handleChange = (event: MediaQueryListEvent) => {
+      setPrefersReducedMotion(event.matches)
     }
-    handleChange(media)
+    setPrefersReducedMotion(media.matches)
     media.addEventListener('change', handleChange)
     return () => media.removeEventListener('change', handleChange)
   }, [])
