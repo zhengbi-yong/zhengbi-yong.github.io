@@ -147,6 +147,19 @@ Yolo模式：Ask
 - 阻碍因素：无
 - 状态：成功
 
+[2025-11-25_16:20:00]
+- 已修改：data/siteMetadata.ts - 合并类型定义与配置数据，新增可选字段，提供类型守卫
+- 已删除：data/siteMetadata.js / data/siteMetadata.d.ts（由 TypeScript 模块取代）
+- 已修改：app/api/newsletter/route.ts - 使用 NewsletterConfig 保障类型安全
+- 已修改：app/blog/[...slug]/page.tsx - 移除类型断言并添加类型守卫、布局 key 校验
+- 已创建：lib/types/api.ts - 定义通用 API 类型、Newsletter 请求/响应类型
+- 已创建：types/body-scroll-lock.d.ts / types/canvas-confetti.d.ts / types/three-examples.d.ts - 补充第三方库类型
+- 已修改：components/Header.tsx / components/ParticleBackground.tsx / components/ThreeJSViewer.tsx - 修复类型错误
+- 更改：完成阶段二步骤 24-46（类型定义增强、API 类型补全）
+- 原因：增强配置与 API 的类型安全，移除 @ts-ignore 与不必要的断言
+- 阻碍因素：第三方库缺少类型定义，需要自定义声明
+- 状态：成功
+
 ## 最终审查
 
 [待完成]

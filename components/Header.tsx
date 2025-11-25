@@ -12,9 +12,12 @@ const Header = () => {
     headerClass += ' sticky top-0 z-50'
   }
 
+  const headerLabel =
+    typeof siteMetadata.headerTitle === 'string' ? siteMetadata.headerTitle : siteMetadata.title
+
   return (
     <header className={headerClass}>
-      <Link href="/" aria-label={siteMetadata.headerTitle}>
+      <Link href="/" aria-label={headerLabel}>
         <div className="flex items-center justify-between">
           <div className="mr-3">
             <Logo />
