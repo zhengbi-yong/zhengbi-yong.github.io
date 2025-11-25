@@ -22,11 +22,15 @@ export function useGSAP(
   const hasInitialized = useRef(false)
   const animationRef = useRef<gsap.core.Tween | gsap.core.Timeline | null>(null)
   const scrollTriggerRef = useRef<ScrollTrigger[]>([])
+  const callbackRef = useRef(callback)
   const dependenciesKey = useMemo(() => JSON.stringify(dependencies), [dependencies])
 
   useEffect(() => {
     // 只在客户端执行
     if (typeof window === 'undefined') return
+
+    // 更新 callback 引用
+    callbackRef.current = callback
 
     // 注册插件（只注册一次）
     if (!hasInitialized.current) {
@@ -35,7 +39,7 @@ export function useGSAP(
     }
 
     // 执行动画回调
-    const animation = callback(gsap, ScrollTrigger)
+    const animation = callbackRef.current(gsap, ScrollTrigger)
 
     // 保存动画引用（如果是 Timeline 或 Tween）
     if (
@@ -71,7 +75,7 @@ export function useGSAP(
         animationRef.current = null
       }
     }
-  }, [callback, dependenciesKey])
+  }, [dependenciesKey])
 
   return animationRef.current
 }

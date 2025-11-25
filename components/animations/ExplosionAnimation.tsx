@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface Particle {
   x: number
@@ -23,7 +23,7 @@ interface ExplosionAnimationProps {
  * ExplosionAnimation - 爆炸动画组件
  * 使用 Canvas API 实现高性能爆炸粒子效果
  */
-export default function ExplosionAnimation({
+const ExplosionAnimation = memo(function ExplosionAnimation({
   className = '',
   autoPlay = true,
   interval = 2000,
@@ -32,6 +32,7 @@ export default function ExplosionAnimation({
   const particlesRef = useRef<Particle[]>([])
   const animationFrameRef = useRef<number | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const isVisibleRef = useRef(true)
 
   const colors = useMemo(
     () => ['#FF6B6B', '#FF8E53', '#FF6B9D', '#C44569', '#F8B500', '#FFD93D'],
@@ -66,6 +67,8 @@ export default function ExplosionAnimation({
   )
 
   const animate = useCallback(() => {
+    if (!isVisibleRef.current) return
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -114,6 +117,41 @@ export default function ExplosionAnimation({
     resize()
     window.addEventListener('resize', resize)
 
+    // 初始化页面可见性状态
+    isVisibleRef.current = !document.hidden
+
+    // 页面可见性变化处理
+    const handleVisibilityChange = () => {
+      const wasVisible = isVisibleRef.current
+      isVisibleRef.current = !document.hidden
+
+      if (!isVisibleRef.current) {
+        // 页面不可见时暂停定时器和动画
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+          intervalRef.current = null
+        }
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current)
+          animationFrameRef.current = null
+        }
+      } else if (wasVisible !== isVisibleRef.current && autoPlay) {
+        // 页面重新可见时恢复动画
+        const triggerExplosion = () => {
+          const rect = canvas.getBoundingClientRect()
+          const x = rect.width * (0.3 + Math.random() * 0.4)
+          const y = rect.height * (0.3 + Math.random() * 0.4)
+          createExplosion(x, y)
+        }
+
+        triggerExplosion()
+        intervalRef.current = setInterval(triggerExplosion, interval)
+        animate()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     if (autoPlay) {
       const triggerExplosion = () => {
         const rect = canvas.getBoundingClientRect()
@@ -134,6 +172,7 @@ export default function ExplosionAnimation({
 
     return () => {
       window.removeEventListener('resize', resize)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
       }
@@ -150,4 +189,8 @@ export default function ExplosionAnimation({
       style={{ pointerEvents: 'none' }}
     />
   )
-}
+})
+
+ExplosionAnimation.displayName = 'ExplosionAnimation'
+
+export default ExplosionAnimation

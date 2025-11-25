@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { memo, useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useTheme } from 'next-themes'
 
 interface ScrollProgressProps {
   className?: string
@@ -13,7 +14,7 @@ interface ScrollProgressProps {
  * ScrollProgress - 滚动进度指示器组件
  * 显示页面滚动进度（0-100%）
  */
-export default function ScrollProgress({
+const ScrollProgress = memo(function ScrollProgress({
   className = '',
   height = 2,
   color,
@@ -21,6 +22,7 @@ export default function ScrollProgress({
 }: ScrollProgressProps) {
   const [progress, setProgress] = useState(0)
   const tickingRef = useRef(false)
+  const { resolvedTheme } = useTheme()
 
   // 使用useCallback缓存updateProgress函数
   const updateProgress = useCallback(() => {
@@ -65,12 +67,9 @@ export default function ScrollProgress({
     if (color) return color
 
     // 根据主题自动选择颜色
-    if (typeof window !== 'undefined') {
-    const isDarkMode = document.documentElement.classList.contains('dark')
+    const isDarkMode = resolvedTheme === 'dark'
     return isDarkMode ? 'rgba(59, 130, 246, 1)' : 'rgba(37, 99, 235, 1)' // blue-500
-  }
-    return 'rgba(37, 99, 235, 1)' // 默认颜色
-  }, [color])
+  }, [color, resolvedTheme])
 
   // 使用useMemo缓存positionClass计算
   const positionClass = useMemo(() => (position === 'top' ? 'top-0' : 'bottom-0'), [position])
@@ -94,4 +93,8 @@ export default function ScrollProgress({
       />
     </div>
   )
-}
+})
+
+ScrollProgress.displayName = 'ScrollProgress'
+
+export default ScrollProgress

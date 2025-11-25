@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface Sparkle {
   x: number
@@ -22,13 +22,14 @@ interface SparklesAnimationProps {
  * SparklesAnimation - 闪烁动画组件
  * 使用 Canvas API 实现高性能闪烁粒子效果
  */
-export default function SparklesAnimation({
+const SparklesAnimation = memo(function SparklesAnimation({
   className = '',
   particleCount = 30,
 }: SparklesAnimationProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sparklesRef = useRef<Sparkle[]>([])
   const animationFrameRef = useRef<number | null>(null)
+  const isVisibleRef = useRef(true)
 
   const colors = useMemo(
     () => ['#FFD700', '#FFA500', '#FF6B6B', '#4ECDC4', '#45B7D1', '#98D8C8'],
@@ -63,6 +64,8 @@ export default function SparklesAnimation({
   }, [colors])
 
   const animate = useCallback(() => {
+    if (!isVisibleRef.current) return
+
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -119,6 +122,20 @@ export default function SparklesAnimation({
     resize()
     window.addEventListener('resize', resize)
 
+    // 初始化页面可见性状态
+    isVisibleRef.current = !document.hidden
+
+    // 页面可见性变化处理
+    const handleVisibilityChange = () => {
+      isVisibleRef.current = !document.hidden
+      if (isVisibleRef.current && !animationFrameRef.current) {
+        // 页面重新可见时恢复动画
+        animate()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     // 初始化粒子
     for (let i = 0; i < particleCount; i++) {
       sparklesRef.current.push(createSparkle())
@@ -129,6 +146,7 @@ export default function SparklesAnimation({
 
     return () => {
       window.removeEventListener('resize', resize)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
       }
@@ -142,4 +160,8 @@ export default function SparklesAnimation({
       style={{ pointerEvents: 'none' }}
     />
   )
-}
+})
+
+SparklesAnimation.displayName = 'SparklesAnimation'
+
+export default SparklesAnimation
