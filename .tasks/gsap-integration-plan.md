@@ -1157,6 +1157,46 @@ yarn start  # 本地测试
 
 ---
 
+**[2025-11-24] 第二阶段：高级滚动动画与视差效果 - 已完成**
+
+**已完成的步骤**：
+8. ✅ 创建 `components/animations/ParallaxScroll.tsx` 组件
+   - 实现了视差滚动效果
+   - 支持垂直和水平方向
+   - 支持移动设备优化（降低视差强度）
+
+9. ✅ 创建 `components/animations/PinElement.tsx` 组件
+   - 实现了元素固定效果
+   - 支持固定开始和结束的回调
+   - 支持自定义固定区域
+
+10. ✅ 创建 `components/animations/AdvancedScrollAnimation.tsx` 组件
+    - 实现了复杂的滚动触发动画组合
+    - 支持多个动画属性同时变化
+    - 支持平滑滚动（scrub）效果
+
+11. ✅ 更新 `app/experiment/page.tsx` 添加高级示例
+    - 添加了视差滚动示例
+    - 添加了固定元素示例
+    - 添加了高级滚动动画示例
+
+**修改的文件**：
+- `components/animations/ParallaxScroll.tsx` (新建)
+- `components/animations/PinElement.tsx` (新建)
+- `components/animations/AdvancedScrollAnimation.tsx` (新建)
+- `app/experiment/page.tsx` (添加高级示例)
+
+**功能验证**：
+- ✅ ParallaxScroll 组件支持视差滚动效果
+- ✅ PinElement 组件支持元素固定效果
+- ✅ AdvancedScrollAnimation 组件支持复杂滚动动画
+- ✅ 在 `/experiment` 页面可以查看所有高级 GSAP 动画示例
+
+**下一步**：
+- 等待用户确认第二阶段功能正常，可进入第三阶段（SVG 动画与性能优化）
+
+---
+
 ## 最终审查
 
 待所有步骤完成后，将进行最终审查，包括：
