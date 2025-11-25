@@ -9,6 +9,7 @@ import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
 import SlideIn from '@/components/animations/SlideIn'
+import { ListSkeleton } from '@/components/loaders'
 
 interface PaginationProps {
   totalPages: number
@@ -116,7 +117,16 @@ export default function ListLayout({
           </div>
         </div>
         <ul>
-          {!filteredBlogPosts.length && 'No posts found.'}
+          {!filteredBlogPosts.length && posts.length === 0 && (
+            <li>
+              <ListSkeleton itemCount={3} />
+            </li>
+          )}
+          {!filteredBlogPosts.length && posts.length > 0 && (
+            <li className="py-8 text-center text-gray-500 dark:text-gray-400">
+              No posts found.
+            </li>
+          )}
           {displayPosts.map((post, index) => {
             const { path, date, title, summary, tags } = post
             return (
