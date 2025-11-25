@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 interface Sparkle {
   x: number
@@ -30,9 +30,12 @@ export default function SparklesAnimation({
   const sparklesRef = useRef<Sparkle[]>([])
   const animationFrameRef = useRef<number | null>(null)
 
-  const colors = ['#FFD700', '#FFA500', '#FF6B6B', '#4ECDC4', '#45B7D1', '#98D8C8']
+  const colors = useMemo(
+    () => ['#FFD700', '#FFA500', '#FF6B6B', '#4ECDC4', '#45B7D1', '#98D8C8'],
+    []
+  )
 
-  const createSparkle = (): Sparkle => {
+  const createSparkle = useCallback((): Sparkle => {
     const canvas = canvasRef.current
     if (!canvas) {
       return {
@@ -57,9 +60,9 @@ export default function SparklesAnimation({
       size: 1 + Math.random() * 2,
       color: colors[Math.floor(Math.random() * colors.length)],
     }
-  }
+  }, [colors])
 
-  const animate = () => {
+  const animate = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -101,7 +104,7 @@ export default function SparklesAnimation({
       .filter((sparkle) => sparkle.life > 0)
 
     animationFrameRef.current = requestAnimationFrame(animate)
-  }
+  }, [createSparkle, particleCount])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -130,7 +133,7 @@ export default function SparklesAnimation({
         cancelAnimationFrame(animationFrameRef.current)
       }
     }
-  }, [particleCount])
+  }, [animate, createSparkle, particleCount])
 
   return (
     <canvas

@@ -9,6 +9,7 @@ type ModuleConfig = {
   description: string
   loader: () => Promise<{ default: ComponentType }>
   requiresEnhanced?: boolean
+  defaultOpen?: boolean
 }
 
 const moduleConfigs: ModuleConfig[] = [
@@ -16,6 +17,7 @@ const moduleConfigs: ModuleConfig[] = [
     title: '3D URDF 实验室',
     description: '实时加载机器人模型，体验自适应渲染与交互控制。',
     loader: () => import('@/components/experiments/ThreeLab'),
+    defaultOpen: true,
   },
   {
     title: 'Shadcn UI 体验舱',
@@ -64,6 +66,7 @@ export default function ExperimentPage() {
             title={module.title}
             description={module.description}
             loader={module.loader}
+            defaultOpen={module.defaultOpen && !isMinimal}
             disabled={module.requiresEnhanced && isMinimal}
           />
         ))}
