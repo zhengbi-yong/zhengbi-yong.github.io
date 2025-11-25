@@ -5,6 +5,22 @@ import Link from './Link'
 import siteMetadata from '@/data/siteMetadata'
 import SocialIcon from '@/components/social-icons'
 
+type SocialLink = {
+  kind:
+    | 'mail'
+    | 'github'
+    | 'facebook'
+    | 'youtube'
+    | 'linkedin'
+    | 'twitter'
+    | 'bluesky'
+    | 'x'
+    | 'instagram'
+    | 'threads'
+    | 'medium'
+  href: string
+}
+
 const Footer = memo(() => {
   // 使用 state 和 useEffect 确保 SSR/CSR 一致
   // 初始值设为当前年份（服务器端和客户端通常相同）
@@ -30,7 +46,7 @@ const Footer = memo(() => {
         siteMetadata.instagram && { kind: 'instagram' as const, href: siteMetadata.instagram },
         siteMetadata.threads && { kind: 'threads' as const, href: siteMetadata.threads },
         siteMetadata.medium && { kind: 'medium' as const, href: siteMetadata.medium },
-      ].filter((link): link is { kind: string; href: string } => Boolean(link)),
+      ].filter((link): link is SocialLink => Boolean(link)),
     []
   )
 
