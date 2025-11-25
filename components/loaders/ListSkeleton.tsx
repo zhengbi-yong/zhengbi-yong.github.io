@@ -12,10 +12,7 @@ interface ListSkeletonProps {
  * ListSkeleton - 列表骨架屏组件
  * 用于列表内容加载时的占位符
  */
-export default function ListSkeleton({
-  className,
-  itemCount = 5,
-}: ListSkeletonProps) {
+export default function ListSkeleton({ className, itemCount = 5 }: ListSkeletonProps) {
   return (
     <div className={cn('space-y-4', className)}>
       {Array.from({ length: itemCount }).map((_, index) => (
@@ -36,4 +33,3 @@ export default function ListSkeleton({
     </div>
   )
 }
-

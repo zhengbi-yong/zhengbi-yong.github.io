@@ -12,10 +12,7 @@ interface CardSkeletonProps {
  * CardSkeleton - 卡片骨架屏组件
  * 用于卡片内容加载时的占位符
  */
-export default function CardSkeleton({
-  className,
-  showImage = true,
-}: CardSkeletonProps) {
+export default function CardSkeleton({ className, showImage = true }: CardSkeletonProps) {
   return (
     <div className={cn('overflow-hidden rounded-lg border', className)}>
       {/* 可选的图片骨架 */}
@@ -42,4 +39,3 @@ export default function CardSkeleton({
     </div>
   )
 }
-

@@ -13,12 +13,7 @@ interface SkeletonProps {
  * Skeleton - 骨架屏基础组件
  * 使用 Tailwind animate-pulse 实现脉冲动画效果
  */
-export default function Skeleton({
-  className,
-  width,
-  height,
-  rounded = true,
-}: SkeletonProps) {
+export default function Skeleton({ className, width, height, rounded = true }: SkeletonProps) {
   const style: React.CSSProperties = {}
   if (width) {
     style.width = typeof width === 'number' ? `${width}px` : width
@@ -29,15 +24,10 @@ export default function Skeleton({
 
   return (
     <div
-      className={cn(
-        'animate-pulse bg-gray-200 dark:bg-gray-800',
-        rounded && 'rounded',
-        className
-      )}
+      className={cn('animate-pulse bg-gray-200 dark:bg-gray-800', rounded && 'rounded', className)}
       style={style}
       aria-label="加载中"
       role="status"
     />
   )
 }
-
