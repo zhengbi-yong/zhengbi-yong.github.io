@@ -1,4 +1,4 @@
-/** @type {import("pliny/config").PlinyConfig } */
+/** @type {import("./siteMetadata").SiteMetadata} */
 const siteMetadata = {
   title: 'Zhengbi Yong',
   author: '雍征彼',
