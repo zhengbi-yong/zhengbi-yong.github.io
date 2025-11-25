@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement, cloneElement } from 'react'
+import { memo, useMemo, Children, isValidElement } from 'react'
 import AnimatedSection from './AnimatedSection'
 
 interface AnimatedListProps {
@@ -13,13 +13,13 @@ interface AnimatedListProps {
  * AnimatedList - 交错动画列表组件
  * 为子元素提供交错动画效果，每个子元素依次触发动画
  */
-export default function AnimatedList({
+const AnimatedList = memo(function AnimatedList({
   children,
   staggerDelay = 100,
   className = '',
 }: AnimatedListProps) {
-  // 将 children 转换为数组
-  const childrenArray = Children.toArray(children)
+  // 使用 useMemo 缓存 children 数组转换
+  const childrenArray = useMemo(() => Children.toArray(children), [children])
 
   // 如果只有一个子元素或没有子元素，直接渲染
   if (childrenArray.length <= 1) {
@@ -46,4 +46,8 @@ export default function AnimatedList({
       })}
     </div>
   )
-}
+})
+
+AnimatedList.displayName = 'AnimatedList'
+
+export default AnimatedList
