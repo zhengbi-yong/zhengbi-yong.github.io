@@ -1,27 +1,28 @@
 'use client'
 
 import siteMetadata from '@/data/siteMetadata'
-import { useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 
-const ScrollTopAndComment = () => {
+const ScrollTopAndComment = memo(function ScrollTopAndComment() {
   const [show, setShow] = useState(false)
 
-  useEffect(() => {
-    const handleWindowScroll = () => {
-      if (window.scrollY > 50) setShow(true)
-      else setShow(false)
-    }
-
-    window.addEventListener('scroll', handleWindowScroll)
-    return () => window.removeEventListener('scroll', handleWindowScroll)
+  const handleWindowScroll = useCallback(() => {
+    if (window.scrollY > 50) setShow(true)
+    else setShow(false)
   }, [])
 
-  const handleScrollTop = () => {
+  useEffect(() => {
+    window.addEventListener('scroll', handleWindowScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleWindowScroll)
+  }, [handleWindowScroll])
+
+  const handleScrollTop = useCallback(() => {
     window.scrollTo({ top: 0 })
-  }
-  const handleScrollToComment = () => {
+  }, [])
+
+  const handleScrollToComment = useCallback(() => {
     document.getElementById('comment')?.scrollIntoView()
-  }
+  }, [])
   return (
     <div
       className={`fixed right-8 bottom-8 hidden flex-col gap-3 ${show ? 'md:flex' : 'md:hidden'}`}
@@ -56,6 +57,8 @@ const ScrollTopAndComment = () => {
       </button>
     </div>
   )
-}
+})
+
+ScrollTopAndComment.displayName = 'ScrollTopAndComment'
 
 export default ScrollTopAndComment

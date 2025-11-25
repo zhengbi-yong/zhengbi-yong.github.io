@@ -59,9 +59,7 @@ export default function Hero3DSection() {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
 
-  useEffect(() => {
     const handler = (event: Event) => {
       const custom = event as CustomEvent<HeroVisualMode>
       if (custom.detail) {
