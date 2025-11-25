@@ -158,7 +158,7 @@ export default function ParticleBackground({
         },
       },
       interactivity: {
-        detectsOn: 'window',
+        detectsOn: 'window' as const,
         events: {
           onHover: {
             enable: false,
@@ -197,7 +197,8 @@ export default function ParticleBackground({
         init={async () => {
           // 引擎已通过 initParticlesEngine 初始化
         }}
-        options={particlesOptions}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        options={particlesOptions as any}
         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
       />
     </div>

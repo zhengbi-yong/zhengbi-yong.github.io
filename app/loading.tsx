@@ -9,11 +9,8 @@ export default function Loading() {
     <div className="flex min-h-screen items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <Spinner size="lg" />
-        <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-          加载中...
-        </p>
+        <p className="text-lg font-medium text-gray-700 dark:text-gray-300">加载中...</p>
       </div>
     </div>
   )
 }
-

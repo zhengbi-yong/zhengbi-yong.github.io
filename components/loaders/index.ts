@@ -6,4 +6,3 @@ export { default as ListSkeleton } from './ListSkeleton'
 export { default as ImageSkeleton } from './ImageSkeleton'
 export { default as ComponentLoader } from './ComponentLoader'
 export { default as RouteTransition } from './RouteTransition'
-

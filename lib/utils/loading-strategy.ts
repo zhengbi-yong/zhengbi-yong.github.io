@@ -7,6 +7,19 @@ import { isMobileDevice } from './device'
 
 export type LoadingStrategy = 'minimal' | 'standard' | 'enhanced'
 
+// 扩展 Navigator 接口以支持设备内存和网络连接 API
+interface NavigatorWithDeviceMemory extends Navigator {
+  deviceMemory?: number
+  connection?: NetworkInformation
+  mozConnection?: NetworkInformation
+  webkitConnection?: NetworkInformation
+}
+
+interface NetworkInformation {
+  effectiveType?: '2g' | '3g' | '4g' | 'slow-2g'
+  downlink?: number
+}
+
 /**
  * 获取加载策略
  * 根据设备性能、网络状态和移动设备检测返回最优策略
@@ -24,10 +37,11 @@ export function getLoadingStrategy(): LoadingStrategy {
 
   // 检测设备性能
   const hardwareConcurrency = navigator.hardwareConcurrency || 2
-  const deviceMemory = (navigator as any).deviceMemory || 4 // 默认 4GB
+  const nav = navigator as NavigatorWithDeviceMemory
+  const deviceMemory = nav.deviceMemory || 4 // 默认 4GB
 
   // 检测网络状态
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection
+  const connection = nav.connection || nav.mozConnection || nav.webkitConnection
   const effectiveType = connection?.effectiveType || '4g'
   const downlink = connection?.downlink || 10 // 默认 10 Mbps
 
@@ -73,4 +87,3 @@ export function getOptimalParticleCount(baseCount: number): number {
       return baseCount
   }
 }
-

@@ -24,14 +24,8 @@ export default function Spinner({ size = 'md', className, color }: SpinnerProps)
 
   return (
     <Loader2
-      className={cn(
-        'animate-spin',
-        sizeClasses[size],
-        color || defaultColor,
-        className
-      )}
+      className={cn('animate-spin', sizeClasses[size], color || defaultColor, className)}
       aria-label="加载中"
     />
   )
 }
-

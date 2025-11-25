@@ -29,4 +29,3 @@ export default function RouteTransition({ children, className }: RouteTransition
     </motion.div>
   )
 }
-

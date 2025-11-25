@@ -67,7 +67,7 @@ const ThreeJSViewer = dynamic(() => import('@/components/ThreeJSViewer'), {
     <div className="flex h-96 items-center justify-center rounded-lg border bg-gray-100 dark:bg-gray-800">
       <div className="flex flex-col items-center gap-4">
         <Spinner size="lg" />
-      <p className="text-gray-600 dark:text-gray-400">加载 3D 模型中...</p>
+        <p className="text-gray-600 dark:text-gray-400">加载 3D 模型中...</p>
       </div>
     </div>
   ),
@@ -80,7 +80,7 @@ const ParticleBackground = dynamic(() => import('@/components/ParticleBackground
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="flex flex-col items-center gap-2">
         <Spinner size="md" />
-      <p className="text-sm text-gray-500">加载粒子动画中...</p>
+        <p className="text-sm text-gray-500">加载粒子动画中...</p>
       </div>
     </div>
   ),
@@ -983,11 +983,7 @@ export default function Projects() {
         {/* ComponentLoader 示例 */}
         <div>
           <h3 className="mb-4 text-lg font-semibold">ComponentLoader - 组件加载包装器</h3>
-          <ComponentLoader
-            isLoading={false}
-            message="加载中..."
-            spinner={true}
-          >
+          <ComponentLoader isLoading={false} message="加载中..." spinner={true}>
             <div className="rounded-lg border bg-green-100 p-4 dark:bg-green-900">
               <p>内容已加载完成</p>
             </div>
