@@ -126,39 +126,35 @@ async function enhancedNetworkFirstStrategy(request) {
   // 先检查缓存
   const cachedResponse = await caches.match(request)
   
-  // 尝试从网络获取（不等待）
-  const networkPromise = fetch(request)
-    .then((networkResponse) => {
-      // 如果响应成功，更新缓存
-      if (networkResponse.ok) {
-        const cache = caches.open(CACHE_NAME)
-        cache.then((c) => {
-          c.put(request, networkResponse.clone())
-        })
-      }
-      return networkResponse
-    })
-    .catch(() => null) // 网络失败时返回 null
-
-  // 如果有缓存，立即返回缓存，后台更新
+  // 如果有缓存，立即返回缓存（不启动后台更新，避免 Response 克隆问题）
   if (cachedResponse) {
-    // 后台更新缓存（不阻塞响应）
-    networkPromise.then((networkResponse) => {
-      if (networkResponse && networkResponse.ok) {
-        // 缓存已更新
-        console.log('[Service Worker] Cache updated for:', request.url)
-      }
-    })
     return cachedResponse
   }
 
-  // 没有缓存，等待网络响应
-  const networkResponse = await networkPromise
-  if (networkResponse) {
+  // 没有缓存，从网络获取
+  try {
+    const networkResponse = await fetch(request)
+    
+    // 如果响应成功，更新缓存
+    // 关键：在返回之前先克隆 Response，确保可以安全缓存
+    if (networkResponse.ok) {
+      // 先克隆 Response 用于缓存（在返回之前）
+      const responseClone = networkResponse.clone()
+      // 异步更新缓存，不阻塞响应返回
+      caches.open(CACHE_NAME).then((cache) => {
+        cache.put(request, responseClone).catch((error) => {
+          // 缓存失败不影响响应返回
+          console.error('[Service Worker] Failed to cache:', request.url, error)
+        })
+      }).catch(() => {
+        // 缓存打开失败不影响响应返回
+      })
+    }
+    
     return networkResponse
+  } catch (error) {
+    // 网络失败，返回错误
+    throw error
   }
-
-  // 网络失败，返回错误
-  throw new Error('Network request failed')
 }
 
