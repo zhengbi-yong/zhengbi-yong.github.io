@@ -74,6 +74,8 @@ module.exports = () => {
     // Note: eslint configuration moved to eslint.config.mjs in Next.js 16
     // Use `next lint --dir app --dir components --dir layouts --dir scripts` instead
     turbopack: {}, // Empty config to allow webpack config to work with Turbopack
+    // 禁用生产环境的浏览器 source map，减少构建大小和警告
+    productionBrowserSourceMaps: false,
     images: {
       remotePatterns: [
         {
