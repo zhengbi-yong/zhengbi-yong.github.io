@@ -8,6 +8,8 @@ corepack enable
 $env:PWD = $(Get-Location).Path
 # 抑制 Node.js v23.8.0 的 source map 警告（这些警告不影响功能）
 $env:NODE_OPTIONS = "--no-warnings"
+# Windows 文件监听配置：启用 chokidar 轮询模式以解决文件变更检测问题
+$env:CHOKIDAR_USEPOLLING = "true"
 # 启动开发服务器，过滤掉 source map 相关的警告和错误
 # 使用 ForEach-Object 过滤输出，保持交互性
 yarn dev 2>&1 | ForEach-Object {
