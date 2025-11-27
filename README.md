@@ -722,6 +722,502 @@ sudo systemctl restart nginx
 - ✅ 配置修改后必须运行 `sudo nginx -t` 检查语法
 - ✅ 配置修改后必须运行 `sudo systemctl reload nginx` 重新加载配置
 
+##### 3.11 配置 SSL 证书（HTTPS）
+
+为了消除浏览器中的"不安全"警告，您需要为网站配置 SSL 证书。本指南将详细介绍如何使用 Let's Encrypt 免费 SSL 证书。
+
+**前置条件**：
+
+1. **域名要求**：
+   - Let's Encrypt 需要有效的域名（不能仅使用 IP 地址）
+   - 域名必须已经解析到您的服务器 IP 地址
+   - 如果只有 IP 地址，请先购买域名并配置 DNS 解析
+
+2. **DNS 解析配置**：
+   - 在域名注册商处添加 A 记录，将域名指向服务器 IP
+   - 例如：`your-domain.com` → `152.136.43.194`
+   - 等待 DNS 生效（通常几分钟到几小时）
+
+3. **服务器要求**：
+   - 服务器可以访问互联网
+   - 80 端口和 443 端口未被防火墙阻止
+   - 已安装并运行 Nginx
+
+**步骤 1：验证前置条件**
+
+在开始之前，请验证以下内容：
+
+```bash
+# 1. 检查域名解析是否生效
+nslookup your-domain.com
+# 或
+dig your-domain.com
+
+# 应该返回您的服务器 IP 地址（如 152.136.43.194）
+
+# 2. 检查 80 和 443 端口是否开放
+sudo netstat -tlnp | grep -E ':(80|443)'
+# 或
+sudo ss -tlnp | grep -E ':(80|443)'
+
+# 3. 检查防火墙状态（如果使用 UFW）
+sudo ufw status
+# 确保允许 HTTP 和 HTTPS
+sudo ufw allow 'Nginx Full'
+# 或分别允许
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+
+# 4. 检查 Nginx 是否正在运行
+sudo systemctl status nginx
+```
+
+**步骤 2：安装 Certbot**
+
+Certbot 是 Let's Encrypt 的官方客户端，用于自动获取和续期 SSL 证书。
+
+```bash
+# 更新软件包列表
+sudo apt update
+
+# 安装 Certbot 和 Nginx 插件
+sudo apt install certbot python3-certbot-nginx -y
+
+# 验证安装
+certbot --version
+```
+
+**步骤 3：获取 SSL 证书**
+
+Certbot 提供了两种方式获取证书：自动配置和手动配置。
+
+**方式 A：自动配置（推荐）**
+
+Certbot 会自动修改 Nginx 配置文件，这是最简单的方式：
+
+```bash
+# 基本命令（单个域名）
+sudo certbot --nginx -d your-domain.com
+
+# 多个域名（包括 www 子域名）
+sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+
+# 示例：如果您的域名是 example.com
+sudo certbot --nginx -d example.com -d www.example.com
+```
+
+**执行过程说明**：
+
+1. **输入邮箱地址**：
+   ```
+   Enter email address (used for urgent renewal and security notices)
+   ```
+   - 输入您的邮箱地址，用于接收证书到期提醒和安全通知
+   - 建议使用常用邮箱
+
+2. **同意服务条款**：
+   ```
+   (A)gree/(C)ancel: A
+   ```
+   - 输入 `A` 同意服务条款
+
+3. **选择是否共享邮箱**：
+   ```
+   (Y)es/(N)o: N
+   ```
+   - 选择是否与 EFF（电子前沿基金会）共享邮箱
+   - 通常选择 `N`
+
+4. **选择重定向 HTTP 到 HTTPS**：
+   ```
+   Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
+   -------------------------------------------------------------------------------
+   1: No redirect - Make no further changes to the webserver configuration.
+   2: Redirect - Make all HTTP requests redirect to HTTPS. This is recommended.
+   -------------------------------------------------------------------------------
+   Select the appropriate number [1-2] then [enter] (press 'c' to cancel): 2
+   ```
+   - **强烈建议选择 `2`**，这样所有 HTTP 请求会自动重定向到 HTTPS
+
+5. **完成**：
+   - Certbot 会自动获取证书并更新 Nginx 配置
+   - 如果成功，您会看到类似以下的消息：
+     ```
+     Congratulations! You have successfully enabled https://your-domain.com
+     ```
+
+**方式 B：手动配置（高级用户）**
+
+如果您想手动控制配置过程，可以使用以下命令仅获取证书，不修改 Nginx 配置：
+
+```bash
+# 仅获取证书，不修改 Nginx 配置
+sudo certbot certonly --nginx -d your-domain.com
+
+# 或使用 standalone 模式（需要临时停止 Nginx）
+sudo systemctl stop nginx
+sudo certbot certonly --standalone -d your-domain.com
+sudo systemctl start nginx
+```
+
+**步骤 4：验证证书获取**
+
+证书获取成功后，验证证书文件是否存在：
+
+```bash
+# 查看证书文件
+sudo ls -la /etc/letsencrypt/live/your-domain.com/
+
+# 应该看到以下文件：
+# - cert.pem          # 证书文件
+# - chain.pem         # 中间证书链
+# - fullchain.pem     # 完整证书链（cert.pem + chain.pem）
+# - privkey.pem       # 私钥文件
+
+# 查看证书信息
+sudo certbot certificates
+```
+
+**步骤 5：更新 Nginx 配置（如果使用手动方式）**
+
+如果您使用了方式 B（手动配置），需要手动更新 Nginx 配置文件：
+
+```bash
+# 编辑 Nginx 配置文件
+sudo nano /etc/nginx/sites-available/blog
+```
+
+将配置更新为以下内容（**请根据实际情况修改域名和路径**）：
+
+```nginx
+# HTTP 服务器 - 重定向到 HTTPS
+server {
+    listen 80;
+    server_name your-domain.com www.your-domain.com;
+
+    # 重定向所有 HTTP 请求到 HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+# HTTPS 服务器
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com www.your-domain.com;
+
+    # SSL 证书配置
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+    
+    # SSL 安全配置（推荐设置）
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_session_tickets off;
+
+    # 安全头配置
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # 静态资源根目录（必须指向 out 目录的完整路径）
+    root /home/ubuntu/PersonalBlog/out;  # 替换为您的实际路径
+    
+    # 默认首页配置
+    index index.html;
+
+    # 启用 gzip 压缩
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json application/javascript;
+
+    # 处理博客文章路由（必须在通用 location 之前）
+    location ~ ^/blog/ {
+        # 关键：必须包含 $uri.html 来处理 Next.js 静态导出
+        try_files $uri $uri.html $uri/ /index.html;
+    }
+
+    # 处理所有其他请求
+    location / {
+        # 关键：必须包含 $uri.html 来处理 Next.js 静态导出
+        try_files $uri $uri.html $uri/ /index.html;
+    }
+
+    # 处理 _next 静态资源（长期缓存）
+    location /_next/static {
+        expires 365d;
+        access_log off;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # 静态资源缓存配置
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 365d;
+        access_log off;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # 错误页面配置
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+}
+```
+
+**重要配置说明**：
+
+- `ssl_certificate` 和 `ssl_certificate_key`：指向 Let's Encrypt 生成的证书文件
+- `ssl_protocols`：指定支持的 TLS 协议版本（推荐 TLSv1.2 和 TLSv1.3）
+- `ssl_ciphers`：指定加密套件（使用现代、安全的加密算法）
+- `Strict-Transport-Security`：强制使用 HTTPS（HSTS）
+- `listen 443 ssl http2`：启用 HTTP/2 协议以提升性能
+
+**步骤 6：测试 Nginx 配置**
+
+在重新加载 Nginx 之前，务必测试配置是否正确：
+
+```bash
+# 测试 Nginx 配置语法
+sudo nginx -t
+```
+
+如果显示 `syntax is ok` 和 `test is successful`，说明配置正确。
+
+**步骤 7：重新加载 Nginx**
+
+配置测试通过后，重新加载 Nginx：
+
+```bash
+# 重新加载 Nginx 配置（推荐，不中断服务）
+sudo systemctl reload nginx
+
+# 或重启 Nginx（会短暂中断服务）
+sudo systemctl restart nginx
+
+# 检查 Nginx 状态
+sudo systemctl status nginx
+```
+
+**步骤 8：验证 HTTPS 配置**
+
+1. **浏览器访问测试**：
+   - 访问 `https://your-domain.com`
+   - 浏览器地址栏应该显示锁图标（🔒）
+   - 不再显示"不安全"警告
+
+2. **SSL 测试工具**：
+   - 访问 [SSL Labs SSL Test](https://www.ssllabs.com/ssltest/)
+   - 输入您的域名进行测试
+   - 应该获得 A 或 A+ 评级
+
+3. **命令行测试**：
+   ```bash
+   # 测试 HTTPS 连接
+   curl -I https://your-domain.com
+   
+   # 查看证书信息
+   echo | openssl s_client -servername your-domain.com -connect your-domain.com:443 2>/dev/null | openssl x509 -noout -dates
+   ```
+
+4. **验证 HTTP 重定向**：
+   - 访问 `http://your-domain.com`
+   - 应该自动重定向到 `https://your-domain.com`
+
+**步骤 9：配置自动续期**
+
+Let's Encrypt 证书有效期为 90 天，Certbot 会自动设置续期任务。但建议手动验证续期配置：
+
+```bash
+# 查看 Certbot 定时任务
+sudo systemctl status certbot.timer
+
+# 或查看 cron 任务
+sudo crontab -l | grep certbot
+
+# 测试自动续期（不会实际续期，只是测试）
+sudo certbot renew --dry-run
+```
+
+如果 `--dry-run` 测试成功，说明自动续期配置正常。
+
+**手动续期**（如果需要）：
+
+```bash
+# 手动续期所有证书
+sudo certbot renew
+
+# 续期后重新加载 Nginx
+sudo systemctl reload nginx
+```
+
+**步骤 10：常见问题排查**
+
+**问题 1：证书获取失败 - "Failed to verify domain"**
+
+**原因**：域名解析不正确或 80 端口被阻止
+
+**解决**：
+```bash
+# 1. 检查域名解析
+nslookup your-domain.com
+dig your-domain.com
+
+# 2. 检查 80 端口是否开放
+sudo netstat -tlnp | grep :80
+sudo ufw status
+
+# 3. 确保 Nginx 正在运行
+sudo systemctl status nginx
+
+# 4. 检查防火墙规则
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+**问题 2：证书获取失败 - "Too many requests"**
+
+**原因**：Let's Encrypt 对每个域名有速率限制（每周最多 5 个证书）
+
+**解决**：
+- 等待一段时间后重试
+- 如果确实需要多个证书，考虑使用通配符证书
+
+**问题 3：HTTPS 访问显示"不安全"或证书错误**
+
+**原因**：证书配置不正确或证书已过期
+
+**解决**：
+```bash
+# 1. 检查证书是否过期
+sudo certbot certificates
+
+# 2. 检查 Nginx 配置中的证书路径是否正确
+sudo cat /etc/nginx/sites-available/blog | grep ssl_certificate
+
+# 3. 验证证书文件是否存在
+sudo ls -la /etc/letsencrypt/live/your-domain.com/
+
+# 4. 重新获取证书
+sudo certbot --nginx -d your-domain.com --force-renewal
+```
+
+**问题 4：HTTP 没有自动重定向到 HTTPS**
+
+**原因**：Nginx 配置中缺少重定向规则
+
+**解决**：
+```bash
+# 检查配置文件
+sudo cat /etc/nginx/sites-available/blog
+
+# 确保有 HTTP 到 HTTPS 的重定向配置
+# 如果没有，添加以下配置：
+# server {
+#     listen 80;
+#     server_name your-domain.com;
+#     return 301 https://$server_name$request_uri;
+# }
+
+# 重新加载 Nginx
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+**问题 5：证书续期失败**
+
+**原因**：Nginx 配置错误或服务未运行
+
+**解决**：
+```bash
+# 1. 检查 Nginx 配置
+sudo nginx -t
+
+# 2. 检查 Nginx 服务状态
+sudo systemctl status nginx
+
+# 3. 手动测试续期
+sudo certbot renew --dry-run
+
+# 4. 查看 Certbot 日志
+sudo tail -f /var/log/letsencrypt/letsencrypt.log
+```
+
+**问题 6：SSL 测试评级较低（B 或 C）**
+
+**原因**：SSL 配置不够安全
+
+**解决**：
+- 更新 Nginx 配置中的 `ssl_protocols` 和 `ssl_ciphers`
+- 禁用不安全的协议（如 TLSv1.0、TLSv1.1）
+- 使用推荐的 SSL 配置（参考步骤 5）
+
+**步骤 11：维护和监控**
+
+**定期检查证书状态**：
+
+```bash
+# 查看所有证书状态
+sudo certbot certificates
+
+# 查看证书到期时间
+echo | openssl s_client -servername your-domain.com -connect your-domain.com:443 2>/dev/null | openssl x509 -noout -dates
+```
+
+**设置证书到期提醒**：
+
+Certbot 会在证书到期前自动发送邮件提醒（使用您注册时提供的邮箱）。您也可以设置监控脚本：
+
+```bash
+# 创建检查脚本
+sudo nano /usr/local/bin/check-ssl-cert.sh
+```
+
+添加以下内容：
+
+```bash
+#!/bin/bash
+DOMAIN="your-domain.com"
+DAYS_BEFORE_EXPIRY=30
+
+CERT_EXPIRY=$(echo | openssl s_client -servername $DOMAIN -connect $DOMAIN:443 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+CERT_EXPIRY_EPOCH=$(date -d "$CERT_EXPIRY" +%s)
+CURRENT_EPOCH=$(date +%s)
+DAYS_UNTIL_EXPIRY=$(( ($CERT_EXPIRY_EPOCH - $CURRENT_EPOCH) / 86400 ))
+
+if [ $DAYS_UNTIL_EXPIRY -lt $DAYS_BEFORE_EXPIRY ]; then
+    echo "警告：$DOMAIN 的 SSL 证书将在 $DAYS_UNTIL_EXPIRY 天后过期！"
+    # 可以在这里添加邮件通知或其他操作
+fi
+```
+
+```bash
+# 设置执行权限
+sudo chmod +x /usr/local/bin/check-ssl-cert.sh
+
+# 添加到 crontab（每天检查一次）
+sudo crontab -e
+# 添加以下行：
+# 0 0 * * * /usr/local/bin/check-ssl-cert.sh
+```
+
+**总结**：
+
+完成以上步骤后，您的网站应该已经成功配置了 HTTPS：
+
+- ✅ 所有 HTTP 请求自动重定向到 HTTPS
+- ✅ 浏览器不再显示"不安全"警告
+- ✅ 证书自动续期配置完成
+- ✅ SSL 安全配置已优化
+
+**重要提示**：
+- 🔒 Let's Encrypt 证书免费，但需要每 90 天续期一次（Certbot 会自动处理）
+- 🌐 必须使用域名，不能仅使用 IP 地址
+- 🔄 证书续期后需要重新加载 Nginx：`sudo systemctl reload nginx`
+- 📧 确保注册邮箱正确，以便接收证书到期提醒
+- 🔍 定期检查证书状态，确保自动续期正常工作
+
 ### 方式二：Vercel 部署
 
 1. 将代码推送到 GitHub

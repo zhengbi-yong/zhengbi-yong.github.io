@@ -14533,7 +14533,6 @@ __metadata:
     typescript: ^5.1.3
     unist-util-visit: ^5.0.0
     urdf-loader: ^0.12.4
-    yet-another-react-lightbox: ^3.25.0
     zustand: ^5.0.8
   languageName: unknown
   linkType: soft
@@ -15553,23 +15552,6 @@ __metadata:
     y18n: ^5.0.5
     yargs-parser: ^21.1.1
   checksum: 73b572e863aa4a8cbef323dd911d79d193b772defd5a51aab0aca2d446655216f5002c42c5306033968193bdbf892a7a4c110b0d77954a7fdf563e653967b56a
-  languageName: node
-  linkType: hard
-
-"yet-another-react-lightbox@npm:^3.25.0":
-  version: 3.25.0
-  resolution: "yet-another-react-lightbox@npm:3.25.0"
-  peerDependencies:
-    "@types/react": ^16 || ^17 || ^18 || ^19
-    "@types/react-dom": ^16 || ^17 || ^18 || ^19
-    react: ^16.8.0 || ^17 || ^18 || ^19
-    react-dom: ^16.8.0 || ^17 || ^18 || ^19
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    "@types/react-dom":
-      optional: true
-  checksum: 41f4182fae10a97406b16a61649b9a5de5142f814b60a114c2632be54bd040a801be60ccc67e0dd94c3a50deb905f5104eb77d7bcf5ebcea9c99e24db2d792b9
   languageName: node
   linkType: hard
 
