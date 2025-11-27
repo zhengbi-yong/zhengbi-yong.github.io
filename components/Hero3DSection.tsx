@@ -24,9 +24,11 @@ interface QualityProfile {
   maxDistance: number
 }
 
-const HERO_TITLE = '探索未来的人机交互'
+const HERO_TITLE = '人工智能'
 
 export default function Hero3DSection() {
+  // 使用 useState 和 useEffect 确保客户端渲染时使用正确的标题，避免 hydration 不匹配
+  const [heroTitle, setHeroTitle] = useState(HERO_TITLE)
   const [visualMode, setVisualMode] = useState<HeroVisualMode>('standard')
   const [mounted, setMounted] = useState(false)
   const [manualOverride, setManualOverride] = useState<HeroVisualMode | null>(null)
@@ -51,7 +53,9 @@ export default function Hero3DSection() {
   // 如果用户偏好减少动画，getHeroVisualMode() 会返回 'standard'
 
   useEffect(() => {
+    // 确保在客户端 hydration 时使用正确的标题值
     setMounted(true)
+    setHeroTitle(HERO_TITLE)
 
     const handler = (event: Event) => {
       const custom = event as CustomEvent<HeroVisualMode>
@@ -145,8 +149,9 @@ export default function Hero3DSection() {
               style={{
                 letterSpacing: `${visualMode === 'enhanced' ? 0.02 : 0.01}em`,
               }}
+              suppressHydrationWarning
             >
-              {HERO_TITLE}
+              {mounted ? heroTitle : HERO_TITLE}
             </h1>
             <p className="text-lg text-gray-300">
               通过实时 3D

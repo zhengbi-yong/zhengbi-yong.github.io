@@ -1,5 +1,5 @@
 // Service Worker 版本号，用于缓存更新
-const CACHE_VERSION = 'v1.0.0'
+const CACHE_VERSION = 'v1.0.1'
 const CACHE_NAME = `blog-cache-${CACHE_VERSION}`
 
 // 需要缓存的资源类型
