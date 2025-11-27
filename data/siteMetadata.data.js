@@ -22,6 +22,7 @@ const siteMetadata = {
   instagram: 'https://www.instagram.com',
   locale: 'zh-CN',
   stickyNav: false,
+  defaultShowTOC: true,
   analytics: {
     umamiAnalytics: {
       umamiWebsiteId: process.env.NEXT_UMAMI_ID ?? '',

@@ -17,6 +17,7 @@ import { notFound } from 'next/navigation'
 import { CoreContent } from 'pliny/utils/contentlayer'
 import type { ReactNode } from 'react'
 import CachedPostContent from '@/components/CachedPostContent'
+import type { TOC } from '@/lib/types/toc'
 
 interface LayoutProps {
   content: CoreContent<Blog>
@@ -135,6 +136,38 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
   const layoutKey = post.layout && isLayoutKey(post.layout) ? post.layout : defaultLayout
   const Layout = layouts[layoutKey]
 
+  // 获取目录数据（computedFields 中的 toc 是目录数据）
+  // 注意：coreContent 可能会过滤掉 computedFields，所以直接从原始 post 对象获取
+  let toc: TOC | undefined = undefined
+  if (post.toc && Array.isArray(post.toc)) {
+    toc = post.toc as TOC
+  } else if (post.toc) {
+    // 如果 post.toc 存在但不是数组，尝试解析
+    try {
+      const parsedToc = typeof post.toc === 'string' ? JSON.parse(post.toc) : post.toc
+      if (Array.isArray(parsedToc)) {
+        toc = parsedToc as TOC
+      }
+    } catch (e) {
+      console.error('Failed to parse TOC:', e)
+    }
+  }
+
+  // 计算是否显示目录：文章 frontmatter 中的 showTOC 优先，否则使用站点默认配置
+  const showTOC =
+    post.showTOC !== undefined ? post.showTOC : siteMetadata.defaultShowTOC ?? true
+
+  // 调试信息
+  console.log('[BlogPage] TOC Debug:', {
+    hasToc: !!post.toc,
+    tocType: typeof post.toc,
+    tocIsArray: Array.isArray(post.toc),
+    tocLength: Array.isArray(post.toc) ? post.toc.length : 'N/A',
+    showTOC,
+    postShowTOC: post.showTOC,
+    defaultShowTOC: siteMetadata.defaultShowTOC,
+  })
+
   return (
     <>
       <script
@@ -143,7 +176,14 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
       />
       {/* 自动缓存文章内容，后续访问瞬间打开 */}
       <CachedPostContent slug={slug} post={post} />
-      <Layout content={mainContent} authorDetails={authorDetails} next={next} prev={prev}>
+      <Layout
+        content={mainContent}
+        authorDetails={authorDetails}
+        next={next}
+        prev={prev}
+        toc={toc}
+        showTOC={showTOC}
+      >
         <MDXLayoutRenderer code={post.body.code} components={components} toc={post.toc} />
       </Layout>
     </>
