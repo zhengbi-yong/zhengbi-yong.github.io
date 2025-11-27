@@ -79,7 +79,8 @@ module.exports = () => {
     pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
     // Note: eslint configuration moved to eslint.config.mjs in Next.js 16
     // Use `next lint --dir app --dir components --dir layouts --dir scripts` instead
-    turbopack: {}, // Empty config to allow webpack config to work with Turbopack
+    // 不配置 turbopack，确保使用 webpack（因为 contentlayer 的别名配置需要 webpack）
+    // Next.js 16 生产构建默认使用 webpack，Turbopack 主要用于开发模式
     // 禁用生产环境的浏览器 source map，减少构建大小和警告
     productionBrowserSourceMaps: false,
     // 性能优化：压缩配置（Next.js 16 默认启用 gzip）

@@ -35,6 +35,8 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock') }}-
       - name: Install dependencies
         run: yarn install --immutable
+      - name: Generate contentlayer files
+        run: yarn contentlayer
       - run: yarn build
         env:
           EXPORT: 1
