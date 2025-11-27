@@ -10,23 +10,24 @@ export function useActiveHeading(headingIds: string[]) {
   const [activeId, setActiveId] = useState<string>('')
   const observerRef = useRef<IntersectionObserver | null>(null)
   const headingElementsRef = useRef<Map<string, HTMLElement>>(new Map())
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const rafIdRef = useRef<number | null>(null)
 
-  // 更新激活的标题
+  // 更新激活的标题（使用缓存的元素引用，避免重复查找）
   const updateActiveHeading = useCallback(() => {
-    if (headingIds.length === 0) return
+    if (headingIds.length === 0 || headingElementsRef.current.size === 0) return
 
-    // 获取所有标题元素的位置信息
-    const headingPositions = headingIds
-      .map((id) => {
-        const element = document.getElementById(id.replace('#', ''))
-        if (!element) return null
-        return {
+    // 使用缓存的元素引用，避免重复查找 DOM
+    const headingPositions: Array<{ id: string; element: HTMLElement; top: number }> = []
+    headingElementsRef.current.forEach((element, id) => {
+      if (element && element.isConnected) {
+        headingPositions.push({
           id,
           element,
           top: element.getBoundingClientRect().top,
-        }
-      })
-      .filter((item): item is { id: string; element: HTMLElement; top: number } => item !== null)
+        })
+      }
+    })
 
     if (headingPositions.length === 0) return
 
@@ -44,7 +45,7 @@ export function useActiveHeading(headingIds: string[]) {
       }
     }
 
-    setActiveId(currentActive)
+    setActiveId((prev) => (prev !== currentActive ? currentActive : prev))
   }, [headingIds])
 
   useEffect(() => {
@@ -70,14 +71,22 @@ export function useActiveHeading(headingIds: string[]) {
       const intersectingEntries = entries.filter((entry) => entry.isIntersecting)
 
       if (intersectingEntries.length > 0) {
-        // 选择最接近顶部的标题
-        const sortedEntries = intersectingEntries.sort(
-          (a, b) => a.boundingClientRect.top - b.boundingClientRect.top
-        )
-        const topEntry = sortedEntries[0]
+        // 选择最接近顶部的标题（优化：只排序必要的条目）
+        let topEntry = intersectingEntries[0]
+        let minTop = topEntry.boundingClientRect.top
+
+        for (let i = 1; i < intersectingEntries.length; i++) {
+          const entry = intersectingEntries[i]
+          const top = entry.boundingClientRect.top
+          if (top < minTop) {
+            minTop = top
+            topEntry = entry
+          }
+        }
+
         const id = '#' + topEntry.target.id
         if (headingIds.includes(id)) {
-          setActiveId(id)
+          setActiveId((prev) => (prev !== id ? id : prev))
         }
       } else {
         // 如果没有交叉的标题，使用滚动位置判断
@@ -93,9 +102,29 @@ export function useActiveHeading(headingIds: string[]) {
     // 初始更新
     updateActiveHeading()
 
-    // 监听滚动事件作为后备方案
+    // 监听滚动事件作为后备方案（使用防抖优化性能）
     const handleScroll = () => {
-      requestAnimationFrame(updateActiveHeading)
+      // 清除之前的 timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+      
+      // 使用 requestAnimationFrame 节流
+      if (rafIdRef.current === null) {
+        rafIdRef.current = requestAnimationFrame(() => {
+          updateActiveHeading()
+          rafIdRef.current = null
+        })
+      }
+      
+      // 防抖：如果快速滚动，延迟执行
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (rafIdRef.current !== null) {
+          cancelAnimationFrame(rafIdRef.current)
+          rafIdRef.current = null
+        }
+        updateActiveHeading()
+      }, 100)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -105,6 +134,12 @@ export function useActiveHeading(headingIds: string[]) {
       observerRef.current?.disconnect()
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', handleScroll)
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current)
+      }
       headingElementsRef.current.clear()
     }
   }, [headingIds, updateActiveHeading])

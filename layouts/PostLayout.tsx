@@ -68,13 +68,13 @@ export default function PostLayout({
               </div>
             </div>
           </header>
-          <div className="divide-y divide-gray-200 pb-8 xl:grid xl:grid-cols-[3fr_1fr] xl:gap-x-6 xl:divide-y-0 dark:divide-gray-700">
-            <div className="xl:col-span-1 dark:divide-gray-700">
+          <div className="divide-y divide-gray-200 pb-8 md:grid md:grid-cols-[3fr_1fr] md:gap-x-6 md:divide-y-0 dark:divide-gray-700">
+            <div className="md:col-span-1 dark:divide-gray-700">
               <FadeIn delay={0.2} duration={0.6} whileInView={true}>
                 <div className="prose dark:prose-invert max-w-none pt-10 pb-8">{children}</div>
               </FadeIn>
             </div>
-            <div className="xl:col-span-1 xl:sticky xl:top-20 xl:self-start xl:h-[calc(100vh-5rem)]">
+            <div className="md:col-span-1 md:sticky md:top-20 md:self-start md:h-[calc(100vh-5rem)]">
               <FloatingTOC toc={toc} enabled={showTOC} />
             </div>
           </div>
