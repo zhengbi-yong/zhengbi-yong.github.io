@@ -92,6 +92,7 @@ export interface SiteMetadata {
   medium?: string
   locale: string
   stickyNav: boolean
+  defaultShowTOC?: boolean
   analytics: Analytics & AnalyticsConfig
   newsletter: Newsletter
   comments: CommentsConfig

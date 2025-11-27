@@ -9,15 +9,26 @@ import PageTitle from '@/components/PageTitle'
 import SectionContainer from '@/components/SectionContainer'
 import siteMetadata from '@/data/siteMetadata'
 import ScrollTopAndComment from '@/components/ScrollTopAndComment'
+import FloatingTOC from '@/components/FloatingTOC'
+import type { TOC } from '@/lib/types/toc'
 
 interface LayoutProps {
   content: CoreContent<Blog>
   children: ReactNode
   next?: { path: string; title: string }
   prev?: { path: string; title: string }
+  toc?: TOC
+  showTOC?: boolean
 }
 
-export default function PostMinimal({ content, next, prev, children }: LayoutProps) {
+export default function PostMinimal({
+  content,
+  next,
+  prev,
+  children,
+  toc,
+  showTOC,
+}: LayoutProps) {
   const { slug, title, images } = content
   const displayImage =
     images && images.length > 0 ? images[0] : 'https://picsum.photos/seed/picsum/800/400'
@@ -39,38 +50,45 @@ export default function PostMinimal({ content, next, prev, children }: LayoutPro
               <PageTitle>{title}</PageTitle>
             </div>
           </div>
-          <div className="prose dark:prose-invert max-w-none py-4">{children}</div>
-          {siteMetadata.comments && (
-            <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300" id="comment">
-              <Comments slug={slug} />
-            </div>
-          )}
-          <footer>
-            <div className="flex flex-col text-sm font-medium sm:flex-row sm:justify-between sm:text-base">
-              {prev && prev.path && (
-                <div className="pt-4 xl:pt-8">
-                  <Link
-                    href={`/${prev.path}`}
-                    className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
-                    aria-label={`Previous post: ${prev.title}`}
-                  >
-                    &larr; {prev.title}
-                  </Link>
+          <div className="xl:grid xl:grid-cols-[3fr_1fr] xl:gap-x-6">
+            <div className="xl:col-span-1">
+              <div className="prose dark:prose-invert max-w-none py-4">{children}</div>
+              {siteMetadata.comments && (
+                <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300" id="comment">
+                  <Comments slug={slug} />
                 </div>
               )}
-              {next && next.path && (
-                <div className="pt-4 xl:pt-8">
-                  <Link
-                    href={`/${next.path}`}
-                    className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
-                    aria-label={`Next post: ${next.title}`}
-                  >
-                    {next.title} &rarr;
-                  </Link>
+              <footer>
+                <div className="flex flex-col text-sm font-medium sm:flex-row sm:justify-between sm:text-base">
+                  {prev && prev.path && (
+                    <div className="pt-4 xl:pt-8">
+                      <Link
+                        href={`/${prev.path}`}
+                        className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
+                        aria-label={`Previous post: ${prev.title}`}
+                      >
+                        &larr; {prev.title}
+                      </Link>
+                    </div>
+                  )}
+                  {next && next.path && (
+                    <div className="pt-4 xl:pt-8">
+                      <Link
+                        href={`/${next.path}`}
+                        className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
+                        aria-label={`Next post: ${next.title}`}
+                      >
+                        {next.title} &rarr;
+                      </Link>
+                    </div>
+                  )}
                 </div>
-              )}
+              </footer>
             </div>
-          </footer>
+            <div className="xl:col-span-1">
+              <FloatingTOC toc={toc} enabled={showTOC} />
+            </div>
+          </div>
         </div>
       </article>
     </SectionContainer>
