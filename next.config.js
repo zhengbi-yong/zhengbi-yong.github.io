@@ -63,6 +63,12 @@ const unoptimized = process.env.UNOPTIMIZED ? true : undefined
  * @type {import('next/dist/next-server/server/config').NextConfig}
  **/
 module.exports = () => {
+  // Windows 文件监听配置：通过环境变量启用轮询模式
+  // 如果环境变量未设置，在Windows上自动启用
+  if (process.platform === 'win32' && !process.env.CHOKIDAR_USEPOLLING) {
+    process.env.CHOKIDAR_USEPOLLING = 'true'
+  }
+  
   const plugins = [withContentlayer, withBundleAnalyzer]
   const isStaticExport = output === 'export'
   
@@ -76,9 +82,8 @@ module.exports = () => {
     turbopack: {}, // Empty config to allow webpack config to work with Turbopack
     // 禁用生产环境的浏览器 source map，减少构建大小和警告
     productionBrowserSourceMaps: false,
-    // 性能优化：使用 SWC 压缩（Next.js 16 默认启用，显式设置以确保）
-    swcMinify: true,
     // 性能优化：压缩配置（Next.js 16 默认启用 gzip）
+    // 注意：Next.js 16 默认使用 SWC 压缩，无需显式设置 swcMinify
     compress: true,
     images: {
       remotePatterns: [
@@ -123,6 +128,15 @@ module.exports = () => {
       config.resolve.alias = {
         ...config.resolve.alias,
         'contentlayer/generated': require('path').resolve(__dirname, '.contentlayer/generated'),
+      }
+
+      // Windows 文件监听配置：启用轮询模式以解决文件变更检测问题
+      if (dev) {
+        config.watchOptions = {
+          poll: 1000,
+          ignored: /node_modules/,
+          aggregateTimeout: 300,
+        }
       }
 
       // 性能优化：生产环境下的 webpack 优化配置
