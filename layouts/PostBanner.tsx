@@ -50,8 +50,8 @@ export default function PostMinimal({
               <PageTitle>{title}</PageTitle>
             </div>
           </div>
-          <div className="xl:grid xl:grid-cols-[3fr_1fr] xl:gap-x-6">
-            <div className="xl:col-span-1">
+          <div className="md:grid md:grid-cols-[3fr_1fr] md:gap-x-6">
+            <div className="md:col-span-1">
               <div className="prose dark:prose-invert max-w-none py-4">{children}</div>
               {siteMetadata.comments && (
                 <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300" id="comment">
@@ -61,7 +61,7 @@ export default function PostMinimal({
               <footer>
                 <div className="flex flex-col text-sm font-medium sm:flex-row sm:justify-between sm:text-base">
                   {prev && prev.path && (
-                    <div className="pt-4 xl:pt-8">
+                    <div className="pt-4 md:pt-8">
                       <Link
                         href={`/${prev.path}`}
                         className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
@@ -72,7 +72,7 @@ export default function PostMinimal({
                     </div>
                   )}
                   {next && next.path && (
-                    <div className="pt-4 xl:pt-8">
+                    <div className="pt-4 md:pt-8">
                       <Link
                         href={`/${next.path}`}
                         className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
@@ -85,7 +85,7 @@ export default function PostMinimal({
                 </div>
               </footer>
             </div>
-            <div className="xl:col-span-1">
+            <div className="md:col-span-1 md:sticky md:top-20 md:self-start md:h-[calc(100vh-5rem)]">
               <FloatingTOC toc={toc} enabled={showTOC} />
             </div>
           </div>

@@ -138,35 +138,12 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
 
   // 获取目录数据（computedFields 中的 toc 是目录数据）
   // 注意：coreContent 可能会过滤掉 computedFields，所以直接从原始 post 对象获取
-  let toc: TOC | undefined = undefined
-  if (post.toc && Array.isArray(post.toc)) {
-    toc = post.toc as TOC
-  } else if (post.toc) {
-    // 如果 post.toc 存在但不是数组，尝试解析
-    try {
-      const parsedToc = typeof post.toc === 'string' ? JSON.parse(post.toc) : post.toc
-      if (Array.isArray(parsedToc)) {
-        toc = parsedToc as TOC
-      }
-    } catch (e) {
-      console.error('Failed to parse TOC:', e)
-    }
-  }
+  const toc: TOC | undefined =
+    post.toc && Array.isArray(post.toc) ? (post.toc as TOC) : undefined
 
   // 计算是否显示目录：文章 frontmatter 中的 showTOC 优先，否则使用站点默认配置
   const showTOC =
     post.showTOC !== undefined ? post.showTOC : siteMetadata.defaultShowTOC ?? true
-
-  // 调试信息
-  console.log('[BlogPage] TOC Debug:', {
-    hasToc: !!post.toc,
-    tocType: typeof post.toc,
-    tocIsArray: Array.isArray(post.toc),
-    tocLength: Array.isArray(post.toc) ? post.toc.length : 'N/A',
-    showTOC,
-    postShowTOC: post.showTOC,
-    defaultShowTOC: siteMetadata.defaultShowTOC,
-  })
 
   return (
     <>
