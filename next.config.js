@@ -79,8 +79,16 @@ module.exports = () => {
     pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
     // Note: eslint configuration moved to eslint.config.mjs in Next.js 16
     // Use `next lint --dir app --dir components --dir layouts --dir scripts` instead
-    // 不配置 turbopack，确保使用 webpack（因为 contentlayer 的别名配置需要 webpack）
-    // Next.js 16 生产构建默认使用 webpack，Turbopack 主要用于开发模式
+    // 配置 Turbopack（Next.js 16 默认使用 Turbopack）
+    turbopack: {
+      resolveAlias: {
+        // 配置 contentlayer/generated 别名
+        // 注意：Turbopack 不支持 Windows 绝对路径，必须使用相对路径
+        'contentlayer/generated': './.contentlayer/generated',
+      },
+      // 配置 SVG 处理（Turbopack 内置支持，无需额外配置）
+      // SVG 可以通过 next/image 或直接导入使用
+    },
     // 禁用生产环境的浏览器 source map，减少构建大小和警告
     productionBrowserSourceMaps: false,
     // 性能优化：压缩配置（Next.js 16 默认启用 gzip）
@@ -117,75 +125,10 @@ module.exports = () => {
             ]
           },
         }),
-    webpack: (config, options) => {
-      const { isServer, dev } = options
-
-      config.module.rules.push({
-        test: /\.svg$/,
-        use: ['@svgr/webpack'],
-      })
-
-      // Add alias for contentlayer/generated to fix Windows path resolution
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        'contentlayer/generated': require('path').resolve(__dirname, '.contentlayer/generated'),
-      }
-
-      // Windows 文件监听配置：启用轮询模式以解决文件变更检测问题
-      if (dev) {
-        config.watchOptions = {
-          poll: 1000,
-          ignored: /node_modules/,
-          aggregateTimeout: 300,
-        }
-      }
-
-      // 性能优化：生产环境下的 webpack 优化配置
-      if (!dev && !isServer) {
-        // 优化代码分割策略
-        config.optimization = {
-          ...config.optimization,
-          // 启用 tree shaking（移除未使用的代码）
-          usedExports: true,
-          // 优化代码分割
-          splitChunks: {
-            ...config.optimization.splitChunks,
-            chunks: 'all',
-            cacheGroups: {
-              // 分离框架代码（React、Next.js 等）
-              framework: {
-                name: 'framework',
-                chunks: 'all',
-                test: /[\\/]node_modules[\\/](react|react-dom|scheduler|next)[\\/]/,
-                priority: 40,
-                enforce: true,
-              },
-              // 分离大型库（如 Three.js、GSAP 等）
-              lib: {
-                test: /[\\/]node_modules[\\/]/,
-                name(module) {
-                  const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)?.[1]
-                  return packageName ? `lib-${packageName.replace('@', '')}` : null
-                },
-                priority: 30,
-                minChunks: 1,
-                reuseExistingChunk: true,
-              },
-              // 分离公共代码
-              commons: {
-                name: 'commons',
-                minChunks: 2,
-                priority: 20,
-                reuseExistingChunk: true,
-              },
-            },
-          },
-          // 启用模块连接（Module Concatenation）以提升运行时性能
-          concatenateModules: true,
-        }
-      }
-
-      return config
-    },
+    // 注意：已移除 webpack 配置，完全使用 Turbopack
+    // Turbopack 提供更好的性能和更快的构建速度
+    // SVG 处理：Turbopack 内置支持，可以直接导入 SVG 文件
+    // 如果需要将 SVG 作为 React 组件使用，可以使用 @svgr/webpack 的替代方案
+    // 或者使用 next/image 组件处理 SVG
   })
 }
