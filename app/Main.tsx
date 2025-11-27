@@ -25,11 +25,11 @@ const infoItems = [
 const eduItems = [
   {
     school: '清华大学 · 自动化系',
-    detail: '本科 · 人机交互 / 控制理论',
+    detail: '本科 · 人工智能 / 控制理论',
   },
   {
     school: '北京理工大学 · 自动化学院',
-    detail: '硕士 · 智能机器人 · 导师：史大威（David Shi）',
+    detail: '硕士 · 人工智能 / 控制理论',
   },
 ]
 
