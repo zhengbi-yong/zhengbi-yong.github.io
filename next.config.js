@@ -76,6 +76,10 @@ module.exports = () => {
     turbopack: {}, // Empty config to allow webpack config to work with Turbopack
     // 禁用生产环境的浏览器 source map，减少构建大小和警告
     productionBrowserSourceMaps: false,
+    // 性能优化：使用 SWC 压缩（Next.js 16 默认启用，显式设置以确保）
+    swcMinify: true,
+    // 性能优化：压缩配置（Next.js 16 默认启用 gzip）
+    compress: true,
     images: {
       remotePatterns: [
         {
@@ -83,7 +87,14 @@ module.exports = () => {
           hostname: 'picsum.photos',
         },
       ],
+      // 注意：静态导出模式下 Next.js 图片优化器不可用
+      // 如需图片优化，建议使用 CDN 服务（如 Cloudinary、ImageKit）或构建时预处理
       unoptimized,
+      // 性能优化：即使静态导出，也配置图片格式优先级
+      formats: ['image/avif', 'image/webp'],
+      // 性能优化：配置图片尺寸，减少不必要的加载
+      deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+      imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     },
     // 兼容性处理：静态导出模式下 headers 不生效，避免警告
     // 静态导出时需要在服务器层（如 Nginx、Apache）配置安全头
@@ -101,6 +112,8 @@ module.exports = () => {
           },
         }),
     webpack: (config, options) => {
+      const { isServer, dev } = options
+
       config.module.rules.push({
         test: /\.svg$/,
         use: ['@svgr/webpack'],
@@ -110,6 +123,51 @@ module.exports = () => {
       config.resolve.alias = {
         ...config.resolve.alias,
         'contentlayer/generated': require('path').resolve(__dirname, '.contentlayer/generated'),
+      }
+
+      // 性能优化：生产环境下的 webpack 优化配置
+      if (!dev && !isServer) {
+        // 优化代码分割策略
+        config.optimization = {
+          ...config.optimization,
+          // 启用 tree shaking（移除未使用的代码）
+          usedExports: true,
+          // 优化代码分割
+          splitChunks: {
+            ...config.optimization.splitChunks,
+            chunks: 'all',
+            cacheGroups: {
+              // 分离框架代码（React、Next.js 等）
+              framework: {
+                name: 'framework',
+                chunks: 'all',
+                test: /[\\/]node_modules[\\/](react|react-dom|scheduler|next)[\\/]/,
+                priority: 40,
+                enforce: true,
+              },
+              // 分离大型库（如 Three.js、GSAP 等）
+              lib: {
+                test: /[\\/]node_modules[\\/]/,
+                name(module) {
+                  const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)?.[1]
+                  return packageName ? `lib-${packageName.replace('@', '')}` : null
+                },
+                priority: 30,
+                minChunks: 1,
+                reuseExistingChunk: true,
+              },
+              // 分离公共代码
+              commons: {
+                name: 'commons',
+                minChunks: 2,
+                priority: 20,
+                reuseExistingChunk: true,
+              },
+            },
+          },
+          // 启用模块连接（Module Concatenation）以提升运行时性能
+          concatenateModules: true,
+        }
       }
 
       return config

@@ -17,12 +17,12 @@ function Write-Success {
     Write-Host "[成功] $Message" -ForegroundColor Green
 }
 
-function Write-Error {
+function Write-ErrorMsg {
     param([string]$Message)
     Write-Host "[错误] $Message" -ForegroundColor Red
 }
 
-function Write-Warning {
+function Write-WarningMsg {
     param([string]$Message)
     Write-Host "[警告] $Message" -ForegroundColor Yellow
 }
@@ -54,13 +54,13 @@ foreach ($tool in $requiredTools) {
     if ($tool.Path -eq "yarn" -or $tool.Path -eq "corepack") {
         $command = Get-Command $tool.Name -ErrorAction SilentlyContinue
         if (-not $command) {
-            Write-Error "$($tool.Name) 未找到，请确保已安装 Node.js 和 Yarn"
+            Write-ErrorMsg "$($tool.Name) 未找到，请确保已安装 Node.js 和 Yarn"
             exit 1
         }
     }
     else {
         if (-not (Test-Path $tool.Path)) {
-            Write-Error "$($tool.Name) 未找到: $($tool.Path)"
+            Write-ErrorMsg "$($tool.Name) 未找到: $($tool.Path)"
             exit 1
         }
     }
@@ -75,7 +75,7 @@ Write-Step "步骤 1/4: 运行代码检查 (yarn lint)"
 try {
     $lintResult = yarn lint 2>&1
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "代码检查发现一些问题，但继续执行..."
+        Write-WarningMsg "代码检查发现一些问题，但继续执行..."
         Write-Host $lintResult
     }
     else {
@@ -83,7 +83,7 @@ try {
     }
 }
 catch {
-    Write-Error "代码检查失败: $_"
+    Write-ErrorMsg "代码检查失败: $_"
     exit 1
 }
 
@@ -94,12 +94,20 @@ Write-Step "步骤 2/4: 构建项目 (yarn build)"
 corepack enable
 $env:PWD = $(Get-Location).Path
 $env:EXPORT = "1"
-$env:UNOPTIMIZED = "1"
+# 性能优化：移除 UNOPTIMIZED 以启用资源优化
+# 注意：静态导出模式下 Next.js 图片优化器不可用，但其他资源（JS/CSS）仍可优化
+# $env:UNOPTIMIZED = "1"  # 已移除以启用性能优化
+
+# 生产环境优化配置
+$env:NODE_ENV = "production"
+$env:NEXT_TELEMETRY_DISABLED = "1"  # 禁用遥测以加快构建速度
 
 Write-Host "环境变量设置:" -ForegroundColor Gray
 Write-Host "  PWD = $env:PWD" -ForegroundColor Gray
 Write-Host "  EXPORT = $env:EXPORT" -ForegroundColor Gray
-Write-Host "  UNOPTIMIZED = $env:UNOPTIMIZED" -ForegroundColor Gray
+Write-Host "  NODE_ENV = $env:NODE_ENV" -ForegroundColor Gray
+Write-Host "  NEXT_TELEMETRY_DISABLED = $env:NEXT_TELEMETRY_DISABLED" -ForegroundColor Gray
+Write-Host "  性能优化: 已启用（UNOPTIMIZED 已移除）" -ForegroundColor Green
 
 try {
     Write-Host "开始构建..." -ForegroundColor Gray
@@ -107,7 +115,7 @@ try {
     
     # 检查构建是否成功
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "构建失败！退出代码: $LASTEXITCODE"
+        Write-ErrorMsg "构建失败！退出代码: $LASTEXITCODE"
         Write-Host $buildResult
         exit 1
     }
@@ -115,7 +123,7 @@ try {
     Write-Success "构建完成"
 }
 catch {
-    Write-Error "构建过程出错: $_"
+    Write-ErrorMsg "构建过程出错: $_"
     exit 1
 }
 
@@ -123,7 +131,7 @@ catch {
 Write-Step "步骤 3/4: 验证构建结果"
 
 if (-not (Test-Path $sourceFolder)) {
-    Write-Error "构建输出目录不存在: $sourceFolder"
+    Write-ErrorMsg "构建输出目录不存在: $sourceFolder"
     Write-Host "请检查构建是否成功完成" -ForegroundColor Yellow
     exit 1
 }
@@ -131,7 +139,7 @@ if (-not (Test-Path $sourceFolder)) {
 # 检查目录是否为空
 $fileCount = (Get-ChildItem -Path $sourceFolder -Recurse -File | Measure-Object).Count
 if ($fileCount -eq 0) {
-    Write-Error "构建输出目录为空: $sourceFolder"
+    Write-ErrorMsg "构建输出目录为空: $sourceFolder"
     Write-Host "请检查构建配置和日志" -ForegroundColor Yellow
     exit 1
 }
@@ -149,7 +157,7 @@ foreach ($file in $keyFiles) {
 }
 
 if ($missingFiles.Count -gt 0) {
-    Write-Warning "缺少关键文件: $($missingFiles -join ', ')"
+    Write-WarningMsg "缺少关键文件: $($missingFiles -join ', ')"
     Write-Host "构建可能不完整，但继续执行同步..." -ForegroundColor Yellow
 }
 else {
@@ -170,7 +178,7 @@ try {
     Write-Host "源路径 (Cygwin): $cygwinSource" -ForegroundColor Gray
 }
 catch {
-    Write-Error "路径转换失败: $_"
+    Write-ErrorMsg "路径转换失败: $_"
     exit 1
 }
 
@@ -182,12 +190,12 @@ try {
         Write-Success "SSH 连接测试成功"
     }
     else {
-        Write-Warning "SSH 连接测试失败，但继续执行同步..."
+        Write-WarningMsg "SSH 连接测试失败，但继续执行同步..."
         Write-Host $sshTest
     }
 }
 catch {
-    Write-Warning "SSH 连接测试出错，但继续执行同步: $_"
+    Write-WarningMsg "SSH 连接测试出错，但继续执行同步: $_"
 }
 
 # 执行 rsync 同步
@@ -217,7 +225,7 @@ try {
     
     # 根据强制覆盖选项选择不同的比较方式
     if ($forceOverwrite) {
-        Write-Warning "使用强制覆盖模式（--ignore-times），将传输所有文件"
+        Write-WarningMsg "使用强制覆盖模式（--ignore-times），将传输所有文件"
         $rsyncArgs += "--ignore-times"
     }
     else {
@@ -242,7 +250,7 @@ try {
     Write-Host $rsyncOutput
     
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "rsync 同步失败！退出代码: $LASTEXITCODE"
+        Write-ErrorMsg "rsync 同步失败！退出代码: $LASTEXITCODE"
         Write-Host "`n请检查:" -ForegroundColor Yellow
         Write-Host "  1. SSH 连接是否正常" -ForegroundColor Yellow
         Write-Host "  2. 远程目录权限是否正确" -ForegroundColor Yellow
@@ -264,7 +272,7 @@ try {
     if ($filesTransferred) {
         $fileCount = [int]($filesTransferred.Matches[0].Groups[1].Value)
         if ($fileCount -eq 0) {
-            Write-Warning "没有文件被传输！这可能意味着："
+            Write-WarningMsg "没有文件被传输！这可能意味着："
             Write-Host "  - 所有文件已经是最新的（基于内容比较）" -ForegroundColor Yellow
             Write-Host "  - 或者文件路径不正确" -ForegroundColor Yellow
             Write-Host "`n建议：如果网站没有更新，尝试使用 --ignore-times 参数强制传输所有文件" -ForegroundColor Yellow
@@ -276,7 +284,7 @@ try {
     
 }
 catch {
-    Write-Error "rsync 执行出错: $_"
+    Write-ErrorMsg "rsync 执行出错: $_"
     exit 1
 }
 
@@ -290,11 +298,11 @@ try {
         Write-Success "远程目录验证通过"
     }
     else {
-        Write-Warning "远程目录验证失败，但文件可能已同步"
+        Write-WarningMsg "远程目录验证失败，但文件可能已同步"
     }
 }
 catch {
-    Write-Warning "无法验证远程目录: $_"
+    Write-WarningMsg "无法验证远程目录: $_"
 }
 
 # 完成
