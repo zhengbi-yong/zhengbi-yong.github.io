@@ -41,7 +41,8 @@ jobs:
         env:
           EXPORT: 1
           UNOPTIMIZED: 1
-          BASE_PATH: ${{ steps.configurepages.outputs.base_path }}
+          # 移除 BASE_PATH，让网站部署到根路径
+          # BASE_PATH: ${{ steps.configurepages.outputs.base_path }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
