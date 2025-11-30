@@ -72,6 +72,7 @@
     "tailwindcss": "^4.0.5",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.173.0",
+    "tone": "^15.1.22",
     "tsparticles": "^3.9.1",
     "unist-util-visit": "^5.0.0",
     "urdf-loader": "^0.12.4",
