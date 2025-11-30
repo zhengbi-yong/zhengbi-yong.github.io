@@ -29,6 +29,11 @@ const moduleConfigs: ModuleConfig[] = [
     loader: () => import('@/components/experiments/ParticlesShowcase'),
     requiresEnhanced: true,
   },
+  {
+    title: '乐谱渲染实验室',
+    description: '使用 OpenSheetMusicDisplay 渲染 MusicXML 乐谱，支持缩放、页面导航和示例切换。',
+    loader: () => import('@/components/experiments/MusicSheetLab'),
+  },
 ]
 
 export default function ExperimentPage() {
