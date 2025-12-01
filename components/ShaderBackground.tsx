@@ -20,6 +20,11 @@ export default function ShaderBackground({
   const glRef = useRef<WebGLRenderingContext | null>(null)
   const programRef = useRef<WebGLProgram | null>(null)
   const startTimeRef = useRef<number>(Date.now())
+  const uniformLocationsRef = useRef<{
+    time: WebGLUniformLocation | null
+    resolution: WebGLUniformLocation | null
+    intensity: WebGLUniformLocation | null
+  }>({ time: null, resolution: null, intensity: null })
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -34,9 +39,6 @@ export default function ShaderBackground({
     })
 
     if (!gl) {
-      // WebGL 不支持时，使用 CSS 渐变作为降级方案
-      canvas.style.background =
-        'radial-gradient(circle at 20% 30%, rgba(30, 20, 50, 0.8), rgba(20, 10, 40, 0.6), rgba(10, 5, 30, 0.8))'
       return
     }
 
@@ -189,40 +191,41 @@ export default function ShaderBackground({
 
     programRef.current = program
 
+    // 缓存 uniform 位置，避免每次渲染都查找
+    uniformLocationsRef.current = {
+      time: gl.getUniformLocation(program, 'u_time'),
+      resolution: gl.getUniformLocation(program, 'u_resolution'),
+      intensity: gl.getUniformLocation(program, 'u_intensity'),
+    }
+
     // 设置顶点数据（全屏四边形）
     const positionBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
     const positions = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1])
     gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW)
+    
+    const positionLocation = gl.getAttribLocation(program, 'a_position')
+    gl.enableVertexAttribArray(positionLocation)
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
 
     // 设置视口和分辨率
     const resize = () => {
       if (!canvas || !gl) return
-      // 使用窗口尺寸而不是 canvas 的 bounding rect，确保覆盖整个视口
       const width = window.innerWidth
       const height = window.innerHeight
-      const dpr = Math.min(window.devicePixelRatio || 1, 2) // 限制最大 DPR 以提高性能
-      canvas.width = width * dpr
-      canvas.height = height * dpr
-      canvas.style.width = `${width}px`
-      canvas.style.height = `${height}px`
-      gl.viewport(0, 0, canvas.width, canvas.height)
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      
+      if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
+        canvas.width = width * dpr
+        canvas.height = height * dpr
+        canvas.style.width = `${width}px`
+        canvas.style.height = `${height}px`
+        gl.viewport(0, 0, canvas.width, canvas.height)
+      }
     }
 
     // 初始设置尺寸
     resize()
-    
-    // 延迟一帧确保尺寸正确设置
-    requestAnimationFrame(() => {
-      resize()
-    })
-    
-    // 使用 ResizeObserver 如果可用，否则回退到 window resize 事件
-    let resizeObserver: ResizeObserver | null = null
-    if (typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(resize)
-      resizeObserver.observe(canvas)
-    }
     window.addEventListener('resize', resize)
 
     // 渲染函数
@@ -230,27 +233,21 @@ export default function ShaderBackground({
       if (!gl || !program) return
 
       const currentTime = (Date.now() - startTimeRef.current) / 1000
+      const uniforms = uniformLocationsRef.current
 
       // 使用程序
       gl.useProgram(program)
 
-      // 设置属性
-      const positionLocation = gl.getAttribLocation(program, 'a_position')
-      gl.enableVertexAttribArray(positionLocation)
+      // 绑定顶点缓冲区
       gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
       gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
 
-      // 设置 uniform
-      const timeLocation = gl.getUniformLocation(program, 'u_time')
-      const resolutionLocation = gl.getUniformLocation(program, 'u_resolution')
-      const intensityLocation = gl.getUniformLocation(program, 'u_intensity')
-
-      gl.uniform1f(timeLocation, currentTime)
-      gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
-      gl.uniform1f(intensityLocation, intensity)
+      // 设置 uniform（使用缓存的位置）
+      if (uniforms.time) gl.uniform1f(uniforms.time, currentTime)
+      if (uniforms.resolution) gl.uniform2f(uniforms.resolution, canvas.width, canvas.height)
+      if (uniforms.intensity) gl.uniform1f(uniforms.intensity, intensity)
 
       // 清除并绘制
-      gl.clearColor(0, 0, 0, 0)
       gl.clear(gl.COLOR_BUFFER_BIT)
       gl.drawArrays(gl.TRIANGLES, 0, 6)
 
@@ -263,10 +260,6 @@ export default function ShaderBackground({
 
     // 清理函数
     return () => {
-      if (resizeObserver && canvas) {
-        resizeObserver.unobserve(canvas)
-        resizeObserver.disconnect()
-      }
       window.removeEventListener('resize', resize)
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
@@ -281,7 +274,11 @@ export default function ShaderBackground({
     <canvas
       ref={canvasRef}
       className={`pointer-events-none fixed inset-0 w-full h-full ${className}`}
-      style={{ zIndex: 0 }}
+      style={{
+        zIndex: 0,
+        width: '100vw',
+        height: '100vh',
+      }}
     />
   )
 }
