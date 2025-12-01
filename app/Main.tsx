@@ -2,6 +2,7 @@ import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import Hero3DSection from '@/components/Hero3DSection'
 import PerformanceNotice from '@/components/PerformanceNotice'
+import ShaderBackgroundWrapper from '@/components/ShaderBackgroundWrapper'
 import {
   Card,
   CardContent,
@@ -36,8 +37,14 @@ const eduItems = [
 export default function Home({ posts }: HomeProps) {
   void posts
   return (
-    <div className="space-y-10 py-6">
-      <Hero3DSection />
+    <div className="relative min-h-screen">
+      {/* 着色器背景 - 固定定位覆盖整个视口 */}
+      <div className="fixed inset-0 -z-10">
+        <ShaderBackgroundWrapper intensity={0.8} />
+      </div>
+      {/* 主页内容 */}
+      <div className="relative z-10 space-y-10 py-6">
+        <Hero3DSection />
       <section className="grid gap-6 lg:grid-cols-2">
         <Card className="border-none bg-gradient-to-br from-white/80 to-white/40 shadow-xl dark:from-gray-900/70 dark:to-gray-900/30">
           <CardHeader>
@@ -86,6 +93,7 @@ export default function Home({ posts }: HomeProps) {
         </Card>
       </section>
       <PerformanceNotice />
+      </div>
     </div>
   )
 }
