@@ -13,10 +13,6 @@ const ThreeJSViewer = dynamic(() => import('@/components/ThreeJSViewer'), {
   ssr: false,
 })
 
-const ParticleBackground = dynamic(() => import('@/components/ParticleBackground'), {
-  ssr: false,
-})
-
 interface QualityProfile {
   pixelRatio: number
   enableShadows: boolean
@@ -26,6 +22,7 @@ interface QualityProfile {
 
 const HERO_TITLE = '人工智能'
 
+// Hero3DSection component - no ParticleBackground dependency
 export default function Hero3DSection() {
   // 使用 useState 和 useEffect 确保客户端渲染时使用正确的标题，避免 hydration 不匹配
   const [heroTitle, setHeroTitle] = useState(HERO_TITLE)
@@ -114,9 +111,11 @@ export default function Hero3DSection() {
   }
 
   // 使用 state 存储 loadingStrategy，避免 SSR/CSR 不匹配
+  // 初始值必须与服务端渲染一致
   const [loadingStrategy, setLoadingStrategy] = useState<LoadingStrategy>('standard')
 
   useEffect(() => {
+    // 只在客户端挂载后更新，避免 hydration 不匹配
     if (mounted) {
       setLoadingStrategy(getLoadingStrategy())
     }
@@ -125,7 +124,7 @@ export default function Hero3DSection() {
   return (
     <section className="mb-12">
       <div className={heroClasses}>
-        {/* 移除低性能模式限制，始终显示粒子背景 */}
+        {/* 背景渐变效果 */}
         <div className="absolute inset-0">
           <div
             className="absolute inset-0 opacity-60 blur-3xl"
@@ -135,11 +134,6 @@ export default function Hero3DSection() {
             }}
           />
           <div className="from-primary-500/10 absolute inset-0 bg-gradient-to-tr to-transparent" />
-          <ParticleBackground
-            className={visualMode === 'enhanced' ? 'opacity-70' : 'opacity-35'}
-            particleCount={visualMode === 'enhanced' ? 80 : 30}
-            speed={visualMode === 'enhanced' ? 0.55 : 0.25}
-          />
         </div>
         <div className="relative z-10 grid gap-10 lg:grid-cols-2">
           <div className="space-y-6">
@@ -175,7 +169,7 @@ export default function Hero3DSection() {
                 <span>当前模式</span>
                 <span className="text-primary-200 font-semibold">{visualMode}</span>
               </div>
-              <div className="mt-2 text-xs text-gray-400">
+              <div className="mt-2 text-xs text-gray-400" suppressHydrationWarning>
                 自动策略：{loadingStrategy} | 动画距离 {animationParams.distance}px
                 {prefersReducedMotion && ' · 已启用低动效模式'}
               </div>

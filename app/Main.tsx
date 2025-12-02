@@ -92,7 +92,6 @@ export default function Home({ posts }: HomeProps) {
           </CardContent>
         </Card>
       </section>
-      <PerformanceNotice />
       </div>
     </div>
   )
