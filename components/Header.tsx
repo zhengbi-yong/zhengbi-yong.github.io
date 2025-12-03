@@ -9,7 +9,7 @@ import SearchButton from './SearchButton'
 
 const Header = memo(() => {
   const headerClass = useMemo(() => {
-    let baseClass = 'flex items-center w-full justify-between py-10 backdrop-blur-sm bg-white/50 dark:bg-gray-900/20 border-b border-white/20 dark:border-gray-700/20'
+    let baseClass = 'flex items-center w-full justify-between py-10 backdrop-blur-sm bg-white/0 dark:bg-gray-900/0 border-b border-white/0 dark:border-gray-700/0'
   if (siteMetadata.stickyNav) {
       baseClass += ' sticky top-0 z-50'
   }

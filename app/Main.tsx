@@ -1,41 +1,21 @@
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
-import Hero3DSection from '@/components/Hero3DSection'
-import PerformanceNotice from '@/components/PerformanceNotice'
 import ShaderBackgroundWrapper from '@/components/ShaderBackgroundWrapper'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/components/ui/card'
-import { Badge } from '@/components/components/ui/badge'
+import { Button } from '@/components/components/ui/button'
+import AnimatedText from '@/components/home/AnimatedText'
+import HeroCard from '@/components/home/HeroCard'
+import SocialCard from '@/components/home/SocialCard'
+import Explore from '@/components/sections/Explore'
+import FeaturedWork from '@/components/sections/FeaturedWork'
+import BlogSection from '@/components/sections/BlogSection'
+import siteMetadata from '@/data/siteMetadata'
+import Link from '@/components/Link'
 
 interface HomeProps {
   posts: CoreContent<Blog>[]
 }
 
-const infoItems = [
-  { label: '姓名', value: '雍征彼（Zhengbi Yong）' },
-  { label: '邮箱', value: 'zhengbi.yong@outlook.com' },
-  { label: '电话', value: '(+86) 186 0050 8939' },
-  { label: '地址', value: '中国 · 北京 · 海淀' },
-]
-
-const eduItems = [
-  {
-    school: '清华大学 · 自动化系',
-    detail: '本科 · 人工智能 / 控制理论',
-  },
-  {
-    school: '北京理工大学 · 自动化学院',
-    detail: '硕士 · 人工智能 / 控制理论',
-  },
-]
-
 export default function Home({ posts }: HomeProps) {
-  void posts
   return (
     <div className="relative min-h-screen">
       {/* 着色器背景 - 固定定位覆盖整个视口 */}
@@ -43,55 +23,88 @@ export default function Home({ posts }: HomeProps) {
         <ShaderBackgroundWrapper intensity={0.8} />
       </div>
       {/* 主页内容 */}
-      <div className="relative z-10 space-y-10 py-6">
-        <Hero3DSection />
-      <section className="grid gap-6 lg:grid-cols-2">
-        <Card className="border-none bg-gradient-to-br from-white/80 to-white/40 shadow-xl dark:from-gray-900/70 dark:to-gray-900/30">
-          <CardHeader>
-            <CardTitle>基本信息</CardTitle>
-            <CardDescription>联系方式与常驻地</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {infoItems.map((item) => (
-              <div
-                key={item.label}
-                className="flex flex-col rounded-2xl border border-gray-100/60 p-4 dark:border-gray-800/60"
-              >
-                <span className="text-xs tracking-[0.3em] text-gray-500 uppercase">
-                  {item.label}
-                </span>
-                <span className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {item.value}
-                </span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-        <Card className="border-none bg-gradient-to-br from-gray-900 to-gray-800 text-white shadow-xl">
-          <CardHeader>
-            <CardTitle>教育与特长</CardTitle>
-            <CardDescription className="text-gray-300">
-              聚焦机器人、自动化与交互体验
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {eduItems.map((item) => (
-              <div key={item.school} className="rounded-3xl border border-white/10 p-4">
-                <p className="text-base font-semibold">{item.school}</p>
-                <p className="text-sm text-gray-300">{item.detail}</p>
-              </div>
-            ))}
-            <div className="flex flex-wrap gap-2">
-              <Badge>机器人控制</Badge>
-              <Badge variant="secondary">交互设计</Badge>
-              <Badge variant="outline" className="text-white">
-                算法工程
-              </Badge>
-              <Badge variant="secondary">GSAP / Three.js</Badge>
+      <div className="relative z-10 w-full mx-auto mt-16 px-4 md:mt-18 lg:mt-20 xl:px-0">
+        {/* Hero 区域 */}
+        <div className="relative w-full px-4 flex flex-col items-center justify-between md:flex-row mb-16">
+          {/* 左侧：标题和描述 */}
+          <div className="relative w-full md:max-w-[420px] md:w-1/2 text-center sm:text-left sm:-mt-8">
+            {/* Title - AnimatedText animation */}
+            <h1 className="mb-4">
+              <AnimatedText
+                content="Hi, I'm Zhengbi Yong"
+                delay={0.1}
+                duration={0.5}
+                stagger={0.08}
+                className="text-5xl text-primary leading-tight md:text-4xl lg:text-6xl font-bold"
+              />
+            </h1>
+            {/* First description - AnimatedText animation */}
+            <div className="mb-2">
+              <AnimatedText
+                content="I'm a robotics engineer and UI designer with 8+ years of experience. I love blending design and code to create captivating visuals and interactive experiences."
+                delay={0.3}
+                duration={0.5}
+                stagger={0.015}
+                className="text-base text-neutral-700 dark:text-neutral-300"
+              />
             </div>
-          </CardContent>
-        </Card>
-      </section>
+            {/* Second description - AnimatedText animation */}
+            <div className="mb-4">
+              <AnimatedText
+                content="I believe great design should be both delightful and solve real-world challenges."
+                delay={0.5}
+                duration={0.5}
+                stagger={0.015}
+                className="text-base text-neutral-700 dark:text-neutral-300"
+              />
+            </div>
+            {/* Button */}
+            <div className="mt-4 sm:mt-6">
+              <Button asChild variant="default" size="lg" className="m-auto sm:m-0 max-w-[200px]">
+                <Link href={siteMetadata.x || siteMetadata.github || '#'}>
+                  Follow me on 𝕏
+                </Link>
+              </Button>
+            </div>
+            {/* Social Cards */}
+            <div className="mt-8 mb-8">
+              <SocialCard displaySocialIds={[1, 2, 3, 4]} />
+            </div>
+          </div>
+          {/* 右侧：HeroCard */}
+          <div className="relative justify-end w-full mt-16 md:flex md:pl-10 md:w-1/2 md:mt-0 md:translate-y-4 xl:translate-y-0">
+            <HeroCard
+              imageUrl="/static/images/robotics/SO-100.webp"
+              title="Robotics Projects"
+              link="/blog"
+            />
+          </div>
+        </div>
+
+        {/* Explore 部分 */}
+        <section className="mt-26 mb-12">
+          <Explore title="Explore ↓" />
+        </section>
+
+        {/* Featured Work 部分 */}
+        <section className="mt-26 mb-12">
+          <FeaturedWork
+            title="Featured Work ↓"
+            description="I create innovative and purposeful designs that not only capture attention but also drive meaningful results."
+            limit={5}
+          />
+        </section>
+
+        {/* Blog Section 部分 */}
+        <section className="mt-26 mb-12">
+          <BlogSection
+            title="Latest Articles ↓"
+            description="These are my notes and articles on design, development and life thinking."
+            posts={posts}
+            showViewAllButton={true}
+            limit={3}
+          />
+        </section>
       </div>
     </div>
   )
