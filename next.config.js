@@ -57,7 +57,9 @@ const securityHeaders = [
 
 const output = process.env.EXPORT ? 'export' : undefined
 const basePath = process.env.BASE_PATH || undefined
-const unoptimized = process.env.UNOPTIMIZED ? true : undefined
+// 静态导出模式下必须禁用图片优化
+// 如果设置了 EXPORT 或 UNOPTIMIZED 环境变量，则禁用图片优化
+const unoptimized = process.env.EXPORT === '1' || process.env.UNOPTIMIZED === '1' ? true : undefined
 
 /**
  * @type {import('next/dist/next-server/server/config').NextConfig}
@@ -102,8 +104,9 @@ module.exports = () => {
         },
       ],
       // 注意：静态导出模式下 Next.js 图片优化器不可用
+      // 必须设置 unoptimized: true，否则会尝试使用 /_next/image 路由（静态导出模式下不存在）
       // 如需图片优化，建议使用 CDN 服务（如 Cloudinary、ImageKit）或构建时预处理
-      unoptimized,
+      unoptimized: unoptimized !== undefined ? unoptimized : (isStaticExport ? true : false),
       // 性能优化：即使静态导出，也配置图片格式优先级
       formats: ['image/avif', 'image/webp'],
       // 性能优化：配置图片尺寸，减少不必要的加载
