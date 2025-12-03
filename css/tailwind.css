@@ -255,3 +255,42 @@ input:-webkit-autofill:focus {
     @apply bg-background text-foreground;
   }
 }
+
+/* Tools Card Styles */
+.tool-item {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.tool-item img {
+  opacity: 0.75;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.tool-item:hover img {
+  opacity: 1;
+}
+
+.tool-item:hover {
+  transform: scale(1.1);
+}
+
+.spin {
+  cursor: pointer;
+  animation: spin 5s linear infinite;
+  animation-play-state: paused;
+  animation-fill-mode: forwards;
+}
+
+.spin:hover {
+  animation-play-state: running;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
