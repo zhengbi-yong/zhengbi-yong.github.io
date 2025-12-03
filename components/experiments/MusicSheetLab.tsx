@@ -275,7 +275,7 @@ export default function MusicSheetLab() {
           
           for (const voiceEntry of voiceEntries) {
             for (const note of voiceEntry.Notes) {
-              if (!note.IsRest) {
+              if (!note.isRest()) {
                 try {
                   // 将半音数转换为音名（如 C4, D4）
                   const halfTone = note.halfTone

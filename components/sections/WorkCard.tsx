@@ -24,7 +24,7 @@ interface WorkCardProps {
  * 使用 Intersection Observer 检测视口可见性，自动播放/暂停视频
  */
 function useVideoAutoplay(
-  videoRef: React.RefObject<HTMLVideoElement>,
+  videoRef: React.RefObject<HTMLVideoElement | null>,
   videoId: string
 ) {
   const [isPlaying, setIsPlaying] = useState(false)

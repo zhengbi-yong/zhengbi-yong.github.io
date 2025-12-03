@@ -167,7 +167,7 @@ export default function MatterAnimation({
       body: Matter.Body
       el: HTMLDivElement
 
-      constructor(img: HTMLImageElement) {
+      constructor(img: HTMLImageElement, domLayerElement: HTMLDivElement) {
         const x = Math.random() * W
         const y = Math.random() * -H
         const r =
@@ -211,7 +211,7 @@ export default function MatterAnimation({
         node.alt = node.alt || 'icon'
         this.el.appendChild(node)
 
-        domLayer.appendChild(this.el)
+        domLayerElement.appendChild(this.el)
       }
 
       update() {
@@ -231,7 +231,7 @@ export default function MatterAnimation({
     const iconsBodies: IconBody[] = []
 
     for (let i = 0; i < total; i++) {
-      iconsBodies.push(new IconBody(iconsImgs[i]))
+      iconsBodies.push(new IconBody(iconsImgs[i], domLayer))
     }
 
     iconsBodiesRef.current = iconsBodies
