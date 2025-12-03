@@ -128,6 +128,7 @@ function SocialCardItem({ item, index, total }: SocialCardItemProps) {
         src={item.image}
         alt={item.name}
         fill
+        sizes="72px"
         className="object-cover rounded-xl transition-transform duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.15]"
       />
       <div className="absolute bottom-[6px] left-[6px] z-10 transition-opacity duration-300">

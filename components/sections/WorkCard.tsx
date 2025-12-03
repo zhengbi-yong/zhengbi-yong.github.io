@@ -11,7 +11,7 @@ interface WorkCardProps {
   url: string
   description?: string
   tags?: string[]
-  video?: string
+  video?: string | null
   isShow?: boolean
   layout?: 'featured' | 'grid'
   index?: number

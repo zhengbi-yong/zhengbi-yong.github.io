@@ -25,26 +25,26 @@ interface ToolsCardProps {
  * 显示工具图标网格和底部旋转动画条
  */
 export default function ToolsCard({
-  backgroundImage = '/static/images/tools/deck.png',
-  iconBackgroundImage = '/static/images/tools/tool-icon-bg.png',
+  backgroundImage = '/assets/tools/deck.png',
+  iconBackgroundImage = '/assets/tools/tool-icon-bg.png',
   tools = [],
-  spinBarImage = '/static/images/tools/spin-bar.svg',
+  spinBarImage = '/assets/tools/spin-bar.svg',
   spinIcons = [],
   className = '',
 }: ToolsCardProps) {
   // 默认工具列表（如果没有提供）
   const defaultTools: Tool[] = [
-    { icon: '/static/images/tools/logo/tool-ricoog.svg', alt: 'Rico OG', width: 24 },
-    { icon: '/static/images/tools/logo/tool-gradienthub.svg', alt: 'Gradient Hub', width: 22 },
-    { icon: '/static/images/tools/logo/tool-uiuxdeck.svg', alt: 'UI/UX Deck', width: 20 },
-    { icon: '/static/images/tools/logo/tool-inspoweb.png', alt: 'Inspo Web', width: 20 },
-    { icon: '/static/images/tools/logo/tool-todo.png', alt: 'Todo', width: 24 },
-    { icon: '/static/images/tools/logo/ricoui.png', alt: 'Rico UI', width: 26 },
+    { icon: '/assets/tools/logo/tool-ricoog.svg', alt: 'Rico OG', width: 24 },
+    { icon: '/assets/tools/logo/tool-gradienthub.svg', alt: 'Gradient Hub', width: 22 },
+    { icon: '/assets/tools/logo/tool-uiuxdeck.svg', alt: 'UI/UX Deck', width: 20 },
+    { icon: '/assets/tools/logo/tool-inspoweb.png', alt: 'Inspo Web', width: 20 },
+    { icon: '/assets/tools/logo/tool-todo.png', alt: 'Todo', width: 24 },
+    { icon: '/assets/tools/logo/ricoui.png', alt: 'Rico UI', width: 26 },
   ]
 
   const finalTools = tools.length > 0 ? tools : defaultTools
   const finalSpinIcons =
-    spinIcons.length > 0 ? spinIcons : ['/static/images/tools/spin.png', '/static/images/tools/spin.png', '/static/images/tools/spin.png', '/static/images/tools/spin.png']
+    spinIcons.length > 0 ? spinIcons : ['/assets/tools/spin.png', '/assets/tools/spin.png', '/assets/tools/spin.png', '/assets/tools/spin.png']
 
   return (
     <div

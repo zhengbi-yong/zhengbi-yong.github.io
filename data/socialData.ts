@@ -20,7 +20,7 @@ const socialData: SocialItem[] = [
     name: 'GitHub',
     username: siteMetadata.github?.split('/').pop() || 'github',
     url: siteMetadata.github || '#',
-    image: '/static/images/social/github.png',
+    image: '/assets/social/social-github.jpg',
     isShow: !!siteMetadata.github,
   },
   {
@@ -28,7 +28,7 @@ const socialData: SocialItem[] = [
     name: 'X (Twitter)',
     username: siteMetadata.x?.split('/').pop()?.replace('@', '') || 'x',
     url: siteMetadata.x || '#',
-    image: '/static/images/social/x.png',
+    image: '/assets/social/social-twitter.jpg',
     isShow: !!siteMetadata.x,
   },
   {
@@ -36,7 +36,7 @@ const socialData: SocialItem[] = [
     name: 'LinkedIn',
     username: siteMetadata.linkedin?.split('/').pop() || 'linkedin',
     url: siteMetadata.linkedin || '#',
-    image: '/static/images/social/linkedin.png',
+    image: '/assets/social/social-dribbble.jpg', // 使用现有的图片，如果没有 linkedin 图片
     isShow: !!siteMetadata.linkedin,
   },
   {
@@ -44,7 +44,7 @@ const socialData: SocialItem[] = [
     name: 'Email',
     username: siteMetadata.email?.split('@')[0] || 'email',
     url: `mailto:${siteMetadata.email}`,
-    image: '/static/images/social/email.png',
+    image: '/assets/social/social-email.jpg',
     isShow: !!siteMetadata.email,
   },
   {
@@ -52,7 +52,7 @@ const socialData: SocialItem[] = [
     name: 'YouTube',
     username: siteMetadata.youtube?.split('/').pop() || 'youtube',
     url: siteMetadata.youtube || '#',
-    image: '/static/images/social/youtube.png',
+    image: '/assets/social/social-gumroad.jpg', // 使用现有的图片，如果没有 youtube 图片
     isShow: !!siteMetadata.youtube,
   },
   {
@@ -60,7 +60,7 @@ const socialData: SocialItem[] = [
     name: 'Instagram',
     username: siteMetadata.instagram?.split('/').pop() || 'instagram',
     url: siteMetadata.instagram || '#',
-    image: '/static/images/social/instagram.png',
+    image: '/assets/social/social-figma.jpg', // 使用现有的图片，如果没有 instagram 图片
     isShow: !!siteMetadata.instagram,
   },
 ]
