@@ -1,6 +1,6 @@
 'use client'
 
-import worksData from '@/data/works.json'
+import worksData from '@/works.json'
 import WorkCard from './WorkCard'
 
 interface Work {
@@ -9,7 +9,7 @@ interface Work {
   image: string
   url: string
   tags?: string[]
-  video?: string
+  video?: string | null
   isShow?: boolean
 }
 
