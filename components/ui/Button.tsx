@@ -11,6 +11,7 @@ export interface ButtonProps {
   target?: '_blank' | '_self' | '_parent' | '_top' // Link target, default is "_self"
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' // Button size, optional, default is "md"
   children: React.ReactNode
+  onClick?: (e: React.MouseEvent) => void // Click handler
 }
 
 // Define padding and font size for different button sizes
@@ -54,6 +55,7 @@ export default function Button({
   target = '_self',
   size = 'md',
   children,
+  onClick,
 }: ButtonProps) {
   const currentSizeClasses = sizeClasses[size]
 
@@ -179,6 +181,7 @@ export default function Button({
       href={href}
       target={linkTarget}
       className={cn(getTypeClasses(), className)}
+      onClick={onClick}
     >
       {content}
     </Link>
