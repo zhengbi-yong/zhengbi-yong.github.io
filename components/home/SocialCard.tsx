@@ -127,7 +127,8 @@ function SocialCardItem({ item, index, total }: SocialCardItemProps) {
       <Image
         src={item.image}
         alt={item.name}
-        fill
+        width={72}
+        height={72}
         sizes="72px"
         className="object-cover rounded-xl transition-transform duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.15]"
       />
