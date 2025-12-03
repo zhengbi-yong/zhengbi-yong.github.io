@@ -1,0 +1,61 @@
+.footerSocialIcon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  /* 性能优化：使用 transform 和 opacity 而不是改变布局属性 */
+  will-change: transform;
+  transform: translateZ(0); /* 开启硬件加速 */
+  contain: layout style paint; /* 限制重绘范围 */
+  backface-visibility: hidden; /* 优化渲染性能 */
+  -webkit-font-smoothing: antialiased; /* 优化字体渲染 */
+}
+
+.footerSocialIcon svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  /* 性能优化：只过渡 transform 和 opacity */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  transform: translateZ(0); /* 开启硬件加速 */
+  backface-visibility: hidden; /* 优化渲染性能 */
+}
+
+.footerSocialIconLink {
+  /* 性能优化：使用 contain 限制重绘范围 */
+  contain: layout style paint;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden; /* 优化渲染性能 */
+}
+
+.footerSocialIconLink:hover .footerSocialIcon svg {
+  /* 性能优化：使用 scale 而不是改变 width/height */
+  transform: scale(1.2) translateZ(0);
+  height: 24px;
+  fill: currentColor;
+}
+
+.footerSocialIconLink:hover .icTwitter {
+  color: #1da1f2;
+}
+
+.footerSocialIconLink:hover .icGithub {
+  color: #333;
+}
+
+.footerSocialIconLink:hover .icZcool {
+  color: #fff200;
+}
+
+.footerSocialIconLink:hover .icBehance {
+  color: #0055ff;
+}
+
+.footerSocialIconLink:hover .icRss {
+  color: #f26522;
+}
+

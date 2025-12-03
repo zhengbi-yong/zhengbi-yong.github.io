@@ -5493,6 +5493,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/matter-js@npm:^0.20.2":
+  version: 0.20.2
+  resolution: "@types/matter-js@npm:0.20.2"
+  checksum: 97ea96f6f213d6712b68130ba66dc5abafa34ec7453fa5253578c31218610eded29433feeb5838c4cc2a3a1be074cc8d5ff9cd304c173bd60a0afd3686d63155
+  languageName: node
+  linkType: hard
+
 "@types/mdast@npm:^4.0.0":
   version: 4.0.4
   resolution: "@types/mdast@npm:4.0.4"
@@ -10945,6 +10952,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"matter-js@npm:^0.20.0":
+  version: 0.20.0
+  resolution: "matter-js@npm:0.20.0"
+  checksum: 1d78cd475b3f076c4e7e4c18e388167b1e7aa5421cadc1273ec726d1c0bca405898bbe8cedb9dcd8c63fe9bf64eda626f0ccec3d8c359ee15c2fb637c1e9887a
+  languageName: node
+  linkType: hard
+
 "mdast-util-find-and-replace@npm:^3.0.0":
   version: 3.0.2
   resolution: "mdast-util-find-and-replace@npm:3.0.2"
@@ -15026,6 +15040,7 @@ __metadata:
     "@tsparticles/react": ^3.0.0
     "@tsparticles/slim": ^3.9.1
     "@types/canvas-confetti": ^1.9.0
+    "@types/matter-js": ^0.20.2
     "@types/mdx": ^2.0.12
     "@types/react": ^19.0.8
     "@types/three": ^0.173.0
@@ -15053,6 +15068,7 @@ __metadata:
     image-size: 1.0.0
     lint-staged: ^13.0.0
     lucide-react: ^0.477.0
+    matter-js: ^0.20.0
     next: 16.0.4
     next-contentlayer2: 0.5.4
     next-themes: ^0.3.0
