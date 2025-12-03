@@ -1,87 +1,79 @@
 'use client'
 
-import { memo, useEffect, useState, useCallback, useRef } from 'react'
-import { ArrowUp } from 'lucide-react'
-import { Button } from '@/components/components/ui/button'
+import { memo, useEffect, useState, useCallback } from 'react'
+import { cn } from './lib/utils'
+import styles from './BackToTop.module.css'
 
 interface BackToTopProps {
   className?: string
   threshold?: number
-  smooth?: boolean
-  showAtBottom?: boolean
 }
 
 /**
  * BackToTop - 返回顶部按钮组件
- * 当页面滚动超过一定距离时显示按钮，点击按钮平滑滚动到页面顶部
+ * 基于提供的 Astro BackToTop 组件转换而来
  */
 const BackToTop = memo(function BackToTop({
   className = '',
-  threshold = 400,
-  smooth = true,
-  showAtBottom = false,
+  threshold = 300,
 }: BackToTopProps) {
   const [isVisible, setIsVisible] = useState(false)
-  const tickingRef = useRef(false)
 
-  // 使用useCallback缓存updateVisibility函数
+  // 更新按钮可见性
   const updateVisibility = useCallback(() => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop
-      const documentHeight = document.documentElement.scrollHeight
-      const windowHeight = window.innerHeight
-
-      // 检查是否超过阈值或是否在底部（如果启用 showAtBottom）
-      const isOverThreshold = scrollTop > threshold
-      const isAtBottom = showAtBottom && scrollTop + windowHeight >= documentHeight - 10
-
-      setIsVisible(isOverThreshold || isAtBottom)
-    tickingRef.current = false
-  }, [threshold, showAtBottom])
-
-  // 使用useCallback缓存handleScroll函数
-  const handleScroll = useCallback(() => {
-    if (!tickingRef.current) {
-        window.requestAnimationFrame(updateVisibility)
-      tickingRef.current = true
-      }
-  }, [updateVisibility])
-
-  // 使用useCallback缓存scrollToTop函数
-  const scrollToTop = useCallback(() => {
-    if (smooth) {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      })
+    if (window.scrollY > threshold) {
+      setIsVisible(true)
     } else {
-      window.scrollTo(0, 0)
+      setIsVisible(false)
     }
-  }, [smooth])
+  }, [threshold])
+
+  // 平滑滚动到顶部
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }, [])
 
   useEffect(() => {
     // 初始检查
     updateVisibility()
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', updateVisibility, { passive: true })
+    // 滚动事件监听
+    window.addEventListener('scroll', updateVisibility, { passive: true })
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', updateVisibility)
+      window.removeEventListener('scroll', updateVisibility)
     }
-  }, [handleScroll, updateVisibility])
-
-  if (!isVisible) return null
+  }, [updateVisibility])
 
   return (
-    <Button
+    <button
+      id="back-to-top"
       onClick={scrollToTop}
-      className={`fixed right-8 bottom-8 z-50 h-12 w-12 rounded-full shadow-lg transition-all duration-300 hover:scale-110 ${className}`}
-      aria-label="返回顶部"
-      title="返回顶部"
+      className={cn(
+        styles.backToTop,
+        isVisible && styles.visible,
+        'dark:bg-indigo-300 dark:text-gray-900 dark:hover:bg-indigo-300 dark:shadow-[0_4px_12px_rgba(196,181,253,0.3)] dark:hover:shadow-[0_8px_20px_rgba(196,181,253,0.4)]',
+        className
+      )}
+      aria-label="Back to top"
     >
-      <ArrowUp className="h-5 w-5" />
-    </Button>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polyline points="18 15 12 9 6 15"></polyline>
+      </svg>
+    </button>
   )
 })
 

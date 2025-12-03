@@ -1,93 +1,170 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
-import Link from '@/components/Link'
-import { Button } from '@/components/components/ui/button'
+import BlogCard from './BlogCard'
+import SectionHeader from './SectionHeader'
+import Button from '@/components/ui/Button'
+import AnimatedText from '@/components/home/AnimatedText'
+import { cn } from '@/components/lib/utils'
 
 interface BlogSectionProps {
-  title: string
+  title?: string
   description?: string
   posts: CoreContent<Blog>[]
-  showViewAllButton?: boolean
   limit?: number
+  listPage?: boolean
+  showViewAllButton?: boolean
+  pagination?: {
+    enable: boolean
+    currentPage: number
+  }
+  postsPerPage?: number
 }
 
 /**
  * BlogSection - 博客部分组件
- * 参考 Astro 项目的 BlogSection 组件
+ * 基于提供的 Astro BlogSection 组件转换而来
+ * 支持特色文章、分页、列表页模式等功能
  */
 export default function BlogSection({
-  title,
-  description,
+  title = 'Latest Articles',
+  description = '',
   posts,
-  showViewAllButton = false,
   limit = 3,
+  listPage = false,
+  showViewAllButton = true,
+  pagination = {
+    enable: false,
+    currentPage: 1,
+  },
+  postsPerPage = 3,
 }: BlogSectionProps) {
-  const displayedPosts = posts.slice(0, limit)
+  // 按发布日期排序文章
+  let sortedPosts = [...posts].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  )
+
+  // 查找特色文章（假设有 featured 字段，如果没有则跳过）
+  const featuredPost = sortedPosts.find((post) => (post as any).featured)
+
+  // 如果存在特色文章且在列表页，从主列表中移除
+  if (featuredPost && listPage) {
+    sortedPosts = sortedPosts.filter((post) => !(post as any).featured)
+  }
+
+  // 计算总页数
+  const totalPages = Math.ceil(sortedPosts.length / postsPerPage)
+
+  // 如果启用了分页，则只显示当前页的文章
+  let displayedPosts = sortedPosts
+  if (pagination.enable) {
+    const indexOfLastPost = pagination.currentPage * postsPerPage
+    const indexOfFirstPost = indexOfLastPost - postsPerPage
+    displayedPosts = sortedPosts.slice(indexOfFirstPost, indexOfLastPost)
+  } else if (!listPage) {
+    // 如果不是列表页，限制显示的文章数量
+    displayedPosts = sortedPosts.slice(0, limit)
+  }
+
+  // 为每篇文章添加链接属性
+  const postsWithLinks = displayedPosts.map((post) => {
+    const link = `/blog/${post.slug}`
+    return {
+      ...post,
+      link,
+    }
+  })
+
+  // 为特色文章创建带链接的版本
+  const featuredPostWithLink = featuredPost
+    ? {
+        ...featuredPost,
+        link: `/blog/${featuredPost.slug}`,
+      }
+    : null
 
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: 0.1 }}
-      className="space-y-8"
-    >
-      <div className="text-center md:text-left">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 md:text-4xl mb-2">
-          {title}
-        </h2>
-        {description && (
-          <p className="text-base text-neutral-700 dark:text-neutral-300 max-w-2xl">
-            {description}
-          </p>
-        )}
-      </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {displayedPosts.map((post, index) => (
-          <motion.article
-            key={post.slug}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-            className="group rounded-xl border border-gray-200/60 dark:border-gray-700/60 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-6 transition-all duration-300 hover:shadow-lg hover:border-primary-500/50"
-          >
-            <Link href={`/blog/${post.slug}`} className="block">
-              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors">
-                {post.title}
-              </h3>
-              {post.summary && (
-                <p className="text-sm text-neutral-700 dark:text-neutral-300 mb-4 line-clamp-3">
-                  {post.summary}
-                </p>
-              )}
-              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                <time dateTime={post.date}>
-                  {new Date(post.date).toLocaleDateString('zh-CN', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </time>
-                {post.readingTime && (
-                  <span>{Math.ceil(post.readingTime.minutes)} 分钟阅读</span>
-                )}
-              </div>
-            </Link>
-          </motion.article>
-        ))}
-      </div>
-      {showViewAllButton && (
-        <div className="text-center">
-          <Button asChild variant="outline" size="lg">
-            <Link href="/blog">查看所有文章</Link>
-          </Button>
-        </div>
+    <>
+      {/* 特色文章部分 - 仅在列表页第一页显示 */}
+      {listPage && featuredPostWithLink && pagination.currentPage === 1 && (
+        <section className="mb-16">
+          <div className="container mx-auto px-4 sm:px-6 xl:px-8">
+            <h2 className="text-3xl font-brand mb-6 text-neutral-800 dark:text-white">
+              <AnimatedText delay={0.75} stagger={0.08} content="Featured" />
+            </h2>
+            <div className="dark:from-neutral-900 dark:to-neutral-800 p-1 rounded-2xl">
+              <BlogCard
+                layout="horizontal"
+                content={{
+                  title: featuredPostWithLink.title,
+                  description: featuredPostWithLink.summary || '',
+                  publishDate: featuredPostWithLink.date,
+                  tags: featuredPostWithLink.tags || [],
+                  img: featuredPostWithLink.images?.[0] || '',
+                  img_alt: featuredPostWithLink.title,
+                  slug: featuredPostWithLink.slug,
+                  link: featuredPostWithLink.link,
+                }}
+              />
+            </div>
+          </div>
+        </section>
       )}
-    </motion.section>
+
+      <section>
+        <div className={cn('container mx-auto px-4 sm:px-6 xl:px-8 space-y-10 md:space-y-16')}>
+          {!listPage && title && (
+            <SectionHeader title={title} description={description} />
+          )}
+
+          {/* 列表页标题 */}
+          {listPage && title && (
+            <div className="mx-auto">
+              <h2 className="text-3xl font-brand text-neutral-800 dark:text-white">
+                {title}
+              </h2>
+            </div>
+          )}
+
+          <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+            {postsWithLinks.map((post, index) => (
+              <BlogCard
+                key={post.slug}
+                content={{
+                  title: post.title,
+                  description: post.summary || '',
+                  publishDate: post.date,
+                  tags: post.tags || [],
+                  img: post.images?.[0] || '',
+                  img_alt: post.title,
+                  slug: post.slug,
+                  link: post.link,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* 分页组件 - 如果需要可以添加 */}
+          {listPage && totalPages > 1 && pagination.enable && (
+            <div className="flex justify-center mt-12">
+              {/* TODO: 添加 Pagination 组件 */}
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                第 {pagination.currentPage} 页，共 {totalPages} 页
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* "View All Articles" 按钮 - 仅在非列表页且启用时显示 */}
+        {!listPage && showViewAllButton && (
+          <div className="flex justify-center mt-12 mb-12">
+            <Button url="/blog" className="w-full max-w-60">
+              View All Articles
+            </Button>
+          </div>
+        )}
+      </section>
+    </>
   )
 }
-
