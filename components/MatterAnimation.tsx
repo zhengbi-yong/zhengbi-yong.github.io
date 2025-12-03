@@ -32,6 +32,7 @@ export default function MatterAnimation({
   const viewRef = useRef<HTMLDivElement>(null)
   const canvasHostRef = useRef<HTMLDivElement>(null)
   const domLayerRef = useRef<HTMLDivElement>(null)
+  const iconsBodiesRef = useRef<any[]>([])
   const [isInitialized, setIsInitialized] = useState(false)
   const engineRef = useRef<{
     engine: any
