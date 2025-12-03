@@ -27,7 +27,11 @@ const Logo = memo(function Logo() {
 
   // 如果成功导入组件，使用组件
   if (LogoComponent) {
-    return <LogoComponent className="h-6 w-6" />
+    return (
+      <div className="h-6 w-6" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
+        <LogoComponent className="h-6 w-6" />
+      </div>
+    )
   }
 
   // 否则使用内联 SVG（简化版本）
@@ -39,6 +43,7 @@ const Logo = memo(function Logo() {
       preserveAspectRatio="xMidYMid meet"
       className="h-6 w-6"
       fill="currentColor"
+      style={{ willChange: 'transform', transform: 'translateZ(0)' }}
     >
       <g
         transform="translate(0.000000,1280.000000) scale(0.100000,-0.100000)"

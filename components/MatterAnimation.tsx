@@ -75,7 +75,8 @@ export default function MatterAnimation({
     try {
       Matter = await import('matter-js')
     } catch (error) {
-      console.error('[MatterAnimation] Failed to load matter-js. Please install: npm install matter-js', error)
+      console.warn('[MatterAnimation] Failed to load matter-js. The animation will not be displayed.', error)
+      setIsInitialized(true) // 标记为已初始化，避免重复尝试
       return
     }
 
