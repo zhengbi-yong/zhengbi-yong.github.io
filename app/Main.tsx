@@ -1,7 +1,7 @@
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import ShaderBackgroundWrapper from '@/components/ShaderBackgroundWrapper'
-import { Button } from '@/components/components/ui/button'
+import Button from '@/components/ui/Button'
 import AnimatedText from '@/components/home/AnimatedText'
 import HeroCard from '@/components/home/HeroCard'
 import SocialCard from '@/components/home/SocialCard'
@@ -9,7 +9,6 @@ import Explore from '@/components/sections/Explore'
 import FeaturedWork from '@/components/sections/FeaturedWork'
 import BlogSection from '@/components/sections/BlogSection'
 import siteMetadata from '@/data/siteMetadata'
-import Link from '@/components/Link'
 
 interface HomeProps {
   posts: CoreContent<Blog>[]
@@ -60,10 +59,13 @@ export default function Home({ posts }: HomeProps) {
             </div>
             {/* Button */}
             <div className="mt-4 sm:mt-6">
-              <Button asChild variant="default" size="lg" className="m-auto sm:m-0 max-w-[200px]">
-                <Link href={siteMetadata.x || siteMetadata.github || '#'}>
-                  Follow me on 𝕏
-                </Link>
+              <Button
+                url={siteMetadata.x || siteMetadata.github || '#'}
+                type="fill"
+                size="md"
+                className="m-auto sm:m-0"
+              >
+                Follow me on 𝕏
               </Button>
             </div>
             {/* Social Cards */}
