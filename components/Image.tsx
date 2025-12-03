@@ -5,8 +5,6 @@ import NextImage, { ImageProps } from 'next/image'
 import { ImageSkeleton } from '@/components/loaders'
 import { preloadImage } from '@/lib/utils/image-optimization'
 
-const basePath = process.env.BASE_PATH
-
 interface EnhancedImageProps extends ImageProps {
   priority?: boolean
   blurDataURL?: string
@@ -20,16 +18,24 @@ const Image = memo(function Image({
 }: EnhancedImageProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
-  const [imageSrc, setImageSrc] = useState<string>(`${basePath || ''}${src}`)
+  
+  // 将 src 转换为字符串用于预加载（如果需要）
+  // Next.js 会自动处理 basePath，不需要手动添加
+  // StaticImport 可能是 StaticImageData (有 src 属性) 或 StaticRequire (有 default 属性)
+  const imageSrcString = typeof src === 'string' 
+    ? src 
+    : 'src' in src 
+      ? src.src 
+      : src.default?.src || ''
 
   // 预加载关键图片
   useEffect(() => {
-    if (priority && typeof window !== 'undefined') {
-      preloadImage(imageSrc).catch(() => {
+    if (priority && typeof window !== 'undefined' && imageSrcString) {
+      preloadImage(imageSrcString).catch(() => {
         // 预加载失败不影响正常显示
       })
     }
-  }, [priority, imageSrc])
+  }, [priority, imageSrcString])
 
   if (hasError) {
     return (
@@ -63,7 +69,7 @@ const Image = memo(function Image({
         </div>
       )}
       <NextImage
-        src={imageSrc}
+        src={src}
         {...rest}
         priority={priority}
         placeholder={blurDataURL ? 'blur' : 'empty'}

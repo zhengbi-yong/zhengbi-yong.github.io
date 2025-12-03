@@ -94,9 +94,9 @@ Write-Step "步骤 2/4: 构建项目 (yarn build)"
 corepack enable
 $env:PWD = $(Get-Location).Path
 $env:EXPORT = "1"
-# 性能优化：移除 UNOPTIMIZED 以启用资源优化
-# 注意：静态导出模式下 Next.js 图片优化器不可用，但其他资源（JS/CSS）仍可优化
-# $env:UNOPTIMIZED = "1"  # 已移除以启用性能优化
+# 静态导出模式下必须设置 UNOPTIMIZED=1，否则 Next.js Image 组件无法正确处理图片路径
+# 注意：静态导出模式下 Next.js 图片优化器不可用，必须禁用优化
+$env:UNOPTIMIZED = "1"
 
 # 生产环境优化配置
 $env:NODE_ENV = "production"
@@ -105,9 +105,10 @@ $env:NEXT_TELEMETRY_DISABLED = "1"  # 禁用遥测以加快构建速度
 Write-Host "环境变量设置:" -ForegroundColor Gray
 Write-Host "  PWD = $env:PWD" -ForegroundColor Gray
 Write-Host "  EXPORT = $env:EXPORT" -ForegroundColor Gray
+Write-Host "  UNOPTIMIZED = $env:UNOPTIMIZED" -ForegroundColor Gray
 Write-Host "  NODE_ENV = $env:NODE_ENV" -ForegroundColor Gray
 Write-Host "  NEXT_TELEMETRY_DISABLED = $env:NEXT_TELEMETRY_DISABLED" -ForegroundColor Gray
-Write-Host "  性能优化: 已启用（UNOPTIMIZED 已移除）" -ForegroundColor Green
+Write-Host "  静态导出模式: 已启用（UNOPTIMIZED=1，图片优化已禁用）" -ForegroundColor Green
 
 try {
     Write-Host "开始构建..." -ForegroundColor Gray
@@ -299,6 +300,35 @@ try {
     }
     else {
         Write-WarningMsg "远程目录验证失败，但文件可能已同步"
+    }
+    
+    # 验证关键目录和文件是否存在
+    Write-Host "`n验证关键资源文件..." -ForegroundColor Gray
+    $keyDirs = @("assets", "static", "_next")
+    foreach ($dir in $keyDirs) {
+        $checkCommand = "test -d ${remotePath}${dir} && echo 'exists' || echo 'missing'"
+        $checkResult = & "C:\cygwin64\bin\sshpass.exe" -p 'YzBxxM2000818.P' "C:\cygwin64\bin\ssh.exe" -p $remotePort -o UserKnownHostsFile=/cygdrive/c/Users/Sisyphus/.ssh/known_hosts "${remoteUser}@${remoteIP}" $checkCommand 2>&1
+        
+        if ($checkResult -match "exists") {
+            Write-Success "目录 ${dir} 存在"
+        }
+        else {
+            Write-WarningMsg "目录 ${dir} 不存在或无法访问"
+        }
+    }
+    
+    # 检查图片文件数量
+    $imageCountCommand = "find ${remotePath}assets ${remotePath}static -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.svg' -o -iname '*.gif' \) 2>/dev/null | wc -l"
+    $imageCountResult = & "C:\cygwin64\bin\sshpass.exe" -p 'YzBxxM2000818.P' "C:\cygwin64\bin\ssh.exe" -p $remotePort -o UserKnownHostsFile=/cygdrive/c/Users/Sisyphus/.ssh/known_hosts "${remoteUser}@${remoteIP}" $imageCountCommand 2>&1
+    
+    if ($imageCountResult -match "^\d+$") {
+        $count = [int]$imageCountResult.Trim()
+        if ($count -gt 0) {
+            Write-Success "找到 $count 个图片文件"
+        }
+        else {
+            Write-WarningMsg "未找到图片文件，这可能是问题所在！"
+        }
     }
 }
 catch {

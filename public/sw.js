@@ -1,5 +1,5 @@
 // Service Worker 版本号，用于缓存更新
-const CACHE_VERSION = 'v1.0.1'
+const CACHE_VERSION = 'v1.0.2'
 const CACHE_NAME = `blog-cache-${CACHE_VERSION}`
 
 // 需要缓存的资源类型
@@ -7,9 +7,11 @@ const CACHE_PATTERNS = {
   // HTML 页面：Network First，失败时使用缓存
   html: /\.html$|^\/[^.]*$/,
   // 静态资源：Cache First
-  static: /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/,
+  static: /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|webp|mp4)$/,
   // Next.js 静态资源
   nextStatic: /\/_next\/static\//,
+  // Assets 目录下的资源
+  assets: /\/assets\//,
 }
 
 // 安装 Service Worker
@@ -66,9 +68,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   // 静态资源：Cache First 策略
+  // 包括 assets 目录下的所有资源
   if (
     CACHE_PATTERNS.static.test(url.pathname) ||
-    CACHE_PATTERNS.nextStatic.test(url.pathname)
+    CACHE_PATTERNS.nextStatic.test(url.pathname) ||
+    CACHE_PATTERNS.assets.test(url.pathname)
   ) {
     event.respondWith(cacheFirstStrategy(request))
     return
@@ -82,10 +86,14 @@ self.addEventListener('fetch', (event) => {
 async function networkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request)
-    // 如果响应成功，更新缓存
-    if (networkResponse.ok) {
+    // 如果响应成功且不是部分响应（206），更新缓存
+    // HTTP 206 (Partial Content) 响应不能直接缓存
+    if (networkResponse.ok && networkResponse.status !== 206) {
       const cache = await caches.open(CACHE_NAME)
-      cache.put(request, networkResponse.clone())
+      cache.put(request, networkResponse.clone()).catch((error) => {
+        // 缓存失败不影响响应返回
+        console.error('[Service Worker] Failed to cache:', request.url, error)
+      })
     }
     return networkResponse
   } catch (error) {
@@ -108,10 +116,14 @@ async function cacheFirstStrategy(request) {
 
   try {
     const networkResponse = await fetch(request)
-    // 如果响应成功，更新缓存
-    if (networkResponse.ok) {
+    // 如果响应成功且不是部分响应（206），更新缓存
+    // HTTP 206 (Partial Content) 响应不能直接缓存
+    if (networkResponse.ok && networkResponse.status !== 206) {
       const cache = await caches.open(CACHE_NAME)
-      cache.put(request, networkResponse.clone())
+      cache.put(request, networkResponse.clone()).catch((error) => {
+        // 缓存失败不影响响应返回
+        console.error('[Service Worker] Failed to cache:', request.url, error)
+      })
     }
     return networkResponse
   } catch (error) {
@@ -135,9 +147,10 @@ async function enhancedNetworkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request)
     
-    // 如果响应成功，更新缓存
+    // 如果响应成功且不是部分响应（206），更新缓存
+    // HTTP 206 (Partial Content) 响应不能直接缓存
     // 关键：在返回之前先克隆 Response，确保可以安全缓存
-    if (networkResponse.ok) {
+    if (networkResponse.ok && networkResponse.status !== 206) {
       // 先克隆 Response 用于缓存（在返回之前）
       const responseClone = networkResponse.clone()
       // 异步更新缓存，不阻塞响应返回
