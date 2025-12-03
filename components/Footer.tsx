@@ -85,75 +85,97 @@ const Footer = memo(() => {
 
   // 社交链接配置（使用useMemo缓存，避免每次渲染创建）
   const socialLinks = useMemo(
-    () =>
-      [
+    () => {
+      const links: (SocialLink | null)[] = [
         {
           kind: 'mail' as const,
           href: `mailto:${siteMetadata.email}`,
           name: socialNames.mail,
           Icon: socialComponents.mail,
         },
-        siteMetadata.github && {
-          kind: 'github' as const,
-          href: siteMetadata.github,
-          name: socialNames.github,
-          Icon: socialComponents.github,
-        },
-        siteMetadata.facebook && {
-          kind: 'facebook' as const,
-          href: siteMetadata.facebook,
-          name: socialNames.facebook,
-          Icon: socialComponents.facebook,
-        },
-        siteMetadata.youtube && {
-          kind: 'youtube' as const,
-          href: siteMetadata.youtube,
-          name: socialNames.youtube,
-          Icon: socialComponents.youtube,
-        },
-        siteMetadata.linkedin && {
-          kind: 'linkedin' as const,
-          href: siteMetadata.linkedin,
-          name: socialNames.linkedin,
-          Icon: socialComponents.linkedin,
-        },
-        siteMetadata.twitter && {
-          kind: 'twitter' as const,
-          href: siteMetadata.twitter,
-          name: socialNames.twitter,
-          Icon: socialComponents.twitter,
-        },
-        siteMetadata.bluesky && {
-          kind: 'bluesky' as const,
-          href: siteMetadata.bluesky,
-          name: socialNames.bluesky,
-          Icon: socialComponents.bluesky,
-        },
-        siteMetadata.x && {
-          kind: 'x' as const,
-          href: siteMetadata.x,
-          name: socialNames.x,
-          Icon: socialComponents.x,
-        },
-        siteMetadata.instagram && {
-          kind: 'instagram' as const,
-          href: siteMetadata.instagram,
-          name: socialNames.instagram,
-          Icon: socialComponents.instagram,
-        },
-        siteMetadata.threads && {
-          kind: 'threads' as const,
-          href: siteMetadata.threads,
-          name: socialNames.threads,
-          Icon: socialComponents.threads,
-        },
-        siteMetadata.medium && {
-          kind: 'medium' as const,
-          href: siteMetadata.medium,
-          name: socialNames.medium,
-          Icon: socialComponents.medium,
-        },
-      ].filter((link): link is SocialLink => Boolean(link)),
+        siteMetadata.github
+          ? {
+              kind: 'github' as const,
+              href: siteMetadata.github,
+              name: socialNames.github,
+              Icon: socialComponents.github,
+            }
+          : null,
+        siteMetadata.facebook
+          ? {
+              kind: 'facebook' as const,
+              href: siteMetadata.facebook,
+              name: socialNames.facebook,
+              Icon: socialComponents.facebook,
+            }
+          : null,
+        siteMetadata.youtube
+          ? {
+              kind: 'youtube' as const,
+              href: siteMetadata.youtube,
+              name: socialNames.youtube,
+              Icon: socialComponents.youtube,
+            }
+          : null,
+        siteMetadata.linkedin
+          ? {
+              kind: 'linkedin' as const,
+              href: siteMetadata.linkedin,
+              name: socialNames.linkedin,
+              Icon: socialComponents.linkedin,
+            }
+          : null,
+        siteMetadata.twitter
+          ? {
+              kind: 'twitter' as const,
+              href: siteMetadata.twitter,
+              name: socialNames.twitter,
+              Icon: socialComponents.twitter,
+            }
+          : null,
+        siteMetadata.bluesky
+          ? {
+              kind: 'bluesky' as const,
+              href: siteMetadata.bluesky,
+              name: socialNames.bluesky,
+              Icon: socialComponents.bluesky,
+            }
+          : null,
+        siteMetadata.x
+          ? {
+              kind: 'x' as const,
+              href: siteMetadata.x,
+              name: socialNames.x,
+              Icon: socialComponents.x,
+            }
+          : null,
+        siteMetadata.instagram
+          ? {
+              kind: 'instagram' as const,
+              href: siteMetadata.instagram,
+              name: socialNames.instagram,
+              Icon: socialComponents.instagram,
+            }
+          : null,
+        siteMetadata.threads
+          ? {
+              kind: 'threads' as const,
+              href: siteMetadata.threads,
+              name: socialNames.threads,
+              Icon: socialComponents.threads,
+            }
+          : null,
+        siteMetadata.medium
+          ? {
+              kind: 'medium' as const,
+              href: siteMetadata.medium,
+              name: socialNames.medium,
+              Icon: socialComponents.medium,
+            }
+          : null,
+      ]
+      return links.filter((link): link is SocialLink => link !== null)
+    },
     []
   )
 
@@ -194,10 +216,7 @@ const Footer = memo(() => {
               // 根据平台设置不同的类名以支持 hover 颜色
               const iconClassName = cn(
                 social.kind === 'twitter' || social.kind === 'x' ? 'icTwitter' : '',
-                social.kind === 'github' ? 'icGithub' : '',
-                social.kind === 'zcool' ? 'icZcool' : '',
-                social.kind === 'behance' ? 'icBehance' : '',
-                social.kind === 'rss' ? 'icRss' : ''
+                social.kind === 'github' ? 'icGithub' : ''
               )
 
               return (
