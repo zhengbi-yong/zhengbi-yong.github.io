@@ -38,10 +38,11 @@ export default function Explore({ title, description }: ExploreProps) {
     video.removeAttribute('controls')
 
     function tryPlay() {
-      if (isPlaying || playAttempts >= MAX_PLAY_ATTEMPTS) return
+      const currentVideo = videoRef.current
+      if (!currentVideo || isPlaying || playAttempts >= MAX_PLAY_ATTEMPTS) return
       playAttempts++
 
-      const playPromise = video.play()
+      const playPromise = currentVideo.play()
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
@@ -71,17 +72,21 @@ export default function Explore({ title, description }: ExploreProps) {
     }
 
     function setupIntersectionObserver() {
+      const currentVideo = videoRef.current
+      if (!currentVideo) return
       observer = new IntersectionObserver(
         (entries) => {
+          const currentVideo = videoRef.current
+          if (!currentVideo) return
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              if (video.paused) {
+              if (currentVideo.paused) {
                 playAttempts = 0
                 tryPlay()
               }
             } else {
-              if (!video.paused) {
-                video.pause()
+              if (!currentVideo.paused) {
+                currentVideo.pause()
                 isPlaying = false
               }
             }
@@ -93,12 +98,14 @@ export default function Explore({ title, description }: ExploreProps) {
           threshold: 0.1,
         }
       )
-      observer.observe(video)
+      observer.observe(currentVideo)
     }
 
     function handleVisibilityChange() {
-      if (!document.hidden && !video.paused) {
-        const rect = video.getBoundingClientRect()
+      const currentVideo = videoRef.current
+      if (!currentVideo) return
+      if (!document.hidden && !currentVideo.paused) {
+        const rect = currentVideo.getBoundingClientRect()
         const isInViewport = rect.top < window.innerHeight && rect.bottom > 0
         if (isInViewport) {
           playAttempts = 0
@@ -109,10 +116,12 @@ export default function Explore({ title, description }: ExploreProps) {
 
     // 初始化
     function init() {
-      if (video.readyState >= 2) {
+      const currentVideo = videoRef.current
+      if (!currentVideo) return
+      if (currentVideo.readyState >= 2) {
         tryPlay()
       } else {
-        video.addEventListener('loadeddata', tryPlay, { once: true })
+        currentVideo.addEventListener('loadeddata', tryPlay, { once: true })
       }
       setupIntersectionObserver()
       document.addEventListener('visibilitychange', handleVisibilityChange)
@@ -129,6 +138,11 @@ export default function Explore({ title, description }: ExploreProps) {
         observer.disconnect()
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      // 移除 loadeddata 事件监听器以防止内存泄漏
+      const currentVideo = videoRef.current
+      if (currentVideo) {
+        currentVideo.removeEventListener('loadeddata', tryPlay)
+      }
     }
   }, [])
 

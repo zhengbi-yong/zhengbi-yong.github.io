@@ -52,7 +52,7 @@ export default function AnimatedText({
       filter: 'blur(0px)',
       transition: {
         duration,
-        ease: 'easeOut',
+        ease: 'easeOut' as const,
       },
     },
   }
