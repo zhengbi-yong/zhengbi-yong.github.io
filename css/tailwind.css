@@ -294,3 +294,55 @@ input:-webkit-autofill:focus {
     transform: rotate(360deg);
   }
 }
+
+/* Hero Card Styles */
+.web-case,
+.color-picker,
+.color {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.case-go {
+  position: relative;
+  cursor: pointer;
+}
+
+html.cursor-hidden .case-go {
+  cursor: none !important;
+}
+
+@media (min-width: 1400px) {
+  .web-case {
+    overflow: visible;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 960px) {
+  .web-case {
+    overflow: visible;
+    max-width: 90%;
+  }
+}
+
+@media (min-width: 768px) {
+  .web-case {
+    overflow: visible;
+    max-width: 100%;
+  }
+  .color-picker {
+    left: -40px;
+    max-width: 35%;
+  }
+  .color {
+    right: -25px;
+    max-width: 45%;
+  }
+}
+
+@media (max-width: 768px) {
+  .color {
+    right: -16px;
+  }
+}
