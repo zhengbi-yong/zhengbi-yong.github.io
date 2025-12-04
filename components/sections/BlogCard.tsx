@@ -65,34 +65,13 @@ export default function BlogCard({
         )}
       >
         {/* Image */}
-        {img ? (
-          <Image
-            src={img}
-            alt={img_alt || `Related to ${title}`}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-700 dark:from-neutral-800 dark:to-neutral-700 flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-neutral-400"
-            >
-              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect>
-              <circle cx="9" cy="9" r="2"></circle>
-              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
-            </svg>
-          </div>
-        )}
+        <Image
+          src={img || '/assets/blog/cover-dreamcore.jpg'}
+          alt={img_alt || (img ? `Related to ${title}` : `Default blog image for ${title}`)}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+        />
 
         {/* Gradient overlay and button shown on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center">
