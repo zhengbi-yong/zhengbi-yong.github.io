@@ -11,6 +11,45 @@ const exampleFiles = [
   { fileName: 'multi-part-example.xml', displayName: '多声部示例' },
 ]
 
+// 获取 basePath 的工具函数
+const getBasePath = (): string => {
+  if (typeof window === 'undefined') return ''
+  
+  // 方法1: 从环境变量获取（如果设置了 NEXT_PUBLIC_BASE_PATH）
+  const envBasePath = process.env.NEXT_PUBLIC_BASE_PATH
+  if (envBasePath) {
+    // 确保 basePath 以 / 开头，不以 / 结尾
+    return envBasePath.startsWith('/') ? envBasePath : `/${envBasePath}`
+  }
+  
+  // 方法2: 从 window.location 检测 basePath（运行时回退）
+  // 通过检查当前路径来判断是否有 basePath
+  const pathname = window.location.pathname
+  const segments = pathname.split('/').filter(Boolean)
+  
+  // 已知的应用路由列表
+  const knownAppRoutes = ['experiment', 'blog', 'tags', 'about', 'projects']
+  const nextJsRoutes = ['_next', 'api', 'static']
+  
+  // 如果路径段数 >= 1
+  if (segments.length >= 1) {
+    const firstSegment = segments[0]
+    
+    // 如果第一个段是 Next.js 内部路由，说明没有 basePath
+    if (nextJsRoutes.includes(firstSegment)) {
+      return ''
+    }
+    
+    // 如果第一个段不是已知的应用路由，可能是 basePath
+    // 例如：/blog/experiment -> basePath 是 /blog
+    if (!knownAppRoutes.includes(firstSegment)) {
+      return `/${firstSegment}`
+    }
+  }
+  
+  return ''
+}
+
 export default function MusicSheetLab() {
   const containerRef = useRef<HTMLDivElement>(null)
   const osmdInstanceRef = useRef<OpenSheetMusicDisplay | null>(null)
@@ -21,6 +60,7 @@ export default function MusicSheetLab() {
   const [mounted, setMounted] = useState<boolean>(false)
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [playbackProgress, setPlaybackProgress] = useState<number>(0)
+  const [basePath, setBasePath] = useState<string>('')
   
   // 播放相关引用
   const synthRef = useRef<any>(null)
@@ -33,6 +73,8 @@ export default function MusicSheetLab() {
   // 确保只在客户端挂载
   useEffect(() => {
     setMounted(true)
+    // 获取 basePath
+    setBasePath(getBasePath())
   }, [])
 
   // 加载 MusicXML 文件
@@ -56,8 +98,10 @@ export default function MusicSheetLab() {
     }
 
     try {
-      const xmlPath = `/musicxml/${fileName}`
-      console.log('正在加载 MusicXML 文件:', xmlPath)
+      // 使用 basePath 构建正确的路径
+      const currentBasePath = basePath || getBasePath()
+      const xmlPath = `${currentBasePath}/musicxml/${fileName}`
+      console.log('正在加载 MusicXML 文件:', xmlPath, 'basePath:', currentBasePath)
       
       // 先检查文件是否存在
       const response = await fetch(xmlPath)
