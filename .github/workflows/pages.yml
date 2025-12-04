@@ -20,19 +20,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Debug - Check initial state
+      - name: Remove packageManager field before setup-node
         run: |
-          echo "=== Checking package.json ==="
-          cat package.json | grep -A 2 -B 2 packageManager || echo "packageManager field not found"
+          echo "=== Removing packageManager field ==="
+          # 使用 sed 直接修改文件（不依赖 Node.js）
+          sed -i '/"packageManager"/d' package.json
           echo ""
-          echo "=== Checking Node.js availability ==="
-          node --version || echo "Node not available"
-          npm --version || echo "npm not available"
-      - name: Setup Node.js (minimal, no cache)
+          echo "=== Verifying removal ==="
+          grep packageManager package.json && echo "ERROR: packageManager still exists!" || echo "SUCCESS: packageManager removed"
+          echo ""
+          echo "=== Showing modified package.json (last 5 lines) ==="
+          tail -5 package.json
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: ''
       - name: Debug - After setup-node
         run: |
           echo "=== Checking pnpm availability ==="
