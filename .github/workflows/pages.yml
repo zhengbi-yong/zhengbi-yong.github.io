@@ -21,33 +21,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. (可选) 移除 packageManager 字段
-      # 仅在 actions/setup-node 报告与 packageManager 相关的错误时才保留
-      - name: Remove packageManager field before setup-node
-        run: |
-          echo "=== Removing packageManager field ==="
-          # 使用 sed 直接修改文件（不依赖 Node.js）
-          sed -i '/"packageManager"/d' package.json
-          echo ""
-          echo "=== Verifying removal ==="
-          grep packageManager package.json && echo "ERROR: packageManager still exists!" || echo "SUCCESS: packageManager removed"
-          echo ""
-          echo "=== Showing modified package.json (last 5 lines) ==="
-          tail -5 package.json
-
-      # 2. 设置 Node.js
+      # 1. 设置 Node.js（不启用缓存，避免自动检测 pnpm）
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # 注意：这里不使用 cache: 'pnpm' 来避免提前调用 pnpm
 
-      # 3. 🌟 使用官方 Action 安装 pnpm（解决找不到 pnpm 的问题）
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.24.0
-      
+      # 2. 安装 pnpm（使用 npm 全局安装，更稳定）
+      - name: Install pnpm
+        run: npm install -g pnpm@10.24.0
+
+      # 3. 验证 pnpm 安装
+      - name: Verify pnpm
+        run: pnpm --version
+
       # 4. 设置 pnpm store 缓存
       - name: Get pnpm store directory
         shell: bash
