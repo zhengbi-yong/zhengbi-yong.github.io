@@ -3,6 +3,21 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 毛玻璃效果增强 - 使用 CSS 变量确保一致性 */
+.header #site-container {
+  /* 确保毛玻璃效果在支持的浏览器中生效 */
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+/* 确保毛玻璃效果在支持的浏览器中生效 */
+@supports (backdrop-filter: blur(16px)) {
+  .header #site-container {
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+  }
+}
+
 /* Ensure mobile menu doesn't stick to edges */
 @media (max-width: 639px) {
   .menu {
