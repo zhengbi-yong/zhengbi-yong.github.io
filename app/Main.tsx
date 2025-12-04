@@ -22,13 +22,13 @@ export default function Home({ posts }: HomeProps) {
         <ShaderBackgroundWrapper intensity={0.8} />
       </div>
       {/* 主页内容 */}
-      <div className="relative z-10 w-full mx-auto mt-16 px-4 md:mt-18 lg:mt-20 xl:px-0">
+      <div className="relative z-10 w-full mx-auto mt-16 px-4 md:mt-18 lg:mt-20 xl:px-8">
         {/* 内容背景遮罩 - 提升文字可读性 */}
         <div className="fixed inset-0 -z-[5] bg-white/20 dark:bg-gray-950/60 backdrop-blur-sm" />
         {/* Hero 区域 */}
-        <div className="relative w-full px-4 flex flex-col items-center justify-between md:flex-row mb-16">
+        <div className="relative w-full max-w-6xl mx-auto px-4 flex flex-col items-center justify-between md:flex-row mb-16">
           {/* 左侧：标题和描述 */}
-          <div className="relative w-full md:max-w-[420px] md:w-1/2 text-center sm:text-left sm:-mt-8">
+          <div className="relative w-full md:max-w-[400px] md:w-1/2 text-center sm:text-left sm:-mt-8">
             {/* Title - AnimatedText animation */}
             <h1 className="mb-4">
               <AnimatedText
@@ -76,7 +76,7 @@ export default function Home({ posts }: HomeProps) {
             </div>
           </div>
           {/* 右侧：HeroCard */}
-          <div className="relative justify-end w-full mt-16 md:flex md:pl-10 md:w-1/2 md:mt-0 md:translate-y-4 xl:translate-y-0">
+          <div className="relative justify-end w-full mt-16 md:flex md:pl-4 md:w-1/2 md:mt-0 md:translate-y-4 xl:translate-y-0">
             <HeroCard
               imageUrl="/static/images/robotics/SO-100.webp"
               title="Robotics Projects"
