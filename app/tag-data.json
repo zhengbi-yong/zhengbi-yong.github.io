@@ -1,5 +1,8 @@
 {
-  "tutorial": 2,
+  "tutorial": 3,
+  "frontend": 1,
+  "animation": 1,
+  "document": 1,
   "robotics": 3,
   "ros": 1,
   "ros2": 1
