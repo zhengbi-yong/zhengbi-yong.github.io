@@ -20,43 +20,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Remove packageManager field before setup-node
-        run: |
-          echo "=== Removing packageManager field ==="
-          # 使用 sed 直接修改文件（不依赖 Node.js）
-          sed -i '/"packageManager"/d' package.json
-          echo ""
-          echo "=== Verifying removal ==="
-          grep packageManager package.json && echo "ERROR: packageManager still exists!" || echo "SUCCESS: packageManager removed"
-          echo ""
-          echo "=== Showing modified package.json (last 5 lines) ==="
-          tail -5 package.json
+      
+      # ❌ 移除 'Remove packageManager field before setup-node' 步骤
+      # ❌ 移除 'Install pnpm globally via npm' 步骤
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Debug - After setup-node
-        run: |
-          echo "=== Checking pnpm availability ==="
-          which pnpm || echo "pnpm not in PATH (expected at this point)"
-          pnpm --version 2>&1 || echo "pnpm not available (expected at this point)"
-          echo ""
-          echo "=== Checking Node.js ==="
-          node --version
-          npm --version
-      - name: Install pnpm globally via npm
-        run: |
-          echo "=== Installing pnpm via npm ==="
-          npm install -g pnpm@10.24.0
-          echo ""
-          echo "=== Verifying pnpm installation ==="
-          pnpm --version
-          which pnpm
-          echo "PNPM_PATH=$(which pnpm)"
-      - name: Get pnpm store directory
+          # 如果你的 package.json 中有 "packageManager": "pnpm@..." 字段，
+          # 且你想让 setup-node 自动处理，可以保留这个。
+          # 但为了兼容性，我们使用 pnpm/action-setup。
+          
+      # 🌟 插入 pnpm 官方 Action 来设置 pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3 
+        with:
+          version: 10.24.0 # 确保版本一致
+          # 如果你使用了 cache: 'pnpm' 在 setup-node，你可以跳过手动缓存设置
+          
+      # 缓存可以简化，但保持你现有的手动缓存步骤也是可以的，只要 pnpm 在 PATH 中即可。
+      # 推荐使用 pnpm/action-setup 来自动缓存 pnpm 自身 store path。
+
+      - name: Get pnpm store directory # 保留你的缓存逻辑
         shell: bash
         run: |
+          # 此时 pnpm 应该可用
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          
       - name: Setup pnpm cache
         uses: actions/cache@v4
         with:
@@ -64,16 +55,9 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      - id: configurepages
-        uses: actions/configure-pages@v5
-      - name: Restore Next.js cache
-        uses: actions/cache@v4
-        with:
-          path: .next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+
       - name: Install dependencies
+        # 此时 pnpm 应该在 PATH 中，可以执行
         run: pnpm install --frozen-lockfile
       - name: Generate contentlayer files
         run: pnpm contentlayer

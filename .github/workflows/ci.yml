@@ -18,19 +18,20 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm'
+        cache: 'pnpm' # 'cache: pnpm' 仅处理缓存，不安装 pnpm
     
-    - name: Enable Corepack
-      run: corepack enable
-    
+    # 🌟 替换 Corepack 步骤，使用 pnpm 官方 Action
     - name: Setup pnpm
-      run: corepack prepare pnpm@10.24.0 --activate
+      uses: pnpm/action-setup@v3 # 使用官方 Action 来安装 pnpm
+      with:
+        version: 10.24.0 # 指定你需要的 pnpm 版本
+        run_install: false # 避免在这里运行 install, 我们在下一步运行
     
     - name: Install dependencies
+      # 此时 pnpm 应该在 PATH 中，可以执行
       run: pnpm install --frozen-lockfile
     
     - name: Build project
       run: pnpm build
       env:
         NODE_ENV: production
-
