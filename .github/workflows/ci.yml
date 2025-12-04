@@ -22,9 +22,9 @@ jobs:
         cache: 'pnpm' # 仅做 cache，不会安装 pnpm
 
     - name: Setup pnpm (official action)
-      uses: pnpm/action-setup@v3
+      uses: pnpm/action-setup@v4
       with:
-        version: '10'        # 使用主版本号或 'latest'，避免精确小版本导致找不到
+        version: 10.24.0     # 使用精确版本匹配 package.json 中的 packageManager 字段
         run_install: false   # 我们在后面单独运行 install
 
     - name: Verify pnpm is available (and fallback to npm global install)
@@ -34,7 +34,7 @@ jobs:
           pnpm --version
         else
           echo "pnpm not found. Installing pnpm globally via npm as fallback..."
-          npm install -g pnpm@10 || npm install -g pnpm
+          npm install -g pnpm@10.24.0 || npm install -g pnpm@^10 || npm install -g pnpm
           pnpm --version
         fi
 
