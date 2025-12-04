@@ -23,6 +23,8 @@ export default function Home({ posts }: HomeProps) {
       </div>
       {/* 主页内容 */}
       <div className="relative z-10 w-full mx-auto mt-16 px-4 md:mt-18 lg:mt-20 xl:px-0">
+        {/* 内容背景遮罩 - 提升文字可读性 */}
+        <div className="fixed inset-0 -z-[5] bg-white/20 dark:bg-gray-950/60 backdrop-blur-sm" />
         {/* Hero 区域 */}
         <div className="relative w-full px-4 flex flex-col items-center justify-between md:flex-row mb-16">
           {/* 左侧：标题和描述 */}
