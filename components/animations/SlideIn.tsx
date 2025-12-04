@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { ReactNode, useRef } from 'react'
+import { ReactNode, useRef, useState, useEffect } from 'react'
 import { getMobileOptimizedAnimationParams } from '@/lib/utils/device'
 
 interface SlideInProps {
@@ -27,9 +27,18 @@ export default function SlideIn({
   className = '',
   whileInView = false,
 }: SlideInProps) {
-  // 移动设备优化：减少距离和时长
-  const { distance: optimizedDistance, duration: optimizedDuration } =
-    getMobileOptimizedAnimationParams(distance, duration)
+  // 使用 useState 确保服务器端和客户端初始值一致
+  const [optimizedDistance, setOptimizedDistance] = useState(distance)
+  const [optimizedDuration, setOptimizedDuration] = useState(duration)
+  
+  // 在客户端挂载后应用移动设备优化，避免 hydration mismatch
+  useEffect(() => {
+    const { distance: optDistance, duration: optDuration } =
+      getMobileOptimizedAnimationParams(distance, duration)
+    setOptimizedDistance(optDistance)
+    setOptimizedDuration(optDuration)
+  }, [distance, duration])
+  
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
 

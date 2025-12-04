@@ -11,6 +11,156 @@
   display: none;
 }
 
+/* 移动端浮动按钮 */
+.tocFloatingButton {
+  position: fixed !important;
+  bottom: 80px !important;
+  right: 20px !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  background: rgb(249 250 251) !important;
+  border: 1px solid rgb(229 231 235) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1) !important;
+  display: none;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  z-index: 45 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.tocFloatingButton:hover {
+  background: rgb(243 244 246);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+.tocFloatingButton:active {
+  transform: scale(0.95);
+}
+
+/* 遮罩层 */
+.tocBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 40;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 移动端浮动面板 */
+.tocMobilePanel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 80vh;
+  background: rgb(255 255 255);
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -2px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tocMobilePanelOpen {
+  transform: translateY(0);
+}
+
+.tocMobilePanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgb(229 231 235);
+  flex-shrink: 0;
+}
+
+/* Dark mode for mobile panel */
+@media (prefers-color-scheme: dark) {
+  .tocMobilePanel {
+    background: rgb(17 24 39);
+    border-top: 1px solid rgb(55 65 81);
+  }
+
+  .tocMobilePanelHeader {
+    border-bottom-color: rgb(55 65 81);
+  }
+}
+
+.tocMobilePanelTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: rgb(17 24 39);
+  letter-spacing: 0.5px;
+}
+
+.tocCloseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgb(107 114 128);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tocCloseButton:hover {
+  background: rgb(243 244 246);
+  color: rgb(17 24 39);
+}
+
+.tocCloseButton:active {
+  transform: scale(0.95);
+}
+
+.tocMobileContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem 0;
+  min-height: 0;
+}
+
+.tocMobileContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tocMobileContent::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+}
+
+.tocMobileContent::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.tocMobileContent::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
 .toc {
   flex: 1;
   min-height: 0;
@@ -63,6 +213,14 @@
   }
   
   .toc::-webkit-scrollbar-thumb:hover {
+    background: rgb(107 114 128);
+  }
+
+  .tocMobileContent::-webkit-scrollbar-thumb {
+    background: rgb(75 85 99);
+  }
+  
+  .tocMobileContent::-webkit-scrollbar-thumb:hover {
     background: rgb(107 114 128);
   }
 }
@@ -176,73 +334,28 @@
   font-size: 0.875em;
 }
 
-/* 响应式样式 */
-@media (max-width: 1023px) {
+/* 响应式样式 - 使用 768px 断点与 Tailwind md: 保持一致 */
+@media (max-width: 767px) {
+  /* 移动端隐藏桌面端容器 */
   .tocContainer {
-    position: relative;
-    margin: 1.5rem 0;
+    display: none !important;
   }
 
-  .tocTitle {
-    display: none;
-  }
-
-  .tocHeader {
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-
-  .tocToggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0.875rem 1rem;
-    background: rgb(249 250 251);
-    border: 1px solid rgb(229 231 235);
-    border-radius: 0.75rem;
-    color: rgb(17 24 39);
-    font-size: 0.875rem;
-    font-weight: 600;
-    letter-spacing: 0.025em;
-    text-align: left;
-    cursor: pointer;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .tocToggle:hover {
-    background: rgb(243 244 246);
-    border-color: rgb(99 102 241);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  }
-
-  .tocToggle:active {
-    transform: scale(0.98);
-  }
-
-  .chevronDown {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .toc {
-    display: none;
-    position: static;
-    /* 移动端展开时：限制最大高度为屏幕的 60%，最小 300px，最大 600px */
-    max-height: clamp(300px, 60vh, 600px);
-    margin-top: 0.5rem;
-    overflow-y: auto;
-  }
-
-  .expanded {
-    display: block !important;
+  /* 显示浮动按钮 */
+  .tocFloatingButton {
+    display: flex !important;
   }
 }
 
-/* 移动端展开状态 */
-.expanded {
-  display: block !important;
+/* 桌面端隐藏浮动按钮和面板 */
+@media (min-width: 768px) {
+  .tocFloatingButton,
+  .tocBackdrop,
+  .tocMobilePanel {
+    display: none !important;
+  }
 }
+
 
 /* 平板尺寸 (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
@@ -311,33 +424,22 @@
 
 /* 小屏幕手机 (最大 576px) */
 @media (max-width: 576px) {
-  .tocContainer {
-    margin: 1rem 0;
-    /* 小屏幕：不设置固定高度，让内容自然展开 */
-    height: auto;
-    max-height: none;
+  .tocFloatingButton {
+    bottom: 70px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
   }
 
-  .tocToggle {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-  }
-
-  .toc {
-    /* 小屏幕展开时：使用更小的最大高度 */
-    max-height: clamp(250px, 50vh, 500px);
+  .tocMobilePanel {
+    max-height: 75vh;
   }
 }
 
 /* 中等屏幕手机 (577px - 767px) */
 @media (min-width: 577px) and (max-width: 767px) {
-  .tocContainer {
-    height: auto;
-    max-height: none;
-  }
-
-  .toc {
-    max-height: clamp(350px, 55vh, 550px);
+  .tocMobilePanel {
+    max-height: 80vh;
   }
 }
 

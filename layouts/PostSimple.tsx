@@ -85,9 +85,13 @@ export default function PostLayout({
                 </div>
               </footer>
             </div>
-            <div className="md:col-span-1 md:sticky md:top-20 md:self-start md:flex md:flex-col">
+            <div className="hidden md:block md:col-span-1 md:sticky md:top-20 md:self-start md:flex md:flex-col">
               <FloatingTOC toc={toc} enabled={showTOC} />
             </div>
+          </div>
+          {/* 移动端浮动 ToC - 在布局外部渲染，只渲染移动端组件 */}
+          <div className="md:hidden">
+            <FloatingTOC toc={toc} enabled={showTOC} mobileOnly={true} />
           </div>
         </div>
       </article>

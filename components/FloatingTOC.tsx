@@ -9,6 +9,7 @@ import { cn } from './lib/utils'
 interface FloatingTOCProps {
   toc?: TOC
   enabled?: boolean
+  mobileOnly?: boolean // 如果为 true，只渲染移动端浮动按钮和面板，不渲染桌面端容器
 }
 
 interface HeadingNode extends TOCItem {
@@ -19,7 +20,7 @@ interface HeadingNode extends TOCItem {
  * FloatingTOC - 浮动目录组件
  * 基于提供的 Astro TOC 组件转换而来
  */
-function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
+function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCProps) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false)
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
@@ -29,6 +30,7 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
   const isMobileRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const tocContentRef = useRef<HTMLElement>(null)
+  const tocMobileContentRef = useRef<HTMLElement>(null)
   const { resolvedTheme } = useTheme()
   
   // 当组件挂载后，显示 UI
@@ -56,14 +58,36 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
     isMobileRef.current = isMobile
   }, [isMobile])
 
-  // 检测是否为移动端
+  // 移动端面板打开时，滚动到活动链接
+  useEffect(() => {
+    if (isMobile && isMobileExpanded && activeHeadingId && tocMobileContentRef.current) {
+      setTimeout(() => {
+        const activeLink = tocMobileContentRef.current?.querySelector<HTMLAnchorElement>(
+          `.toc-link[data-id="${activeHeadingId}"]`
+        )
+        if (activeLink) {
+          activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        }
+      }, 100)
+    }
+  }, [isMobile, isMobileExpanded, activeHeadingId])
+
+  // 检测是否为移动端 - 使用 768px 断点与 Tailwind md: 保持一致
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024)
+      setIsMobile(window.innerWidth < 768)
     }
+    // 初始检查
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  
+  // 在服务器端渲染时，默认不渲染桌面端容器（避免 hydration 问题）
+  // 客户端挂载后再根据窗口宽度决定是否渲染
+  const [shouldRenderDesktop, setShouldRenderDesktop] = useState(false)
+  useEffect(() => {
+    setShouldRenderDesktop(window.innerWidth >= 768)
   }, [])
 
   // 将扁平 TOC 转换为树形结构
@@ -94,6 +118,13 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
     setIsMobileExpanded((prev) => !prev)
   }, [])
 
+  // 处理遮罩层点击关闭
+  const handleBackdropClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      setIsMobileExpanded(false)
+    }
+  }, [])
+
   // 处理桌面端折叠/展开
   const handleDesktopToggle = useCallback(() => {
     setIsDesktopExpanded((prev) => !prev)
@@ -114,18 +145,20 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
         behavior: 'smooth',
       })
 
-      // 移动端点击后自动关闭
-      if (isMobile) {
+      // 移动端点击后自动关闭（使用窗口宽度判断，不依赖 isMobile 状态）
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
         setIsMobileExpanded(false)
       }
     }
-  }, [isMobile])
+  }, [])
 
   // 创建 ID 到链接的映射（在 useEffect 中动态构建，确保 DOM 已渲染）
   const buildIdToLinkMap = useCallback(() => {
     const map = new Map<string, HTMLAnchorElement>()
-    if (containerRef.current) {
-      const links = containerRef.current.querySelectorAll<HTMLAnchorElement>('.toc-link')
+    // 优先从移动端面板查找，如果不存在则从桌面端容器查找
+    const container = isMobile ? tocMobileContentRef.current : containerRef.current
+    if (container) {
+      const links = container.querySelectorAll<HTMLAnchorElement>('.toc-link')
       links.forEach((link) => {
         const href = link.getAttribute('href')
         if (href && href.startsWith('#')) {
@@ -135,7 +168,7 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
       })
     }
     return map
-  }, [])
+  }, [isMobile])
 
   // IntersectionObserver 监听标题
   useEffect(() => {
@@ -242,13 +275,21 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
               setTimeout(() => {
                 const activeLink = currentIdToLinkMap.get(topHeadingId)
                 if (activeLink) {
-                  // 滚动到可见位置（仅在桌面端且展开时）
-                  const tocContainer = tocContentRef.current
-                  if (tocContainer && !tocContainer.classList.contains('collapsed') && !isMobileRef.current) {
-                    const linkRect = activeLink.getBoundingClientRect()
-                    const containerRect = tocContainer.getBoundingClientRect()
-                    if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+                  if (isMobileRef.current) {
+                    // 移动端：滚动到移动端面板中的可见位置
+                    const mobileContainer = tocMobileContentRef.current
+                    if (mobileContainer && isMobileExpanded) {
                       activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                    }
+                  } else {
+                    // 桌面端：滚动到桌面端容器中的可见位置
+                    const tocContainer = tocContentRef.current
+                    if (tocContainer && !tocContainer.classList.contains('collapsed')) {
+                      const linkRect = activeLink.getBoundingClientRect()
+                      const containerRect = tocContainer.getBoundingClientRect()
+                      if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+                        activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                      }
                     }
                   }
                 }
@@ -281,13 +322,21 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
             setTimeout(() => {
               const activeLink = currentIdToLinkMap.get(currentActive)
               if (activeLink) {
-                // 滚动到可见位置
-                const tocContainer = tocContentRef.current
-                if (tocContainer && !tocContainer.classList.contains('collapsed') && !isMobileRef.current) {
-                  const linkRect = activeLink.getBoundingClientRect()
-                  const containerRect = tocContainer.getBoundingClientRect()
-                  if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+                if (isMobileRef.current) {
+                  // 移动端：滚动到移动端面板中的可见位置
+                  const mobileContainer = tocMobileContentRef.current
+                  if (mobileContainer && isMobileExpanded) {
                     activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                  }
+                } else {
+                  // 桌面端：滚动到桌面端容器中的可见位置
+                  const tocContainer = tocContentRef.current
+                  if (tocContainer && !tocContainer.classList.contains('collapsed')) {
+                    const linkRect = activeLink.getBoundingClientRect()
+                    const containerRect = tocContainer.getBoundingClientRect()
+                    if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+                      activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                    }
                   }
                 }
               }
@@ -373,13 +422,21 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
             setTimeout(() => {
               const activeLink = currentIdToLinkMap.get(currentActive)
               if (activeLink) {
-                // 滚动到可见位置
-                const tocContainer = tocContentRef.current
-                if (tocContainer && !tocContainer.classList.contains('collapsed') && !isMobileRef.current) {
-                  const linkRect = activeLink.getBoundingClientRect()
-                  const containerRect = tocContainer.getBoundingClientRect()
-                  if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+                if (isMobileRef.current) {
+                  // 移动端：滚动到移动端面板中的可见位置
+                  const mobileContainer = tocMobileContentRef.current
+                  if (mobileContainer && isMobileExpanded) {
                     activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                  }
+                } else {
+                  // 桌面端：滚动到桌面端容器中的可见位置
+                  const tocContainer = tocContentRef.current
+                  if (tocContainer && !tocContainer.classList.contains('collapsed')) {
+                    const linkRect = activeLink.getBoundingClientRect()
+                    const containerRect = tocContainer.getBoundingClientRect()
+                    if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+                      activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                    }
                   }
                 }
               }
@@ -553,87 +610,132 @@ function FloatingTOC({ toc, enabled = true }: FloatingTOCProps) {
     [handleLinkClick, getDepthClass, activeHeadingId, isDark]
   )
 
-  // 如果未启用，不渲染
-  if (!enabled) {
-    return null
-  }
-
-  // 如果没有目录数据或目录为空，不渲染
-  if (!toc || !Array.isArray(toc) || toc.length === 0) {
+  // 如果未启用或没有目录数据，不渲染任何内容
+  if (!enabled || !toc || !Array.isArray(toc) || toc.length === 0) {
     return null
   }
 
   return (
-    <div ref={containerRef} className={styles.tocContainer}>
-      {/* 移动端头部 */}
-      <div className={styles.tocHeader}>
+    <>
+      {/* 移动端浮动按钮和面板 - 始终渲染，由 CSS 控制显示 */}
+      <>
+        {/* 浮动按钮 */}
         <button
-          id="toc-toggle"
           onClick={handleMobileToggle}
           aria-expanded={isMobileExpanded}
-          aria-controls="toc-content"
-          className={cn(styles.tocToggle, 'dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-800 dark:hover:border-indigo-400')}
-        >
-          <span className="font-brand text-lg">TOC</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={cn(styles.chevronDown, isMobileExpanded && 'rotate-180')}
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </button>
-      </div>
-
-      {/* 桌面端标题 */}
-      <div className={cn(styles.tocTitle, 'dark:border-gray-700')}>
-        <span className={cn(styles.tocTitleText, 'font-brand text-base dark:text-gray-100')}>TOC</span>
-        <button
-          id="toc-toggle-desktop"
-          className={cn(styles.tocToggleDesktop, 'dark:text-gray-400 dark:hover:text-indigo-400 dark:hover:bg-gray-800')}
-          onClick={handleDesktopToggle}
-          aria-expanded={isDesktopExpanded}
-          aria-controls="toc-content"
           aria-label="Toggle table of contents"
+          className={cn(styles.tocFloatingButton, 'dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700')}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={cn(styles.chevronUp, isDesktopExpanded ? 'rotate-0' : 'rotate-180')}
           >
-            <path d="m18 15-6-6-6 6" />
+            <path d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-      </div>
 
-      {/* 目录内容 */}
-      <nav
-        ref={tocContentRef}
-        id="toc-content"
-        className={cn(
-          styles.toc,
-          isMobileExpanded && styles.expanded,
-          !isDesktopExpanded && styles.collapsed
+        {/* 遮罩层 */}
+        {isMobileExpanded && (
+          <div
+            className={styles.tocBackdrop}
+            onClick={handleBackdropClick}
+            aria-hidden="true"
+          />
         )}
-        aria-label="TOC"
-      >
-        <ul>{tree.map((node) => renderTOCNode(node))}</ul>
-      </nav>
-    </div>
+
+        {/* 移动端浮动面板 */}
+        <div
+          className={cn(
+            styles.tocMobilePanel,
+            isMobileExpanded && styles.tocMobilePanelOpen
+          )}
+        >
+            <div className={styles.tocMobilePanelHeader}>
+              <span className={cn(styles.tocMobilePanelTitle, 'font-brand dark:text-gray-100')}>目录</span>
+              <button
+                onClick={() => setIsMobileExpanded(false)}
+                aria-label="Close table of contents"
+                className={cn(styles.tocCloseButton, 'dark:text-gray-400 dark:hover:text-gray-200')}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <nav
+              ref={tocMobileContentRef}
+              id="toc-content-mobile"
+              className={styles.tocMobileContent}
+              aria-label="TOC"
+            >
+              <ul>{tree.map((node) => renderTOCNode(node))}</ul>
+            </nav>
+          </div>
+      </>
+
+      {/* 桌面端容器 - 仅在非移动端且非 mobileOnly 模式下渲染 */}
+      {!mobileOnly && shouldRenderDesktop && !isMobile && (
+        <div ref={containerRef} className={styles.tocContainer}>
+          {/* 桌面端标题 */}
+          <div className={cn(styles.tocTitle, 'dark:border-gray-700')}>
+            <span className={cn(styles.tocTitleText, 'font-brand text-base dark:text-gray-100')}>TOC</span>
+            <button
+              id="toc-toggle-desktop"
+              className={cn(styles.tocToggleDesktop, 'dark:text-gray-400 dark:hover:text-indigo-400 dark:hover:bg-gray-800')}
+              onClick={handleDesktopToggle}
+              aria-expanded={isDesktopExpanded}
+              aria-controls="toc-content"
+              aria-label="Toggle table of contents"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={cn(styles.chevronUp, isDesktopExpanded ? 'rotate-0' : 'rotate-180')}
+              >
+                <path d="m18 15-6-6-6 6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* 目录内容 */}
+          <nav
+            ref={tocContentRef}
+            id="toc-content"
+            className={cn(
+              styles.toc,
+              !isDesktopExpanded && styles.collapsed
+            )}
+            aria-label="TOC"
+          >
+            <ul>{tree.map((node) => renderTOCNode(node))}</ul>
+          </nav>
+        </div>
+      )}
+    </>
   )
 }
 
