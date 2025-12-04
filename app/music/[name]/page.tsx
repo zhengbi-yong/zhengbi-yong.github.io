@@ -1,18 +1,10 @@
 import { notFound } from 'next/navigation'
 import FullscreenMusicSheet from '@/components/FullscreenMusicSheet'
-
-// 乐谱配置映射
-const musicSheets: Record<string, { title: string; src: string }> = {
-  flower_dance: {
-    title: 'Flower Dance',
-    src: 'flower_dance.mxl',
-  },
-  // 可以在这里添加更多乐谱
-}
+import musicSheets from '@/data/musicData'
 
 export const generateStaticParams = async () => {
-  return Object.keys(musicSheets).map((name) => ({
-    name,
+  return musicSheets.map((music) => ({
+    name: music.id,
   }))
 }
 
@@ -20,7 +12,7 @@ export default async function MusicPage(props: { params: Promise<{ name: string 
   const params = await props.params
   const name = params.name
 
-  const musicSheet = musicSheets[name]
+  const musicSheet = musicSheets.find((music) => music.id === name)
 
   if (!musicSheet) {
     notFound()
