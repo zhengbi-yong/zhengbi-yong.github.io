@@ -1,8 +1,14 @@
 'use client'
 
 import { type ComponentType } from 'react'
+import dynamic from 'next/dynamic'
 import ExperimentModule from '@/components/ExperimentModule'
-import ShaderBackgroundWrapper from '@/components/ShaderBackgroundWrapper'
+
+// 动态导入 ShaderBackgroundWrapper 避免 HMR 问题
+const ShaderBackgroundWrapper = dynamic(() => import('@/components/ShaderBackgroundWrapper'), {
+  ssr: false,
+  loading: () => null,
+})
 
 type ModuleConfig = {
   title: string

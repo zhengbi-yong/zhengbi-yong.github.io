@@ -1,7 +1,6 @@
 'use client'
 
-import React from 'react'
-import { logger } from '@/lib/utils/logger'
+import React, { Component } from 'react'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
@@ -18,7 +17,7 @@ interface ErrorBoundaryState {
  * ErrorBoundary - 全局错误边界组件
  * 捕获子组件树中的 JavaScript 错误，并提供友好的错误 UI
  */
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props)
     this.state = {
@@ -37,7 +36,13 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // 记录错误信息
-    logger.error('ErrorBoundary 捕获到错误:', error, errorInfo)
+    // 使用动态导入避免 HMR 问题
+    import('@/lib/utils/logger').then(({ logger }) => {
+      logger.error('ErrorBoundary 捕获到错误:', error, errorInfo)
+    }).catch(() => {
+      // 如果 logger 加载失败，使用 console.error 作为降级方案
+      console.error('ErrorBoundary 捕获到错误:', error, errorInfo)
+    })
     
     // 调用可选的错误回调
     if (this.props.onError) {

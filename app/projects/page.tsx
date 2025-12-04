@@ -1,7 +1,7 @@
 import projectsData from '@/data/projectsData'
 import Card from '@/components/Card'
 import { genPageMetadata } from 'app/seo'
-import ShaderBackgroundWrapper from '@/components/ShaderBackgroundWrapper'
+import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
 
 export const metadata = genPageMetadata({ title: 'Projects' })
 
@@ -10,7 +10,7 @@ export default function Projects() {
     <div className="relative min-h-screen">
       {/* 着色器背景 - 固定定位覆盖整个视口 */}
       <div className="fixed inset-0 -z-10">
-        <ShaderBackgroundWrapper intensity={0.8} />
+        <ShaderBackgroundClient intensity={0.8} />
       </div>
       {/* 项目内容 */}
       <div className="relative z-10">
