@@ -176,15 +176,43 @@ export default function MusicSheetLab() {
         }
       }
       
-      const xmlPath = `${currentBasePath}/musicxml/${fileName}`
-      console.log('正在加载 MusicXML 文件:', xmlPath, 'basePath:', currentBasePath, '原始路径:', window.location.pathname)
+      // 尝试多个可能的路径
+      const possiblePaths = [
+        `${currentBasePath}/musicxml/${fileName}`,
+        `/musicxml/${fileName}`,
+        `${window.location.origin}${currentBasePath}/musicxml/${fileName}`,
+        `${window.location.origin}/musicxml/${fileName}`,
+      ]
       
-      // 先检查文件是否存在
-      const response = await fetch(xmlPath)
-      if (!response.ok) {
-        throw new Error(`文件加载失败: ${response.status} ${response.statusText}`)
+      console.log('尝试加载 MusicXML 文件，basePath:', currentBasePath, '原始路径:', window.location.pathname)
+      console.log('可能的路径:', possiblePaths)
+      
+      let xmlPath = ''
+      let lastError: Error | null = null
+      
+      // 依次尝试每个路径
+      for (const path of possiblePaths) {
+        try {
+          console.log('尝试路径:', path)
+          const response = await fetch(path, { method: 'HEAD' })
+          if (response.ok) {
+            xmlPath = path
+            console.log('✓ 找到文件:', path)
+            break
+          } else {
+            console.log(`✗ 路径不存在 (${response.status}):`, path)
+          }
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error(String(err))
+          console.log('✗ 请求失败:', path, err)
+        }
       }
       
+      if (!xmlPath) {
+        throw new Error(`无法找到 MusicXML 文件。尝试的路径: ${possiblePaths.join(', ')}`)
+      }
+      
+      // 加载文件
       await osmdInstanceRef.current.load(xmlPath)
       console.log('MusicXML 加载成功，开始渲染...')
       osmdInstanceRef.current.render()
