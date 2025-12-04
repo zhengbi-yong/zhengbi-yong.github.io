@@ -34,6 +34,10 @@ const BounceIn = dynamic(() => import('./animations/BounceIn').then((mod) => mod
   loading: () => <AnimationSkeleton />,
 })
 
+const ConfettiOnView = dynamic(() => import('./animations/ConfettiOnView').then((mod) => mod.default), {
+  loading: () => null,
+})
+
 // 包装动画组件，添加错误边界和 Suspense
 // 注意：不使用 memo，因为 MDX 组件每次渲染都会创建新的 props 对象
 const WrappedFadeIn = (props: any) => (
@@ -76,6 +80,14 @@ const WrappedBounceIn = (props: any) => (
   </AnimationErrorBoundary>
 )
 
+const WrappedConfettiOnView = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={null}>
+      <ConfettiOnView {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
 export const components: MDXComponents = {
   Image,
   TOCInline,
@@ -92,4 +104,5 @@ export const components: MDXComponents = {
   ScaleIn: WrappedScaleIn,
   RotateIn: WrappedRotateIn,
   BounceIn: WrappedBounceIn,
+  ConfettiOnView: WrappedConfettiOnView,
 }
