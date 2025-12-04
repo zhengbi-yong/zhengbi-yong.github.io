@@ -42,7 +42,7 @@ $forceOverwrite = $false
 Write-Step "检查必需的工具..."
 
 $requiredTools = @(
-    @{ Name = "yarn"; Path = "yarn" },
+    @{ Name = "pnpm"; Path = "pnpm" },
     @{ Name = "corepack"; Path = "corepack" },
     @{ Name = "cygpath"; Path = "C:\cygwin64\bin\cygpath.exe" },
     @{ Name = "rsync"; Path = "C:\cygwin64\bin\rsync.exe" },
@@ -51,10 +51,10 @@ $requiredTools = @(
 )
 
 foreach ($tool in $requiredTools) {
-    if ($tool.Path -eq "yarn" -or $tool.Path -eq "corepack") {
+    if ($tool.Path -eq "pnpm" -or $tool.Path -eq "corepack") {
         $command = Get-Command $tool.Name -ErrorAction SilentlyContinue
         if (-not $command) {
-            Write-ErrorMsg "$($tool.Name) 未找到，请确保已安装 Node.js 和 Yarn"
+            Write-ErrorMsg "$($tool.Name) 未找到，请确保已安装 Node.js 和 pnpm"
             exit 1
         }
     }
@@ -71,9 +71,9 @@ Write-Success "所有必需的工具都已找到"
 # 步骤 1: 代码检查
 # 注意：Next.js 16 的 lint 命令不支持 --fix 选项
 # 如需自动修复，可手动运行: npx eslint --fix
-Write-Step "步骤 1/4: 运行代码检查 (yarn lint)"
+Write-Step "步骤 1/4: 运行代码检查 (pnpm lint)"
 try {
-    $lintResult = yarn lint 2>&1
+    $lintResult = pnpm lint 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-WarningMsg "代码检查发现一些问题，但继续执行..."
         Write-Host $lintResult
@@ -88,7 +88,7 @@ catch {
 }
 
 # 步骤 2: 构建项目
-Write-Step "步骤 2/4: 构建项目 (yarn build)"
+Write-Step "步骤 2/4: 构建项目 (pnpm build)"
 
 # 设置环境变量
 corepack enable
@@ -112,7 +112,7 @@ Write-Host "  静态导出模式: 已启用（UNOPTIMIZED=1，图片优化已禁
 
 try {
     Write-Host "开始构建..." -ForegroundColor Gray
-    $buildResult = yarn build 2>&1
+    $buildResult = pnpm build 2>&1
     
     # 检查构建是否成功
     if ($LASTEXITCODE -ne 0) {

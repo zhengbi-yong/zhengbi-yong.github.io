@@ -296,26 +296,28 @@ export default function Header() {
                   </>
                 )}
               </div>
-              <span className="hidden sm:inline-block whitespace-nowrap">
-                <span
-                  id="dayText"
-                  className={cn(
-                    'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
-                    isDark ? 'hidden' : 'block'
-                  )}
-                >
-                  Light
+              {mounted && (
+                <span className="hidden sm:inline-block whitespace-nowrap">
+                  <span
+                    id="dayText"
+                    className={cn(
+                      'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
+                      isDark ? 'hidden' : 'block'
+                    )}
+                  >
+                    Light
+                  </span>
+                  <span
+                    id="nightText"
+                    className={cn(
+                      'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
+                      isDark ? 'block' : 'hidden'
+                    )}
+                  >
+                    Dark
+                  </span>
                 </span>
-                <span
-                  id="nightText"
-                  className={cn(
-                    'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
-                    isDark ? 'block' : 'hidden'
-                  )}
-                >
-                  Dark
-                </span>
-              </span>
+              )}
             </div>
           </div>
         </div>
