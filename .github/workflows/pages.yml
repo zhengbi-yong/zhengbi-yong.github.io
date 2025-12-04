@@ -20,10 +20,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node.js (without cache)
+      - name: Temporarily remove packageManager field
+        run: |
+          # 备份 package.json
+          cp package.json package.json.bak
+          # 使用 node 临时移除 packageManager 字段
+          node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); delete pkg.packageManager; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Restore package.json
+        run: mv package.json.bak package.json
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         id: pnpm-setup
