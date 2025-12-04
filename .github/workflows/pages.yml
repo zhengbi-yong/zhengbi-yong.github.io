@@ -73,12 +73,21 @@ jobs:
             echo "确保 out/musicxml 目录存在..."
             mkdir -p out/musicxml
             echo "复制 musicxml 文件到 out 目录..."
-            cp -r public/musicxml/* out/musicxml/ || echo "复制失败，但继续..."
+            cp -r public/musicxml/* out/musicxml/ 2>&1
+            if [ $? -eq 0 ]; then
+              echo "✓ 复制成功"
+            else
+              echo "✗ 复制失败"
+            fi
             echo ""
             echo "验证 out/musicxml 目录..."
             if [ -d "out/musicxml" ]; then
               echo "✓ out/musicxml 目录存在"
               ls -la out/musicxml/
+              echo ""
+              echo "检查文件数量..."
+              FILE_COUNT=$(find out/musicxml -type f | wc -l)
+              echo "找到 $FILE_COUNT 个文件"
             else
               echo "✗ out/musicxml 目录不存在"
             fi
