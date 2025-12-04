@@ -1,0 +1,317 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Spinner } from '@/components/loaders'
+import type { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
+
+interface FullscreenMusicSheetProps {
+  /** MusicXML 文件路径，相对于 public/musicxml/ 目录 */
+  src: string
+  /** 缩放级别，默认 1.0 */
+  zoom?: number
+  /** 是否显示标题等信息，默认 true */
+  drawTitle?: boolean
+  /** 是否显示小节号，默认 true */
+  drawMeasureNumbers?: boolean
+  /** 标题 */
+  title?: string
+}
+
+/**
+ * 全屏乐谱组件 - 用于全屏展示 MusicXML 格式的乐谱
+ * 
+ * @example
+ * <FullscreenMusicSheet src="flower_dance.xml" title="Flower Dance" />
+ */
+export default function FullscreenMusicSheet({
+  src,
+  zoom = 1.0,
+  drawTitle = true,
+  drawMeasureNumbers = true,
+  title,
+}: FullscreenMusicSheetProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const osmdInstanceRef = useRef<OpenSheetMusicDisplay | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState<boolean>(false)
+  const [currentZoom, setCurrentZoom] = useState<number>(zoom)
+
+  // 确保只在客户端挂载
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // 获取 basePath（用于处理子路径部署）
+  const getBasePath = (): string => {
+    if (typeof window === 'undefined') return ''
+    
+    const envBasePath = process.env.NEXT_PUBLIC_BASE_PATH
+    if (envBasePath) {
+      return envBasePath.startsWith('/') ? envBasePath : `/${envBasePath}`
+    }
+    
+    const pathname = window.location.pathname
+    const segments = pathname.split('/').filter(Boolean)
+    const knownAppRoutes = ['experiment', 'blog', 'tags', 'about', 'projects', 'music']
+    const nextJsRoutes = ['_next', 'api', 'static']
+    
+    if (segments.length >= 1) {
+      const firstSegment = segments[0]
+      if (nextJsRoutes.includes(firstSegment)) {
+        return ''
+      }
+      if (!knownAppRoutes.includes(firstSegment)) {
+        return `/${firstSegment}`
+      }
+    }
+    
+    return ''
+  }
+
+  // 加载 MusicXML 文件
+  const loadMusicXML = async (filePath: string) => {
+    if (!osmdInstanceRef.current) {
+      setError('OSMD 实例未初始化')
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const basePath = getBasePath()
+      
+      // 尝试多个可能的路径
+      const possiblePaths = [
+        `${basePath}/musicxml/${filePath}`,
+        `/musicxml/${filePath}`,
+        `${window.location.origin}${basePath}/musicxml/${filePath}`,
+        `${window.location.origin}/musicxml/${filePath}`,
+      ]
+      
+      let xmlContent = ''
+      let xmlPath = ''
+      
+      // 依次尝试每个路径
+      for (const path of possiblePaths) {
+        try {
+          const response = await fetch(path)
+          if (response.ok) {
+            const contentType = response.headers.get('content-type') || ''
+            if (contentType.includes('xml') || contentType.includes('text')) {
+              xmlContent = await response.text()
+              if (xmlContent.trim().startsWith('<?xml')) {
+                xmlPath = path
+                break
+              }
+            }
+          }
+        } catch {
+          // 继续尝试下一个路径
+        }
+      }
+      
+      if (!xmlContent || !xmlPath) {
+        throw new Error(`无法找到或加载 MusicXML 文件: ${filePath}`)
+      }
+      
+      // 加载 XML 内容
+      try {
+        await osmdInstanceRef.current.load(xmlPath)
+      } catch (urlError) {
+        // 如果 URL 加载失败，尝试使用 XML 字符串
+        console.warn('URL 加载失败，尝试使用 XML 字符串:', urlError)
+        await osmdInstanceRef.current.load(xmlContent)
+      }
+      
+      // 设置缩放
+      osmdInstanceRef.current.zoom = currentZoom
+      
+      // 渲染乐谱
+      osmdInstanceRef.current.render()
+      
+      setIsLoading(false)
+    } catch (err) {
+      console.error('加载乐谱错误:', err)
+      setError(`加载乐谱失败: ${err instanceof Error ? err.message : '未知错误'}`)
+      setIsLoading(false)
+    }
+  }
+
+  // 初始化 OSMD
+  useEffect(() => {
+    if (!mounted || !containerRef.current) return
+
+    const initializeOSMD = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        // 动态导入 OpenSheetMusicDisplay
+        const OSMDModule = await import('opensheetmusicdisplay')
+        
+        let OpenSheetMusicDisplayClass: any = null
+        
+        if (OSMDModule.OpenSheetMusicDisplay) {
+          OpenSheetMusicDisplayClass = OSMDModule.OpenSheetMusicDisplay
+        } else if ((OSMDModule as any).default) {
+          const defaultExport = (OSMDModule as any).default
+          if (defaultExport.OpenSheetMusicDisplay) {
+            OpenSheetMusicDisplayClass = defaultExport.OpenSheetMusicDisplay
+          } else if (typeof defaultExport === 'function') {
+            OpenSheetMusicDisplayClass = defaultExport
+          }
+        } else if (typeof window !== 'undefined' && (window as any).OpenSheetMusicDisplay) {
+          OpenSheetMusicDisplayClass = (window as any).OpenSheetMusicDisplay
+        }
+        
+        if (!OpenSheetMusicDisplayClass) {
+          throw new Error('无法找到 OpenSheetMusicDisplay 类')
+        }
+        
+        const osmd = new OpenSheetMusicDisplayClass(containerRef.current, {
+          autoResize: true,
+          backend: 'svg',
+          drawTitle,
+          drawSubtitle: drawTitle,
+          drawComposer: drawTitle,
+          drawLyricist: drawTitle,
+          drawPartNames: true,
+          drawMeasureNumbers,
+          drawTimeSignatures: true,
+        })
+        
+        osmdInstanceRef.current = osmd
+        
+        // 加载乐谱
+        await loadMusicXML(src)
+      } catch (err) {
+        console.error('OSMD 初始化错误:', err)
+        setError(`初始化失败: ${err instanceof Error ? err.message : '未知错误'}`)
+        setIsLoading(false)
+      }
+    }
+
+    // 延迟初始化，确保容器已渲染
+    const timer = setTimeout(() => {
+      void initializeOSMD()
+    }, 100)
+
+    return () => {
+      clearTimeout(timer)
+      if (osmdInstanceRef.current) {
+        osmdInstanceRef.current = null
+      }
+    }
+  }, [mounted, src, drawTitle, drawMeasureNumbers])
+
+  // 当缩放变化时更新
+  useEffect(() => {
+    if (osmdInstanceRef.current && !isLoading) {
+      osmdInstanceRef.current.zoom = currentZoom
+      osmdInstanceRef.current.render()
+    }
+  }, [currentZoom, isLoading])
+
+  // 处理缩放控制
+  const handleZoomIn = () => {
+    setCurrentZoom((prev) => Math.min(prev + 0.1, 3.0))
+  }
+
+  const handleZoomOut = () => {
+    setCurrentZoom((prev) => Math.max(prev - 0.1, 0.5))
+  }
+
+  const handleZoomReset = () => {
+    setCurrentZoom(zoom)
+  }
+
+  if (!mounted) {
+    return null
+  }
+
+  const content = (
+    <div className="fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-gray-950">
+      {/* 顶部控制栏 */}
+      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
+        <div className="flex items-center gap-4">
+          {title && (
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h1>
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleZoomOut}
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+              aria-label="缩小"
+            >
+              −
+            </button>
+            <span className="min-w-[60px] text-center text-sm text-gray-600 dark:text-gray-400">
+              {Math.round(currentZoom * 100)}%
+            </span>
+            <button
+              onClick={handleZoomIn}
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+              aria-label="放大"
+            >
+              +
+            </button>
+            <button
+              onClick={handleZoomReset}
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+              aria-label="重置缩放"
+            >
+              重置
+            </button>
+          </div>
+        </div>
+        <button
+          onClick={() => window.history.back()}
+          className="rounded-md px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+        >
+          返回
+        </button>
+      </div>
+
+      {/* 乐谱容器 */}
+      <div className="flex-1 overflow-auto">
+        {isLoading && (
+          <div className="flex h-full items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <Spinner size="lg" />
+              <p className="text-sm text-gray-500 dark:text-gray-400">正在加载乐谱...</p>
+            </div>
+          </div>
+        )}
+        
+        {error && !isLoading && (
+          <div className="flex h-full items-center justify-center">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-900/20">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          </div>
+        )}
+        
+        <div className="flex h-full items-start justify-center px-4 py-8">
+          <div
+            ref={containerRef}
+            className={`h-full w-full max-w-[95%] bg-white p-8 dark:bg-gray-950 ${
+              isLoading || error ? 'hidden' : ''
+            }`}
+          />
+        </div>
+      </div>
+    </div>
+  )
+
+  // 使用 Portal 将组件渲染到 body，确保不受父容器限制
+  if (typeof window !== 'undefined') {
+    return createPortal(content, document.body)
+  }
+
+  return null
+}
+
