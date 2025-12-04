@@ -37,12 +37,32 @@ jobs:
         run: yarn install --immutable
       - name: Generate contentlayer files
         run: yarn contentlayer
+      - name: Determine base path
+        id: basepath
+        run: |
+          # 检测是否是子路径部署（仓库名不是 username.github.io）
+          REPO_NAME="${{ github.repository }}"
+          OWNER="${REPO_NAME%%/*}"
+          REPO="${REPO_NAME##*/}"
+          
+          # 如果仓库名不是 {username}.github.io，则需要 basePath
+          if [[ "$REPO" != "${OWNER}.github.io" ]]; then
+            echo "base_path=/$REPO" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_BASE_PATH=/$REPO" >> $GITHUB_ENV
+            echo "BASE_PATH=/$REPO" >> $GITHUB_ENV
+            echo "检测到子路径部署，设置 basePath: /$REPO"
+          else
+            echo "base_path=" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_BASE_PATH=" >> $GITHUB_ENV
+            echo "BASE_PATH=" >> $GITHUB_ENV
+            echo "根路径部署，basePath 为空"
+          fi
       - run: yarn build
         env:
           EXPORT: 1
           UNOPTIMIZED: 1
-          # 移除 BASE_PATH，让网站部署到根路径
-          # BASE_PATH: ${{ steps.configurepages.outputs.base_path }}
+          BASE_PATH: ${{ steps.basepath.outputs.base_path }}
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.basepath.outputs.base_path }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
