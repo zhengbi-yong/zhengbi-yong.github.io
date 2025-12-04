@@ -346,3 +346,21 @@ html.cursor-hidden .case-go {
     right: -16px;
   }
 }
+
+/* Blog-specific styles */
+.blog-card {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blog-card:hover {
+  transform: translateY(-4px);
+}
+
+.blog-search-input {
+  transition: all 0.2s ease-in-out;
+}
+
+.blog-pagination-button {
+  transition: all 0.2s ease-in-out;
+}
