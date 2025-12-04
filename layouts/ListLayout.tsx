@@ -35,10 +35,13 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
   const nextPage = currentPage + 1 <= totalPages
 
   return (
-    <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-      <nav className="flex justify-between">
+    <div className="space-y-2 pt-8 pb-8 md:space-y-5">
+      <nav className="flex items-center justify-between gap-4">
         {!prevPage && (
-          <button className="cursor-auto disabled:opacity-50" disabled={!prevPage}>
+          <button 
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 cursor-not-allowed transition-all duration-200" 
+            disabled={!prevPage}
+          >
             上一页
           </button>
         )}
@@ -46,20 +49,28 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
           <Link
             href={currentPage - 1 === 1 ? `/${basePath}/` : `/${basePath}/page/${currentPage - 1}`}
             rel="prev"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-300 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 shadow-sm hover:shadow-md"
           >
             上一页
           </Link>
         )}
-        <span>
+        <span className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 border border-primary-200 dark:border-primary-800">
           {currentPage} / {totalPages} 页
         </span>
         {!nextPage && (
-          <button className="cursor-auto disabled:opacity-50" disabled={!nextPage}>
+          <button 
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 dark:text-gray-600 bg-gray-100 dark:bg-gray-800 cursor-not-allowed transition-all duration-200" 
+            disabled={!nextPage}
+          >
             下一页
           </button>
         )}
         {nextPage && (
-          <Link href={`/${basePath}/page/${currentPage + 1}`} rel="next">
+          <Link 
+            href={`/${basePath}/page/${currentPage + 1}`} 
+            rel="next"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-300 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400 transition-all duration-200 shadow-sm hover:shadow-md"
+          >
             下一页
           </Link>
         )}
@@ -153,38 +164,89 @@ export default function ListLayout({
     return initialDisplayPosts.length > 0 && !searchValue ? initialDisplayPosts : filteredBlogPosts
   }, [initialDisplayPosts, searchValue, filteredBlogPosts])
 
+  // 清除搜索
+  const clearSearch = () => {
+    setSearchValue('')
+  }
+
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-          <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-gray-900 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14 dark:text-gray-100">
-            {title}
-          </h1>
-          <div className="relative max-w-lg">
-            <label>
-              <span className="sr-only">搜索</span>
-              <input
-                aria-label="搜索"
-                type="text"
-                onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="搜索"
-                className="focus:border-primary-500 focus:ring-primary-500 block w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-900 dark:bg-gray-800 dark:text-gray-100"
-              />
-            </label>
-            <svg
-              className="absolute top-3 right-3 h-5 w-5 text-gray-400 dark:text-gray-300"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+        <div className="pt-8 pb-10 md:pt-12 md:pb-12">
+          {/* 标题区域 - 居中 */}
+          <div className="mb-8 md:mb-10 text-center">
+            <h1 className="text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-gray-100 dark:via-gray-200 dark:to-gray-100 bg-clip-text text-transparent mx-auto">
+              {title}
+            </h1>
+            <p className="text-base text-gray-600 dark:text-gray-400 sm:text-lg max-w-2xl mx-auto">
+              探索我的技术见解和创作内容
+            </p>
+          </div>
+
+          {/* 搜索区域 - 居中 */}
+          <div className="space-y-4 flex flex-col items-center">
+            <div className="relative w-full max-w-2xl mx-auto">
+              <label className="block">
+                <span className="sr-only">搜索</span>
+                <input
+                  aria-label="搜索"
+                  type="text"
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  placeholder="搜索文章标题、内容或标签..."
+                  value={searchValue}
+                  className="focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 block w-full rounded-xl border border-gray-300 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-4 py-3.5 pl-12 pr-12 text-gray-900 dark:text-gray-100 shadow-md transition-all duration-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 hover:shadow-lg"
+                />
+              </label>
+              {/* 搜索图标 */}
+              <svg
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              {/* 清除按钮 */}
+              {searchValue && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+                  aria-label="清除搜索"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {/* 搜索结果计数 - 居中 */}
+            {searchValue && (
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <span>
+                  找到 <span className="font-semibold text-primary-600 dark:text-primary-400">{filteredBlogPosts.length}</span> 篇文章
+                </span>
+                {filteredBlogPosts.length !== effectivePosts.length && (
+                  <span className="text-gray-400 dark:text-gray-600">（共 {effectivePosts.length} 篇）</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <ul>
@@ -207,25 +269,31 @@ export default function ListLayout({
                 whileInView={true}
               >
                 <li>
-                  <article className="space-y-2 xl:grid xl:grid-cols-4 xl:items-baseline xl:space-y-0">
-                    <dl>
+                  <article className="group rounded-2xl bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 p-6 transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 hover:-translate-y-1 hover:border-primary-300/50 dark:hover:border-primary-600/50 xl:grid xl:grid-cols-4 xl:items-start xl:gap-6">
+                    <dl className="mb-4 xl:mb-0">
                       <dt className="sr-only">Published on</dt>
-                      <dd className="text-base leading-6 font-medium text-gray-500 dark:text-gray-400">
+                      <dd className="text-sm leading-6 font-medium text-gray-500 dark:text-gray-400 xl:sticky xl:top-20">
                         <time dateTime={date}>{formatDate(date, siteMetadata.locale)}</time>
                       </dd>
                     </dl>
-                    <div className="space-y-3 xl:col-span-3">
+                    <div className="space-y-4 xl:col-span-3">
                       <div>
-                        <h3 className="text-2xl leading-8 font-bold tracking-tight">
-                          <Link href={`/${path}`} className="text-gray-900 dark:text-gray-100">
-                            {title}
+                        <h3 className="text-2xl leading-8 font-bold tracking-tight mb-3">
+                          <Link 
+                            href={`/${path}`} 
+                            className="text-gray-900 dark:text-gray-100 transition-colors duration-200 hover:text-primary-600 dark:hover:text-primary-400 relative group/link"
+                          >
+                            <span className="relative">
+                              {title}
+                              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 dark:bg-primary-400 transition-all duration-300 group-hover/link:w-full"></span>
+                            </span>
                           </Link>
                         </h3>
-                        <div className="flex flex-wrap">
+                        <div className="flex flex-wrap gap-2">
                           {tags?.map((tag) => <Tag key={tag} text={tag} />)}
                         </div>
                       </div>
-                      <div className="prose max-w-none text-gray-500 dark:text-gray-400">
+                      <div className="prose max-w-none text-gray-600 dark:text-gray-300 leading-relaxed">
                         {summary}
                       </div>
                     </div>

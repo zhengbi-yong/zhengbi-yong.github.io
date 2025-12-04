@@ -54,18 +54,23 @@ export default function ExperimentModule({
   }, [defaultOpen, startLoading])
 
   return (
-    <section className="rounded-3xl border border-gray-200 bg-white/70 p-6 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/60">
+    <section className="group rounded-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm p-6 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 hover:border-primary-300/50 dark:hover:border-primary-600/50">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
+        <div className="flex-1">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{description}</p>
         </div>
-        <div className="flex items-center gap-2">
-          {disabled && <span className="text-xs text-amber-500">性能受限，暂不可用</span>}
+        <div className="flex items-center gap-3">
+          {disabled && (
+            <span className="text-xs text-amber-500 dark:text-amber-400 font-medium">
+              性能受限，暂不可用
+            </span>
+          )}
           <Button
             variant={status === 'ready' ? 'outline' : 'default'}
             onClick={handleToggle}
             disabled={disabled}
+            className="transition-all duration-200"
           >
             {status === 'collapsed' && '展开实验'}
             {status === 'loading' && '加载中…'}
@@ -77,22 +82,27 @@ export default function ExperimentModule({
       <div className="mt-6">
         {status === 'loading' && <SkeletonProgress label={`正在加载 ${title}`} />}
         {status === 'ready' && ModuleComponent && (
-          <div className="rounded-2xl border border-dashed border-gray-200 p-4 dark:border-gray-700">
+          <div className="rounded-xl border border-dashed border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/50 p-4 transition-all duration-300">
             <ModuleComponent />
           </div>
         )}
         {status === 'collapsed' && (
-          <p className="text-xs text-gray-500 dark:text-gray-500">
-            点击“展开实验”即可加载此模块，首次加载可能需要几秒钟。
+          <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+            点击"展开实验"即可加载此模块，首次加载可能需要几秒钟。
           </p>
         )}
         {error && (
-          <p className="mt-2 text-sm text-red-500">
-            {error} ·{' '}
-            <button onClick={startLoading} className="underline">
+          <div className="mt-2 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3">
+            <p className="text-sm text-red-600 dark:text-red-400 mb-2">
+              {error}
+            </p>
+            <button 
+              onClick={startLoading} 
+              className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 underline font-medium transition-colors duration-200"
+            >
               重试
             </button>
-          </p>
+          </div>
         )}
       </div>
     </section>
