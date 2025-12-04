@@ -72,23 +72,9 @@ const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'):
   
   const pathname = window.location.pathname
   const segments = pathname.split('/').filter(Boolean)
+  const knownAppRoutes = ['experiment', 'blog', 'tags', 'about', 'projects']
   
-  // 如果路径段数 >= 1，尝试第一个段作为 basePath
-  if (segments.length >= 1) {
-    const possibleBasePath = `/${segments[0]}`
-    const testPath = `${possibleBasePath}/musicxml/${testFileName}`
-    
-    try {
-      const response = await fetch(testPath, { method: 'HEAD' })
-      if (response.ok) {
-        return possibleBasePath
-      }
-    } catch {
-      // 忽略错误
-    }
-  }
-  
-  // 尝试根路径（如果没有找到 basePath）
+  // 先尝试根路径（最常见的部署方式）
   const rootPath = `/musicxml/${testFileName}`
   try {
     const response = await fetch(rootPath, { method: 'HEAD' })
@@ -99,7 +85,26 @@ const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'):
     // 忽略错误
   }
   
-  // 如果都不行，返回空（可能是根路径部署，但文件不存在）
+  // 如果路径段数 >= 1，且第一个段不是已知的应用路由，尝试作为 basePath
+  // 例如：/myrepo/experiment -> basePath 是 /myrepo
+  if (segments.length >= 1) {
+    const firstSegment = segments[0]
+    if (!knownAppRoutes.includes(firstSegment)) {
+      const possibleBasePath = `/${firstSegment}`
+      const testPath = `${possibleBasePath}/musicxml/${testFileName}`
+      
+      try {
+        const response = await fetch(testPath, { method: 'HEAD' })
+        if (response.ok) {
+          return possibleBasePath
+        }
+      } catch {
+        // 忽略错误
+      }
+    }
+  }
+  
+  // 如果都不行，返回空（根路径部署）
   return ''
 }
 
@@ -181,27 +186,43 @@ export default function MusicSheetLab() {
         `${window.location.origin}/musicxml/${fileName}`,
       ]
       
+      let xmlContent = ''
       let xmlPath = ''
       
-      // 依次尝试每个路径
+      // 依次尝试每个路径，获取XML内容
       for (const path of possiblePaths) {
         try {
-          const response = await fetch(path, { method: 'HEAD' })
+          const response = await fetch(path)
           if (response.ok) {
-            xmlPath = path
-            break
+            const contentType = response.headers.get('content-type') || ''
+            // 检查响应是否为XML
+            if (contentType.includes('xml') || contentType.includes('text')) {
+              xmlContent = await response.text()
+              // 验证是否是有效的XML（以<?xml开头）
+              if (xmlContent.trim().startsWith('<?xml')) {
+                xmlPath = path
+                break
+              }
+            }
           }
         } catch {
           // 忽略错误，继续尝试下一个路径
         }
       }
       
-      if (!xmlPath) {
-        throw new Error(`无法找到 MusicXML 文件。尝试的路径: ${possiblePaths.join(', ')}`)
+      if (!xmlContent || !xmlPath) {
+        throw new Error(`无法找到或加载 MusicXML 文件。尝试的路径: ${possiblePaths.join(', ')}`)
       }
       
-      // 加载文件
-      await osmdInstanceRef.current.load(xmlPath)
+      // 加载XML内容（OSMD的load方法可以接受URL或XML字符串）
+      // 先尝试直接加载URL，如果失败则使用XML字符串
+      try {
+        await osmdInstanceRef.current.load(xmlPath)
+      } catch (urlError) {
+        // 如果URL加载失败，尝试使用XML字符串
+        console.warn('URL加载失败，尝试使用XML字符串:', urlError)
+        await osmdInstanceRef.current.load(xmlContent)
+      }
       osmdInstanceRef.current.render()
       
       // 解析音符序列用于播放

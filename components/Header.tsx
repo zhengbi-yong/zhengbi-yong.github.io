@@ -88,7 +88,9 @@ export default function Header() {
         >
           {/* Logo */}
           <div className="flex-shrink-0 z-50">
-            <Logo />
+            <Link href="/" className="flex items-center">
+              <Logo />
+            </Link>
           </div>
 
           {/* Mobile Menu Background Overlay */}
