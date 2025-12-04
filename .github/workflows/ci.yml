@@ -14,21 +14,31 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    # 替换现有 Setup Node + Setup pnpm + Install dependencies 段
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm' # 'cache: pnpm' 仅处理缓存，不安装 pnpm
-    
-    # 🌟 替换 Corepack 步骤，使用 pnpm 官方 Action
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v3 # 使用官方 Action 来安装 pnpm
+        cache: 'pnpm' # 仅做 cache，不会安装 pnpm
+
+    - name: Setup pnpm (official action)
+      uses: pnpm/action-setup@v3
       with:
-        version: 10.24.0 # 指定你需要的 pnpm 版本
-        run_install: false # 避免在这里运行 install, 我们在下一步运行
-    
+        version: '10'        # 使用主版本号或 'latest'，避免精确小版本导致找不到
+        run_install: false   # 我们在后面单独运行 install
+
+    - name: Verify pnpm is available (and fallback to npm global install)
+      run: |
+        echo "PATH=$PATH"
+        if command -v pnpm >/dev/null 2>&1; then
+          pnpm --version
+        else
+          echo "pnpm not found. Installing pnpm globally via npm as fallback..."
+          npm install -g pnpm@10 || npm install -g pnpm
+          pnpm --version
+        fi
+
     - name: Install dependencies
-      # 此时 pnpm 应该在 PATH 中，可以执行
       run: pnpm install --frozen-lockfile
     
     - name: Build project

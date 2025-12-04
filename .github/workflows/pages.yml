@@ -3,7 +3,7 @@ name: GitHub Pages
 
 on:
   push:
-    branches: main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -42,23 +42,29 @@ jobs:
           node-version: '20'
           # 注意：这里不使用 cache: 'pnpm' 来避免提前调用 pnpm
 
-      # 3. 🌟 使用官方 Action 安装 pnpm 并设置缓存（解决找不到 pnpm 的问题）
-      - name: Setup pnpm and Cache
-        uses: pnpm/action-setup@v3 
+      # 3. 🌟 使用官方 Action 安装 pnpm（解决找不到 pnpm 的问题）
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          version: 10.24.0 # 确保使用你需要的 pnpm 版本
-          run_install: false # 不在这里运行 install
-          cache: true # 自动设置和恢复 pnpm store 的缓存 (最推荐的方式)
-
-      # ❌ 移除 'Debug - After setup-node' 步骤 (不再需要)
-      # ❌ 移除 'Install pnpm globally via npm' 步骤 (已替换)
-      # ❌ 移除 'Get pnpm store directory' 步骤 (已替换)
-      # ❌ 移除 'Setup pnpm cache' 步骤 (已替换)
+          version: 10.24.0
+      
+      # 4. 设置 pnpm store 缓存
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - id: configurepages
         uses: actions/configure-pages@v5
         
-      # 4. 恢复 Next.js 缓存（保留 Next.js 特定的缓存）
+      # 5. 恢复 Next.js 缓存（保留 Next.js 特定的缓存）
       - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
@@ -67,7 +73,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
-      # 5. 安装依赖 (现在 pnpm 肯定在 PATH 中)
+      # 6. 安装依赖 (现在 pnpm 肯定在 PATH 中)
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -95,7 +101,7 @@ jobs:
             echo "根路径部署，basePath 为空"
           fi
           
-      # 6. 构建
+       # 7. 构建
       - run: pnpm build
         env:
           EXPORT: 1
