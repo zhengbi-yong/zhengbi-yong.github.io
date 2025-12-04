@@ -81,11 +81,10 @@ const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'):
     try {
       const response = await fetch(testPath, { method: 'HEAD' })
       if (response.ok) {
-        console.log('检测到 basePath:', possibleBasePath, '通过文件:', testPath)
         return possibleBasePath
       }
-    } catch (error) {
-      console.log('basePath 检测失败:', possibleBasePath, error)
+    } catch {
+      // 忽略错误
     }
   }
   
@@ -94,7 +93,6 @@ const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'):
   try {
     const response = await fetch(rootPath, { method: 'HEAD' })
     if (response.ok) {
-      console.log('检测到根路径部署（basePath 为空）')
       return ''
     }
   } catch {
@@ -102,7 +100,6 @@ const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'):
   }
   
   // 如果都不行，返回空（可能是根路径部署，但文件不存在）
-  console.warn('无法检测 basePath，使用空字符串')
   return ''
 }
 
@@ -184,27 +181,18 @@ export default function MusicSheetLab() {
         `${window.location.origin}/musicxml/${fileName}`,
       ]
       
-      console.log('尝试加载 MusicXML 文件，basePath:', currentBasePath, '原始路径:', window.location.pathname)
-      console.log('可能的路径:', possiblePaths)
-      
       let xmlPath = ''
-      let lastError: Error | null = null
       
       // 依次尝试每个路径
       for (const path of possiblePaths) {
         try {
-          console.log('尝试路径:', path)
           const response = await fetch(path, { method: 'HEAD' })
           if (response.ok) {
             xmlPath = path
-            console.log('✓ 找到文件:', path)
             break
-          } else {
-            console.log(`✗ 路径不存在 (${response.status}):`, path)
           }
-        } catch (err) {
-          lastError = err instanceof Error ? err : new Error(String(err))
-          console.log('✗ 请求失败:', path, err)
+        } catch {
+          // 忽略错误，继续尝试下一个路径
         }
       }
       
@@ -214,9 +202,7 @@ export default function MusicSheetLab() {
       
       // 加载文件
       await osmdInstanceRef.current.load(xmlPath)
-      console.log('MusicXML 加载成功，开始渲染...')
       osmdInstanceRef.current.render()
-      console.log('乐谱渲染完成')
       
       // 解析音符序列用于播放
       await parseNotesForPlayback()
@@ -271,42 +257,32 @@ export default function MusicSheetLab() {
       // OSMD 是一个 UMD 模块，可能需要特殊处理
       const OSMDModule = await import('opensheetmusicdisplay')
       
-      console.log('OSMD 模块加载成功，模块结构:', Object.keys(OSMDModule))
-      
       // OSMD 可能以多种方式导出，尝试不同的导入方式
       let OpenSheetMusicDisplayClass: any = null
       
       // 方式1: 直接导出
       if (OSMDModule.OpenSheetMusicDisplay) {
         OpenSheetMusicDisplayClass = OSMDModule.OpenSheetMusicDisplay
-        console.log('使用方式1: OSMDModule.OpenSheetMusicDisplay')
       }
       // 方式2: default 导出
       else if ((OSMDModule as any).default) {
         const defaultExport = (OSMDModule as any).default
         if (defaultExport.OpenSheetMusicDisplay) {
           OpenSheetMusicDisplayClass = defaultExport.OpenSheetMusicDisplay
-          console.log('使用方式2: default.OpenSheetMusicDisplay')
         } else if (typeof defaultExport === 'function') {
           OpenSheetMusicDisplayClass = defaultExport
-          console.log('使用方式3: default 作为函数')
         } else if (defaultExport.OpenSheetMusicDisplay) {
           OpenSheetMusicDisplayClass = defaultExport.OpenSheetMusicDisplay
-          console.log('使用方式4: default.OpenSheetMusicDisplay (嵌套)')
         }
       }
       // 方式3: 检查全局变量（UMD 模块可能挂载到 window）
       else if (typeof window !== 'undefined' && (window as any).OpenSheetMusicDisplay) {
         OpenSheetMusicDisplayClass = (window as any).OpenSheetMusicDisplay
-        console.log('使用方式5: window.OpenSheetMusicDisplay')
       }
       
       if (!OpenSheetMusicDisplayClass) {
-        console.error('OSMD 模块完整结构:', OSMDModule)
-        throw new Error('无法找到 OpenSheetMusicDisplay 类。请检查浏览器控制台查看模块结构。')
+        throw new Error('无法找到 OpenSheetMusicDisplay 类')
       }
-
-      console.log('正在初始化 OSMD，容器:', containerRef.current)
       const osmd = new OpenSheetMusicDisplayClass(containerRef.current, {
         autoResize: true,
         backend: 'svg',
@@ -320,7 +296,6 @@ export default function MusicSheetLab() {
       })
       
       osmdInstanceRef.current = osmd
-      console.log('OSMD 实例创建成功:', osmd)
       
       // 初始化光标（用于播放时的高亮显示）
       if (osmd.cursor) {
@@ -401,12 +376,11 @@ export default function MusicSheetLab() {
           if (currentBpm && currentBpm > 0) {
             bpm = currentBpm
           }
-        } catch (err) {
-          console.warn('无法获取 BPM，使用默认值 120')
+        } catch {
+          // 使用默认值
         }
         
         bpmRef.current = bpm
-        console.log('使用 BPM:', bpm)
         
         // 遍历所有音符
         while (!iterator.EndReached) {
@@ -441,8 +415,8 @@ export default function MusicSheetLab() {
                   if (duration > 0 && pitch) {
                     notesAtTime.push({ pitch, duration })
                   }
-                } catch (err) {
-                  console.warn('解析音符失败:', err, note)
+                } catch {
+                  // 忽略解析失败的音符
                 }
               }
             }
@@ -458,12 +432,6 @@ export default function MusicSheetLab() {
       }
       
       notesSequenceRef.current = notes
-      console.log('解析完成，音符数量:', notes.length)
-      if (notes.length > 0) {
-        console.log('前几个音符示例:', notes.slice(0, 3))
-      } else {
-        console.warn('警告：没有解析到任何音符！')
-      }
     } catch (err) {
       console.error('解析音符失败:', err)
     }
@@ -524,14 +492,11 @@ export default function MusicSheetLab() {
       isPlayingRef.current = true
       setPlaybackProgress(0)
 
-      console.log('开始播放，音符序列:', allNotes.slice(0, 5))
-
       // 使用 Tone.Transport 来精确控制时间
       Tone.Transport.cancel()
       Tone.Transport.stop()
       Tone.Transport.position = 0
       Tone.Transport.bpm.value = bpmRef.current
-      console.log('设置 Transport BPM:', bpmRef.current)
 
       // 为每个音符组创建事件
       for (let i = 0; i < allNotes.length; i++) {
@@ -541,15 +506,12 @@ export default function MusicSheetLab() {
         Tone.Transport.schedule((time) => {
           if (!isPlayingRef.current) return
 
-          console.log(`播放时间点 ${time}，音符组 ${i}:`, noteGroup.notes)
-
           // 播放所有同时的音符
           for (const note of noteGroup.notes) {
             try {
-              console.log(`播放音符: ${note.pitch}, 持续时间: ${note.duration}`)
               synth.triggerAttackRelease(note.pitch, note.duration, time)
-            } catch (err) {
-              console.error('播放音符失败:', err, note)
+            } catch {
+              // 忽略播放失败的音符
             }
           }
 
@@ -574,15 +536,12 @@ export default function MusicSheetLab() {
       // 播放结束时停止
       const lastNoteGroup = allNotes[allNotes.length - 1]
       const totalDuration = lastNoteGroup.time + (lastNoteGroup.notes[0]?.duration || 1)
-      console.log('预计总时长:', totalDuration)
       
       Tone.Transport.schedule(() => {
-        console.log('播放结束')
         handleStop()
       }, totalDuration)
 
       // 开始播放
-      console.log('启动 Transport')
       Tone.Transport.start()
     } catch (err) {
       console.error('播放失败:', err)
