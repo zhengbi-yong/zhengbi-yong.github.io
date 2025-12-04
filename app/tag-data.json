@@ -1,9 +1,10 @@
 {
-  "tutorial": 3,
+  "tutorial": 1,
   "frontend": 1,
   "animation": 1,
   "document": 1,
   "robotics": 3,
   "ros": 1,
-  "ros2": 1
+  "ros2": 1,
+  "unitree": 1
 }
