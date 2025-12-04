@@ -20,47 +20,60 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      # ❌ 移除 'Remove packageManager field before setup-node' 步骤
-      # ❌ 移除 'Install pnpm globally via npm' 步骤
-      
+
+      # 1. (可选) 移除 packageManager 字段
+      # 仅在 actions/setup-node 报告与 packageManager 相关的错误时才保留
+      - name: Remove packageManager field before setup-node
+        run: |
+          echo "=== Removing packageManager field ==="
+          # 使用 sed 直接修改文件（不依赖 Node.js）
+          sed -i '/"packageManager"/d' package.json
+          echo ""
+          echo "=== Verifying removal ==="
+          grep packageManager package.json && echo "ERROR: packageManager still exists!" || echo "SUCCESS: packageManager removed"
+          echo ""
+          echo "=== Showing modified package.json (last 5 lines) ==="
+          tail -5 package.json
+
+      # 2. 设置 Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          # 如果你的 package.json 中有 "packageManager": "pnpm@..." 字段，
-          # 且你想让 setup-node 自动处理，可以保留这个。
-          # 但为了兼容性，我们使用 pnpm/action-setup。
-          
-      # 🌟 插入 pnpm 官方 Action 来设置 pnpm
-      - name: Setup pnpm
+          # 注意：这里不使用 cache: 'pnpm' 来避免提前调用 pnpm
+
+      # 3. 🌟 使用官方 Action 安装 pnpm 并设置缓存（解决找不到 pnpm 的问题）
+      - name: Setup pnpm and Cache
         uses: pnpm/action-setup@v3 
         with:
-          version: 10.24.0 # 确保版本一致
-          # 如果你使用了 cache: 'pnpm' 在 setup-node，你可以跳过手动缓存设置
-          
-      # 缓存可以简化，但保持你现有的手动缓存步骤也是可以的，只要 pnpm 在 PATH 中即可。
-      # 推荐使用 pnpm/action-setup 来自动缓存 pnpm 自身 store path。
+          version: 10.24.0 # 确保使用你需要的 pnpm 版本
+          run_install: false # 不在这里运行 install
+          cache: true # 自动设置和恢复 pnpm store 的缓存 (最推荐的方式)
 
-      - name: Get pnpm store directory # 保留你的缓存逻辑
-        shell: bash
-        run: |
-          # 此时 pnpm 应该可用
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-          
-      - name: Setup pnpm cache
+      # ❌ 移除 'Debug - After setup-node' 步骤 (不再需要)
+      # ❌ 移除 'Install pnpm globally via npm' 步骤 (已替换)
+      # ❌ 移除 'Get pnpm store directory' 步骤 (已替换)
+      # ❌ 移除 'Setup pnpm cache' 步骤 (已替换)
+
+      - id: configurepages
+        uses: actions/configure-pages@v5
+        
+      # 4. 恢复 Next.js 缓存（保留 Next.js 特定的缓存）
+      - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
 
+      # 5. 安装依赖 (现在 pnpm 肯定在 PATH 中)
       - name: Install dependencies
-        # 此时 pnpm 应该在 PATH 中，可以执行
         run: pnpm install --frozen-lockfile
+
       - name: Generate contentlayer files
         run: pnpm contentlayer
+
       - name: Determine base path
         id: basepath
         run: |
@@ -81,12 +94,15 @@ jobs:
             echo "BASE_PATH=" >> $GITHUB_ENV
             echo "根路径部署，basePath 为空"
           fi
+          
+      # 6. 构建
       - run: pnpm build
         env:
           EXPORT: 1
           UNOPTIMIZED: 1
           BASE_PATH: ${{ steps.basepath.outputs.base_path }}
           NEXT_PUBLIC_BASE_PATH: ${{ steps.basepath.outputs.base_path }}
+
       - name: Ensure musicxml files are copied
         run: |
           echo "检查 public/musicxml 目录..."
@@ -118,6 +134,7 @@ jobs:
           else
             echo "✗ public/musicxml 目录不存在"
           fi
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
