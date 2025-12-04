@@ -5,7 +5,7 @@ import FullscreenMusicSheet from '@/components/FullscreenMusicSheet'
 const musicSheets: Record<string, { title: string; src: string }> = {
   flower_dance: {
     title: 'Flower Dance',
-    src: 'flower_dance.xml',
+    src: 'flower_dance.mxl',
   },
   // 可以在这里添加更多乐谱
 }
