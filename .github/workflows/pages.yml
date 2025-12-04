@@ -20,16 +20,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.24.0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Install pnpm
+        run: corepack prepare pnpm@10.24.0 --activate
+      - name: Verify pnpm
+        run: pnpm --version
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
       - id: configurepages
         uses: actions/configure-pages@v5
-      - name: Restore cache
+      - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
           path: .next/cache
