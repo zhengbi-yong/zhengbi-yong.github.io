@@ -11,8 +11,8 @@ const exampleFiles = [
   { fileName: 'multi-part-example.xml', displayName: '多声部示例' },
 ]
 
-// 获取 basePath 的工具函数
-const getBasePath = (): string => {
+// 获取 basePath 的工具函数（同步版本，用于初始化）
+const getBasePathSync = (): string => {
   if (typeof window === 'undefined') return ''
   
   // 方法1: 从环境变量获取（如果设置了 NEXT_PUBLIC_BASE_PATH）
@@ -22,12 +22,12 @@ const getBasePath = (): string => {
     return envBasePath.startsWith('/') ? envBasePath : `/${envBasePath}`
   }
   
-  // 方法2: 从 window.location 检测 basePath（运行时回退）
+  // 方法2: 从 window.location.pathname 提取 basePath
   // 通过检查当前路径来判断是否有 basePath
   const pathname = window.location.pathname
   const segments = pathname.split('/').filter(Boolean)
   
-  // 已知的应用路由列表
+  // 已知的应用路由列表（这些路由不应该作为 basePath）
   const knownAppRoutes = ['experiment', 'blog', 'tags', 'about', 'projects']
   const nextJsRoutes = ['_next', 'api', 'static']
   
@@ -41,12 +41,68 @@ const getBasePath = (): string => {
     }
     
     // 如果第一个段不是已知的应用路由，可能是 basePath
-    // 例如：/blog/experiment -> basePath 是 /blog
+    // 例如：/myrepo/experiment -> basePath 是 /myrepo
     if (!knownAppRoutes.includes(firstSegment)) {
       return `/${firstSegment}`
     }
+    
+    // 如果第一个段是已知的应用路由
+    // 情况1: /experiment -> 没有 basePath（根路径部署）
+    // 情况2: /blog/experiment -> blog 可能是 basePath（子路径部署，仓库名是 blog）
+    // 情况3: /myrepo/blog/experiment -> myrepo 是 basePath
+    
+    // 如果路径段数 > 1，且第一个段是已知的应用路由
+    // 那么第一个段可能是 basePath（如果仓库名恰好是应用路由名）
+    // 例如：仓库名是 blog，访问 /blog/experiment，那么 basePath 是 /blog
+    if (segments.length > 1 && knownAppRoutes.includes(firstSegment)) {
+      // 返回第一个段作为可能的 basePath，让异步检测来验证
+      return `/${firstSegment}`
+    }
+    
+    // 如果只有一个段，且是已知的应用路由，说明没有 basePath
+    return ''
   }
   
+  return ''
+}
+
+// 异步检测 basePath（通过尝试访问文件）
+const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'): Promise<string> => {
+  if (typeof window === 'undefined') return ''
+  
+  const pathname = window.location.pathname
+  const segments = pathname.split('/').filter(Boolean)
+  
+  // 如果路径段数 >= 1，尝试第一个段作为 basePath
+  if (segments.length >= 1) {
+    const possibleBasePath = `/${segments[0]}`
+    const testPath = `${possibleBasePath}/musicxml/${testFileName}`
+    
+    try {
+      const response = await fetch(testPath, { method: 'HEAD' })
+      if (response.ok) {
+        console.log('检测到 basePath:', possibleBasePath, '通过文件:', testPath)
+        return possibleBasePath
+      }
+    } catch (error) {
+      console.log('basePath 检测失败:', possibleBasePath, error)
+    }
+  }
+  
+  // 尝试根路径（如果没有找到 basePath）
+  const rootPath = `/musicxml/${testFileName}`
+  try {
+    const response = await fetch(rootPath, { method: 'HEAD' })
+    if (response.ok) {
+      console.log('检测到根路径部署（basePath 为空）')
+      return ''
+    }
+  } catch {
+    // 忽略错误
+  }
+  
+  // 如果都不行，返回空（可能是根路径部署，但文件不存在）
+  console.warn('无法检测 basePath，使用空字符串')
   return ''
 }
 
@@ -73,8 +129,18 @@ export default function MusicSheetLab() {
   // 确保只在客户端挂载
   useEffect(() => {
     setMounted(true)
-    // 获取 basePath
-    setBasePath(getBasePath())
+    // 先使用同步方法获取 basePath
+    const syncBasePath = getBasePathSync()
+    setBasePath(syncBasePath)
+    
+    // 如果同步方法没有找到 basePath，尝试异步检测
+    if (!syncBasePath) {
+      detectBasePathAsync('simple-example.xml').then((detectedBasePath) => {
+        if (detectedBasePath) {
+          setBasePath(detectedBasePath)
+        }
+      })
+    }
   }, [])
 
   // 加载 MusicXML 文件
@@ -99,9 +165,19 @@ export default function MusicSheetLab() {
 
     try {
       // 使用 basePath 构建正确的路径
-      const currentBasePath = basePath || getBasePath()
+      let currentBasePath = basePath || getBasePathSync()
+      
+      // 如果 basePath 为空，尝试异步检测
+      if (!currentBasePath) {
+        const detectedBasePath = await detectBasePathAsync(fileName)
+        if (detectedBasePath) {
+          currentBasePath = detectedBasePath
+          setBasePath(detectedBasePath)
+        }
+      }
+      
       const xmlPath = `${currentBasePath}/musicxml/${fileName}`
-      console.log('正在加载 MusicXML 文件:', xmlPath, 'basePath:', currentBasePath)
+      console.log('正在加载 MusicXML 文件:', xmlPath, 'basePath:', currentBasePath, '原始路径:', window.location.pathname)
       
       // 先检查文件是否存在
       const response = await fetch(xmlPath)
