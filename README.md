@@ -35,6 +35,7 @@
 - ✅ 引用和参考文献支持
 - ✅ GitHub 风格的警告框
 - ✅ 自动图片优化
+- ✅ 乐谱支持（MusicXML 格式）
 - ✅ 标签系统（每个标签自动生成独立页面）
 - ✅ 多作者支持
 - ✅ 3 种博客布局（PostLayout, PostSimple, PostBanner）
@@ -413,6 +414,81 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 - `duration`: `number` - 动画时长（秒），默认 `0.6`
 - `whileInView`: `boolean` - 是否在进入视口时触发，默认 `false`
 - `className`: `string` - 自定义 CSS 类名
+
+#### 14. MusicSheet - 乐谱组件
+
+用于在文章中显示 MusicXML 格式的乐谱。组件基于 OpenSheetMusicDisplay 库，支持渲染标准的 MusicXML 文件。
+
+```mdx
+<MusicSheet src="simple-example.xml" />
+```
+
+**参数说明**：
+- `src`: `string` - MusicXML 文件路径（必需），相对于 `public/musicxml/` 目录
+- `zoom`: `number` - 缩放级别，默认 `1.0`（范围：0.5 - 3.0）
+- `drawTitle`: `boolean` - 是否显示标题、作曲者等信息，默认 `true`
+- `drawMeasureNumbers`: `boolean` - 是否显示小节号，默认 `true`
+- `className`: `string` - 自定义 CSS 类名
+
+**使用示例**：
+
+```mdx
+<!-- 基本用法 -->
+<MusicSheet src="simple-example.xml" />
+
+<!-- 自定义缩放 -->
+<MusicSheet src="multi-part-example.xml" zoom={1.2} />
+
+<!-- 隐藏标题和小节号 -->
+<MusicSheet 
+  src="simple-example.xml" 
+  drawTitle={false} 
+  drawMeasureNumbers={false} 
+/>
+```
+
+**准备工作**：
+
+1. **准备 MusicXML 文件**：
+   - 将您的 MusicXML 文件放置在 `public/musicxml/` 目录下
+   - 支持标准的 MusicXML 3.1 格式（.xml 文件）
+
+2. **获取 MusicXML 文件**：
+   - 可以使用音乐软件（如 MuseScore、Finale、Sibelius）导出 MusicXML 格式
+   - 也可以手动编写 MusicXML 文件（参考 [MusicXML 文档](https://www.musicxml.com/)）
+
+3. **在 MDX 中使用**：
+   - 直接在 MDX 文件中使用 `<MusicSheet>` 组件
+   - 无需导入，组件已自动注册
+
+**注意事项**：
+- MusicXML 文件必须放在 `public/musicxml/` 目录下
+- 文件路径使用相对于该目录的文件名（如 `simple-example.xml`）
+- 组件会自动处理路径问题，支持静态导出和动态部署
+- 乐谱渲染需要一些时间，组件会显示加载状态
+- 如果文件加载失败，会显示错误信息
+
+**完整示例**：
+
+```mdx
+---
+title: '音乐理论教程'
+date: '2025-01-15'
+tags: ['Music', 'Tutorial']
+---
+
+## 基础音阶
+
+以下是 C 大调音阶的乐谱：
+
+<MusicSheet src="c-major-scale.xml" zoom={1.0} />
+
+## 和弦进行
+
+这是一个简单的和弦进行示例：
+
+<MusicSheet src="chord-progression.xml" zoom={1.2} drawMeasureNumbers={true} />
+```
 
 ### 需导入的组件（Shadcn UI）
 
@@ -879,6 +955,7 @@ function example() {
 11. **ScaleIn** - 缩放进入动画组件
 12. **RotateIn** - 旋转进入动画组件
 13. **BounceIn** - 弹跳进入动画组件
+14. **MusicSheet** - 乐谱组件（显示 MusicXML 格式的乐谱）
 
 ##### 需导入的组件（Shadcn UI）
 

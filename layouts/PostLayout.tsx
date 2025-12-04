@@ -74,7 +74,7 @@ export default function PostLayout({
                 <div className="prose dark:prose-invert max-w-none pt-10 pb-8">{children}</div>
               </FadeIn>
             </div>
-            <div className="md:col-span-1 md:sticky md:top-20 md:self-start md:h-[calc(100vh-5rem)]">
+            <div className="md:col-span-1 md:sticky md:top-20 md:self-start md:flex md:flex-col">
               <FloatingTOC toc={toc} enabled={showTOC} />
             </div>
           </div>
