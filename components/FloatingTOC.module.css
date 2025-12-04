@@ -1,5 +1,10 @@
 .tocContainer {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  /* 默认高度：使用 clamp 确保在不同屏幕尺寸下都有合理的高度 */
+  height: clamp(400px, 80vh, 900px);
+  max-height: clamp(400px, 80vh, 900px);
 }
 
 .tocHeader {
@@ -7,33 +12,59 @@
 }
 
 .toc {
-  max-height: calc(100vh - 4rem);
+  flex: 1;
+  min-height: 0;
+  /* 内容区域高度：考虑标题栏高度，使用 clamp 确保合理范围 */
+  max-height: clamp(350px, calc(80vh - 4rem), 850px);
   overflow-y: auto;
+  overflow-x: hidden;
   font-size: 1rem;
   padding: 0;
   border-radius: 0.75rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   scrollbar-width: thin;
+  scrollbar-color: rgb(209 213 219) transparent;
   z-index: 1;
+  /* 确保内容可以滚动 */
+  overscroll-behavior: contain;
 }
 
 .toc::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .toc::-webkit-scrollbar-track {
   background: transparent;
   margin: 0.5rem 0;
+  border-radius: 4px;
 }
 
 .toc::-webkit-scrollbar-thumb {
   background: #d1d5db;
-  border-radius: 3px;
+  border-radius: 4px;
   transition: background 0.2s;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 .toc::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
+  background-clip: padding-box;
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  .toc {
+    scrollbar-color: rgb(75 85 99) transparent;
+  }
+  
+  .toc::-webkit-scrollbar-thumb {
+    background: rgb(75 85 99);
+  }
+  
+  .toc::-webkit-scrollbar-thumb:hover {
+    background: rgb(107 114 128);
+  }
 }
 
 /* Dark mode styles will be handled via Tailwind dark: variant */
@@ -45,6 +76,7 @@
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid rgb(229 231 235);
+  flex-shrink: 0;
 }
 
 .tocTitleText {
@@ -120,23 +152,8 @@
   background: rgb(243 244 246);
 }
 
-.tocItem a.active {
-  color: rgb(99 102 241);
-  background: rgb(243 244 246);
-  font-weight: 500;
-}
-
-.tocItem a.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 60%;
-  background: rgb(99 102 241);
-  border-radius: 0 2px 2px 0;
-}
+/* 移除 CSS 中的 active 样式，完全依赖内联样式 */
+/* 内联样式优先级最高，可以根据 isDark 动态更新 */
 
 .depth1 {
   font-weight: 600;
@@ -211,8 +228,10 @@
   .toc {
     display: none;
     position: static;
-    max-height: none;
+    /* 移动端展开时：限制最大高度为屏幕的 60%，最小 300px，最大 600px */
+    max-height: clamp(300px, 60vh, 600px);
     margin-top: 0.5rem;
+    overflow-y: auto;
   }
 
   .expanded {
@@ -225,15 +244,32 @@
   display: block !important;
 }
 
+/* 平板尺寸 (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tocContainer {
+    height: clamp(450px, 75vh, 800px);
+    max-height: clamp(450px, 75vh, 800px);
+  }
+
+  .toc {
+    max-height: clamp(400px, calc(75vh - 4rem), 750px);
+  }
+}
+
+/* 桌面端 (1024px+) */
 @media (min-width: 1024px) {
   .tocContainer {
     position: relative;
     width: 100%;
     z-index: 1;
+    /* 桌面端：根据屏幕高度动态调整，小屏幕用更大比例，大屏幕用较小比例 */
+    height: clamp(500px, min(80vh, 85vh), 1000px);
+    max-height: clamp(500px, min(80vh, 85vh), 1000px);
   }
 
   .toc {
     width: 100%;
+    max-height: clamp(450px, calc(min(80vh, 85vh) - 4rem), 950px);
   }
 
   .tocToggleDesktop {
@@ -241,7 +277,23 @@
     align-items: center;
     justify-content: center;
   }
+}
 
+/* 超大屏幕 (1440px+) */
+@media (min-width: 1440px) {
+  .tocContainer {
+    /* 超大屏幕：使用固定比例，避免过高 */
+    height: clamp(600px, 75vh, 900px);
+    max-height: clamp(600px, 75vh, 900px);
+  }
+
+  .toc {
+    max-height: clamp(550px, calc(75vh - 4rem), 850px);
+  }
+}
+
+/* 桌面端折叠状态和动画 */
+@media (min-width: 1024px) {
   .collapsed {
     max-height: 0 !important;
     overflow: hidden !important;
@@ -256,24 +308,36 @@
   }
 }
 
-/* 桌面端折叠状态 */
-.collapsed {
-  max-height: 0 !important;
-  overflow: hidden !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-  border-width: 0 !important;
-  visibility: hidden !important;
-}
 
+/* 小屏幕手机 (最大 576px) */
 @media (max-width: 576px) {
   .tocContainer {
     margin: 1rem 0;
+    /* 小屏幕：不设置固定高度，让内容自然展开 */
+    height: auto;
+    max-height: none;
   }
 
   .tocToggle {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
+  }
+
+  .toc {
+    /* 小屏幕展开时：使用更小的最大高度 */
+    max-height: clamp(250px, 50vh, 500px);
+  }
+}
+
+/* 中等屏幕手机 (577px - 767px) */
+@media (min-width: 577px) and (max-width: 767px) {
+  .tocContainer {
+    height: auto;
+    max-height: none;
+  }
+
+  .toc {
+    max-height: clamp(350px, 55vh, 550px);
   }
 }
 

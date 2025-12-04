@@ -38,6 +38,16 @@ const ConfettiOnView = dynamic(() => import('./animations/ConfettiOnView').then(
   loading: () => null,
 })
 
+// 动态导入乐谱组件
+const MusicSheet = dynamic(() => import('./MusicSheet').then((mod) => mod.default), {
+  loading: () => <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+    <div className="flex flex-col items-center gap-3">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-primary-500" />
+      <p className="text-sm text-gray-500 dark:text-gray-400">正在加载乐谱组件...</p>
+    </div>
+  </div>,
+})
+
 // 包装动画组件，添加错误边界和 Suspense
 // 注意：不使用 memo，因为 MDX 组件每次渲染都会创建新的 props 对象
 const WrappedFadeIn = (props: any) => (
@@ -105,4 +115,6 @@ export const components: MDXComponents = {
   RotateIn: WrappedRotateIn,
   BounceIn: WrappedBounceIn,
   ConfettiOnView: WrappedConfettiOnView,
+  // 乐谱组件（动态导入，按需加载）
+  MusicSheet,
 }
