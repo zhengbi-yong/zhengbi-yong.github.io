@@ -15,7 +15,7 @@ export default function Projects() {
       {/* 项目内容 */}
       <div className="relative z-10">
         {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/60 dark:bg-gray-950/60 backdrop-blur-sm" />
+        <div className="fixed inset-0 -z-[5] bg-white/40 dark:bg-gray-950/60 backdrop-blur-sm" />
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           <div className="space-y-2 pt-6 pb-8 md:space-y-5">
             <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-gray-900 sm:text-4xl sm:leading-10 md:text-6xl md:leading-14 dark:text-gray-100">

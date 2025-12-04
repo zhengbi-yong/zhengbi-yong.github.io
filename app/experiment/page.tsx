@@ -46,7 +46,7 @@ export default function ExperimentPage() {
         <ShaderBackgroundWrapper intensity={0.8} />
       </div>
       {/* 内容背景遮罩 - 提升文字可读性 */}
-      <div className="fixed inset-0 -z-[5] bg-white/60 dark:bg-gray-950/60 backdrop-blur-sm" />
+      <div className="fixed inset-0 -z-[5] bg-white/40 dark:bg-gray-950/60 backdrop-blur-sm" />
       {/* 实验内容 */}
       <div className="relative z-10 space-y-10 py-6">
         <header className="space-y-2">
