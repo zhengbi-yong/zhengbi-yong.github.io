@@ -84,7 +84,7 @@ export default function Header() {
       >
         <div
           id="site-container"
-          className="flex items-center justify-between h-14 sm:h-15 container mx-auto px-4 sm:px-6 py-2.5 border-transparent border-[0.5px] transition-all duration-300"
+          className="flex items-center justify-between h-14 sm:h-15 container mx-auto px-4 sm:px-6 py-2.5 border-[0.5px] transition-all duration-300 bg-white/30 dark:bg-neutral-950/30 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/20 border-white/20 dark:border-white/10"
         >
           {/* Logo */}
           <div className="flex-shrink-0 z-50">
