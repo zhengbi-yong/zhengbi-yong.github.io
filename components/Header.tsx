@@ -5,7 +5,6 @@ import { useTheme } from 'next-themes'
 import { SunMedium, Moon, Download } from 'lucide-react'
 import headerNavLinks from '@/data/headerNavLinks'
 import Logo from './Logo'
-import Button from './ui/Button'
 import Link from './Link'
 import { cn } from './lib/utils'
 import styles from './Header.module.css'
@@ -143,14 +142,20 @@ export default function Header() {
 
               {/* Contact Button (Mobile) */}
               <div className="relative z-10 w-full px-5 mt-3 sm:hidden">
-                <Button
-                  url="#"
-                  type="fill"
-                  className="m-auto w-full justify-center"
+                <button
                   onClick={handleResumeClick}
+                  className={cn(
+                    'flex items-center justify-center gap-1.5 w-full px-4 py-2 rounded-xl text-sm font-medium',
+                    'bg-white/40 dark:bg-neutral-900/40 backdrop-blur-sm',
+                    'border-[0.5px] border-white/30 dark:border-white/10',
+                    'text-neutral-700 dark:text-neutral-200',
+                    'hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-md',
+                    'transition-all duration-200 active:scale-95',
+                    'cursor-pointer'
+                  )}
                 >
                   Resume <Download size={16} />
-                </Button>
+                </button>
               </div>
             </div>
 
@@ -164,34 +169,33 @@ export default function Header() {
           </div>
 
           {/* Mobile Menu Toggle Buttons */}
-          <div className="flex items-center gap-2 sm:hidden justify-self-end">
+          <div className="flex items-center gap-2 sm:hidden justify-self-end mr-1">
             {/* Dark Mode Toggle (Mobile) */}
             <div
               id="darkToggleMobile"
               className={cn(
                 styles.darkToggleMobile,
                 styles.tapHighlight,
-                'flex items-center justify-center w-10 h-10 cursor-pointer rounded-full bg-gradient-to-b from-white to-[#edeefa] border-[0.5px] border-[#f3f3ff] dark:from-neutral-800 dark:to-neutral-600 dark:border-neutral-600 transition-transform duration-200 active:scale-95'
+                'flex items-center justify-center w-10 h-10 cursor-pointer rounded-xl bg-white/40 dark:bg-neutral-900/40 backdrop-blur-sm border-[0.5px] border-white/30 dark:border-white/10 transition-all duration-200 hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-md active:scale-95'
               )}
               onClick={toggleTheme}
             >
               <div
                 className={cn(
-                  styles.darkToggleIcon,
-                  'flex justify-center items-center w-6 h-6 relative overflow-hidden rounded-full bg-[#7fa1ff] bg-gradient-to-b from-[#85a6ff] to-[#2d6dc3] border-[0.5px] border-[#7fa1ff]'
+                  'flex justify-center items-center w-5 h-5 relative overflow-hidden rounded-lg bg-neutral-600 dark:bg-neutral-400'
                 )}
               >
                 {mounted && (
                   <>
                     <SunMedium
                       className={cn(
-                        'absolute text-white w-4 h-4 transition duration-200 transform ease',
+                        'absolute text-white w-3.5 h-3.5 transition duration-200 transform ease',
                         isDark ? 'hidden' : 'block'
                       )}
                     />
                     <Moon
                       className={cn(
-                        'absolute text-white w-4 h-4 transition duration-200 transform ease',
+                        'absolute text-white w-3.5 h-3.5 transition duration-200 transform ease',
                         isDark ? 'block' : 'hidden'
                       )}
                     />
@@ -248,18 +252,22 @@ export default function Header() {
           </div>
 
           {/* Desktop Actions */}
-          <div className="relative hidden sm:flex items-center gap-2 justify-self-end">
+          <div className="relative hidden sm:flex items-center gap-3 justify-self-end mr-2 sm:mr-3 lg:mr-4">
             {/* Contact Button (Desktop) */}
-            <Button
-              url="#"
-              type="fill"
-              className="md:flex mx-1"
+            <button
               onClick={handleResumeClick}
+              className={cn(
+                'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium',
+                'bg-white/40 dark:bg-neutral-900/40 backdrop-blur-sm',
+                'border-[0.5px] border-white/30 dark:border-white/10',
+                'text-neutral-700 dark:text-neutral-200',
+                'hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-md',
+                'transition-all duration-200 active:scale-95',
+                'cursor-pointer'
+              )}
             >
               Resume <Download size={16} />
-            </Button>
-
-            <span className="separator-line hidden sm:inline-block bg-[rgba(183,202,255,0.5)] mt-[20px] -translate-y-1/2 w-px h-[20px]" />
+            </button>
 
             {/* Dark Mode Toggle (Desktop) */}
             <div
@@ -267,14 +275,13 @@ export default function Header() {
               className={cn(
                 styles.darkToggle,
                 styles.tapHighlight,
-                'relative flex items-center h-9 px-2 gap-1.5 font-medium cursor-pointer rounded-full bg-gradient-to-b from-white to-[#edf1fa] border-[0.5px] border-[#f3f5ff] dark:from-neutral-800 dark:to-neutral-600 dark:border-neutral-600 transition-all duration-200 hover:shadow-md hover:scale-105 active:scale-95 mx-1'
+                'relative flex items-center h-9 px-3 gap-1.5 font-medium cursor-pointer rounded-xl bg-white/40 dark:bg-neutral-900/40 backdrop-blur-sm border-[0.5px] border-white/30 dark:border-white/10 transition-all duration-200 hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-md active:scale-95'
               )}
               onClick={toggleTheme}
             >
               <div
                 className={cn(
-                  styles.darkToggleIcon,
-                  'flex justify-center items-center flex-shrink-0 w-6 h-6 relative overflow-hidden rounded-full bg-gradient-to-b from-[#85a6ff] to-[#2d6dc3] border-[0.5px] border-[#7fa1ff]'
+                  'flex justify-center items-center flex-shrink-0 w-5 h-5 relative overflow-hidden rounded-lg bg-neutral-600 dark:bg-neutral-400'
                 )}
               >
                 {mounted && (
@@ -282,14 +289,14 @@ export default function Header() {
                     <SunMedium
                       id="sun"
                       className={cn(
-                        'absolute text-white w-4 h-4 transition duration-200 transform ease',
+                        'absolute text-white w-3.5 h-3.5 transition duration-200 transform ease',
                         isDark ? 'hidden' : 'block'
                       )}
                     />
                     <Moon
                       id="moon"
                       className={cn(
-                        'absolute text-white w-4 h-4 transition duration-200 transform ease',
+                        'absolute text-white w-3.5 h-3.5 transition duration-200 transform ease',
                         isDark ? 'block' : 'hidden'
                       )}
                     />
@@ -301,7 +308,7 @@ export default function Header() {
                   <span
                     id="dayText"
                     className={cn(
-                      'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
+                      'flex-shrink-0 text-sm text-left text-neutral-700 dark:text-neutral-200',
                       isDark ? 'hidden' : 'block'
                     )}
                   >
@@ -310,7 +317,7 @@ export default function Header() {
                   <span
                     id="nightText"
                     className={cn(
-                      'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
+                      'flex-shrink-0 text-sm text-left text-neutral-700 dark:text-neutral-200',
                       isDark ? 'block' : 'hidden'
                     )}
                   >
