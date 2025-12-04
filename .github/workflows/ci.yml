@@ -14,29 +14,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    # 替换现有 Setup Node + Setup pnpm + Install dependencies 段
+    # 1. 先安装 pnpm（必须在 setup-node 之前）
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.24.0     # 使用精确版本匹配 package.json 中的 packageManager 字段
+    
+    # 2. 然后设置 Node.js（此时可以使用 cache: pnpm，因为 pnpm 已经安装）
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm' # 仅做 cache，不会安装 pnpm
-
-    - name: Setup pnpm (official action)
-      uses: pnpm/action-setup@v4
-      with:
-        version: 10.24.0     # 使用精确版本匹配 package.json 中的 packageManager 字段
-        run_install: false   # 我们在后面单独运行 install
-
-    - name: Verify pnpm is available (and fallback to npm global install)
-      run: |
-        echo "PATH=$PATH"
-        if command -v pnpm >/dev/null 2>&1; then
-          pnpm --version
-        else
-          echo "pnpm not found. Installing pnpm globally via npm as fallback..."
-          npm install -g pnpm@10.24.0 || npm install -g pnpm@^10 || npm install -g pnpm
-          pnpm --version
-        fi
+        cache: 'pnpm'        # 现在可以使用 pnpm 缓存了
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
