@@ -79,20 +79,13 @@ export default function Header() {
         id="header"
         className={cn(
           styles.header,
-          'fixed top-2 sm:top-4 z-50 w-full px-3 sm:px-4 lg:px-6'
+          'fixed top-2 sm:top-4 left-0 z-50 w-full pl-[calc(100vw-100%)] px-4 sm:px-6 lg:px-8'
         )}
       >
         <div
           id="site-container"
-          className="flex items-center justify-between h-14 sm:h-15 container mx-auto px-4 sm:px-6 py-2.5 border-[0.5px] transition-all duration-300 bg-white/30 dark:bg-neutral-950/30 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/20 border-white/20 dark:border-white/10"
+          className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-3 items-center h-14 sm:h-15 w-full py-2.5 border-[0.5px] transition-all duration-300 bg-white/30 dark:bg-neutral-950/30 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/20 border-white/20 dark:border-white/10"
         >
-          {/* Logo */}
-          <div className="flex-shrink-0 z-50">
-            <Link href="/" className="flex items-center">
-              <Logo />
-            </Link>
-          </div>
-
           {/* Mobile Menu Background Overlay */}
           <div
             id="mobileMenuBackground"
@@ -108,93 +101,9 @@ export default function Header() {
           <nav
             className={cn(
               styles.nav,
-              'relative z-30 flex flex-row-reverse justify-start w-full text-sm sm:justify-end text-neutral-500 dark:text-neutral-400 sm:flex-row sm:items-center'
+              'relative z-30 flex justify-start w-full text-sm text-neutral-500 dark:text-neutral-400 sm:flex-row sm:items-center sm:justify-self-start'
             )}
           >
-            {/* Mobile Menu Toggle Buttons */}
-            <div className="flex items-center gap-2 sm:hidden">
-              {/* Dark Mode Toggle (Mobile) */}
-              <div
-                id="darkToggleMobile"
-                className={cn(
-                  styles.darkToggleMobile,
-                  styles.tapHighlight,
-                  'flex items-center justify-center w-10 h-10 cursor-pointer rounded-full bg-gradient-to-b from-white to-[#edeefa] border-[0.5px] border-[#f3f3ff] dark:from-neutral-800 dark:to-neutral-600 dark:border-neutral-600 transition-transform duration-200 active:scale-95'
-                )}
-                onClick={toggleTheme}
-              >
-                <div
-                  className={cn(
-                    styles.darkToggleIcon,
-                    'flex justify-center items-center w-6 h-6 relative overflow-hidden rounded-full bg-[#7fa1ff] bg-gradient-to-b from-[#85a6ff] to-[#2d6dc3] border-[0.5px] border-[#7fa1ff]'
-                  )}
-                >
-                  {mounted && (
-                    <>
-                      <SunMedium
-                        className={cn(
-                          'absolute text-white w-4 h-4 transition duration-200 transform ease',
-                          isDark ? 'hidden' : 'block'
-                        )}
-                      />
-                      <Moon
-                        className={cn(
-                          'absolute text-white w-4 h-4 transition duration-200 transform ease',
-                          isDark ? 'block' : 'hidden'
-                        )}
-                      />
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Hamburger Menu Button */}
-              <div
-                id="openMenu"
-                className={cn(
-                  styles.tapHighlight,
-                  'flex items-center justify-center w-10 h-10 cursor-pointer transition-transform duration-200 active:scale-90',
-                  isMobileMenuOpen ? 'hidden' : 'flex'
-                )}
-                onClick={openMobileMenu}
-              >
-                <svg
-                  className="w-7 h-7 text-neutral-700 dark:text-neutral-200"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M4 8h16M4 16h16" />
-                </svg>
-              </div>
-
-              {/* Close Menu Button */}
-              <div
-                id="closeMenu"
-                className={cn(
-                  styles.tapHighlight,
-                  'items-center justify-center w-10 h-10 cursor-pointer transition-transform duration-200 active:scale-90',
-                  isMobileMenuOpen ? 'flex' : 'hidden'
-                )}
-                onClick={closeMobileMenu}
-              >
-                <svg
-                  className="w-6 h-6 text-neutral-600 dark:text-neutral-200"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-            </div>
-
             {/* Menu Items */}
             <div
               id="menu"
@@ -245,78 +154,170 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Desktop Actions */}
-            <div className="relative hidden sm:flex items-center gap-2 ml-4 lg:ml-6">
-              {/* Contact Button (Desktop) */}
-              <Button
-                url="#"
-                type="fill"
-                className="md:flex mx-1"
-                onClick={handleResumeClick}
-              >
-                Resume <Download size={16} />
-              </Button>
+          </nav>
 
-              <span className="separator-line hidden sm:inline-block bg-[rgba(183,202,255,0.5)] mt-[20px] -translate-y-1/2 w-px h-[20px]" />
+          {/* Logo */}
+          <div className="flex-shrink-0 z-50 justify-self-start sm:justify-self-center ml-3 sm:ml-0">
+            <Link href="/" className="flex items-center">
+              <Logo />
+            </Link>
+          </div>
 
-              {/* Dark Mode Toggle (Desktop) */}
+          {/* Mobile Menu Toggle Buttons */}
+          <div className="flex items-center gap-2 sm:hidden justify-self-end">
+            {/* Dark Mode Toggle (Mobile) */}
+            <div
+              id="darkToggleMobile"
+              className={cn(
+                styles.darkToggleMobile,
+                styles.tapHighlight,
+                'flex items-center justify-center w-10 h-10 cursor-pointer rounded-full bg-gradient-to-b from-white to-[#edeefa] border-[0.5px] border-[#f3f3ff] dark:from-neutral-800 dark:to-neutral-600 dark:border-neutral-600 transition-transform duration-200 active:scale-95'
+              )}
+              onClick={toggleTheme}
+            >
               <div
-                id="darkToggle"
                 className={cn(
-                  styles.darkToggle,
-                  styles.tapHighlight,
-                  'relative flex items-center h-9 px-2 gap-1.5 font-medium cursor-pointer rounded-full bg-gradient-to-b from-white to-[#edf1fa] border-[0.5px] border-[#f3f5ff] dark:from-neutral-800 dark:to-neutral-600 dark:border-neutral-600 transition-all duration-200 hover:shadow-md hover:scale-105 active:scale-95 mx-1'
+                  styles.darkToggleIcon,
+                  'flex justify-center items-center w-6 h-6 relative overflow-hidden rounded-full bg-[#7fa1ff] bg-gradient-to-b from-[#85a6ff] to-[#2d6dc3] border-[0.5px] border-[#7fa1ff]'
                 )}
-                onClick={toggleTheme}
               >
-                <div
-                  className={cn(
-                    styles.darkToggleIcon,
-                    'flex justify-center items-center flex-shrink-0 w-6 h-6 relative overflow-hidden rounded-full bg-gradient-to-b from-[#85a6ff] to-[#2d6dc3] border-[0.5px] border-[#7fa1ff]'
-                  )}
-                >
-                  {mounted && (
-                    <>
-                      <SunMedium
-                        id="sun"
-                        className={cn(
-                          'absolute text-white w-4 h-4 transition duration-200 transform ease',
-                          isDark ? 'hidden' : 'block'
-                        )}
-                      />
-                      <Moon
-                        id="moon"
-                        className={cn(
-                          'absolute text-white w-4 h-4 transition duration-200 transform ease',
-                          isDark ? 'block' : 'hidden'
-                        )}
-                      />
-                    </>
-                  )}
-                </div>
-                <span className="hidden sm:inline-block whitespace-nowrap">
-                  <span
-                    id="dayText"
-                    className={cn(
-                      'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
-                      isDark ? 'hidden' : 'block'
-                    )}
-                  >
-                    Light
-                  </span>
-                  <span
-                    id="nightText"
-                    className={cn(
-                      'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
-                      isDark ? 'block' : 'hidden'
-                    )}
-                  >
-                    Dark
-                  </span>
-                </span>
+                {mounted && (
+                  <>
+                    <SunMedium
+                      className={cn(
+                        'absolute text-white w-4 h-4 transition duration-200 transform ease',
+                        isDark ? 'hidden' : 'block'
+                      )}
+                    />
+                    <Moon
+                      className={cn(
+                        'absolute text-white w-4 h-4 transition duration-200 transform ease',
+                        isDark ? 'block' : 'hidden'
+                      )}
+                    />
+                  </>
+                )}
               </div>
             </div>
-          </nav>
+
+            {/* Hamburger Menu Button */}
+            <div
+              id="openMenu"
+              className={cn(
+                styles.tapHighlight,
+                'flex items-center justify-center w-10 h-10 cursor-pointer transition-transform duration-200 active:scale-90',
+                isMobileMenuOpen ? 'hidden' : 'flex'
+              )}
+              onClick={openMobileMenu}
+            >
+              <svg
+                className="w-7 h-7 text-neutral-700 dark:text-neutral-200"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M4 8h16M4 16h16" />
+              </svg>
+            </div>
+
+            {/* Close Menu Button */}
+            <div
+              id="closeMenu"
+              className={cn(
+                styles.tapHighlight,
+                'items-center justify-center w-10 h-10 cursor-pointer transition-transform duration-200 active:scale-90',
+                isMobileMenuOpen ? 'flex' : 'hidden'
+              )}
+              onClick={closeMobileMenu}
+            >
+              <svg
+                className="w-6 h-6 text-neutral-600 dark:text-neutral-200"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Desktop Actions */}
+          <div className="relative hidden sm:flex items-center gap-2 justify-self-end">
+            {/* Contact Button (Desktop) */}
+            <Button
+              url="#"
+              type="fill"
+              className="md:flex mx-1"
+              onClick={handleResumeClick}
+            >
+              Resume <Download size={16} />
+            </Button>
+
+            <span className="separator-line hidden sm:inline-block bg-[rgba(183,202,255,0.5)] mt-[20px] -translate-y-1/2 w-px h-[20px]" />
+
+            {/* Dark Mode Toggle (Desktop) */}
+            <div
+              id="darkToggle"
+              className={cn(
+                styles.darkToggle,
+                styles.tapHighlight,
+                'relative flex items-center h-9 px-2 gap-1.5 font-medium cursor-pointer rounded-full bg-gradient-to-b from-white to-[#edf1fa] border-[0.5px] border-[#f3f5ff] dark:from-neutral-800 dark:to-neutral-600 dark:border-neutral-600 transition-all duration-200 hover:shadow-md hover:scale-105 active:scale-95 mx-1'
+              )}
+              onClick={toggleTheme}
+            >
+              <div
+                className={cn(
+                  styles.darkToggleIcon,
+                  'flex justify-center items-center flex-shrink-0 w-6 h-6 relative overflow-hidden rounded-full bg-gradient-to-b from-[#85a6ff] to-[#2d6dc3] border-[0.5px] border-[#7fa1ff]'
+                )}
+              >
+                {mounted && (
+                  <>
+                    <SunMedium
+                      id="sun"
+                      className={cn(
+                        'absolute text-white w-4 h-4 transition duration-200 transform ease',
+                        isDark ? 'hidden' : 'block'
+                      )}
+                    />
+                    <Moon
+                      id="moon"
+                      className={cn(
+                        'absolute text-white w-4 h-4 transition duration-200 transform ease',
+                        isDark ? 'block' : 'hidden'
+                      )}
+                    />
+                  </>
+                )}
+              </div>
+              <span className="hidden sm:inline-block whitespace-nowrap">
+                <span
+                  id="dayText"
+                  className={cn(
+                    'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
+                    isDark ? 'hidden' : 'block'
+                  )}
+                >
+                  Light
+                </span>
+                <span
+                  id="nightText"
+                  className={cn(
+                    'flex-shrink-0 text-sm text-left text-[#6f6c8f] dark:text-neutral-400',
+                    isDark ? 'block' : 'hidden'
+                  )}
+                >
+                  Dark
+                </span>
+              </span>
+            </div>
+          </div>
         </div>
       </header>
     </>
