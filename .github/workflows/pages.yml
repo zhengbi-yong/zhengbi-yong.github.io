@@ -63,6 +63,28 @@ jobs:
           UNOPTIMIZED: 1
           BASE_PATH: ${{ steps.basepath.outputs.base_path }}
           NEXT_PUBLIC_BASE_PATH: ${{ steps.basepath.outputs.base_path }}
+      - name: Ensure musicxml files are copied
+        run: |
+          echo "检查 public/musicxml 目录..."
+          if [ -d "public/musicxml" ]; then
+            echo "✓ public/musicxml 目录存在"
+            ls -la public/musicxml/
+            echo ""
+            echo "确保 out/musicxml 目录存在..."
+            mkdir -p out/musicxml
+            echo "复制 musicxml 文件到 out 目录..."
+            cp -r public/musicxml/* out/musicxml/ || echo "复制失败，但继续..."
+            echo ""
+            echo "验证 out/musicxml 目录..."
+            if [ -d "out/musicxml" ]; then
+              echo "✓ out/musicxml 目录存在"
+              ls -la out/musicxml/
+            else
+              echo "✗ out/musicxml 目录不存在"
+            fi
+          else
+            echo "✗ public/musicxml 目录不存在"
+          fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
