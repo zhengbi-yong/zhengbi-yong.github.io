@@ -1,6 +1,7 @@
 import { getSortedPosts, getPaginatedPosts } from '@/lib/utils/blog-cache'
 import { genPageMetadata } from 'app/seo'
 import ListLayout from '@/layouts/ListLayout'
+import ShaderBackgroundWrapper from '@/components/ShaderBackgroundWrapper'
 
 const POSTS_PER_PAGE = 5
 
@@ -32,11 +33,22 @@ export default async function BlogPage(props: { searchParams: Promise<{ page: st
   const { posts, pagination } = getPaginatedPosts(sortedPosts, pageNumber, POSTS_PER_PAGE)
 
   return (
-    <ListLayout
-      posts={sortedPosts}
-      initialDisplayPosts={posts}
-      pagination={pagination}
-      title="博客"
-    />
+    <div className="relative min-h-screen">
+      {/* 着色器背景 - 固定定位覆盖整个视口 */}
+      <div className="fixed inset-0 -z-10">
+        <ShaderBackgroundWrapper intensity={0.8} />
+      </div>
+      {/* 博客内容 */}
+      <div className="relative z-10">
+        {/* 内容背景遮罩 - 提升文字可读性 */}
+        <div className="fixed inset-0 -z-[5] bg-white/60 dark:bg-gray-950/60 backdrop-blur-sm" />
+        <ListLayout
+          posts={sortedPosts}
+          initialDisplayPosts={posts}
+          pagination={pagination}
+          title="博客"
+        />
+      </div>
+    </div>
   )
 }

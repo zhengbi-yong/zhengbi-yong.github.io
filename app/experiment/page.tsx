@@ -2,6 +2,7 @@
 
 import { type ComponentType } from 'react'
 import ExperimentModule from '@/components/ExperimentModule'
+import ShaderBackgroundWrapper from '@/components/ShaderBackgroundWrapper'
 
 type ModuleConfig = {
   title: string
@@ -39,28 +40,37 @@ const moduleConfigs: ModuleConfig[] = [
 export default function ExperimentPage() {
   // 移除低性能模式检查，所有功能都正常显示
   return (
-    <div className="space-y-10 py-6">
-      <header className="space-y-2">
-        <p className="text-primary-500 text-sm tracking-[0.4em] uppercase">Labs</p>
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl dark:text-gray-100">
-          实验场
-        </h1>
-        <p className="text-base text-gray-600 dark:text-gray-400">
-          这里是网站新功能与炫酷动效的试验田，每个模块均采用懒加载与骨架屏确保体验顺畅。
-        </p>
-      </header>
+    <div className="relative min-h-screen">
+      {/* 着色器背景 - 固定定位覆盖整个视口 */}
+      <div className="fixed inset-0 -z-10">
+        <ShaderBackgroundWrapper intensity={0.8} />
+      </div>
+      {/* 内容背景遮罩 - 提升文字可读性 */}
+      <div className="fixed inset-0 -z-[5] bg-white/60 dark:bg-gray-950/60 backdrop-blur-sm" />
+      {/* 实验内容 */}
+      <div className="relative z-10 space-y-10 py-6">
+        <header className="space-y-2">
+          <p className="text-primary-500 text-sm tracking-[0.4em] uppercase">Labs</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl dark:text-gray-100">
+            实验场
+          </h1>
+          <p className="text-base text-gray-600 dark:text-gray-400">
+            这里是网站新功能与炫酷动效的试验田，每个模块均采用懒加载与骨架屏确保体验顺畅。
+          </p>
+        </header>
 
-      <div className="space-y-8">
-        {moduleConfigs.map((module) => (
-          <ExperimentModule
-            key={module.title}
-            title={module.title}
-            description={module.description}
-            loader={module.loader}
-            defaultOpen={module.defaultOpen}
-            disabled={false}
-          />
-        ))}
+        <div className="space-y-8">
+          {moduleConfigs.map((module) => (
+            <ExperimentModule
+              key={module.title}
+              title={module.title}
+              description={module.description}
+              loader={module.loader}
+              defaultOpen={module.defaultOpen}
+              disabled={false}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )

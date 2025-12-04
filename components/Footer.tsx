@@ -182,7 +182,7 @@ const Footer = memo(() => {
   return (
     <>
       <section
-        className="text-gray-700 border-t mt-20 md:mt-48 border-dashed border-primary/15 dark:border-primary-dark/15 border-[.75px]"
+        className="relative z-20 text-gray-700 mt-20 md:mt-48"
         style={{ willChange: 'transform', transform: 'translateZ(0)' }}
       >
         <div className="container flex flex-col items-center py-8 mx-auto px-7 max-w-7xl sm:flex-row">

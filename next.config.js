@@ -96,6 +96,10 @@ module.exports = () => {
     // 性能优化：压缩配置（Next.js 16 默认启用 gzip）
     // 注意：Next.js 16 默认使用 SWC 压缩，无需显式设置 swcMinify
     compress: true,
+    // 注意：CSS预加载警告在静态导出中是正常的，不影响功能
+    // Next.js会自动预加载动态导入的CSS chunk，即使组件尚未渲染
+    // 这是Next.js的优化策略，有助于在用户展开模块时更快加载CSS
+    // 如果希望减少警告，可以考虑将更多CSS内联或使用更细粒度的代码分割
     images: {
       remotePatterns: [
         {
