@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Spinner } from '@/components/loaders'
 import type { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
+import JSZip from 'jszip'
 
 interface MusicSheetProps {
-  /** MusicXML 文件路径，相对于 public/musicxml/ 目录 */
+  /** MusicXML 文件路径，相对于 public/musicxml/ 目录，支持 .xml 和 .mxl 格式 */
   src: string
   /** 缩放级别，默认 1.0 */
   zoom?: number
@@ -19,9 +20,11 @@ interface MusicSheetProps {
 
 /**
  * 乐谱组件 - 用于在 MDX 文章中显示 MusicXML 格式的乐谱
+ * 支持 .xml（MusicXML）和 .mxl（压缩的 MusicXML）格式
  * 
  * @example
  * <MusicSheet src="simple-example.xml" zoom={1.2} />
+ * <MusicSheet src="simple-example.mxl" zoom={1.2} />
  */
 export default function MusicSheet({
   src,
@@ -68,7 +71,63 @@ export default function MusicSheet({
     return ''
   }
 
-  // 加载 MusicXML 文件
+  // 解压缩 MXL 文件并提取 MusicXML 内容
+  const extractMXL = async (arrayBuffer: ArrayBuffer): Promise<string> => {
+    const zip = await JSZip.loadAsync(arrayBuffer)
+    
+    // MXL 文件标准格式：先读取 META-INF/container.xml 找到根文件
+    let rootFilePath = ''
+    
+    // 尝试读取 container.xml
+    const containerFile = zip.files['META-INF/container.xml']
+    if (containerFile) {
+      try {
+        const containerXml = await containerFile.async('string')
+        // 解析 container.xml 找到 rootfile 的 full-path 属性
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(containerXml, 'text/xml')
+        const rootfile = doc.querySelector('rootfile')
+        if (rootfile) {
+          rootFilePath = rootfile.getAttribute('full-path') || ''
+        }
+      } catch (err) {
+        console.warn('无法解析 container.xml，尝试查找 XML 文件:', err)
+      }
+    }
+    
+    // 如果没有找到 container.xml 或解析失败，查找所有 .xml 文件
+    if (!rootFilePath) {
+      const xmlFiles = Object.keys(zip.files).filter(
+        (name) => name.endsWith('.xml') && !zip.files[name].dir && !name.startsWith('META-INF/')
+      )
+      
+      if (xmlFiles.length === 0) {
+        throw new Error('MXL 文件中未找到 MusicXML 文件')
+      }
+      
+      // 优先选择包含 "score" 或 "partwise" 的文件名，否则使用第一个
+      rootFilePath = xmlFiles.find(name => 
+        name.toLowerCase().includes('score') || name.toLowerCase().includes('partwise')
+      ) || xmlFiles[0]
+    }
+    
+    // 提取根文件
+    const rootFile = zip.files[rootFilePath]
+    if (!rootFile) {
+      throw new Error(`MXL 文件中未找到指定的根文件: ${rootFilePath}`)
+    }
+    
+    const xmlContent = await rootFile.async('string')
+    
+    // 验证是否是有效的 MusicXML（包含 partwise 或 score 元素）
+    if (!xmlContent.includes('<score-partwise') && !xmlContent.includes('<score-timewise')) {
+      throw new Error('提取的文件不是有效的 MusicXML 文件')
+    }
+    
+    return xmlContent
+  }
+
+  // 加载 MusicXML 文件（支持 .xml 和 .mxl 格式）
   const loadMusicXML = async (filePath: string) => {
     if (!osmdInstanceRef.current) {
       setError('OSMD 实例未初始化')
@@ -81,6 +140,7 @@ export default function MusicSheet({
 
     try {
       const basePath = getBasePath()
+      const isMXL = filePath.toLowerCase().endsWith('.mxl')
       
       // 尝试多个可能的路径
       const possiblePaths = [
@@ -98,12 +158,21 @@ export default function MusicSheet({
         try {
           const response = await fetch(path)
           if (response.ok) {
-            const contentType = response.headers.get('content-type') || ''
-            if (contentType.includes('xml') || contentType.includes('text')) {
-              xmlContent = await response.text()
-              if (xmlContent.trim().startsWith('<?xml')) {
-                xmlPath = path
-                break
+            if (isMXL) {
+              // MXL 文件：下载并解压缩
+              const arrayBuffer = await response.arrayBuffer()
+              xmlContent = await extractMXL(arrayBuffer)
+              xmlPath = path
+              break
+            } else {
+              // XML 文件：直接读取文本
+              const contentType = response.headers.get('content-type') || ''
+              if (contentType.includes('xml') || contentType.includes('text')) {
+                xmlContent = await response.text()
+                if (xmlContent.trim().startsWith('<?xml')) {
+                  xmlPath = path
+                  break
+                }
               }
             }
           }
@@ -112,13 +181,19 @@ export default function MusicSheet({
         }
       }
       
-      if (!xmlContent || !xmlPath) {
+      if (!xmlContent) {
         throw new Error(`无法找到或加载 MusicXML 文件: ${filePath}`)
       }
       
       // 加载 XML 内容
       try {
-        await osmdInstanceRef.current.load(xmlPath)
+        // 优先使用 URL 加载（OSMD 可能优化处理）
+        if (xmlPath && !isMXL) {
+          await osmdInstanceRef.current.load(xmlPath)
+        } else {
+          // MXL 文件或 URL 加载失败时，使用 XML 字符串
+          await osmdInstanceRef.current.load(xmlContent)
+        }
       } catch (urlError) {
         // 如果 URL 加载失败，尝试使用 XML 字符串
         console.warn('URL 加载失败，尝试使用 XML 字符串:', urlError)

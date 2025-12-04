@@ -46,6 +46,7 @@
     "gsap": "^3.13.0",
     "hast-util-from-html-isomorphic": "^2.0.0",
     "image-size": "2.0.2",
+    "jszip": "^3.10.1",
     "katex": "^0.16.25",
     "lucide-react": "^0.555.0",
     "matter-js": "^0.20.0",
