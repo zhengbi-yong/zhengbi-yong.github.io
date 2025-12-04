@@ -9,38 +9,39 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
-    # 替换现有 Setup Node + Setup pnpm + Install dependencies 段
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm' # 仅做 cache，不会安装 pnpm
+        cache: 'pnpm' # only enables caching, does not install pnpm
 
     - name: Setup pnpm (official action)
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v3
       with:
-        version: 10.24.0     # 使用精确版本匹配 package.json 中的 packageManager 字段
-        run_install: false   # 我们在后面单独运行 install
+        version: '10'        # use major version for robustness
+        run_install: false   # we'll run install explicitly below
 
     - name: Verify pnpm is available (and fallback to npm global install)
       run: |
+        node -v
+        npm -v
         echo "PATH=$PATH"
         if command -v pnpm >/dev/null 2>&1; then
-          pnpm --version
+          echo "pnpm found: $(pnpm --version)"
         else
           echo "pnpm not found. Installing pnpm globally via npm as fallback..."
-          npm install -g pnpm@10.24.0 || npm install -g pnpm@^10 || npm install -g pnpm
+          npm install -g pnpm@10 || npm install -g pnpm
           pnpm --version
         fi
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
-    
+
     - name: Build project
       run: pnpm build
       env:
