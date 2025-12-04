@@ -21,6 +21,8 @@ public/sitemap.xml
 # production
 /build
 *.xml
+# 但允许 public/musicxml 目录下的 XML 文件
+!public/musicxml/*.xml
 
 # rss feed
 /public/feed.xml
