@@ -20,22 +20,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Setup Node.js (without cache)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         id: pnpm-setup
         with:
           version: 10.24.0
-      - name: Verify pnpm is in PATH
-        run: |
-          echo "PATH=$PATH" >> $GITHUB_ENV
-          pnpm --version || echo "pnpm not found in PATH"
-          which pnpm || echo "which pnpm failed"
-          ls -la $(which pnpm) || echo "pnpm executable not found"
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          # 不设置 cache，避免自动检测 packageManager 导致的问题
+      - name: Verify pnpm installation
+        run: pnpm --version
       - name: Get pnpm store directory
         shell: bash
         run: |
