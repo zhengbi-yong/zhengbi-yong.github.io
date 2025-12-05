@@ -11,10 +11,13 @@ interface SocialCardProps {
 /**
  * SocialCard - 社交媒体卡片组件（堆叠效果）
  * 参考 Astro 项目的 SocialCard 组件
- * 桌面端：卡片堆叠，悬停时展开
+ * 桌面端：卡片堆叠，悬停时展开，支持多行显示
  * 移动端：正常排列
  */
 export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
+  // 桌面端每行显示的卡片数量
+  const itemsPerRow = 5
+  
   // 过滤社交媒体数据
   const filteredSocial = useMemo(() => {
     return socialData.filter((item) => {
@@ -26,6 +29,9 @@ export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
     })
   }, [displaySocialIds])
 
+  // 计算总行数
+  const totalRows = Math.ceil(filteredSocial.length / itemsPerRow)
+
   return (
     <div className="relative w-full">
       <div className="social-cards-wrapper">
@@ -36,6 +42,7 @@ export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
               item={item}
               index={index}
               total={filteredSocial.length}
+              itemsPerRow={itemsPerRow}
             />
           ))}
         </div>
@@ -49,9 +56,9 @@ export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
         .social-list {
           position: relative;
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: flex-start;
-          height: 70px;
+          min-height: 70px;
         }
 
         @media (max-width: 768px) {
@@ -68,7 +75,10 @@ export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
           .social-item {
             position: absolute;
             left: 0;
-            transform: translateX(calc(var(--index) * 3px)) rotate(calc(var(--index) * 5deg));
+            top: 0;
+            transform: translateX(calc(var(--index) * 3px)) 
+                       translateY(0px) 
+                       rotate(calc(var(--index) * 5deg));
             z-index: calc(var(--total) - var(--index));
             transition: transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1),
                         z-index 0s linear 0.6s,
@@ -77,7 +87,9 @@ export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
           }
 
           .social-list:hover .social-item {
-            transform: translateX(calc(var(--index) * 85px)) rotate(0deg);
+            transform: translateX(calc(var(--col) * 85px)) 
+                       translateY(calc(var(--row) * 85px)) 
+                       rotate(0deg);
             z-index: calc(var(--index) + 100);
             transition: transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1),
                         z-index 0s linear 0s,
@@ -86,7 +98,10 @@ export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
           }
 
           .social-list:hover .social-item:hover {
-            transform: translateX(calc(var(--index) * 80px)) translateY(-10px) rotate(-6deg) scale(1.05);
+            transform: translateX(calc(var(--col) * 85px)) 
+                       translateY(calc(var(--row) * 85px - 10px)) 
+                       rotate(-6deg) 
+                       scale(1.05);
             z-index: 9999;
             transition: transform 0.35s cubic-bezier(0.34, 1.5, 0.64, 1),
                         z-index 0s linear 0s,
@@ -110,9 +125,14 @@ interface SocialCardItemProps {
   item: SocialItem
   index: number
   total: number
+  itemsPerRow: number
 }
 
-function SocialCardItem({ item, index, total }: SocialCardItemProps) {
+function SocialCardItem({ item, index, total, itemsPerRow }: SocialCardItemProps) {
+  // 计算当前卡片所在的行和列
+  const row = Math.floor(index / itemsPerRow)
+  const col = index % itemsPerRow
+
   return (
     <a
       href={item.url}
@@ -122,6 +142,9 @@ function SocialCardItem({ item, index, total }: SocialCardItemProps) {
       style={{
         ['--index' as any]: index,
         ['--total' as any]: total,
+        ['--row' as any]: row,
+        ['--col' as any]: col,
+        ['--items-per-row' as any]: itemsPerRow,
       }}
     >
       <Image

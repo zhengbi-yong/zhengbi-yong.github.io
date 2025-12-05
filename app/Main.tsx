@@ -42,7 +42,7 @@ export default function Home({ posts }: HomeProps) {
             {/* First description - AnimatedText animation */}
             <div className="mb-2">
               <AnimatedText
-                content="I'm a robotics engineer and UI designer with 8+ years of experience. I love blending design and code to create captivating visuals and interactive experiences."
+                content="I'm a Master student at Beijing Institute of Technology, School of Automation. My research interests include Robotics and Multimodal Perception. And I recieve my Bachelor's degree from Tsinghua University, Department of Automation."
                 delay={0.3}
                 duration={0.5}
                 stagger={0.015}
@@ -52,7 +52,7 @@ export default function Home({ posts }: HomeProps) {
             {/* Second description - AnimatedText animation */}
             <div className="mb-4">
               <AnimatedText
-                content="I believe great design should be both delightful and solve real-world challenges."
+                content="I believe Dynamics, Intelligence and Energy are the foundation of the future."
                 delay={0.5}
                 duration={0.5}
                 stagger={0.015}
@@ -72,7 +72,7 @@ export default function Home({ posts }: HomeProps) {
             </div>
             {/* Social Cards */}
             <div className="mt-8 mb-8">
-              <SocialCard displaySocialIds={[1, 2, 3, 4]} />
+              <SocialCard displaySocialIds={[1, 2, 3, 4, 5, 6, 7]} />
             </div>
           </div>
           {/* 右侧：HeroCard */}

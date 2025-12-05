@@ -63,6 +63,14 @@ const socialData: SocialItem[] = [
     image: '/assets/social/social-figma.jpg', // 使用现有的图片，如果没有 instagram 图片
     isShow: !!siteMetadata.instagram,
   },
+  {
+    id: 7,  // 使用新的 id
+    name: '小红书',
+    username: siteMetadata.xiaohongshu?.split('/').pop() || 'xiaohongshu',
+    url: siteMetadata.xiaohongshu || '#',
+    image: '/assets/social/social-xiaohongshu.jpg',
+    isShow: !!siteMetadata.xiaohongshu,
+  },
 ]
 
 export default socialData
