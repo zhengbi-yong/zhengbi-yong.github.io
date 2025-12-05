@@ -89,6 +89,7 @@ export interface SiteMetadata {
   linkedin?: string
   threads?: string
   instagram?: string
+  xiaohongshu?: string
   medium?: string
   locale: string
   stickyNav: boolean

@@ -125,7 +125,19 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
     .filter(isAuthorEntry)
     .map((author) => coreContent(author))
   const mainContent = coreContent(post)
-  const jsonLd = post.structuredData
+  // 安全地获取structuredData，如果不存在则创建默认结构
+  const jsonLd = post.structuredData || {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    datePublished: post.date,
+    dateModified: post.lastmod || post.date,
+    description: post.summary || '',
+    image: post.images && Array.isArray(post.images) && post.images.length > 0 
+      ? post.images[0] 
+      : siteMetadata.socialBanner,
+    url: `${siteMetadata.siteUrl}/${post._raw.flattenedPath}`,
+  }
   jsonLd['author'] = authorDetails.map((author) => {
     return {
       '@type': 'Person',
@@ -147,10 +159,14 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ 
+            __html: JSON.stringify(jsonLd, null, 0) 
+          }}
+        />
+      )}
       {/* 自动缓存文章内容，后续访问瞬间打开 */}
       <CachedPostContent slug={slug} post={post} />
       <Layout

@@ -84,6 +84,8 @@ const Footer = memo(() => {
   }, [])
 
   // 社交链接配置（使用useMemo缓存，避免每次渲染创建）
+  // 注意：虽然siteMetadata是静态的，但为了确保SSR/CSR一致性，我们不在依赖项中包含它
+  // 因为siteMetadata在构建时就已经确定，不会在运行时改变
   const socialLinks = useMemo(
     () => {
       const links: (SocialLink | null)[] = [
@@ -176,6 +178,7 @@ const Footer = memo(() => {
       ]
       return links.filter((link): link is SocialLink => link !== null)
     },
+    // 空依赖数组是安全的，因为siteMetadata在构建时确定，不会在运行时改变
     []
   )
 
