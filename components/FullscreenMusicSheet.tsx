@@ -208,6 +208,32 @@ export default function FullscreenMusicSheet({
       // 渲染乐谱
       osmdInstanceRef.current.render()
       
+      // 确保SVG内容居中
+      setTimeout(() => {
+        if (containerRef.current) {
+          const svg = containerRef.current.querySelector('svg')
+          if (svg) {
+            // 移除可能影响居中的内联样式
+            svg.style.removeProperty('left')
+            svg.style.removeProperty('right')
+            svg.style.removeProperty('transform')
+            svg.style.removeProperty('position')
+            
+            // 确保SVG居中
+            svg.style.margin = '0 auto'
+            svg.style.display = 'block'
+            svg.style.maxWidth = '100%'
+            
+            // 确保容器内容居中
+            containerRef.current.style.textAlign = 'center'
+            containerRef.current.style.display = 'flex'
+            containerRef.current.style.flexDirection = 'column'
+            containerRef.current.style.alignItems = 'center'
+            containerRef.current.style.justifyContent = 'flex-start'
+          }
+        }
+      }, 200)
+      
       setIsLoading(false)
     } catch (err) {
       console.error('加载乐谱错误:', err)
@@ -288,6 +314,32 @@ export default function FullscreenMusicSheet({
     if (osmdInstanceRef.current && !isLoading) {
       osmdInstanceRef.current.zoom = currentZoom
       osmdInstanceRef.current.render()
+      
+      // 确保SVG内容居中
+      setTimeout(() => {
+        if (containerRef.current) {
+          const svg = containerRef.current.querySelector('svg')
+          if (svg) {
+            // 移除可能影响居中的内联样式
+            svg.style.removeProperty('left')
+            svg.style.removeProperty('right')
+            svg.style.removeProperty('transform')
+            svg.style.removeProperty('position')
+            
+            // 确保SVG居中
+            svg.style.margin = '0 auto'
+            svg.style.display = 'block'
+            svg.style.maxWidth = '100%'
+            
+            // 确保容器内容居中
+            containerRef.current.style.textAlign = 'center'
+            containerRef.current.style.display = 'flex'
+            containerRef.current.style.flexDirection = 'column'
+            containerRef.current.style.alignItems = 'center'
+            containerRef.current.style.justifyContent = 'flex-start'
+          }
+        }
+      }, 200)
     }
   }, [currentZoom, isLoading])
 
@@ -370,12 +422,16 @@ export default function FullscreenMusicSheet({
           </div>
         )}
         
-        <div className="flex h-full items-start justify-center px-4 py-8">
+        <div className="flex h-full w-full items-start justify-center overflow-auto px-4 py-8">
           <div
             ref={containerRef}
-            className={`h-full w-full max-w-[95%] bg-white p-8 dark:bg-gray-950 ${
+            className={`bg-white p-8 dark:bg-gray-950 ${
               isLoading || error ? 'hidden' : ''
             }`}
+            style={{
+              maxWidth: '95%',
+              width: '100%',
+            }}
           />
         </div>
       </div>
