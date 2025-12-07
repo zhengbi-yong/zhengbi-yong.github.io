@@ -1,0 +1,1217 @@
+---
+title: '前端字体库集成指南：从基础到优化实践'
+date: '2025-01-15'
+tags: ['Frontend', 'Web Development', 'Typography', 'Performance', 'Next.js']
+draft: false
+summary: 全面探索前端字体库集成的各种方式，从Google Fonts到本地字体，从基础集成到性能优化，深入了解字体加载策略、优化技巧和最佳实践，帮助开发者构建高性能、美观的Web应用。
+showTOC: true
+---
+
+## 引言
+
+字体是Web应用视觉设计的重要组成部分，直接影响用户体验和品牌形象。随着Web技术的快速发展，前端字体集成方式也在不断演进，从最初的系统字体到如今的Web字体库，从简单的CDN引入到自动优化的框架集成，字体技术已经成为现代Web开发不可或缺的技能。
+
+前端字体集成的核心在于平衡视觉效果与性能表现。这涉及到多个技术领域的融合：字体格式的选择、加载策略的优化、跨平台兼容性的处理，以及性能优化的工程实践。理解这些技术的原理和应用，不仅能够帮助我们选择合适的字体集成方式，更能够让我们在遇到性能问题时，能够深入底层进行优化。
+
+从技术发展的角度来看，前端字体技术经历了几个重要阶段：早期的系统字体、基于@font-face的Web字体、CDN托管的字体库（如Google Fonts），以及如今支持自动优化和自托管的现代框架集成方案。每个阶段都带来了性能、功能和用户体验的显著提升。如今，主流的前端框架如Next.js、Vite等，都提供了专门的字体优化方案，为开发者提供了丰富的选择。
+
+本文将带您全面了解前端字体库集成的世界，从基础概念到各种集成方式，从性能优化策略到最佳实践，从框架集成到自定义方案。无论您是刚开始接触字体集成的初学者，还是希望深入理解优化原理的资深开发者，都能从本文中获得有价值的知识和实践指导。
+
+## 第一部分：基础概念与字体格式
+
+### Web字体格式概述
+
+在深入了解字体集成方式之前，我们需要先理解不同的Web字体格式及其特点。每种格式都有其特定的应用场景和优势。
+
+**TrueType（.ttf）和OpenType（.otf）**
+
+TrueType和OpenType是传统的桌面字体格式：
+
+- **TrueType（.ttf）**：由Apple和Microsoft开发的矢量字体格式，支持无损缩放，广泛兼容
+- **OpenType（.otf）**：TrueType的扩展，支持更多字符和高级排版功能，向后兼容TrueType
+
+这两种格式在Web中使用较少，因为文件体积较大，加载速度较慢。
+
+**WOFF（Web Open Font Format）**
+
+WOFF是专为Web设计的字体格式：
+
+- 基于TrueType/OpenType的压缩格式
+- 文件体积比原始格式小约30-50%
+- 现代浏览器广泛支持（IE9+）
+- 支持元数据和许可证信息
+
+**WOFF2**
+
+WOFF2是WOFF的升级版本：
+
+- 使用Brotli压缩算法，压缩比更高（比WOFF再小约30%）
+- 文件体积最小，加载速度最快
+- 现代浏览器广泛支持（Chrome 36+、Firefox 39+、Safari 10+）
+- 是目前推荐的Web字体格式
+
+**字体格式选择建议**
+
+在实际项目中，建议按以下优先级选择：
+
+1. **首选WOFF2**：现代浏览器的最佳选择，文件体积最小
+2. **WOFF作为后备**：兼容不支持WOFF2的旧版浏览器
+3. **避免使用TTF/OTF**：除非必须支持非常旧的浏览器
+
+### @font-face规则基础
+
+`@font-face`是CSS中定义自定义字体的核心规则，让我们了解其基本用法和关键属性。
+
+**基本语法**
+
+```css
+@font-face {
+  font-family: 'MyCustomFont';
+  src:
+    url('/fonts/myfont.woff2') format('woff2'),
+    url('/fonts/myfont.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+```
+
+**关键属性说明**
+
+- **font-family**：定义字体的名称，在CSS中使用时引用此名称
+- **src**：指定字体文件的路径，可以包含多个格式作为后备
+- **font-weight**：定义字体的粗细（100-900）
+- **font-style**：定义字体样式（normal、italic、oblique）
+- **font-display**：控制字体加载期间的显示行为（swap、block、fallback、optional）
+
+**多字重和样式**
+
+如果需要支持多个字重和样式，需要为每个变体定义单独的@font-face规则：
+
+```css
+/* 正常字重 */
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('/fonts/myfont-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 粗体 */
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('/fonts/myfont-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 斜体 */
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('/fonts/myfont-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+```
+
+## 第二部分：字体集成方式详解
+
+### 方式一：Google Fonts CDN集成
+
+Google Fonts是最流行的Web字体服务之一，提供了数百种免费的高质量字体。通过CDN集成是最简单直接的方式。
+
+**基础HTML集成**
+
+在HTML的`<head>`标签中引入字体：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Fonts 示例</title>
+
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>使用 Inter 字体的标题</h1>
+    <p>这是使用 Inter 字体的正文内容。</p>
+  </body>
+</html>
+```
+
+**关键优化点**
+
+1. **使用preconnect**：提前建立与Google Fonts服务器的连接，减少延迟
+2. **使用display=swap**：在URL参数中添加`display=swap`，避免FOIT（Flash of Invisible Text）
+3. **只加载需要的字重**：在URL中指定需要的字重，如`wght@400;500;600;700`
+
+**React集成示例**
+
+在React应用中使用Google Fonts：
+
+```jsx
+import React from 'react'
+
+function App() {
+  return (
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+      <div style={{ fontFamily: "'Inter', sans-serif" }}>
+        <h1>使用 Inter 字体的标题</h1>
+        <p>这是使用 Inter 字体的正文内容。</p>
+      </div>
+    </>
+  )
+}
+
+export default App
+```
+
+**Vue集成示例**
+
+在Vue应用中使用Google Fonts：
+
+```vue
+<template>
+  <div class="app">
+    <h1>使用 Inter 字体的标题</h1>
+    <p>这是使用 Inter 字体的正文内容。</p>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'App',
+  mounted() {
+    // 动态加载 Google Fonts
+    const link = document.createElement('link')
+    link.rel = 'preconnect'
+    link.href = 'https://fonts.googleapis.com'
+    document.head.appendChild(link)
+
+    const link2 = document.createElement('link')
+    link2.rel = 'preconnect'
+    link2.href = 'https://fonts.gstatic.com'
+    link2.crossOrigin = 'anonymous'
+    document.head.appendChild(link2)
+
+    const link3 = document.createElement('link')
+    link3.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'
+    link3.rel = 'stylesheet'
+    document.head.appendChild(link3)
+  },
+}
+</script>
+
+<style scoped>
+.app {
+  font-family: 'Inter', sans-serif;
+}
+</style>
+```
+
+**优缺点分析**
+
+优点：
+
+- 简单易用，无需下载字体文件
+- 自动提供CDN加速
+- 支持大量免费字体
+- 自动处理字体子集和优化
+
+缺点：
+
+- 依赖外部服务，可能影响隐私
+- 需要额外的网络请求
+- 在某些地区可能加载较慢
+- 无法完全控制字体加载时机
+
+### 方式二：Next.js字体优化集成
+
+Next.js提供了`next/font`模块，可以自动优化Google Fonts和本地字体的加载，这是目前推荐的集成方式。
+
+**Google Fonts集成**
+
+使用`next/font/google`自动优化Google Fonts：
+
+```jsx
+// app/layout.js 或 pages/_app.js
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-inter',
+})
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="zh-CN" className={inter.variable}>
+      <body className={inter.className}>{children}</body>
+    </html>
+  )
+}
+```
+
+**关键特性**
+
+1. **自动优化**：Next.js会自动下载字体文件并自托管，无需外部请求
+2. **零布局偏移**：通过CSS变量和预加载，避免CLS（Cumulative Layout Shift）
+3. **字体子集化**：自动只加载指定子集的字符，减少文件体积
+4. **类型安全**：TypeScript支持，提供完整的类型定义
+
+**本地字体集成**
+
+使用`next/font/local`加载本地字体文件：
+
+```jsx
+import localFont from 'next/font/local'
+
+const myCustomFont = localFont({
+  src: [
+    {
+      path: './fonts/MyFont-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/MyFont-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: './fonts/MyFont-Italic.woff2',
+      weight: '400',
+      style: 'italic',
+    },
+  ],
+  variable: '--font-my-custom',
+  display: 'swap',
+})
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="zh-CN" className={myCustomFont.variable}>
+      <body className={myCustomFont.className}>{children}</body>
+    </html>
+  )
+}
+```
+
+**多字体组合**
+
+可以在同一个应用中组合使用多个字体：
+
+```jsx
+import { Inter, Roboto_Mono } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  variable: '--font-roboto-mono',
+  display: 'swap',
+})
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="zh-CN" className={`${inter.variable} ${robotoMono.variable}`}>
+      <body>{children}</body>
+    </html>
+  )
+}
+```
+
+然后在CSS中使用：
+
+```css
+body {
+  font-family: var(--font-inter), sans-serif;
+}
+
+code {
+  font-family: var(--font-roboto-mono), monospace;
+}
+```
+
+**高级配置选项**
+
+```jsx
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin', 'latin-ext', 'cyrillic'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  preload: true, // 预加载字体
+  fallback: ['system-ui', 'arial'], // 后备字体
+  adjustFontFallback: true, // 自动调整后备字体尺寸
+  variable: '--font-inter',
+})
+```
+
+### 方式三：传统@font-face集成
+
+对于不使用Next.js的项目，或者需要完全控制字体加载的场景，可以使用传统的@font-face方式。
+
+**基础实现**
+
+在CSS文件中定义字体：
+
+```css
+/* styles/fonts.css */
+@font-face {
+  font-family: 'MyCustomFont';
+  src:
+    url('/fonts/MyFont-Regular.woff2') format('woff2'),
+    url('/fonts/MyFont-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MyCustomFont';
+  src:
+    url('/fonts/MyFont-Bold.woff2') format('woff2'),
+    url('/fonts/MyFont-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 使用字体 */
+body {
+  font-family:
+    'MyCustomFont',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+```
+
+**字体文件目录结构**
+
+```
+public/
+  fonts/
+    MyFont-Regular.woff2
+    MyFont-Regular.woff
+    MyFont-Bold.woff2
+    MyFont-Bold.woff
+```
+
+**React应用集成**
+
+```jsx
+// App.jsx
+import './styles/fonts.css'
+
+function App() {
+  return (
+    <div style={{ fontFamily: "'MyCustomFont', sans-serif" }}>
+      <h1>使用自定义字体</h1>
+    </div>
+  )
+}
+
+export default App
+```
+
+**Vite项目集成**
+
+在Vite项目中，可以直接在CSS中引用`src`目录下的字体文件：
+
+```css
+/* src/styles/fonts.css */
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('../assets/fonts/MyFont-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+```
+
+### 方式四：字体库NPM包集成
+
+一些字体库提供了NPM包，可以直接通过包管理器安装使用。
+
+**安装字体包**
+
+```bash
+# 安装字体包
+npm install @fontsource/inter
+# 或
+yarn add @fontsource/inter
+# 或
+pnpm add @fontsource/inter
+```
+
+**在应用中引入**
+
+```jsx
+// 引入所有字重和样式
+import '@fontsource/inter'
+
+// 或只引入特定字重
+import '@fontsource/inter/400.css'
+import '@fontsource/inter/500.css'
+import '@fontsource/inter/700.css'
+
+// 或引入特定子集
+import '@fontsource/inter/latin.css'
+import '@fontsource/inter/latin-ext.css'
+```
+
+**使用字体**
+
+```jsx
+function App() {
+  return (
+    <div style={{ fontFamily: "'Inter', sans-serif" }}>
+      <h1>使用 @fontsource 字体</h1>
+    </div>
+  )
+}
+```
+
+**支持的字体库**
+
+Fontsource项目支持大量Google Fonts字体，包括：
+
+- Inter
+- Roboto
+- Open Sans
+- Lato
+- Montserrat
+- 等等
+
+**优缺点分析**
+
+优点：
+
+- 版本控制，字体版本与代码版本绑定
+- 可以自托管，不依赖外部服务
+- 支持Tree Shaking，只打包使用的字体
+- 类型安全（TypeScript支持）
+
+缺点：
+
+- 需要手动管理字体更新
+- 增加bundle体积
+- 需要额外的构建配置
+
+## 第三部分：字体加载优化策略
+
+### font-display属性详解
+
+`font-display`属性控制字体加载期间的显示行为，是字体性能优化的关键。
+
+**可选值**
+
+1. **block**：字体加载期间显示空白，加载完成后显示字体
+   - 优点：避免FOUT（Flash of Unstyled Text）
+   - 缺点：可能导致FOIT（Flash of Invisible Text），用户体验较差
+
+2. **swap**：立即显示后备字体，字体加载完成后替换
+   - 优点：避免FOIT，用户体验好
+   - 缺点：可能出现FOUT，但通常可以接受
+
+3. **fallback**：短暂显示空白（约100ms），然后显示后备字体，字体加载完成后替换
+   - 平衡block和swap的折中方案
+
+4. **optional**：如果字体未在短时间内加载完成，则永久使用后备字体
+   - 适用于非关键字体，优先保证性能
+
+**推荐使用**
+
+对于大多数场景，推荐使用`swap`：
+
+```css
+@font-face {
+  font-family: 'MyFont';
+  src: url('/fonts/myfont.woff2') format('woff2');
+  font-display: swap;
+}
+```
+
+### 字体预加载（Preload）
+
+使用`<link rel="preload">`可以提前加载关键字体，减少延迟。
+
+**HTML预加载**
+
+```html
+<head>
+  <link
+    rel="preload"
+    href="/fonts/MyFont-Regular.woff2"
+    as="font"
+    type="font/woff2"
+    crossorigin="anonymous"
+  />
+</head>
+```
+
+**关键属性**
+
+- `rel="preload"`：告诉浏览器这是需要预加载的资源
+- `as="font"`：指定资源类型为字体
+- `type="font/woff2"`：指定MIME类型
+- `crossorigin="anonymous"`：必需，即使字体同源也需要
+
+**Next.js中的预加载**
+
+Next.js的`next/font`会自动处理预加载，无需手动配置。
+
+**React应用中的预加载**
+
+```jsx
+function App() {
+  return (
+    <>
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link
+        rel="preload"
+        href="/fonts/MyFont-Regular.woff2"
+        as="font"
+        type="font/woff2"
+        crossOrigin="anonymous"
+      />
+      <div>应用内容</div>
+    </>
+  )
+}
+```
+
+### 字体子集化
+
+字体子集化是指只保留字体文件中需要的字符，大幅减少文件体积。
+
+**使用pyftsubset工具**
+
+```bash
+# 安装工具
+pip install fonttools brotli
+
+# 子集化字体（只保留ASCII字符）
+pyftsubset font.woff2 \
+  --unicodes="U+0020-007F" \
+  --output-file=font-subset.woff2 \
+  --flavor=woff2
+
+# 子集化字体（保留指定文本中的字符）
+pyftsubset font.woff2 \
+  --text="Hello World 你好世界" \
+  --output-file=font-subset.woff2 \
+  --flavor=woff2
+
+# 子集化字体（保留指定Unicode范围）
+pyftsubset font.woff2 \
+  --unicodes="U+0020-007F,U+4E00-9FFF" \
+  --output-file=font-subset.woff2 \
+  --flavor=woff2
+```
+
+**在线工具**
+
+也可以使用在线工具进行字体子集化：
+
+- Font Squirrel Webfont Generator
+- Glyphhanger
+- Font Subsetter
+
+**Next.js自动子集化**
+
+Next.js的`next/font`会根据`subsets`参数自动进行子集化：
+
+```jsx
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'], // 只加载这些子集
+  // ...
+})
+```
+
+### 延迟加载非关键字体
+
+对于非关键字体（如装饰性字体），可以延迟加载以提升首屏性能。
+
+**动态加载字体**
+
+```javascript
+// 延迟加载字体
+function loadFont() {
+  const link = document.createElement('link')
+  link.href = 'https://fonts.googleapis.com/css2?family=Display+Font&display=swap'
+  link.rel = 'stylesheet'
+  document.head.appendChild(link)
+}
+
+// 在需要时加载
+window.addEventListener('load', loadFont)
+// 或
+setTimeout(loadFont, 2000)
+```
+
+**React中的延迟加载**
+
+```jsx
+import { useEffect, useState } from 'react'
+
+function App() {
+  const [fontLoaded, setFontLoaded] = useState(false)
+
+  useEffect(() => {
+    // 延迟加载字体
+    const timer = setTimeout(() => {
+      const link = document.createElement('link')
+      link.href = 'https://fonts.googleapis.com/css2?family=Display+Font&display=swap'
+      link.rel = 'stylesheet'
+      link.onload = () => setFontLoaded(true)
+      document.head.appendChild(link)
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <div style={{ fontFamily: fontLoaded ? "'Display Font', sans-serif" : 'sans-serif' }}>内容</div>
+  )
+}
+```
+
+## 第四部分：性能优化最佳实践
+
+### 性能指标与优化目标
+
+字体加载直接影响以下Web性能指标：
+
+- **FCP（First Contentful Paint）**：首次内容绘制时间
+- **LCP（Largest Contentful Paint）**：最大内容绘制时间
+- **CLS（Cumulative Layout Shift）**：累积布局偏移
+- **FCP到LCP的时间**：字体加载可能导致LCP延迟
+
+**优化目标**
+
+- FCP < 1.8秒
+- LCP < 2.5秒
+- CLS < 0.1
+- 字体加载时间 < 1秒
+
+### 综合优化策略
+
+**1. 选择正确的字体格式**
+
+优先使用WOFF2，提供WOFF作为后备：
+
+```css
+@font-face {
+  font-family: 'MyFont';
+  src:
+    url('/fonts/myfont.woff2') format('woff2'),
+    url('/fonts/myfont.woff') format('woff');
+  font-display: swap;
+}
+```
+
+**2. 限制字体变体数量**
+
+只加载实际使用的字重和样式：
+
+```css
+/* 只加载需要的变体 */
+@font-face {
+  font-family: 'MyFont';
+  src: url('/fonts/myfont-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'MyFont';
+  src: url('/fonts/myfont-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}
+```
+
+**3. 使用系统字体作为后备**
+
+```css
+body {
+  font-family:
+    'MyCustomFont',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+```
+
+**4. 预加载关键字体**
+
+```html
+<link
+  rel="preload"
+  href="/fonts/MyFont-Regular.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin="anonymous"
+/>
+```
+
+**5. 使用font-display: swap**
+
+```css
+@font-face {
+  font-family: 'MyFont';
+  src: url('/fonts/myfont.woff2') format('woff2');
+  font-display: swap; /* 关键优化 */
+}
+```
+
+### 实际项目优化案例
+
+**案例一：Next.js项目优化**
+
+```jsx
+// app/layout.js
+import { Inter, Roboto_Mono } from 'next/font/google'
+
+// 主字体：预加载，自动优化
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  preload: true,
+  variable: '--font-inter',
+})
+
+// 代码字体：延迟加载
+const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  display: 'swap',
+  preload: false, // 不预加载，因为不是关键字体
+  variable: '--font-mono',
+})
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="zh-CN" className={`${inter.variable} ${robotoMono.variable}`}>
+      <body className={inter.className}>{children}</body>
+    </html>
+  )
+}
+```
+
+**案例二：React + Vite项目优化**
+
+```jsx
+// App.jsx
+import { useEffect } from 'react'
+import './styles/fonts.css'
+
+function App() {
+  useEffect(() => {
+    // 预加载关键字体
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.href = '/fonts/Inter-Regular.woff2'
+    link.as = 'font'
+    link.type = 'font/woff2'
+    link.crossOrigin = 'anonymous'
+    document.head.appendChild(link)
+  }, [])
+
+  return <div className="app">应用内容</div>
+}
+```
+
+```css
+/* styles/fonts.css */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+.app {
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+```
+
+## 第五部分：框架特定集成方案
+
+### Vite项目集成
+
+Vite项目可以使用多种方式集成字体。
+
+**方式一：CSS @font-face**
+
+```css
+/* src/styles/fonts.css */
+@font-face {
+  font-family: 'MyFont';
+  src: url('../assets/fonts/MyFont.woff2') format('woff2');
+  font-display: swap;
+}
+```
+
+```jsx
+// src/App.jsx
+import './styles/fonts.css'
+
+function App() {
+  return <div style={{ fontFamily: "'MyFont', sans-serif" }}>内容</div>
+}
+```
+
+**方式二：使用vite-plugin-webfont-dl**
+
+```bash
+npm install -D vite-plugin-webfont-dl
+```
+
+```javascript
+// vite.config.js
+import { defineConfig } from 'vite'
+import webfontDownload from 'vite-plugin-webfont-dl'
+
+export default defineConfig({
+  plugins: [
+    webfontDownload([
+      'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+    ]),
+  ],
+})
+```
+
+### Create React App集成
+
+在CRA项目中，将字体文件放在`public/fonts`目录：
+
+```
+public/
+  fonts/
+    MyFont-Regular.woff2
+    MyFont-Bold.woff2
+```
+
+```css
+/* src/index.css */
+@font-face {
+  font-family: 'MyFont';
+  src: url('/fonts/MyFont-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+body {
+  font-family: 'MyFont', sans-serif;
+}
+```
+
+### Vue 3项目集成
+
+**方式一：在main.js中引入**
+
+```javascript
+// main.js
+import { createApp } from 'vue'
+import App from './App.vue'
+import './styles/fonts.css'
+
+createApp(App).mount('#app')
+```
+
+```css
+/* styles/fonts.css */
+@font-face {
+  font-family: 'MyFont';
+  src: url('../assets/fonts/MyFont.woff2') format('woff2');
+  font-display: swap;
+}
+```
+
+**方式二：使用Vue的字体插件**
+
+```bash
+npm install @vueuse/head
+```
+
+```javascript
+// main.js
+import { createApp } from 'vue'
+import { createHead } from '@vueuse/head'
+import App from './App.vue'
+
+const app = createApp(App)
+const head = createHead()
+
+app.use(head)
+app.mount('#app')
+```
+
+```vue
+<!-- App.vue -->
+<template>
+  <div>内容</div>
+</template>
+
+<script setup>
+import { useHead } from '@vueuse/head'
+
+useHead({
+  link: [
+    {
+      rel: 'preconnect',
+      href: 'https://fonts.googleapis.com',
+    },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+    },
+  ],
+})
+</script>
+
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+}
+</style>
+```
+
+## 第六部分：常见问题与解决方案
+
+### 问题一：字体闪烁（FOUT/FOIT）
+
+**问题描述**
+
+字体加载时出现闪烁，影响用户体验。
+
+**解决方案**
+
+1. 使用`font-display: swap`
+2. 预加载关键字体
+3. 使用系统字体作为后备
+
+```css
+@font-face {
+  font-family: 'MyFont';
+  src: url('/fonts/myfont.woff2') format('woff2');
+  font-display: swap; /* 关键 */
+}
+
+body {
+  font-family:
+    'MyFont',
+    -apple-system,
+    sans-serif; /* 提供后备 */
+}
+```
+
+### 问题二：字体加载慢
+
+**问题描述**
+
+字体文件体积大，加载时间长。
+
+**解决方案**
+
+1. 使用WOFF2格式
+2. 字体子集化
+3. 只加载需要的字重
+4. 使用CDN加速
+
+```bash
+# 子集化字体
+pyftsubset font.woff2 \
+  --unicodes="U+0020-007F" \
+  --output-file=font-subset.woff2 \
+  --flavor=woff2
+```
+
+### 问题三：布局偏移（CLS）
+
+**问题描述**
+
+字体加载后导致布局偏移。
+
+**解决方案**
+
+1. 使用`font-display: swap`
+2. 设置合适的后备字体尺寸
+3. 使用Next.js的`adjustFontFallback`
+
+```jsx
+import { Inter } from 'next/font/google'
+
+const inter = Inter({
+  adjustFontFallback: true, // 自动调整后备字体
+  // ...
+})
+```
+
+### 问题四：跨域字体加载
+
+**问题描述**
+
+从CDN加载字体时遇到CORS问题。
+
+**解决方案**
+
+确保CDN服务器设置了正确的CORS头：
+
+```
+Access-Control-Allow-Origin: *
+```
+
+或者在HTML中使用`crossorigin`属性：
+
+```html
+<link
+  rel="preload"
+  href="https://example.com/font.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin="anonymous"
+/>
+```
+
+### 问题五：Next.js字体优化问题
+
+**问题描述**
+
+在Next.js中使用Google Fonts时遇到Turbopack问题。
+
+**解决方案**
+
+1. 使用`next/font`而不是直接引入CDN
+2. 如果必须使用CDN，在`next.config.js`中配置：
+
+```javascript
+// next.config.js
+module.exports = {
+  // ...
+  experimental: {
+    // 如果使用Turbopack
+  },
+}
+```
+
+或者使用系统字体作为临时方案（如本项目当前的做法）。
+
+## 第七部分：工具与资源
+
+### 字体工具
+
+**字体转换工具**
+
+- [CloudConvert](https://cloudconvert.com/)：在线字体格式转换
+- [Font Squirrel Webfont Generator](https://www.fontsquirrel.com/tools/webfont-generator)：Web字体生成器
+- [Transfonter](https://transfonter.org/)：字体格式转换和优化
+
+**字体子集化工具**
+
+- `pyftsubset`：Python字体工具包
+- [Glyphhanger](https://github.com/filamentgroup/glyphhanger)：CLI字体子集化工具
+- [Font Subsetter](https://everythingfonts.com/subsetter)：在线字体子集化
+
+**字体测试工具**
+
+- [Font Playground](https://play.typedetail.com/)：字体预览和测试
+- [Font Pair](https://www.fontpair.co/)：字体配对建议
+- [Type Scale](https://type-scale.com/)：字体大小比例工具
+
+### 字体资源
+
+**免费字体库**
+
+- [Google Fonts](https://fonts.google.com/)：最流行的免费字体库
+- [Font Squirrel](https://www.fontsquirrel.com/)：免费商业字体
+- [Adobe Fonts](https://fonts.adobe.com/)：Adobe字体库（需订阅）
+- [Fontsource](https://fontsource.org/)：NPM字体包
+
+**中文字体资源**
+
+- [思源黑体](https://github.com/adobe-fonts/source-han-sans)：Adobe开源中文字体
+- [站酷字体](https://www.zcool.com.cn/special/zcoolfonts/)：免费中文字体
+- [字体天下](http://www.fonts.net.cn/)：中文字体资源
+
+### 性能测试工具
+
+- [WebPageTest](https://www.webpagetest.org/)：网页性能测试
+- [Lighthouse](https://developers.google.com/web/tools/lighthouse)：Chrome性能审计工具
+- [Font Loading API](https://developer.mozilla.org/en-US/docs/Web/API/FontFace)：字体加载API
+
+## 总结
+
+前端字体库集成是现代Web开发的重要组成部分，选择合适的集成方式和优化策略对于提升用户体验和性能至关重要。本文全面介绍了各种字体集成方式，从简单的CDN引入到框架自动优化，从基础实现到性能优化，为开发者提供了完整的实践指南。
+
+**关键要点总结**
+
+1. **选择合适的格式**：优先使用WOFF2，提供WOFF作为后备
+2. **使用font-display: swap**：避免FOIT，提升用户体验
+3. **预加载关键字体**：减少字体加载延迟
+4. **字体子集化**：只加载需要的字符，减少文件体积
+5. **限制字体变体**：只加载实际使用的字重和样式
+6. **使用框架优化**：Next.js等框架提供了自动优化方案
+7. **提供系统字体后备**：确保字体加载失败时页面仍可正常显示
+
+**推荐方案**
+
+- **Next.js项目**：使用`next/font`自动优化
+- **React/Vue项目**：使用`@font-face` + 预加载 + 优化策略
+- **简单项目**：Google Fonts CDN + 优化配置
+- **企业项目**：自托管字体 + 完整优化方案
+
+通过合理选择和应用这些技术，我们可以构建出既美观又高性能的Web应用，为用户提供最佳的浏览体验。希望本文能够帮助您在前端字体集成方面做出更好的决策和实践。
