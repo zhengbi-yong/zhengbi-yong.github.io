@@ -32,12 +32,12 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
   const tocContentRef = useRef<HTMLElement>(null)
   const tocMobileContentRef = useRef<HTMLElement>(null)
   const { resolvedTheme } = useTheme()
-  
+
   // 当组件挂载后，显示 UI
   useEffect(() => {
     setMounted(true)
   }, [])
-  
+
   // 检测是否为深色模式
   const isDark = useMemo(() => {
     if (!mounted) {
@@ -48,12 +48,12 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
     // 这样可以确保与 next-themes 的主题状态完全一致
     return resolvedTheme === 'dark'
   }, [mounted, resolvedTheme])
-  
+
   // 同步 ref 和 state
   useEffect(() => {
     activeHeadingIdRef.current = activeHeadingId
   }, [activeHeadingId])
-  
+
   useEffect(() => {
     isMobileRef.current = isMobile
   }, [isMobile])
@@ -82,7 +82,7 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
-  
+
   // 在服务器端渲染时，默认不渲染桌面端容器（避免 hydration 问题）
   // 客户端挂载后再根据窗口宽度决定是否渲染
   const [shouldRenderDesktop, setShouldRenderDesktop] = useState(false)
@@ -178,7 +178,7 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
     const initObserver = () => {
       // 重新构建 idToLinkMap，确保获取最新的链接
       const idToLinkMap = buildIdToLinkMap()
-      
+
       if (idToLinkMap.size === 0) {
         return
       }
@@ -201,7 +201,9 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
 
       // 如果还是找不到，尝试查找所有标题（即使没有 id）
       if (headingElements.length === 0) {
-        const allHeadings = Array.from(document.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'))
+        const allHeadings = Array.from(
+          document.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6')
+        )
         // 尝试从 TOC 数据中获取 ID，然后查找对应的元素
         const tocIds = toc.map((item) => item.url.replace('#', ''))
         headingElements = allHeadings.filter((heading) => {
@@ -224,18 +226,18 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
 
       // 防抖定时器
       let debounceTimer: NodeJS.Timeout | null = null
-      
+
       const headingObserver = new IntersectionObserver((entries) => {
         // 清除之前的防抖定时器
         if (debounceTimer) {
           clearTimeout(debounceTimer)
         }
-        
+
         // 使用防抖，延迟 150ms 执行，减少频繁更新
         debounceTimer = setTimeout(() => {
           // 重新获取最新的 idToLinkMap
           const currentIdToLinkMap = buildIdToLinkMap()
-          
+
           // 找到所有正在交叉的标题
           const intersectingHeadings = entries
             .filter((entry) => entry.isIntersecting)
@@ -253,24 +255,24 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
               // 优先选择在视口上方（已滚过）的标题
               if (prev.top < 120 && current.top >= 120) return prev
               if (prev.top >= 120 && current.top < 120) return current
-              
+
               // 如果都在视口上方，选择更接近顶部的（top 值更大的）
               if (prev.top < 120 && current.top < 120) {
                 return current.top > prev.top ? current : prev
               }
-              
+
               // 如果都在视口内，选择更接近顶部的（top 值更小的）
               if (prev.top >= 120 && current.top >= 120) {
                 return current.top < prev.top ? current : prev
               }
-              
+
               return prev
             }, intersectingHeadings[0]) // 提供初始值
 
             const topHeadingId = topHeading.id
             if (topHeadingId && topHeadingId !== activeHeadingIdRef.current) {
               setActiveHeadingId(topHeadingId)
-              
+
               // 延迟滚动，确保 DOM 已更新
               setTimeout(() => {
                 const activeLink = currentIdToLinkMap.get(topHeadingId)
@@ -287,7 +289,10 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
                     if (tocContainer && !tocContainer.classList.contains('collapsed')) {
                       const linkRect = activeLink.getBoundingClientRect()
                       const containerRect = tocContainer.getBoundingClientRect()
-                      if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+                      if (
+                        linkRect.bottom > containerRect.bottom ||
+                        linkRect.top < containerRect.top
+                      ) {
                         activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
                       }
                     }
@@ -297,52 +302,57 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
             }
           } else {
             // 如果没有交叉的标题，使用滚动位置判断（作为后备方案）
-          const scrollPosition = window.scrollY + 120
-          let currentActive: string | null = null
+            const scrollPosition = window.scrollY + 120
+            let currentActive: string | null = null
 
-          // 找到所有标题的位置
-          const headingPositions = headingElements.map((heading) => ({
-            id: heading.id,
-            top: window.scrollY + heading.getBoundingClientRect().top,
-          })).sort((a, b) => b.top - a.top) // 从下往上排序
+            // 找到所有标题的位置
+            const headingPositions = headingElements
+              .map((heading) => ({
+                id: heading.id,
+                top: window.scrollY + heading.getBoundingClientRect().top,
+              }))
+              .sort((a, b) => b.top - a.top) // 从下往上排序
 
-          // 找到最接近但已滚过的标题
-          for (const pos of headingPositions) {
-            if (pos.top <= scrollPosition) {
-              currentActive = pos.id
-              break
+            // 找到最接近但已滚过的标题
+            for (const pos of headingPositions) {
+              if (pos.top <= scrollPosition) {
+                currentActive = pos.id
+                break
+              }
             }
-          }
 
-          // 如果找到了当前激活的标题，更新高亮
-          if (currentActive && currentActive !== activeHeadingIdRef.current) {
-            setActiveHeadingId(currentActive)
-            
-            // 延迟滚动，确保 DOM 已更新
-            setTimeout(() => {
-              const activeLink = currentIdToLinkMap.get(currentActive)
-              if (activeLink) {
-                if (isMobileRef.current) {
-                  // 移动端：滚动到移动端面板中的可见位置
-                  const mobileContainer = tocMobileContentRef.current
-                  if (mobileContainer && isMobileExpanded) {
-                    activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-                  }
-                } else {
-                  // 桌面端：滚动到桌面端容器中的可见位置
-                  const tocContainer = tocContentRef.current
-                  if (tocContainer && !tocContainer.classList.contains('collapsed')) {
-                    const linkRect = activeLink.getBoundingClientRect()
-                    const containerRect = tocContainer.getBoundingClientRect()
-                    if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+            // 如果找到了当前激活的标题，更新高亮
+            if (currentActive && currentActive !== activeHeadingIdRef.current) {
+              setActiveHeadingId(currentActive)
+
+              // 延迟滚动，确保 DOM 已更新
+              setTimeout(() => {
+                const activeLink = currentIdToLinkMap.get(currentActive)
+                if (activeLink) {
+                  if (isMobileRef.current) {
+                    // 移动端：滚动到移动端面板中的可见位置
+                    const mobileContainer = tocMobileContentRef.current
+                    if (mobileContainer && isMobileExpanded) {
                       activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                    }
+                  } else {
+                    // 桌面端：滚动到桌面端容器中的可见位置
+                    const tocContainer = tocContentRef.current
+                    if (tocContainer && !tocContainer.classList.contains('collapsed')) {
+                      const linkRect = activeLink.getBoundingClientRect()
+                      const containerRect = tocContainer.getBoundingClientRect()
+                      if (
+                        linkRect.bottom > containerRect.bottom ||
+                        linkRect.top < containerRect.top
+                      ) {
+                        activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+                      }
                     }
                   }
                 }
-              }
-            }, 0)
+              }, 0)
+            }
           }
-        }
         }, 150) // 防抖延迟 150ms
       }, observerOptions)
 
@@ -399,7 +409,7 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
         scrollTimeout = setTimeout(() => {
           // 重新获取最新的 idToLinkMap
           const currentIdToLinkMap = buildIdToLinkMap()
-          
+
           // 找到最接近视口顶部但已滚过的标题
           const scrollPosition = window.scrollY + 120
           let currentActive: string | null = null
@@ -417,7 +427,7 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
 
           if (currentActive && currentActive !== activeHeadingIdRef.current) {
             setActiveHeadingId(currentActive)
-            
+
             // 延迟滚动，确保 DOM 已更新
             setTimeout(() => {
               const activeLink = currentIdToLinkMap.get(currentActive)
@@ -434,7 +444,10 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
                   if (tocContainer && !tocContainer.classList.contains('collapsed')) {
                     const linkRect = activeLink.getBoundingClientRect()
                     const containerRect = tocContainer.getBoundingClientRect()
-                    if (linkRect.bottom > containerRect.bottom || linkRect.top < containerRect.top) {
+                    if (
+                      linkRect.bottom > containerRect.bottom ||
+                      linkRect.top < containerRect.top
+                    ) {
                       activeLink.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
                     }
                   }
@@ -485,7 +498,7 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
     (node: HeadingNode): React.ReactNode => {
       const nodeId = node.url.replace('#', '')
       const isActive = activeHeadingId === nodeId
-      
+
       return (
         <li key={node.url} className={cn(styles.tocItem, 'font-brand', getDepthClass(node.depth))}>
           <a
@@ -495,27 +508,37 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
             className={cn(
               'toc-link',
               isActive && 'active',
-              !isActive && 'dark:text-gray-400 dark:hover:text-indigo-400 dark:hover:bg-gray-800'
+              !isActive && 'dark:hover:text-primary-400 dark:text-gray-400 dark:hover:bg-gray-800'
             )}
-            style={isActive ? { 
-              color: isDark ? 'rgb(129 140 248)' : 'rgb(99 102 241)', 
-              backgroundColor: isDark ? 'rgb(30 41 59)' : 'rgb(243 244 246)', 
-              fontWeight: 600,
-              boxShadow: isDark ? '0 1px 3px 0 rgba(129, 140, 248, 0.1)' : '0 1px 3px 0 rgba(99, 102, 241, 0.1)'
-            } as React.CSSProperties : undefined}
+            style={
+              isActive
+                ? ({
+                    color: 'var(--toc-active-text)',
+                    backgroundColor: 'var(--toc-active-bg)',
+                    fontWeight: 600,
+                    boxShadow: 'var(--toc-shadow)',
+                  } as React.CSSProperties)
+                : undefined
+            }
             onClick={(e) => handleLinkClick(node.url, e)}
           >
-            {isActive && <span style={{
-              position: 'absolute',
-              left: 0,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '3px',
-              height: '70%',
-              background: isDark ? 'rgb(129 140 248)' : 'rgb(99 102 241)',
-              borderRadius: '0 2px 2px 0',
-              boxShadow: isDark ? '0 0 4px rgba(129, 140, 248, 0.5)' : '0 0 4px rgba(99, 102, 241, 0.4)'
-            } as React.CSSProperties} />}
+            {isActive && (
+              <span
+                style={
+                  {
+                    position: 'absolute',
+                    left: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '3px',
+                    height: '70%',
+                    background: 'var(--toc-active-indicator)',
+                    borderRadius: '0 2px 2px 0',
+                    boxShadow: 'var(--toc-indicator-shadow)',
+                  } as React.CSSProperties
+                }
+              />
+            )}
             {node.value}
           </a>
           {node.children.length > 0 && (
@@ -523,9 +546,12 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
               {node.children.map((c: HeadingNode) => {
                 const childId = c.url.replace('#', '')
                 const isChildActive = activeHeadingId === childId
-                
+
                 return (
-                  <li key={c.url} className={cn(styles.tocItem, 'font-brand', getDepthClass(c.depth))}>
+                  <li
+                    key={c.url}
+                    className={cn(styles.tocItem, 'font-brand', getDepthClass(c.depth))}
+                  >
                     <a
                       href={c.url}
                       data-depth={c.depth}
@@ -533,27 +559,38 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
                       className={cn(
                         'toc-link',
                         isChildActive && 'active',
-                        !isChildActive && 'dark:text-gray-400 dark:hover:text-indigo-400 dark:hover:bg-gray-800'
+                        !isChildActive &&
+                          'dark:hover:text-primary-400 dark:text-gray-400 dark:hover:bg-gray-800'
                       )}
-                      style={isChildActive ? { 
-                        color: isDark ? 'rgb(129 140 248)' : 'rgb(99 102 241)', 
-                        backgroundColor: isDark ? 'rgb(30 41 59)' : 'rgb(243 244 246)', 
-                        fontWeight: 600,
-                        boxShadow: isDark ? '0 1px 3px 0 rgba(129, 140, 248, 0.1)' : '0 1px 3px 0 rgba(99, 102, 241, 0.1)'
-                      } as React.CSSProperties : undefined}
+                      style={
+                        isChildActive
+                          ? ({
+                              color: 'var(--toc-active-text)',
+                              backgroundColor: 'var(--toc-active-bg)',
+                              fontWeight: 600,
+                              boxShadow: 'var(--toc-shadow)',
+                            } as React.CSSProperties)
+                          : undefined
+                      }
                       onClick={(e) => handleLinkClick(c.url, e)}
                     >
-                      {isChildActive && <span style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        width: '3px',
-                        height: '70%',
-                        background: isDark ? 'rgb(129 140 248)' : 'rgb(99 102 241)',
-                        borderRadius: '0 2px 2px 0',
-                        boxShadow: isDark ? '0 0 4px rgba(129, 140, 248, 0.5)' : '0 0 4px rgba(99, 102, 241, 0.4)'
-                      } as React.CSSProperties} />}
+                      {isChildActive && (
+                        <span
+                          style={
+                            {
+                              position: 'absolute',
+                              left: 0,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              width: '3px',
+                              height: '70%',
+                              background: 'var(--toc-active-indicator)',
+                              borderRadius: '0 2px 2px 0',
+                              boxShadow: 'var(--toc-indicator-shadow)',
+                            } as React.CSSProperties
+                          }
+                        />
+                      )}
                       {c.value}
                     </a>
                     {c.children.length > 0 && (
@@ -561,9 +598,12 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
                         {c.children.map((cc: HeadingNode) => {
                           const grandChildId = cc.url.replace('#', '')
                           const isGrandChildActive = activeHeadingId === grandChildId
-                          
+
                           return (
-                            <li key={cc.url} className={cn(styles.tocItem, 'font-brand', getDepthClass(cc.depth))}>
+                            <li
+                              key={cc.url}
+                              className={cn(styles.tocItem, 'font-brand', getDepthClass(cc.depth))}
+                            >
                               <a
                                 href={cc.url}
                                 data-depth={cc.depth}
@@ -571,27 +611,38 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
                                 className={cn(
                                   'toc-link',
                                   isGrandChildActive && 'active',
-                                  !isGrandChildActive && 'dark:text-gray-400 dark:hover:text-indigo-400 dark:hover:bg-gray-800'
+                                  !isGrandChildActive &&
+                                    'dark:hover:text-primary-400 dark:text-gray-400 dark:hover:bg-gray-800'
                                 )}
-                                style={isGrandChildActive ? { 
-                                  color: isDark ? 'rgb(129 140 248)' : 'rgb(99 102 241)', 
-                                  backgroundColor: isDark ? 'rgb(30 41 59)' : 'rgb(243 244 246)', 
-                                  fontWeight: 600,
-                                  boxShadow: isDark ? '0 1px 3px 0 rgba(129, 140, 248, 0.1)' : '0 1px 3px 0 rgba(99, 102, 241, 0.1)'
-                                } as React.CSSProperties : undefined}
+                                style={
+                                  isGrandChildActive
+                                    ? ({
+                                        color: 'var(--toc-active-text)',
+                                        backgroundColor: 'var(--toc-active-bg)',
+                                        fontWeight: 600,
+                                        boxShadow: 'var(--toc-shadow)',
+                                      } as React.CSSProperties)
+                                    : undefined
+                                }
                                 onClick={(e) => handleLinkClick(cc.url, e)}
                               >
-                                {isGrandChildActive && <span style={{
-                                  position: 'absolute',
-                                  left: 0,
-                                  top: '50%',
-                                  transform: 'translateY(-50%)',
-                                  width: '3px',
-                                  height: '70%',
-                                  background: isDark ? 'rgb(129 140 248)' : 'rgb(99 102 241)',
-                                  borderRadius: '0 2px 2px 0',
-                                  boxShadow: isDark ? '0 0 4px rgba(129, 140, 248, 0.5)' : '0 0 4px rgba(99, 102, 241, 0.4)'
-                                } as React.CSSProperties} />}
+                                {isGrandChildActive && (
+                                  <span
+                                    style={
+                                      {
+                                        position: 'absolute',
+                                        left: 0,
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        width: '3px',
+                                        height: '70%',
+                                        background: 'var(--toc-active-indicator)',
+                                        borderRadius: '0 2px 2px 0',
+                                        boxShadow: 'var(--toc-indicator-shadow)',
+                                      } as React.CSSProperties
+                                    }
+                                  />
+                                )}
                                 {cc.value}
                               </a>
                             </li>
@@ -624,7 +675,10 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
           onClick={handleMobileToggle}
           aria-expanded={isMobileExpanded}
           aria-label="Toggle table of contents"
-          className={cn(styles.tocFloatingButton, 'dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700')}
+          className={cn(
+            styles.tocFloatingButton,
+            'dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700'
+          )}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -643,51 +697,44 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
 
         {/* 遮罩层 */}
         {isMobileExpanded && (
-          <div
-            className={styles.tocBackdrop}
-            onClick={handleBackdropClick}
-            aria-hidden="true"
-          />
+          <div className={styles.tocBackdrop} onClick={handleBackdropClick} aria-hidden="true" />
         )}
 
         {/* 移动端浮动面板 */}
-        <div
-          className={cn(
-            styles.tocMobilePanel,
-            isMobileExpanded && styles.tocMobilePanelOpen
-          )}
-        >
-            <div className={styles.tocMobilePanelHeader}>
-              <span className={cn(styles.tocMobilePanelTitle, 'font-brand dark:text-gray-100')}>目录</span>
-              <button
-                onClick={() => setIsMobileExpanded(false)}
-                aria-label="Close table of contents"
-                className={cn(styles.tocCloseButton, 'dark:text-gray-400 dark:hover:text-gray-200')}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <nav
-              ref={tocMobileContentRef}
-              id="toc-content-mobile"
-              className={styles.tocMobileContent}
-              aria-label="TOC"
+        <div className={cn(styles.tocMobilePanel, isMobileExpanded && styles.tocMobilePanelOpen)}>
+          <div className={styles.tocMobilePanelHeader}>
+            <span className={cn(styles.tocMobilePanelTitle, 'font-brand dark:text-gray-100')}>
+              目录
+            </span>
+            <button
+              onClick={() => setIsMobileExpanded(false)}
+              aria-label="Close table of contents"
+              className={cn(styles.tocCloseButton, 'dark:text-gray-400 dark:hover:text-gray-200')}
             >
-              <ul>{tree.map((node) => renderTOCNode(node))}</ul>
-            </nav>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
           </div>
+          <nav
+            ref={tocMobileContentRef}
+            id="toc-content-mobile"
+            className={styles.tocMobileContent}
+            aria-label="TOC"
+          >
+            <ul>{tree.map((node) => renderTOCNode(node))}</ul>
+          </nav>
+        </div>
       </>
 
       {/* 桌面端容器 - 仅在非移动端且非 mobileOnly 模式下渲染 */}
@@ -695,10 +742,15 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
         <div ref={containerRef} className={styles.tocContainer}>
           {/* 桌面端标题 */}
           <div className={cn(styles.tocTitle, 'dark:border-gray-700')}>
-            <span className={cn(styles.tocTitleText, 'font-brand text-base dark:text-gray-100')}>TOC</span>
+            <span className={cn(styles.tocTitleText, 'font-brand text-base dark:text-gray-100')}>
+              TOC
+            </span>
             <button
               id="toc-toggle-desktop"
-              className={cn(styles.tocToggleDesktop, 'dark:text-gray-400 dark:hover:text-indigo-400 dark:hover:bg-gray-800')}
+              className={cn(
+                styles.tocToggleDesktop,
+                'dark:hover:text-primary-400 dark:text-gray-400 dark:hover:bg-gray-800'
+              )}
               onClick={handleDesktopToggle}
               aria-expanded={isDesktopExpanded}
               aria-controls="toc-content"
@@ -725,10 +777,7 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
           <nav
             ref={tocContentRef}
             id="toc-content"
-            className={cn(
-              styles.toc,
-              !isDesktopExpanded && styles.collapsed
-            )}
+            className={cn(styles.toc, !isDesktopExpanded && styles.collapsed)}
             aria-label="TOC"
           >
             <ul>{tree.map((node) => renderTOCNode(node))}</ul>

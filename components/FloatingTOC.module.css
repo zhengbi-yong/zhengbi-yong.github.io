@@ -293,8 +293,8 @@
 }
 
 .tocToggleDesktop:hover {
-  color: rgb(99 102 241);
-  background: rgb(243 244 246);
+  color: var(--toc-hover);
+  background: var(--toc-active-bg);
 }
 
 .tocToggleDesktop:active {
@@ -337,8 +337,8 @@
 }
 
 .tocItem a:hover {
-  color: rgb(99 102 241);
-  background: rgb(243 244 246);
+  color: var(--toc-hover);
+  background: var(--toc-active-bg);
 }
 
 /* 移除 CSS 中的 active 样式，完全依赖内联样式 */
@@ -487,9 +487,9 @@
 }
 
 #tocContent::-webkit-scrollbar-thumb:hover {
-  background: rgb(99 102 241) !important;
+  background: var(--toc-hover) !important;
 }
 
 #tocContent::-webkit-scrollbar-thumb:active {
-  background: rgb(79 70 229) !important;
+  background: var(--color-primary-700) !important;
 }
