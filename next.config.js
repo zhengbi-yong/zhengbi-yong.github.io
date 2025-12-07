@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { withContentlayer } = require('next-contentlayer2')
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
@@ -8,7 +9,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const ContentSecurityPolicy = `
   default-src 'self';
   script-src 'self' 'unsafe-eval' 'unsafe-inline' giscus.app analytics.umami.is;
-  style-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline' unpkg.com;
   img-src * blob: data:;
   media-src 'self' *.s3.amazonaws.com;
   connect-src *;
@@ -70,10 +71,10 @@ module.exports = () => {
   if (process.platform === 'win32' && !process.env.CHOKIDAR_USEPOLLING) {
     process.env.CHOKIDAR_USEPOLLING = 'true'
   }
-  
+
   const plugins = [withContentlayer, withBundleAnalyzer]
   const isStaticExport = output === 'export'
-  
+
   return plugins.reduce((acc, next) => next(acc), {
     output,
     basePath,
@@ -110,7 +111,7 @@ module.exports = () => {
       // 注意：静态导出模式下 Next.js 图片优化器不可用
       // 必须设置 unoptimized: true，否则会尝试使用 /_next/image 路由（静态导出模式下不存在）
       // 如需图片优化，建议使用 CDN 服务（如 Cloudinary、ImageKit）或构建时预处理
-      unoptimized: unoptimized !== undefined ? unoptimized : (isStaticExport ? true : false),
+      unoptimized: unoptimized !== undefined ? unoptimized : isStaticExport ? true : false,
       // 性能优化：即使静态导出，也配置图片格式优先级
       formats: ['image/avif', 'image/webp'],
       // 性能优化：配置图片尺寸，减少不必要的加载
