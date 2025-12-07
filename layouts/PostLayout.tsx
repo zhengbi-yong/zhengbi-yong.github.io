@@ -56,7 +56,7 @@ export default function PostLayout({
               <dl>
                 <div>
                   <dt className="sr-only">Published on</dt>
-                  <dd className="text-sm leading-6 font-medium text-gray-500 dark:text-gray-400 mb-6">
+                  <dd className="mb-6 text-sm leading-6 font-medium text-gray-500 dark:text-gray-400">
                     <time dateTime={date}>
                       {new Date(date).toLocaleDateString(siteMetadata.locale, postDateTemplate)}
                     </time>
@@ -71,10 +71,12 @@ export default function PostLayout({
           <div className="divide-y divide-gray-200 pb-8 md:grid md:grid-cols-[3fr_1fr] md:gap-x-6 md:divide-y-0 dark:divide-gray-700">
             <div className="md:col-span-1 dark:divide-gray-700">
               <FadeIn delay={0.2} duration={0.6} whileInView={true}>
-                <div className="prose dark:prose-invert max-w-none pt-10 pb-8 prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-p:leading-7 prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline">{children}</div>
+                <div className="prose dark:prose-invert prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-p:leading-7 prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline mx-auto w-full max-w-full min-w-0 pt-10 pb-8 sm:max-w-2xl md:max-w-none xl:max-w-4xl">
+                  {children}
+                </div>
               </FadeIn>
             </div>
-            <div className="hidden md:block md:col-span-1 md:sticky md:top-20 md:self-start md:flex md:flex-col">
+            <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start">
               <FloatingTOC toc={toc} enabled={showTOC} />
             </div>
           </div>

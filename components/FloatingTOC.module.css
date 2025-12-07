@@ -21,7 +21,9 @@
   border-radius: 50% !important;
   background: rgb(249 250 251) !important;
   border: 1px solid rgb(229 231 235) !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1) !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1) !important;
   display: none;
   align-items: center !important;
   justify-content: center !important;
@@ -33,7 +35,9 @@
 
 .tocFloatingButton:hover {
   background: rgb(243 244 246);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
   transform: scale(1.05);
 }
 
@@ -69,7 +73,9 @@
   max-height: 80vh;
   background: rgb(255 255 255);
   border-radius: 1rem 1rem 0 0;
-  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -2px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 -4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 -2px 4px -2px rgba(0, 0, 0, 0.1);
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -139,10 +145,18 @@
   overflow-x: hidden;
   padding: 0.5rem 0;
   min-height: 0;
+  /* 只在内容超出时显示滚动条 */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.tocMobileContent:hover {
+  scrollbar-color: rgb(209 213 219) transparent;
 }
 
 .tocMobileContent::-webkit-scrollbar {
   width: 6px;
+  background: transparent;
 }
 
 .tocMobileContent::-webkit-scrollbar-track {
@@ -152,14 +166,20 @@
 }
 
 .tocMobileContent::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: transparent;
   border-radius: 4px;
   transition: background 0.2s;
+}
+
+.tocMobileContent:hover::-webkit-scrollbar-thumb {
+  background: #d1d5db;
 }
 
 .tocMobileContent::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* 移动端滚动条样式已移到上面，这里删除重复定义 */
 
 .toc {
   flex: 1;
@@ -172,15 +192,21 @@
   padding: 0;
   border-radius: 0.75rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 只在内容超出时显示滚动条，默认透明 */
   scrollbar-width: thin;
-  scrollbar-color: rgb(209 213 219) transparent;
+  scrollbar-color: transparent transparent;
   z-index: 1;
   /* 确保内容可以滚动 */
   overscroll-behavior: contain;
 }
 
+.toc:hover {
+  scrollbar-color: rgb(209 213 219) transparent;
+}
+
 .toc::-webkit-scrollbar {
   width: 8px;
+  background: transparent;
 }
 
 .toc::-webkit-scrollbar-track {
@@ -190,10 +216,15 @@
 }
 
 .toc::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: transparent;
   border-radius: 4px;
   transition: background 0.2s;
   border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.toc:hover::-webkit-scrollbar-thumb {
+  background: #d1d5db;
   background-clip: padding-box;
 }
 
@@ -207,11 +238,11 @@
   .toc {
     scrollbar-color: rgb(75 85 99) transparent;
   }
-  
+
   .toc::-webkit-scrollbar-thumb {
     background: rgb(75 85 99);
   }
-  
+
   .toc::-webkit-scrollbar-thumb:hover {
     background: rgb(107 114 128);
   }
@@ -219,7 +250,7 @@
   .tocMobileContent::-webkit-scrollbar-thumb {
     background: rgb(75 85 99);
   }
-  
+
   .tocMobileContent::-webkit-scrollbar-thumb:hover {
     background: rgb(107 114 128);
   }
@@ -356,7 +387,6 @@
   }
 }
 
-
 /* 平板尺寸 (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .tocContainer {
@@ -421,7 +451,6 @@
   }
 }
 
-
 /* 小屏幕手机 (最大 576px) */
 @media (max-width: 576px) {
   .tocFloatingButton {
@@ -464,4 +493,3 @@
 #tocContent::-webkit-scrollbar-thumb:active {
   background: rgb(79 70 229) !important;
 }
-

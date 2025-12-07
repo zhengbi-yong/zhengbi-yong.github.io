@@ -21,6 +21,67 @@
   @apply float-left min-w-full;
 }
 
+/* Ensure code blocks have horizontal scroll only when needed */
+pre {
+  @apply overflow-x-auto;
+  max-width: 100%;
+  overflow-y: hidden;
+  /* 滚动条默认透明，只在hover或滚动时显示 */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  /* 确保 pre 是滚动容器 */
+  position: relative;
+}
+
+pre:hover {
+  scrollbar-color: rgb(209 213 219) transparent;
+}
+
+pre::-webkit-scrollbar {
+  height: 8px;
+  background: transparent;
+}
+
+pre::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+pre:hover::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+pre::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+pre code {
+  display: block;
+  overflow: visible !important;
+  white-space: pre;
+  word-wrap: normal;
+  /* 确保 code 元素不产生滚动条，内容自然溢出到 pre 容器 */
+  max-width: none;
+  width: max-content;
+  min-width: 100%;
+  /* 禁用 code 元素的所有滚动相关属性 */
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
+}
+
+pre code::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .code-line {
   @apply -mx-4 block border-l-4 border-transparent pr-4 pl-4;
 }

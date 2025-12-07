@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
 }
 
-const VISITORS_FILE = path.join(process.cwd(), 'data', 'visitors.json')
+const VISITORS_FILE = path.join(process.cwd(), 'visitors.json')
 
 async function getVisitors(): Promise<VisitorData[]> {
   try {
