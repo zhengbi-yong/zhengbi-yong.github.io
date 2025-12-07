@@ -1,1 +1,38 @@
-npx --no-install lint-staged
+#!/usr/bin/env sh
+
+# 获取脚本所在目录的绝对路径
+SCRIPT_DIR="$(cd "$(dirname -- "$0")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# 确保 PATH 包含 node_modules/.bin（跨平台兼容）
+export PATH="$PATH:$PROJECT_ROOT/node_modules/.bin"
+
+# 尝试找到 node 并添加到 PATH（跨平台兼容）
+# 1. 尝试使用 NVM_DIR（如果设置了）
+if [ -n "$NVM_DIR" ] && [ -d "$NVM_DIR/versions/node" ]; then
+  # 查找最新的 node 版本
+  NODE_VERSION_DIR=$(ls -t "$NVM_DIR/versions/node" 2>/dev/null | head -1)
+  if [ -n "$NODE_VERSION_DIR" ] && [ -d "$NVM_DIR/versions/node/$NODE_VERSION_DIR/bin" ]; then
+    export PATH="$NVM_DIR/versions/node/$NODE_VERSION_DIR/bin:$PATH"
+  fi
+fi
+
+# 2. 尝试常见的 nvm 路径（Linux/Mac）
+if [ -d "$HOME/.nvm/versions/node" ]; then
+  NODE_VERSION_DIR=$(ls -t "$HOME/.nvm/versions/node" 2>/dev/null | head -1)
+  if [ -n "$NODE_VERSION_DIR" ] && [ -d "$HOME/.nvm/versions/node/$NODE_VERSION_DIR/bin" ]; then
+    export PATH="$HOME/.nvm/versions/node/$NODE_VERSION_DIR/bin:$PATH"
+  fi
+fi
+
+# 3. 尝试系统安装的 node（通常在 /usr/bin 或 /usr/local/bin）
+# 这些路径通常已经在系统 PATH 中，但为了确保，我们显式添加
+for NODE_PATH in /usr/local/bin /usr/bin; do
+  if [ -x "$NODE_PATH/node" ]; then
+    export PATH="$NODE_PATH:$PATH"
+    break
+  fi
+done
+
+# 直接调用 lint-staged（跨平台兼容，不依赖 pnpm/npx）
+"$PROJECT_ROOT/node_modules/.bin/lint-staged"
