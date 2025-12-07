@@ -47,4 +47,4 @@ pnpm-debug.log*
 .contentlayer
 
 # visitor data
-data/visitors.json
+visitors.json

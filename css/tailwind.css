@@ -8,7 +8,8 @@
 /* Core theme configuration */
 @theme {
   /* Font families - 使用系统字体栈，避免 Google Fonts 的 Turbopack 问题 */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
 
@@ -119,6 +120,65 @@ input:-webkit-autofill:focus {
 
 .katex-display {
   overflow: auto hidden;
+}
+
+/* Code block overflow handling - scrollbar only when needed */
+.prose pre {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  /* 滚动条默认透明，只在hover或滚动时显示 */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.prose pre:hover {
+  scrollbar-color: rgb(209 213 219) transparent;
+}
+
+.prose pre::-webkit-scrollbar {
+  height: 8px;
+  background: transparent;
+}
+
+.prose pre::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.prose pre::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.prose pre:hover::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+}
+
+.prose pre::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.prose pre code {
+  display: block;
+  overflow: visible !important;
+  white-space: pre;
+  word-wrap: normal;
+  /* 确保 code 元素不产生滚动条，内容自然溢出到 pre 容器 */
+  max-width: none;
+  width: max-content;
+  min-width: 100%;
+  /* 禁用 code 元素的所有滚动相关属性 */
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
+}
+
+.prose pre code::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .content-header-link {
@@ -349,7 +409,8 @@ html.cursor-hidden .case-go {
 
 /* Blog-specific styles */
 .blog-card {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
