@@ -1,6 +1,7 @@
 import 'css/tailwind.css'
 import 'pliny/search/algolia.css'
 import 'remark-github-blockquote-alert/alert.css'
+import 'leaflet/dist/leaflet.css'
 
 import { SearchProvider, SearchConfig } from 'pliny/search'
 import type { AnalyticsConfig } from 'pliny/analytics'
@@ -12,6 +13,7 @@ import { ThemeProviders } from './theme-providers'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
+import VisitorTracker from '@/components/VisitorTracker'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -89,12 +91,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
         <ServiceWorkerRegister />
+        <VisitorTracker />
         <ThemeProviders>
           <ErrorBoundary>
             {/* 延迟加载的组件（Analytics、KeyboardNavigation、FocusManager） */}
-            <LazyLoadedComponents
-              analyticsConfig={siteMetadata.analytics as AnalyticsConfig}
-            />
+            <LazyLoadedComponents analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
             <SectionContainer>
               <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
                 <Header />
