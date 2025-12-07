@@ -1,14 +1,13 @@
 {
-  "music": 1,
-  "robotics": 3,
-  "ros": 1,
-  "ros2": 1,
-  "unitree": 1,
+  "tutorial": 2,
+  "math": 1,
+  "katex": 1,
+  "latex": 1,
+  "documentation": 1,
   "terminal": 2,
   "tools": 1,
   "development": 1,
   "rust": 1,
-  "tutorial": 1,
   "frontend": 1,
   "animation": 1,
   "document": 1,
@@ -22,5 +21,10 @@
   "windows": 1,
   "development-tools": 1,
   "productivity": 1,
-  "shell": 1
+  "shell": 1,
+  "music": 1,
+  "robotics": 3,
+  "ros": 1,
+  "ros2": 1,
+  "unitree": 1
 }
