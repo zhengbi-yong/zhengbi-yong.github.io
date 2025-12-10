@@ -13,6 +13,7 @@ drawings:
 transition: slide-left
 title: Slidev 演示文稿 1
 mdc: true
+routerMode: hash
 ---
 
 # Slidev 演示文稿 1
