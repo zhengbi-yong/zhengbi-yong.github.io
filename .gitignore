@@ -48,3 +48,7 @@ pnpm-debug.log*
 
 # visitor data
 visitors.json
+
+# Slidev
+slidev/*/dist
+slidev/*/node_modules
