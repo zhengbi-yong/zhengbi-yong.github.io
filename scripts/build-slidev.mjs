@@ -83,20 +83,24 @@ for (const projectName of slidevProjects) {
       }
       cpSync(distDir, targetDir, { recursive: true });
       
-      // 创建 404.html 用于 GitHub Pages SPA 路由支持
-      console.log(`   📝 创建 404.html 用于 SPA 路由支持...`);
+      // GitHub Pages 官方标准方法：创建 404.html 支持 SPA 路由
+      // 参考：https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
       const { writeFileSync } = await import('fs');
       const indexPath = join(targetDir, 'index.html');
       const notFoundPath = join(targetDir, '404.html');
+      const noJekyllPath = join(targetDir, '.nojekyll');
       
       if (existsSync(indexPath)) {
-        // 读取 index.html 内容
+        // 读取 index.html 并复制为 404.html（GitHub Pages 官方推荐的标准方法）
         const indexContent = await fs.readFile(indexPath, 'utf-8');
-        // 创建 404.html，内容与 index.html 相同
-        // GitHub Pages 会在 404 时返回这个文件，但 URL 保持不变
-        // Slidev 的路由系统会处理 URL 并显示正确的幻灯片
         writeFileSync(notFoundPath, indexContent, 'utf-8');
-        console.log(`   ✅ 已创建 404.html`);
+        console.log(`   ✅ 已创建 404.html（GitHub Pages 标准方法）`);
+        
+        // 创建 .nojekyll 确保 GitHub Pages 正确处理所有文件
+        writeFileSync(noJekyllPath, '', 'utf-8');
+        console.log(`   ✅ 已创建 .nojekyll`);
+      } else {
+        console.log(`   ⚠️  警告: index.html 不存在，无法创建 404.html`);
       }
       
       console.log(`   ✅ ${projectName} 构建完成\n`);
