@@ -82,9 +82,15 @@ for (const projectName of slidevProjects) {
       stdio: 'inherit',
     });
 
-    // 复制构建产物到 out 目录
+    // 复制构建产物到 out/pre 目录
     const distDir = join(projectDir, 'dist');
-    const targetDir = join(outDir, projectName);
+    const preDir = join(outDir, 'pre');
+    const targetDir = join(preDir, projectName);
+    
+    // 确保 pre 目录存在
+    if (!existsSync(preDir)) {
+      mkdirSync(preDir, { recursive: true });
+    }
     
     if (existsSync(distDir)) {
       console.log(`   📋 复制构建产物到 ${targetDir}...`);
@@ -102,7 +108,7 @@ for (const projectName of slidevProjects) {
       console.log(`   ✅ 已创建 .nojekyll`);
       
       // 注意：使用 hash 模式路由（routerMode: hash），不需要 404.html
-      // URL 格式：https://zhengbi-yong.github.io/slidev1/#/0
+      // URL 格式：https://zhengbi-yong.github.io/pre/slidev1/#/0
       
       console.log(`   ✅ ${projectName} 构建完成\n`);
     } else {
