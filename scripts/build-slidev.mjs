@@ -28,8 +28,15 @@ console.log(`📁 仓库名称: ${repoName}`);
 console.log(`📂 Slidev 目录: ${slidevDir}`);
 console.log(`📂 输出目录: ${outDir}\n`);
 
+// 检查目录是否存在
+if (!existsSync(slidevDir)) {
+  console.error(`❌ 错误: Slidev 目录不存在: ${slidevDir}`);
+  process.exit(1);
+}
+
 // 确保输出目录存在
 if (!existsSync(outDir)) {
+  console.log(`📁 创建输出目录: ${outDir}`);
   mkdirSync(outDir, { recursive: true });
 }
 
@@ -40,6 +47,11 @@ const slidevProjects = entries
   .filter(entry => entry.isDirectory())
   .map(entry => entry.name)
   .filter(name => !name.startsWith('.'));
+
+if (slidevProjects.length === 0) {
+  console.error(`❌ 错误: 在 ${slidevDir} 中未找到 Slidev 项目`);
+  process.exit(1);
+}
 
 console.log(`找到 ${slidevProjects.length} 个 Slidev 项目: ${slidevProjects.join(', ')}\n`);
 
