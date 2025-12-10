@@ -82,6 +82,23 @@ for (const projectName of slidevProjects) {
         rmSync(targetDir, { recursive: true, force: true });
       }
       cpSync(distDir, targetDir, { recursive: true });
+      
+      // 创建 404.html 用于 GitHub Pages SPA 路由支持
+      console.log(`   📝 创建 404.html 用于 SPA 路由支持...`);
+      const { writeFileSync } = await import('fs');
+      const indexPath = join(targetDir, 'index.html');
+      const notFoundPath = join(targetDir, '404.html');
+      
+      if (existsSync(indexPath)) {
+        // 读取 index.html 内容
+        const indexContent = await fs.readFile(indexPath, 'utf-8');
+        // 创建 404.html，内容与 index.html 相同
+        // GitHub Pages 会在 404 时返回这个文件，但 URL 保持不变
+        // Slidev 的路由系统会处理 URL 并显示正确的幻灯片
+        writeFileSync(notFoundPath, indexContent, 'utf-8');
+        console.log(`   ✅ 已创建 404.html`);
+      }
+      
       console.log(`   ✅ ${projectName} 构建完成\n`);
     } else {
       console.log(`   ⚠️  警告: ${distDir} 不存在，跳过复制\n`);
