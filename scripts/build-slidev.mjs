@@ -83,25 +83,14 @@ for (const projectName of slidevProjects) {
       }
       cpSync(distDir, targetDir, { recursive: true });
       
-      // GitHub Pages 官方标准方法：创建 404.html 支持 SPA 路由
-      // 参考：https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-custom-404-page-for-your-github-pages-site
+      // 创建 .nojekyll 确保 GitHub Pages 正确处理所有文件
       const { writeFileSync } = await import('fs');
-      const indexPath = join(targetDir, 'index.html');
-      const notFoundPath = join(targetDir, '404.html');
       const noJekyllPath = join(targetDir, '.nojekyll');
+      writeFileSync(noJekyllPath, '', 'utf-8');
+      console.log(`   ✅ 已创建 .nojekyll`);
       
-      if (existsSync(indexPath)) {
-        // 读取 index.html 并复制为 404.html（GitHub Pages 官方推荐的标准方法）
-        const indexContent = await fs.readFile(indexPath, 'utf-8');
-        writeFileSync(notFoundPath, indexContent, 'utf-8');
-        console.log(`   ✅ 已创建 404.html（GitHub Pages 标准方法）`);
-        
-        // 创建 .nojekyll 确保 GitHub Pages 正确处理所有文件
-        writeFileSync(noJekyllPath, '', 'utf-8');
-        console.log(`   ✅ 已创建 .nojekyll`);
-      } else {
-        console.log(`   ⚠️  警告: index.html 不存在，无法创建 404.html`);
-      }
+      // 注意：使用 hash 模式路由（routerMode: hash），不需要 404.html
+      // URL 格式：https://zhengbi-yong.github.io/pre/slidev1/#/0
       
       console.log(`   ✅ ${projectName} 构建完成\n`);
     } else {
