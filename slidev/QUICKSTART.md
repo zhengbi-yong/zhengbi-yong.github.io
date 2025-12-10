@@ -7,7 +7,7 @@
 ## 当前配置
 
 - **仓库名**：`zhengbi-yong.github.io`
-- **访问地址格式**：`https://zhengbi-yong.github.io/{项目名}`
+- **访问地址格式**：`https://zhengbi-yong.github.io/pre/{项目名}`
 
 ## 已创建的演示文稿
 
@@ -69,7 +69,7 @@ title: 我的演示文稿
   "private": true,
   "scripts": {
     "dev": "slidev",
-    "build": "slidev build --base /slidev3/",
+    "build": "slidev build --base /pre/slidev3/",
     "export": "slidev export"
   },
   "dependencies": {
@@ -79,7 +79,7 @@ title: 我的演示文稿
 }
 ```
 
-**重要**：将 `slidev3` 替换为您的项目目录名，base path 格式为 `/{项目目录名}/`
+**重要**：将 `slidev3` 替换为您的项目目录名，base path 格式为 `/pre/{项目目录名}/`
 
 #### 步骤 4：提交并推送
 
@@ -116,22 +116,22 @@ node scripts/build-slidev.mjs
 
 每个 Slidev 项目的 `package.json` 中的 `build` 命令必须包含正确的 base path：
 
-- **格式**：`--base /{项目目录名}/`
+- **格式**：`--base /pre/{项目目录名}/`
 - **示例**：
-  - 项目目录：`slidev1` → `--base /slidev1/`
-  - 项目目录：`slidev2` → `--base /slidev2/`
+  - 项目目录：`slidev1` → `--base /pre/slidev1/`
+  - 项目目录：`slidev2` → `--base /pre/slidev2/`
 
 ### 如何确定仓库名
 
 1. 查看 GitHub 仓库 URL：`https://github.com/zhengbi-yong/zhengbi-yong.github.io`
-2. 对于用户页面仓库（`username.github.io`），base path 不需要包含仓库名
-3. 直接使用项目目录名作为 base path：`/{项目目录名}/`
+2. 构建产物会放在 `out/pre/` 目录下
+3. Base path 格式：`/pre/{项目目录名}/`
 
 ## 常见问题
 
 ### Q: 如何修改仓库名？
 
-A: 对于用户页面仓库（`username.github.io`），base path 格式为 `/{项目目录名}/`，不需要包含仓库名。
+A: Base path 格式为 `/pre/{项目目录名}/`，所有 Slidev 演示文稿都放在 `/pre/` 前缀下。
 
 ### Q: 构建失败怎么办？
 

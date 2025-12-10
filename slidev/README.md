@@ -19,8 +19,8 @@ slidev/
 
 假设您的仓库名为 `zhengbi-yong.github.io`，则访问地址为：
 
-- 第一个演示文稿：`https://zhengbi-yong.github.io/slidev1`
-- 第二个演示文稿：`https://zhengbi-yong.github.io/slidev2`
+- 第一个演示文稿：`https://zhengbi-yong.github.io/pre/slidev1`
+- 第二个演示文稿：`https://zhengbi-yong.github.io/pre/slidev2`
 
 ## 添加新的演示文稿
 
@@ -35,7 +35,7 @@ slidev/
   "private": true,
   "scripts": {
     "dev": "slidev",
-    "build": "slidev build --base /slidev3/",
+    "build": "slidev build --base /pre/slidev3/",
     "export": "slidev export"
   },
   "dependencies": {
@@ -45,7 +45,7 @@ slidev/
 }
 ```
 
-**重要**：确保 `build` 命令中的 `--base` 路径与目录名匹配，格式为 `/{目录名}/`
+**重要**：确保 `build` 命令中的 `--base` 路径格式为 `/pre/{目录名}/`
 
 4. 提交更改，GitHub Actions 会自动构建并部署
 
@@ -77,8 +77,8 @@ node scripts/build-slidev.mjs
 
 每个 Slidev 项目的 `package.json` 中的 `build` 命令必须包含正确的 `--base` 参数：
 
-- 格式：`--base /{项目目录名}/`
-- 示例：如果项目目录是 `slidev1`，则 base path 为 `/slidev1/`
+- 格式：`--base /pre/{项目目录名}/`
+- 示例：如果项目目录是 `slidev1`，则 base path 为 `/pre/slidev1/`
 
 ### 依赖管理
 

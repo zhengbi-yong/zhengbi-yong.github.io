@@ -2,7 +2,7 @@
 
 ## 问题：访问子路由返回 404
 
-当访问 `https://zhengbi-yong.github.io/slidev1/#/0` 时返回 404 错误。
+当访问 `https://zhengbi-yong.github.io/pre/slidev1/#/0` 时返回 404 错误。
 
 ## 解决方案
 
@@ -13,7 +13,7 @@
 ```json
 {
   "scripts": {
-    "build": "slidev build --base /slidev1/"
+    "build": "slidev build --base /pre/slidev1/"
   }
 }
 ```
@@ -22,7 +22,7 @@
 
 - 以 `/` 开头
 - 以 `/` 结尾
-- 格式为 `/{项目目录名}/`（对于用户页面仓库 `username.github.io`）
+- 格式为 `/pre/{项目目录名}/`
 
 ### 2. 确认 404.html 已创建
 
@@ -60,7 +60,7 @@ GitHub Pages 部署可能需要几分钟时间。检查部署状态：
 
 部署后，检查 GitHub Pages 上的文件结构：
 
-访问 `https://zhengbi-yong.github.io/slidev1/` 应该能看到：
+访问 `https://zhengbi-yong.github.io/pre/slidev1/` 应该能看到：
 
 - `index.html` ✓
 - `404.html` ✓
@@ -72,7 +72,7 @@ GitHub Pages 部署可能需要几分钟时间。检查部署状态：
 1. **测试首页**：
 
    ```
-   https://zhengbi-yong.github.io/slidev1/
+   https://zhengbi-yong.github.io/pre/slidev1/
    ```
 
    应该能正常显示
@@ -80,8 +80,8 @@ GitHub Pages 部署可能需要几分钟时间。检查部署状态：
 2. **测试子路由**：
 
    ```
-   https://zhengbi-yong.github.io/slidev1/#/0
-   https://zhengbi-yong.github.io/slidev1/#/1
+   https://zhengbi-yong.github.io/pre/slidev1/#/0
+   https://zhengbi-yong.github.io/pre/slidev1/#/1
    ```
 
    应该能显示对应的幻灯片
@@ -184,7 +184,7 @@ GitHub Pages 的 404.html 机制：
 
 1. 使用 hash 模式路由（`routerMode: hash`）
 2. URL 中的 hash 部分（`#/0`）不会被发送到服务器
-3. GitHub Pages 只处理 `/slidev1/` 路径，返回 `index.html`
+3. GitHub Pages 只处理 `/pre/slidev1/` 路径，返回 `index.html`
 4. Slidev 的路由系统读取 `window.location.hash` 并显示对应的幻灯片
 5. 这样就不需要 404.html，因为所有请求都返回同一个 `index.html`
 

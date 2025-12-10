@@ -2,7 +2,7 @@
 
 ## 问题诊断
 
-如果访问 `https://zhengbi-yong.github.io/slidev1/#/0` 显示 404，请按以下步骤检查：
+如果访问 `https://zhengbi-yong.github.io/pre/slidev1/#/0` 显示 404，请按以下步骤检查：
 
 ### 1. 检查 GitHub Actions 构建状态
 
@@ -37,9 +37,9 @@
 
 部署完成后，访问以下 URL 检查文件是否存在：
 
-- `https://zhengbi-yong.github.io/slidev1/` - 应该显示幻灯片首页
-- `https://zhengbi-yong.github.io/slidev1/index.html` - 应该能直接访问 index.html
-- `https://zhengbi-yong.github.io/slidev1/assets/` - 检查资源文件是否存在
+- `https://zhengbi-yong.github.io/pre/slidev1/` - 应该显示幻灯片首页
+- `https://zhengbi-yong.github.io/pre/slidev1/index.html` - 应该能直接访问 index.html
+- `https://zhengbi-yong.github.io/pre/slidev1/assets/` - 检查资源文件是否存在
 
 ### 4. 常见问题
 
@@ -117,7 +117,7 @@ ls -la out/slidev1/
 1. **package.json** 中的 base path：
 
    ```json
-   "build": "slidev build --base /slidev1/"
+   "build": "slidev build --base /pre/slidev1/"
    ```
 
 2. **slides.md** 中的 routerMode：
