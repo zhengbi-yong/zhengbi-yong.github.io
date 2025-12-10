@@ -102,7 +102,7 @@ for (const projectName of slidevProjects) {
       console.log(`   ✅ 已创建 .nojekyll`);
       
       // 注意：使用 hash 模式路由（routerMode: hash），不需要 404.html
-      // URL 格式：https://zhengbi-yong.github.io/pre/slidev1/#/0
+      // URL 格式：https://zhengbi-yong.github.io/slidev1/#/0
       
       console.log(`   ✅ ${projectName} 构建完成\n`);
     } else {
