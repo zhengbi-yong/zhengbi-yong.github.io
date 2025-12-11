@@ -1,5 +1,6 @@
 import rss from './rss.mjs'
 import { copyFileSync, mkdirSync, readdirSync, statSync, existsSync } from 'fs'
+import { execSync } from 'child_process'
 import { join } from 'path'
 
 // 递归复制目录
@@ -40,6 +41,21 @@ async function postbuild() {
     console.log('✓ musicxml 目录复制完成')
   } else {
     console.log('⚠ public/musicxml 目录不存在，跳过复制')
+  }
+  
+  // 构建 Slidev 演示文稿
+  const buildSlidevScript = join(process.cwd(), 'scripts', 'build-slidev.mjs')
+  if (existsSync(buildSlidevScript)) {
+    console.log('\n📦 构建 Slidev 演示文稿...')
+    try {
+      execSync(`node ${buildSlidevScript}`, { stdio: 'inherit', cwd: process.cwd() })
+      console.log('✓ Slidev 演示文稿构建完成')
+    } catch (error) {
+      console.error('⚠ Slidev 构建失败，但继续执行:', error.message)
+      // 不退出，因为主站构建已经成功
+    }
+  } else {
+    console.log('⚠ build-slidev.mjs 不存在，跳过 Slidev 构建')
   }
 }
 
