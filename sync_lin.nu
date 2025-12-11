@@ -31,10 +31,13 @@ if not ($env.PATH | any {|p| $p == $node_bin_path}) {
 
 # 配置变量
 let source_folder = ("out" | path expand)
-let remote_user = "ubuntu"
-let remote_ip = "152.136.43.194"
-let remote_port = 22
-let remote_path = "/home/ubuntu/PersonalBlog/out/"
+
+# 从环境变量读取配置（如果存在），否则使用默认值
+# 使用系统默认的 SSH 配置（假设已配置 SSH 密钥认证）
+let remote_user = ($env.DEPLOY_REMOTE_USER? | default "ubuntu")
+let remote_ip = ($env.DEPLOY_REMOTE_IP? | default "152.136.43.194")
+let remote_port = ($env.DEPLOY_REMOTE_PORT? | default "22" | into int)
+let remote_path = ($env.DEPLOY_REMOTE_PATH? | default "/home/ubuntu/PersonalBlog/out/")
 
 # 强制覆盖选项：如果设置为 true，将忽略时间戳和内容比较，强制传输所有文件
 # 如果网站没有更新，可以尝试将此选项设置为 true
@@ -43,11 +46,11 @@ let force_overwrite = false
 # 检查必需的工具（Ubuntu/Linux 版本）
 write-step "检查必需的工具..."
 
+# 检查必需的工具（只使用 SSH 密钥认证，不需要 sshpass）
 let required_tools = [
     {name: "pnpm", path: "pnpm", is_command: true},
     {name: "corepack", path: "corepack", is_command: true},
     {name: "rsync", path: "rsync", is_command: true},
-    {name: "sshpass", path: "sshpass", is_command: true},
     {name: "ssh", path: "ssh", is_command: true}
 ]
 
@@ -205,7 +208,8 @@ print ("源路径: " + $rsync_source)
 # 检查 SSH 连接（可选，但有助于调试）
 print "测试 SSH 连接..."
 try {
-    let ssh_test = (^sshpass -p 'YzBxxM2000818.P' ssh -p $remote_port -o ConnectTimeout=5 -o StrictHostKeyChecking=no $"($remote_user)@($remote_ip)" "echo 'SSH connection test'" | complete)
+    # 使用系统默认的 SSH 配置
+    let ssh_test = (^ssh -p ($remote_port | into string) -o ConnectTimeout=5 -o StrictHostKeyChecking=no $"($remote_user)@($remote_ip)" "echo 'SSH connection test'" | complete)
     if $ssh_test.exit_code == 0 {
         write-success "SSH 连接测试成功"
     } else {
@@ -260,8 +264,8 @@ try {
     }
     
     # 添加 SSH 命令和路径参数（Ubuntu/Linux 版本）
-    # 注意：-e 选项的参数需要被引号包裹，因为它包含空格
-    let ssh_command = $"sshpass -p 'YzBxxM2000818.P' ssh -p ($remote_port | into string) -o StrictHostKeyChecking=no"
+    # 使用系统默认的 SSH 配置
+    let ssh_command = $"ssh -p ($remote_port | into string) -o StrictHostKeyChecking=no"
     
     print "执行 rsync 命令..."
     
@@ -349,7 +353,7 @@ try {
 print "\n验证同步结果..."
 try {
     let verify_command = $"test -d ($remote_path) && echo 'Directory exists' || echo 'Directory not found'"
-    let verify_result = (^sshpass -p 'YzBxxM2000818.P' ssh -p $remote_port -o StrictHostKeyChecking=no $"($remote_user)@($remote_ip)" $verify_command | complete)
+    let verify_result = (^ssh -p ($remote_port | into string) -o StrictHostKeyChecking=no $"($remote_user)@($remote_ip)" $verify_command | complete)
     
     let verify_output = (if ($verify_result.stdout | describe | str contains "list") {
         $verify_result.stdout | str join ""
@@ -368,7 +372,7 @@ try {
     let key_dirs = ["assets", "static", "_next"]
     for $dir in $key_dirs {
         let check_command = $"test -d ($remote_path)($dir) && echo 'exists' || echo 'missing'"
-        let check_result = (^sshpass -p 'YzBxxM2000818.P' ssh -p $remote_port -o StrictHostKeyChecking=no $"($remote_user)@($remote_ip)" $check_command | complete)
+        let check_result = (^ssh -p ($remote_port | into string) -o StrictHostKeyChecking=no $"($remote_user)@($remote_ip)" $check_command | complete)
         
         let check_output = (if ($check_result.stdout | describe | str contains "list") {
             $check_result.stdout | str join ""
@@ -386,7 +390,7 @@ try {
     # 检查图片文件数量
     # 使用字符串拼接来避免转义问题
     let image_count_command = "find " + $remote_path + "assets " + $remote_path + "static -type f \\( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.svg' -o -iname '*.gif' \\) 2>/dev/null | wc -l"
-    let image_count_result = (^sshpass -p 'YzBxxM2000818.P' ssh -p $remote_port -o StrictHostKeyChecking=no $"($remote_user)@($remote_ip)" $image_count_command | complete)
+    let image_count_result = (^ssh -p ($remote_port | into string) -o StrictHostKeyChecking=no $"($remote_user)@($remote_ip)" $image_count_command | complete)
     
     let image_count_output = (if ($image_count_result.stdout | describe | str contains "list") {
         $image_count_result.stdout | str join ""

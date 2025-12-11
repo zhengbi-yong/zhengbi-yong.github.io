@@ -52,3 +52,7 @@ visitors.json
 # Slidev
 slidev/*/dist
 slidev/*/node_modules
+
+# 部署配置（包含敏感信息）
+.env.deploy
+.env.deploy.local
