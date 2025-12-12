@@ -22,7 +22,7 @@ export const getSortedPosts = cache((): CoreContent<Blog>[] => {
 export function getPaginatedPosts(
   posts: CoreContent<Blog>[],
   page: number,
-  postsPerPage: number = 5
+  postsPerPage: number = 50
 ): {
   posts: CoreContent<Blog>[]
   pagination: { currentPage: number; totalPages: number }
@@ -40,4 +40,3 @@ export function getPaginatedPosts(
     },
   }
 }
-

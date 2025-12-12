@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { slug } from 'github-slugger'
 import { formatDate } from 'pliny/utils/formatDate'
@@ -80,6 +81,115 @@ export default function ListLayoutWithTags({
 
   const displayPosts = initialDisplayPosts.length > 0 ? initialDisplayPosts : posts
 
+  // 分批渲染状态
+  const [visibleCount, setVisibleCount] = useState(15) // 初始显示15篇
+  const loadMoreRef = useRef<HTMLLIElement>(null)
+  const isLoadingRef = useRef(false)
+  const lastLoadTimeRef = useRef(0)
+
+  // 重置可见数量当文章列表变化时
+  useEffect(() => {
+    setVisibleCount(15)
+    isLoadingRef.current = false
+    lastLoadTimeRef.current = 0
+  }, [displayPosts.length])
+
+  // 分批加载更多文章
+  const loadMore = useCallback(() => {
+    // 防止重复加载：如果正在加载或已达到上限，则返回
+    if (isLoadingRef.current || visibleCount >= displayPosts.length) return
+
+    // 节流：距离上次加载至少100ms
+    const now = Date.now()
+    if (now - lastLoadTimeRef.current < 100) return
+
+    isLoadingRef.current = true
+    lastLoadTimeRef.current = now
+
+    // 使用 requestAnimationFrame 确保在下一帧渲染
+    requestAnimationFrame(() => {
+      setVisibleCount((prev) => {
+        const next = Math.min(prev + 15, displayPosts.length)
+        isLoadingRef.current = false
+        return next
+      })
+    })
+  }, [visibleCount, displayPosts.length])
+
+  // 使用 Intersection Observer + 滚动事件监听，确保滚动时持续加载
+  useEffect(() => {
+    if (visibleCount >= displayPosts.length) return
+
+    let observer: IntersectionObserver | null = null
+    let scrollTimeout: NodeJS.Timeout | null = null
+
+    // Intersection Observer：检测加载触发器是否进入视口
+    const setupObserver = () => {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadMore()
+            }
+          })
+        },
+        {
+          rootMargin: '500px', // 提前500px开始加载，让加载更早触发
+          threshold: 0,
+        }
+      )
+
+      const currentRef = loadMoreRef.current
+      if (currentRef) {
+        observer.observe(currentRef)
+      }
+    }
+
+    // 滚动事件监听：作为补充，确保滚动时持续加载
+    const handleScroll = () => {
+      if (visibleCount >= displayPosts.length) return
+
+      // 清除之前的定时器
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout)
+      }
+
+      // 防抖：滚动停止后100ms检查是否需要加载
+      scrollTimeout = setTimeout(() => {
+        const currentRef = loadMoreRef.current
+        if (currentRef) {
+          const rect = currentRef.getBoundingClientRect()
+          const windowHeight = window.innerHeight || document.documentElement.clientHeight
+
+          // 如果加载触发器在视口下方500px内，则加载更多
+          if (rect.top < windowHeight + 500) {
+            loadMore()
+          }
+        }
+      }, 100)
+    }
+
+    setupObserver()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('wheel', handleScroll, { passive: true })
+
+    return () => {
+      if (observer) {
+        observer.disconnect()
+      }
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('wheel', handleScroll)
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout)
+      }
+    }
+  }, [visibleCount, displayPosts.length, loadMore])
+
+  // 获取当前可见的文章列表
+  const visiblePosts = useMemo(() => {
+    return displayPosts.slice(0, visibleCount)
+  }, [displayPosts, visibleCount])
+
   return (
     <>
       <div>
@@ -126,31 +236,34 @@ export default function ListLayoutWithTags({
           </div>
           <div>
             <ul>
-              {displayPosts.map((post) => {
+              {visiblePosts.map((post) => {
                 const { path, date, title, summary, tags } = post
                 return (
-                  <li key={path} className="py-5">
-                    <article className="flex flex-col space-y-2 xl:space-y-0">
-                      <dl>
-                        <dt className="sr-only">Published on</dt>
-                        <dd className="text-base leading-6 font-medium text-gray-500 dark:text-gray-400">
-                          <time dateTime={date} suppressHydrationWarning>
-                            {formatDate(date, siteMetadata.locale)}
-                          </time>
-                        </dd>
-                      </dl>
-                      <div className="space-y-3">
+                  <li key={path} className="py-2">
+                    <article className="flex flex-col space-y-1.5">
+                      <div className="space-y-2">
                         <div>
-                          <h2 className="text-2xl leading-8 font-bold tracking-tight">
-                            <Link href={`/${path}`} className="text-gray-900 dark:text-gray-100">
-                              {title}
-                            </Link>
-                          </h2>
+                          <div className="flex flex-wrap items-baseline gap-2">
+                            <h2 className="text-lg leading-6 font-bold tracking-tight">
+                              <Link href={`/${path}`} className="text-gray-900 dark:text-gray-100">
+                                {title}
+                              </Link>
+                            </h2>
+                            <time
+                              dateTime={date}
+                              suppressHydrationWarning
+                              className="flex-shrink-0 text-xs font-medium whitespace-nowrap text-gray-500 dark:text-gray-400"
+                            >
+                              {formatDate(date, siteMetadata.locale)}
+                            </time>
+                          </div>
                           <div className="flex flex-wrap">
-                            {tags?.map((tag) => <Tag key={tag} text={tag} />)}
+                            {tags?.map((tag) => (
+                              <Tag key={tag} text={tag} />
+                            ))}
                           </div>
                         </div>
-                        <div className="prose max-w-none text-gray-500 dark:text-gray-400">
+                        <div className="prose max-w-none text-sm leading-snug text-gray-500 dark:text-gray-400">
                           {summary}
                         </div>
                       </div>
@@ -158,6 +271,14 @@ export default function ListLayoutWithTags({
                   </li>
                 )
               })}
+              {/* 加载更多触发器 */}
+              {visibleCount < displayPosts.length && (
+                <li ref={loadMoreRef} className="py-4 text-center">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    加载更多文章... ({visibleCount} / {displayPosts.length})
+                  </div>
+                </li>
+              )}
             </ul>
             {pagination && pagination.totalPages > 1 && (
               <Pagination currentPage={pagination.currentPage} totalPages={pagination.totalPages} />

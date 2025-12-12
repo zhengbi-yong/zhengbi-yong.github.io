@@ -7,7 +7,7 @@ import tagData from 'app/tag-data.json'
 import { genPageMetadata } from 'app/seo'
 import { Metadata } from 'next'
 
-const POSTS_PER_PAGE = 5
+const POSTS_PER_PAGE = 50
 
 export async function generateMetadata(props: {
   params: Promise<{ tag: string }>

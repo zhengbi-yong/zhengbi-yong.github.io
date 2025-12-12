@@ -3,7 +3,7 @@ import { getSortedPosts, getPaginatedPosts } from '@/lib/utils/blog-cache'
 import { notFound } from 'next/navigation'
 import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
 
-const POSTS_PER_PAGE = 5
+const POSTS_PER_PAGE = 50
 
 export const generateStaticParams = async () => {
   const posts = getSortedPosts()
@@ -38,7 +38,7 @@ export default async function Page(props: { params: Promise<{ page: string }> })
       {/* 博客内容 */}
       <div className="relative z-10">
         {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/50 dark:bg-gray-950/60 backdrop-blur-sm" />
+        <div className="fixed inset-0 -z-[5] bg-white/50 backdrop-blur-sm dark:bg-gray-950/60" />
         <ListLayout
           posts={sortedPosts}
           initialDisplayPosts={posts}
