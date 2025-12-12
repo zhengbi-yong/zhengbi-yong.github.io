@@ -1,0 +1,715 @@
+---
+title: '省流量全局代理配置指南：让终端和图形界面都能访问任意网络'
+date: '2025-01-17'
+tags: ['Proxy', 'Network', 'Clash', 'VPN', 'Linux', 'Tutorial']
+draft: false
+summary: 详细讲解如何在省流量的情况下，通过 Clash 客户端配置实现终端、图形界面以及所有应用程序的全局网络访问，包括 TUN 模式配置、规则优化、DNS 设置等关键技巧。
+showTOC: true
+---
+
+## 引言
+
+在日常使用中，我们经常需要让终端、图形界面以及各种应用程序都能访问任意网络，同时又要尽可能节省代理流量。传统的全局代理模式虽然能保证所有流量都走代理，但会消耗大量流量，特别是访问国内网站时也会走代理，不仅浪费流量，还可能影响访问速度。
+
+本文将详细介绍如何通过 Clash 客户端（Clash Verge 或 Clash Party）配置一个既省流量又能让所有应用访问任意网络的解决方案。核心思路是：**使用规则模式实现智能分流，结合 TUN 模式确保所有应用都能使用代理**。
+
+## 核心策略
+
+### 方案概述
+
+要实现省流量且全局可用的代理配置，需要同时满足以下两个条件：
+
+1. **智能分流**：国内网站直连，不消耗代理流量；国外网站走代理，突破限制
+2. **全局覆盖**：确保终端、图形界面以及所有应用程序都能使用代理
+
+### 技术方案
+
+**方案一：TUN 模式 + 规则模式（推荐）**
+
+- **TUN 模式**：在系统层面创建虚拟网卡，接管所有系统流量，包括不支持系统代理的应用
+- **规则模式**：根据规则智能分流，国内流量直连，国外流量走代理
+- **优势**：最彻底的全局代理，所有应用自动使用，无需额外配置
+
+**方案二：系统代理 + 规则模式 + 终端环境变量**
+
+- **系统代理**：图形界面应用通过系统代理设置使用代理
+- **规则模式**：智能分流节省流量
+- **终端环境变量**：终端应用通过环境变量使用代理
+- **优势**：不需要管理员权限，配置相对简单
+
+## 第一部分：TUN 模式配置（推荐方案）
+
+TUN 模式是实现全局代理的最佳方案，它通过在系统层面创建虚拟网络接口，接管所有系统流量，确保包括终端在内的所有应用都能使用代理。
+
+### TUN 模式的优势
+
+- **全局覆盖**：接管所有系统流量，包括终端、命令行工具、系统服务等
+- **无需额外配置**：应用无需单独配置代理，自动使用
+- **支持 UDP**：支持 UDP 流量代理，适合游戏、视频通话等场景
+- **更彻底的控制**：在系统层面实现流量控制，更可靠
+
+### 启用 TUN 模式
+
+**Clash Verge 启用步骤**
+
+1. 打开 Clash Verge 设置
+2. 找到"TUN 模式"选项
+3. 启用 TUN 模式
+4. 根据系统提示授予必要权限：
+   - **Windows**：需要管理员权限
+   - **macOS**：需要在系统偏好设置中允许
+   - **Linux**：需要 root 权限或配置 sudo
+
+**Clash Party 启用步骤**
+
+1. 打开 Clash Party 设置
+2. 找到"TUN 模式"或"系统代理"选项
+3. 启用 TUN 模式
+4. 授予系统权限
+
+### TUN 模式配置文件
+
+在配置文件中可以详细设置 TUN 模式的参数：
+
+```yaml
+tun:
+  enable: true
+  stack: system # 或 gvisor，system 使用系统网络栈，性能更好
+  dns-hijack:
+    - any:53 # 劫持所有 DNS 查询
+  auto-route: true # 自动路由
+  auto-detect-interface: true # 自动检测网络接口
+```
+
+**参数说明**
+
+- `enable`：是否启用 TUN 模式
+- `stack`：网络栈类型
+  - `system`：使用系统网络栈，性能更好，推荐
+  - `gvisor`：使用 gVisor，更安全但性能略低
+- `dns-hijack`：DNS 劫持设置，确保 DNS 查询也走代理
+- `auto-route`：自动路由设置，自动配置路由规则
+- `auto-detect-interface`：自动检测网络接口，适应网络变化
+
+### 验证 TUN 模式是否生效
+
+启用 TUN 模式后，可以通过以下方式验证：
+
+**1. 检查虚拟网卡**
+
+- **Windows**：在"网络连接"中查看是否有新的网络适配器
+- **macOS/Linux**：运行 `ifconfig` 或 `ip addr` 查看是否有新的网络接口（通常名为 `utun` 或 `clash`）
+
+**2. 测试终端访问**
+
+在终端中测试访问被限制的网站：
+
+```bash
+# 测试访问 Google
+curl https://www.google.com
+
+# 测试访问 GitHub
+curl https://www.github.com
+
+# 查看当前 IP（应该显示代理服务器的 IP）
+curl https://ip.sb
+```
+
+**3. 检查 DNS 解析**
+
+```bash
+# 测试 DNS 解析
+nslookup google.com
+# 或
+dig google.com
+```
+
+如果 TUN 模式正常工作，所有网络请求都会通过代理，包括终端命令。
+
+## 第二部分：规则模式配置（省流量核心）
+
+规则模式是实现省流量的关键，它根据预设规则智能分流，让国内流量直连，国外流量走代理。
+
+### 规则模式工作原理
+
+1. 当应用发起网络请求时，Clash 会检查请求的目标（域名或 IP）
+2. 根据规则列表，从上到下匹配规则
+3. 匹配到规则后，将流量路由到指定的代理组或直连
+4. 如果没有匹配到规则，使用默认规则
+
+### 基础规则配置
+
+一个典型的省流量规则配置如下：
+
+```yaml
+mode: rule # 使用规则模式
+
+rules:
+  # 1. 内网地址直连
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT
+
+  # 2. 国内域名直连（节省流量）
+  - DOMAIN-SUFFIX,cn,DIRECT
+  - DOMAIN-SUFFIX,com.cn,DIRECT
+  - DOMAIN-SUFFIX,net.cn,DIRECT
+  - DOMAIN-SUFFIX,org.cn,DIRECT
+
+  # 3. 常用国内网站直连
+  - DOMAIN-SUFFIX,baidu.com,DIRECT
+  - DOMAIN-SUFFIX,qq.com,DIRECT
+  - DOMAIN-SUFFIX,taobao.com,DIRECT
+  - DOMAIN-SUFFIX,tmall.com,DIRECT
+  - DOMAIN-SUFFIX,alipay.com,DIRECT
+  - DOMAIN-SUFFIX,weibo.com,DIRECT
+  - DOMAIN-SUFFIX,zhihu.com,DIRECT
+  - DOMAIN-SUFFIX,bilibili.com,DIRECT
+
+  # 4. 国外网站走代理
+  - DOMAIN-SUFFIX,google.com,PROXY
+  - DOMAIN-SUFFIX,github.com,PROXY
+  - DOMAIN-SUFFIX,youtube.com,PROXY
+  - DOMAIN-SUFFIX,twitter.com,PROXY
+  - DOMAIN-SUFFIX,facebook.com,PROXY
+
+  # 5. 地理位置规则：中国 IP 直连
+  - GEOIP,CN,DIRECT
+
+  # 6. 默认规则：其他流量走代理
+  - MATCH,PROXY
+```
+
+### 规则优先级
+
+规则按照配置顺序从上到下匹配，**先匹配的规则优先生效**。因此规则顺序非常重要：
+
+1. **最具体的规则放在前面**：如精确域名匹配（DOMAIN）
+2. **次具体的规则**：如域名后缀匹配（DOMAIN-SUFFIX）
+3. **通用规则**：如地理位置规则（GEOIP）
+4. **默认规则**：MATCH 规则应该放在最后
+
+### 使用 Smart Core 规则（Clash Party）
+
+Clash Party 提供了 Smart Core 规则覆写功能，可以一键应用优化的分流规则：
+
+1. 打开 Clash Party 设置
+2. 找到"规则"或"Rules"选项
+3. 启用"Smart Core 规则覆写"
+4. 选择规则更新源（通常使用默认源）
+
+Smart Core 规则会自动包含：
+
+- 国内直连规则
+- 国外代理规则
+- 广告拦截规则
+- 隐私保护规则
+
+### 规则优化建议
+
+**1. 将常用规则放在前面**
+
+将访问频率高的域名规则放在前面，可以提高匹配效率：
+
+```yaml
+rules:
+  # 最常用的网站放在最前面
+  - DOMAIN-SUFFIX,github.com,PROXY
+  - DOMAIN-SUFFIX,google.com,PROXY
+  - DOMAIN-SUFFIX,stackoverflow.com,PROXY
+```
+
+**2. 使用域名规则而非 IP 规则**
+
+域名规则更精确，也更容易维护：
+
+```yaml
+# 推荐：使用域名规则
+- DOMAIN-SUFFIX,example.com,PROXY
+
+# 不推荐：使用 IP 规则（IP 可能变化）
+- IP-CIDR,1.2.3.4/32,PROXY
+```
+
+**3. 合理使用 GEOIP 规则**
+
+GEOIP 规则可以大幅减少规则数量，但要注意放在合适的位置：
+
+```yaml
+rules:
+  # 先匹配具体规则
+  - DOMAIN-SUFFIX,google.com,PROXY
+  # 再匹配地理位置规则
+  - GEOIP,CN,DIRECT
+  # 最后是默认规则
+  - MATCH,PROXY
+```
+
+## 第三部分：DNS 配置优化
+
+DNS 配置对于代理的稳定性和性能至关重要，正确的 DNS 配置可以确保域名解析正确，同时提升访问速度。
+
+### DNS 配置示例
+
+```yaml
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip # 或 redir-host
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+    - 223.5.5.5 # 阿里 DNS
+    - 119.29.29.29 # 腾讯 DNS
+    - 114.114.114.114 # 114 DNS
+  fallback:
+    - 8.8.8.8 # Google DNS
+    - 1.1.1.1 # Cloudflare DNS
+    - 8.8.4.4 # Google DNS 备用
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+```
+
+### DNS 模式选择
+
+**fake-ip 模式（推荐）**
+
+- **工作原理**：使用假 IP 地址，立即返回结果，然后根据规则决定是否连接
+- **优势**：响应速度快，DNS 查询不阻塞
+- **适用场景**：日常使用，追求性能
+
+**redir-host 模式**
+
+- **工作原理**：使用真实 IP 地址，先解析域名再决定路由
+- **优势**：兼容性好，某些应用可能需要真实 IP
+- **适用场景**：遇到兼容性问题时使用
+
+### DNS 分流配置
+
+DNS 分流可以确保国内域名使用国内 DNS，国外域名使用国外 DNS：
+
+```yaml
+dns:
+  enable: true
+  enhanced-mode: fake-ip
+  nameserver:
+    - 223.5.5.5 # 国内 DNS
+    - 119.29.29.29
+  fallback:
+    - 8.8.8.8 # 国外 DNS
+    - 1.1.1.1
+  fallback-filter:
+    geoip: true
+    geoip-code: CN # 中国 IP 使用 nameserver
+    ipcidr:
+      - 240.0.0.0/4 # 保留 IP 段使用 fallback
+```
+
+## 第四部分：Linux 终端环境变量配置（方案二）
+
+如果无法使用 TUN 模式（例如没有 root 权限），可以通过配置环境变量让终端使用代理。
+
+### 临时设置（当前终端会话）
+
+```bash
+# HTTP/HTTPS 代理
+export http_proxy=http://127.0.0.1:7890
+export https_proxy=http://127.0.0.1:7890
+
+# SOCKS5 代理
+export all_proxy=socks5://127.0.0.1:7891
+
+# 不使用代理的地址（可选）
+export no_proxy=localhost,127.0.0.1,::1
+```
+
+### 永久设置（所有终端会话）
+
+**方法一：修改 shell 配置文件**
+
+根据使用的 shell，编辑对应的配置文件：
+
+**Bash**（`~/.bashrc` 或 `~/.bash_profile`）：
+
+```bash
+# 添加到文件末尾
+export http_proxy=http://127.0.0.1:7890
+export https_proxy=http://127.0.0.1:7890
+export all_proxy=socks5://127.0.0.1:7891
+export no_proxy=localhost,127.0.0.1,::1
+```
+
+**Zsh**（`~/.zshrc`）：
+
+```bash
+# 添加到文件末尾
+export http_proxy=http://127.0.0.1:7890
+export https_proxy=http://127.0.0.1:7890
+export all_proxy=socks5://127.0.0.1:7891
+export no_proxy=localhost,127.0.0.1,::1
+```
+
+**Fish**（`~/.config/fish/config.fish`）：
+
+```fish
+# 添加到文件末尾
+set -gx http_proxy http://127.0.0.1:7890
+set -gx https_proxy http://127.0.0.1:7890
+set -gx all_proxy socks5://127.0.0.1:7891
+set -gx no_proxy localhost,127.0.0.1,::1
+```
+
+**方法二：创建代理开关脚本**
+
+创建一个便捷的代理开关脚本：
+
+```bash
+#!/bin/bash
+# 文件名：proxy.sh
+
+# 启用代理
+proxy_on() {
+    export http_proxy=http://127.0.0.1:7890
+    export https_proxy=http://127.0.0.1:7890
+    export all_proxy=socks5://127.0.0.1:7891
+    export no_proxy=localhost,127.0.0.1,::1
+    echo "代理已启用"
+}
+
+# 禁用代理
+proxy_off() {
+    unset http_proxy
+    unset https_proxy
+    unset all_proxy
+    unset no_proxy
+    echo "代理已禁用"
+}
+
+# 显示代理状态
+proxy_status() {
+    if [ -n "$http_proxy" ]; then
+        echo "代理状态：已启用"
+        echo "HTTP 代理：$http_proxy"
+        echo "HTTPS 代理：$https_proxy"
+        echo "SOCKS5 代理：$all_proxy"
+    else
+        echo "代理状态：已禁用"
+    fi
+}
+
+# 根据参数执行相应操作
+case "$1" in
+    on)
+        proxy_on
+        ;;
+    off)
+        proxy_off
+        ;;
+    status)
+        proxy_status
+        ;;
+    *)
+        echo "用法: $0 {on|off|status}"
+        exit 1
+        ;;
+esac
+```
+
+使用方法：
+
+```bash
+# 添加执行权限
+chmod +x proxy.sh
+
+# 启用代理
+source proxy.sh on
+
+# 禁用代理
+source proxy.sh off
+
+# 查看状态
+source proxy.sh status
+```
+
+### 验证终端代理是否生效
+
+```bash
+# 测试访问被限制的网站
+curl https://www.google.com
+
+# 查看当前 IP
+curl https://ip.sb
+
+# 测试 Git（如果配置了 Git 代理）
+git clone https://github.com/example/repo.git
+```
+
+## 第五部分：系统代理配置
+
+对于图形界面应用，需要配置系统代理设置。
+
+### Windows 系统代理
+
+Clash 客户端通常会自动配置系统代理，也可以手动设置：
+
+1. 打开"设置" > "网络和 Internet" > "代理"
+2. 手动配置代理：
+   - HTTP 代理：`127.0.0.1:7890`
+   - HTTPS 代理：`127.0.0.1:7890`
+   - SOCKS 代理：`127.0.0.1:7891`
+
+### macOS 系统代理
+
+1. 打开"系统偏好设置" > "网络"
+2. 选择当前网络连接
+3. 点击"高级" > "代理"
+4. 配置代理：
+   - HTTP 代理：`127.0.0.1:7890`
+   - HTTPS 代理：`127.0.0.1:7890`
+   - SOCKS 代理：`127.0.0.1:7891`
+
+### Linux 系统代理
+
+**GNOME 桌面环境**：
+
+1. 打开"设置" > "网络" > "网络代理"
+2. 选择"手动"
+3. 配置代理地址和端口
+
+**KDE 桌面环境**：
+
+1. 打开"系统设置" > "网络" > "代理"
+2. 配置代理设置
+
+**命令行配置（适用于所有桌面环境）**：
+
+```bash
+# 设置系统代理环境变量（全局）
+sudo tee /etc/environment << EOF
+http_proxy=http://127.0.0.1:7890
+https_proxy=http://127.0.0.1:7890
+all_proxy=socks5://127.0.0.1:7891
+no_proxy=localhost,127.0.0.1,::1
+EOF
+```
+
+## 第六部分：完整配置示例
+
+以下是一个完整的配置文件示例，结合了 TUN 模式、规则模式和 DNS 优化：
+
+```yaml
+# 端口配置
+port: 7890
+socks-port: 7891
+mixed-port: 7890
+allow-lan: false
+
+# 模式：规则模式（省流量）
+mode: rule
+
+# 日志级别
+log-level: info
+
+# 外部控制器
+external-controller: 127.0.0.1:9090
+
+# TUN 模式配置（全局代理）
+tun:
+  enable: true
+  stack: system
+  dns-hijack:
+    - any:53
+  auto-route: true
+  auto-detect-interface: true
+
+# DNS 配置
+dns:
+  enable: true
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    - 114.114.114.114
+  fallback:
+    - 8.8.8.8
+    - 1.1.1.1
+    - 8.8.4.4
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+
+# 代理节点（从订阅获取）
+proxies:
+  # 节点会从订阅自动获取
+
+# 代理组
+proxy-groups:
+  - name: '手动选择'
+    type: select
+    proxies:
+      - '自动选择'
+      - '节点1'
+      - '节点2'
+      - DIRECT
+
+  - name: '自动选择'
+    type: url-test
+    proxies:
+      - '节点1'
+      - '节点2'
+      - '节点3'
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+    tolerance: 50
+
+# 规则配置（省流量核心）
+rules:
+  # 内网地址直连
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT
+
+  # 国内域名直连
+  - DOMAIN-SUFFIX,cn,DIRECT
+  - DOMAIN-SUFFIX,com.cn,DIRECT
+
+  # 常用国内网站直连
+  - DOMAIN-SUFFIX,baidu.com,DIRECT
+  - DOMAIN-SUFFIX,qq.com,DIRECT
+  - DOMAIN-SUFFIX,taobao.com,DIRECT
+  - DOMAIN-SUFFIX,weibo.com,DIRECT
+  - DOMAIN-SUFFIX,zhihu.com,DIRECT
+  - DOMAIN-SUFFIX,bilibili.com,DIRECT
+
+  # 国外网站走代理
+  - DOMAIN-SUFFIX,google.com,手动选择
+  - DOMAIN-SUFFIX,github.com,手动选择
+  - DOMAIN-SUFFIX,youtube.com,手动选择
+  - DOMAIN-SUFFIX,twitter.com,手动选择
+
+  # 地理位置规则：中国 IP 直连
+  - GEOIP,CN,DIRECT
+
+  # 默认规则：其他流量走代理
+  - MATCH,手动选择
+```
+
+## 第七部分：常见问题与解决方案
+
+### 问题一：终端无法访问网络
+
+**症状**：图形界面应用可以访问，但终端命令（如 `curl`、`git`）无法访问被限制的网站。
+
+**解决方案**：
+
+1. **使用 TUN 模式**（推荐）：启用 TUN 模式后，终端会自动使用代理
+2. **配置环境变量**：如果无法使用 TUN 模式，配置终端环境变量
+3. **检查代理状态**：确认 Clash 客户端正在运行且代理已启用
+
+### 问题二：某些应用无法使用代理
+
+**症状**：即使启用了 TUN 模式，某些应用仍然无法访问网络。
+
+**解决方案**：
+
+1. **检查应用是否绕过系统代理**：某些应用可能有自己的代理设置
+2. **使用 TUN 模式**：TUN 模式可以接管所有流量，包括绕过系统代理的应用
+3. **检查防火墙设置**：确保防火墙允许应用访问网络
+
+### 问题三：国内网站访问变慢
+
+**症状**：国内网站访问速度变慢，甚至无法访问。
+
+**解决方案**：
+
+1. **检查规则配置**：确保国内域名和 IP 的规则设置为 `DIRECT`
+2. **检查 DNS 配置**：确保使用国内 DNS 服务器
+3. **检查 GEOIP 规则**：确保 `GEOIP,CN,DIRECT` 规则在正确的位置
+
+### 问题四：TUN 模式无法启用
+
+**症状**：尝试启用 TUN 模式时提示权限不足或失败。
+
+**解决方案**：
+
+1. **Windows**：以管理员身份运行 Clash 客户端
+2. **macOS**：在系统偏好设置中允许网络扩展
+3. **Linux**：使用 `sudo` 运行或配置 sudo 权限
+
+### 问题五：流量消耗过大
+
+**症状**：代理流量消耗过快，超出预期。
+
+**解决方案**：
+
+1. **检查规则配置**：确保国内流量设置为直连
+2. **检查代理模式**：使用规则模式而非全局模式
+3. **查看流量统计**：在 Clash 客户端中查看哪些应用消耗了最多流量
+4. **优化规则顺序**：将常用规则放在前面，提高匹配效率
+
+## 第八部分：最佳实践
+
+### 1. 优先使用 TUN 模式
+
+TUN 模式是最彻底的全局代理方案，推荐优先使用。只有在无法使用 TUN 模式的情况下，才考虑使用系统代理 + 环境变量的方案。
+
+### 2. 规则模式 + 智能分流
+
+始终使用规则模式而非全局模式，通过智能分流节省流量：
+
+- 国内网站直连，不消耗代理流量
+- 国外网站走代理，突破限制
+- 根据实际需求调整规则
+
+### 3. DNS 优化配置
+
+合理配置 DNS 可以提升访问速度和稳定性：
+
+- 使用 fake-ip 模式提升性能
+- 配置 DNS 分流，国内域名使用国内 DNS
+- 定期更新 GEOIP 数据库
+
+### 4. 定期更新规则
+
+规则列表需要定期更新以保持准确性：
+
+- 使用 Smart Core 规则（Clash Party）
+- 定期更新 GEOIP 数据库
+- 根据使用情况调整自定义规则
+
+### 5. 监控流量使用
+
+定期查看流量统计，了解流量消耗情况：
+
+- 在 Clash 客户端中查看流量统计
+- 识别消耗流量大的应用
+- 根据统计结果优化规则
+
+### 6. 备份配置
+
+定期备份配置文件，防止配置丢失：
+
+- 使用 WebDAV 自动备份（如果支持）
+- 手动导出配置文件
+- 保存多个备份版本
+
+## 总结
+
+通过合理配置 Clash 客户端，我们可以实现既省流量又能让所有应用访问任意网络的完美方案：
+
+1. **TUN 模式**：确保所有应用（包括终端）都能使用代理
+2. **规则模式**：通过智能分流节省流量，国内直连，国外代理
+3. **DNS 优化**：提升访问速度和稳定性
+4. **环境变量**：作为 TUN 模式的备选方案
+
+关键是要理解各个组件的作用和配置方法，根据实际需求选择合适的方案。TUN 模式 + 规则模式是最推荐的组合，既能保证全局可用，又能最大程度节省流量。
+
+希望本文能够帮助您配置一个既省流量又能让所有应用访问任意网络的代理环境。如有问题，欢迎参考常见问题部分或查阅 Clash 官方文档。
