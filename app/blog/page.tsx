@@ -3,7 +3,7 @@ import { genPageMetadata } from 'app/seo'
 import ListLayout from '@/layouts/ListLayout'
 import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
 
-const POSTS_PER_PAGE = 5
+const POSTS_PER_PAGE = 50
 
 export const metadata = genPageMetadata({ title: 'Blog' })
 
@@ -17,19 +17,19 @@ export const revalidate = 3600
 
 export default async function BlogPage(props: { searchParams: Promise<{ page: string }> }) {
   const sortedPosts = getSortedPosts()
-  
+
   // 兼容性处理：静态导出时使用默认第一页，动态模式时使用 searchParams
   // 这样可以同时支持静态导出和动态部署
   const isStaticExport = process.env.EXPORT === '1'
   let pageNumber = 1
-  
+
   if (!isStaticExport) {
     // 动态模式：使用 searchParams 支持分页
     const params = await props.searchParams
     pageNumber = parseInt(params.page || '1', 10)
   }
   // 静态导出模式：默认使用第一页，分页通过 /blog/page/[page] 路由处理
-  
+
   const { posts, pagination } = getPaginatedPosts(sortedPosts, pageNumber, POSTS_PER_PAGE)
 
   return (
@@ -41,7 +41,7 @@ export default async function BlogPage(props: { searchParams: Promise<{ page: st
       {/* 博客内容 */}
       <div className="relative z-10">
         {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/50 dark:bg-gray-950/60 backdrop-blur-sm" />
+        <div className="fixed inset-0 -z-[5] bg-white/50 backdrop-blur-sm dark:bg-gray-950/60" />
         <ListLayout
           posts={sortedPosts}
           initialDisplayPosts={posts}
