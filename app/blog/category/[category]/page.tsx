@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getSortedPosts } from '@/lib/utils/blog-cache'
-import { getBookByCategory } from '@/lib/utils/book-categorizer'
+import { getBookByCategory, categorizePostsByBookStructure } from '@/lib/utils/book-categorizer'
 import { genPageMetadata } from 'app/seo'
 import BookDetailLayout from '@/layouts/BookDetailLayout'
 import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
@@ -9,6 +9,14 @@ export async function generateMetadata(props: { params: Promise<{ category: stri
   const params = await props.params
   const categoryName = decodeURIComponent(params.category)
   return genPageMetadata({ title: `${categoryName} - 博客分类` })
+}
+
+export const generateStaticParams = async () => {
+  const sortedPosts = getSortedPosts()
+  const bookShelfData = categorizePostsByBookStructure(sortedPosts)
+  return bookShelfData.books.map((book) => ({
+    category: encodeURIComponent(book.name),
+  }))
 }
 
 export const dynamic = 'force-static'
