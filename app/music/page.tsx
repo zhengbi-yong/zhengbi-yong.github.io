@@ -15,15 +15,15 @@ export default function MusicPage() {
       {/* 音乐内容 */}
       <div className="relative z-10">
         {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/50 dark:bg-gray-950/60 backdrop-blur-sm" />
+        <div className="fixed inset-0 -z-[5] bg-white/50 backdrop-blur-sm dark:bg-gray-950/60" />
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {/* 标题区域 - 居中 */}
           <div className="pt-8 pb-10 md:pt-12 md:pb-12">
-            <div className="mb-8 md:mb-10 text-center">
-              <h1 className="text-4xl leading-tight font-extrabold tracking-tight sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-gray-100 dark:via-gray-200 dark:to-gray-100 bg-clip-text text-transparent mx-auto">
+            <div className="mb-8 text-center md:mb-10">
+              <h1 className="mx-auto mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
                 音乐
               </h1>
-              <p className="text-base text-gray-600 dark:text-gray-400 sm:text-lg max-w-2xl mx-auto">
+              <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
                 探索我的音乐作品和乐谱收藏
               </p>
             </div>
@@ -31,7 +31,7 @@ export default function MusicPage() {
           {/* 乐谱卡片区域 */}
           <div className="py-12">
             <div className="container mx-auto px-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
                 {musicSheets.map((music) => (
                   <MusicCard
                     key={music.id}
@@ -50,4 +50,3 @@ export default function MusicPage() {
     </div>
   )
 }
-

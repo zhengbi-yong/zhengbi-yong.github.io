@@ -18,7 +18,7 @@ interface ShaderBackgroundWrapperProps {
 /**
  * ShaderBackgroundWrapper - 着色器背景包装组件
  * 用于在 Server Component 中使用客户端组件
- * 
+ *
  * 使用延迟加载避免 Next.js 16 + Turbopack HMR 问题
  */
 export default function ShaderBackgroundWrapper({
@@ -39,4 +39,3 @@ export default function ShaderBackgroundWrapper({
 
   return <ShaderBackground intensity={intensity} className={className} />
 }
-

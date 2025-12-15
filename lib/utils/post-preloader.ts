@@ -140,7 +140,7 @@ class PostPreloader {
       // 预加载文章页面 URL（让 Service Worker 缓存 HTML）
       // 使用 link prefetch 或 fetch，Service Worker 会自动缓存
       const url = `/blog/${slug}`
-      
+
       // 创建 link 元素进行预取
       const link = document.createElement('link')
       link.rel = 'prefetch'
@@ -226,4 +226,3 @@ class PostPreloader {
 const postPreloader = new PostPreloader()
 
 export default postPreloader
-

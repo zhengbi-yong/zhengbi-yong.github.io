@@ -30,6 +30,31 @@ const FocusManager = dynamic(
   { ssr: false }
 )
 
+// 动态导入 3D 和复杂组件
+const ThreeDViewer = dynamic(
+  () => import('@/components/ThreeDViewer').then((mod) => ({ default: mod.ThreeDViewer })),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />,
+  }
+)
+
+const MusicNotation = dynamic(
+  () => import('@/components/MusicNotation').then((mod) => ({ default: mod.MusicNotation })),
+  {
+    ssr: false,
+    loading: () => <div className="h-64 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />,
+  }
+)
+
+const ParticleEffect = dynamic(
+  () => import('@/components/ParticleEffect').then((mod) => ({ default: mod.ParticleEffect })),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+)
+
 interface LazyLoadedComponentsProps {
   analyticsConfig?: AnalyticsConfig
 }
@@ -38,9 +63,7 @@ interface LazyLoadedComponentsProps {
  * LazyLoadedComponents - 延迟加载的组件包装器
  * 在客户端组件中处理动态导入，避免 Server Component 的限制
  */
-export default function LazyLoadedComponents({
-  analyticsConfig,
-}: LazyLoadedComponentsProps) {
+export default function LazyLoadedComponents({ analyticsConfig }: LazyLoadedComponentsProps) {
   return (
     <>
       {/* 延迟加载辅助组件，不阻塞首屏渲染 */}
@@ -57,4 +80,3 @@ export default function LazyLoadedComponents({
     </>
   )
 }
-

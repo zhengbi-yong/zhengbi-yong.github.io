@@ -29,7 +29,19 @@ jobs:
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
-    
+
+    - name: Run linting
+      run: pnpm lint
+
+    - name: Run tests
+      run: pnpm test
+
+    - name: Audit dependencies
+      run: pnpm audit --audit-level moderate
+
+    - name: Check for outdated packages
+      run: pnpm outdated --format list || true
+
     - name: Build project
       run: pnpm build
       env:

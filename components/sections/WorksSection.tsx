@@ -55,4 +55,3 @@ export default function WorksSection({ limit }: WorksSectionProps) {
     </section>
   )
 }
-

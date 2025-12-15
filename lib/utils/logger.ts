@@ -35,4 +35,3 @@ const logger: Logger = {
 
 export { logger }
 export type { Logger }
-

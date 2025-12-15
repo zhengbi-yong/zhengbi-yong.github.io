@@ -223,7 +223,9 @@ const blogDB: BlogDB = {
         slug,
         post,
         cachedAt: Date.now(),
-        lastModified: post.lastmod ? new Date(post.lastmod).getTime() : new Date(post.date).getTime(),
+        lastModified: post.lastmod
+          ? new Date(post.lastmod).getTime()
+          : new Date(post.date).getTime(),
       })
       console.log(`[IndexedDB] Post saved: ${slug}`)
     } catch (error) {
@@ -330,4 +332,3 @@ if (typeof window !== 'undefined') {
 }
 
 export default blogDB
-

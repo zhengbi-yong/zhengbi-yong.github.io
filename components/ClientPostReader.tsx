@@ -15,11 +15,7 @@ interface ClientPostReaderProps {
  * ClientPostReader - 客户端文章阅读器
  * 在客户端路由时优先从缓存读取，实现瞬间打开
  */
-export default function ClientPostReader({
-  slug,
-  serverPost,
-  children,
-}: ClientPostReaderProps) {
+export default function ClientPostReader({ slug, serverPost, children }: ClientPostReaderProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [isClientRoute, setIsClientRoute] = useState(false)
@@ -44,4 +40,3 @@ export default function ClientPostReader({
 
   return <>{children}</>
 }
-

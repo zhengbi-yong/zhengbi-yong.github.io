@@ -17,9 +17,7 @@ const CACHE_EXPIRY = 24 * 60 * 60 * 1000 // 24小时
  * 使用缓存的博客列表 Hook
  * 优先从 IndexedDB 和 Zustand 读取，后台更新
  */
-export function useCachedBlogs(
-  serverPosts: CoreContent<Blog>[]
-): CoreContent<Blog>[] {
+export function useCachedBlogs(serverPosts: CoreContent<Blog>[]): CoreContent<Blog>[] {
   const [cachedPosts, setCachedPosts] = useState<CoreContent<Blog>[] | null>(null)
   const { allPosts, setAllPosts, isCacheValid } = useBlogStore()
   const [isLoading, setIsLoading] = useState(true)
@@ -97,4 +95,3 @@ export function useCachedBlogs(
   // 返回缓存数据或服务器数据
   return cachedPosts || serverPosts
 }
-

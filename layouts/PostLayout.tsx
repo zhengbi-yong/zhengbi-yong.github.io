@@ -11,6 +11,7 @@ import siteMetadata from '@/data/siteMetadata'
 import ScrollTopAndComment from '@/components/ScrollTopAndComment'
 import FadeIn from '@/components/animations/FadeIn'
 import FloatingTOC from '@/components/FloatingTOC'
+import JsonLd from '@/components/seo/JsonLd'
 import type { TOC } from '@/lib/types/toc'
 
 const editUrl = (path: string) => `${siteMetadata.siteRepo}/blob/main/data/${path}`
@@ -43,11 +44,77 @@ export default function PostLayout({
   toc,
   showTOC,
 }: LayoutProps) {
-  const { filePath, path, slug, date, title, tags } = content
+  const { filePath, path, slug, date, title, tags, summary, images } = content
   const basePath = path.split('/')[0]
+
+  // 生成文章的 Schema.org 结构化数据
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: title,
+    description: summary,
+    image: images?.[0] ? `${siteMetadata.siteUrl}${images[0]}` : siteMetadata.socialBanner,
+    datePublished: new Date(date).toISOString(),
+    dateModified: new Date(date).toISOString(),
+    author: {
+      '@type': 'Person',
+      name: authorDetails[0]?.name || siteMetadata.author,
+      email: authorDetails[0]?.email || siteMetadata.email,
+      url: authorDetails[0]?.url || siteMetadata.siteUrl,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: siteMetadata.title,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteMetadata.siteUrl}${siteMetadata.siteLogo}`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${siteMetadata.siteUrl}/${path}`,
+    },
+    keywords: tags?.join(', '),
+    inLanguage: siteMetadata.locale,
+  }
+
+  // 生成面包屑导航 Schema
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: siteMetadata.siteUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blog',
+        item: `${siteMetadata.siteUrl}/blog`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: basePath.charAt(0).toUpperCase() + basePath.slice(1),
+        item: `${siteMetadata.siteUrl}/blog/${basePath}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 4,
+        name: title,
+        item: `${siteMetadata.siteUrl}/${path}`,
+      },
+    ],
+  }
 
   return (
     <SectionContainer>
+      {/* JSON-LD 结构化数据 */}
+      <JsonLd data={articleSchema} />
+      <JsonLd data={breadcrumbSchema} />
       <ScrollTopAndComment />
       <article>
         <div className="xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">

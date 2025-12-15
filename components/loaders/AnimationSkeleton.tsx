@@ -20,4 +20,3 @@ export const AnimationSkeleton = memo(function AnimationSkeleton({
 })
 
 AnimationSkeleton.displayName = 'AnimationSkeleton'
-

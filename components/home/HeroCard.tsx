@@ -71,9 +71,7 @@ export default function HeroCard({
       if (webCaseRef.current) {
         const targetX = mouseXValue * webCaseStrength
         const targetY = mouseYValue * webCaseStrength
-        const currentTransform = new DOMMatrix(
-          getComputedStyle(webCaseRef.current).transform
-        )
+        const currentTransform = new DOMMatrix(getComputedStyle(webCaseRef.current).transform)
         const currentX = currentTransform.m41 || 0
         const currentY = currentTransform.m42 || 0
         const newX = currentX + (targetX - currentX) * parallaxEasing
@@ -84,9 +82,7 @@ export default function HeroCard({
       if (colorPickerRef.current) {
         const targetX = mouseXValue * colorPickerStrength
         const targetY = mouseYValue * colorPickerStrength
-        const currentTransform = new DOMMatrix(
-          getComputedStyle(colorPickerRef.current).transform
-        )
+        const currentTransform = new DOMMatrix(getComputedStyle(colorPickerRef.current).transform)
         const currentX = currentTransform.m41 || 0
         const currentY = currentTransform.m42 || 0
         const newX = currentX + (targetX - currentX) * parallaxEasing
@@ -97,9 +93,7 @@ export default function HeroCard({
       if (colorRef.current) {
         const targetX = mouseXValue * colorStrength
         const targetY = mouseYValue * colorStrength
-        const currentTransform = new DOMMatrix(
-          getComputedStyle(colorRef.current).transform
-        )
+        const currentTransform = new DOMMatrix(getComputedStyle(colorRef.current).transform)
         const currentX = currentTransform.m41 || 0
         const currentY = currentTransform.m42 || 0
         const newX = currentX + (targetX - currentX) * parallaxEasing
@@ -173,21 +167,21 @@ export default function HeroCard({
   return (
     <div
       ref={webCaseRef}
-      className={cn('relative z-20 w-full web-case', className)}
+      className={cn('web-case relative z-20 w-full', className)}
       data-href={link}
       suppressHydrationWarning
     >
-      <div className="case-solid relative w-full h-full p-3 border-[3px] border-solid border-primary dark:border-primary">
+      <div className="case-solid border-primary dark:border-primary relative h-full w-full border-[3px] border-solid p-3">
         {/* 四个角落的小方块 */}
-        <div className="case-square absolute top-[-5px] left-[-5px] border-2 border-solid border-primary dark:border-primary bg-white h-3 w-3" />
-        <div className="case-square absolute top-[-5px] right-[-5px] border-2 border-solid border-primary dark:border-primary bg-white h-3 w-3" />
-        <div className="case-square absolute bottom-[-5px] left-[-5px] border-2 border-solid border-primary dark:border-primary bg-white h-3 w-3" />
-        <div className="case-square absolute bottom-[-5px] right-[-5px] border-2 border-solid border-primary dark:border-primary bg-white h-3 w-3" />
+        <div className="case-square border-primary dark:border-primary absolute top-[-5px] left-[-5px] h-3 w-3 border-2 border-solid bg-white" />
+        <div className="case-square border-primary dark:border-primary absolute top-[-5px] right-[-5px] h-3 w-3 border-2 border-solid bg-white" />
+        <div className="case-square border-primary dark:border-primary absolute bottom-[-5px] left-[-5px] h-3 w-3 border-2 border-solid bg-white" />
+        <div className="case-square border-primary dark:border-primary absolute right-[-5px] bottom-[-5px] h-3 w-3 border-2 border-solid bg-white" />
 
         <div className="relative z-20 w-full">
           <div
             ref={caseGoRef}
-            className="relative top-0 left-0 w-full aspect-[6/7] overflow-hidden rounded-xl case-go"
+            className="case-go relative top-0 left-0 aspect-[6/7] w-full overflow-hidden rounded-xl"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onMouseMove={handleCaseGoMouseMove}
@@ -198,7 +192,7 @@ export default function HeroCard({
               alt={title}
               width={600}
               height={700}
-              className="absolute top-0 left-0 right-0 z-30 w-full mx-auto object-cover"
+              className="absolute top-0 right-0 left-0 z-30 mx-auto w-full object-cover"
               priority
             />
           </div>
@@ -213,7 +207,7 @@ export default function HeroCard({
         viewBox="0 0 200 43"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="pointer-events-none color-picker absolute left-[-20px] top-[45%] rounded-[10px] bg-white overflow-hidden z-30 max-w-[40%]"
+        className="color-picker pointer-events-none absolute top-[45%] left-[-20px] z-30 max-w-[40%] overflow-hidden rounded-[10px] bg-white"
         style={{
           boxShadow: '-2px 4px 12px rgba(81, 74, 163, 0.1)',
         }}
@@ -289,7 +283,7 @@ export default function HeroCard({
         viewBox="0 0 275 66"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="pointer-events-none color absolute right-[-36px] top-[65%] max-w-[50%] z-30 rounded-[10px] md:right-[-25px]"
+        className="color pointer-events-none absolute top-[65%] right-[-36px] z-30 max-w-[50%] rounded-[10px] md:right-[-25px]"
         style={{
           boxShadow: '-2px 4px 12px rgba(81, 74, 163, 0.1)',
         }}
@@ -329,15 +323,15 @@ export default function HeroCard({
 
       {/* 标题标签 */}
       {title && (
-        <div className="absolute left-[32px] text-center top-[-22px] h-[22px] leading-[22px] w-auto px-3 overflow-hidden rounded-tl-[6px] rounded-tr-[6px] bg-primary dark:bg-primary">
-          <p className="text-[11px] font-normal text-center text-white">{title}</p>
+        <div className="bg-primary dark:bg-primary absolute top-[-22px] left-[32px] h-[22px] w-auto overflow-hidden rounded-tl-[6px] rounded-tr-[6px] px-3 text-center leading-[22px]">
+          <p className="text-center text-[11px] font-normal text-white">{title}</p>
         </div>
       )}
 
       {/* 自定义光标指示器 */}
       <div
         ref={cursorIndicatorRef}
-        className="cursor-indicator absolute top-0 left-0 bg-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg z-[1000] opacity-0 pointer-events-none transform -translate-x-1/2 -translate-y-1/2 scale-50 transition-opacity duration-300 transition-transform duration-500"
+        className="cursor-indicator pointer-events-none absolute top-0 left-0 z-[1000] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 scale-50 transform items-center justify-center rounded-full bg-white opacity-0 shadow-lg transition-opacity transition-transform duration-300 duration-500"
         style={{
           opacity: isHovering ? 1 : 0,
           transform: `translate(-50%, -50%) scale(${isHovering ? 1 : 0.5})`,
@@ -359,7 +353,6 @@ export default function HeroCard({
           <polyline points="7 7 17 7 17 17" />
         </svg>
       </div>
-
     </div>
   )
 }

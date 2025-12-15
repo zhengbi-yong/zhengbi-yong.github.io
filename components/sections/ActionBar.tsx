@@ -25,9 +25,7 @@ function normalizeLogo(logo?: LogoInput): string | null {
 
   if (typeof logo === 'string') {
     const isUrlLike =
-      logo.startsWith('/') ||
-      logo.startsWith('http') ||
-      /\.(png|jpe?g|webp|svg)$/i.test(logo)
+      logo.startsWith('/') || logo.startsWith('http') || /\.(png|jpe?g|webp|svg)$/i.test(logo)
     if (isUrlLike) return logo
     // 如果是单个字符，返回 null，将显示文字
     return null
@@ -62,35 +60,27 @@ export default function ActionBar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.5 }}
       className={cn(
-        'fixed z-[60] bottom-5 left-1/2 -translate-x-1/2 sm:bottom-6 md:bottom-8',
+        'fixed bottom-5 left-1/2 z-[60] -translate-x-1/2 sm:bottom-6 md:bottom-8',
         className
       )}
     >
-      <div className="flex items-center gap-1 sm:gap-2 rounded-2xl bg-neutral-900/85 dark:bg-neutral-900/85 text-neutral-100 shadow-[0_6px_28px_rgba(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur-xl px-2 py-2 max-w-[92vw]">
+      <div className="flex max-w-[92vw] items-center gap-1 rounded-2xl bg-neutral-900/85 px-2 py-2 text-neutral-100 shadow-[0_6px_28px_rgba(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur-xl sm:gap-2 dark:bg-neutral-900/85">
         {/* Logo block */}
-        <div className="shrink-0 h-10 w-10 sm:h-10 sm:w-10 rounded-full bg-neutral-800 grid place-items-center ring-1 ring-white/10 overflow-hidden relative">
+        <div className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-800 ring-1 ring-white/10 sm:h-10 sm:w-10">
           {logoSrc ? (
-            <Image
-              src={logoSrc}
-              alt="logo"
-              fill
-              className="object-cover"
-              loading="lazy"
-            />
+            <Image src={logoSrc} alt="logo" fill className="object-cover" loading="lazy" />
           ) : (
-            <span className="font-semibold text-lg sm:text-xl tracking-tight">
-              {displayText}
-            </span>
+            <span className="text-lg font-semibold tracking-tight sm:text-xl">{displayText}</span>
           )}
         </div>
 
         {/* Middle pills (tags + optional github) */}
-        <div className="flex items-center gap-1 sm:gap-1 overflow-x-auto scrollbar-none max-w-[46vw] sm:max-w-[52vw] md:max-w-[56vw] pr-1">
+        <div className="scrollbar-none flex max-w-[46vw] items-center gap-1 overflow-x-auto pr-1 sm:max-w-[52vw] sm:gap-1 md:max-w-[56vw]">
           {tags &&
             tags.map((tag, index) => (
               <span
                 key={index}
-                className="hidden font-light sm:inline-flex items-center h-10 px-3 sm:px-3 rounded-xl bg-neutral-800/80 ring-1 ring-white/10 text-neutral-300 text-sm whitespace-nowrap"
+                className="hidden h-10 items-center rounded-xl bg-neutral-800/80 px-3 text-sm font-light whitespace-nowrap text-neutral-300 ring-1 ring-white/10 sm:inline-flex sm:px-3"
               >
                 {tag}
               </span>
@@ -102,14 +92,14 @@ export default function ActionBar({
               target="_blank"
               rel="noopener noreferrer"
               aria-label="View on GitHub"
-              className="inline-flex items-center h-10 px-3 sm:px-3 rounded-xl bg-neutral-800/80 ring-1 ring-white/10 text-neutral-200 hover:text-white hover:bg-neutral-700/80 transition-colors text-sm sm:text-[15px] whitespace-nowrap"
+              className="inline-flex h-10 items-center rounded-xl bg-neutral-800/80 px-3 text-sm whitespace-nowrap text-neutral-200 ring-1 ring-white/10 transition-colors hover:bg-neutral-700/80 hover:text-white sm:px-3 sm:text-[15px]"
             >
               <svg
                 viewBox="0 0 16 16"
                 width="16"
                 height="16"
                 aria-hidden="true"
-                className="opacity-90 size-5"
+                className="size-5 opacity-90"
               >
                 <path
                   fill="currentColor"
@@ -126,7 +116,7 @@ export default function ActionBar({
             href={url}
             target="_blank"
             rel="nofollow noopener"
-            className="inline-flex items-center h-10 sm:h-11 px-4 sm:px-5 rounded-xl bg-yellow-300 text-neutral-900 text-sm hover:bg-yellow-200 transition-colors whitespace-nowrap"
+            className="inline-flex h-10 items-center rounded-xl bg-yellow-300 px-4 text-sm whitespace-nowrap text-neutral-900 transition-colors hover:bg-yellow-200 sm:h-11 sm:px-5"
           >
             {visitLabel}
           </Link>
@@ -135,4 +125,3 @@ export default function ActionBar({
     </motion.div>
   )
 }
-

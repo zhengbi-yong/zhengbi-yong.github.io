@@ -40,4 +40,3 @@ export class AnimationErrorBoundary extends Component<
     return this.props.children
   }
 }
-

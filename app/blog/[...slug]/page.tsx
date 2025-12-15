@@ -133,9 +133,10 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
     datePublished: post.date,
     dateModified: post.lastmod || post.date,
     description: post.summary || '',
-    image: post.images && Array.isArray(post.images) && post.images.length > 0 
-      ? post.images[0] 
-      : siteMetadata.socialBanner,
+    image:
+      post.images && Array.isArray(post.images) && post.images.length > 0
+        ? post.images[0]
+        : siteMetadata.socialBanner,
     url: `${siteMetadata.siteUrl}/${post._raw.flattenedPath}`,
   }
   jsonLd['author'] = authorDetails.map((author) => {
@@ -150,20 +151,18 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
 
   // 获取目录数据（computedFields 中的 toc 是目录数据）
   // 注意：coreContent 可能会过滤掉 computedFields，所以直接从原始 post 对象获取
-  const toc: TOC | undefined =
-    post.toc && Array.isArray(post.toc) ? (post.toc as TOC) : undefined
+  const toc: TOC | undefined = post.toc && Array.isArray(post.toc) ? (post.toc as TOC) : undefined
 
   // 计算是否显示目录：文章 frontmatter 中的 showTOC 优先，否则使用站点默认配置
-  const showTOC =
-    post.showTOC !== undefined ? post.showTOC : siteMetadata.defaultShowTOC ?? true
+  const showTOC = post.showTOC !== undefined ? post.showTOC : (siteMetadata.defaultShowTOC ?? true)
 
   return (
     <>
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ 
-            __html: JSON.stringify(jsonLd, null, 0) 
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd, null, 0),
           }}
         />
       )}

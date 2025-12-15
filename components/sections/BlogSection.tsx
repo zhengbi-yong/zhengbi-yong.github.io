@@ -90,10 +90,10 @@ export default function BlogSection({
       {listPage && featuredPostWithLink && pagination.currentPage === 1 && (
         <section className="mb-16">
           <div className="container mx-auto px-4 sm:px-6 xl:px-8">
-            <h2 className="text-3xl font-brand mb-6 text-neutral-800 dark:text-white">
+            <h2 className="font-brand mb-6 text-3xl text-neutral-800 dark:text-white">
               <AnimatedText delay={0.75} stagger={0.08} content="Featured" />
             </h2>
-            <div className="dark:from-neutral-900 dark:to-neutral-800 p-1 rounded-2xl">
+            <div className="rounded-2xl p-1 dark:from-neutral-900 dark:to-neutral-800">
               <BlogCard
                 layout="horizontal"
                 content={{
@@ -113,17 +113,13 @@ export default function BlogSection({
       )}
 
       <section>
-        <div className={cn('container mx-auto px-4 sm:px-6 xl:px-8 space-y-10 md:space-y-16')}>
-          {!listPage && title && (
-            <SectionHeader title={title} description={description} />
-          )}
+        <div className={cn('container mx-auto space-y-10 px-4 sm:px-6 md:space-y-16 xl:px-8')}>
+          {!listPage && title && <SectionHeader title={title} description={description} />}
 
           {/* 列表页标题 */}
           {listPage && title && (
             <div className="mx-auto">
-              <h2 className="text-3xl font-brand text-neutral-800 dark:text-white">
-                {title}
-              </h2>
+              <h2 className="font-brand text-3xl text-neutral-800 dark:text-white">{title}</h2>
             </div>
           )}
 
@@ -147,7 +143,7 @@ export default function BlogSection({
 
           {/* 分页组件 - 如果需要可以添加 */}
           {listPage && totalPages > 1 && pagination.enable && (
-            <div className="flex justify-center mt-12">
+            <div className="mt-12 flex justify-center">
               {/* TODO: 添加 Pagination 组件 */}
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 第 {pagination.currentPage} 页，共 {totalPages} 页
@@ -158,7 +154,7 @@ export default function BlogSection({
 
         {/* "View All Articles" 按钮 - 仅在非列表页且启用时显示 */}
         {!listPage && showViewAllButton && (
-          <div className="flex justify-center mt-12 mb-12">
+          <div className="mt-12 mb-12 flex justify-center">
             <Button url="/blog" className="w-full max-w-60">
               View All Articles
             </Button>

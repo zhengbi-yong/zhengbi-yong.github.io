@@ -29,10 +29,7 @@ export function getSupportedImageFormat(): 'avif' | 'webp' | 'jpeg' {
  * @param aspectRatio 宽高比，默认 16/9
  * @returns 响应式尺寸数组（从小到大排序）
  */
-export function generateResponsiveSizes(
-  baseWidth: number,
-  aspectRatio: number = 16 / 9
-): number[] {
+export function generateResponsiveSizes(baseWidth: number, aspectRatio: number = 16 / 9): number[] {
   const sizes = [baseWidth]
   let current = baseWidth
 
@@ -57,4 +54,3 @@ export function preloadImage(src: string): Promise<void> {
     img.src = src
   })
 }
-

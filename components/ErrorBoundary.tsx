@@ -37,13 +37,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // 记录错误信息
     // 使用动态导入避免 HMR 问题
-    import('@/lib/utils/logger').then(({ logger }) => {
-      logger.error('ErrorBoundary 捕获到错误:', error, errorInfo)
-    }).catch(() => {
-      // 如果 logger 加载失败，使用 console.error 作为降级方案
-      console.error('ErrorBoundary 捕获到错误:', error, errorInfo)
-    })
-    
+    import('@/lib/utils/logger')
+      .then(({ logger }) => {
+        logger.error('ErrorBoundary 捕获到错误:', error, errorInfo)
+      })
+      .catch(() => {
+        // 如果 logger 加载失败，使用 console.error 作为降级方案
+        console.error('ErrorBoundary 捕获到错误:', error, errorInfo)
+      })
+
     // 调用可选的错误回调
     if (this.props.onError) {
       this.props.onError(error, errorInfo)
@@ -88,15 +90,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                   出现了一些问题
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  应用程序遇到了意外错误
-                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">应用程序遇到了意外错误</p>
               </div>
             </div>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <div className="mb-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
-                <p className="text-xs font-mono text-red-800 dark:text-red-200">
+                <p className="font-mono text-xs text-red-800 dark:text-red-200">
                   {this.state.error.toString()}
                 </p>
               </div>
@@ -105,13 +105,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <div className="flex gap-3">
               <button
                 onClick={this.handleReset}
-                className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600"
+                className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600"
               >
                 重试
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
               >
                 刷新页面
               </button>
@@ -124,4 +124,3 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return this.props.children
   }
 }
-

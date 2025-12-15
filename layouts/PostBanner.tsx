@@ -21,14 +21,7 @@ interface LayoutProps {
   showTOC?: boolean
 }
 
-export default function PostMinimal({
-  content,
-  next,
-  prev,
-  children,
-  toc,
-  showTOC,
-}: LayoutProps) {
+export default function PostMinimal({ content, next, prev, children, toc, showTOC }: LayoutProps) {
   const { slug, title, images } = content
   const displayImage =
     images && images.length > 0 ? images[0] : 'https://picsum.photos/seed/picsum/800/400'
@@ -54,7 +47,10 @@ export default function PostMinimal({
             <div className="md:col-span-1">
               <div className="prose dark:prose-invert max-w-none py-4">{children}</div>
               {siteMetadata.comments && (
-                <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300" id="comment">
+                <div
+                  className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300"
+                  id="comment"
+                >
                   <Comments slug={slug} />
                 </div>
               )}
@@ -85,7 +81,7 @@ export default function PostMinimal({
                 </div>
               </footer>
             </div>
-            <div className="hidden md:block md:col-span-1 md:sticky md:top-20 md:self-start md:flex md:flex-col">
+            <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start">
               <FloatingTOC toc={toc} enabled={showTOC} />
             </div>
           </div>

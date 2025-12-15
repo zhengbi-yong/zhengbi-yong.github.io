@@ -68,7 +68,7 @@ export default function FeaturedWork({
 
   return (
     <section className="py-16 md:py-16 md:pb-12">
-      <div className="container mx-auto px-4 sm:px-6 xl:px-8 space-y-8 md:space-y-8">
+      <div className="container mx-auto space-y-8 px-4 sm:px-6 md:space-y-8 xl:px-8">
         {/* 标题部分 */}
         <SectionHeader title={title} description={description} />
 
@@ -96,7 +96,7 @@ export default function FeaturedWork({
 
         {/* 网格项目 - 两栏显示 */}
         {gridProjects.length > 0 && (
-          <div className="grid gap-6 md:gap-8 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 md:gap-8">
             {gridProjects
               .filter((project) => project.isShow !== false)
               .map((project, index) => (

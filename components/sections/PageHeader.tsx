@@ -22,28 +22,23 @@ export default function PageHeader({
   className = '',
 }: PageHeaderProps) {
   return (
-    <div
-      className={cn(
-        'relative z-20 w-full mx-auto mt-12 mb-16 text-center',
-        className
-      )}
-    >
-      <h2 className="text-4xl font-bold text-center tracking-normal sm:text-5xl text-neutral-800 dark:text-neutral-100">
+    <div className={cn('relative z-20 mx-auto mt-12 mb-16 w-full text-center', className)}>
+      <h2 className="text-center text-4xl font-bold tracking-normal text-neutral-800 sm:text-5xl dark:text-neutral-100">
         <AnimatedText delay={0.2} stagger={0.08} content={title} />
       </h2>
 
       {description && (
-        <div className="mt-3 text-sm leading-6 sm:mt-4 lg:mt-6 sm:leading-7 lg:leading-8 sm:text-base lg:text-lg text-neutral-700 dark:text-neutral-300 max-w-full lg:max-w-3xl m-auto">
+        <div className="m-auto mt-3 max-w-full text-sm leading-6 text-neutral-700 sm:mt-4 sm:text-base sm:leading-7 lg:mt-6 lg:max-w-3xl lg:text-lg lg:leading-8 dark:text-neutral-300">
           <AnimatedText delay={0.6} stagger={0.03} content={description} />
         </div>
       )}
 
       {tags && tags.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-2 mt-12 mb-2">
+        <div className="mt-12 mb-2 flex flex-wrap justify-center gap-2">
           {tags.map((tag, index) => (
             <span
               key={index}
-              className="inline-flex items-center rounded-full bg-gray-100/80 dark:bg-gray-800/15 px-3 py-1 text-[11px] font-light text-primary-600/85 dark:text-primary-400/85 border border-primary-500/35 dark:border-primary-400/25 tracking-wide"
+              className="text-primary-600/85 dark:text-primary-400/85 border-primary-500/35 dark:border-primary-400/25 inline-flex items-center rounded-full border bg-gray-100/80 px-3 py-1 text-[11px] font-light tracking-wide dark:bg-gray-800/15"
             >
               {tag}
             </span>
@@ -53,4 +48,3 @@ export default function PageHeader({
     </div>
   )
 }
-

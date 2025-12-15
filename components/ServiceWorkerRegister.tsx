@@ -6,7 +6,7 @@ import { useEffect } from 'react'
  * Service Worker 注册组件
  * 在客户端注册 Service Worker，实现页面缓存和离线支持
  * 延迟注册，不阻塞首屏渲染
- * 
+ *
  * 使用动态导入避免 Next.js 16 + Turbopack HMR 问题
  */
 export default function ServiceWorkerRegister() {
@@ -40,4 +40,3 @@ export default function ServiceWorkerRegister() {
   // 此组件不渲染任何内容
   return null
 }
-

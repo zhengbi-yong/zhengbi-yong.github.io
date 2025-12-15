@@ -14,93 +14,96 @@ interface TimelineAnimationProps {
   autoPlay?: boolean
 }
 
-const TimelineAnimation = memo(function TimelineAnimation({
-  children,
-  className = '',
-  stagger = 0.1,
-  duration = 0.5,
-  onComplete,
-  autoPlay = true,
-}: TimelineAnimationProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const timelineRef = useRef<gsap.core.Timeline | null>(null)
-  const { duration: optimizedDuration } = getGSAPMobileOptimizedParams(duration)
+const TimelineAnimation = memo(
+  function TimelineAnimation({
+    children,
+    className = '',
+    stagger = 0.1,
+    duration = 0.5,
+    onComplete,
+    autoPlay = true,
+  }: TimelineAnimationProps) {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const timelineRef = useRef<gsap.core.Timeline | null>(null)
+    const { duration: optimizedDuration } = getGSAPMobileOptimizedParams(duration)
 
-  useGSAP(() => {
-    if (!containerRef.current) return
+    useGSAP(() => {
+      if (!containerRef.current) return
 
-    const container = containerRef.current
-    const children = container.children
+      const container = containerRef.current
+      const children = container.children
 
-    if (children.length === 0) return
+      if (children.length === 0) return
 
-    // 为每个子元素设置初始状态
-    Array.from(children).forEach((child) => {
-      gsap.set(child, { opacity: 0, y: 20 })
-    })
+      // 为每个子元素设置初始状态
+      Array.from(children).forEach((child) => {
+        gsap.set(child, { opacity: 0, y: 20 })
+      })
 
-    // 创建时间线
-    // 明确设置 paused: false 当 autoPlay 为 true 时
-    const tl = gsap.timeline({
-      paused: !autoPlay, // 如果 autoPlay 为 true，paused 为 false，时间线会自动播放
-      onComplete,
-    })
+      // 创建时间线
+      // 明确设置 paused: false 当 autoPlay 为 true 时
+      const tl = gsap.timeline({
+        paused: !autoPlay, // 如果 autoPlay 为 true，paused 为 false，时间线会自动播放
+        onComplete,
+      })
 
-    // 为每个子元素添加动画
-    Array.from(children).forEach((child, index) => {
-      tl.to(
-        child,
-        {
-          opacity: 1,
-          y: 0,
-          duration: optimizedDuration,
-          ease: 'power2.out',
-        },
-        index * stagger
-      )
-    })
+      // 为每个子元素添加动画
+      Array.from(children).forEach((child, index) => {
+        tl.to(
+          child,
+          {
+            opacity: 1,
+            y: 0,
+            duration: optimizedDuration,
+            ease: 'power2.out',
+          },
+          index * stagger
+        )
+      })
 
-    // 保存时间线引用
-    timelineRef.current = tl
+      // 保存时间线引用
+      timelineRef.current = tl
 
-    // 如果 autoPlay 为 true，确保时间线播放
-    if (autoPlay && tl) {
-      // 立即播放
-      tl.play()
-    }
-
-    return tl
-  }, [stagger, duration, onComplete, autoPlay, optimizedDuration])
-
-  // 使用额外的 useEffect 确保时间线在 DOM 完全渲染后播放
-  useEffect(() => {
-    if (!autoPlay || !timelineRef.current) return
-
-    // 等待 DOM 完全渲染
-    const timer = setTimeout(() => {
-      if (timelineRef.current && timelineRef.current.paused()) {
-        timelineRef.current.play()
+      // 如果 autoPlay 为 true，确保时间线播放
+      if (autoPlay && tl) {
+        // 立即播放
+        tl.play()
       }
-    }, 100)
 
-    return () => clearTimeout(timer)
-  }, [autoPlay, children])
+      return tl
+    }, [stagger, duration, onComplete, autoPlay, optimizedDuration])
 
-  return (
-    <div ref={containerRef} className={className}>
-      {children}
-    </div>
-  )
-}, (prevProps, nextProps) => {
-  // 自定义比较函数：仅比较 props，不比较 children（children 可能频繁变化）
-  return (
-    prevProps.className === nextProps.className &&
-    prevProps.stagger === nextProps.stagger &&
-    prevProps.duration === nextProps.duration &&
-    prevProps.autoPlay === nextProps.autoPlay &&
-    prevProps.onComplete === nextProps.onComplete
-  )
-})
+    // 使用额外的 useEffect 确保时间线在 DOM 完全渲染后播放
+    useEffect(() => {
+      if (!autoPlay || !timelineRef.current) return
+
+      // 等待 DOM 完全渲染
+      const timer = setTimeout(() => {
+        if (timelineRef.current && timelineRef.current.paused()) {
+          timelineRef.current.play()
+        }
+      }, 100)
+
+      return () => clearTimeout(timer)
+    }, [autoPlay, children])
+
+    return (
+      <div ref={containerRef} className={className}>
+        {children}
+      </div>
+    )
+  },
+  (prevProps, nextProps) => {
+    // 自定义比较函数：仅比较 props，不比较 children（children 可能频繁变化）
+    return (
+      prevProps.className === nextProps.className &&
+      prevProps.stagger === nextProps.stagger &&
+      prevProps.duration === nextProps.duration &&
+      prevProps.autoPlay === nextProps.autoPlay &&
+      prevProps.onComplete === nextProps.onComplete
+    )
+  }
+)
 
 TimelineAnimation.displayName = 'TimelineAnimation'
 

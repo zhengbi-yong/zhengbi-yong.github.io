@@ -155,4 +155,3 @@ class PrefetchManager {
 const prefetchManager = new PrefetchManager()
 
 export default prefetchManager
-

@@ -44,12 +44,19 @@ export default function ToolsCard({
 
   const finalTools = tools.length > 0 ? tools : defaultTools
   const finalSpinIcons =
-    spinIcons.length > 0 ? spinIcons : ['/assets/tools/spin.png', '/assets/tools/spin.png', '/assets/tools/spin.png', '/assets/tools/spin.png']
+    spinIcons.length > 0
+      ? spinIcons
+      : [
+          '/assets/tools/spin.png',
+          '/assets/tools/spin.png',
+          '/assets/tools/spin.png',
+          '/assets/tools/spin.png',
+        ]
 
   return (
     <div
       className={cn(
-        'relative w-[198px] h-[180px] overflow-hidden rounded-3xl flex items-start justify-center',
+        'relative flex h-[180px] w-[198px] items-start justify-center overflow-hidden rounded-3xl',
         className
       )}
       style={{
@@ -64,7 +71,7 @@ export default function ToolsCard({
           {finalTools.map((tool, index) => (
             <div
               key={index}
-              className="relative tool-item w-[32px] h-[32px] flex items-center justify-center"
+              className="tool-item relative flex h-[32px] w-[32px] items-center justify-center"
               style={{
                 backgroundImage: `url(${iconBackgroundImage})`,
                 backgroundSize: 'cover',
@@ -86,7 +93,7 @@ export default function ToolsCard({
           {Array.from({ length: Math.max(0, 8 - finalTools.length) }).map((_, index) => (
             <div
               key={`empty-${index}`}
-              className="relative tool-item w-[32px] h-[32px] flex items-center justify-center"
+              className="tool-item relative flex h-[32px] w-[32px] items-center justify-center"
               style={{
                 backgroundImage: `url(${iconBackgroundImage})`,
                 backgroundSize: 'cover',
@@ -99,14 +106,14 @@ export default function ToolsCard({
 
       {/* 底部旋转动画条 */}
       <div
-        className="bar absolute bottom-[24px] left-[18px] right-[18px] bg-cover w-[calc(100%-36px)] h-[39px] flex items-center justify-center overflow-hidden rounded-[10px]"
+        className="bar absolute right-[18px] bottom-[24px] left-[18px] flex h-[39px] w-[calc(100%-36px)] items-center justify-center overflow-hidden rounded-[10px] bg-cover"
         style={{
           backgroundImage: `url(${spinBarImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        <div className="absolute bar-spin-inner w-auto h-full border-box overflow-hidden flex items-center justify-center gap-2 p-0 m-auto">
+        <div className="bar-spin-inner border-box absolute m-auto flex h-full w-auto items-center justify-center gap-2 overflow-hidden p-0">
           {finalSpinIcons.map((icon, index) => (
             <Image
               key={index}
@@ -114,13 +121,11 @@ export default function ToolsCard({
               alt=""
               width={24}
               height={24}
-              className="spin object-cover w-auto h-[72%] cursor-pointer"
+              className="spin h-[72%] w-auto cursor-pointer object-cover"
             />
           ))}
         </div>
       </div>
-
     </div>
   )
 }
-

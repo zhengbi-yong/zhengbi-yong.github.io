@@ -23,10 +23,7 @@ interface WorkCardProps {
  * useVideoAutoplay - 视频自动播放 Hook
  * 使用 Intersection Observer 检测视口可见性，自动播放/暂停视频
  */
-function useVideoAutoplay(
-  videoRef: React.RefObject<HTMLVideoElement | null>,
-  videoId: string
-) {
+function useVideoAutoplay(videoRef: React.RefObject<HTMLVideoElement | null>, videoId: string) {
   const [isPlaying, setIsPlaying] = useState(false)
   const playAttemptsRef = useRef(0)
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -192,12 +189,12 @@ export default function WorkCard({
   return (
     <article
       className={cn(
-        'group relative overflow-hidden transition-all duration-500 mb-8 bg-white/85 dark:bg-gray-900/85 p-5 border-[0.75px] border-solid border-primary-500/15 dark:border-primary-400/15 rounded-2xl backdrop-blur-sm',
+        'group border-primary-500/15 dark:border-primary-400/15 relative mb-8 overflow-hidden rounded-2xl border-[0.75px] border-solid bg-white/85 p-5 backdrop-blur-sm transition-all duration-500 dark:bg-gray-900/85',
         className
       )}
     >
       {/* Image/video container */}
-      <div className="relative overflow-hidden aspect-video rounded-xl">
+      <div className="relative aspect-video overflow-hidden rounded-xl">
         {video ? (
           /* Video */
           <video
@@ -213,7 +210,7 @@ export default function WorkCard({
             controls={false}
             disablePictureInPicture
             controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           >
             <source src={video} type="video/mp4" />
             Your browser does not support the video tag.
@@ -224,17 +221,17 @@ export default function WorkCard({
             src={image}
             alt={name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105 hover:shadow-xl hover:shadow-primary-500/5 dark:hover:shadow-primary-400/10"
+            className="hover:shadow-primary-500/5 dark:hover:shadow-primary-400/10 object-cover transition-transform duration-700 group-hover:scale-105 hover:shadow-xl"
             loading="lazy"
           />
         )}
 
         {/* Gradient overlay shown on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/10 to-transparent opacity-0 transition-all duration-500 group-hover:opacity-100"></div>
 
         {/* Link button shown on hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-          <div className="flex items-center justify-center w-14 h-14 rounded-full bg-white/95 backdrop-blur-sm shadow-lg transform translate-y-8 group-hover:translate-y-0 transition-all duration-500 group-hover:scale-110">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100">
+          <div className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white/95 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover:translate-y-0 group-hover:scale-110">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -255,17 +252,12 @@ export default function WorkCard({
       </div>
 
       {/* Content area */}
-      <div
-        className={cn(
-          'px-1 pt-6 pb-2',
-          layout === 'featured' && 'md:px-1 md:pt-6 md:pb-2'
-        )}
-      >
+      <div className={cn('px-1 pt-6 pb-2', layout === 'featured' && 'md:px-1 md:pt-6 md:pb-2')}>
         {/* Title and link icon */}
-        <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="mb-3 flex items-start justify-between gap-3">
           <h3
             className={cn(
-              'text-neutral-900 dark:text-white leading-tight font-bold transition-colors duration-300 group-hover:text-primary-500 dark:group-hover:text-primary-400',
+              'group-hover:text-primary-500 dark:group-hover:text-primary-400 leading-tight font-bold text-neutral-900 transition-colors duration-300 dark:text-white',
               layout === 'featured' ? 'text-2xl md:text-3xl' : 'text-2xl'
             )}
           >
@@ -273,8 +265,8 @@ export default function WorkCard({
           </h3>
 
           {/* Link icon */}
-          <div className="flex-shrink-0 mt-1">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500/10 dark:bg-primary-400/20 text-primary-500 dark:text-primary-400 transition-all duration-300 group-hover:bg-primary-500 dark:group-hover:bg-primary-400 group-hover:text-white dark:group-hover:text-neutral-900 group-hover:rotate-45">
+          <div className="mt-1 flex-shrink-0">
+            <div className="bg-primary-500/10 dark:bg-primary-400/20 text-primary-500 dark:text-primary-400 group-hover:bg-primary-500 dark:group-hover:bg-primary-400 flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 group-hover:rotate-45 group-hover:text-white dark:group-hover:text-neutral-900">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -295,11 +287,11 @@ export default function WorkCard({
 
         {/* Tags */}
         {tags && tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="mb-3 flex flex-wrap gap-1.5">
             {tags.map((tag, tagIndex) => (
               <span
                 key={tagIndex}
-                className="inline-flex items-center rounded-full bg-primary-500/8 dark:bg-primary-400/15 px-2.5 py-0.5 text-[10px] font-medium text-primary-500 dark:text-primary-400 border border-primary-500/10 dark:border-primary-400/20"
+                className="bg-primary-500/8 dark:bg-primary-400/15 text-primary-500 dark:text-primary-400 border-primary-500/10 dark:border-primary-400/20 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium"
               >
                 {tag}
               </span>
@@ -311,10 +303,8 @@ export default function WorkCard({
         {description && (
           <p
             className={cn(
-              'text-neutral-600 dark:text-neutral-400 leading-relaxed',
-              layout === 'featured'
-                ? 'text-base md:text-lg line-clamp-2'
-                : 'text-sm line-clamp-2'
+              'leading-relaxed text-neutral-600 dark:text-neutral-400',
+              layout === 'featured' ? 'line-clamp-2 text-base md:text-lg' : 'line-clamp-2 text-sm'
             )}
           >
             {description}
@@ -334,4 +324,3 @@ export default function WorkCard({
     </article>
   )
 }
-

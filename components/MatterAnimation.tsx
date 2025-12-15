@@ -75,7 +75,10 @@ export default function MatterAnimation({
     try {
       Matter = await import('matter-js')
     } catch (error) {
-      console.warn('[MatterAnimation] Failed to load matter-js. The animation will not be displayed.', error)
+      console.warn(
+        '[MatterAnimation] Failed to load matter-js. The animation will not be displayed.',
+        error
+      )
       setIsInitialized(true) // 标记为已初始化，避免重复尝试
       return
     }
@@ -101,7 +104,7 @@ export default function MatterAnimation({
     const finalIconUrls = iconUrls.length > 0 ? iconUrls : defaultIconUrls
 
     // 获取容器尺寸
-    let { width: cw, height: ch } = container.getBoundingClientRect()
+    const { width: cw, height: ch } = container.getBoundingClientRect()
     let W = Math.max(cw - pad, 100)
     let H = Math.max(ch - pad, 100)
 
@@ -117,9 +120,9 @@ export default function MatterAnimation({
     Matter.World.add(world, mouseConstraint)
 
     // 边界（地面和左右墙）
-    let ground = Matter.Bodies.rectangle(W / 2, H - margin, W, 14, { isStatic: true })
-    let wallL = Matter.Bodies.rectangle(margin, H / 2, 14, H, { isStatic: true })
-    let wallR = Matter.Bodies.rectangle(W - margin, H / 2, 14, H, { isStatic: true })
+    const ground = Matter.Bodies.rectangle(W / 2, H - margin, W, 14, { isStatic: true })
+    const wallL = Matter.Bodies.rectangle(margin, H / 2, 14, H, { isStatic: true })
+    const wallR = Matter.Bodies.rectangle(W - margin, H / 2, 14, H, { isStatic: true })
     Matter.World.add(world, [ground, wallL, wallR])
 
     // 工具函数
@@ -171,9 +174,7 @@ export default function MatterAnimation({
         const x = Math.random() * W
         const y = Math.random() * -H
         const r =
-          img.naturalWidth > 0 && img.naturalHeight > 0
-            ? img.naturalWidth / img.naturalHeight
-            : 1
+          img.naturalWidth > 0 && img.naturalHeight > 0 ? img.naturalWidth / img.naturalHeight : 1
 
         // 目标面积（在范围内随机）
         const A = randRange(areaMin, areaMax)
@@ -235,7 +236,10 @@ export default function MatterAnimation({
     }
 
     iconsBodiesRef.current = iconsBodies
-    Matter.World.add(world, iconsBodies.map((it) => it.body))
+    Matter.World.add(
+      world,
+      iconsBodies.map((it) => it.body)
+    )
 
     // 启动引擎
     const runner = Matter.Runner.create()
@@ -368,4 +372,3 @@ export default function MatterAnimation({
     </div>
   )
 }
-

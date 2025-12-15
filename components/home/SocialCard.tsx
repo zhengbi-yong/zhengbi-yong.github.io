@@ -17,7 +17,7 @@ interface SocialCardProps {
 export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
   // 桌面端每行显示的卡片数量
   const itemsPerRow = 5
-  
+
   // 过滤社交媒体数据
   const filteredSocial = useMemo(() => {
     return socialData.filter((item) => {
@@ -76,36 +76,35 @@ export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
             position: absolute;
             left: 0;
             top: 0;
-            transform: translateX(calc(var(--index) * 3px)) 
-                       translateY(0px) 
-                       rotate(calc(var(--index) * 5deg));
+            transform: translateX(calc(var(--index) * 3px)) translateY(0px)
+              rotate(calc(var(--index) * 5deg));
             z-index: calc(var(--total) - var(--index));
-            transition: transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1),
-                        z-index 0s linear 0.6s,
-                        box-shadow 0.3s ease;
+            transition:
+              transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1),
+              z-index 0s linear 0.6s,
+              box-shadow 0.3s ease;
             transition-delay: calc(var(--index) * 0.03s);
           }
 
           .social-list:hover .social-item {
-            transform: translateX(calc(var(--col) * 85px)) 
-                       translateY(calc(var(--row) * 85px)) 
-                       rotate(0deg);
+            transform: translateX(calc(var(--col) * 85px)) translateY(calc(var(--row) * 85px))
+              rotate(0deg);
             z-index: calc(var(--index) + 100);
-            transition: transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1),
-                        z-index 0s linear 0s,
-                        box-shadow 0.3s ease;
+            transition:
+              transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1),
+              z-index 0s linear 0s,
+              box-shadow 0.3s ease;
             transition-delay: calc(var(--index) * 0.03s);
           }
 
           .social-list:hover .social-item:hover {
-            transform: translateX(calc(var(--col) * 85px)) 
-                       translateY(calc(var(--row) * 85px - 10px)) 
-                       rotate(-6deg) 
-                       scale(1.05);
+            transform: translateX(calc(var(--col) * 85px))
+              translateY(calc(var(--row) * 85px - 10px)) rotate(-6deg) scale(1.05);
             z-index: 9999;
-            transition: transform 0.35s cubic-bezier(0.34, 1.5, 0.64, 1),
-                        z-index 0s linear 0s,
-                        box-shadow 0.3s ease;
+            transition:
+              transform 0.35s cubic-bezier(0.34, 1.5, 0.64, 1),
+              z-index 0s linear 0s,
+              box-shadow 0.3s ease;
           }
         }
 
@@ -138,7 +137,7 @@ function SocialCardItem({ item, index, total, itemsPerRow }: SocialCardItemProps
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="social-item relative overflow-hidden rounded-xl cursor-pointer w-[72px] h-[72px] transition-all duration-300 hover:shadow-[0_15px_32px_rgba(0,0,0,0.15),0_5px_12px_rgba(0,0,0,0.1)] active:scale-95 md:active:scale-100"
+      className="social-item relative h-[72px] w-[72px] cursor-pointer overflow-hidden rounded-xl transition-all duration-300 hover:shadow-[0_15px_32px_rgba(0,0,0,0.15),0_5px_12px_rgba(0,0,0,0.1)] active:scale-95 md:active:scale-100"
       style={{
         ['--index' as any]: index,
         ['--total' as any]: total,
@@ -153,7 +152,7 @@ function SocialCardItem({ item, index, total, itemsPerRow }: SocialCardItemProps
         width={72}
         height={72}
         sizes="72px"
-        className="object-cover rounded-xl transition-transform duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.15]"
+        className="rounded-xl object-cover transition-transform duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.15]"
       />
       <div className="absolute bottom-[6px] left-[6px] z-10 transition-opacity duration-300">
         <div className="text-[8px] text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">

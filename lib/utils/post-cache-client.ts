@@ -64,48 +64,54 @@ export function useCachedPost(
   }, [slug, maxAge])
 
   // 保存到缓存
-  const saveToCache = useCallback(async (post: Blog) => {
-    if (!post || !slug) {
-      return
-    }
-
-    try {
-      await blogDB.savePostFull(slug, post)
-      console.log(`[PostCache] Saved to cache: ${slug}`)
-    } catch (error) {
-      console.error('[PostCache] Failed to save to cache:', error)
-    }
-  }, [slug])
-
-  // 后台更新缓存
-  const updateCacheInBackground = useCallback(async (post: Blog) => {
-    if (!enableBackgroundUpdate || !post) {
-      return
-    }
-
-    try {
-      // 检查是否需要更新（比较 lastModified）
-      const cached = await blogDB.getPostFull(slug)
-      if (cached) {
-        const cachedTime = cached.lastmod
-          ? new Date(cached.lastmod).getTime()
-          : new Date(cached.date).getTime()
-        const serverTime = post.lastmod
-          ? new Date(post.lastmod).getTime()
-          : new Date(post.date).getTime()
-
-        // 如果服务器数据没有更新，跳过
-        if (serverTime <= cachedTime) {
-          return
-        }
+  const saveToCache = useCallback(
+    async (post: Blog) => {
+      if (!post || !slug) {
+        return
       }
 
-      // 更新缓存
-      await saveToCache(post)
-    } catch (error) {
-      console.error('[PostCache] Failed to update cache in background:', error)
-    }
-  }, [slug, enableBackgroundUpdate, saveToCache])
+      try {
+        await blogDB.savePostFull(slug, post)
+        console.log(`[PostCache] Saved to cache: ${slug}`)
+      } catch (error) {
+        console.error('[PostCache] Failed to save to cache:', error)
+      }
+    },
+    [slug]
+  )
+
+  // 后台更新缓存
+  const updateCacheInBackground = useCallback(
+    async (post: Blog) => {
+      if (!enableBackgroundUpdate || !post) {
+        return
+      }
+
+      try {
+        // 检查是否需要更新（比较 lastModified）
+        const cached = await blogDB.getPostFull(slug)
+        if (cached) {
+          const cachedTime = cached.lastmod
+            ? new Date(cached.lastmod).getTime()
+            : new Date(cached.date).getTime()
+          const serverTime = post.lastmod
+            ? new Date(post.lastmod).getTime()
+            : new Date(post.date).getTime()
+
+          // 如果服务器数据没有更新，跳过
+          if (serverTime <= cachedTime) {
+            return
+          }
+        }
+
+        // 更新缓存
+        await saveToCache(post)
+      } catch (error) {
+        console.error('[PostCache] Failed to update cache in background:', error)
+      }
+    },
+    [slug, enableBackgroundUpdate, saveToCache]
+  )
 
   useEffect(() => {
     let mounted = true
@@ -137,7 +143,14 @@ export function useCachedPost(
     return () => {
       mounted = false
     }
-  }, [slug, serverPost, loadFromCache, saveToCache, updateCacheInBackground, enableBackgroundUpdate])
+  }, [
+    slug,
+    serverPost,
+    loadFromCache,
+    saveToCache,
+    updateCacheInBackground,
+    enableBackgroundUpdate,
+  ])
 
   // 如果正在加载且没有缓存，返回服务器数据（避免闪烁）
   if (isLoading && !cachedPost) {
@@ -161,4 +174,3 @@ export async function preloadPost(slug: string, post: Blog): Promise<void> {
     console.error('[PostCache] Failed to preload post:', error)
   }
 }
-
