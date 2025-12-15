@@ -7,6 +7,7 @@ import headerNavLinks from '@/data/headerNavLinks'
 import Logo from './Logo'
 import Link from './Link'
 import SearchButton from './SearchButton'
+import LanguageSwitch from './LanguageSwitch'
 import { cn } from './lib/utils'
 import styles from './Header.module.css'
 
@@ -182,6 +183,9 @@ export default function Header() {
 
           {/* Mobile Menu Toggle Buttons */}
           <div className="mr-1 flex items-center gap-2 justify-self-end sm:hidden">
+            {/* Language Switch (Mobile) */}
+            <LanguageSwitch />
+
             {/* Search Button (Mobile) */}
             <div
               className={cn(
@@ -286,6 +290,8 @@ export default function Header() {
 
           {/* Desktop Actions */}
           <div className="relative mr-2 hidden items-center gap-3 justify-self-end sm:mr-3 sm:flex lg:mr-4">
+            {/* Language Switch */}
+            <LanguageSwitch />
             {/* Search Button */}
             <SearchButton />
 

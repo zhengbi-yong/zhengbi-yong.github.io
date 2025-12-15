@@ -11,6 +11,9 @@ const preview: Preview = {
     docs: {
       toc: true,
     },
+    nextjs: {
+      appDirectory: true,
+    },
   },
   globalTypes: {
     theme: {

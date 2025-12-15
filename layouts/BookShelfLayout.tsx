@@ -6,6 +6,7 @@ import type { Blog } from 'contentlayer/generated'
 import { categorizePostsByBookStructure } from '@/lib/utils/book-categorizer'
 import Book from '@/components/book/Book'
 import ArticleCard from '@/components/book/ArticleCard'
+import { PopularArticles } from '@/components/ArticleAnalytics'
 
 interface BookShelfLayoutProps {
   posts: CoreContent<Blog>[]
@@ -40,10 +41,22 @@ export default function BookShelfLayout({ posts, title = '博客书架' }: BookS
           <div className="absolute inset-0 -z-10 rounded-2xl bg-[linear-gradient(90deg,_rgba(0,0,0,0.02)_1px,_transparent_1px),_linear-gradient(rgba(0,0,0,0.02)_1px,_transparent_1px)] bg-[size:40px_40px] opacity-50"></div>
 
           {/* 书架网格布局 */}
-          <div className="relative grid grid-cols-1 gap-8 px-4 py-8 sm:gap-10 sm:px-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {bookShelfData.books.map((book, index) => (
-              <Book key={book.name} book={book} index={index} />
-            ))}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+            {/* 书架主要内容 */}
+            <div className="lg:col-span-3">
+              <div className="grid grid-cols-1 gap-8 px-4 py-8 sm:gap-10 sm:px-6 md:grid-cols-2 xl:grid-cols-3">
+                {bookShelfData.books.map((book, index) => (
+                  <Book key={book.name} book={book} index={index} />
+                ))}
+              </div>
+            </div>
+
+            {/* 侧边栏 */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-20 px-4 py-8">
+                <PopularArticles limit={5} />
+              </div>
+            </div>
           </div>
         </div>
 

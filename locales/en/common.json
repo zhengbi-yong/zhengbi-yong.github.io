@@ -1,0 +1,79 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "projects": "Projects",
+    "blog": "Blog",
+    "search": "Search",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "readMore": "Read More",
+    "share": "Share",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "searchPlaceholder": "Search articles...",
+    "noResults": "No results found",
+    "tags": "Tags",
+    "categories": "Categories",
+    "publishedOn": "Published on",
+    "readingTime": "min read",
+    "tableOfContents": "Table of Contents",
+    "relatedPosts": "Related Posts",
+    "comments": "Comments",
+    "leaveComment": "Leave a Comment",
+    "viewComments": "View Comments",
+    "recentPosts": "Recent Posts",
+    "featuredWork": "Featured Work",
+    "allPosts": "All Posts",
+    "contact": "Contact",
+    "resume": "Resume",
+    "language": "Language",
+    "changeLanguage": "Change Language"
+  },
+  "analytics": {
+    "popularity": "Popularity",
+    "engagementScore": "Engagement Score",
+    "views": "Views",
+    "avgReadingTime": "Avg. Reading Time",
+    "scrollDepth": "Scroll Depth",
+    "lastVisited": "Last Visited",
+    "popularArticles": "Popular Articles",
+    "minute": "min",
+    "minute_one": "min",
+    "second": "sec",
+    "second_one": "sec"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "poweredBy": "Powered by"
+  },
+  "error": {
+    "pageNotFound": {
+      "title": "Page Not Found",
+      "description": "Sorry, the page you're looking for doesn't exist.",
+      "action": "Go Home"
+    },
+    "somethingWentWrong": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred.",
+      "action": "Try Again"
+    }
+  }
+}
