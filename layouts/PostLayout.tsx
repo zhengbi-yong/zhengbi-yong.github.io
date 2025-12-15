@@ -13,6 +13,8 @@ import FadeIn from '@/components/animations/FadeIn'
 import FloatingTOC from '@/components/FloatingTOC'
 import JsonLd from '@/components/seo/JsonLd'
 import type { TOC } from '@/lib/types/toc'
+import ReadingProgress from '@/components/ReadingProgress'
+import ArticleAnalytics from '@/components/ArticleAnalytics'
 
 const editUrl = (path: string) => `${siteMetadata.siteRepo}/blob/main/data/${path}`
 const discussUrl = (path: string) =>
@@ -116,6 +118,12 @@ export default function PostLayout({
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
       <ScrollTopAndComment />
+
+      {/* 阅读进度条 */}
+      <ReadingProgress />
+
+      {/* 文章分析组件 - 使用 slug 作为文章ID */}
+      <ArticleAnalytics articleId={slug || path} showDetails={false} compact={true} />
       <article>
         <div className="xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
           <header className="pt-6 xl:pb-8">
@@ -143,8 +151,9 @@ export default function PostLayout({
                 </div>
               </FadeIn>
             </div>
-            <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start">
+            <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start space-y-6">
               <FloatingTOC toc={toc} enabled={showTOC} />
+              <ArticleAnalytics articleId={slug || path} showDetails={true} />
             </div>
           </div>
           {/* 移动端浮动 ToC - 在布局外部渲染，只渲染移动端组件 */}

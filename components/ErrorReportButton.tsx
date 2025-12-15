@@ -23,8 +23,8 @@ export default function ErrorReportButton({
       // 发送用户反馈到 Sentry
       await Sentry.captureUserFeedback({
         event_id: eventId,
-        email: email || undefined,
         name: 'Anonymous User',
+        email: email || undefined,
         comments: comment,
       })
 
