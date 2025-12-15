@@ -64,10 +64,5 @@ export default function LazyComponent({
     }
   }, [threshold, rootMargin, once, hasLoaded])
 
-  return (
-    <div ref={elementRef}>
-      {isVisible ? children : fallback}
-    </div>
-  )
+  return <div ref={elementRef}>{isVisible ? children : fallback}</div>
 }
-

@@ -20,4 +20,3 @@ export default async function MusicPage(props: { params: Promise<{ name: string 
 
   return <FullscreenMusicSheet src={musicSheet.src} title={musicSheet.title} />
 }
-

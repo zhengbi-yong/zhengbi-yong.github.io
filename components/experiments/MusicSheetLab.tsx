@@ -14,43 +14,43 @@ const exampleFiles = [
 // 获取 basePath 的工具函数（同步版本，用于初始化）
 const getBasePathSync = (): string => {
   if (typeof window === 'undefined') return ''
-  
+
   // 方法1: 从环境变量获取（如果设置了 NEXT_PUBLIC_BASE_PATH）
   const envBasePath = process.env.NEXT_PUBLIC_BASE_PATH
   if (envBasePath) {
     // 确保 basePath 以 / 开头，不以 / 结尾
     return envBasePath.startsWith('/') ? envBasePath : `/${envBasePath}`
   }
-  
+
   // 方法2: 从 window.location.pathname 提取 basePath
   // 通过检查当前路径来判断是否有 basePath
   const pathname = window.location.pathname
   const segments = pathname.split('/').filter(Boolean)
-  
+
   // 已知的应用路由列表（这些路由不应该作为 basePath）
   const knownAppRoutes = ['experiment', 'blog', 'tags', 'about', 'projects']
   const nextJsRoutes = ['_next', 'api', 'static']
-  
+
   // 如果路径段数 >= 1
   if (segments.length >= 1) {
     const firstSegment = segments[0]
-    
+
     // 如果第一个段是 Next.js 内部路由，说明没有 basePath
     if (nextJsRoutes.includes(firstSegment)) {
       return ''
     }
-    
+
     // 如果第一个段不是已知的应用路由，可能是 basePath
     // 例如：/myrepo/experiment -> basePath 是 /myrepo
     if (!knownAppRoutes.includes(firstSegment)) {
       return `/${firstSegment}`
     }
-    
+
     // 如果第一个段是已知的应用路由
     // 情况1: /experiment -> 没有 basePath（根路径部署）
     // 情况2: /blog/experiment -> blog 可能是 basePath（子路径部署，仓库名是 blog）
     // 情况3: /myrepo/blog/experiment -> myrepo 是 basePath
-    
+
     // 如果路径段数 > 1，且第一个段是已知的应用路由
     // 那么第一个段可能是 basePath（如果仓库名恰好是应用路由名）
     // 例如：仓库名是 blog，访问 /blog/experiment，那么 basePath 是 /blog
@@ -58,22 +58,24 @@ const getBasePathSync = (): string => {
       // 返回第一个段作为可能的 basePath，让异步检测来验证
       return `/${firstSegment}`
     }
-    
+
     // 如果只有一个段，且是已知的应用路由，说明没有 basePath
     return ''
   }
-  
+
   return ''
 }
 
 // 异步检测 basePath（通过尝试访问文件）
-const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'): Promise<string> => {
+const detectBasePathAsync = async (
+  testFileName: string = 'simple-example.xml'
+): Promise<string> => {
   if (typeof window === 'undefined') return ''
-  
+
   const pathname = window.location.pathname
   const segments = pathname.split('/').filter(Boolean)
   const knownAppRoutes = ['experiment', 'blog', 'tags', 'about', 'projects']
-  
+
   // 先尝试根路径（最常见的部署方式）
   const rootPath = `/musicxml/${testFileName}`
   try {
@@ -84,7 +86,7 @@ const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'):
   } catch {
     // 忽略错误
   }
-  
+
   // 如果路径段数 >= 1，且第一个段不是已知的应用路由，尝试作为 basePath
   // 例如：/myrepo/experiment -> basePath 是 /myrepo
   if (segments.length >= 1) {
@@ -92,7 +94,7 @@ const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'):
     if (!knownAppRoutes.includes(firstSegment)) {
       const possibleBasePath = `/${firstSegment}`
       const testPath = `${possibleBasePath}/musicxml/${testFileName}`
-      
+
       try {
         const response = await fetch(testPath, { method: 'HEAD' })
         if (response.ok) {
@@ -103,7 +105,7 @@ const detectBasePathAsync = async (testFileName: string = 'simple-example.xml'):
       }
     }
   }
-  
+
   // 如果都不行，返回空（根路径部署）
   return ''
 }
@@ -119,7 +121,7 @@ export default function MusicSheetLab() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false)
   const [playbackProgress, setPlaybackProgress] = useState<number>(0)
   const [basePath, setBasePath] = useState<string>('')
-  
+
   // 播放相关引用
   const synthRef = useRef<any>(null)
   const playbackTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -134,7 +136,7 @@ export default function MusicSheetLab() {
     // 先使用同步方法获取 basePath
     const syncBasePath = getBasePathSync()
     setBasePath(syncBasePath)
-    
+
     // 如果同步方法没有找到 basePath，尝试异步检测
     if (!syncBasePath) {
       detectBasePathAsync('simple-example.xml').then((detectedBasePath) => {
@@ -168,7 +170,7 @@ export default function MusicSheetLab() {
     try {
       // 使用 basePath 构建正确的路径
       let currentBasePath = basePath || getBasePathSync()
-      
+
       // 如果 basePath 为空，尝试异步检测
       if (!currentBasePath) {
         const detectedBasePath = await detectBasePathAsync(fileName)
@@ -177,7 +179,7 @@ export default function MusicSheetLab() {
           setBasePath(detectedBasePath)
         }
       }
-      
+
       // 尝试多个可能的路径
       const possiblePaths = [
         `${currentBasePath}/musicxml/${fileName}`,
@@ -185,10 +187,10 @@ export default function MusicSheetLab() {
         `${window.location.origin}${currentBasePath}/musicxml/${fileName}`,
         `${window.location.origin}/musicxml/${fileName}`,
       ]
-      
+
       let xmlContent = ''
       let xmlPath = ''
-      
+
       // 依次尝试每个路径，获取XML内容
       for (const path of possiblePaths) {
         try {
@@ -209,11 +211,11 @@ export default function MusicSheetLab() {
           // 忽略错误，继续尝试下一个路径
         }
       }
-      
+
       if (!xmlContent || !xmlPath) {
         throw new Error(`无法找到或加载 MusicXML 文件。尝试的路径: ${possiblePaths.join(', ')}`)
       }
-      
+
       // 加载XML内容（OSMD的load方法可以接受URL或XML字符串）
       // 先尝试直接加载URL，如果失败则使用XML字符串
       try {
@@ -224,10 +226,10 @@ export default function MusicSheetLab() {
         await osmdInstanceRef.current.load(xmlContent)
       }
       osmdInstanceRef.current.render()
-      
+
       // 解析音符序列用于播放
       await parseNotesForPlayback()
-      
+
       setIsLoading(false)
     } catch (err) {
       console.error('加载乐谱错误:', err)
@@ -277,10 +279,10 @@ export default function MusicSheetLab() {
       // 动态导入 OpenSheetMusicDisplay
       // OSMD 是一个 UMD 模块，可能需要特殊处理
       const OSMDModule = await import('opensheetmusicdisplay')
-      
+
       // OSMD 可能以多种方式导出，尝试不同的导入方式
       let OpenSheetMusicDisplayClass: any = null
-      
+
       // 方式1: 直接导出
       if (OSMDModule.OpenSheetMusicDisplay) {
         OpenSheetMusicDisplayClass = OSMDModule.OpenSheetMusicDisplay
@@ -300,7 +302,7 @@ export default function MusicSheetLab() {
       else if (typeof window !== 'undefined' && (window as any).OpenSheetMusicDisplay) {
         OpenSheetMusicDisplayClass = (window as any).OpenSheetMusicDisplay
       }
-      
+
       if (!OpenSheetMusicDisplayClass) {
         throw new Error('无法找到 OpenSheetMusicDisplay 类')
       }
@@ -315,14 +317,14 @@ export default function MusicSheetLab() {
         drawMeasureNumbers: true,
         drawTimeSignatures: true,
       })
-      
+
       osmdInstanceRef.current = osmd
-      
+
       // 初始化光标（用于播放时的高亮显示）
       if (osmd.cursor) {
         osmd.cursor.hide()
       }
-      
+
       await loadMusicXML(currentExample)
     } catch (err) {
       console.error('OSMD 初始化错误详情:', err)
@@ -383,13 +385,13 @@ export default function MusicSheetLab() {
     try {
       const osmd = osmdInstanceRef.current
       const notes: Array<{ time: number; notes: Array<{ pitch: string; duration: number }> }> = []
-      
+
       // 使用 cursor 遍历所有音符
       if (osmd.cursor && osmd.cursor.iterator) {
         // 使用 Cursor 的 resetIterator 方法重置迭代器
         osmd.cursor.resetIterator()
         const iterator = osmd.cursor.iterator
-        
+
         // 尝试从乐谱获取 BPM，如果没有则使用默认值
         let bpm = 120
         try {
@@ -400,22 +402,22 @@ export default function MusicSheetLab() {
         } catch {
           // 使用默认值
         }
-        
+
         bpmRef.current = bpm
-        
+
         // 遍历所有音符
         while (!iterator.EndReached) {
           const voiceEntries = iterator.CurrentVoiceEntries
           const timestamp = iterator.CurrentSourceTimestamp
-          
+
           // 获取当前时间戳对应的秒数
           // OSMD 使用 Fraction 表示时间，需要转换为秒
           // RealValue 是相对于全音符的分数值
           // 假设 4/4 拍，一个全音符 = 4 拍 = 60/bpm * 4 秒
           const timeInSeconds = timestamp.RealValue * (60 / bpm) * 4
-          
+
           const notesAtTime: Array<{ pitch: string; duration: number }> = []
-          
+
           for (const voiceEntry of voiceEntries) {
             for (const note of voiceEntry.Notes) {
               if (!note.isRest()) {
@@ -426,13 +428,26 @@ export default function MusicSheetLab() {
                   // 计算八度和音名索引
                   const octave = Math.floor((halfTone + 12) / 12) - 1
                   const noteIndex = ((halfTone % 12) + 12) % 12
-                  const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+                  const noteNames = [
+                    'C',
+                    'C#',
+                    'D',
+                    'D#',
+                    'E',
+                    'F',
+                    'F#',
+                    'G',
+                    'G#',
+                    'A',
+                    'A#',
+                    'B',
+                  ]
                   const pitch = `${noteNames[noteIndex]}${octave}`
-                  
+
                   // 获取音符时值（转换为秒）
                   // RealValue 是相对于全音符的分数，需要根据 BPM 转换
                   const duration = note.Length.RealValue * (60 / bpm) * 4
-                  
+
                   if (duration > 0 && pitch) {
                     notesAtTime.push({ pitch, duration })
                   }
@@ -442,16 +457,16 @@ export default function MusicSheetLab() {
               }
             }
           }
-          
+
           if (notesAtTime.length > 0) {
             notes.push({ time: timeInSeconds, notes: notesAtTime })
           }
-          
+
           // 使用 iterator 的 moveToNext 方法移动到下一个位置
           iterator.moveToNext()
         }
       }
-      
+
       notesSequenceRef.current = notes
     } catch (err) {
       console.error('解析音符失败:', err)
@@ -465,11 +480,11 @@ export default function MusicSheetLab() {
     try {
       const Tone = await import('tone')
       await Tone.start()
-      
+
       // 创建合成器
       const synth = new Tone.PolySynth(Tone.Synth).toDestination()
       synthRef.current = synth
-      
+
       return synth
     } catch (err) {
       console.error('Tone.js 初始化失败:', err)
@@ -492,7 +507,7 @@ export default function MusicSheetLab() {
       const Tone = await import('tone')
       await Tone.start()
       const synth = await initializeTone()
-      
+
       // 确保音符已解析
       if (notesSequenceRef.current.length === 0) {
         await parseNotesForPlayback()
@@ -557,7 +572,7 @@ export default function MusicSheetLab() {
       // 播放结束时停止
       const lastNoteGroup = allNotes[allNotes.length - 1]
       const totalDuration = lastNoteGroup.time + (lastNoteGroup.notes[0]?.duration || 1)
-      
+
       Tone.Transport.schedule(() => {
         handleStop()
       }, totalDuration)
@@ -624,24 +639,27 @@ export default function MusicSheetLab() {
       {isPlaying && (
         <div className="w-full rounded-lg bg-gray-200 dark:bg-gray-700">
           <div
-            className="h-2 rounded-lg bg-primary-500 transition-all duration-100"
+            className="bg-primary-500 h-2 rounded-lg transition-all duration-100"
             style={{ width: `${playbackProgress}%` }}
           />
         </div>
       )}
 
       {/* 控制面板 */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50/50 p-4 dark:border-gray-700 dark:bg-gray-800/30 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50/50 p-4 md:flex-row md:items-center md:justify-between dark:border-gray-700 dark:bg-gray-800/30">
         {/* 示例选择 */}
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
-          <label htmlFor="example-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="example-select"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             选择示例：
           </label>
           <select
             id="example-select"
             value={currentExample}
             onChange={(e) => handleExampleChange(e.target.value)}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-primary-400"
+            className="focus:border-primary-500 focus:ring-primary-500/20 dark:focus:border-primary-400 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
             {exampleFiles.map((file) => (
               <option key={file.fileName} value={file.fileName}>
@@ -653,7 +671,10 @@ export default function MusicSheetLab() {
 
         {/* 缩放控制 */}
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
-          <label htmlFor="zoom-slider" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="zoom-slider"
+            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             缩放：
           </label>
           <div className="flex items-center gap-3">
@@ -757,10 +778,9 @@ export default function MusicSheetLab() {
       {mounted && (
         <div
           ref={containerRef}
-          className="min-h-[400px] rounded-2xl border border-dashed border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/50 hidden"
+          className="hidden min-h-[400px] rounded-2xl border border-dashed border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/50"
         />
       )}
     </div>
   )
 }
-

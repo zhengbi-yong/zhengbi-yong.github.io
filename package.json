@@ -10,6 +10,10 @@
     "serve": "next start",
     "analyze": "cross-env ANALYZE=true next build",
     "lint": "eslint app components lib layouts scripts --max-warnings=0",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
     "prepare": "husky"
   },
   "dependencies": {
@@ -58,8 +62,8 @@
     "pliny": "0.4.1",
     "postcss": "^8.5.6",
     "react": "19.2.1",
-    "react-leaflet": "^5.0.0",
     "react-dom": "19.2.1",
+    "react-leaflet": "^5.0.0",
     "reading-time": "1.5.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-citation": "^2.3.1",
@@ -88,6 +92,8 @@
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.1",
     "@svgr/webpack": "^8.1.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
     "@types/leaflet": "^1.9.21",
     "@types/matter-js": "^0.20.2",
     "@types/mdx": "^2.0.13",
@@ -95,6 +101,8 @@
     "@types/react-dom": "^19.2.0",
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
+    "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/coverage-v8": "^4.0.15",
     "baseline-browser-mapping": "latest",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
@@ -103,10 +111,12 @@
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
+    "jsdom": "^27.3.0",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   },
   "lint-staged": {
     "*.+(js|jsx|ts|tsx)": [

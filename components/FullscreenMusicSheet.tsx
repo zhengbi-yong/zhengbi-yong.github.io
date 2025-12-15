@@ -22,7 +22,7 @@ interface FullscreenMusicSheetProps {
 /**
  * 全屏乐谱组件 - 用于全屏展示 MusicXML 格式的乐谱
  * 支持 .xml（MusicXML）和 .mxl（压缩的 MusicXML）格式
- * 
+ *
  * @example
  * <FullscreenMusicSheet src="flower_dance.xml" title="Flower Dance" />
  * <FullscreenMusicSheet src="flower_dance.mxl" title="Flower Dance" />
@@ -49,17 +49,17 @@ export default function FullscreenMusicSheet({
   // 获取 basePath（用于处理子路径部署）
   const getBasePath = (): string => {
     if (typeof window === 'undefined') return ''
-    
+
     const envBasePath = process.env.NEXT_PUBLIC_BASE_PATH
     if (envBasePath) {
       return envBasePath.startsWith('/') ? envBasePath : `/${envBasePath}`
     }
-    
+
     const pathname = window.location.pathname
     const segments = pathname.split('/').filter(Boolean)
     const knownAppRoutes = ['experiment', 'blog', 'tags', 'about', 'projects', 'music']
     const nextJsRoutes = ['_next', 'api', 'static']
-    
+
     if (segments.length >= 1) {
       const firstSegment = segments[0]
       if (nextJsRoutes.includes(firstSegment)) {
@@ -69,17 +69,17 @@ export default function FullscreenMusicSheet({
         return `/${firstSegment}`
       }
     }
-    
+
     return ''
   }
 
   // 解压缩 MXL 文件并提取 MusicXML 内容
   const extractMXL = async (arrayBuffer: ArrayBuffer): Promise<string> => {
     const zip = await JSZip.loadAsync(arrayBuffer)
-    
+
     // MXL 文件标准格式：先读取 META-INF/container.xml 找到根文件
     let rootFilePath = ''
-    
+
     // 尝试读取 container.xml
     const containerFile = zip.files['META-INF/container.xml']
     if (containerFile) {
@@ -96,36 +96,37 @@ export default function FullscreenMusicSheet({
         console.warn('无法解析 container.xml，尝试查找 XML 文件:', err)
       }
     }
-    
+
     // 如果没有找到 container.xml 或解析失败，查找所有 .xml 文件
     if (!rootFilePath) {
       const xmlFiles = Object.keys(zip.files).filter(
         (name) => name.endsWith('.xml') && !zip.files[name].dir && !name.startsWith('META-INF/')
       )
-      
+
       if (xmlFiles.length === 0) {
         throw new Error('MXL 文件中未找到 MusicXML 文件')
       }
-      
+
       // 优先选择包含 "score" 或 "partwise" 的文件名，否则使用第一个
-      rootFilePath = xmlFiles.find(name => 
-        name.toLowerCase().includes('score') || name.toLowerCase().includes('partwise')
-      ) || xmlFiles[0]
+      rootFilePath =
+        xmlFiles.find(
+          (name) => name.toLowerCase().includes('score') || name.toLowerCase().includes('partwise')
+        ) || xmlFiles[0]
     }
-    
+
     // 提取根文件
     const rootFile = zip.files[rootFilePath]
     if (!rootFile) {
       throw new Error(`MXL 文件中未找到指定的根文件: ${rootFilePath}`)
     }
-    
+
     const xmlContent = await rootFile.async('string')
-    
+
     // 验证是否是有效的 MusicXML（包含 partwise 或 score 元素）
     if (!xmlContent.includes('<score-partwise') && !xmlContent.includes('<score-timewise')) {
       throw new Error('提取的文件不是有效的 MusicXML 文件')
     }
-    
+
     return xmlContent
   }
 
@@ -143,7 +144,7 @@ export default function FullscreenMusicSheet({
     try {
       const basePath = getBasePath()
       const isMXL = filePath.toLowerCase().endsWith('.mxl')
-      
+
       // 尝试多个可能的路径
       const possiblePaths = [
         `${basePath}/musicxml/${filePath}`,
@@ -151,10 +152,10 @@ export default function FullscreenMusicSheet({
         `${window.location.origin}${basePath}/musicxml/${filePath}`,
         `${window.location.origin}/musicxml/${filePath}`,
       ]
-      
+
       let xmlContent = ''
       let xmlPath = ''
-      
+
       // 依次尝试每个路径
       for (const path of possiblePaths) {
         try {
@@ -182,11 +183,11 @@ export default function FullscreenMusicSheet({
           // 继续尝试下一个路径
         }
       }
-      
+
       if (!xmlContent) {
         throw new Error(`无法找到或加载 MusicXML 文件: ${filePath}`)
       }
-      
+
       // 加载 XML 内容
       try {
         // 优先使用 URL 加载（OSMD 可能优化处理）
@@ -201,13 +202,13 @@ export default function FullscreenMusicSheet({
         console.warn('URL 加载失败，尝试使用 XML 字符串:', urlError)
         await osmdInstanceRef.current.load(xmlContent)
       }
-      
+
       // 设置缩放
       osmdInstanceRef.current.zoom = currentZoom
-      
+
       // 渲染乐谱
       osmdInstanceRef.current.render()
-      
+
       // 确保SVG内容居中
       setTimeout(() => {
         if (containerRef.current) {
@@ -218,12 +219,12 @@ export default function FullscreenMusicSheet({
             svg.style.removeProperty('right')
             svg.style.removeProperty('transform')
             svg.style.removeProperty('position')
-            
+
             // 确保SVG居中
             svg.style.margin = '0 auto'
             svg.style.display = 'block'
             svg.style.maxWidth = '100%'
-            
+
             // 确保容器内容居中
             containerRef.current.style.textAlign = 'center'
             containerRef.current.style.display = 'flex'
@@ -233,7 +234,7 @@ export default function FullscreenMusicSheet({
           }
         }
       }, 200)
-      
+
       setIsLoading(false)
     } catch (err) {
       console.error('加载乐谱错误:', err)
@@ -253,9 +254,9 @@ export default function FullscreenMusicSheet({
 
         // 动态导入 OpenSheetMusicDisplay
         const OSMDModule = await import('opensheetmusicdisplay')
-        
+
         let OpenSheetMusicDisplayClass: any = null
-        
+
         if (OSMDModule.OpenSheetMusicDisplay) {
           OpenSheetMusicDisplayClass = OSMDModule.OpenSheetMusicDisplay
         } else if ((OSMDModule as any).default) {
@@ -268,11 +269,11 @@ export default function FullscreenMusicSheet({
         } else if (typeof window !== 'undefined' && (window as any).OpenSheetMusicDisplay) {
           OpenSheetMusicDisplayClass = (window as any).OpenSheetMusicDisplay
         }
-        
+
         if (!OpenSheetMusicDisplayClass) {
           throw new Error('无法找到 OpenSheetMusicDisplay 类')
         }
-        
+
         const osmd = new OpenSheetMusicDisplayClass(containerRef.current, {
           autoResize: true,
           backend: 'svg',
@@ -284,9 +285,9 @@ export default function FullscreenMusicSheet({
           drawMeasureNumbers,
           drawTimeSignatures: true,
         })
-        
+
         osmdInstanceRef.current = osmd
-        
+
         // 加载乐谱
         await loadMusicXML(src)
       } catch (err) {
@@ -314,7 +315,7 @@ export default function FullscreenMusicSheet({
     if (osmdInstanceRef.current && !isLoading) {
       osmdInstanceRef.current.zoom = currentZoom
       osmdInstanceRef.current.render()
-      
+
       // 确保SVG内容居中
       setTimeout(() => {
         if (containerRef.current) {
@@ -325,12 +326,12 @@ export default function FullscreenMusicSheet({
             svg.style.removeProperty('right')
             svg.style.removeProperty('transform')
             svg.style.removeProperty('position')
-            
+
             // 确保SVG居中
             svg.style.margin = '0 auto'
             svg.style.display = 'block'
             svg.style.maxWidth = '100%'
-            
+
             // 确保容器内容居中
             containerRef.current.style.textAlign = 'center'
             containerRef.current.style.display = 'flex'
@@ -413,7 +414,7 @@ export default function FullscreenMusicSheet({
             </div>
           </div>
         )}
-        
+
         {error && !isLoading && (
           <div className="flex h-full items-center justify-center">
             <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-900/20">
@@ -421,13 +422,11 @@ export default function FullscreenMusicSheet({
             </div>
           </div>
         )}
-        
+
         <div className="flex h-full w-full items-start justify-center overflow-auto px-4 py-8">
           <div
             ref={containerRef}
-            className={`bg-white p-8 dark:bg-gray-950 ${
-              isLoading || error ? 'hidden' : ''
-            }`}
+            className={`bg-white p-8 dark:bg-gray-950 ${isLoading || error ? 'hidden' : ''}`}
             style={{
               maxWidth: '95%',
               width: '100%',
@@ -445,4 +444,3 @@ export default function FullscreenMusicSheet({
 
   return null
 }
-

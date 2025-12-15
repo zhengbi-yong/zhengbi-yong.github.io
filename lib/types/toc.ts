@@ -10,4 +10,3 @@ export interface TOCItem {
 }
 
 export type TOC = TOCItem[]
-

@@ -135,7 +135,11 @@ export default function ShaderBackground({
     `
 
     // 创建着色器
-    function createShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader | null {
+    function createShader(
+      gl: WebGLRenderingContext,
+      type: number,
+      source: string
+    ): WebGLShader | null {
       const shader = gl.createShader(type)
       if (!shader) return null
 
@@ -203,7 +207,7 @@ export default function ShaderBackground({
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
     const positions = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1])
     gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW)
-    
+
     const positionLocation = gl.getAttribLocation(program, 'a_position')
     gl.enableVertexAttribArray(positionLocation)
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
@@ -214,7 +218,7 @@ export default function ShaderBackground({
       const width = window.innerWidth
       const height = window.innerHeight
       const dpr = Math.min(window.devicePixelRatio || 1, 2)
-      
+
       if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
         canvas.width = width * dpr
         canvas.height = height * dpr
@@ -273,7 +277,7 @@ export default function ShaderBackground({
   return (
     <canvas
       ref={canvasRef}
-      className={`pointer-events-none fixed inset-0 w-full h-full ${className}`}
+      className={`pointer-events-none fixed inset-0 h-full w-full ${className}`}
       style={{
         zIndex: 0,
         width: '100vw',
@@ -282,4 +286,3 @@ export default function ShaderBackground({
     />
   )
 }
-

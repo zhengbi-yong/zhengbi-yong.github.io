@@ -13,10 +13,7 @@ interface BackToTopProps {
  * BackToTop - 返回顶部按钮组件
  * 基于提供的 Astro BackToTop 组件转换而来
  */
-const BackToTop = memo(function BackToTop({
-  className = '',
-  threshold = 300,
-}: BackToTopProps) {
+const BackToTop = memo(function BackToTop({ className = '', threshold = 300 }: BackToTopProps) {
   const [isVisible, setIsVisible] = useState(false)
 
   // 更新按钮可见性
@@ -55,7 +52,7 @@ const BackToTop = memo(function BackToTop({
       className={cn(
         styles.backToTop,
         isVisible && styles.visible,
-        'dark:bg-indigo-300 dark:text-gray-900 dark:hover:bg-indigo-300 dark:shadow-[0_4px_12px_rgba(196,181,253,0.3)] dark:hover:shadow-[0_8px_20px_rgba(196,181,253,0.4)]',
+        'dark:bg-indigo-300 dark:text-gray-900 dark:shadow-[0_4px_12px_rgba(196,181,253,0.3)] dark:hover:bg-indigo-300 dark:hover:shadow-[0_8px_20px_rgba(196,181,253,0.4)]',
         className
       )}
       aria-label="Back to top"

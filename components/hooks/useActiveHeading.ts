@@ -108,7 +108,7 @@ export function useActiveHeading(headingIds: string[]) {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current)
       }
-      
+
       // 使用 requestAnimationFrame 节流
       if (rafIdRef.current === null) {
         rafIdRef.current = requestAnimationFrame(() => {
@@ -116,7 +116,7 @@ export function useActiveHeading(headingIds: string[]) {
           rafIdRef.current = null
         })
       }
-      
+
       // 防抖：如果快速滚动，延迟执行
       scrollTimeoutRef.current = setTimeout(() => {
         if (rafIdRef.current !== null) {
@@ -146,4 +146,3 @@ export function useActiveHeading(headingIds: string[]) {
 
   return activeId
 }
-

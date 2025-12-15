@@ -24,21 +24,8 @@ interface BlogCardProps {
  * 参考 Astro 项目的 BlogCard 组件，适配项目现有风格
  * 支持垂直和水平两种布局，包含图片、标题、描述、日期、标签等信息
  */
-export default function BlogCard({
-  content,
-  layout = 'vertical',
-  className = '',
-}: BlogCardProps) {
-  const {
-    title,
-    description,
-    publishDate,
-    tags = [],
-    img,
-    img_alt,
-    slug,
-    link,
-  } = content
+export default function BlogCard({ content, layout = 'vertical', className = '' }: BlogCardProps) {
+  const { title, description, publishDate, tags = [], img, img_alt, slug, link } = content
 
   const formattedDate = new Date(publishDate).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -52,7 +39,7 @@ export default function BlogCard({
   return (
     <article
       className={cn(
-        'group relative overflow-hidden bg-white/50 dark:bg-gray-900/50 border border-primary-500/35 dark:border-primary-400/35 p-4 rounded-2xl backdrop-blur-sm transition-all duration-500',
+        'group border-primary-500/35 dark:border-primary-400/35 relative overflow-hidden rounded-2xl border bg-white/50 p-4 backdrop-blur-sm transition-all duration-500 dark:bg-gray-900/50',
         isHorizontal && 'md:flex md:items-center',
         className
       )}
@@ -60,7 +47,7 @@ export default function BlogCard({
       {/* Image container */}
       <div
         className={cn(
-          'relative overflow-hidden rounded-2xl dark:border-neutral-800/60 border-4 border-white',
+          'relative overflow-hidden rounded-2xl border-4 border-white dark:border-neutral-800/60',
           isHorizontal ? 'md:w-1/2' : 'aspect-[3/2]'
         )}
       >
@@ -74,8 +61,8 @@ export default function BlogCard({
         />
 
         {/* Gradient overlay and button shown on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-center justify-center">
-          <span className="w-14 h-14 bg-white/95 dark:bg-neutral-800/95 backdrop-blur-sm rounded-full flex items-center justify-center transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 shadow-lg hover:scale-110">
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-all duration-500 group-hover:opacity-100">
+          <span className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white/95 opacity-0 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110 dark:bg-neutral-800/95">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="22"
@@ -101,15 +88,10 @@ export default function BlogCard({
       </div>
 
       {/* Content area */}
-      <div
-        className={cn(
-          'p-6 px-2 md:p-6 flex flex-col',
-          isHorizontal && 'md:w-1/2'
-        )}
-      >
+      <div className={cn('flex flex-col p-6 px-2 md:p-6', isHorizontal && 'md:w-1/2')}>
         {/* Date and tags */}
-        <div className="flex items-center text-sm mb-4 gap-2">
-          <time className="inline-flex items-center text-neutral-500 dark:text-neutral-400 text-xs">
+        <div className="mb-4 flex items-center gap-2 text-sm">
+          <time className="inline-flex items-center text-xs text-neutral-500 dark:text-neutral-400">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -132,7 +114,7 @@ export default function BlogCard({
           {tags && tags.length > 0 && (
             <>
               <span className="text-neutral-400 dark:text-neutral-500">·</span>
-              <span className="inline-flex items-center rounded-full bg-white/80 dark:bg-gray-800/15 px-3 py-1 text-[11px] font-light text-primary-500/75 dark:text-primary-400/85 border border-primary-500/25 dark:border-primary-400/25">
+              <span className="text-primary-500/75 dark:text-primary-400/85 border-primary-500/25 dark:border-primary-400/25 inline-flex items-center rounded-full border bg-white/80 px-3 py-1 text-[11px] font-light dark:bg-gray-800/15">
                 {tags[0]}
               </span>
             </>
@@ -143,7 +125,7 @@ export default function BlogCard({
         <Link href={postLink}>
           <h2
             className={cn(
-              'font-bold text-neutral-900 dark:text-white mb-3 leading-tight transition-colors duration-300 group-hover:text-primary-500 dark:group-hover:text-primary-400 line-clamp-2',
+              'group-hover:text-primary-500 dark:group-hover:text-primary-400 mb-3 line-clamp-2 leading-tight font-bold text-neutral-900 transition-colors duration-300 dark:text-white',
               isHorizontal ? 'text-3xl' : 'text-2xl'
             )}
           >
@@ -153,7 +135,7 @@ export default function BlogCard({
 
         {/* Description */}
         {description && (
-          <p className="text-neutral-600 dark:text-neutral-400 line-clamp-3 mb-5 text-sm leading-relaxed">
+          <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
             {description}
           </p>
         )}
@@ -162,11 +144,11 @@ export default function BlogCard({
         <div className="mt-auto pt-4">
           <Link
             href={postLink}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-primary-500 dark:text-primary-400 transition-all duration-300 group/link"
+            className="text-primary-500 dark:text-primary-400 group/link inline-flex items-center gap-2 text-sm font-semibold transition-all duration-300"
           >
             <span className="relative">
               Read More
-              <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-primary-500 dark:bg-primary-400 transition-all duration-300 group-hover/link:w-full"></span>
+              <span className="bg-primary-500 dark:bg-primary-400 absolute bottom-0 left-0 h-[1px] w-0 transition-all duration-300 group-hover/link:w-full"></span>
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -189,4 +171,3 @@ export default function BlogCard({
     </article>
   )
 }
-

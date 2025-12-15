@@ -22,13 +22,13 @@ export default function Home({ posts }: HomeProps) {
         <ShaderBackgroundClient intensity={0.8} />
       </div>
       {/* 主页内容 */}
-      <div className="relative z-10 w-full mx-auto mt-16 px-4 md:mt-18 lg:mt-20 xl:px-8">
+      <div className="relative z-10 mx-auto mt-16 w-full px-4 md:mt-18 lg:mt-20 xl:px-8">
         {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/20 dark:bg-gray-950/60 backdrop-blur-sm" />
+        <div className="fixed inset-0 -z-[5] bg-white/20 backdrop-blur-sm dark:bg-gray-950/60" />
         {/* Hero 区域 */}
-        <div className="relative w-full max-w-6xl mx-auto px-4 flex flex-col items-center justify-between md:flex-row mb-16">
+        <div className="relative mx-auto mb-16 flex w-full max-w-6xl flex-col items-center justify-between px-4 md:flex-row">
           {/* 左侧：标题和描述 */}
-          <div className="relative w-full md:max-w-[400px] md:w-1/2 text-center sm:text-left sm:-mt-8">
+          <div className="relative w-full text-center sm:-mt-8 sm:text-left md:w-1/2 md:max-w-[400px]">
             {/* Title - AnimatedText animation */}
             <h1 className="mb-4">
               <AnimatedText
@@ -36,7 +36,7 @@ export default function Home({ posts }: HomeProps) {
                 delay={0.1}
                 duration={0.5}
                 stagger={0.08}
-                className="text-5xl text-primary leading-tight md:text-4xl lg:text-6xl font-bold"
+                className="text-primary text-5xl leading-tight font-bold md:text-4xl lg:text-6xl"
               />
             </h1>
             {/* First description - AnimatedText animation */}
@@ -76,7 +76,7 @@ export default function Home({ posts }: HomeProps) {
             </div>
           </div>
           {/* 右侧：HeroCard */}
-          <div className="relative justify-end w-full mt-16 md:flex md:pl-4 md:w-1/2 md:mt-0 md:translate-y-4 xl:translate-y-0">
+          <div className="relative mt-16 w-full justify-end md:mt-0 md:flex md:w-1/2 md:translate-y-4 md:pl-4 xl:translate-y-0">
             <HeroCard
               imageUrl="/static/images/robotics/SO-100.webp"
               title="Robotics Projects"

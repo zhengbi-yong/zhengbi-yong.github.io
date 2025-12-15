@@ -185,13 +185,13 @@ const Footer = memo(() => {
   return (
     <>
       <section
-        className="relative z-20 text-gray-700 mt-20 md:mt-48"
+        className="relative z-20 mt-20 text-gray-700 md:mt-48"
         style={{ willChange: 'transform', transform: 'translateZ(0)' }}
       >
-        <div className="container flex flex-col items-center py-8 mx-auto px-7 max-w-7xl sm:flex-row">
+        <div className="container mx-auto flex max-w-7xl flex-col items-center px-7 py-8 sm:flex-row">
           <Logo />
 
-          <div className="mt-4 text-sm text-neutral-700 dark:text-neutral-100 sm:ml-4 sm:pl-4 sm:border-l sm:border-neutral-300 dark:sm:border-neutral-700 sm:mt-0">
+          <div className="mt-4 text-sm text-neutral-700 sm:mt-0 sm:ml-4 sm:border-l sm:border-neutral-300 sm:pl-4 dark:text-neutral-100 dark:sm:border-neutral-700">
             <p>
               © {currentYear}{' '}
               <a
@@ -204,14 +204,17 @@ const Footer = memo(() => {
               </a>
             </p>
             <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-              <Link href="https://beian.miit.gov.cn/" className="hover:text-primary-500 dark:hover:text-primary-400 transition-colors">
+              <Link
+                href="https://beian.miit.gov.cn/"
+                className="hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+              >
                 京ICP备2025110798号-1
               </Link>
             </p>
           </div>
 
           <span
-            className="inline-flex justify-center mt-4 space-x-5 sm:ml-auto sm:mt-0 sm:justify-start overflow-hidden"
+            className="mt-4 inline-flex justify-center space-x-5 overflow-hidden sm:mt-0 sm:ml-auto sm:justify-start"
             style={{ willChange: 'transform', transform: 'translateZ(0)' }}
           >
             {socialLinks.map((social) => {

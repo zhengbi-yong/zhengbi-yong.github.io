@@ -147,26 +147,26 @@ export default function Explore({ title, description }: ExploreProps) {
   }, [])
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 md:pb-12 container mx-auto px-4 sm:px-6 xl:px-8">
+    <section className="container mx-auto px-4 py-8 sm:px-6 sm:py-12 md:py-16 md:pb-12 xl:px-8">
       <div className="space-y-6 sm:space-y-8 md:space-y-8">
         {title && <SectionHeader title={title} description={description} />}
       </div>
 
-      <div className={cn(styles.exploreContent, 'w-full relative mt-6 sm:mt-8')}>
+      <div className={cn(styles.exploreContent, 'relative mt-6 w-full sm:mt-8')}>
         <div
           className={cn(
             styles.exploreList,
-            'w-full relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4'
+            'relative grid w-full grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3'
           )}
         >
           {/* 第一列 */}
-          <div className={cn(styles.exploreColumn1, 'w-full flex gap-3 sm:gap-4 flex-col')}>
+          <div className={cn(styles.exploreColumn1, 'flex w-full flex-col gap-3 sm:gap-4')}>
             {/* Design & Code */}
             <div
               className={cn(
                 styles.exploreItem,
                 styles.exploreItem1,
-                'bg-gray-50/75 dark:bg-gray-900/75 relative overflow-hidden rounded-xl border border-primary/15 dark:border-neutral-700/50 h-[200px] sm:h-[220px] md:h-[264px]'
+                'border-primary/15 relative h-[200px] overflow-hidden rounded-xl border bg-gray-50/75 sm:h-[220px] md:h-[264px] dark:border-neutral-700/50 dark:bg-gray-900/75'
               )}
             >
               <div className={styles.content}>
@@ -176,7 +176,7 @@ export default function Explore({ title, description }: ExploreProps) {
               <div
                 className={cn(
                   styles.keyboard,
-                  'absolute right-[-35%] sm:right-[-50%] md:right-[-58%] bottom-0 top-0 flex items-center self-center w-[300px] sm:w-[320px] md:w-[390px] h-auto'
+                  'absolute top-0 right-[-35%] bottom-0 flex h-auto w-[300px] items-center self-center sm:right-[-50%] sm:w-[320px] md:right-[-58%] md:w-[390px]'
                 )}
               >
                 <Image
@@ -184,7 +184,7 @@ export default function Explore({ title, description }: ExploreProps) {
                   alt="Keyboard"
                   width={390}
                   height={264}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               </div>
             </div>
@@ -194,7 +194,7 @@ export default function Explore({ title, description }: ExploreProps) {
               className={cn(
                 styles.exploreItem,
                 styles.exploreItem2,
-                'bg-gray-50/75 dark:bg-gray-900/75 relative overflow-hidden rounded-xl border border-primary/15 dark:border-neutral-700/50 h-[180px] sm:h-[200px]'
+                'border-primary/15 relative h-[180px] overflow-hidden rounded-xl border bg-gray-50/75 sm:h-[200px] dark:border-neutral-700/50 dark:bg-gray-900/75'
               )}
             >
               <div className={styles.content}>
@@ -205,7 +205,7 @@ export default function Explore({ title, description }: ExploreProps) {
                 className={cn(
                   styles.exploreFigure,
                   styles.gameContainer,
-                  'absolute right-0 bottom-0 top-0 w-full h-full'
+                  'absolute top-0 right-0 bottom-0 h-full w-full'
                 )}
               >
                 {[1, 2, 3, 4, 5].map((num) => (
@@ -213,7 +213,7 @@ export default function Explore({ title, description }: ExploreProps) {
                     key={num}
                     className={cn(
                       styles.game,
-                      'absolute right-[-21%] bottom-0 top-0 mt-[-10%] flex items-center self-center w-auto h-[100px] sm:h-[120px] md:h-[130px] z-10'
+                      'absolute top-0 right-[-21%] bottom-0 z-10 mt-[-10%] flex h-[100px] w-auto items-center self-center sm:h-[120px] md:h-[130px]'
                     )}
                     data-game={num}
                     style={{
@@ -227,7 +227,7 @@ export default function Explore({ title, description }: ExploreProps) {
                       alt={`Game Cassette ${6 - num}`}
                       width={130}
                       height={130}
-                      className="w-full h-full object-cover self-center flex"
+                      className="flex h-full w-full self-center object-cover"
                     />
                   </div>
                 ))}
@@ -236,13 +236,13 @@ export default function Explore({ title, description }: ExploreProps) {
           </div>
 
           {/* 第二列 */}
-          <div className="w-full flex gap-3 sm:gap-4 flex-col">
+          <div className="flex w-full flex-col gap-3 sm:gap-4">
             {/* Writing */}
             <div
               className={cn(
                 styles.exploreItem,
                 styles.exploreItem3,
-                'bg-gray-50/75 dark:bg-gray-900/75 relative overflow-hidden rounded-xl border border-primary/15 dark:border-neutral-700/50 h-[180px] sm:h-[200px]'
+                'border-primary/15 relative h-[180px] overflow-hidden rounded-xl border bg-gray-50/75 sm:h-[200px] dark:border-neutral-700/50 dark:bg-gray-900/75'
               )}
             >
               <div className={styles.content}>
@@ -253,7 +253,7 @@ export default function Explore({ title, description }: ExploreProps) {
                 className={cn(
                   styles.exploreFigure,
                   styles.computer,
-                  'absolute right-[5%] sm:right-[-10%] md:right-[-7%] bottom-[14%] w-[120px] sm:w-[130px] md:w-[148px] h-auto'
+                  'absolute right-[5%] bottom-[14%] h-auto w-[120px] sm:right-[-10%] sm:w-[130px] md:right-[-7%] md:w-[148px]'
                 )}
               >
                 <Image
@@ -261,9 +261,9 @@ export default function Explore({ title, description }: ExploreProps) {
                   alt="Retro Computer"
                   width={148}
                   height={148}
-                  className="w-full h-full object-cover z-10 relative"
+                  className="relative z-10 h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 w-[92px] sm:w-[100px] md:w-[116px] h-[76px] sm:h-[86px] md:h-[96px] top-[10.5%] left-[10%] rounded-[8px] rounded-b-[3px] overflow-hidden z-20">
+                <div className="absolute inset-0 top-[10.5%] left-[10%] z-20 h-[76px] w-[92px] overflow-hidden rounded-[8px] rounded-b-[3px] sm:h-[86px] sm:w-[100px] md:h-[96px] md:w-[116px]">
                   <video
                     ref={videoRef}
                     id="explore-computer-video"
@@ -276,7 +276,7 @@ export default function Explore({ title, description }: ExploreProps) {
                     preload="auto"
                     controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
                     disablePictureInPicture
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
                 </div>
               </div>
@@ -287,7 +287,7 @@ export default function Explore({ title, description }: ExploreProps) {
               className={cn(
                 styles.exploreItem,
                 styles.exploreItem4,
-                'bg-gray-50/75 dark:bg-gray-900/75 relative overflow-hidden rounded-xl border border-primary/15 dark:border-neutral-700/50 h-[200px] sm:h-[220px] md:h-[264px]'
+                'border-primary/15 relative h-[200px] overflow-hidden rounded-xl border bg-gray-50/75 sm:h-[220px] md:h-[264px] dark:border-neutral-700/50 dark:bg-gray-900/75'
               )}
             >
               <div className={styles.content}>
@@ -298,7 +298,7 @@ export default function Explore({ title, description }: ExploreProps) {
                 className={cn(
                   styles.exploreFigure,
                   styles.machine,
-                  'absolute right-[5%] sm:right-[-10%] md:right-[-7%] bottom-0 top-0 flex items-center'
+                  'absolute top-0 right-[5%] bottom-0 flex items-center sm:right-[-10%] md:right-[-7%]'
                 )}
               >
                 <ToolsCard />
@@ -307,17 +307,17 @@ export default function Explore({ title, description }: ExploreProps) {
           </div>
 
           {/* 第三列 */}
-          <div className="w-full col-span-1 sm:col-span-2 lg:col-span-1">
+          <div className="col-span-1 w-full sm:col-span-2 lg:col-span-1">
             <div
               className={cn(
                 styles.exploreItem,
-                'bg-gray-50/75 dark:bg-gray-900/75 relative overflow-hidden rounded-xl border border-primary/15 dark:border-neutral-700/50'
+                'border-primary/15 relative overflow-hidden rounded-xl border bg-gray-50/75 dark:border-neutral-700/50 dark:bg-gray-900/75'
               )}
             >
               <div
                 className={cn(
                   styles.exploreFigure,
-                  'relative rounded-xl overflow-hidden w-full h-[480px] sm:h-[400px] md:h-[480px]'
+                  'relative h-[480px] w-full overflow-hidden rounded-xl sm:h-[400px] md:h-[480px]'
                 )}
               >
                 <MatterAnimation />

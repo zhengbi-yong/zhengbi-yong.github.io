@@ -26,17 +26,17 @@ const ScrollProgress = memo(function ScrollProgress({
 
   // 使用useCallback缓存updateProgress函数
   const updateProgress = useCallback(() => {
-      const windowHeight = window.innerHeight
-      const documentHeight = document.documentElement.scrollHeight
-      const scrollTop = window.scrollY || document.documentElement.scrollTop
-      const scrollableHeight = documentHeight - windowHeight
+    const windowHeight = window.innerHeight
+    const documentHeight = document.documentElement.scrollHeight
+    const scrollTop = window.scrollY || document.documentElement.scrollTop
+    const scrollableHeight = documentHeight - windowHeight
 
-      if (scrollableHeight > 0) {
-        const percentage = (scrollTop / scrollableHeight) * 100
-        setProgress(Math.min(100, Math.max(0, percentage)))
-      } else {
-        setProgress(0)
-      }
+    if (scrollableHeight > 0) {
+      const percentage = (scrollTop / scrollableHeight) * 100
+      setProgress(Math.min(100, Math.max(0, percentage)))
+    } else {
+      setProgress(0)
+    }
 
     tickingRef.current = false
   }, [])
@@ -44,7 +44,7 @@ const ScrollProgress = memo(function ScrollProgress({
   // 使用useCallback缓存handleScroll函数
   const handleScroll = useCallback(() => {
     if (!tickingRef.current) {
-        window.requestAnimationFrame(updateProgress)
+      window.requestAnimationFrame(updateProgress)
       tickingRef.current = true
     }
   }, [updateProgress])

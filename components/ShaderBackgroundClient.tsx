@@ -16,4 +16,3 @@ interface ShaderBackgroundClientProps {
 export default function ShaderBackgroundClient({ intensity = 0.8 }: ShaderBackgroundClientProps) {
   return <ShaderBackgroundWrapper intensity={intensity} />
 }
-

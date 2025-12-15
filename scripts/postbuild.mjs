@@ -9,17 +9,17 @@ function copyDir(src, dest) {
     console.log(`源目录不存在: ${src}`)
     return
   }
-  
+
   if (!existsSync(dest)) {
     mkdirSync(dest, { recursive: true })
   }
-  
+
   const entries = readdirSync(src, { withFileTypes: true })
-  
+
   for (const entry of entries) {
     const srcPath = join(src, entry.name)
     const destPath = join(dest, entry.name)
-    
+
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath)
     } else {
@@ -30,11 +30,11 @@ function copyDir(src, dest) {
 
 async function postbuild() {
   await rss()
-  
+
   // 确保 musicxml 目录被复制到 out 目录
   const publicMusicXml = join(process.cwd(), 'public', 'musicxml')
   const outMusicXml = join(process.cwd(), 'out', 'musicxml')
-  
+
   if (existsSync(publicMusicXml)) {
     console.log('复制 musicxml 目录到 out 目录...')
     copyDir(publicMusicXml, outMusicXml)
@@ -42,7 +42,7 @@ async function postbuild() {
   } else {
     console.log('⚠ public/musicxml 目录不存在，跳过复制')
   }
-  
+
   // 构建 Slidev 演示文稿
   const buildSlidevScript = join(process.cwd(), 'scripts', 'build-slidev.mjs')
   if (existsSync(buildSlidevScript)) {

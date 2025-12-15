@@ -85,4 +85,3 @@ export async function isServiceWorkerRegistered(): Promise<boolean> {
     return false
   }
 }
-

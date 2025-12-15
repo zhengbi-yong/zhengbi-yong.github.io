@@ -1,11 +1,11 @@
 /**
  * MatterAnimation 组件使用示例
- * 
+ *
  * 使用前需要安装依赖：
  * yarn add matter-js
  * 或
  * npm install matter-js
- * 
+ *
  * 如果需要 TypeScript 类型支持：
  * yarn add -D @types/matter-js
  * 或
@@ -34,12 +34,7 @@ export function Example2() {
 
   return (
     <div className="h-[600px] w-full">
-      <MatterAnimation
-        iconUrls={techStackIcons}
-        count={10}
-        scaleFactor={0.8}
-        noRotate={false}
-      />
+      <MatterAnimation iconUrls={techStackIcons} count={10} scaleFactor={0.8} noRotate={false} />
     </div>
   )
 }
@@ -48,13 +43,10 @@ export function Example2() {
 export function HomePageExample() {
   return (
     <section className="my-12">
-      <h2 className="text-3xl font-bold mb-8">技术栈</h2>
-      <div className="h-[500px] w-full rounded-xl overflow-hidden">
+      <h2 className="mb-8 text-3xl font-bold">技术栈</h2>
+      <div className="h-[500px] w-full overflow-hidden rounded-xl">
         <MatterAnimation
-          iconUrls={[
-            '/static/images/logo.png',
-            '/static/images/github-traffic.png',
-          ]}
+          iconUrls={['/static/images/logo.png', '/static/images/github-traffic.png']}
           count={12}
           containerClassName="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
         />
@@ -62,8 +54,3 @@ export function HomePageExample() {
     </section>
   )
 }
-
-
-
-
-

@@ -21,7 +21,7 @@ interface MusicSheetProps {
 /**
  * 乐谱组件 - 用于在 MDX 文章中显示 MusicXML 格式的乐谱
  * 支持 .xml（MusicXML）和 .mxl（压缩的 MusicXML）格式
- * 
+ *
  * @example
  * <MusicSheet src="simple-example.xml" zoom={1.2} />
  * <MusicSheet src="simple-example.mxl" zoom={1.2} />
@@ -47,17 +47,17 @@ export default function MusicSheet({
   // 获取 basePath（用于处理子路径部署）
   const getBasePath = (): string => {
     if (typeof window === 'undefined') return ''
-    
+
     const envBasePath = process.env.NEXT_PUBLIC_BASE_PATH
     if (envBasePath) {
       return envBasePath.startsWith('/') ? envBasePath : `/${envBasePath}`
     }
-    
+
     const pathname = window.location.pathname
     const segments = pathname.split('/').filter(Boolean)
     const knownAppRoutes = ['experiment', 'blog', 'tags', 'about', 'projects']
     const nextJsRoutes = ['_next', 'api', 'static']
-    
+
     if (segments.length >= 1) {
       const firstSegment = segments[0]
       if (nextJsRoutes.includes(firstSegment)) {
@@ -67,17 +67,17 @@ export default function MusicSheet({
         return `/${firstSegment}`
       }
     }
-    
+
     return ''
   }
 
   // 解压缩 MXL 文件并提取 MusicXML 内容
   const extractMXL = async (arrayBuffer: ArrayBuffer): Promise<string> => {
     const zip = await JSZip.loadAsync(arrayBuffer)
-    
+
     // MXL 文件标准格式：先读取 META-INF/container.xml 找到根文件
     let rootFilePath = ''
-    
+
     // 尝试读取 container.xml
     const containerFile = zip.files['META-INF/container.xml']
     if (containerFile) {
@@ -94,36 +94,37 @@ export default function MusicSheet({
         console.warn('无法解析 container.xml，尝试查找 XML 文件:', err)
       }
     }
-    
+
     // 如果没有找到 container.xml 或解析失败，查找所有 .xml 文件
     if (!rootFilePath) {
       const xmlFiles = Object.keys(zip.files).filter(
         (name) => name.endsWith('.xml') && !zip.files[name].dir && !name.startsWith('META-INF/')
       )
-      
+
       if (xmlFiles.length === 0) {
         throw new Error('MXL 文件中未找到 MusicXML 文件')
       }
-      
+
       // 优先选择包含 "score" 或 "partwise" 的文件名，否则使用第一个
-      rootFilePath = xmlFiles.find(name => 
-        name.toLowerCase().includes('score') || name.toLowerCase().includes('partwise')
-      ) || xmlFiles[0]
+      rootFilePath =
+        xmlFiles.find(
+          (name) => name.toLowerCase().includes('score') || name.toLowerCase().includes('partwise')
+        ) || xmlFiles[0]
     }
-    
+
     // 提取根文件
     const rootFile = zip.files[rootFilePath]
     if (!rootFile) {
       throw new Error(`MXL 文件中未找到指定的根文件: ${rootFilePath}`)
     }
-    
+
     const xmlContent = await rootFile.async('string')
-    
+
     // 验证是否是有效的 MusicXML（包含 partwise 或 score 元素）
     if (!xmlContent.includes('<score-partwise') && !xmlContent.includes('<score-timewise')) {
       throw new Error('提取的文件不是有效的 MusicXML 文件')
     }
-    
+
     return xmlContent
   }
 
@@ -141,7 +142,7 @@ export default function MusicSheet({
     try {
       const basePath = getBasePath()
       const isMXL = filePath.toLowerCase().endsWith('.mxl')
-      
+
       // 尝试多个可能的路径
       const possiblePaths = [
         `${basePath}/musicxml/${filePath}`,
@@ -149,10 +150,10 @@ export default function MusicSheet({
         `${window.location.origin}${basePath}/musicxml/${filePath}`,
         `${window.location.origin}/musicxml/${filePath}`,
       ]
-      
+
       let xmlContent = ''
       let xmlPath = ''
-      
+
       // 依次尝试每个路径
       for (const path of possiblePaths) {
         try {
@@ -180,11 +181,11 @@ export default function MusicSheet({
           // 继续尝试下一个路径
         }
       }
-      
+
       if (!xmlContent) {
         throw new Error(`无法找到或加载 MusicXML 文件: ${filePath}`)
       }
-      
+
       // 加载 XML 内容
       try {
         // 优先使用 URL 加载（OSMD 可能优化处理）
@@ -199,13 +200,13 @@ export default function MusicSheet({
         console.warn('URL 加载失败，尝试使用 XML 字符串:', urlError)
         await osmdInstanceRef.current.load(xmlContent)
       }
-      
+
       // 设置缩放
       osmdInstanceRef.current.zoom = zoom
-      
+
       // 渲染乐谱
       osmdInstanceRef.current.render()
-      
+
       setIsLoading(false)
     } catch (err) {
       console.error('加载乐谱错误:', err)
@@ -225,9 +226,9 @@ export default function MusicSheet({
 
         // 动态导入 OpenSheetMusicDisplay
         const OSMDModule = await import('opensheetmusicdisplay')
-        
+
         let OpenSheetMusicDisplayClass: any = null
-        
+
         if (OSMDModule.OpenSheetMusicDisplay) {
           OpenSheetMusicDisplayClass = OSMDModule.OpenSheetMusicDisplay
         } else if ((OSMDModule as any).default) {
@@ -240,11 +241,11 @@ export default function MusicSheet({
         } else if (typeof window !== 'undefined' && (window as any).OpenSheetMusicDisplay) {
           OpenSheetMusicDisplayClass = (window as any).OpenSheetMusicDisplay
         }
-        
+
         if (!OpenSheetMusicDisplayClass) {
           throw new Error('无法找到 OpenSheetMusicDisplay 类')
         }
-        
+
         const osmd = new OpenSheetMusicDisplayClass(containerRef.current, {
           autoResize: true,
           backend: 'svg',
@@ -256,9 +257,9 @@ export default function MusicSheet({
           drawMeasureNumbers,
           drawTimeSignatures: true,
         })
-        
+
         osmdInstanceRef.current = osmd
-        
+
         // 加载乐谱
         await loadMusicXML(src)
       } catch (err) {
@@ -303,13 +304,13 @@ export default function MusicSheet({
           </div>
         </div>
       )}
-      
+
       {error && !isLoading && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
-      
+
       <div
         ref={containerRef}
         className={`overflow-x-auto rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/50 ${
@@ -319,4 +320,3 @@ export default function MusicSheet({
     </div>
   )
 }
-

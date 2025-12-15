@@ -58,4 +58,3 @@ export function trapFocus(element: HTMLElement): () => void {
     element.removeEventListener('keydown', handleTab)
   }
 }
-

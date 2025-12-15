@@ -8,14 +8,19 @@
 import { memo, useEffect, useState } from 'react'
 
 const Logo = memo(function Logo() {
-  const [LogoComponent, setLogoComponent] = useState<React.ComponentType<React.SVGProps<SVGSVGElement>> | null>(null)
+  const [LogoComponent, setLogoComponent] = useState<React.ComponentType<
+    React.SVGProps<SVGSVGElement>
+  > | null>(null)
 
   useEffect(() => {
     // 尝试动态导入 SVG 组件
     import('@/data/logo.svg')
       .then((module) => {
         const Component = module.default || module
-        if (typeof Component === 'function' || (Component && typeof Component === 'object' && '$$typeof' in Component)) {
+        if (
+          typeof Component === 'function' ||
+          (Component && typeof Component === 'object' && '$$typeof' in Component)
+        ) {
           setLogoComponent(() => Component as React.ComponentType<React.SVGProps<SVGSVGElement>>)
         }
       })
@@ -59,4 +64,3 @@ const Logo = memo(function Logo() {
 Logo.displayName = 'Logo'
 
 export default Logo
-

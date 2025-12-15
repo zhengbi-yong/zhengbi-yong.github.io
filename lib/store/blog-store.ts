@@ -9,16 +9,16 @@ interface BlogStore {
   setSearchQuery: (query: string) => void
   filteredPosts: CoreContent<Blog>[]
   setFilteredPosts: (posts: CoreContent<Blog>[]) => void
-  
+
   // 完整博客列表缓存
   allPosts: CoreContent<Blog>[]
   setAllPosts: (posts: CoreContent<Blog>[]) => void
-  
+
   // 缓存元数据
   cachedAt: number | null
   cacheExpiry: number // 缓存过期时间（毫秒），默认1小时
   setCachedAt: (timestamp: number) => void
-  
+
   // 缓存管理
   isCacheValid: () => boolean
   clearCache: () => void
@@ -39,7 +39,7 @@ export const useBlogStore = create<BlogStore>()(
       setSearchQuery: (query) => set({ searchQuery: query }),
       filteredPosts: [],
       setFilteredPosts: (posts) => set({ filteredPosts: posts }),
-      
+
       // 完整博客列表缓存
       allPosts: [],
       setAllPosts: (posts) => {
@@ -48,12 +48,12 @@ export const useBlogStore = create<BlogStore>()(
           cachedAt: Date.now(),
         })
       },
-      
+
       // 缓存元数据
       cachedAt: null,
       cacheExpiry: DEFAULT_CACHE_EXPIRY,
       setCachedAt: (timestamp) => set({ cachedAt: timestamp }),
-      
+
       // 缓存管理
       isCacheValid: () => {
         const state = get()
@@ -63,7 +63,7 @@ export const useBlogStore = create<BlogStore>()(
         const now = Date.now()
         return now - state.cachedAt < state.cacheExpiry
       },
-      
+
       clearCache: () => {
         set({
           allPosts: [],
@@ -84,4 +84,3 @@ export const useBlogStore = create<BlogStore>()(
     }
   )
 )
-

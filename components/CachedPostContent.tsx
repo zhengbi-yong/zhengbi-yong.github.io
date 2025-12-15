@@ -43,4 +43,3 @@ export default function CachedPostContent({ slug, post }: CachedPostContentProps
   // 此组件不渲染任何内容，仅用于缓存
   return null
 }
-

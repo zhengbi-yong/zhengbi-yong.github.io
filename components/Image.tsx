@@ -19,15 +19,12 @@ const Image = memo(function Image({
 }: EnhancedImageProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
-  
+
   // 将 src 转换为字符串用于预加载（如果需要）
   // Next.js 会自动处理 basePath，不需要手动添加
   // StaticImport 可能是 StaticImageData (有 src 属性) 或 StaticRequire (有 default 属性)
-  const imageSrcString = typeof src === 'string' 
-    ? src 
-    : 'src' in src 
-      ? src.src 
-      : src.default?.src || ''
+  const imageSrcString =
+    typeof src === 'string' ? src : 'src' in src ? src.src : src.default?.src || ''
 
   // 预加载关键图片
   useEffect(() => {
@@ -53,7 +50,7 @@ const Image = memo(function Image({
   const className = rest.className || ''
   const hasWidthModifier = className.includes('w-full') || className.includes('w-')
   const hasHeightModifier = className.includes('h-full') || className.includes('h-')
-  
+
   // 如果使用 fill，确保父容器有高度
   // 如果通过 CSS 修改尺寸，添加 width: "auto" 或 height: "auto" 来保持宽高比
   const imageStyle: CSSProperties = {}
@@ -73,23 +70,15 @@ const Image = memo(function Image({
   }
 
   return (
-    <div className={isFill ? "relative h-full w-full" : "relative"}>
+    <div className={isFill ? 'relative h-full w-full' : 'relative'}>
       {isLoading && (
         <div className="absolute inset-0">
           {blurDataURL ? (
-            <NextImage
-              src={blurDataURL}
-              alt=""
-              fill
-              className="blur-sm"
-              aria-hidden="true"
-            />
+            <NextImage src={blurDataURL} alt="" fill className="blur-sm" aria-hidden="true" />
           ) : (
             <ImageSkeleton
               className="h-full w-full"
-              aspectRatio={
-                rest.width && rest.height ? `${rest.width}/${rest.height}` : undefined
-              }
+              aspectRatio={rest.width && rest.height ? `${rest.width}/${rest.height}` : undefined}
               showSpinner={true}
             />
           )}

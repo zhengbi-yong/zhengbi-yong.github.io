@@ -129,4 +129,3 @@ const ConfettiOnView = memo(function ConfettiOnView({
 ConfettiOnView.displayName = 'ConfettiOnView'
 
 export default ConfettiOnView
-

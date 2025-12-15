@@ -17,4 +17,3 @@ export const useUIStore = create<UIStore>((set) => ({
   theme: 'system',
   setTheme: (theme) => set({ theme }),
 }))
-

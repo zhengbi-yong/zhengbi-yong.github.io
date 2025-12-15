@@ -10,8 +10,7 @@ import postPreloader from '@/lib/utils/post-preloader'
 
 // 使用 Omit 排除冲突的属性，然后合并类型
 interface CustomLinkProps
-  extends LinkProps,
-    Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onMouseEnter'> {
+  extends LinkProps, Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onMouseEnter'> {
   prefetch?: boolean
   prefetchOnHover?: boolean
   onMouseEnter?: (e: React.MouseEvent<HTMLAnchorElement>) => void

@@ -6,4 +6,3 @@ export interface CacheEntry<T = unknown> {
   timestamp: number
   ttl?: number
 }
-
