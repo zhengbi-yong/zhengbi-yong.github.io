@@ -1,6 +1,8 @@
 'use client'
 
 import React, { Component } from 'react'
+import * as Sentry from '@sentry/nextjs'
+import ErrorReportButton from './ErrorReportButton'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
@@ -11,6 +13,7 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean
   error: Error | null
+  eventId: string | null
 }
 
 /**
@@ -23,6 +26,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.state = {
       hasError: false,
       error: null,
+      eventId: null,
     }
   }
 
@@ -31,11 +35,27 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     return {
       hasError: true,
       error,
+      eventId: null, // Will be set in componentDidCatch
     }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // 记录错误信息
+    // 记录错误到 Sentry
+    const eventId = Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
+        },
+      },
+      tags: {
+        errorBoundary: true,
+      },
+    })
+
+    // 更新 state 以包含 eventId
+    this.setState({ eventId })
+
+    // 记录错误信息到本地日志
     // 使用动态导入避免 HMR 问题
     import('@/lib/utils/logger')
       .then(({ logger }) => {
@@ -56,6 +76,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     this.setState({
       hasError: false,
       error: null,
+      eventId: null,
     })
   }
 
@@ -121,6 +142,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       )
     }
 
-    return this.props.children
+    // 正常渲染时，如果存在 eventId，显示错误报告按钮
+    return (
+      <>
+        {this.props.children}
+        <ErrorReportButton eventId={this.state.eventId || undefined} />
+      </>
+    )
   }
 }
