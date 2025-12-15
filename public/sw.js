@@ -1,6 +1,17 @@
 // Service Worker 版本号，用于缓存更新
-const CACHE_VERSION = 'v1.0.2'
+const CACHE_VERSION = 'v1.1.0'
 const CACHE_NAME = `blog-cache-${CACHE_VERSION}`
+
+// 需要立即缓存的关键资源
+const CRITICAL_CACHE = [
+  '/',
+  '/blog',
+  '/about',
+  '/projects',
+  '/music',
+  '/static/css/main.css',
+  '/static/js/main.js',
+]
 
 // 需要缓存的资源类型
 const CACHE_PATTERNS = {
@@ -17,8 +28,21 @@ const CACHE_PATTERNS = {
 // 安装 Service Worker
 self.addEventListener('install', (event) => {
   console.log('[Service Worker] Installing...', CACHE_VERSION)
-  // 立即激活新的 Service Worker
-  self.skipWaiting()
+
+  // 预缓存关键资源
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('[Service Worker] Caching critical resources')
+      return cache.addAll(CRITICAL_CACHE)
+    }).then(() => {
+      // 立即激活新的 Service Worker
+      return self.skipWaiting()
+    }).catch((error) => {
+      console.error('[Service Worker] Failed to cache critical resources:', error)
+      // 即使缓存失败也继续安装
+      return self.skipWaiting()
+    })
+  )
 })
 
 // 激活 Service Worker

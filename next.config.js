@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { withContentlayer } = require('next-contentlayer2')
+const { withSentryConfig } = require('@sentry/nextjs')
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
@@ -75,7 +76,8 @@ module.exports = () => {
   const plugins = [withContentlayer, withBundleAnalyzer]
   const isStaticExport = output === 'export'
 
-  return plugins.reduce((acc, next) => next(acc), {
+  // Wrap with Sentry config
+  const configWithSentry = withSentryConfig({
     output,
     basePath,
     reactStrictMode: true,
@@ -139,4 +141,6 @@ module.exports = () => {
     // 如果需要将 SVG 作为 React 组件使用，可以使用 @svgr/webpack 的替代方案
     // 或者使用 next/image 组件处理 SVG
   })
+
+  return plugins.reduce((acc, next) => next(acc), configWithSentry)
 }
