@@ -6,6 +6,7 @@ import { SunMedium, Moon, Download } from 'lucide-react'
 import headerNavLinks from '@/data/headerNavLinks'
 import Logo from './Logo'
 import Link from './Link'
+import SearchButton from './SearchButton'
 import { cn } from './lib/utils'
 import styles from './Header.module.css'
 
@@ -69,38 +70,50 @@ export default function Header() {
     console.log('Resume button clicked')
   }, [])
 
+  // 处理键盘事件（用于可访问性）
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, action: () => void) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      action()
+    }
+  }, [])
+
   return (
     <>
       {/* This is an invisible div with relative position so that it takes up the height of the menu (because menu is absolute/fixed) */}
-      <div className="relative w-full h-16 sm:h-20 opacity-0 pointer-events-none" />
+      <div className="pointer-events-none relative h-16 w-full opacity-0 sm:h-20" />
 
       <header
         id="header"
         className={cn(
           styles.header,
-          'fixed top-2 sm:top-4 left-0 z-50 w-full pl-[calc(100vw-100%)] px-4 sm:px-6 lg:px-8'
+          'fixed top-2 left-0 z-50 w-full px-4 pl-[calc(100vw-100%)] sm:top-4 sm:px-6 lg:px-8'
         )}
       >
         <div
           id="site-container"
-          className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-3 items-center h-14 sm:h-15 w-full py-2.5 border-[0.5px] transition-all duration-300 bg-white/30 dark:bg-neutral-950/30 backdrop-blur-md rounded-2xl shadow-lg shadow-black/5 dark:shadow-black/20 border-white/20 dark:border-white/10"
+          className="grid h-14 w-full grid-cols-[auto_1fr_auto] items-center rounded-2xl border-[0.5px] border-white/20 bg-white/30 py-2.5 shadow-lg shadow-black/5 backdrop-blur-md transition-all duration-300 sm:h-15 sm:grid-cols-3 dark:border-white/10 dark:bg-neutral-950/30 dark:shadow-black/20"
         >
           {/* Mobile Menu Background Overlay */}
           <div
             id="mobileMenuBackground"
+            role="button"
+            tabIndex={0}
             className={cn(
               styles.mobileMenuBackground,
-              'fixed inset-0 z-20 w-screen h-screen duration-300 ease-out bg-white/90 backdrop-blur-sm dark:bg-neutral-950/90',
+              'fixed inset-0 z-20 h-screen w-screen bg-white/90 backdrop-blur-sm duration-300 ease-out dark:bg-neutral-950/90',
               isMobileMenuOpen ? 'block' : 'hidden'
             )}
             onClick={closeMobileMenu}
+            onKeyDown={(e) => handleKeyDown(e, closeMobileMenu)}
+            aria-label="关闭菜单"
           />
 
           {/* Navigation */}
           <nav
             className={cn(
               styles.nav,
-              'relative z-30 flex justify-start w-full text-sm text-neutral-500 dark:text-neutral-400 sm:flex-row sm:items-center sm:justify-self-start'
+              'relative z-30 flex w-full justify-start text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-self-start dark:text-neutral-400'
             )}
           >
             {/* Menu Items */}
@@ -108,27 +121,27 @@ export default function Header() {
               id="menu"
               className={cn(
                 styles.menu,
-                'fixed top-[68px] sm:top-0 left-3 right-3 sm:left-0 sm:right-0 ease-out duration-300 z-40 flex-col items-center justify-start w-auto h-auto text-sm pt-6 pb-5 sm:py-0 sm:relative sm:flex-row sm:flex',
+                'fixed top-[68px] right-3 left-3 z-40 h-auto w-auto flex-col items-center justify-start pt-6 pb-5 text-sm duration-300 ease-out sm:relative sm:top-0 sm:right-0 sm:left-0 sm:flex sm:flex-row sm:py-0',
                 isMobileMenuOpen ? 'flex' : 'hidden sm:flex'
               )}
             >
               {/* Mobile Menu Background */}
-              <div className="absolute inset-0 top-0 right-0 block w-full h-full sm:hidden">
+              <div className="absolute inset-0 top-0 right-0 block h-full w-full sm:hidden">
                 <div
                   className={cn(
                     styles.menuBackground,
-                    'relative w-full h-full bg-white/95 border border-dashed border-neutral-300 dark:border-neutral-700 backdrop-blur-md rounded-2xl dark:bg-neutral-950/95 shadow-lg'
+                    'relative h-full w-full rounded-2xl border border-dashed border-neutral-300 bg-white/95 shadow-lg backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-950/95'
                   )}
                 />
               </div>
 
               {/* Menu Links */}
-              <div className="relative z-10 flex flex-col sm:flex-row items-center w-full sm:w-auto gap-1 sm:gap-0">
+              <div className="relative z-10 flex w-full flex-col items-center gap-1 sm:w-auto sm:flex-row sm:gap-0">
                 {menuItems.map((menu) => (
                   <Link
                     key={menu.href}
                     href={menu.href}
-                    className="relative flex items-center justify-center w-full sm:w-auto px-5 py-2.5 sm:py-2 sm:px-3 md:px-4 font-medium tracking-wide text-center duration-200 ease-out rounded-lg sm:rounded-none text-neutral-700 dark:text-neutral-200 hover:text-primary sm:hover:bg-transparent dark:hover:text-white dark:hover:bg-neutral-800/50 sm:dark:hover:bg-transparent active:scale-[0.98] sm:active:scale-100 transition-all"
+                    className="hover:text-primary relative flex w-full items-center justify-center rounded-lg px-5 py-2.5 text-center font-medium tracking-wide text-neutral-700 transition-all duration-200 ease-out active:scale-[0.98] sm:w-auto sm:rounded-none sm:px-3 sm:py-2 sm:hover:bg-transparent sm:active:scale-100 md:px-4 dark:text-neutral-200 dark:hover:bg-neutral-800/50 dark:hover:text-white sm:dark:hover:bg-transparent"
                     onClick={() => {
                       if (window.innerWidth < 640) {
                         closeMobileMenu()
@@ -141,15 +154,15 @@ export default function Header() {
               </div>
 
               {/* Contact Button (Mobile) */}
-              <div className="relative z-10 w-full px-5 mt-3 sm:hidden">
+              <div className="relative z-10 mt-3 w-full px-5 sm:hidden">
                 <button
                   onClick={handleResumeClick}
                   className={cn(
-                    'flex items-center justify-center gap-1.5 w-full px-4 py-2 rounded-xl text-sm font-medium',
-                    'bg-white/40 dark:bg-neutral-900/40 backdrop-blur-sm',
+                    'flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium',
+                    'bg-white/40 backdrop-blur-sm dark:bg-neutral-900/40',
                     'border-[0.5px] border-white/30 dark:border-white/10',
                     'text-neutral-700 dark:text-neutral-200',
-                    'hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-md',
+                    'hover:bg-white/50 hover:shadow-md dark:hover:bg-neutral-900/50',
                     'transition-all duration-200 active:scale-95',
                     'cursor-pointer'
                   )}
@@ -158,44 +171,56 @@ export default function Header() {
                 </button>
               </div>
             </div>
-
           </nav>
 
           {/* Logo */}
-          <div className="flex-shrink-0 z-50 justify-self-start sm:justify-self-center ml-3 sm:ml-0">
+          <div className="z-50 ml-3 flex-shrink-0 justify-self-start sm:ml-0 sm:justify-self-center">
             <Link href="/" className="flex items-center">
               <Logo />
             </Link>
           </div>
 
           {/* Mobile Menu Toggle Buttons */}
-          <div className="flex items-center gap-2 sm:hidden justify-self-end mr-1">
+          <div className="mr-1 flex items-center gap-2 justify-self-end sm:hidden">
+            {/* Search Button (Mobile) */}
+            <div
+              className={cn(
+                'flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border-[0.5px] border-white/30 bg-white/40 backdrop-blur-sm transition-all duration-200 hover:bg-white/50 hover:shadow-md active:scale-95 dark:border-white/10 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/50'
+              )}
+            >
+              <SearchButton />
+            </div>
+
             {/* Dark Mode Toggle (Mobile) */}
             <div
               id="darkToggleMobile"
+              role="button"
+              tabIndex={0}
               className={cn(
                 styles.darkToggleMobile,
                 styles.tapHighlight,
-                'flex items-center justify-center w-10 h-10 cursor-pointer rounded-xl bg-white/40 dark:bg-neutral-900/40 backdrop-blur-sm border-[0.5px] border-white/30 dark:border-white/10 transition-all duration-200 hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-md active:scale-95'
+                'flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border-[0.5px] border-white/30 bg-white/40 backdrop-blur-sm transition-all duration-200 hover:bg-white/50 hover:shadow-md active:scale-95 dark:border-white/10 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/50'
               )}
               onClick={toggleTheme}
+              onKeyDown={(e) => handleKeyDown(e, toggleTheme)}
+              aria-label="切换深色模式"
             >
               <div
                 className={cn(
-                  'flex justify-center items-center w-5 h-5 relative overflow-hidden rounded-lg bg-neutral-600 dark:bg-neutral-400'
+                  'relative flex h-5 w-5 items-center justify-center overflow-hidden rounded-lg bg-neutral-600 dark:bg-neutral-400'
                 )}
               >
                 {mounted && (
                   <>
                     <SunMedium
                       className={cn(
-                        'absolute text-white w-3.5 h-3.5 transition duration-200 transform ease',
+                        'ease absolute h-3.5 w-3.5 transform text-white transition duration-200',
                         isDark ? 'hidden' : 'block'
                       )}
                     />
                     <Moon
                       className={cn(
-                        'absolute text-white w-3.5 h-3.5 transition duration-200 transform ease',
+                        'ease absolute h-3.5 w-3.5 transform text-white transition duration-200',
                         isDark ? 'block' : 'hidden'
                       )}
                     />
@@ -207,15 +232,19 @@ export default function Header() {
             {/* Hamburger Menu Button */}
             <div
               id="openMenu"
+              role="button"
+              tabIndex={0}
               className={cn(
                 styles.tapHighlight,
-                'flex items-center justify-center w-10 h-10 cursor-pointer transition-transform duration-200 active:scale-90',
+                'flex h-10 w-10 cursor-pointer items-center justify-center transition-transform duration-200 active:scale-90',
                 isMobileMenuOpen ? 'hidden' : 'flex'
               )}
               onClick={openMobileMenu}
+              onKeyDown={(e) => handleKeyDown(e, openMobileMenu)}
+              aria-label="打开菜单"
             >
               <svg
-                className="w-7 h-7 text-neutral-700 dark:text-neutral-200"
+                className="h-7 w-7 text-neutral-700 dark:text-neutral-200"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -230,15 +259,19 @@ export default function Header() {
             {/* Close Menu Button */}
             <div
               id="closeMenu"
+              role="button"
+              tabIndex={0}
               className={cn(
                 styles.tapHighlight,
-                'items-center justify-center w-10 h-10 cursor-pointer transition-transform duration-200 active:scale-90',
+                'h-10 w-10 cursor-pointer items-center justify-center transition-transform duration-200 active:scale-90',
                 isMobileMenuOpen ? 'flex' : 'hidden'
               )}
               onClick={closeMobileMenu}
+              onKeyDown={(e) => handleKeyDown(e, closeMobileMenu)}
+              aria-label="关闭菜单"
             >
               <svg
-                className="w-6 h-6 text-neutral-600 dark:text-neutral-200"
+                className="h-6 w-6 text-neutral-600 dark:text-neutral-200"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -252,16 +285,19 @@ export default function Header() {
           </div>
 
           {/* Desktop Actions */}
-          <div className="relative hidden sm:flex items-center gap-3 justify-self-end mr-2 sm:mr-3 lg:mr-4">
+          <div className="relative mr-2 hidden items-center gap-3 justify-self-end sm:mr-3 sm:flex lg:mr-4">
+            {/* Search Button */}
+            <SearchButton />
+
             {/* Contact Button (Desktop) */}
             <button
               onClick={handleResumeClick}
               className={cn(
-                'flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium',
-                'bg-white/40 dark:bg-neutral-900/40 backdrop-blur-sm',
+                'flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium',
+                'bg-white/40 backdrop-blur-sm dark:bg-neutral-900/40',
                 'border-[0.5px] border-white/30 dark:border-white/10',
                 'text-neutral-700 dark:text-neutral-200',
-                'hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-md',
+                'hover:bg-white/50 hover:shadow-md dark:hover:bg-neutral-900/50',
                 'transition-all duration-200 active:scale-95',
                 'cursor-pointer'
               )}
@@ -272,16 +308,20 @@ export default function Header() {
             {/* Dark Mode Toggle (Desktop) */}
             <div
               id="darkToggle"
+              role="button"
+              tabIndex={0}
               className={cn(
                 styles.darkToggle,
                 styles.tapHighlight,
-                'relative flex items-center h-9 px-3 gap-1.5 font-medium cursor-pointer rounded-xl bg-white/40 dark:bg-neutral-900/40 backdrop-blur-sm border-[0.5px] border-white/30 dark:border-white/10 transition-all duration-200 hover:bg-white/50 dark:hover:bg-neutral-900/50 hover:shadow-md active:scale-95'
+                'relative flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border-[0.5px] border-white/30 bg-white/40 px-3 font-medium backdrop-blur-sm transition-all duration-200 hover:bg-white/50 hover:shadow-md active:scale-95 dark:border-white/10 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/50'
               )}
               onClick={toggleTheme}
+              onKeyDown={(e) => handleKeyDown(e, toggleTheme)}
+              aria-label="切换深色模式"
             >
               <div
                 className={cn(
-                  'flex justify-center items-center flex-shrink-0 w-5 h-5 relative overflow-hidden rounded-lg bg-neutral-600 dark:bg-neutral-400'
+                  'relative flex h-5 w-5 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-neutral-600 dark:bg-neutral-400'
                 )}
               >
                 {mounted && (
@@ -289,14 +329,14 @@ export default function Header() {
                     <SunMedium
                       id="sun"
                       className={cn(
-                        'absolute text-white w-3.5 h-3.5 transition duration-200 transform ease',
+                        'ease absolute h-3.5 w-3.5 transform text-white transition duration-200',
                         isDark ? 'hidden' : 'block'
                       )}
                     />
                     <Moon
                       id="moon"
                       className={cn(
-                        'absolute text-white w-3.5 h-3.5 transition duration-200 transform ease',
+                        'ease absolute h-3.5 w-3.5 transform text-white transition duration-200',
                         isDark ? 'block' : 'hidden'
                       )}
                     />
@@ -304,11 +344,11 @@ export default function Header() {
                 )}
               </div>
               {mounted && (
-                <span className="hidden sm:inline-block whitespace-nowrap">
+                <span className="hidden whitespace-nowrap sm:inline-block">
                   <span
                     id="dayText"
                     className={cn(
-                      'flex-shrink-0 text-sm text-left text-neutral-700 dark:text-neutral-200',
+                      'flex-shrink-0 text-left text-sm text-neutral-700 dark:text-neutral-200',
                       isDark ? 'hidden' : 'block'
                     )}
                   >
@@ -317,7 +357,7 @@ export default function Header() {
                   <span
                     id="nightText"
                     className={cn(
-                      'flex-shrink-0 text-sm text-left text-neutral-700 dark:text-neutral-200',
+                      'flex-shrink-0 text-left text-sm text-neutral-700 dark:text-neutral-200',
                       isDark ? 'block' : 'hidden'
                     )}
                   >

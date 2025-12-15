@@ -6,7 +6,7 @@
     "start": "next dev",
     "dev": "cross-env INIT_CWD=$PWD next dev",
     "contentlayer": "contentlayer2 build",
-    "build": "cross-env INIT_CWD=$PWD pnpm contentlayer && cross-env INIT_CWD=$PWD next build && cross-env NODE_OPTIONS='--experimental-json-modules' node ./scripts/postbuild.mjs",
+    "build": "cross-env INIT_CWD=$PWD pnpm contentlayer && cross-env NODE_OPTIONS='--experimental-json-modules' node ./scripts/generate-search.mjs && cross-env INIT_CWD=$PWD next build && cross-env NODE_OPTIONS='--experimental-json-modules' node ./scripts/postbuild.mjs",
     "serve": "next start",
     "analyze": "cross-env ANALYZE=true next build",
     "lint": "eslint app components lib layouts scripts --max-warnings=0",
