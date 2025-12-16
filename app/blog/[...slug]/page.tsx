@@ -1,7 +1,13 @@
 import 'css/prism.css'
 import 'katex/dist/katex.css'
 
+import dynamic from 'next/dynamic'
 import PageTitle from '@/components/PageTitle'
+
+// 动态导入mhchem初始化组件（Client Component，内部已有客户端检查）
+const MhchemInit = dynamic(() =>
+  import('@/components/chemistry/MhchemInit').then((mod) => mod.default)
+)
 import { components } from '@/components/MDXComponents'
 import { MDXLayoutRenderer } from 'pliny/mdx-components'
 import { sortPosts, coreContent, allCoreContent } from 'pliny/utils/contentlayer'
@@ -166,6 +172,8 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
           }}
         />
       )}
+      {/* 初始化mhchem化学公式支持 */}
+      <MhchemInit />
       {/* 自动缓存文章内容，后续访问瞬间打开 */}
       <CachedPostContent slug={slug} post={post} />
       <Layout

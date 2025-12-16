@@ -1,0 +1,638 @@
+---
+title: '化学展示完整教程：化学公式与3D结构可视化'
+date: '2025-01-15'
+tags: ['Tutorial', 'Chemistry', 'KaTeX', '3Dmol', 'Documentation']
+draft: false
+summary: 全面介绍本博客系统中所有化学展示功能，包括化学公式渲染（mhchem扩展）和3D分子/晶体结构可视化（3Dmol.js），每个功能都配有详细说明和实际示例，帮助您掌握在MDX文件中展示化学内容的技巧。
+---
+
+## 介绍
+
+本博客系统集成了强大的化学内容展示功能，支持化学公式渲染和3D分子/晶体结构可视化。本教程将详细介绍所有支持的化学展示功能，帮助您掌握在MDX文件中编写和展示化学内容的技巧。
+
+### 功能概览
+
+本系统支持以下化学展示功能：
+
+1. **化学公式渲染**：通过KaTeX的mhchem扩展，支持各种化学式和反应式
+2. **3D分子结构可视化**：通过3Dmol.js库，支持多种格式的3D结构文件
+3. **晶体结构展示**：支持CIF格式的晶体结构文件
+4. **响应式设计**：自动适配桌面端和移动端
+5. **主题适配**：自动适配深色/浅色主题
+
+---
+
+## 第一部分：化学公式渲染
+
+### 基本语法
+
+本系统使用KaTeX的mhchem扩展来渲染化学公式。mhchem提供了简洁的`\ce{}`命令来书写化学式和反应式。
+
+#### 行内公式与块级公式
+
+**行内公式**：使用单个美元符号 `$...$`，公式会与文本在同一行显示。
+
+例如：这是水的化学式 $\ce{H2O}$，它是最常见的化合物之一。
+
+**块级公式**：使用双美元符号 `$$...$$`，公式会单独显示在一行，居中显示。
+
+例如：
+
+$$\ce{H2O}$$
+
+### 简单化学式
+
+#### 单质和化合物
+
+```mdx
+<!-- 单质 -->
+
+$\ce{H2}$ - 氢气
+$\ce{O2}$ - 氧气
+$\ce{Cl2}$ - 氯气
+
+<!-- 简单化合物 -->
+
+$\ce{H2O}$ - 水
+$\ce{CO2}$ - 二氧化碳
+$\ce{NH3}$ - 氨气
+```
+
+实际效果：
+
+- $\ce{H2}$ - 氢气
+- $\ce{O2}$ - 氧气
+- $\ce{Cl2}$ - 氯气
+- $\ce{H2O}$ - 水
+- $\ce{CO2}$ - 二氧化碳
+- $\ce{NH3}$ - 氨气
+
+#### 带电荷的离子
+
+```mdx
+$\ce{Na+}$ - 钠离子
+$\ce{Cl-}$ - 氯离子
+$\ce{SO4^2-}$ - 硫酸根离子
+$\ce{NH4+}$ - 铵根离子
+```
+
+实际效果：
+
+- $\ce{Na+}$ - 钠离子
+- $\ce{Cl-}$ - 氯离子
+- $\ce{SO4^2-}$ - 硫酸根离子
+- $\ce{NH4+}$ - 铵根离子
+
+#### 复杂化合物
+
+```mdx
+$\ce{CaCO3}$ - 碳酸钙
+$\ce{Fe2O3}$ - 氧化铁
+$\ce{Al2(SO4)3}$ - 硫酸铝
+$\ce{KCr(SO4)2 * 12H2O}$ - 十二水合硫酸铬钾
+```
+
+实际效果：
+
+- $\ce{CaCO3}$ - 碳酸钙
+- $\ce{Fe2O3}$ - 氧化铁
+- $\ce{Al2(SO4)3}$ - 硫酸铝
+- $\ce{KCr(SO4)2 * 12H2O}$ - 十二水合硫酸铬钾
+
+### 化学反应式
+
+#### 基本反应式
+
+使用箭头 `->` 表示反应：
+
+```mdx
+$$\ce{2H2 + O2 -> 2H2O}$$
+```
+
+$$\ce{2H2 + O2 -> 2H2O}$$
+
+#### 可逆反应
+
+使用 `<=>` 表示可逆反应：
+
+```mdx
+$$\ce{N2 + 3H2 <=> 2NH3}$$
+```
+
+$$\ce{N2 + 3H2 <=> 2NH3}$$
+
+#### 反应条件
+
+使用方括号 `[]` 表示反应条件：
+
+```mdx
+$$\ce{2H2O ->[电解] 2H2 + O2}$$
+$$\ce{CH4 + 2O2 ->[点燃] CO2 + 2H2O}$$
+```
+
+$$\ce{2H2O ->[电解] 2H2 + O2}$$
+
+$$\ce{CH4 + 2O2 ->[点燃] CO2 + 2H2O}$$
+
+#### 多步反应
+
+使用多个箭头表示多步反应：
+
+```mdx
+$$\ce{A -> B -> C}$$
+$$\ce{A ->[步骤1] B ->[步骤2] C}$$
+```
+
+$$\ce{A -> B -> C}$$
+
+$$\ce{A ->[步骤1] B ->[步骤2] C}$$
+
+### 有机化学式
+
+#### 简单有机化合物
+
+```mdx
+$\ce{CH4}$ - 甲烷
+$\ce{C2H5OH}$ - 乙醇
+$\ce{C6H6}$ - 苯
+$\ce{CH3COOH}$ - 乙酸
+```
+
+实际效果：
+
+- $\ce{CH4}$ - 甲烷
+- $\ce{C2H5OH}$ - 乙醇
+- $\ce{C6H6}$ - 苯
+- $\ce{CH3COOH}$ - 乙酸
+
+#### 结构式（简化）
+
+```mdx
+$\ce{CH3-CH2-OH}$ - 乙醇的结构式
+$\ce{H2C=CH2}$ - 乙烯
+$\ce{HC#CH}$ - 乙炔
+```
+
+实际效果：
+
+- $\ce{CH3-CH2-OH}$ - 乙醇的结构式
+- $\ce{H2C=CH2}$ - 乙烯
+- $\ce{HC#CH}$ - 乙炔
+
+### 配位化合物
+
+```mdx
+$\ce{[Cu(NH3)4]^2+}$ - 四氨合铜离子
+$\ce{[Fe(CN)6]^3-}$ - 六氰合铁(III)离子
+$\ce{K4[Fe(CN)6]}$ - 亚铁氰化钾
+```
+
+实际效果：
+
+- $\ce{[Cu(NH3)4]^2+}$ - 四氨合铜离子
+- $\ce{[Fe(CN)6]^3-}$ - 六氰合铁(III)离子
+- $\ce{K4[Fe(CN)6]}$ - 亚铁氰化钾
+
+### 同位素和核素
+
+```mdx
+$\ce{^14C}$ - 碳-14
+$\ce{^235U}$ - 铀-235
+$\ce{^2H}$ - 氘
+$\ce{^3H}$ - 氚
+```
+
+实际效果：
+
+- $\ce{^14C}$ - 碳-14
+- $\ce{^235U}$ - 铀-235
+- $\ce{^2H}$ - 氘
+- $\ce{^3H}$ - 氚
+
+### 氧化还原反应
+
+```mdx
+$$\ce{2KMnO4 + 16HCl -> 2KCl + 2MnCl2 + 5Cl2 + 8H2O}$$
+$$\ce{Zn + 2H+ -> Zn^2+ + H2}$$
+```
+
+$$\ce{2KMnO4 + 16HCl -> 2KCl + 2MnCl2 + 5Cl2 + 8H2O}$$
+
+$$\ce{Zn + 2H+ -> Zn^2+ + H2}$$
+
+### 酸碱反应
+
+```mdx
+$$\ce{HCl + NaOH -> NaCl + H2O}$$
+$$\ce{H2SO4 + 2NaOH -> Na2SO4 + 2H2O}$$
+$$\ce{CH3COOH + NaOH <=> CH3COONa + H2O}$$
+```
+
+$$\ce{HCl + NaOH -> NaCl + H2O}$$
+
+$$\ce{H2SO4 + 2NaOH -> Na2SO4 + 2H2O}$$
+
+$$\ce{CH3COOH + NaOH <=> CH3COONa + H2O}$$
+
+### 沉淀反应
+
+```mdx
+$$\ce{AgNO3 + NaCl -> AgCl v + NaNO3}$$
+$$\ce{BaCl2 + Na2SO4 -> BaSO4 v + 2NaCl}$$
+```
+
+$$\ce{AgNO3 + NaCl -> AgCl v + NaNO3}$$
+
+$$\ce{BaCl2 + Na2SO4 -> BaSO4 v + 2NaCl}$$
+
+### 化学平衡
+
+```mdx
+$$\ce{N2 + 3H2 <=> 2NH3}$$
+$$\ce{CO2 + H2O <=> H2CO3}$$
+$$\ce{HAc <=> H+ + Ac-}$$
+```
+
+$$\ce{N2 + 3H2 <=> 2NH3}$$
+
+$$\ce{CO2 + H2O <=> H2CO3}$$
+
+$$\ce{HAc <=> H+ + Ac-}$$
+
+---
+
+## 第二部分：3D分子结构可视化
+
+### 组件介绍
+
+`ChemicalStructure` 组件基于3Dmol.js库，支持在MDX文件中展示3D分子和晶体结构。组件支持多种文件格式和显示样式，并自动适配主题和响应式设计。
+
+### 基本用法
+
+#### 从文件加载结构
+
+最简单的用法是从文件加载结构：
+
+```mdx
+<ChemicalStructure file="/structures/water.pdb" />
+```
+
+**参数说明**：
+
+- `file`: 结构文件路径（相对于 `public` 目录），必须以 `/` 开头
+- `format`: 文件格式，可选值：`'pdb' | 'sdf' | 'xyz' | 'mol' | 'cif'`，默认 `'pdb'`
+- `height`: 高度，可以是数字（像素）或字符串，默认 `400`
+- `width`: 宽度，可以是数字（像素）或字符串，默认 `'100%'`
+- `style`: 显示样式，可选值：`'stick' | 'cartoon' | 'sphere' | 'surface' | 'line'`，默认 `'stick'`
+- `autoRotate`: 是否自动旋转，默认 `false`
+- `backgroundColor`: 自定义背景色（十六进制），默认根据主题自动设置
+- `className`: 自定义CSS类名
+
+### 支持的文件格式
+
+#### PDB格式（Protein Data Bank）
+
+PDB格式是最常用的蛋白质和核酸结构格式：
+
+```mdx
+<ChemicalStructure file="/structures/protein.pdb" format="pdb" style="cartoon" />
+```
+
+#### SDF格式（Structure Data Format）
+
+SDF格式常用于小分子化合物：
+
+```mdx
+<ChemicalStructure file="/structures/molecule.sdf" format="sdf" style="stick" />
+```
+
+#### XYZ格式
+
+XYZ格式是最简单的原子坐标格式：
+
+```mdx
+<ChemicalStructure file="/structures/molecule.xyz" format="xyz" style="sphere" />
+```
+
+#### MOL格式
+
+MOL格式是MDL Molfile格式：
+
+```mdx
+<ChemicalStructure file="/structures/molecule.mol" format="mol" style="stick" />
+```
+
+#### CIF格式（Crystallographic Information File）
+
+CIF格式用于晶体结构：
+
+```mdx
+<ChemicalStructure file="/structures/crystal.cif" format="cif" style="stick" />
+```
+
+### 显示样式
+
+#### Stick（球棍模型）
+
+球棍模型是最常用的显示方式，用球表示原子，用棍表示化学键：
+
+```mdx
+<ChemicalStructure file="/structures/water.pdb" style="stick" height={400} />
+```
+
+#### Sphere（球模型）
+
+球模型用不同大小的球表示原子：
+
+```mdx
+<ChemicalStructure file="/structures/molecule.pdb" style="sphere" height={400} />
+```
+
+#### Cartoon（卡通模型）
+
+卡通模型主要用于蛋白质结构，显示二级结构：
+
+```mdx
+<ChemicalStructure file="/structures/protein.pdb" style="cartoon" height={500} />
+```
+
+#### Surface（表面模型）
+
+表面模型显示分子的范德华表面：
+
+```mdx
+<ChemicalStructure file="/structures/molecule.pdb" style="surface" height={400} />
+```
+
+#### Line（线模型）
+
+线模型是最简单的显示方式，只用线表示化学键：
+
+```mdx
+<ChemicalStructure file="/structures/molecule.pdb" style="line" height={400} />
+```
+
+### 使用内联数据
+
+除了从文件加载，还可以直接使用内联数据：
+
+```mdx
+<ChemicalStructure 
+  data={`3
+
+C 0.0000 0.0000 0.0000
+O 0.0000 0.0000 1.2000
+H 0.9500 0.0000 -0.3000`}
+format="xyz"
+style="stick"
+height={400}
+/>
+```
+
+### 自动旋转
+
+启用自动旋转可以让结构自动旋转，更好地展示3D结构：
+
+```mdx
+<ChemicalStructure file="/structures/molecule.pdb" style="stick" autoRotate={true} height={400} />
+```
+
+### 自定义尺寸
+
+可以自定义组件的宽度和高度：
+
+```mdx
+<!-- 固定像素尺寸 -->
+
+<ChemicalStructure file="/structures/molecule.pdb" width={600} height={500} />
+
+<!-- 百分比宽度 -->
+
+<ChemicalStructure file="/structures/molecule.pdb" width="80%" height={400} />
+
+<!-- 响应式设计 -->
+
+<ChemicalStructure file="/structures/molecule.pdb" width="100%" height={400} />
+```
+
+### 自定义背景色
+
+可以自定义背景色（十六进制格式）：
+
+```mdx
+<ChemicalStructure file="/structures/molecule.pdb" backgroundColor="#ffffff" height={400} />
+```
+
+### 完整示例
+
+以下是一个完整的示例，展示如何在实际文章中使用化学展示功能：
+
+```mdx
+---
+title: '水的分子结构'
+date: '2025-01-15'
+tags: ['Chemistry', 'Water']
+---
+
+## 水的化学式
+
+水的化学式是 $\ce{H2O}$，由两个氢原子和一个氧原子组成。
+
+## 水的形成反应
+
+氢气和氧气在点燃条件下反应生成水：
+
+$$\ce{2H2 + O2 ->[点燃] 2H2O}$$
+
+## 水的3D分子结构
+
+以下是水分子的3D结构（球棍模型）：
+
+<ChemicalStructure file="/structures/water.pdb" style="stick" height={400} />
+
+## 水的性质
+
+- 分子量：$\ce{H2O}$ = 18.015 g/mol
+- 沸点：100°C（标准大气压）
+- 密度：1 g/cm³（4°C）
+```
+
+---
+
+## 第三部分：最佳实践
+
+### 文件组织
+
+建议将化学结构文件组织在 `public/structures/` 目录下：
+
+```
+public/
+  structures/
+    molecules/
+      water.pdb
+      benzene.pdb
+      ...
+    proteins/
+      protein1.pdb
+      ...
+    crystals/
+      crystal1.cif
+      ...
+```
+
+### 文件命名
+
+建议使用描述性的文件名：
+
+- `water.pdb` - 水分子
+- `benzene.pdb` - 苯分子
+- `dna_fragment.pdb` - DNA片段
+- `nacl_crystal.cif` - 氯化钠晶体
+
+### 性能优化
+
+1. **文件大小**：对于大型结构文件，考虑使用简化版本或降低分辨率
+2. **按需加载**：组件使用动态导入，只在需要时加载3Dmol.js库
+3. **移动端优化**：组件自动适配移动端，但大型结构可能影响性能
+
+### 错误处理
+
+组件内置了错误处理机制：
+
+- 文件加载失败会显示错误信息
+- 格式不支持会提示错误
+- 3D渲染失败会显示友好的错误提示
+
+### 主题适配
+
+组件自动适配深色/浅色主题：
+
+- 浅色主题：白色背景
+- 深色主题：深灰色背景（#1a1a1a）
+
+### 响应式设计
+
+组件自动适配不同屏幕尺寸：
+
+- 桌面端：完整3D交互功能
+- 移动端：优化的触摸交互，自动调整渲染质量
+
+---
+
+## 第四部分：常见问题
+
+### Q: 化学公式不显示怎么办？
+
+A: 确保：
+
+1. 使用正确的语法 `$\ce{...}$` 或 `$$\ce{...}$$`
+2. 检查mhchem扩展是否已加载（组件会自动加载）
+3. 检查浏览器控制台是否有错误信息
+
+### Q: 3D结构不显示怎么办？
+
+A: 检查：
+
+1. 文件路径是否正确（必须以 `/` 开头，相对于 `public` 目录）
+2. 文件格式是否支持
+3. 文件是否存在且可访问
+4. 浏览器是否支持WebGL
+
+### Q: 如何获取化学结构文件？
+
+A: 可以从以下来源获取：
+
+1. **PubChem**：https://pubchem.ncbi.nlm.nih.gov/ - 小分子化合物
+2. **RCSB PDB**：https://www.rcsb.org/ - 蛋白质和核酸结构
+3. **Crystallography Open Database**：http://www.crystallography.net/ - 晶体结构
+4. 使用化学软件（如Avogadro、ChemDraw、PyMOL）导出
+
+### Q: 支持哪些浏览器？
+
+A: 支持所有现代浏览器：
+
+- Chrome/Edge（推荐）
+- Firefox
+- Safari
+- 移动端浏览器（iOS Safari、Chrome Mobile）
+
+### Q: 可以同时显示多个结构吗？
+
+A: 可以，在MDX文件中使用多个 `<ChemicalStructure>` 组件即可。
+
+### Q: 如何自定义样式？
+
+A: 使用 `className` 属性添加自定义CSS类，或使用 `backgroundColor` 属性自定义背景色。
+
+---
+
+## 第五部分：高级用法
+
+### 组合使用
+
+可以将化学公式和3D结构结合使用：
+
+```mdx
+## 苯的化学式
+
+苯的化学式是 $\ce{C6H6}$，是一个六元环状化合物。
+
+## 苯的3D结构
+
+<ChemicalStructure file="/structures/benzene.pdb" style="stick" height={400} />
+
+## 苯的化学反应
+
+苯可以发生多种反应，例如：
+
+$$\ce{C6H6 + Br2 ->[FeBr3] C6H5Br + HBr}$$
+```
+
+### 复杂反应式
+
+mhchem支持复杂的反应式：
+
+```mdx
+$$\ce{CH3CH2OH + [O] ->[K2Cr2O7/H2SO4] CH3CHO + H2O}$$
+$$\ce{2Al + Fe2O3 ->[高温] 2Fe + Al2O3}$$
+$$\ce{CaCO3 + 2HCl -> CaCl2 + H2O + CO2 ^}$$
+```
+
+$$\ce{CH3CH2OH + [O] ->[K2Cr2O7/H2SO4] CH3CHO + H2O}$$
+
+$$\ce{2Al + Fe2O3 ->[高温] 2Fe + Al2O3}$$
+
+$$\ce{CaCO3 + 2HCl -> CaCl2 + H2O + CO2 ^}$$
+
+### 多步骤合成
+
+```mdx
+$$\ce{A ->[步骤1] B ->[步骤2] C ->[步骤3] D}$$
+```
+
+$$\ce{A ->[步骤1] B ->[步骤2] C ->[步骤3] D}$$
+
+---
+
+## 总结
+
+本教程介绍了本博客系统中所有支持的化学展示功能：
+
+1. **化学公式渲染**：使用 `\ce{}` 命令，支持各种化学式和反应式
+2. **3D结构可视化**：使用 `<ChemicalStructure>` 组件，支持多种文件格式和显示样式
+3. **响应式设计**：自动适配桌面端和移动端
+4. **主题适配**：自动适配深色/浅色主题
+
+通过这些功能，您可以在MDX文件中轻松展示各种化学内容，包括化学式、反应式和3D分子/晶体结构。
+
+### 相关资源
+
+- [KaTeX文档](https://katex.org/)
+- [mhchem文档](https://mhchem.github.io/MathJax-mhchem/)
+- [3Dmol.js文档](https://3dmol.csb.pitt.edu/)
+- [PubChem数据库](https://pubchem.ncbi.nlm.nih.gov/)
+- [RCSB PDB数据库](https://www.rcsb.org/)
+
+---
+
+**提示**：本教程中的所有示例都可以直接在MDX文件中使用。如果您在使用过程中遇到问题，请参考本文档或查看浏览器控制台的错误信息。

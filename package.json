@@ -20,7 +20,9 @@
     "generate-stories": "node scripts/generate-stories.mjs"
   },
   "dependencies": {
+    "3dmol": "^2.1.0",
     "@emotion/is-prop-valid": "^1.4.0",
+    "@excalidraw/excalidraw": "^0.18.0",
     "@gsap/react": "^2.1.2",
     "@headlessui/react": "2.2.9",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -55,6 +57,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.555.0",
     "matter-js": "^0.20.0",
+    "mhchemparser": "^4.2.1",
     "next": "16.0.10",
     "next-contentlayer2": "0.5.8",
     "next-i18next": "^15.4.3",
