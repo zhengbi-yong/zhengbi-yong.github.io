@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
 import type { ImageProps } from 'next/image'
+import Image from 'next/image'
+import { useEffect, useRef, useState } from 'react'
 
 interface OptimizedImageProps extends Omit<ImageProps, 'src' | 'alt'> {
   src: string
@@ -29,9 +29,11 @@ export default function OptimizedImage({
   const [currentSrc, setCurrentSrc] = useState(src)
   const imgRef = useRef<HTMLDivElement>(null)
 
-  // 生成默认的模糊占位符
-  const defaultBlurDataURL = blurDataURL || `data:image/svg+xml;base64,${Buffer.from(
-    `<svg width="${props.width || 400}" height="${props.height || 300}" xmlns="http://www.w3.org/2000/svg">
+  // 生成默认的模糊占位符（使用浏览器兼容的 base64 编码）
+  const generateDefaultBlurDataURL = () => {
+    if (blurDataURL) return blurDataURL
+
+    const svgString = `<svg width="${props.width || 400}" height="${props.height || 300}" xmlns="http://www.w3.org/2000/svg">
       <rect width="100%" height="100%" fill="#f3f4f6"/>
       <rect width="100%" height="100%" fill="url(#gradient)"/>
       <defs>
@@ -41,7 +43,19 @@ export default function OptimizedImage({
         </linearGradient>
       </defs>
     </svg>`
-  ).toString('base64')}`
+
+    // 使用浏览器兼容的 base64 编码
+    // SVG 字符串只包含 ASCII 字符，可以直接使用 btoa()
+    try {
+      const base64 = btoa(svgString)
+      return `data:image/svg+xml;base64,${base64}`
+    } catch (error) {
+      // 如果 base64 编码失败（理论上不应该发生），回退到 URL 编码的 data URL
+      return `data:image/svg+xml,${encodeURIComponent(svgString)}`
+    }
+  }
+
+  const defaultBlurDataURL = generateDefaultBlurDataURL()
 
   // 处理图片加载错误
   const handleError = () => {
@@ -95,19 +109,13 @@ export default function OptimizedImage({
   return (
     <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
       {/* 加载占位符 */}
-      {isLoading && (
-        <div className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700" />
-      )}
+      {isLoading && <div className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700" />}
 
       {/* 主图片 */}
       <Image
         src={currentSrc}
         alt={alt}
-        className={`
-          transition-opacity duration-300
-          ${isLoading ? 'opacity-0' : 'opacity-100'}
-          ${hasError ? 'grayscale' : ''}
-        `}
+        className={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'} ${hasError ? 'grayscale' : ''} `}
         placeholder="blur"
         blurDataURL={defaultBlurDataURL}
         onLoad={() => setIsLoading(false)}

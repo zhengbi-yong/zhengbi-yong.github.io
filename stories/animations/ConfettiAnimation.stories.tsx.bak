@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import ConfettiAnimation from '@/components/animations/ConfettiAnimation.tsx'
+
+const meta: Meta<typeof ConfettiAnimation> = {
+  title: 'components/ConfettiAnimation',
+  component: ConfettiAnimation,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

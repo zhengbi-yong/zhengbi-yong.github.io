@@ -25,7 +25,9 @@ export default function ProgressiveImage({
   priority = false,
   className = '',
 }: ProgressiveImageProps) {
-  const [imageState, setImageState] = useState<'preview' | 'loading' | 'loaded' | 'error'>('preview')
+  const [imageState, setImageState] = useState<'preview' | 'loading' | 'loaded' | 'error'>(
+    'preview'
+  )
   const { preloadImage, isLoaded, hasError } = useImagePreload()
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -91,17 +93,13 @@ export default function ProgressiveImage({
         fallbackSrc={fallbackSrc}
         blurDataURL={generatePlaceholder(currentSrc)}
         priority={priority}
-        className={`
-          transition-all duration-500 ease-out
-          ${imageState === 'preview' ? 'scale-105 blur-sm' : 'scale-100 blur-0'}
-          ${imageState === 'loading' ? 'opacity-75' : 'opacity-100'}
-        `}
+        className={`transition-all duration-500 ease-out ${imageState === 'preview' ? 'scale-105 blur-sm' : 'blur-0 scale-100'} ${imageState === 'loading' ? 'opacity-75' : 'opacity-100'} `}
       />
 
       {/* 加载指示器 */}
       {imageState === 'loading' && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-50/50 dark:bg-gray-900/50">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-600 border-t-transparent" />
+          <div className="border-primary-600 h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
         </div>
       )}
     </div>

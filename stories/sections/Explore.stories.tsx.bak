@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import Explore from '@/components/sections/Explore.tsx'
+
+const meta: Meta<typeof Explore> = {
+  title: 'components/Explore',
+  component: Explore,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

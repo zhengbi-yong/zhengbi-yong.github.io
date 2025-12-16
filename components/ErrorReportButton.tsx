@@ -4,11 +4,7 @@ import { useState } from 'react'
 import { Bug, Send, X } from 'lucide-react'
 import * as Sentry from '@sentry/nextjs'
 
-export default function ErrorReportButton({
-  eventId,
-}: {
-  eventId?: string
-}) {
+export default function ErrorReportButton({ eventId }: { eventId?: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [comment, setComment] = useState('')
@@ -21,11 +17,11 @@ export default function ErrorReportButton({
 
     try {
       // 发送用户反馈到 Sentry
-      await Sentry.captureUserFeedback({
-        event_id: eventId,
+      await Sentry.captureFeedback({
         name: 'Anonymous User',
         email: email || undefined,
-        comments: comment,
+        message: comment,
+        associatedEventId: eventId,
       })
 
       setIsSubmitted(true)
@@ -49,7 +45,7 @@ export default function ErrorReportButton({
       {/* 报告按钮 */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-white shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-500 dark:hover:bg-red-600"
+        className="fixed right-4 bottom-4 z-50 flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-white shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-500 dark:hover:bg-red-600"
       >
         <Bug className="h-4 w-4" />
         <span className="hidden sm:inline">报告问题</span>
@@ -60,9 +56,7 @@ export default function ErrorReportButton({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                报告问题
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">报告问题</h3>
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -88,9 +82,7 @@ export default function ErrorReportButton({
                     />
                   </svg>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300">
-                  感谢您的反馈！
-                </p>
+                <p className="text-gray-700 dark:text-gray-300">感谢您的反馈！</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">

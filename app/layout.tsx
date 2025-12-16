@@ -15,6 +15,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
 import VisitorTracker from '@/components/VisitorTracker'
+import I18nProvider from '@/components/I18nProvider'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -91,24 +92,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
-        <SkipLink />
-        <ServiceWorkerRegister />
-        <VisitorTracker />
-        <ThemeProviders>
-          <ErrorBoundary>
-            {/* 延迟加载的组件（Analytics、KeyboardNavigation、FocusManager） */}
-            <LazyLoadedComponents analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-            <SectionContainer>
-              <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
-                <Header />
-                <main id="main-content" tabIndex={-1} className="mb-auto focus:outline-none">
-                  {children}
-                </main>
-              </SearchProvider>
-              <Footer />
-            </SectionContainer>
-          </ErrorBoundary>
-        </ThemeProviders>
+        <I18nProvider>
+          <SkipLink />
+          <ServiceWorkerRegister />
+          <VisitorTracker />
+          <ThemeProviders>
+            <ErrorBoundary>
+              {/* 延迟加载的组件（Analytics、KeyboardNavigation、FocusManager） */}
+              <LazyLoadedComponents analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+              <SectionContainer>
+                <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+                  <Header />
+                  <main id="main-content" tabIndex={-1} className="mb-auto focus:outline-none">
+                    {children}
+                  </main>
+                </SearchProvider>
+                <Footer />
+              </SectionContainer>
+            </ErrorBoundary>
+          </ThemeProviders>
+        </I18nProvider>
       </body>
     </html>
   )

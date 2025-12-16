@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs-vite'
+import { FocusManager } from '@/components/FocusManager'
+
+const meta: Meta<typeof FocusManager> = {
+  title: 'components/FocusManager',
+  component: FocusManager,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

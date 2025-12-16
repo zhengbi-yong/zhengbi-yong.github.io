@@ -14,11 +14,11 @@ import PopularArticles from '@/components/ArticleAnalytics'
 function formatArticleTitle(slug: string): string {
   return slug
     .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ')
 }
 
-function getArticleBySlug(slug: string): CoreContent<typeof allBlogs[0]> | undefined {
+function getArticleBySlug(slug: string): CoreContent<(typeof allBlogs)[0]> | undefined {
   // 尝试直接匹配 slug
   let article = allBlogs.find((blog) => blog.slug === slug)
 
@@ -34,10 +34,12 @@ function getArticleBySlug(slug: string): CoreContent<typeof allBlogs[0]> | undef
 }
 
 export default function PopularArticlesPage() {
-  const [popularArticles, setPopularArticles] = useState<Array<{
-    articleId: string
-    analytics: any
-  }>>([])
+  const [popularArticles, setPopularArticles] = useState<
+    Array<{
+      articleId: string
+      analytics: any
+    }>
+  >([])
 
   useEffect(() => {
     // 在客户端获取热门文章数据
@@ -52,7 +54,7 @@ export default function PopularArticlesPage() {
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        <div className="space-y-2 pb-8 pt-6 md:space-y-5">
+        <div className="space-y-2 pt-6 pb-8 md:space-y-5">
           <PageTitle>🔥 热门文章</PageTitle>
           <p className="text-lg leading-7 text-gray-600 dark:text-gray-400">
             基于读者参与度排序的最受欢迎文章
@@ -77,15 +79,29 @@ export default function PopularArticlesPage() {
               // 获取热度标签和颜色
               const getPopularityBadge = () => {
                 if (analytics.engagementScore >= 80) {
-                  return { text: '🔥 爆款', className: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' }
+                  return {
+                    text: '🔥 爆款',
+                    className: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
+                  }
                 }
                 if (analytics.engagementScore >= 60) {
-                  return { text: '📈 热门', className: 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400' }
+                  return {
+                    text: '📈 热门',
+                    className:
+                      'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400',
+                  }
                 }
                 if (analytics.engagementScore >= 40) {
-                  return { text: '👀 关注', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400' }
+                  return {
+                    text: '👀 关注',
+                    className:
+                      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400',
+                  }
                 }
-                return { text: '📝 新作', className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400' }
+                return {
+                  text: '📝 新作',
+                  className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400',
+                }
               }
 
               const badge = getPopularityBadge()
@@ -103,15 +119,17 @@ export default function PopularArticlesPage() {
                           index === 0
                             ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
                             : index === 1
-                            ? 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
-                            : index === 2
-                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                            : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                              ? 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
+                              : index === 2
+                                ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                                : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
                         }`}
                       >
                         {index + 1}
                       </span>
-                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${badge.className}`}>
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-medium ${badge.className}`}
+                      >
                         {badge.text}
                       </span>
                     </div>
@@ -122,11 +140,11 @@ export default function PopularArticlesPage() {
 
                   {/* 文章标题 */}
                   <div>
-                    <h3 className="text-lg font-semibold leading-6 tracking-tight text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg leading-6 font-semibold tracking-tight text-gray-900 dark:text-gray-100">
                       {path ? (
                         <Link
                           href={`/${path}`}
-                          className="transition-colors hover:text-primary-600 dark:hover:text-primary-400"
+                          className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                         >
                           {title}
                         </Link>
@@ -158,9 +176,7 @@ export default function PopularArticlesPage() {
                   {/* 统计数据 */}
                   <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-4">
-                      <span className="flex items-center gap-1">
-                        👁 {analytics.viewCount}
-                      </span>
+                      <span className="flex items-center gap-1">👁 {analytics.viewCount}</span>
                       <span className="flex items-center gap-1">
                         ⏱ {Math.round(analytics.averageReadingTime / 60)}min
                       </span>

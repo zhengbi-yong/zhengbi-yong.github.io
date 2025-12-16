@@ -1,0 +1,26 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import LanguageSwitch from '@/components/LanguageSwitch'
+
+const meta: Meta<typeof LanguageSwitch> = {
+  title: 'Components/LanguageSwitch',
+  component: LanguageSwitch,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+// Default language switch
+export const Default: Story = {}
+
+// With custom styling
+export const CustomStyled: Story = {
+  render: () => (
+    <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+      <LanguageSwitch />
+    </div>
+  ),
+}

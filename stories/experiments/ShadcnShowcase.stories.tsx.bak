@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import ShadcnShowcase from '@/components/experiments/ShadcnShowcase.tsx'
+
+const meta: Meta<typeof ShadcnShowcase> = {
+  title: 'components/ShadcnShowcase',
+  component: ShadcnShowcase,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

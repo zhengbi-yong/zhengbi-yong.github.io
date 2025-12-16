@@ -28,8 +28,8 @@ export function useReadingProgress(options: ReadingProgressOptions = {}) {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
 
   // 计时器引用
-  const readingTimerRef = useRef<NodeJS.Timeout>()
-  const totalTimerRef = useRef<NodeJS.Timeout>()
+  const readingTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const totalTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // 防抖函数
   const debounce = useCallback((func: Function, delay: number) => {

@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import ToolsCard from '@/components/home/ToolsCard.tsx'
+
+const meta: Meta<typeof ToolsCard> = {
+  title: 'components/ToolsCard',
+  component: ToolsCard,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

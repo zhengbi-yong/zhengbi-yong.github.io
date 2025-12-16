@@ -79,7 +79,7 @@ const calculateEngagementScore = (
   const depthScore = scrollDepth * 100
 
   // 加权平均
-  const engagementScore = (viewScore * 0.3 + timeScore * 0.4 + depthScore * 0.3)
+  const engagementScore = viewScore * 0.3 + timeScore * 0.4 + depthScore * 0.3
 
   return Math.round(engagementScore)
 }
@@ -90,41 +90,40 @@ export function useArticleAnalytics({
   trackReadingTime = true,
   trackScrollDepth = true,
 }: AnalyticsOptions) {
-  const [analytics, setAnalytics] = useState<ArticleAnalytics>(() =>
-    getStoredAnalytics(articleId)
-  )
+  const [analytics, setAnalytics] = useState<ArticleAnalytics>(() => getStoredAnalytics(articleId))
 
   const [sessionStartTime] = useState<Date>(new Date())
   const [maxScrollDepth, setMaxScrollDepth] = useState(0)
   const [hasTrackedView, setHasTrackedView] = useState(false)
 
   // 更新 analytics 数据
-  const updateAnalytics = useCallback((
-    updates: Partial<ArticleAnalytics>
-  ) => {
-    setAnalytics((prev) => {
-      const updated = {
-        ...prev,
-        ...updates,
-      }
+  const updateAnalytics = useCallback(
+    (updates: Partial<ArticleAnalytics>) => {
+      setAnalytics((prev) => {
+        const updated = {
+          ...prev,
+          ...updates,
+        }
 
-      // 重新计算参与度分数
-      if (
-        updates.viewCount !== undefined ||
-        updates.averageReadingTime !== undefined ||
-        updates.scrollDepth !== undefined
-      ) {
-        updated.engagementScore = calculateEngagementScore(
-          updated.viewCount,
-          updated.averageReadingTime,
-          updated.scrollDepth
-        )
-      }
+        // 重新计算参与度分数
+        if (
+          updates.viewCount !== undefined ||
+          updates.averageReadingTime !== undefined ||
+          updates.scrollDepth !== undefined
+        ) {
+          updated.engagementScore = calculateEngagementScore(
+            updated.viewCount,
+            updated.averageReadingTime,
+            updated.scrollDepth
+          )
+        }
 
-      saveAnalytics(articleId, updated)
-      return updated
-    })
-  }, [articleId])
+        saveAnalytics(articleId, updated)
+        return updated
+      })
+    },
+    [articleId]
+  )
 
   // 跟踪页面访问
   const trackPageView = useCallback(() => {
@@ -143,15 +142,11 @@ export function useArticleAnalytics({
     if (!trackReadingTime || !hasTrackedView) return
 
     const currentTime = new Date()
-    const sessionDuration = Math.floor(
-      (currentTime.getTime() - sessionStartTime.getTime()) / 1000
-    )
+    const sessionDuration = Math.floor((currentTime.getTime() - sessionStartTime.getTime()) / 1000)
 
     // 更新总阅读时间和平均阅读时间
     const newTotalReadingTime = analytics.totalReadingTime + sessionDuration
-    const newAverageReadingTime = Math.floor(
-      newTotalReadingTime / analytics.viewCount
-    )
+    const newAverageReadingTime = Math.floor(newTotalReadingTime / analytics.viewCount)
 
     updateAnalytics({
       totalReadingTime: newTotalReadingTime,

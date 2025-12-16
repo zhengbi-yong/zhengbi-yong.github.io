@@ -5,13 +5,20 @@ import Link from '@/components/Link'
 import { cn } from '@/components/lib/utils'
 
 export interface ButtonProps {
-  url: string // Button link URL
+  url?: string // Button link URL (optional for button mode)
   type?: 'solid' | 'fill' | 'disabled' // Button type, optional, default is "solid"
   className?: string // Custom CSS classes
   target?: '_blank' | '_self' | '_parent' | '_top' // Link target, default is "_self"
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' // Button size, optional, default is "md"
   children: React.ReactNode
-  onClick?: (e: React.MouseEvent) => void // Click handler
+  onClick?: (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => void // Click handler
+  disabled?: boolean // Disable state
+  ariaLabel?: string // ARIA label for accessibility
+  ariaDescribedBy?: string // ARIA describedby
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' // Button variant for semantic meaning
+  loading?: boolean // Loading state
+  icon?: React.ReactNode // Icon to display
+  iconPosition?: 'left' | 'right' // Icon position
 }
 
 // Define padding and font size for different button sizes
@@ -56,6 +63,13 @@ export default function Button({
   size = 'md',
   children,
   onClick,
+  disabled = false,
+  ariaLabel,
+  ariaDescribedBy,
+  variant = 'primary',
+  loading = false,
+  icon,
+  iconPosition = 'left',
 }: ButtonProps) {
   const currentSizeClasses = sizeClasses[size]
 
@@ -145,45 +159,74 @@ export default function Button({
     return currentSizeClasses.fontSize
   }
 
-  const isDisabled = type === 'disabled'
+  const isDisabled = type === 'disabled' || disabled || loading
+
+  // Common props for both button and link
+  const commonProps = {
+    className: cn(getTypeClasses(), className),
+    'aria-disabled': isDisabled,
+    'aria-label': ariaLabel,
+    'aria-describedby': ariaDescribedBy,
+  }
+
+  // Content with optional icon
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <div className={getContentClasses()}>
+          <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          {children}
+        </div>
+      )
+    }
+
+    return (
+      <div className={getContentClasses()}>
+        {icon && iconPosition === 'left' && <span className="mr-2">{icon}</span>}
+        {type === 'solid' ? (
+          <div>{children}</div>
+        ) : type === 'fill' ? (
+          <span>{children}</span>
+        ) : type === 'disabled' ? (
+          <div>{children}</div>
+        ) : (
+          <span>{children}</span>
+        )}
+        {icon && iconPosition === 'right' && <span className="ml-2">{icon}</span>}
+      </div>
+    )
+  }
+
+  // Render as button when no URL is provided
+  if (!url) {
+    return (
+      <button
+        {...commonProps}
+        type="button"
+        disabled={isDisabled}
+        onClick={isDisabled ? undefined : onClick}
+        tabIndex={isDisabled ? -1 : 0}
+      >
+        {renderContent()}
+      </button>
+    )
+  }
+
+  // Render as link when URL is provided
   const href = isDisabled ? '#' : url
   const linkTarget = isDisabled ? undefined : target
 
-  const content = (
-    <>
-      {type === 'solid' ? (
-        <div className={getContentClasses()}>{children}</div>
-      ) : type === 'fill' ? (
-        <span className={getContentClasses()}>{children}</span>
-      ) : type === 'disabled' ? (
-        <div className={getContentClasses()}>{children}</div>
-      ) : (
-        <span className={getContentClasses()}>{children}</span>
-      )}
-    </>
-  )
-
   if (isDisabled) {
     return (
-      <span
-        className={cn(getTypeClasses(), className)}
-        aria-disabled="true"
-        tabIndex={-1}
-        onClick={(e) => e.preventDefault()}
-      >
-        {content}
+      <span {...commonProps} tabIndex={-1} onClick={(e) => e.preventDefault()}>
+        {renderContent()}
       </span>
     )
   }
 
   return (
-    <Link
-      href={href}
-      target={linkTarget}
-      className={cn(getTypeClasses(), className)}
-      onClick={onClick}
-    >
-      {content}
+    <Link href={href} target={linkTarget} {...commonProps} onClick={onClick}>
+      {renderContent()}
     </Link>
   )
 }

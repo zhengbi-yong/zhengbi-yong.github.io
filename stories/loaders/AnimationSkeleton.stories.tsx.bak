@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import AnimationSkeleton from '@/components/loaders/AnimationSkeleton.tsx'
+
+const meta: Meta<typeof AnimationSkeleton> = {
+  title: 'components/AnimationSkeleton',
+  component: AnimationSkeleton,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

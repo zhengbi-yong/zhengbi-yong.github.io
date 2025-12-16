@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister.tsx'
+
+const meta: Meta<typeof ServiceWorkerRegister> = {
+  title: 'components/ServiceWorkerRegister',
+  component: ServiceWorkerRegister,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

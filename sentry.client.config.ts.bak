@@ -37,22 +37,10 @@ if (SENTRY_DSN) {
     },
     // Integrations
     integrations: [
-      // Add browser profiling integration
-      new Sentry.BrowserProfilingIntegration(),
-      // Add session replay
-      new Sentry.Replay({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
+      // Browser profiling integration disabled
+      // Session replay disabled
     ],
-    // Before Send Transaction
-    beforeTransaction(transaction) {
-      // Filter out certain transactions
-      if (transaction.name === '/_next/static/chunks/webpack') {
-        return null
-      }
-      return transaction
-    },
+    // Before Send Transaction disabled
     // Initial Scope
     initialScope: {
       tags: {

@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import tabs from '@/components/components/ui/tabs.tsx'
+
+const meta: Meta<typeof tabs> = {
+  title: 'components/tabs',
+  component: tabs,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

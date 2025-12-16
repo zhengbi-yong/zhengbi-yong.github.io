@@ -36,12 +36,12 @@ export default function ReadingProgress({
       } ${className}`}
       style={{
         backgroundColor: progress > 0 ? '#3b82f6' : 'transparent',
-      width: `${progress * 100}%`,
+        width: `${progress * 100}%`,
       }}
     >
       {/* 进度信息 */}
       {isReading && (
-        <div className="fixed bottom-4 right-4 flex items-center gap-4 rounded-lg bg-white/90 px-4 py-2 shadow-lg dark:bg-gray-900/90">
+        <div className="fixed right-4 bottom-4 flex items-center gap-4 rounded-lg bg-white/90 px-4 py-2 shadow-lg dark:bg-gray-900/90">
           {showPercentage && (
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {Math.round(progress * 100)}%

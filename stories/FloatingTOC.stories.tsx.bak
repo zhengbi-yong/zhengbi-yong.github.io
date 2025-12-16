@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import FloatingTOC from '@/components/FloatingTOC.tsx'
+
+const meta: Meta<typeof FloatingTOC> = {
+  title: 'components/FloatingTOC',
+  component: FloatingTOC,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

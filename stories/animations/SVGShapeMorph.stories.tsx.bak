@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import SVGShapeMorph from '@/components/animations/SVGShapeMorph.tsx'
+
+const meta: Meta<typeof SVGShapeMorph> = {
+  title: 'components/SVGShapeMorph',
+  component: SVGShapeMorph,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

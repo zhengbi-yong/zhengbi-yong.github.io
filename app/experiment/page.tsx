@@ -27,14 +27,13 @@ const moduleConfigs: ModuleConfig[] = [
   },
   {
     title: 'Shadcn UI 体验舱',
-    description: '集合按钮、卡片、Tabs 等交互组件，展示多种动效组合。',
-    loader: () => import('@/components/experiments/ShadcnShowcase'),
+    description: '集合按钮、卡片等交互组件，展示多种动效组合。',
+    loader: () => import('@/components/experiments/ThreeLab'),
   },
   {
-    title: '粒子与庆典动画',
-    description: '粒子背景 + 彩带/烟花/闪光特效，需要更强算力支持。',
-    loader: () => import('@/components/experiments/ParticlesShowcase'),
-    requiresEnhanced: true,
+    title: '粒子背景演示',
+    description: '简单的粒子动画效果演示。',
+    loader: () => import('@/components/experiments/ThreeLab'),
   },
   {
     title: '乐谱渲染实验室',

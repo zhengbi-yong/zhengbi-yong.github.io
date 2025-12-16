@@ -23,5 +23,6 @@ echo "\n📋 生成 Contentlayer 文件..."
 npx contentlayer2 build
 
 # 启动开发服务器
+# 注意：Sentry/OpenTelemetry 相关的警告是正常的，不影响功能
 echo "\n📋 启动开发服务器...\n"
 pnpm dev

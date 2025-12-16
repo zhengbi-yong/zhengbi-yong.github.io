@@ -56,7 +56,13 @@ const createScreenshot = (filename, width, height, label) => {
   `
 
   // 暂时保存为 SVG 文件
-  const svgPath = join(process.cwd(), 'public', 'static', 'images', filename.replace('.png', '.svg'))
+  const svgPath = join(
+    process.cwd(),
+    'public',
+    'static',
+    'images',
+    filename.replace('.png', '.svg')
+  )
   writeFileSync(svgPath, svg)
   console.log(`Created placeholder: ${svgPath}`)
 }

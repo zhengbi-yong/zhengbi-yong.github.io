@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import CachedPostContent from '@/components/CachedPostContent.tsx'
+
+const meta: Meta<typeof CachedPostContent> = {
+  title: 'components/CachedPostContent',
+  component: CachedPostContent,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

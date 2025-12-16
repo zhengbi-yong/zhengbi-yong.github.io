@@ -3,8 +3,7 @@
 import * as React from 'react'
 import { cn } from '@/components/lib/utils'
 
-export interface ButtonSimpleProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonSimpleProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'lg' | 'icon'
   asChild?: boolean
@@ -12,7 +11,8 @@ export interface ButtonSimpleProps
 
 const ButtonSimple = React.forwardRef<HTMLButtonElement, ButtonSimpleProps>(
   ({ className, variant = 'default', size = 'default', asChild = false, ...props }, ref) => {
-    const baseClasses = 'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
+    const baseClasses =
+      'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
 
     const variants = {
       default: 'bg-primary text-primary-foreground hover:bg-primary/90',
@@ -34,12 +34,7 @@ const ButtonSimple = React.forwardRef<HTMLButtonElement, ButtonSimpleProps>(
 
     return (
       <Comp
-        className={cn(
-          baseClasses,
-          variants[variant],
-          sizes[size],
-          className
-        )}
+        className={cn(baseClasses, variants[variant], sizes[size], className)}
         ref={ref}
         {...props}
       />

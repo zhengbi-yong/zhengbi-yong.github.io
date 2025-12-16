@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import AdvancedScrollAnimation from '@/components/animations/AdvancedScrollAnimation.tsx'
+
+const meta: Meta<typeof AdvancedScrollAnimation> = {
+  title: 'components/AdvancedScrollAnimation',
+  component: AdvancedScrollAnimation,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

@@ -1,7 +1,11 @@
 'use client'
 
 import { useTranslation } from 'react-i18next'
-import { useArticleAnalytics, getAllAnalytics, getPopularArticles } from './hooks/useArticleAnalytics'
+import {
+  useArticleAnalytics,
+  getAllAnalytics,
+  getPopularArticles,
+} from './hooks/useArticleAnalytics'
 import { Eye, Clock, BarChart3, TrendingUp, Award } from 'lucide-react'
 
 interface ArticleAnalyticsProps {
@@ -57,9 +61,7 @@ export default function ArticleAnalytics({
             {getPopularityLabel()}
           </span>
           {isPopular && <TrendingUp size={16} className="text-orange-500" />}
-          {analytics.engagementScore >= 80 && (
-            <Award size={16} className="text-red-500" />
-          )}
+          {analytics.engagementScore >= 80 && <Award size={16} className="text-red-500" />}
         </div>
       </div>
 
@@ -87,12 +89,8 @@ export default function ArticleAnalytics({
           <div className="flex items-center gap-2">
             <Eye size={16} className="text-gray-500 dark:text-gray-400" />
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {t('analytics.views')}
-              </p>
-              <p className="font-medium text-gray-900 dark:text-gray-100">
-                {analytics.viewCount}
-              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{t('analytics.views')}</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">{analytics.viewCount}</p>
             </div>
           </div>
 
@@ -151,7 +149,7 @@ interface PopularArticlesProps {
 export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) {
   const { t } = useTranslation()
   const popularArticles = getPopularArticles(limit).filter(
-    article => article.articleId !== excludeId
+    (article) => article.articleId !== excludeId
   )
 
   if (popularArticles.length === 0) {
@@ -172,8 +170,8 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
             className="flex items-center justify-between rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
           >
             <div className="flex-1">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
-                {articleId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              <h4 className="line-clamp-1 text-sm font-medium text-gray-900 dark:text-gray-100">
+                {articleId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
               </h4>
               <div className="mt-1 flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
                 <span className="flex items-center gap-1">
@@ -193,8 +191,8 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
                   analytics.engagementScore >= 80
                     ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
                     : analytics.engagementScore >= 60
-                    ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                    : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
+                      ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                      : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
                 }`}
               >
                 {analytics.engagementScore}/100

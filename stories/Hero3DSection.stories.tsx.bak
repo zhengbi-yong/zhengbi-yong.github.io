@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import Hero3DSection from '@/components/Hero3DSection.tsx'
+
+const meta: Meta<typeof Hero3DSection> = {
+  title: 'components/Hero3DSection',
+  component: Hero3DSection,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}
