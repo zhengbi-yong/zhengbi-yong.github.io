@@ -26,10 +26,13 @@ export default function LanguageSwitch() {
     isOpenRef.current = isOpen
   }, [isOpen])
 
-  const currentLanguage = languages.find((lang) => lang.code === i18n.language)
+  // 安全获取当前语言，处理 i18n 未初始化的情况
+  const currentLanguage = languages.find((lang) => lang.code === (i18n?.language || 'en'))
 
   const changeLanguage = (languageCode: string) => {
-    i18n.changeLanguage(languageCode)
+    if (i18n?.changeLanguage) {
+      i18n.changeLanguage(languageCode)
+    }
     setIsOpen(false)
   }
 
@@ -70,7 +73,7 @@ export default function LanguageSwitch() {
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3"
-        aria-label={t('nav.changeLanguage')}
+        aria-label={t?.('nav.changeLanguage') || 'Change Language'}
       >
         <span>{currentLanguage?.flag}</span>
         <span className="hidden sm:inline">{currentLanguage?.name}</span>
@@ -83,7 +86,7 @@ export default function LanguageSwitch() {
             <button
               key={language.code}
               onClick={() => changeLanguage(language.code)}
-              className={`w-full px-4 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${i18n.language === language.code ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : ''} `}
+              className={`w-full px-4 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${(i18n?.language || 'en') === language.code ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : ''} `}
             >
               <span className="mr-2">{language.flag}</span>
               {language.name}

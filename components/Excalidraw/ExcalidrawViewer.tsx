@@ -9,15 +9,26 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 import { Loader } from '@/components/ui/Loader'
 import Button from '@/components/ui/Button'
 
 // 动态导入 Excalidraw，避免 SSR 问题
 const Excalidraw = dynamic(
   () =>
-    import('@excalidraw/excalidraw').then((mod) => ({
-      default: mod.Excalidraw,
-    })),
+    import('@excalidraw/excalidraw')
+      .then((mod) => {
+        if (!mod.Excalidraw) {
+          throw new Error('Excalidraw component not found in module')
+        }
+        return {
+          default: mod.Excalidraw,
+        }
+      })
+      .catch((error) => {
+        throw error
+      }),
   {
     ssr: false,
     loading: () => <Loader className="h-96 w-full" />,
@@ -46,6 +57,7 @@ interface ExcalidrawViewerProps {
   readonly?: boolean
   theme?: 'light' | 'dark'
   showToolbar?: boolean
+  showBackButton?: boolean
 }
 
 export function ExcalidrawViewer({
@@ -57,8 +69,17 @@ export function ExcalidrawViewer({
   readonly = false,
   theme,
   showToolbar = false,
+  showBackButton = false,
 }: ExcalidrawViewerProps) {
+  const router = useRouter()
   const [excalidrawAPI, setExcalidrawAPI] = useState<unknown>(null)
+
+  useEffect(() => {
+    // Component mounted
+    return () => {
+      // Component unmounted
+    }
+  }, [])
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(theme || 'light')
   const [viewModeEnabled, setViewModeEnabled] = useState(readonly)
   const [elements, setElements] = useState<ExcalidrawElement[]>(initialData?.elements || [])
@@ -100,7 +121,6 @@ export function ExcalidrawViewer({
 
     const tryLoadCSS = (index: number) => {
       if (index >= cdnSources.length) {
-        console.error('所有 CDN 源都无法加载 Excalidraw CSS')
         return
       }
 
@@ -111,12 +131,7 @@ export function ExcalidrawViewer({
       link.href = cdnSources[index]
       link.crossOrigin = 'anonymous'
 
-      link.onload = () => {
-        console.log(`Excalidraw CSS 已从 ${cdnSources[index]} 加载`)
-      }
-
       link.onerror = () => {
-        console.warn(`无法从 ${cdnSources[index]} 加载 CSS，尝试下一个源`)
         // 移除失败的 link
         link.remove()
         // 尝试下一个源
@@ -305,15 +320,34 @@ export function ExcalidrawViewer({
 
   return (
     <div
-      className={className}
+      className={`${className} h-screen w-full`}
       style={{
-        width: '100%',
-        height: height,
-        position: 'relative',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         display: 'flex',
         flexDirection: 'column',
+        backgroundColor: '#fff',
+        zIndex: 9999,
       }}
     >
+      {/* 返回按钮 - 固定在左上角 */}
+      {showBackButton && (
+        <Button
+          onClick={() => router.back()}
+          size="sm"
+          variant="outline"
+          className="absolute top-4 left-4 z-50 bg-white/90 shadow-lg backdrop-blur-sm hover:bg-white dark:bg-gray-900/90 dark:hover:bg-gray-900"
+          aria-label="返回"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          返回
+        </Button>
+      )}
+
+      {/* 工具栏 */}
       {showToolbar && (
         <div className="flex gap-2 border-b border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-900">
           <Button onClick={handleSave} size="sm">
@@ -330,14 +364,24 @@ export function ExcalidrawViewer({
           </Button>
         </div>
       )}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div
+        style={{
+          flex: '1 1 0%',
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          minHeight: '0',
+          overflow: 'hidden',
+        }}
+        className="excalidraw-wrapper"
+      >
         <Excalidraw
-          ref={(api: unknown) => {
+          excalidrawAPI={(api: unknown) => {
             if (api) {
               setExcalidrawAPI(api)
             }
           }}
-          initialData={initialData}
+          initialData={initialData || { elements: [], appState: {} }}
           onChange={handleChange}
           viewModeEnabled={viewModeEnabled}
           theme={currentTheme}
