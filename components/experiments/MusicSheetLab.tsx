@@ -294,9 +294,8 @@ export default function MusicSheetLab() {
           OpenSheetMusicDisplayClass = defaultExport.OpenSheetMusicDisplay
         } else if (typeof defaultExport === 'function') {
           OpenSheetMusicDisplayClass = defaultExport
-        } else if (defaultExport.OpenSheetMusicDisplay) {
-          OpenSheetMusicDisplayClass = defaultExport.OpenSheetMusicDisplay
         }
+        // 注意：如果 defaultExport.OpenSheetMusicDisplay 存在，已经在上面处理了
       }
       // 方式3: 检查全局变量（UMD 模块可能挂载到 window）
       else if (typeof window !== 'undefined' && (window as any).OpenSheetMusicDisplay) {

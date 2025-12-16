@@ -1,6 +1,7 @@
 import { writeFileSync, mkdirSync } from 'fs'
 import path from 'path'
 import { slug } from 'github-slugger'
+// eslint-disable-next-line no-redeclare
 import { escape } from 'pliny/utils/htmlEscaper.js'
 import siteMetadata from '../data/siteMetadata.data.js'
 import tagData from '../app/tag-data.json' with { type: 'json' }
