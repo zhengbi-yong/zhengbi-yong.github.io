@@ -47,6 +47,15 @@ export const LazySwipeContainer = dynamic(
   dynamicImportConfig as any
 )
 
+// Excalidraw 绘图工具
+export const LazyExcalidrawViewer = dynamic(
+  () =>
+    import('@/components/Excalidraw/ExcalidrawViewer').then((mod) => ({
+      default: mod.ExcalidrawViewer,
+    })),
+  dynamicImportConfig as any
+)
+
 // 预加载关键组件
 export const preloadComponents = () => {
   // 在空闲时预加载组件
@@ -54,6 +63,7 @@ export const preloadComponents = () => {
     requestIdleCallback(() => {
       import('@/components/ThreeViewer')
       import('@/components/MusicPlayer')
+      import('@/components/Excalidraw/ExcalidrawViewer')
     })
   }
 }

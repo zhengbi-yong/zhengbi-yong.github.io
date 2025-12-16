@@ -8,6 +8,7 @@ const headerNavLinks = [
   // { href: '/about', title: '关于我' },
   { href: '/experiment', title: '实验' },
   { href: '/analytics', title: '分析' },
-];
+  { href: '/excalidraw', title: '绘图' },
+]
 
-export default headerNavLinks;
+export default headerNavLinks

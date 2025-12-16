@@ -14,8 +14,8 @@ const ContentSecurityPolicy = `
   img-src * blob: data:;
   media-src 'self' *.s3.amazonaws.com;
   connect-src *;
-  font-src 'self';
-  frame-src giscus.app;
+  font-src 'self' data: blob:;
+  frame-src giscus.app excalidraw.com;
   worker-src 'self' blob:
 `
 
@@ -29,8 +29,8 @@ const generateSecurityHeaders = () => {
     {
       key: 'Content-Security-Policy',
       value: isProduction
-        ? "default-src 'self'; script-src 'self' 'unsafe-inline' giscus.app analytics.umami.is; style-src 'self' 'unsafe-inline' unpkg.com; img-src 'self' data: https: avatars.githubusercontent.com picsum.photos; font-src 'self'; connect-src 'self' https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://o1046881.ingest.sentry.io; frame-src giscus.app; worker-src 'self' blob:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
-        : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self';",
+        ? "default-src 'self'; script-src 'self' 'unsafe-inline' giscus.app analytics.umami.is; style-src 'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net; img-src 'self' data: https: avatars.githubusercontent.com picsum.photos; font-src 'self' data: blob: unpkg.com cdn.jsdelivr.net; connect-src 'self' https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://o1046881.ingest.sentry.io unpkg.com cdn.jsdelivr.net; frame-src giscus.app excalidraw.com; worker-src 'self' blob:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+        : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: blob: unpkg.com cdn.jsdelivr.net; connect-src 'self' unpkg.com cdn.jsdelivr.net; frame-src excalidraw.com;",
     },
     // Referrer-Policy
     {

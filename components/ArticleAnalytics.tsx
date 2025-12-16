@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   useArticleAnalytics,
@@ -23,8 +24,15 @@ export default function ArticleAnalytics({
   const { analytics, getPopularityLabel, isPopular } = useArticleAnalytics({
     articleId,
   })
+  const [isMounted, setIsMounted] = useState(false)
+
+  // 确保只在客户端渲染动态内容，避免水合不匹配
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const formatTime = (seconds: number): string => {
+    if (!isMounted) return '0秒'
     const minutes = Math.floor(seconds / 60)
     if (minutes > 0) {
       return `${minutes} ${t('analytics.minute', { count: minutes })}`
@@ -36,15 +44,25 @@ export default function ArticleAnalytics({
     return `${Math.round(value * 100)}%`
   }
 
+  // 在客户端准备好之前，使用服务器端的默认值避免水合不匹配
+  const displayAnalytics = isMounted
+    ? analytics
+    : { viewCount: 0, engagementScore: 0, averageReadingTime: 0, scrollDepth: 0 }
+  const displayPopularityLabel = isMounted ? getPopularityLabel() : ''
+  const displayIsPopular = isMounted ? isPopular : false
+
+  // 延迟渲染翻译文本，避免服务器端和客户端不匹配
+  const displayText = (key: string) => (isMounted ? t(key) : key)
+
   if (compact) {
     return (
       <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-        <span className="flex items-center gap-1">
+        <span className="flex items-center gap-1" suppressHydrationWarning>
           <Eye size={14} />
-          {analytics.viewCount}
+          {displayAnalytics.viewCount}
         </span>
-        <span>{getPopularityLabel()}</span>
-        {isPopular && <TrendingUp size={14} className="text-orange-500" />}
+        <span suppressHydrationWarning>{displayPopularityLabel}</span>
+        {displayIsPopular && <TrendingUp size={14} className="text-orange-500" />}
       </div>
     )
   }
@@ -53,32 +71,42 @@ export default function ArticleAnalytics({
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
       {/* 热度标签 */}
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {t('analytics.popularity')}
+        <span
+          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          suppressHydrationWarning
+        >
+          {displayText('analytics.popularity')}
         </span>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
-            {getPopularityLabel()}
+          <span
+            className="text-sm font-bold text-orange-600 dark:text-orange-400"
+            suppressHydrationWarning
+          >
+            {displayPopularityLabel}
           </span>
-          {isPopular && <TrendingUp size={16} className="text-orange-500" />}
-          {analytics.engagementScore >= 80 && <Award size={16} className="text-red-500" />}
+          {displayIsPopular && <TrendingUp size={16} className="text-orange-500" />}
+          {displayAnalytics.engagementScore >= 80 && <Award size={16} className="text-red-500" />}
         </div>
       </div>
 
       {/* 参与度分数 */}
       <div className="mb-4">
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-xs text-gray-600 dark:text-gray-400">
-            {t('analytics.engagementScore')}
+          <span className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+            {displayText('analytics.engagementScore')}
           </span>
-          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-            {analytics.engagementScore}/100
+          <span
+            className="text-xs font-medium text-gray-700 dark:text-gray-300"
+            suppressHydrationWarning
+          >
+            {displayAnalytics.engagementScore}/100
           </span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-orange-500 transition-all duration-300"
-            style={{ width: `${analytics.engagementScore}%` }}
+            style={{ width: `${displayAnalytics.engagementScore}%` }}
+            suppressHydrationWarning
           />
         </div>
       </div>
@@ -89,8 +117,12 @@ export default function ArticleAnalytics({
           <div className="flex items-center gap-2">
             <Eye size={16} className="text-gray-500 dark:text-gray-400" />
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">{t('analytics.views')}</p>
-              <p className="font-medium text-gray-900 dark:text-gray-100">{analytics.viewCount}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+                {displayText('analytics.views')}
+              </p>
+              <p className="font-medium text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+                {displayAnalytics.viewCount}
+              </p>
             </div>
           </div>
 
@@ -98,11 +130,11 @@ export default function ArticleAnalytics({
           <div className="flex items-center gap-2">
             <Clock size={16} className="text-gray-500 dark:text-gray-400" />
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {t('analytics.avgReadingTime')}
+              <p className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+                {displayText('analytics.avgReadingTime')}
               </p>
-              <p className="font-medium text-gray-900 dark:text-gray-100">
-                {formatTime(analytics.averageReadingTime)}
+              <p className="font-medium text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+                {isMounted ? formatTime(analytics.averageReadingTime) : '0秒'}
               </p>
             </div>
           </div>
@@ -111,24 +143,27 @@ export default function ArticleAnalytics({
           <div className="flex items-center gap-2">
             <BarChart3 size={16} className="text-gray-500 dark:text-gray-400" />
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {t('analytics.scrollDepth')}
+              <p className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+                {displayText('analytics.scrollDepth')}
               </p>
-              <p className="font-medium text-gray-900 dark:text-gray-100">
-                {formatPercentage(analytics.scrollDepth)}
+              <p className="font-medium text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+                {isMounted ? formatPercentage(analytics.scrollDepth) : '0%'}
               </p>
             </div>
           </div>
 
           {/* 最后访问时间 */}
-          {analytics.lastVisited && (
+          {isMounted && analytics.lastVisited && (
             <div className="flex items-center gap-2">
               <TrendingUp size={16} className="text-gray-500 dark:text-gray-400" />
               <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {t('analytics.lastVisited')}
+                <p className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+                  {displayText('analytics.lastVisited')}
                 </p>
-                <p className="font-medium text-gray-900 dark:text-gray-100">
+                <p
+                  className="font-medium text-gray-900 dark:text-gray-100"
+                  suppressHydrationWarning
+                >
                   {new Date(analytics.lastVisited).toLocaleDateString()}
                 </p>
               </div>
@@ -148,9 +183,17 @@ interface PopularArticlesProps {
 
 export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) {
   const { t } = useTranslation()
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const popularArticles = getPopularArticles(limit).filter(
     (article) => article.articleId !== excludeId
   )
+
+  const displayText = (key: string) => (isMounted ? t(key) : key)
 
   if (popularArticles.length === 0) {
     return null
@@ -158,9 +201,12 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
-      <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <h3
+        className="mb-4 flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-gray-100"
+        suppressHydrationWarning
+      >
         <TrendingUp size={20} className="text-orange-500" />
-        {t('analytics.popularArticles')}
+        {displayText('analytics.popularArticles')}
       </h3>
 
       <div className="space-y-3">
@@ -174,13 +220,13 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
                 {articleId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
               </h4>
               <div className="mt-1 flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1" suppressHydrationWarning>
                   <Eye size={12} />
                   {analytics.viewCount}
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1" suppressHydrationWarning>
                   <Clock size={12} />
-                  {Math.round(analytics.averageReadingTime / 60)}min
+                  {isMounted ? Math.round(analytics.averageReadingTime / 60) : 0}min
                 </span>
               </div>
             </div>
@@ -194,6 +240,7 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
                       ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
                       : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
                 }`}
+                suppressHydrationWarning
               >
                 {analytics.engagementScore}/100
               </span>
