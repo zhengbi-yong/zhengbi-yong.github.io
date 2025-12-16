@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import MobileNav from '@/components/MobileNav.tsx'
+
+const meta: Meta<typeof MobileNav> = {
+  title: 'components/MobileNav',
+  component: MobileNav,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

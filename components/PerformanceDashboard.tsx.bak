@@ -1,0 +1,381 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { Activity, Cpu, HardDrive, Zap, TrendingUp, AlertCircle, CheckCircle, Clock, Users, Eye, MousePointer } from 'lucide-react'
+import { usePerformanceMonitor } from '@/components/hooks/usePerformanceMonitor'
+import { Button } from '@/components/ui/ButtonSimple'
+import { cn } from '@/lib/utils'
+
+interface PerformanceData {
+  timestamp: number
+  fcp?: number
+  lcp?: number
+  fid?: number
+  cls?: number
+  tti?: number
+  fps?: number
+  memory?: number
+  networkLatency?: number
+}
+
+interface ResourceData {
+  name: string
+  size: number
+  type: string
+  cached: boolean
+}
+
+export default function PerformanceDashboard() {
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [isRealTime, setIsRealTime] = useState(true)
+  const [performanceHistory, setPerformanceHistory] = useState<PerformanceData[]>([])
+  const [resourceData, setResourceData] = useState<ResourceData[]>([])
+  const [isRecording, setIsRecording] = useState(false)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  const { metrics, getMetrics, mark, measure } = usePerformanceMonitor({
+    reportToAnalytics: false,
+    threshold: {
+      fcp: 1800,
+      lcp: 2500,
+      fid: 100,
+      cls: 0.1,
+      tti: 3800,
+    }
+  })
+
+  // 收集资源数据
+  useEffect(() => {
+    const collectResourceData = () => {
+      if (typeof window === 'undefined' || !window.performance) return
+
+      const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+      const data: ResourceData[] = resources.slice(-20).map(resource => ({
+        name: resource.name.split('/').pop() || 'Unknown',
+        size: resource.transferSize || 0,
+        type: getResourceType(resource.name),
+        cached: resource.transferSize === 0 && resource.decodedBodySize > 0
+      }))
+
+      setResourceData(data)
+    }
+
+    collectResourceData()
+    const interval = setInterval(collectResourceData, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // 实时性能监控
+  useEffect(() => {
+    if (!isRealTime) return
+
+    const updateMetrics = () => {
+      const now = Date.now()
+      const currentMetrics = getMetrics()
+
+      // 计算 FPS
+      let fps = 0
+      if (typeof window !== 'undefined' && 'requestAnimationFrame' in window) {
+        let frames = 0
+        const start = performance.now()
+
+        const countFrames = () => {
+          frames++
+          if (performance.now() - start < 1000) {
+            requestAnimationFrame(countFrames)
+          } else {
+            fps = frames
+          }
+        }
+        countFrames()
+      }
+
+      // 获取内存信息
+      const memory = (performance as any).memory ? {
+        used: (performance as any).memory.usedJSHeapSize,
+        total: (performance as any).memory.totalJSHeapSize,
+      } : null
+
+      const newData: PerformanceData = {
+        timestamp: now,
+        fcp: currentMetrics.firstContentfulPaint,
+        lcp: currentMetrics.largestContentfulPaint,
+        fid: currentMetrics.firstInputDelay,
+        cls: currentMetrics.cumulativeLayoutShift,
+        tti: currentMetrics.timeToInteractive,
+        fps,
+        memory: memory?.used,
+      }
+
+      setPerformanceHistory(prev => [...prev.slice(-30), newData])
+    }
+
+    updateMetrics()
+    intervalRef.current = setInterval(updateMetrics, 2000)
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+    }
+  }, [isRealTime, getMetrics])
+
+  // 获取资源类型
+  const getResourceType = (url: string): string => {
+    if (url.includes('.js')) return 'JavaScript'
+    if (url.includes('.css')) return 'CSS'
+    if (url.match(/\.(png|jpg|jpeg|gif|svg|webp)$/)) return 'Image'
+    if (url.match(/\.(woff|woff2|ttf|eot)$/)) return 'Font'
+    return 'Other'
+  }
+
+  // 格式化字节数
+  const formatBytes = (bytes: number): string => {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  // 获取性能等级
+  const getPerformanceGrade = (value: number, thresholds: { good: number; needsImprovement: number }): string => {
+    if (value <= thresholds.good) return 'good'
+    if (value <= thresholds.needsImprovement) return 'needsImprovement'
+    return 'poor'
+  }
+
+  // 性能等级颜色
+  const gradeColors = {
+    good: '#10b981',
+    needsImprovement: '#f59e0b',
+    poor: '#ef4444',
+  }
+
+  // Web Vitals 数据
+  const webVitalsData = [
+    {
+      name: 'FCP',
+      value: metrics.firstContentfulPaint || 0,
+      unit: 'ms',
+      threshold: { good: 1800, needsImprovement: 3000 },
+    },
+    {
+      name: 'LCP',
+      value: metrics.largestContentfulPaint || 0,
+      unit: 'ms',
+      threshold: { good: 2500, needsImprovement: 4000 },
+    },
+    {
+      name: 'FID',
+      value: metrics.firstInputDelay || 0,
+      unit: 'ms',
+      threshold: { good: 100, needsImprovement: 300 },
+    },
+    {
+      name: 'CLS',
+      value: metrics.cumulativeLayoutShift || 0,
+      unit: '',
+      threshold: { good: 0.1, needsImprovement: 0.25 },
+    },
+  ]
+
+  // 资源类型分布数据
+  const resourceTypeData = resourceData.reduce((acc, resource) => {
+    const existing = acc.find(item => item.name === resource.type)
+    if (existing) {
+      existing.value += resource.size
+      existing.count += 1
+    } else {
+      acc.push({ name: resource.type, value: resource.size, count: 1 })
+    }
+    return acc
+  }, [] as Array<{ name: string; value: number; count: number }>)
+
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      {/* 切换按钮 */}
+      <Button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          'mb-2 flex items-center gap-2 shadow-lg',
+          isExpanded ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+        )}
+      >
+        <Activity className="h-4 w-4" />
+        Performance
+        {isExpanded ? '◀' : '▶'}
+      </Button>
+
+      {/* 仪表板面板 */}
+      {isExpanded && (
+        <div className="w-[90vw] max-w-6xl bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-6">
+          {/* 标题和控制栏 */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              Performance Dashboard
+            </h2>
+            <div className="flex items-center gap-4">
+              <Button
+                variant={isRealTime ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setIsRealTime(!isRealTime)}
+              >
+                {isRealTime ? '🔴 Live' : '⏸ Paused'}
+              </Button>
+              <Button
+                variant={isRecording ? 'destructive' : 'outline'}
+                size="sm"
+                onClick={() => setIsRecording(!isRecording)}
+              >
+                {isRecording ? '⏹ Stop' : '⏺ Record'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Web Vitals */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Core Web Vitals
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                {webVitalsData.map((vital) => {
+                  const grade = getPerformanceGrade(vital.value, vital.threshold)
+                  return (
+                    <div key={vital.name} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                          {vital.name}
+                        </span>
+                        <span
+                          className="text-sm font-medium"
+                          style={{ color: gradeColors[grade] }}
+                        >
+                          {grade === 'good' ? 'Good' : grade === 'needsImprovement' ? 'Needs Improvement' : 'Poor'}
+                        </span>
+                      </div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                        {vital.value.toFixed(vital.name === 'CLS' ? 3 : 0)}
+                        <span className="text-sm font-normal text-gray-500 ml-1">
+                          {vital.unit}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* 性能历史图表 */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Performance History
+              </h3>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={performanceHistory}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="timestamp"
+                      tickFormatter={(value) => new Date(value).toLocaleTimeString()}
+                    />
+                    <YAxis />
+                    <Tooltip
+                      labelFormatter={(value) => new Date(value).toLocaleTimeString()}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="fcp"
+                      stroke="#3b82f6"
+                      name="FCP (ms)"
+                      dot={false}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="lcp"
+                      stroke="#10b981"
+                      name="LCP (ms)"
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* 资源分析 */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <HardDrive className="h-5 w-5" />
+                Resource Analysis
+              </h3>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {resourceTypeData.map((type) => (
+                    <div key={type.name} className="flex items-center justify-between">
+                      <span className="text-gray-900 dark:text-gray-100">
+                        {type.name} ({type.count} files)
+                      </span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {formatBytes(type.value)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 资源类型分布饼图 */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <PieChart className="h-5 w-5" />
+                Resource Distribution
+              </h3>
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={resourceTypeData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {resourceTypeData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => formatBytes(value)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* 底部信息 */}
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center gap-4">
+                <span>FPS: {performanceHistory[performanceHistory.length - 1]?.fps || 0}</span>
+                <span>
+                  Memory: {formatBytes(performanceHistory[performanceHistory.length - 1]?.memory || 0)}
+                </span>
+              </div>
+              <span>
+                Last updated: {new Date().toLocaleTimeString()}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

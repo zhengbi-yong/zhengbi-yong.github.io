@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import ScrollTopAndComment from '@/components/ScrollTopAndComment.tsx'
+
+const meta: Meta<typeof ScrollTopAndComment> = {
+  title: 'components/ScrollTopAndComment',
+  component: ScrollTopAndComment,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

@@ -62,7 +62,7 @@ export default function PostLayout({
       '@type': 'Person',
       name: authorDetails[0]?.name || siteMetadata.author,
       email: authorDetails[0]?.email || siteMetadata.email,
-      url: authorDetails[0]?.url || siteMetadata.siteUrl,
+      url: siteMetadata.siteUrl,
     },
     publisher: {
       '@type': 'Organization',
@@ -151,7 +151,7 @@ export default function PostLayout({
                 </div>
               </FadeIn>
             </div>
-            <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start space-y-6">
+            <div className="hidden space-y-6 md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start">
               <FloatingTOC toc={toc} enabled={showTOC} />
               <ArticleAnalytics articleId={slug || path} showDetails={true} />
             </div>

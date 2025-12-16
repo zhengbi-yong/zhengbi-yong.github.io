@@ -19,43 +19,80 @@ const ContentSecurityPolicy = `
   worker-src 'self' blob:
 `
 
-const securityHeaders = [
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-  {
-    key: 'Content-Security-Policy',
-    value: ContentSecurityPolicy.replace(/\n/g, ''),
-  },
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
-  {
-    key: 'Referrer-Policy',
-    value: 'strict-origin-when-cross-origin',
-  },
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
-  {
-    key: 'X-Frame-Options',
-    value: 'DENY',
-  },
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
-  {
-    key: 'X-Content-Type-Options',
-    value: 'nosniff',
-  },
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control
-  {
-    key: 'X-DNS-Prefetch-Control',
-    value: 'on',
-  },
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
-  {
-    key: 'Strict-Transport-Security',
-    value: 'max-age=31536000; includeSubDomains',
-  },
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
-  {
-    key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=()',
-  },
-]
+// 动态生成安全头
+const generateSecurityHeaders = () => {
+  const isProduction = process.env.NODE_ENV === 'production'
+  const isDevelopment = process.env.NODE_ENV === 'development'
+
+  const headers = [
+    // Content-Security-Policy
+    {
+      key: 'Content-Security-Policy',
+      value: isProduction
+        ? "default-src 'self'; script-src 'self' 'unsafe-inline' giscus.app analytics.umami.is; style-src 'self' 'unsafe-inline' unpkg.com; img-src 'self' data: https: avatars.githubusercontent.com picsum.photos; font-src 'self'; connect-src 'self' https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://o1046881.ingest.sentry.io; frame-src giscus.app; worker-src 'self' blob:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+        : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self';",
+    },
+    // Referrer-Policy
+    {
+      key: 'Referrer-Policy',
+      value: 'strict-origin-when-cross-origin',
+    },
+    // X-Frame-Options
+    {
+      key: 'X-Frame-Options',
+      value: 'DENY',
+    },
+    // X-Content-Type-Options
+    {
+      key: 'X-Content-Type-Options',
+      value: 'nosniff',
+    },
+    // X-DNS-Prefetch-Control
+    {
+      key: 'X-DNS-Prefetch-Control',
+      value: 'on',
+    },
+    // Strict-Transport-Security (仅在 HTTPS 环境中)
+    ...(isProduction
+      ? [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
+          },
+        ]
+      : []),
+    // Permissions-Policy
+    {
+      key: 'Permissions-Policy',
+      value:
+        'camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()',
+    },
+    // X-Permitted-Cross-Domain-Policies
+    {
+      key: 'X-Permitted-Cross-Domain-Policies',
+      value: 'none',
+    },
+    // Cross-Origin-Embedder-Policy
+    {
+      key: 'Cross-Origin-Embedder-Policy',
+      value: 'require-corp',
+    },
+    // Cross-Origin-Opener-Policy
+    {
+      key: 'Cross-Origin-Opener-Policy',
+      value: 'same-origin',
+    },
+    // Cross-Origin-Resource-Policy
+    {
+      key: 'Cross-Origin-Resource-Policy',
+      value: 'same-origin',
+    },
+  ]
+
+  return headers
+}
+
+const securityHeaders = generateSecurityHeaders()
 
 const output = process.env.EXPORT ? 'export' : undefined
 const basePath = process.env.BASE_PATH || undefined

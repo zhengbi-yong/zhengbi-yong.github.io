@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import ExplosionAnimation from '@/components/animations/ExplosionAnimation.tsx'
+
+const meta: Meta<typeof ExplosionAnimation> = {
+  title: 'components/ExplosionAnimation',
+  component: ExplosionAnimation,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

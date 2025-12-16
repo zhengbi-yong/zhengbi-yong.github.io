@@ -1,0 +1,160 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+
+// 检测是否使用键盘导航
+let isUsingKeyboard = false
+
+// 监听键盘事件
+if (typeof window !== 'undefined') {
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      isUsingKeyboard = true
+    }
+  })
+
+  document.addEventListener('mousedown', () => {
+    isUsingKeyboard = false
+  })
+}
+
+// Hook for focus-visible
+export function useFocusVisible() {
+  const [isFocused, setIsFocused] = useState(false)
+
+  const handleFocus = () => {
+    if (isUsingKeyboard) {
+      setIsFocused(true)
+    }
+  }
+
+  const handleBlur = () => {
+    setIsFocused(false)
+  }
+
+  return {
+    isFocused,
+    focusProps: {
+      onFocus: handleFocus,
+      onBlur: handleBlur,
+      'data-focus-visible': isFocused,
+    },
+  }
+}
+
+// 焦点管理工具类
+export class FocusManager {
+  private focusableSelectors = [
+    'button:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    'a[href]',
+    'area[href]',
+    '[tabindex]:not([tabindex="-1"])',
+    '[contenteditable="true"]',
+  ]
+
+  // 获取容器内所有可聚焦的元素
+  getFocusableElements(container: Element): HTMLElement[] {
+    return Array.from(
+      container.querySelectorAll(this.focusableSelectors.join(', '))
+    ).filter((el): el is HTMLElement => {
+      // 过滤掉不可见或禁用的元素
+      const element = el as HTMLElement
+      return (
+        !element.hasAttribute('disabled') &&
+        !element.getAttribute('aria-hidden') &&
+        element.getBoundingClientRect().width > 0
+      )
+    })
+  }
+
+  // 捕获焦点在容器内
+  trapFocus(container: Element): () => void {
+    const focusableElements = this.getFocusableElements(container)
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    const handleTabKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+
+      // Shift + Tab
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement?.focus()
+          e.preventDefault()
+        }
+      } else {
+        // Tab
+        if (document.activeElement === lastElement) {
+          firstElement?.focus()
+          e.preventDefault()
+        }
+      }
+    }
+
+    container.addEventListener('keydown', handleTabKey)
+
+    // 初始聚焦
+    firstElement?.focus()
+
+    // 返回清理函数
+    return () => {
+      container.removeEventListener('keydown', handleTabKey)
+    }
+  }
+
+  // 恢复焦点到之前的元素
+  restoreFocus(element: HTMLElement | null) {
+    element?.focus()
+  }
+}
+
+// 跳转到主内容的链接
+export function SkipLink({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <a
+      href="#main-content"
+      className={cn(
+        'sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4',
+        'bg-blue-600 text-white px-4 py-2 rounded-md z-50',
+        'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+        className
+      )}
+    >
+      {children}
+    </a>
+  )
+}
+
+// 自定义样式
+const focusVisibleStyles = `
+/* Focus visible styles */
+[data-focus-visible="true"] {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+
+/* Remove outline for mouse users */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus,
+a:focus {
+  outline: none;
+}
+
+/* Show outline only for keyboard users */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}
+`
+
+// 导出样式以便在 _document.tsx 中使用
+export { focusVisibleStyles }

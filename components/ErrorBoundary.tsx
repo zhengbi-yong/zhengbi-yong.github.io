@@ -1,7 +1,7 @@
 'use client'
 
-import React, { Component } from 'react'
 import * as Sentry from '@sentry/nextjs'
+import React, { Component } from 'react'
 import ErrorReportButton from './ErrorReportButton'
 
 interface ErrorBoundaryProps {
@@ -73,10 +73,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   handleReset = () => {
+    // 重置错误状态，但保留 eventId 以便用户仍可报告之前的错误
     this.setState({
       hasError: false,
       error: null,
-      eventId: null,
+      // 保留 eventId，不清除它，这样用户可以在重试后仍然报告之前的错误
     })
   }
 

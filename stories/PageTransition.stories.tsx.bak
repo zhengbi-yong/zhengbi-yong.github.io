@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import PageTransition from '@/components/PageTransition.tsx'
+
+const meta: Meta<typeof PageTransition> = {
+  title: 'components/PageTransition',
+  component: PageTransition,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import PageLoader from '@/components/loaders/PageLoader.tsx'
+
+const meta: Meta<typeof PageLoader> = {
+  title: 'components/PageLoader',
+  component: PageLoader,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

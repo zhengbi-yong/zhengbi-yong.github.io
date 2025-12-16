@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Languages, ChevronDown } from 'lucide-react'
 import { Button } from './ui/ButtonSimple'
 
 const languages = [
@@ -13,6 +13,18 @@ const languages = [
 export default function LanguageSwitch() {
   const { i18n, t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const isOpenRef = useRef(isOpen)
+
+  // 确保只在客户端 hydration 完成后才显示语言相关的内容
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // 同步 ref 和 state，以便在事件处理函数中访问最新值
+  useEffect(() => {
+    isOpenRef.current = isOpen
+  }, [isOpen])
 
   const currentLanguage = languages.find((lang) => lang.code === i18n.language)
 
@@ -21,20 +33,38 @@ export default function LanguageSwitch() {
     setIsOpen(false)
   }
 
-  // 关闭下拉菜单
+  // 关闭下拉菜单 - 使用 ref 访问最新的 isOpen 值，避免频繁重新注册监听器
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isOpen && !(event.target as Element).closest('.language-switch')) {
+      if (isOpenRef.current && !(event.target as Element).closest('.language-switch')) {
         setIsOpen(false)
       }
     }
 
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [isOpen])
+  }, [])
+
+  // 在 hydration 完成前显示占位内容，避免服务器和客户端不匹配
+  if (!mounted) {
+    return (
+      <div className="language-switch relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-2 px-3"
+          aria-label="Change Language"
+        >
+          <span>🌐</span>
+          <span className="hidden sm:inline">Language</span>
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </div>
+    )
+  }
 
   return (
-    <div className="relative language-switch">
+    <div className="language-switch relative">
       <Button
         variant="ghost"
         size="sm"
@@ -48,15 +78,12 @@ export default function LanguageSwitch() {
       </Button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-1 z-50 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="absolute top-full right-0 z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
           {languages.map((language) => (
             <button
               key={language.code}
               onClick={() => changeLanguage(language.code)}
-              className={`
-                w-full px-4 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-700
-                ${i18n.language === language.code ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : ''}
-              `}
+              className={`w-full px-4 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${i18n.language === language.code ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : ''} `}
             >
               <span className="mr-2">{language.flag}</span>
               {language.name}

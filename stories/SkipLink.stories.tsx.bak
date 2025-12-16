@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import SkipLink from '@/components/SkipLink.tsx'
+
+const meta: Meta<typeof SkipLink> = {
+  title: 'components/SkipLink',
+  component: SkipLink,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

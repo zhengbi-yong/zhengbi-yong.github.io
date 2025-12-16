@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs-vite'
+import { components as MDXComponentsSafe } from '@/components/MDXComponentsSafe'
+
+const meta: Meta<typeof MDXComponentsSafe> = {
+  title: 'components/MDXComponentsSafe',
+  component: MDXComponentsSafe,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

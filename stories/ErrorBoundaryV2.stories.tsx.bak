@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs-vite'
+import { ErrorBoundaryV2 } from '@/components/ErrorBoundaryV2'
+
+const meta: Meta<typeof ErrorBoundaryV2> = {
+  title: 'components/ErrorBoundaryV2',
+  component: ErrorBoundaryV2,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

@@ -1,0 +1,189 @@
+import type { Meta, StoryObj } from '@storybook/nextjs-vite'
+import Card from '@/components/Card'
+
+const meta: Meta<typeof Card> = {
+  title: 'UI/Card',
+  component: Card,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+  argTypes: {
+    children: {
+      control: 'text',
+    },
+    title: {
+      control: 'text',
+    },
+    description: {
+      control: 'text',
+    },
+  },
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+// Default card
+export const Default: Story = {
+  args: {
+    children: (
+      <div className="p-4">
+        <h3 className="text-lg font-semibold">Card Title</h3>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
+          This is a simple card with some content.
+        </p>
+      </div>
+    ),
+  },
+}
+
+// Card with title
+export const WithTitle: Story = {
+  args: {
+    title: 'Card Title',
+    children: (
+      <p className="text-gray-600 dark:text-gray-400">
+        This card has a title prop. The title is displayed at the top of the card.
+      </p>
+    ),
+  },
+}
+
+// Card with title and description
+export const WithTitleAndDescription: Story = {
+  args: {
+    title: 'Card Title',
+    description: 'Card description goes here',
+    children: (
+      <p className="text-gray-600 dark:text-gray-400">
+        This card has both a title and a description. The description is displayed below the title.
+      </p>
+    ),
+  },
+}
+
+// Card with custom className
+export const CustomStyled: Story = {
+  args: {
+    className: 'border-2 border-blue-500 shadow-xl',
+    children: (
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-blue-600">Custom Styled Card</h3>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
+          This card has custom styling applied via the className prop.
+        </p>
+      </div>
+    ),
+  },
+}
+
+// Card with footer
+export const WithFooter: Story = {
+  args: {
+    title: 'Card Title',
+    children: (
+      <p className="text-gray-600 dark:text-gray-400">
+        This card has a footer section with action buttons.
+      </p>
+    ),
+    footer: (
+      <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+        <button className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+          Cancel
+        </button>
+        <button className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
+          Save
+        </button>
+      </div>
+    ),
+  },
+}
+
+// Card with image
+export const WithImage: Story = {
+  args: {
+    children: (
+      <>
+        <img
+          src="https://picsum.photos/400/200"
+          alt="Card image"
+          className="w-full h-48 object-cover"
+        />
+        <div className="p-4">
+          <h3 className="text-lg font-semibold">Card with Image</h3>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            This card includes an image at the top.
+          </p>
+        </div>
+      </>
+    ),
+  },
+}
+
+// Interactive card with hover effect
+export const Interactive: Story = {
+  args: {
+    className: 'cursor-pointer transition-transform hover:scale-105',
+    children: (
+      <div className="p-6">
+        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold">Interactive Card</h3>
+        <p className="mt-2 text-gray-600 dark:text-gray-400">
+          Hover over this card to see the scale effect.
+        </p>
+      </div>
+    ),
+  },
+}
+
+// Dark mode card
+export const DarkMode: Story = {
+  args: {
+    className: 'bg-gray-800 border-gray-700',
+    children: (
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-white">Dark Mode Card</h3>
+        <p className="mt-2 text-gray-300">
+          This card is styled for dark mode.
+        </p>
+      </div>
+    ),
+  },
+}
+
+// Card list
+export const CardList: Story = {
+  render: () => (
+    <div className="space-y-4 w-full max-w-md">
+      <Card>
+        <div className="p-4">
+          <h3 className="font-semibold">First Item</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            This is the first card in a list.
+          </p>
+        </div>
+      </Card>
+      <Card>
+        <div className="p-4">
+          <h3 className="font-semibold">Second Item</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            This is the second card in a list.
+          </p>
+        </div>
+      </Card>
+      <Card>
+        <div className="p-4">
+          <h3 className="font-semibold">Third Item</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            This is the third card in a list.
+          </p>
+        </div>
+      </Card>
+    </div>
+  ),
+}

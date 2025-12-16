@@ -1,0 +1,25 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import PerformanceDashboard from '@/components/PerformanceDashboard'
+
+const meta: Meta<typeof PerformanceDashboard> = {
+  title: 'Components/PerformanceDashboard',
+  component: PerformanceDashboard,
+  parameters: {
+    layout: 'fullscreen',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+// Default performance dashboard
+export const Default: Story = {}
+
+// Collapsed state
+export const Collapsed: Story = {
+  render: () => {
+    const [isExpanded, setIsExpanded] = useState(false)
+    return <PerformanceDashboard isExpanded={isExpanded} onToggle={() => setIsExpanded(!isExpanded)} />
+  },
+}

@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import ParticlesShowcase from '@/components/experiments/ParticlesShowcase.tsx'
+
+const meta: Meta<typeof ParticlesShowcase> = {
+  title: 'components/ParticlesShowcase',
+  component: ParticlesShowcase,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import SparklesAnimation from '@/components/animations/SparklesAnimation.tsx'
+
+const meta: Meta<typeof SparklesAnimation> = {
+  title: 'components/SparklesAnimation',
+  component: SparklesAnimation,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

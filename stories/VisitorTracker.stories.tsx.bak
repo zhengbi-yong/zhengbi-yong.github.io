@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import VisitorTracker from '@/components/VisitorTracker.tsx'
+
+const meta: Meta<typeof VisitorTracker> = {
+  title: 'components/VisitorTracker',
+  component: VisitorTracker,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import ArticleCard from '@/components/book/ArticleCard.tsx'
+
+const meta: Meta<typeof ArticleCard> = {
+  title: 'components/ArticleCard',
+  component: ArticleCard,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

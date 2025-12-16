@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useAnalyticsStorage } from '@/components/hooks/useAnalyticsStorage'
 import { useTranslation } from 'react-i18next'
 import PageTitle from '@/components/PageTitle'
@@ -9,20 +9,38 @@ import { Button } from '@/components/ui/ButtonSimple'
 
 export default function AnalyticsPage() {
   const { t } = useTranslation()
-  const {
-    getAllData,
-    exportData,
-    importData,
-    clearAllData,
-    getDataStats,
-  } = useAnalyticsStorage()
+  const { getAllData, exportData, importData, clearAllData, getDataStats, isClient } =
+    useAnalyticsStorage()
 
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const stats = getDataStats()
-  const allData = getAllData()
+  // 使用 state 管理数据，确保在客户端准备好后获取并触发重新渲染
+  const [stats, setStats] = useState({
+    totalArticles: 0,
+    totalViews: 0,
+    avgEngagement: 0,
+    storageSize: 0,
+  })
+  const [allData, setAllData] = useState<Record<string, any>>({})
+
+  // 在客户端准备好后获取数据
+  useEffect(() => {
+    if (isClient) {
+      setStats(getDataStats())
+      setAllData(getAllData())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient])
+
+  // 刷新数据的辅助函数
+  const refreshData = () => {
+    if (isClient) {
+      setStats(getDataStats())
+      setAllData(getAllData())
+    }
+  }
 
   // 处理文件导入
   const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,8 +52,9 @@ export default function AnalyticsPage() {
 
     try {
       await importData(file)
-      alert('数据导入成功！页面将刷新以显示新数据。')
-      window.location.reload()
+      // 刷新数据而不刷新页面
+      refreshData()
+      alert('数据导入成功！')
     } catch (error) {
       console.error('Import failed:', error)
       setImportError(error instanceof Error ? error.message : '导入失败')
@@ -51,8 +70,9 @@ export default function AnalyticsPage() {
   const handleClearData = () => {
     if (confirm('确定要清除所有分析数据吗？此操作不可恢复。')) {
       clearAllData()
+      // 刷新数据而不刷新页面
+      refreshData()
       alert('所有数据已清除。')
-      window.location.reload()
     }
   }
 
@@ -64,7 +84,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
-      <div className="space-y-2 pb-8 pt-6 md:space-y-5">
+      <div className="space-y-2 pt-6 pb-8 md:space-y-5">
         <PageTitle>📊 分析数据管理</PageTitle>
         <p className="text-lg leading-7 text-gray-600 dark:text-gray-400">
           管理和导出您的博客文章阅读分析数据
@@ -73,9 +93,7 @@ export default function AnalyticsPage() {
 
       {/* 数据统计 */}
       <div className="py-8">
-        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-          数据概览
-        </h2>
+        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">数据概览</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
             <div className="flex items-center justify-between">
@@ -129,9 +147,7 @@ export default function AnalyticsPage() {
 
       {/* 数据操作 */}
       <div className="py-8">
-        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-          数据操作
-        </h2>
+        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">数据操作</h2>
         <div className="flex flex-wrap gap-4">
           <Button
             onClick={exportData}
@@ -173,9 +189,7 @@ export default function AnalyticsPage() {
 
         {importError && (
           <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-            <p className="text-sm text-red-800 dark:text-red-200">
-              导入失败：{importError}
-            </p>
+            <p className="text-sm text-red-800 dark:text-red-200">导入失败：{importError}</p>
           </div>
         )}
       </div>
@@ -234,8 +248,8 @@ export default function AnalyticsPage() {
                               data.engagementScore >= 80
                                 ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
                                 : data.engagementScore >= 60
-                                ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                                : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
+                                  ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
+                                  : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
                             }`}
                           >
                             {data.engagementScore || 0}/100
@@ -253,10 +267,8 @@ export default function AnalyticsPage() {
       {/* 说明信息 */}
       <div className="py-8">
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/20">
-          <h3 className="mb-2 text-lg font-semibold text-blue-900 dark:text-blue-100">
-            📌 说明
-          </h3>
-          <ul className="list-disc list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
+          <h3 className="mb-2 text-lg font-semibold text-blue-900 dark:text-blue-100">📌 说明</h3>
+          <ul className="list-inside list-disc space-y-1 text-sm text-blue-800 dark:text-blue-200">
             <li>所有分析数据都存储在您的浏览器本地存储中</li>
             <li>导出功能会将所有数据保存为 JSON 文件，方便备份和迁移</li>
             <li>导入功能可以合并数据，不会覆盖现有记录</li>

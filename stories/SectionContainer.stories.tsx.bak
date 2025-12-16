@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import SectionContainer from '@/components/SectionContainer.tsx'
+
+const meta: Meta<typeof SectionContainer> = {
+  title: 'components/SectionContainer',
+  component: SectionContainer,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

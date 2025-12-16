@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import AnimatedList from '@/components/AnimatedList.tsx'
+
+const meta: Meta<typeof AnimatedList> = {
+  title: 'components/AnimatedList',
+  component: AnimatedList,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs-vite'
+import { Button as ButtonSimple } from '@/components/ui/ButtonSimple'
+
+const meta: Meta<typeof ButtonSimple> = {
+  title: 'components/ButtonSimple',
+  component: ButtonSimple,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

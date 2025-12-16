@@ -1,0 +1,311 @@
+import dynamic from 'next/dynamic'
+import { ComponentType } from 'react'
+import { Loader } from '@/components/ui/Loader'
+
+/**
+ * 高级代码分割工具
+ * 提供优化的动态导入策略
+ */
+
+// 加载状态组件映射
+const LoadingComponents = {
+  // 基础加载器
+  default: Loader,
+
+  // 骨架屏
+  articleSkeleton: () => (
+    <div className="animate-pulse">
+      <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4" />
+      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+    </div>
+  ),
+
+  // 3D 加载器
+  threeLoader: () => (
+    <div className="flex h-96 items-center justify-center">
+      <div className="text-center">
+        <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
+        <p className="text-gray-600 dark:text-gray-400">Loading 3D content...</p>
+      </div>
+    </div>
+  ),
+
+  // 音频加载器
+  audioLoader: () => (
+    <div className="flex h-32 items-center justify-center">
+      <div className="text-center">
+        <div className="mb-2 flex justify-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="h-8 w-1 animate-pulse bg-blue-500"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            />
+          ))}
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Loading audio...</p>
+      </div>
+    </div>
+  ),
+}
+
+// 错误边界组件
+const ErrorFallback = ({
+  error,
+  resetErrorBoundary
+}: {
+  error: Error
+  resetErrorBoundary: () => void
+}) => (
+  <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
+    <div className="text-center">
+      <h3 className="mb-2 text-lg font-medium text-red-800 dark:text-red-200">
+        Failed to load component
+      </h3>
+      <p className="mb-4 text-sm text-red-600 dark:text-red-400">
+        {error.message}
+      </p>
+      <button
+        onClick={resetErrorBoundary}
+        className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+      >
+        Try again
+      </button>
+    </div>
+  </div>
+)
+
+// 动态导入配置
+interface DynamicImportOptions {
+  /** 加载状态类型 */
+  loadingType?: keyof typeof LoadingComponents
+  /** 是否启用 SSR */
+  ssr?: boolean
+  /** 导出名称（用于具名导出） */
+  exportName?: string
+  /** 预加载策略 */
+  preloadStrategy?: 'idle' | 'visible' | 'hover' | 'focus'
+  /** 错误边界 */
+  errorBoundary?: boolean
+  /** 自定义加载组件 */
+  LoadingComponent?: ComponentType
+}
+
+/**
+ * 创建优化的动态组件
+ */
+export function createDynamicComponent<T extends ComponentType<any>>(
+  importFn: () => Promise<{ default: T } | T>,
+  options: DynamicImportOptions = {}
+) {
+  const {
+    loadingType = 'default',
+    ssr = false,
+    exportName,
+    errorBoundary = true,
+    LoadingComponent = LoadingComponents[loadingType],
+    preloadStrategy,
+  } = options
+
+  // 处理导入函数
+  const dynamicImport = async () => {
+    const module = await importFn()
+    return exportName ? (module as any)[exportName] : (module as any).default || module
+  }
+
+  // 创建动态组件
+  const DynamicComponent = dynamic(dynamicImport, {
+    loading: LoadingComponent ? () => <LoadingComponent /> : undefined,
+    ssr,
+  })
+
+  // 包装错误边界
+  if (errorBoundary) {
+    return function WrappedComponent(props: any) {
+      return (
+        <ErrorBoundary fallback={ErrorFallback}>
+          <DynamicComponent {...props} />
+        </ErrorBoundary>
+      )
+    }
+  }
+
+  return DynamicComponent
+}
+
+/**
+ * 预加载策略实现
+ */
+export class PreloadManager {
+  private preloadedComponents = new Set<string>()
+  private observer: IntersectionObserver | null = null
+
+  constructor() {
+    // 设置交叉观察器用于可视区域预加载
+    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const componentName = entry.target.getAttribute('data-preload')
+              if (componentName && !this.preloadedComponents.has(componentName)) {
+                this.preloadComponent(componentName)
+              }
+            }
+          })
+        },
+        { rootMargin: '50px' }
+      )
+    }
+  }
+
+  /**
+   * 注册预加载触发器
+   */
+  registerPreloadTrigger(element: HTMLElement, componentName: string, strategy: string) {
+    if (!element || !componentName) return
+
+    switch (strategy) {
+      case 'visible':
+        element.setAttribute('data-preload', componentName)
+        this.observer?.observe(element)
+        break
+
+      case 'hover':
+        element.addEventListener('mouseenter', () => {
+          this.preloadComponent(componentName)
+        }, { once: true })
+        break
+
+      case 'focus':
+        element.addEventListener('focus', () => {
+          this.preloadComponent(componentName)
+        }, { once: true })
+        break
+
+      case 'idle':
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(() => {
+            this.preloadComponent(componentName)
+          })
+        }
+        break
+    }
+  }
+
+  /**
+   * 预加载组件
+   */
+  private async preloadComponent(componentName: string) {
+    if (this.preloadedComponents.has(componentName)) return
+
+    this.preloadedComponents.add(componentName)
+
+    // 根据组件名动态导入
+    try {
+      switch (componentName) {
+        case 'ThreeViewer':
+          await import('@/components/ThreeViewer')
+          break
+        case 'MusicPlayer':
+          await import('@/components/MusicPlayer')
+          break
+        case 'InteractiveMap':
+          await import('@/components/InteractiveMap')
+          break
+        case 'MusicSheet':
+          await import('@/components/MusicSheet')
+          break
+        // 添加更多组件...
+      }
+    } catch (error) {
+      console.warn(`Failed to preload component: ${componentName}`, error)
+    }
+  }
+
+  /**
+   * 清理资源
+   */
+  dispose() {
+    this.observer?.disconnect()
+    this.observer = null
+    this.preloadedComponents.clear()
+  }
+}
+
+// 全局预加载管理器
+export const preloadManager = new PreloadManager()
+
+// 预定义的动态组件
+export const DynamicComponents = {
+  // 3D 组件
+  ThreeViewer: createDynamicComponent(
+    () => import('@/components/ThreeViewer'),
+    { loadingType: 'threeLoader', ssr: false, preloadStrategy: 'visible' }
+  ),
+
+  // 音频组件
+  MusicPlayer: createDynamicComponent(
+    () => import('@/components/MusicPlayer'),
+    { loadingType: 'audioLoader', ssr: false, preloadStrategy: 'hover' }
+  ),
+
+  // 地图组件
+  InteractiveMap: createDynamicComponent(
+    () => import('@/components/InteractiveMap'),
+    { loadingType: 'default', ssr: false, preloadStrategy: 'visible' }
+  ),
+
+  // 乐谱组件
+  MusicSheet: createDynamicComponent(
+    () => import('@/components/MusicSheet'),
+    { loadingType: 'default', ssr: false }
+  ),
+
+  // 动画组件
+  ParticleAnimation: createDynamicComponent(
+    () => import('@/components/animations/ParticleAnimation'),
+    { loadingType: 'default', ssr: false, preloadStrategy: 'idle' }
+  ),
+
+  ConfettiAnimation: createDynamicComponent(
+    () => import('@/components/animations/ConfettiAnimation'),
+    { loadingType: 'default', ssr: false, preloadStrategy: 'hover' }
+  ),
+}
+
+// 简单的错误边界实现
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback: ComponentType<{ error: Error; resetErrorBoundary: () => void }> },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: any) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Dynamic component error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError && this.state.error) {
+      const FallbackComponent = this.props.fallback
+      return (
+        <FallbackComponent
+          error={this.state.error}
+          resetErrorBoundary={() => {
+            this.setState({ hasError: false, error: null })
+          }}
+        />
+      )
+    }
+
+    return this.props.children
+  }
+}

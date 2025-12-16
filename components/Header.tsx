@@ -68,7 +68,8 @@ export default function Header() {
     e.preventDefault()
     // TODO: 替换为实际的 Resume PDF 文件路径
     // 例如: window.open('/resume.pdf', '_blank')
-    console.log('Resume button clicked')
+    // 临时禁用，等待简历文件准备就绪
+    // window.open('/resume.pdf', '_blank')
   }, [])
 
   // 处理键盘事件（用于可访问性）

@@ -16,14 +16,16 @@
 
 ## 技术栈
 
-- **框架**: Next.js 15.1.4 (App Router)
+- **框架**: Next.js 16 (App Router + Turbopack)
 - **语言**: TypeScript
-- **样式**: Tailwind CSS 4.0.5
-- **内容管理**: Contentlayer2 0.5.4
-- **UI 组件**: Headless UI, Radix UI, Shadcn UI
-- **动画**: Framer Motion 12.23.24, Tailwind CSS Animate
-- **3D 渲染**: Three.js, URDF Loader
-- **其他**: Pliny (分析、评论、搜索), MDX, KaTeX, Prism
+- **样式**: Tailwind CSS 4
+- **内容管理**: Contentlayer2
+- **国际化**: react-i18next
+- **UI 组件**: Radix UI, Shadcn UI
+- **动画**: Framer Motion
+- **3D 渲染**: Three.js
+- **监控**: Sentry
+- **测试**: Vitest, React Testing Library
 
 ## 功能特性
 
@@ -58,7 +60,7 @@
 ## 环境要求
 
 - Node.js >= 18.0.0
-- Yarn >= 3.6.1 (使用 Corepack 管理)
+- pnpm >= 8.0.0 (推荐)
 - Git
 
 ### Windows 用户额外要求
@@ -78,7 +80,7 @@ cd blog
 ### 2. 安装依赖
 
 ```bash
-yarn
+pnpm install
 ```
 
 **Windows 用户注意**：如果遇到 `$PWD` 未定义错误，请先运行：
@@ -121,13 +123,15 @@ NEXT_UMAMI_ID=your-umami-id
 ### 5. 启动开发服务器
 
 **Windows (推荐)**:
+
 ```powershell
 .\dev.ps1
 ```
 
 **Linux/Mac**:
+
 ```bash
-yarn dev
+pnpm dev
 ```
 
 访问 [http://localhost:3000](http://localhost:3000) 查看效果。
@@ -185,14 +189,14 @@ blog/
 ---
 title: '文章标题'
 date: '2025-01-01'
-lastmod: '2025-01-02'  # 可选
+lastmod: '2025-01-02' # 可选
 tags: ['标签1', '标签2']
-draft: false  # 设置为 true 可在开发环境查看，生产环境隐藏
+draft: false # 设置为 true 可在开发环境查看，生产环境隐藏
 summary: '文章摘要'
-images: ['/static/images/example.jpg']  # 可选
-authors: ['default']  # 可选，默认为 default
-layout: PostLayout  # 可选，默认为 PostLayout
-canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
+images: ['/static/images/example.jpg'] # 可选
+authors: ['default'] # 可选，默认为 default
+layout: PostLayout # 可选，默认为 PostLayout
+canonicalUrl: https://example.com/blog/post # 可选，用于 SEO
 ---
 ```
 
@@ -222,6 +226,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `src`: `string` - 图片路径（必需）
 - `alt`: `string` - 图片描述（必需）
 - `width`: `number` - 图片宽度
@@ -233,7 +238,9 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 
 ```mdx
 <a href="/blog/post">链接文本</a>
-<a href="https://example.com" target="_blank">外部链接</a>
+<a href="https://example.com" target="_blank">
+  外部链接
+</a>
 ```
 
 所有标准的 `<a>` 标签属性都支持，链接会自动使用增强的 `CustomLink` 组件处理，支持预加载功能。
@@ -280,6 +287,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `toc`: `TOC` - 目录数据（必需，通常从文章 frontmatter 获取）
 - `exclude`: `string` - 要排除的标题文本（可选）
 
@@ -292,6 +300,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `title`: `string` - 表单标题（可选）
 
 ### 动画组件（已注册）
@@ -300,7 +309,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 
 ```mdx
 <AnimatedSection direction="up" delay={100}>
-  <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+  <div className="rounded-lg bg-gray-100 p-4 dark:bg-gray-800">
     <h3>这是一个会淡入并上滑的内容块</h3>
     <p>当用户滚动到这个区域时，内容会以动画形式出现。</p>
   </div>
@@ -308,6 +317,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `direction`: `'up' | 'down' | 'left' | 'right'` - 动画方向，默认 `'up'`
 - `delay`: `number` - 延迟时间（毫秒），默认 `0`
 - `className`: `string` - 自定义 CSS 类名
@@ -323,6 +333,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `staggerDelay`: `number` - 每个子元素之间的延迟（毫秒），默认 `100`
 - `className`: `string` - 自定义 CSS 类名
 
@@ -330,7 +341,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 
 ```mdx
 <FadeIn delay={0.2} duration={0.5} whileInView={true}>
-  <div className="p-4 bg-blue-100 dark:bg-blue-900 rounded-lg">
+  <div className="rounded-lg bg-blue-100 p-4 dark:bg-blue-900">
     <h3>淡入效果</h3>
     <p>这个内容会在滚动到视口时淡入显示。</p>
   </div>
@@ -338,6 +349,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.5`
 - `whileInView`: `boolean` - 是否在进入视口时触发，默认 `false`
@@ -347,7 +359,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 
 ```mdx
 <SlideIn direction="up" delay={0.1} duration={0.5} distance={20} whileInView={true}>
-  <div className="p-4 bg-green-100 dark:bg-green-900 rounded-lg">
+  <div className="rounded-lg bg-green-100 p-4 dark:bg-green-900">
     <h3>向上滑入</h3>
     <p>内容会从下方滑入并淡入显示。</p>
   </div>
@@ -355,6 +367,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `direction`: `'up' | 'down' | 'left' | 'right'` - 滑动方向，默认 `'up'`
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.5`
@@ -366,7 +379,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 
 ```mdx
 <ScaleIn scale={0.8} delay={0.2} duration={0.5} whileInView={true}>
-  <div className="p-4 bg-purple-100 dark:bg-purple-900 rounded-lg">
+  <div className="rounded-lg bg-purple-100 p-4 dark:bg-purple-900">
     <h3>缩放进入</h3>
     <p>内容会从 0.8 倍缩放并淡入显示。</p>
   </div>
@@ -374,6 +387,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `scale`: `number` - 初始缩放比例，默认 `0.8`
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.5`
@@ -384,7 +398,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 
 ```mdx
 <RotateIn angle={180} delay={0.2} duration={0.5} whileInView={true}>
-  <div className="p-4 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+  <div className="rounded-lg bg-yellow-100 p-4 dark:bg-yellow-900">
     <h3>旋转进入</h3>
     <p>内容会旋转并淡入显示。</p>
   </div>
@@ -392,6 +406,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `angle`: `number` - 旋转角度，默认 `180`
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.5`
@@ -402,7 +417,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 
 ```mdx
 <BounceIn delay={0.2} duration={0.6} whileInView={true}>
-  <div className="p-4 bg-red-100 dark:bg-red-900 rounded-lg">
+  <div className="rounded-lg bg-red-100 p-4 dark:bg-red-900">
     <h3>弹跳进入</h3>
     <p>内容会弹跳并淡入显示。</p>
   </div>
@@ -410,6 +425,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.6`
 - `whileInView`: `boolean` - 是否在进入视口时触发，默认 `false`
@@ -424,6 +440,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 ```
 
 **参数说明**：
+
 - `src`: `string` - MusicXML 文件路径（必需），相对于 `public/musicxml/` 目录
 - `zoom`: `number` - 缩放级别，默认 `1.0`（范围：0.5 - 3.0）
 - `drawTitle`: `boolean` - 是否显示标题、作曲者等信息，默认 `true`
@@ -434,17 +451,16 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
 
 ```mdx
 <!-- 基本用法 -->
+
 <MusicSheet src="simple-example.xml" />
 
 <!-- 自定义缩放 -->
+
 <MusicSheet src="multi-part-example.xml" zoom={1.2} />
 
 <!-- 隐藏标题和小节号 -->
-<MusicSheet 
-  src="simple-example.xml" 
-  drawTitle={false} 
-  drawMeasureNumbers={false} 
-/>
+
+<MusicSheet src="simple-example.xml" drawTitle={false} drawMeasureNumbers={false} />
 ```
 
 **准备工作**：
@@ -462,6 +478,7 @@ canonicalUrl: https://example.com/blog/post  # 可选，用于 SEO
    - 无需导入，组件已自动注册
 
 **注意事项**：
+
 - MusicXML 文件必须放在 `public/musicxml/` 目录下
 - 文件路径使用相对于该目录的文件名（如 `simple-example.xml`）
 - 组件会自动处理路径问题，支持静态导出和动态部署
@@ -505,17 +522,18 @@ tags: ['Tutorial']
 
 import { Button } from '@/components/components/ui/button'
 
-<Button onClick={() => alert('按钮被点击！')}>
-  点击我
-</Button>
+<Button onClick={() => alert('按钮被点击！')}>点击我</Button>
 
-<Button variant="outline" size="sm">小按钮</Button>
+<Button variant="outline" size="sm">
+  小按钮
+</Button>
 <Button variant="destructive">危险按钮</Button>
 <Button variant="ghost">幽灵按钮</Button>
 <Button variant="link">链接按钮</Button>
 ```
 
 **参数说明**：
+
 - `variant`: `'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'` - 按钮样式，默认 `'default'`
 - `size`: `'default' | 'sm' | 'lg' | 'icon'` - 按钮尺寸，默认 `'default'`
 - `asChild`: `boolean` - 是否作为子元素渲染，默认 `false`
@@ -533,13 +551,21 @@ import { Badge } from '@/components/components/ui/badge'
 ```
 
 **参数说明**：
+
 - `variant`: `'default' | 'secondary' | 'destructive' | 'outline'` - 徽章样式，默认 `'default'`
 - 其他标准 `<div>` 标签的所有属性
 
 #### 3. Card - 卡片组件
 
 ```mdx
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/components/ui/card'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/components/ui/card'
 
 <Card>
   <CardHeader>
@@ -584,7 +610,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/component
 #### 6. Accordion - 手风琴组件
 
 ```mdx
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/components/ui/accordion'
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@/components/components/ui/accordion'
 
 <Accordion type="single" collapsible>
   <AccordionItem value="item-1">
@@ -607,6 +638,7 @@ import { Progress } from '@/components/components/ui/progress'
 ```
 
 **参数说明**：
+
 - `value`: `number` - 进度值（0-100），默认 `0`
 
 #### 8. Separator - 分隔线组件
@@ -622,7 +654,12 @@ import { Separator } from '@/components/components/ui/separator'
 #### 9. Tooltip - 工具提示组件
 
 ```mdx
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/components/ui/tooltip'
 
 <TooltipProvider>
   <Tooltip>
@@ -637,7 +674,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 #### 10. Dialog - 对话框组件
 
 ```mdx
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/components/ui/dialog'
 
 <Dialog>
   <DialogTrigger>打开对话框</DialogTrigger>
@@ -654,7 +698,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 #### 11. DropdownMenu - 下拉菜单组件
 
 ```mdx
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/components/ui/dropdown-menu'
 
 <DropdownMenu>
   <DropdownMenuTrigger>打开菜单</DropdownMenuTrigger>
@@ -718,7 +769,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 
 ## 使用徽章
 
-<Badge>React</Badge> <Badge variant="secondary">Next.js</Badge> <Badge variant="outline">TypeScript</Badge>
+<Badge>React</Badge> <Badge variant="secondary">Next.js</Badge>
+<Badge variant="outline">TypeScript</Badge>
 ```
 
 ### 可用的动画组件
@@ -729,7 +781,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 
 ```mdx
 <AnimatedSection direction="up" delay={100}>
-  <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+  <div className="rounded-lg bg-gray-100 p-4 dark:bg-gray-800">
     <h3>这是一个会淡入并上滑的内容块</h3>
     <p>当用户滚动到这个区域时，内容会以动画形式出现。</p>
   </div>
@@ -737,6 +789,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 ```
 
 **参数说明**：
+
 - `direction`: `'up' | 'down' | 'left' | 'right'` - 动画方向，默认 `'up'`
 - `delay`: `number` - 延迟时间（毫秒），默认 `0`
 - `className`: `string` - 自定义 CSS 类名
@@ -752,6 +805,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 ```
 
 **参数说明**：
+
 - `staggerDelay`: `number` - 每个子元素之间的延迟（毫秒），默认 `100`
 - `className`: `string` - 自定义 CSS 类名
 
@@ -761,7 +815,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 
 ```mdx
 <FadeIn delay={0.2} duration={0.5} whileInView={true}>
-  <div className="p-4 bg-blue-100 dark:bg-blue-900 rounded-lg">
+  <div className="rounded-lg bg-blue-100 p-4 dark:bg-blue-900">
     <h3>淡入效果</h3>
     <p>这个内容会在滚动到视口时淡入显示。</p>
   </div>
@@ -769,6 +823,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 ```
 
 **参数说明**：
+
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.5`
 - `whileInView`: `boolean` - 是否在进入视口时触发，默认 `false`
@@ -778,14 +833,14 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 
 ```mdx
 <SlideIn direction="up" delay={0.1} whileInView={true}>
-  <div className="p-4 bg-green-100 dark:bg-green-900 rounded-lg">
+  <div className="rounded-lg bg-green-100 p-4 dark:bg-green-900">
     <h3>向上滑入</h3>
     <p>内容会从下方滑入并淡入显示。</p>
   </div>
 </SlideIn>
 
 <SlideIn direction="left" delay={0.2} whileInView={true}>
-  <div className="p-4 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+  <div className="rounded-lg bg-yellow-100 p-4 dark:bg-yellow-900">
     <h3>向左滑入</h3>
     <p>内容会从右侧滑入。</p>
   </div>
@@ -793,6 +848,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 ```
 
 **参数说明**：
+
 - `direction`: `'up' | 'down' | 'left' | 'right'` - 滑动方向，默认 `'up'`
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.5`
@@ -804,7 +860,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 
 ```mdx
 <ScaleIn scale={0.8} delay={0.2} whileInView={true}>
-  <div className="p-4 bg-purple-100 dark:bg-purple-900 rounded-lg">
+  <div className="rounded-lg bg-purple-100 p-4 dark:bg-purple-900">
     <h3>缩放进入</h3>
     <p>内容会从 0.8 倍缩放并淡入显示。</p>
   </div>
@@ -812,6 +868,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 ```
 
 **参数说明**：
+
 - `scale`: `number` - 初始缩放比例，默认 `0.8`
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.5`
@@ -824,12 +881,12 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/component
 
 ```mdx
 <SlideIn direction="up" delay={0} whileInView={true}>
-  <div className="p-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white">
+  <div className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 p-6 text-white">
     <h2>组合动画示例</h2>
     <p className="mb-4">外层使用滑入动画</p>
-    
+
     <ScaleIn delay={0.3} whileInView={true}>
-      <button className="px-4 py-2 bg-white text-blue-500 rounded hover:bg-gray-100">
+      <button className="rounded bg-white px-4 py-2 text-blue-500 hover:bg-gray-100">
         内部按钮使用缩放动画
       </button>
     </ScaleIn>
@@ -893,7 +950,7 @@ summary: '学习如何在 MDX 文章中使用动画组件'
 这篇文章展示了如何在 MDX 中使用动画组件。
 
 <FadeIn delay={0.2} whileInView={true}>
-  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+  <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
     <h3>重要提示</h3>
     <p>这个提示框使用了淡入动画。</p>
   </div>
@@ -902,15 +959,15 @@ summary: '学习如何在 MDX 文章中使用动画组件'
 ## 步骤说明
 
 <AnimatedList staggerDelay={150}>
-  <div className="p-4 mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+  <div className="mb-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
     <h4>步骤 1：准备</h4>
     <p>准备所需材料...</p>
   </div>
-  <div className="p-4 mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+  <div className="mb-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
     <h4>步骤 2：实施</h4>
     <p>按照计划实施...</p>
   </div>
-  <div className="p-4 mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+  <div className="mb-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
     <h4>步骤 3：验证</h4>
     <p>验证结果...</p>
   </div>
@@ -919,7 +976,7 @@ summary: '学习如何在 MDX 文章中使用动画组件'
 ## 代码示例
 
 <SlideIn direction="up" delay={0.1} whileInView={true}>
-  <div className="p-4 bg-gray-900 rounded-lg">
+  <div className="rounded-lg bg-gray-900 p-4">
     <pre className="text-green-400">
       <code>{`// 这是一个代码示例
 function example() {
@@ -989,9 +1046,7 @@ import { Badge } from '@/components/components/ui/badge'
 
 ## 使用 Shadcn UI 组件
 
-<Button onClick={() => alert('按钮被点击！')}>
-  点击我
-</Button>
+<Button onClick={() => alert('按钮被点击！')}>点击我</Button>
 
 <Badge variant="secondary">标签</Badge>
 ```
@@ -1011,17 +1066,18 @@ import { Badge } from '@/components/components/ui/badge'
 ```tsx
 import Image from '@/components/Image'
 
-<Image
+;<Image
   src="/path/to/image.jpg"
   alt="图片描述"
   width={800}
   height={600}
-  priority={false}  // 是否优先加载
+  priority={false} // 是否优先加载
   blurDataURL="..." // 模糊占位符
 />
 ```
 
 **参数说明**：
+
 - `src`: `string` - 图片路径（必需）
 - `alt`: `string` - 图片描述（必需）
 - `width`: `number` - 图片宽度
@@ -1037,12 +1093,13 @@ import Image from '@/components/Image'
 ```tsx
 import Link from '@/components/Link'
 
-<Link href="/blog/post" prefetch={true} prefetchOnHover={true}>
+;<Link href="/blog/post" prefetch={true} prefetchOnHover={true}>
   链接文本
 </Link>
 ```
 
 **参数说明**：
+
 - `href`: `string` - 链接地址（必需）
 - `prefetch`: `boolean` - 是否预加载，默认 `true`
 - `prefetchOnHover`: `boolean` - 是否在悬停时预加载，默认 `true`
@@ -1055,15 +1112,11 @@ import Link from '@/components/Link'
 ```tsx
 import Card from '@/components/Card'
 
-<Card
-  title="卡片标题"
-  description="卡片描述"
-  imgSrc="/path/to/image.jpg"
-  href="/link/to/page"
-/>
+;<Card title="卡片标题" description="卡片描述" imgSrc="/path/to/image.jpg" href="/link/to/page" />
 ```
 
 **参数说明**：
+
 - `title`: `string` - 卡片标题（必需）
 - `description`: `string` - 卡片描述（必需）
 - `imgSrc`: `string` - 图片路径（可选）
@@ -1076,10 +1129,11 @@ import Card from '@/components/Card'
 ```tsx
 import Tag from '@/components/Tag'
 
-<Tag text="React" />
+;<Tag text="React" />
 ```
 
 **参数说明**：
+
 - `text`: `string` - 标签文本（必需）
 
 #### Button - 按钮组件
@@ -1089,10 +1143,10 @@ import Tag from '@/components/Tag'
 ```tsx
 import Button from '@/components/ui/Button'
 
-<Button
+;<Button
   url="/link"
-  type="fill"  // 'solid' | 'fill' | 'disabled'
-  size="md"    // 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  type="fill" // 'solid' | 'fill' | 'disabled'
+  size="md" // 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   target="_blank"
   onClick={(e) => console.log('clicked')}
 >
@@ -1101,6 +1155,7 @@ import Button from '@/components/ui/Button'
 ```
 
 **参数说明**：
+
 - `url`: `string` - 按钮链接（必需）
 - `type`: `'solid' | 'fill' | 'disabled'` - 按钮类型，默认 `'solid'`
 - `size`: `'xs' | 'sm' | 'md' | 'lg' | 'xl'` - 按钮尺寸，默认 `'md'`
@@ -1115,7 +1170,7 @@ import Button from '@/components/ui/Button'
 ```tsx
 import Logo from '@/components/Logo'
 
-<Logo />
+;<Logo />
 ```
 
 #### PageTitle - 页面标题组件
@@ -1125,7 +1180,7 @@ import Logo from '@/components/Logo'
 ```tsx
 import PageTitle from '@/components/PageTitle'
 
-<PageTitle>页面标题</PageTitle>
+;<PageTitle>页面标题</PageTitle>
 ```
 
 ### 动画组件
@@ -1141,6 +1196,7 @@ import PageTitle from '@/components/PageTitle'
 ```
 
 **参数说明**：
+
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.5`
 - `angle`: `number` - 旋转角度，默认 `180`
@@ -1158,6 +1214,7 @@ import PageTitle from '@/components/PageTitle'
 ```
 
 **参数说明**：
+
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.6`
 - `whileInView`: `boolean` - 是否在进入视口时触发，默认 `false`
@@ -1170,15 +1227,11 @@ import PageTitle from '@/components/PageTitle'
 ```tsx
 import AnimatedText from '@/components/home/AnimatedText'
 
-<AnimatedText
-  content="这是要动画显示的文字"
-  delay={0.2}
-  duration={0.6}
-  stagger={0.1}
-/>
+;<AnimatedText content="这是要动画显示的文字" delay={0.2} duration={0.6} stagger={0.1} />
 ```
 
 **参数说明**：
+
 - `content`: `string` - 要显示的文字内容（必需）
 - `delay`: `number` - 延迟时间（秒），默认 `0`
 - `duration`: `number` - 动画时长（秒），默认 `0.6`
@@ -1194,7 +1247,7 @@ import AnimatedText from '@/components/home/AnimatedText'
 ```tsx
 import Header from '@/components/Header'
 
-<Header />
+;<Header />
 ```
 
 该组件会自动从 `data/headerNavLinks.ts` 读取导航链接配置。
@@ -1206,7 +1259,7 @@ import Header from '@/components/Header'
 ```tsx
 import Footer from '@/components/Footer'
 
-<Footer />
+;<Footer />
 ```
 
 该组件会自动从 `data/siteMetadata.ts` 读取社交链接配置。
@@ -1218,10 +1271,11 @@ import Footer from '@/components/Footer'
 ```tsx
 import BackToTop from '@/components/BackToTop'
 
-<BackToTop threshold={300} className="custom-class" />
+;<BackToTop threshold={300} className="custom-class" />
 ```
 
 **参数说明**：
+
 - `threshold`: `number` - 显示按钮的滚动阈值（像素），默认 `300`
 - `className`: `string` - 自定义 CSS 类名
 
@@ -1232,10 +1286,11 @@ import BackToTop from '@/components/BackToTop'
 ```tsx
 import FloatingTOC from '@/components/FloatingTOC'
 
-<FloatingTOC toc={tocData} enabled={true} />
+;<FloatingTOC toc={tocData} enabled={true} />
 ```
 
 **参数说明**：
+
 - `toc`: `TOC` - 目录数据（必需）
 - `enabled`: `boolean` - 是否启用，默认 `true`
 
@@ -1246,14 +1301,15 @@ import FloatingTOC from '@/components/FloatingTOC'
 ```tsx
 import ScrollProgress from '@/components/ScrollProgress'
 
-<ScrollProgress
+;<ScrollProgress
   height={2}
   color="#3b82f6"
-  position="top"  // 'top' | 'bottom'
+  position="top" // 'top' | 'bottom'
 />
 ```
 
 **参数说明**：
+
 - `height`: `number` - 进度条高度（像素），默认 `2`
 - `color`: `string` - 进度条颜色（可选，默认根据主题自动选择）
 - `position`: `'top' | 'bottom'` - 位置，默认 `'top'`
@@ -1266,7 +1322,7 @@ import ScrollProgress from '@/components/ScrollProgress'
 ```tsx
 import SearchButton from '@/components/SearchButton'
 
-<SearchButton />
+;<SearchButton />
 ```
 
 该组件会根据 `data/siteMetadata.ts` 中的搜索配置自动选择搜索提供商。
@@ -1278,7 +1334,7 @@ import SearchButton from '@/components/SearchButton'
 ```tsx
 import ThemeSwitch from '@/components/ThemeSwitch'
 
-<ThemeSwitch />
+;<ThemeSwitch />
 ```
 
 #### ScrollTopAndComment - 滚动和评论按钮
@@ -1288,7 +1344,7 @@ import ThemeSwitch from '@/components/ThemeSwitch'
 ```tsx
 import ScrollTopAndComment from '@/components/ScrollTopAndComment'
 
-<ScrollTopAndComment />
+;<ScrollTopAndComment />
 ```
 
 ### 首页组件
@@ -1300,14 +1356,11 @@ import ScrollTopAndComment from '@/components/ScrollTopAndComment'
 ```tsx
 import HeroCard from '@/components/home/HeroCard'
 
-<HeroCard
-  imageUrl="/path/to/image.jpg"
-  title="项目标题"
-  link="https://example.com"
-/>
+;<HeroCard imageUrl="/path/to/image.jpg" title="项目标题" link="https://example.com" />
 ```
 
 **参数说明**：
+
 - `imageUrl`: `string` - 图片路径（必需）
 - `title`: `string` - 标题，默认 `'Home'`
 - `link`: `string` - 链接地址，默认 `''`
@@ -1320,10 +1373,11 @@ import HeroCard from '@/components/home/HeroCard'
 ```tsx
 import SocialCard from '@/components/home/SocialCard'
 
-<SocialCard displaySocialIds={[1, 2, 3]} />
+;<SocialCard displaySocialIds={[1, 2, 3]} />
 ```
 
 **参数说明**：
+
 - `displaySocialIds`: `number[]` - 要显示的社交媒体 ID 列表（可选，不提供则显示所有）
 
 #### ToolsCard - 工具卡片
@@ -1333,18 +1387,17 @@ import SocialCard from '@/components/home/SocialCard'
 ```tsx
 import ToolsCard from '@/components/home/ToolsCard'
 
-<ToolsCard
+;<ToolsCard
   backgroundImage="/assets/tools/deck.png"
   iconBackgroundImage="/assets/tools/tool-icon-bg.png"
-  tools={[
-    { icon: '/path/to/icon.svg', alt: 'Tool Name', width: 24 }
-  ]}
+  tools={[{ icon: '/path/to/icon.svg', alt: 'Tool Name', width: 24 }]}
   spinBarImage="/assets/tools/spin-bar.svg"
   spinIcons={['/path/to/spin1.png', '/path/to/spin2.png']}
 />
 ```
 
 **参数说明**：
+
 - `backgroundImage`: `string` - 背景图片路径
 - `iconBackgroundImage`: `string` - 图标背景图片路径
 - `tools`: `Tool[]` - 工具列表
@@ -1361,7 +1414,7 @@ import ToolsCard from '@/components/home/ToolsCard'
 ```tsx
 import BlogCard from '@/components/sections/BlogCard'
 
-<BlogCard
+;<BlogCard
   content={{
     title: '文章标题',
     description: '文章描述',
@@ -1370,13 +1423,14 @@ import BlogCard from '@/components/sections/BlogCard'
     img: '/path/to/image.jpg',
     img_alt: '图片描述',
     slug: 'article-slug',
-    link: '/blog/article-slug'
+    link: '/blog/article-slug',
   }}
-  layout="vertical"  // 'vertical' | 'horizontal'
+  layout="vertical" // 'vertical' | 'horizontal'
 />
 ```
 
 **参数说明**：
+
 - `content`: `object` - 文章内容对象（必需）
   - `title`: `string` - 文章标题
   - `description`: `string` - 文章描述
@@ -1396,14 +1450,11 @@ import BlogCard from '@/components/sections/BlogCard'
 ```tsx
 import PageHeader from '@/components/sections/PageHeader'
 
-<PageHeader
-  title="页面标题"
-  description="页面描述"
-  tags={['标签1', '标签2']}
-/>
+;<PageHeader title="页面标题" description="页面描述" tags={['标签1', '标签2']} />
 ```
 
 **参数说明**：
+
 - `title`: `string` - 页面标题（必需）
 - `description`: `string` - 页面描述（可选）
 - `tags`: `string[]` - 标签列表（可选）
@@ -1416,10 +1467,8 @@ import PageHeader from '@/components/sections/PageHeader'
 ```tsx
 import TableWrapper from '@/components/TableWrapper'
 
-<TableWrapper>
-  <table>
-    {/* 表格内容 */}
-  </table>
+;<TableWrapper>
+  <table>{/* 表格内容 */}</table>
 </TableWrapper>
 ```
 
@@ -1432,10 +1481,11 @@ import TableWrapper from '@/components/TableWrapper'
 ```tsx
 import WorksSection from '@/components/sections/WorksSection'
 
-<WorksSection limit={5} />
+;<WorksSection limit={5} />
 ```
 
 **参数说明**：
+
 - `limit`: `number` - 显示的作品数量限制（可选）
 
 #### BlogSection - 博客列表部分
@@ -1445,7 +1495,7 @@ import WorksSection from '@/components/sections/WorksSection'
 ```tsx
 import BlogSection from '@/components/sections/BlogSection'
 
-<BlogSection posts={postsData} />
+;<BlogSection posts={postsData} />
 ```
 
 ### 工具组件
@@ -1457,7 +1507,7 @@ import BlogSection from '@/components/sections/BlogSection'
 ```tsx
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
-<ErrorBoundary
+;<ErrorBoundary
   fallback={<div>出错了</div>}
   onError={(error, errorInfo) => console.error(error, errorInfo)}
 >
@@ -1466,6 +1516,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 ```
 
 **参数说明**：
+
 - `fallback`: `ReactNode` - 错误时显示的 UI（可选）
 - `onError`: `(error: Error, errorInfo: React.ErrorInfo) => void` - 错误回调函数（可选）
 
@@ -1476,17 +1527,13 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 ```tsx
 import LazyComponent from '@/components/LazyComponent'
 
-<LazyComponent
-  fallback={<div>加载中...</div>}
-  threshold={0.1}
-  rootMargin="50px"
-  once={true}
->
+;<LazyComponent fallback={<div>加载中...</div>} threshold={0.1} rootMargin="50px" once={true}>
   <HeavyComponent />
 </LazyComponent>
 ```
 
 **参数说明**：
+
 - `fallback`: `ReactNode` - 加载时显示的 UI，默认 `null`
 - `threshold`: `number` - 触发阈值，默认 `0.1`
 - `rootMargin`: `string` - 根边距，默认 `'50px'`
@@ -1499,12 +1546,11 @@ import LazyComponent from '@/components/LazyComponent'
 ```tsx
 import PageTransition from '@/components/PageTransition'
 
-<PageTransition>
-  {children}
-</PageTransition>
+;<PageTransition>{children}</PageTransition>
 ```
 
 **参数说明**：
+
 - `className`: `string` - 自定义 CSS 类名
 
 #### SectionContainer - 区域容器
@@ -1514,7 +1560,7 @@ import PageTransition from '@/components/PageTransition'
 ```tsx
 import SectionContainer from '@/components/SectionContainer'
 
-<SectionContainer>
+;<SectionContainer>
   <YourContent />
 </SectionContainer>
 ```
@@ -1528,18 +1574,19 @@ import SectionContainer from '@/components/SectionContainer'
 ```tsx
 import ThreeJSViewer from '@/components/ThreeJSViewer'
 
-<ThreeJSViewer
+;<ThreeJSViewer
   modelPath="/models/robot.urdf"
   qualityProfile={{
     pixelRatio: 1.5,
     enableShadows: true,
     lightIntensity: 1.0,
-    maxDistance: 5
+    maxDistance: 5,
   }}
 />
 ```
 
 **参数说明**：
+
 - `modelPath`: `string` - URDF 模型文件路径（可选，有默认值）
 - `qualityProfile`: `object` - 质量配置（可选）
   - `pixelRatio`: `number` - 像素比
@@ -1557,10 +1604,11 @@ import ThreeJSViewer from '@/components/ThreeJSViewer'
 ```tsx
 import { Spinner } from '@/components/loaders'
 
-<Spinner size="lg" className="custom-class" />
+;<Spinner size="lg" className="custom-class" />
 ```
 
 **参数说明**：
+
 - `size`: `'sm' | 'md' | 'lg'` - 尺寸，默认 `'md'`
 - `className`: `string` - 自定义 CSS 类名
 
@@ -1571,10 +1619,11 @@ import { Spinner } from '@/components/loaders'
 ```tsx
 import { Skeleton } from '@/components/loaders'
 
-<Skeleton className="h-4 w-full" />
+;<Skeleton className="h-4 w-full" />
 ```
 
 **参数说明**：
+
 - `className`: `string` - 自定义 CSS 类名
 
 #### ImageSkeleton - 图片骨架屏
@@ -1584,14 +1633,11 @@ import { Skeleton } from '@/components/loaders'
 ```tsx
 import { ImageSkeleton } from '@/components/loaders'
 
-<ImageSkeleton
-  aspectRatio="16/9"
-  showSpinner={true}
-  className="w-full"
-/>
+;<ImageSkeleton aspectRatio="16/9" showSpinner={true} className="w-full" />
 ```
 
 **参数说明**：
+
 - `aspectRatio`: `string` - 宽高比，如 `"16/9"`
 - `showSpinner`: `boolean` - 是否显示旋转器，默认 `false`
 - `className`: `string` - 自定义 CSS 类名
@@ -1636,6 +1682,7 @@ yarn analyze
 #### 1. 构建静态文件
 
 **Windows**:
+
 ```powershell
 $env:PWD = $(Get-Location).Path
 $env:EXPORT = 1
@@ -1644,6 +1691,7 @@ yarn build
 ```
 
 **Linux/Mac**:
+
 ```bash
 EXPORT=1 UNOPTIMIZED=1 yarn build
 ```
@@ -1653,11 +1701,13 @@ EXPORT=1 UNOPTIMIZED=1 yarn build
 #### 2. 部署到服务器
 
 **使用 rsync (Windows)**:
+
 ```powershell
 .\sync.ps1
 ```
 
 该脚本会：
+
 1. 运行代码检查
 2. 构建项目
 3. 使用 rsync 同步到远程服务器
@@ -1695,7 +1745,7 @@ server {
 
     # 静态资源根目录（必须指向 out 目录的完整路径）
     root /home/ubuntu/PersonalBlog/out;  # 替换为您的实际路径
-    
+
     # 默认首页配置
     index index.html;
 
@@ -1741,6 +1791,7 @@ server {
 ```
 
 **配置说明**：
+
 - `server_name`: 替换为您的域名或 IP 地址（多个用空格分隔）
 - `root`: 替换为 `out` 目录在服务器上的完整路径
 - `try_files $uri.html`: **这是关键配置**，必须包含，用于处理 Next.js 静态导出的 `.html` 文件
@@ -1799,6 +1850,7 @@ sudo systemctl restart nginx
 **原因**：Nginx 配置中缺少 `$uri.html`
 
 **解决**：
+
 1. 检查配置文件中的 `try_files` 是否包含 `$uri.html`
 2. 检查配置文件位置是否正确：`/etc/nginx/sites-available/blog`
 3. 运行 `sudo nginx -t` 检查语法
@@ -1809,6 +1861,7 @@ sudo systemctl restart nginx
 **原因**：文件权限不正确
 
 **解决**：
+
 ```bash
 # 检查文件权限
 ls -la /home/ubuntu/PersonalBlog/out
@@ -1823,6 +1876,7 @@ sudo chmod -R 755 /home/ubuntu/PersonalBlog/out
 **原因**：文件路径不正确或文件未同步
 
 **解决**：
+
 ```bash
 # 检查文件是否存在
 ls -la /home/ubuntu/PersonalBlog/out/blog/robotics/
@@ -1839,6 +1893,7 @@ sudo tail -f /var/log/nginx/error.log
 **原因**：`_next/static` 目录权限或路径问题
 
 **解决**：
+
 ```bash
 # 检查 _next 目录
 ls -la /home/ubuntu/PersonalBlog/out/_next/static
@@ -1873,6 +1928,7 @@ sudo systemctl restart nginx
 ```
 
 **重要提示**：
+
 - ✅ `try_files` 配置必须包含 `$uri.html`，这是处理 Next.js 静态导出的关键
 - ✅ 确保 `root` 路径指向正确的 `out` 目录
 - ✅ 确保文件权限正确（Nginx 用户 `www-data` 可以读取）
@@ -1966,26 +2022,33 @@ sudo certbot --nginx -d example.com -d www.example.com
 **执行过程说明**：
 
 1. **输入邮箱地址**：
+
    ```
    Enter email address (used for urgent renewal and security notices)
    ```
+
    - 输入您的邮箱地址，用于接收证书到期提醒和安全通知
    - 建议使用常用邮箱
 
 2. **同意服务条款**：
+
    ```
    (A)gree/(C)ancel: A
    ```
+
    - 输入 `A` 同意服务条款
 
 3. **选择是否共享邮箱**：
+
    ```
    (Y)es/(N)o: N
    ```
+
    - 选择是否与 EFF（电子前沿基金会）共享邮箱
    - 通常选择 `N`
 
 4. **选择重定向 HTTP 到 HTTPS**：
+
    ```
    Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
    -------------------------------------------------------------------------------
@@ -1994,6 +2057,7 @@ sudo certbot --nginx -d example.com -d www.example.com
    -------------------------------------------------------------------------------
    Select the appropriate number [1-2] then [enter] (press 'c' to cancel): 2
    ```
+
    - **强烈建议选择 `2`**，这样所有 HTTP 请求会自动重定向到 HTTPS
 
 5. **完成**：
@@ -2064,7 +2128,7 @@ server {
     # SSL 证书配置
     ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-    
+
     # SSL 安全配置（推荐设置）
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
@@ -2081,7 +2145,7 @@ server {
 
     # 静态资源根目录（必须指向 out 目录的完整路径）
     root /home/ubuntu/PersonalBlog/out;  # 替换为您的实际路径
-    
+
     # 默认首页配置
     index index.html;
 
@@ -2170,10 +2234,11 @@ sudo systemctl status nginx
    - 应该获得 A 或 A+ 评级
 
 3. **命令行测试**：
+
    ```bash
    # 测试 HTTPS 连接
    curl -I https://your-domain.com
-   
+
    # 查看证书信息
    echo | openssl s_client -servername your-domain.com -connect your-domain.com:443 2>/dev/null | openssl x509 -noout -dates
    ```
@@ -2216,6 +2281,7 @@ sudo systemctl reload nginx
 **原因**：域名解析不正确或 80 端口被阻止
 
 **解决**：
+
 ```bash
 # 1. 检查域名解析
 nslookup your-domain.com
@@ -2238,6 +2304,7 @@ sudo ufw allow 443/tcp
 **原因**：Let's Encrypt 对每个域名有速率限制（每周最多 5 个证书）
 
 **解决**：
+
 - 等待一段时间后重试
 - 如果确实需要多个证书，考虑使用通配符证书
 
@@ -2246,6 +2313,7 @@ sudo ufw allow 443/tcp
 **原因**：证书配置不正确或证书已过期
 
 **解决**：
+
 ```bash
 # 1. 检查证书是否过期
 sudo certbot certificates
@@ -2265,6 +2333,7 @@ sudo certbot --nginx -d your-domain.com --force-renewal
 **原因**：Nginx 配置中缺少重定向规则
 
 **解决**：
+
 ```bash
 # 检查配置文件
 sudo cat /etc/nginx/sites-available/blog
@@ -2287,6 +2356,7 @@ sudo systemctl reload nginx
 **原因**：Nginx 配置错误或服务未运行
 
 **解决**：
+
 ```bash
 # 1. 检查 Nginx 配置
 sudo nginx -t
@@ -2306,6 +2376,7 @@ sudo tail -f /var/log/letsencrypt/letsencrypt.log
 **原因**：SSL 配置不够安全
 
 **解决**：
+
 - 更新 Nginx 配置中的 `ssl_protocols` 和 `ssl_ciphers`
 - 禁用不安全的协议（如 TLSv1.0、TLSv1.1）
 - 使用推荐的 SSL 配置（参考步骤 5）
@@ -2369,6 +2440,7 @@ sudo crontab -e
 - ✅ SSL 安全配置已优化
 
 **重要提示**：
+
 - 🔒 Let's Encrypt 证书免费，但需要每 90 天续期一次（Certbot 会自动处理）
 - 🌐 必须使用域名，不能仅使用 IP 地址
 - 🔄 证书续期后需要重新加载 Nginx：`sudo systemctl reload nginx`
@@ -2396,6 +2468,7 @@ sudo crontab -e
 3. 在 GitHub 仓库设置中启用 Pages
 
 > **注意**：静态导出时，以下功能将不可用：
+>
 > - API 路由（如 Newsletter API）
 > - 动态路由（需要服务器端支持）
 > - 自定义 HTTP 头（需要在服务器配置）
@@ -2407,6 +2480,7 @@ sudo crontab -e
 **问题**: `Unbound variable "PWD"` 错误
 
 **解决**: 使用提供的 `dev.ps1` 脚本，或手动设置环境变量：
+
 ```powershell
 $env:PWD = $(Get-Location).Path
 ```
@@ -2433,7 +2507,8 @@ $env:PWD = $(Get-Location).Path
 
 **问题**: 博客文章不显示
 
-**解决**: 
+**解决**:
+
 1. 检查 `draft` 字段是否为 `false`
 2. 检查文件路径是否正确（应在 `data/blog/` 下）
 3. 检查 frontmatter 格式是否正确
@@ -2465,9 +2540,37 @@ Contentlayer 生成的文件在 `.contentlayer/generated/` 目录，可以查看
 
 RSS 文件在构建时自动生成，位于 `out/feed.xml`（静态导出）或 `public/feed.xml`（开发模式）。
 
+## 新增功能
+
+### 多语言支持
+
+- 中英文切换
+- 动态语言加载
+- 语言偏好记忆
+
+### 阅读分析
+
+- 阅读进度条
+- 阅读时间统计
+- 文章热度排行
+- 参与度评分系统
+
+### 开发者工具
+
+- 完整的测试套件
+- Storybook 组件文档
+- Sentry 错误监控
+- 性能分析工具
+
+## 项目文档
+
+- [架构说明](./ARCHITECTURE.md) - 详细的系统架构说明
+- [贡献指南](./CONTRIBUTING.md) - 如何参与项目贡献
+- [改进手册](./IMPROVEMENT_GUIDE.md) - 持续改进计划
+
 ## 贡献
 
-欢迎提交 Issue 和 Pull Request！
+欢迎提交 Issue 和 Pull Request！请查看 [贡献指南](./CONTRIBUTING.md) 了解详情。
 
 ## 许可证
 
@@ -2479,6 +2582,6 @@ MIT License
 
 ---
 
-**最后更新**: 2025-01-XX
+**最后更新**: 2025-01-15
 
 如有问题，请提交 Issue 或联系作者。

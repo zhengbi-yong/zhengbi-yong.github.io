@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import MusicSheet from '@/components/MusicSheet.tsx'
+
+const meta: Meta<typeof MusicSheet> = {
+  title: 'components/MusicSheet',
+  component: MusicSheet,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

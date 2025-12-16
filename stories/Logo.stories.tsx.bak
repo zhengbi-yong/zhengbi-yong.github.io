@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from '@storybook/nextjs'
+import Logo from '@/components/Logo.tsx'
+
+const meta: Meta<typeof Logo> = {
+  title: 'components/Logo',
+  component: Logo,
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
+}
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const Default: Story = {
+  args: {},
+}

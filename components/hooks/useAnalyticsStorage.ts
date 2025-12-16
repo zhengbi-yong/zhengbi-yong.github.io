@@ -100,7 +100,7 @@ export function useAnalyticsStorage() {
       }
     }
 
-    keysToRemove.forEach(key => localStorage.removeItem(key))
+    keysToRemove.forEach((key) => localStorage.removeItem(key))
   }
 
   // 清除特定文章的数据
@@ -125,9 +125,10 @@ export function useAnalyticsStorage() {
 
     const totalArticles = articles.length
     const totalViews = articles.reduce((sum, [, data]) => sum + (data.viewCount || 0), 0)
-    const avgEngagement = totalArticles > 0
-      ? articles.reduce((sum, [, data]) => sum + (data.engagementScore || 0), 0) / totalArticles
-      : 0
+    const avgEngagement =
+      totalArticles > 0
+        ? articles.reduce((sum, [, data]) => sum + (data.engagementScore || 0), 0) / totalArticles
+        : 0
 
     // 计算存储大小
     let storageSize = 0
