@@ -7,12 +7,12 @@
  * 参考: https://github.com/excalidraw/excalidraw
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import Button from '@/components/ui/Button'
+import { Loader } from '@/components/ui/Loader'
+import { ArrowLeft } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
-import { Loader } from '@/components/ui/Loader'
-import Button from '@/components/ui/Button'
+import { useCallback, useEffect, useState } from 'react'
 
 // 动态导入 Excalidraw，避免 SSR 问题
 const Excalidraw = dynamic(
@@ -337,12 +337,11 @@ export function ExcalidrawViewer({
       {showBackButton && (
         <Button
           onClick={() => router.back()}
-          size="sm"
+          size="xs"
           variant="outline"
-          className="absolute top-4 left-4 z-50 bg-white/90 shadow-lg backdrop-blur-sm hover:bg-white dark:bg-gray-900/90 dark:hover:bg-gray-900"
+          className="absolute top-4 left-12 z-[99999] bg-white/90 px-2 shadow-lg backdrop-blur-sm hover:bg-white dark:bg-gray-900/90 dark:hover:bg-gray-900"
           aria-label="返回"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
           返回
         </Button>
       )}
