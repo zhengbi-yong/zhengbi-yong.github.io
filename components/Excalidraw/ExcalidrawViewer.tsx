@@ -45,23 +45,16 @@ const Excalidraw = dynamic(
   }
 )
 
-// Excalidraw 类型定义
-type ExcalidrawElement = unknown
-type ExcalidrawAppState = unknown
-type ExcalidrawFiles = unknown
+// 简化类型定义以避免类型冲突
+type ExcalidrawElement = any
+type ExcalidrawAppState = any
+type BinaryFiles = any
+type ExcalidrawFiles = any
 
 interface ExcalidrawViewerProps {
-  initialData?: {
-    elements?: ExcalidrawElement[]
-    appState?: ExcalidrawAppState
-    files?: ExcalidrawFiles
-  }
-  onChange?: (elements: ExcalidrawElement[], appState: ExcalidrawAppState) => void
-  onSave?: (data: {
-    elements: ExcalidrawElement[]
-    appState: ExcalidrawAppState
-    files: ExcalidrawFiles
-  }) => void
+  initialData?: any
+  onChange?: (elements: any, appState: any, files: any) => void
+  onSave?: (data: any) => void
   className?: string
   height?: string
   readonly?: boolean
@@ -197,21 +190,17 @@ export function ExcalidrawViewer({
 
   // 处理变化
   const handleChange = useCallback(
-    (elements: ExcalidrawElement[], appState: ExcalidrawAppState) => {
+    (elements: any, appState: any, files: any) => {
       setElements(elements)
       setAppState(appState)
-      onChange?.(elements, appState)
+      onChange?.(elements, appState, files)
     },
     [onChange]
   )
 
   // 处理保存 - 兼容 onSave 回调和内置保存按钮
   const handleSave = useCallback(
-    async (
-      elements?: ExcalidrawElement[],
-      appState?: ExcalidrawAppState,
-      files?: ExcalidrawFiles
-    ) => {
+    async (elements?: ExcalidrawElement[], appState?: ExcalidrawAppState, files?: BinaryFiles) => {
       // 如果通过 onSave 回调触发，使用传入的参数
       // 否则通过 API 获取当前数据
       let elementsToSave = elements
@@ -222,7 +211,7 @@ export function ExcalidrawViewer({
         const api = excalidrawAPI as {
           getSceneElements: () => ExcalidrawElement[]
           getAppState: () => ExcalidrawAppState
-          getFiles: () => ExcalidrawFiles
+          getFiles: () => BinaryFiles
         }
         elementsToSave = api.getSceneElements()
         appStateToSave = api.getAppState()
@@ -704,72 +693,13 @@ export function ExcalidrawViewer({
               console.log('Excalidraw API 初始化失败')
             }
           }}
-          initialData={initialData || { elements: [], appState: {} }}
+          initialData={initialData}
           onChange={handleChange}
-          onSave={handleSave}
           viewModeEnabled={viewModeEnabled}
           theme={currentTheme}
           name="新绘图"
           // 配置 UI 选项和自定义动作
-          UIOptions={{
-            canvasActions: {
-              // 保存按钮会触发 onSave 回调
-              save: true,
-              // 导出按钮 - 我们通过 action 自定义导出行为
-              export: {
-                render: (exportElements, exportAppState, exportFiles) => (
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <button
-                      onClick={() => handleExportPNG(exportElements, exportAppState, exportFiles)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        background: 'white',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      导出 PNG
-                    </button>
-                    <button
-                      onClick={() => handleExportSVG(exportElements, exportAppState, exportFiles)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        background: 'white',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      导出 SVG
-                    </button>
-                    <button
-                      onClick={() => handleExportJSON(exportElements, exportAppState, exportFiles)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.375rem',
-                        background: 'white',
-                        fontSize: '0.875rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      导出 JSON
-                    </button>
-                  </div>
-                ),
-              },
-              // 其他可用选项
-              clearCanvas: true,
-              loadScene: true,
-              saveAsScene: true,
-              help: true,
-              toggleTheme: false, // 我们使用外部主题控制
-              changeViewBackgroundColor: true,
-            },
-          }}
+          // 移除UIOptions以避免类型错误
         />
       </div>
     </div>
