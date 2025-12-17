@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import siteMetadata from '@/data/siteMetadata'
-import { Button } from '@/components/components/ui/button'
+import { Button } from '@/components/shadcn/ui/button'
 import { Spinner } from '@/components/loaders'
 import { getPerformanceOptimizedParams } from '@/components/hooks/useGSAPPerformance'
 import {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Progress } from '@/components/components/ui/progress'
+import { Progress } from '@/components/shadcn/ui/progress'
 import { Skeleton } from '@/components/loaders'
 
 interface SkeletonProgressProps {

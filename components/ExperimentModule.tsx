@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Button } from '@/components/components/ui/button'
+import { Button } from '@/components/shadcn/ui/button'
 import SkeletonProgress from '@/components/SkeletonProgress'
 
 type ModuleStatus = 'collapsed' | 'loading' | 'ready'

@@ -1,8 +1,8 @@
 'use client'
 
 import { memo, useEffect, useMemo, useState } from 'react'
-import { Button } from '@/components/components/ui/button'
-import { Badge } from '@/components/components/ui/badge'
+import { Button } from '@/components/shadcn/ui/button'
+import { Badge } from '@/components/shadcn/ui/badge'
 import { LoadingStrategy, getLoadingStrategy } from '@/lib/utils/loading-strategy'
 
 const PerformanceNotice = memo(function PerformanceNotice() {
