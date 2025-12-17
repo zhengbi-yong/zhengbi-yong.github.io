@@ -73,6 +73,7 @@ export function ExcalidrawViewer({
 }: ExcalidrawViewerProps) {
   const router = useRouter()
   const [excalidrawAPI, setExcalidrawAPI] = useState<unknown>(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     // Component mounted
@@ -184,39 +185,48 @@ export function ExcalidrawViewer({
   )
 
   // 处理保存
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!excalidrawAPI) return
 
-    // Excalidraw API 类型
-    const api = excalidrawAPI as {
-      getSceneElements: () => ExcalidrawElement[]
-      getAppState: () => ExcalidrawAppState
-    }
-    const elements = api.getSceneElements()
-    const appState = api.getAppState()
-
-    const data = {
-      elements,
-      appState,
-      files: {},
-    }
-
-    // 保存到 localStorage
+    setIsLoading(true)
     try {
+      // Excalidraw API 类型
+      const api = excalidrawAPI as {
+        getSceneElements: () => ExcalidrawElement[]
+        getAppState: () => ExcalidrawAppState
+        getFiles: () => ExcalidrawFiles
+      }
+      const elements = api.getSceneElements()
+      const appState = api.getAppState()
+      const files = api.getFiles ? api.getFiles() : {}
+
+      const data = {
+        elements,
+        appState,
+        files,
+      }
+
+      // 保存到 localStorage
       localStorage.setItem('excalidraw-latest', JSON.stringify(data))
+
+      // 显示保存成功提示
+      console.log('保存成功:', { elementsCount: elements.length, hasAppState: !!appState })
+
+      onSave?.(data)
     } catch (error) {
       console.error('保存失败:', error)
+      alert('保存失败，请重试')
+    } finally {
+      setIsLoading(false)
     }
-
-    onSave?.(data)
   }, [excalidrawAPI, onSave])
 
   // 处理导出 PNG
   const handleExportPNG = useCallback(async () => {
     if (!excalidrawAPI) return
 
+    setIsLoading(true)
     try {
-      const { exportToBlob } = await import('@excalidraw/excalidraw')
       const api = excalidrawAPI as {
         getSceneElements: () => ExcalidrawElement[]
         getAppState: () => ExcalidrawAppState
@@ -224,22 +234,38 @@ export function ExcalidrawViewer({
       const elements = api.getSceneElements()
       const appState = api.getAppState()
 
+      console.log('开始导出 PNG，元素数量:', elements.length)
+
+      // 使用正确的 exportToBlob API
+      const { exportToBlob } = await import('@excalidraw/excalidraw')
+
       const blob = await exportToBlob({
-        elements,
-        appState,
-        files: {},
+        elements: elements,
+        appState: {
+          ...appState,
+          exportBackground: true,
+          viewBackgroundColor: appState.viewBackgroundColor || '#ffffff',
+        },
+        files: {} as ExcalidrawFiles,
         mimeType: 'image/png',
-        getDimensions: (width, height) => ({ width, height }),
+        exportPadding: 10,
       })
 
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = `excalidraw-${Date.now()}.png`
+      document.body.appendChild(link)
       link.click()
+      document.body.removeChild(link)
       URL.revokeObjectURL(url)
+
+      console.log('PNG 导出成功，文件大小:', blob.size)
     } catch (error) {
       console.error('导出 PNG 失败:', error)
+      alert('导出 PNG 失败: ' + error.message)
+    } finally {
+      setIsLoading(false)
     }
   }, [excalidrawAPI])
 
@@ -247,8 +273,10 @@ export function ExcalidrawViewer({
   const handleExportSVG = useCallback(async () => {
     if (!excalidrawAPI) return
 
+    setIsLoading(true)
     try {
-      const { exportToSVG } = await import('@excalidraw/excalidraw')
+      // 正确的 API 调用方式
+      const { exportToSvg } = await import('@excalidraw/excalidraw')
       const api = excalidrawAPI as {
         getSceneElements: () => ExcalidrawElement[]
         getAppState: () => ExcalidrawAppState
@@ -256,21 +284,38 @@ export function ExcalidrawViewer({
       const elements = api.getSceneElements()
       const appState = api.getAppState()
 
-      const svgString = await exportToSVG({
-        elements,
-        appState,
-        files: {},
+      console.log('开始导出 SVG，元素数量:', elements.length)
+
+      // 使用正确的参数格式 - 对象格式
+      const svgElement = await exportToSvg({
+        elements: elements,
+        appState: {
+          ...appState,
+          exportBackground: true,
+          viewBackgroundColor: appState.viewBackgroundColor || '#ffffff',
+        },
+        files: {} as ExcalidrawFiles,
+        exportPadding: 10,
       })
 
+      // 将 SVG 元素转换为字符串
+      const svgString = new XMLSerializer().serializeToString(svgElement)
       const blob = new Blob([svgString], { type: 'image/svg+xml' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.download = `excalidraw-${Date.now()}.svg`
+      document.body.appendChild(link)
       link.click()
+      document.body.removeChild(link)
       URL.revokeObjectURL(url)
+
+      console.log('SVG 导出成功，SVG 长度:', svgString.length)
     } catch (error) {
       console.error('导出 SVG 失败:', error)
+      alert('导出 SVG 失败: ' + error.message)
+    } finally {
+      setIsLoading(false)
     }
   }, [excalidrawAPI])
 
@@ -333,34 +378,50 @@ export function ExcalidrawViewer({
         zIndex: 9999,
       }}
     >
-      {/* 返回按钮 - 固定在左上角 */}
-      {showBackButton && (
-        <Button
-          onClick={() => router.back()}
-          size="xs"
-          variant="outline"
-          className="absolute top-4 left-12 z-[99999] bg-white/90 px-2 shadow-lg backdrop-blur-sm hover:bg-white dark:bg-gray-900/90 dark:hover:bg-gray-900"
-          aria-label="返回"
-        >
-          返回
-        </Button>
-      )}
+      {/* 顶部工具栏 */}
+      {(showToolbar || showBackButton) && (
+        <div className="flex items-center justify-between border-b border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-900">
+          <div className="flex gap-2">
+            {/* 返回按钮 */}
+            {showBackButton && (
+              <Button
+                onClick={() => router.back()}
+                size="sm"
+                variant="outline"
+                disabled={isLoading}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft size={16} />
+                返回
+              </Button>
+            )}
 
-      {/* 工具栏 */}
-      {showToolbar && (
-        <div className="flex gap-2 border-b border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-900">
-          <Button onClick={handleSave} size="sm">
-            保存
-          </Button>
-          <Button onClick={handleExportPNG} size="sm" variant="outline">
-            导出 PNG
-          </Button>
-          <Button onClick={handleExportSVG} size="sm" variant="outline">
-            导出 SVG
-          </Button>
-          <Button onClick={() => setViewModeEnabled(!viewModeEnabled)} size="sm" variant="outline">
-            {viewModeEnabled ? '编辑模式' : '查看模式'}
-          </Button>
+            {/* 操作按钮 */}
+            {showToolbar && (
+              <>
+                <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                  {isLoading ? '保存中...' : '保存'}
+                </Button>
+                <Button onClick={handleExportPNG} size="sm" variant="outline" disabled={isLoading}>
+                  {isLoading ? '导出中...' : '导出 PNG'}
+                </Button>
+                <Button onClick={handleExportSVG} size="sm" variant="outline" disabled={isLoading}>
+                  {isLoading ? '导出中...' : '导出 SVG'}
+                </Button>
+                <Button
+                  onClick={() => setViewModeEnabled(!viewModeEnabled)}
+                  size="sm"
+                  variant="outline"
+                  disabled={isLoading}
+                >
+                  {viewModeEnabled ? '编辑模式' : '查看模式'}
+                </Button>
+              </>
+            )}
+          </div>
+
+          {/* 右侧留空或可以添加其他功能 */}
+          <div className="flex gap-2">{/* 可以在这里添加其他功能按钮 */}</div>
         </div>
       )}
       <div
@@ -377,7 +438,10 @@ export function ExcalidrawViewer({
         <Excalidraw
           excalidrawAPI={(api: unknown) => {
             if (api) {
+              console.log('Excalidraw API 初始化成功:', api)
               setExcalidrawAPI(api)
+            } else {
+              console.log('Excalidraw API 初始化失败')
             }
           }}
           initialData={initialData || { elements: [], appState: {} }}

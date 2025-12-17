@@ -4,7 +4,7 @@ export default function ExcalidrawPage() {
   return (
     <ExcalidrawViewer
       height="100vh"
-      showToolbar={false}
+      showToolbar={true}
       showBackButton={true}
       initialData={{ elements: [], appState: {} }}
     />
