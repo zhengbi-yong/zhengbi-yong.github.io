@@ -69,6 +69,62 @@ const ChemicalStructure = dynamic(
   }
 )
 
+// 动态导入图表组件
+const EChartsComponent = dynamic(() => import('./charts').then((mod) => mod.EChartsComponent), {
+  loading: () => (
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col items-center gap-3">
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+      </div>
+    </div>
+  ),
+})
+
+const NivoBarChart = dynamic(() => import('./charts').then((mod) => mod.NivoBarChart), {
+  loading: () => (
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col items-center gap-3">
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+      </div>
+    </div>
+  ),
+})
+
+const NivoLineChart = dynamic(() => import('./charts').then((mod) => mod.NivoLineChart), {
+  loading: () => (
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col items-center gap-3">
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+      </div>
+    </div>
+  ),
+})
+
+const NivoPieChart = dynamic(() => import('./charts').then((mod) => mod.NivoPieChart), {
+  loading: () => (
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col items-center gap-3">
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+      </div>
+    </div>
+  ),
+})
+
+const AntVChart = dynamic(() => import('./charts').then((mod) => mod.AntVChart), {
+  loading: () => (
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col items-center gap-3">
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+      </div>
+    </div>
+  ),
+})
+
 // 包装动画组件，添加错误边界和 Suspense
 // 注意：不使用 memo，因为 MDX 组件每次渲染都会创建新的 props 对象
 const WrappedFadeIn = (props: any) => (
@@ -119,6 +175,56 @@ const WrappedConfettiOnView = (props: any) => (
   </AnimationErrorBoundary>
 )
 
+// 包装图表组件，使其可以在MDX中安全使用
+const WrappedEChartsComponent = (props: any) => {
+  // 提取formatter函数，其他props传递给组件
+  const { option, ...restProps } = props
+  const formatters: { [key: string]: Function } = {}
+
+  // 从option中提取函数配置
+  const safeOption = JSON.parse(JSON.stringify(option || {}))
+
+  return (
+    <AnimationErrorBoundary>
+      <Suspense fallback={<AnimationSkeleton />}>
+        <EChartsComponent option={safeOption} formatters={formatters} {...restProps} />
+      </Suspense>
+    </AnimationErrorBoundary>
+  )
+}
+
+const WrappedNivoBarChart = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={<AnimationSkeleton />}>
+      <NivoBarChart {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
+const WrappedNivoLineChart = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={<AnimationSkeleton />}>
+      <NivoLineChart {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
+const WrappedNivoPieChart = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={<AnimationSkeleton />}>
+      <NivoPieChart {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
+const WrappedAntVChart = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={<AnimationSkeleton />}>
+      <AntVChart {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
 export const components: MDXComponents = {
   Image,
   TOCInline,
@@ -140,6 +246,12 @@ export const components: MDXComponents = {
   MusicSheet,
   // 化学结构组件（动态导入，按需加载）
   ChemicalStructure,
+  // 图表组件（动态导入，按需加载，客户端渲染，带错误边界）
+  EChartsComponent: WrappedEChartsComponent,
+  NivoBarChart: WrappedNivoBarChart,
+  NivoLineChart: WrappedNivoLineChart,
+  NivoPieChart: WrappedNivoPieChart,
+  AntVChart: WrappedAntVChart,
   // Excalidraw 绘图组件
   excalidraw: ExcalidrawEmbed,
 }

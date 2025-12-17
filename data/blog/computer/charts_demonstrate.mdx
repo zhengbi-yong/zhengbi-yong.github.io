@@ -1,0 +1,386 @@
+---
+title: '高性能图表技术展示：ECharts、Nivo和AntV实战演示'
+date: '2024-12-17'
+tags: ['Programming', 'Frontend', 'Data Visualization', 'JavaScript', 'React', 'Charts']
+category: 'computer'
+summary: 通过实际代码示例展示ECharts、Nivo和AntV三大高性能图表库的强大功能，包括基础图表、高级可视化和交互式图表的完整实现。
+---
+
+# 高性能图表技术展示
+
+在前面的文章中，我们深入分析了各种图表库的特点和性能。现在，让我们通过实际的代码示例来展示这些高性能图表库的强大功能。
+
+## ECharts 展示
+
+### 1. 动态折线图 - 销售趋势分析
+
+<EChartsComponent
+  height={400}
+  option={{
+    title: {
+      text: '2024年月度销售趋势',
+      left: 'center',
+      textStyle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+      },
+    },
+    tooltip: {
+      trigger: 'axis',
+    },
+    legend: {
+      data: ['产品A', '产品B', '产品C'],
+      top: '10%',
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+    },
+    yAxis: {
+      type: 'value',
+      name: '销售额（万）',
+    },
+    series: [
+      {
+        name: '产品A',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        lineStyle: {
+          width: 3,
+        },
+        areaStyle: {
+          opacity: 0.3,
+        },
+        emphasis: {
+          focus: 'series',
+        },
+        data: [120, 132, 101, 134, 90, 230, 210, 220, 182, 191, 234, 290],
+      },
+      {
+        name: '产品B',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        lineStyle: {
+          width: 3,
+        },
+        areaStyle: {
+          opacity: 0.3,
+        },
+        emphasis: {
+          focus: 'series',
+        },
+        data: [220, 182, 191, 234, 290, 330, 310, 345, 394, 390, 430, 410],
+      },
+      {
+        name: '产品C',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        lineStyle: {
+          width: 3,
+        },
+        areaStyle: {
+          opacity: 0.3,
+        },
+        emphasis: {
+          focus: 'series',
+        },
+        data: [150, 232, 201, 154, 190, 330, 410, 345, 394, 370, 390, 420],
+      },
+    ],
+  }}
+/>
+
+### 2. 3D散点图 - 多维数据分析
+
+<EChartsComponent
+  height={500}
+  option={{
+    title: {
+      text: '产品性能多维分析',
+      left: 'center',
+      textStyle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+      },
+    },
+    tooltip: {
+      trigger: 'item',
+    },
+    xAxis3D: {
+      type: 'value',
+      name: '性能',
+      nameTextStyle: {
+        fontSize: 16,
+      },
+    },
+    yAxis3D: {
+      type: 'value',
+      name: '价格',
+      nameTextStyle: {
+        fontSize: 16,
+      },
+    },
+    zAxis3D: {
+      type: 'value',
+      name: '评分',
+      nameTextStyle: {
+        fontSize: 16,
+      },
+    },
+    grid3D: {
+      boxWidth: 200,
+      boxDepth: 80,
+      viewControl: {
+        projection: 'perspective',
+        autoRotate: true,
+        autoRotateSpeed: 10,
+      },
+    },
+    series: [
+      {
+        type: 'scatter3D',
+        symbolSize: 12,
+        data: [
+          [8.5, 1200, 4.5],
+          [7.2, 800, 4.2],
+          [9.1, 2000, 4.8],
+          [6.8, 600, 3.9],
+          [8.9, 1800, 4.6],
+          [7.5, 1000, 4.3],
+          [9.3, 2500, 4.9],
+          [6.2, 400, 3.7],
+          [8.1, 1500, 4.4],
+          [7.8, 1300, 4.3],
+          [9.0, 2200, 4.7],
+          [6.5, 700, 3.8],
+        ].map((item) => {
+          return [item[0], item[1], item[2]]
+        }),
+        itemStyle: {
+          color: '#5470c6',
+        },
+        emphasis: {
+          itemStyle: {
+            color: '#ff0000',
+          },
+        },
+      },
+    ],
+  }}
+/>
+
+## Nivo 展示
+
+### 3. 交互式柱状图 - 季度业绩对比
+
+<NivoBarChart
+  height={400}
+  data={[
+    { category: 'Q1', teamA: 120, teamB: 98, teamC: 86 },
+    { category: 'Q2', teamA: 156, teamB: 125, teamC: 105 },
+    { category: 'Q3', teamA: 189, teamB: 148, teamC: 127 },
+    { category: 'Q4', teamA: 239, teamB: 189, teamC: 169 },
+  ]}
+  keys={['teamA', 'teamB', 'teamC']}
+  indexBy="category"
+  colors={{
+    scheme: 'category10',
+  }}
+  margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+/>
+
+### 4. 平滑曲线图 - 用户增长趋势
+
+<NivoLineChart
+  height={400}
+  data={[
+    {
+      id: '移动端',
+      data: [
+        { x: '1月', y: 1000 },
+        { x: '2月', y: 1200 },
+        { x: '3月', y: 1450 },
+        { x: '4月', y: 1780 },
+        { x: '5月', y: 2100 },
+        { x: '6月', y: 2560 },
+      ],
+    },
+    {
+      id: '桌面端',
+      data: [
+        { x: '1月', y: 800 },
+        { x: '2月', y: 900 },
+        { x: '3月', y: 1050 },
+        { x: '4月', y: 1180 },
+        { x: '5月', y: 1350 },
+        { x: '6月', y: 1520 },
+      ],
+    },
+    {
+      id: '平板端',
+      data: [
+        { x: '1月', y: 300 },
+        { x: '2月', y: 380 },
+        { x: '3月', y: 420 },
+        { x: '4月', y: 480 },
+        { x: '5月', y: 550 },
+        { x: '6月', y: 620 },
+      ],
+    },
+  ]}
+  colors={{
+    scheme: 'set2',
+  }}
+  curve="monotoneX"
+  margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
+/>
+
+### 5. 饼图 - 市场份额分析
+
+<NivoPieChart
+  height={400}
+  data={[
+    { id: 'Chrome', value: 63.5 },
+    { id: 'Safari', value: 19.4 },
+    { id: 'Firefox', value: 4.2 },
+    { id: 'Edge', value: 4.0 },
+    { id: 'Opera', value: 2.7 },
+    { id: '其他', value: 6.2 },
+  ]}
+  innerRadius={0.5}
+  padAngle={0.7}
+  cornerRadius={3}
+  colors={{
+    scheme: 'pastel1',
+  }}
+  margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
+/>
+
+## AntV 展示
+
+### 6. 动态柱状图 - 技术栈使用率
+
+```typescript
+// AntV G2 动态柱状图配置示例
+const antVBarConfig = {
+  type: 'interval',
+  xField: 'technology',
+  yField: 'usage',
+  color: '#5B8FF9',
+  label: {
+    position: 'middle',
+    style: {
+      fill: '#FFFFFF',
+      opacity: 0.6,
+    },
+  },
+  meta: {
+    usage: {
+      alias: '使用率(%)',
+    },
+  },
+}
+
+const antVBarData = [
+  { technology: 'React', usage: 85 },
+  { technology: 'Vue', usage: 65 },
+  { technology: 'Angular', usage: 45 },
+  { technology: 'Svelte', usage: 25 },
+  { technology: 'Next.js', usage: 70 },
+  { technology: 'Nuxt.js', usage: 30 },
+]
+```
+
+## 性能对比总结
+
+| 图表库  | 包体积 | 渲染性能   | 交互性     | 学习难度  |
+| ------- | ------ | ---------- | ---------- | --------- |
+| ECharts | ~700KB | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐☆☆☆   |
+| Nivo    | ~200KB | ⭐⭐⭐☆☆   | ⭐⭐⭐⭐☆  | ⭐⭐⭐☆☆  |
+| AntV    | ~960KB | ⭐⭐⭐⭐☆  | ⭐⭐⭐⭐☆  | ⭐⭐⭐⭐☆ |
+
+## 使用建议
+
+### 1. 选择 ECharts 的场景
+
+- **大数据量展示**：ECharts 的 Canvas 渲染和增量渲染技术非常适合处理大量数据点
+- **复杂图表需求**：3D图表、地理信息可视化等高级功能
+- **企业级应用**：成熟稳定，文档完善，社区支持强大
+
+### 2. 选择 Nivo 的场景
+
+- **React 项目**：原生React组件，集成度高
+- **响应式设计**：内置响应式支持
+- **快速开发**：声明式API，开发效率高
+
+### 3. 选择 AntV 的场景
+
+- **高度定制需求**：分层架构，定制能力强
+- **企业级可视化**：专业的数据分析能力
+- **图形语法需求**：基于《The Grammar of Graphics》理论
+
+## 最佳实践
+
+### 1. 性能优化
+
+```typescript
+// 数据采样示例
+function sampleData(data: any[], maxPoints: number = 1000) {
+  if (data.length <= maxPoints) return data
+  const step = Math.ceil(data.length / maxPoints)
+  return data.filter((_, index) => index % step === 0)
+}
+
+// 使用采样后的数据
+const sampledData = sampleData(originalData, 1000)
+```
+
+### 2. 响应式设计
+
+```typescript
+// 监听窗口大小变化
+useEffect(() => {
+  const handleResize = () => {
+    chart.resize()
+  }
+  window.addEventListener('resize', handleResize)
+  return () => window.removeEventListener('resize', handleResize)
+}, [])
+```
+
+### 3. 主题配置
+
+```typescript
+// 深色主题示例
+const darkTheme = {
+  background: '#1a1a1a',
+  textColor: '#ffffff',
+  axis: {
+    ticks: {
+      text: {
+        fill: '#ffffff',
+      },
+    },
+  },
+}
+```
+
+## 总结
+
+通过这些实际示例，我们可以看到：
+
+1. **ECharts** 在处理复杂图表和大数据量时表现优异，特别适合企业级应用
+2. **Nivo** 提供了优雅的React组件化方案，动画效果流畅，适合现代Web应用
+3. **AntV** 具有强大的定制能力，适合需要深度定制的数据可视化项目
+
+选择合适的图表库需要综合考虑项目需求、技术栈、性能要求和开发效率。每种工具都有其独特的优势，关键是要根据具体场景做出最佳选择。

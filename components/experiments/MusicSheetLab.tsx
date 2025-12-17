@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Button } from '@/components/components/ui/button'
+import { Button } from '@/components/shadcn/ui/button'
 import { Spinner } from '@/components/loaders'
 import type { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
 

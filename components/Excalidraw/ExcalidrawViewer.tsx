@@ -14,6 +14,16 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 
+// 添加 CSS 动画样式
+const fadeInOutStyle = `
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-20px); }
+    20% { opacity: 1; transform: translateY(0); }
+    80% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
+`
+
 // 动态导入 Excalidraw，避免 SSR 问题
 const Excalidraw = dynamic(
   () =>
@@ -76,9 +86,20 @@ export function ExcalidrawViewer({
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Component mounted
+    // 添加动画样式到文档
+    if (typeof window !== 'undefined' && !document.getElementById('excalidraw-animation-styles')) {
+      const style = document.createElement('style')
+      style.id = 'excalidraw-animation-styles'
+      style.textContent = fadeInOutStyle
+      document.head.appendChild(style)
+    }
+
     return () => {
       // Component unmounted
+      const styleToRemove = document.getElementById('excalidraw-animation-styles')
+      if (styleToRemove) {
+        styleToRemove.remove()
+      }
     }
   }, [])
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(theme || 'light')
@@ -184,140 +205,369 @@ export function ExcalidrawViewer({
     [onChange]
   )
 
-  // 处理保存
-  const handleSave = useCallback(async () => {
-    if (!excalidrawAPI) return
+  // 处理保存 - 兼容 onSave 回调和内置保存按钮
+  const handleSave = useCallback(
+    async (
+      elements?: ExcalidrawElement[],
+      appState?: ExcalidrawAppState,
+      files?: ExcalidrawFiles
+    ) => {
+      // 如果通过 onSave 回调触发，使用传入的参数
+      // 否则通过 API 获取当前数据
+      let elementsToSave = elements
+      let appStateToSave = appState
+      let filesToSave = files
 
-    setIsLoading(true)
-    try {
-      // Excalidraw API 类型
-      const api = excalidrawAPI as {
-        getSceneElements: () => ExcalidrawElement[]
-        getAppState: () => ExcalidrawAppState
-        getFiles: () => ExcalidrawFiles
+      if (!elementsToSave && excalidrawAPI) {
+        const api = excalidrawAPI as {
+          getSceneElements: () => ExcalidrawElement[]
+          getAppState: () => ExcalidrawAppState
+          getFiles: () => ExcalidrawFiles
+        }
+        elementsToSave = api.getSceneElements()
+        appStateToSave = api.getAppState()
+        filesToSave = api.getFiles ? api.getFiles() : {}
       }
-      const elements = api.getSceneElements()
-      const appState = api.getAppState()
-      const files = api.getFiles ? api.getFiles() : {}
 
-      const data = {
-        elements,
-        appState,
-        files,
+      if (!elementsToSave) return
+
+      setIsLoading(true)
+      try {
+        const data = {
+          elements: elementsToSave,
+          appState: appStateToSave || {},
+          files: filesToSave || {},
+        }
+
+        // 保存到 localStorage
+        localStorage.setItem('excalidraw-latest', JSON.stringify(data))
+
+        // 显示保存成功提示
+        console.log('保存成功:', {
+          elementsCount: elementsToSave.length,
+          hasAppState: !!appStateToSave,
+        })
+
+        // 显示成功消息
+        const successMessage = document.createElement('div')
+        successMessage.textContent = '✓ 保存成功'
+        successMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        animation: fadeInOut 2s ease-in-out;
+      `
+        document.body.appendChild(successMessage)
+        setTimeout(() => successMessage.remove(), 2000)
+
+        onSave?.(data)
+      } catch (error) {
+        console.error('保存失败:', error)
+        alert('保存失败，请重试')
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [excalidrawAPI, onSave]
+  )
+
+  // 处理导出 PNG - 支持参数或 API 获取数据
+  const handleExportPNG = useCallback(
+    async (
+      elements?: ExcalidrawElement[],
+      appState?: ExcalidrawAppState,
+      files?: ExcalidrawFiles
+    ) => {
+      let elementsToExport = elements
+      let appStateToExport = appState
+
+      if (!elementsToExport && excalidrawAPI) {
+        const api = excalidrawAPI as {
+          getSceneElements: () => ExcalidrawElement[]
+          getAppState: () => ExcalidrawAppState
+        }
+        elementsToExport = api.getSceneElements()
+        appStateToExport = api.getAppState()
       }
 
-      // 保存到 localStorage
-      localStorage.setItem('excalidraw-latest', JSON.stringify(data))
+      if (!elementsToExport) return
 
-      // 显示保存成功提示
-      console.log('保存成功:', { elementsCount: elements.length, hasAppState: !!appState })
+      setIsLoading(true)
+      try {
+        console.log('开始导出 PNG，元素数量:', elementsToExport.length)
 
-      onSave?.(data)
-    } catch (error) {
-      console.error('保存失败:', error)
-      alert('保存失败，请重试')
-    } finally {
-      setIsLoading(false)
+        // 使用正确的 exportToBlob API
+        const { exportToBlob } = await import('@excalidraw/excalidraw')
+
+        const blob = await exportToBlob({
+          elements: elementsToExport,
+          appState: {
+            ...(appStateToExport || {}),
+            exportBackground: true,
+            viewBackgroundColor:
+              (appStateToExport as any)?.viewBackgroundColor ||
+              (currentTheme === 'dark' ? '#1a1a1a' : '#ffffff'),
+          } as any,
+          files: files || ({} as ExcalidrawFiles),
+          mimeType: 'image/png',
+          exportPadding: 10,
+        })
+
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `excalidraw-${Date.now()}.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        console.log('PNG 导出成功，文件大小:', blob.size)
+
+        // 显示成功消息
+        const successMessage = document.createElement('div')
+        successMessage.textContent = '✓ PNG 导出成功'
+        successMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        animation: fadeInOut 2s ease-in-out;
+      `
+        document.body.appendChild(successMessage)
+        setTimeout(() => successMessage.remove(), 2000)
+      } catch (error) {
+        console.error('导出 PNG 失败:', error)
+        alert('导出 PNG 失败: ' + (error instanceof Error ? error.message : String(error)))
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [excalidrawAPI, currentTheme]
+  )
+
+  // 处理导出 SVG - 支持参数或 API 获取数据
+  const handleExportSVG = useCallback(
+    async (
+      elements?: ExcalidrawElement[],
+      appState?: ExcalidrawAppState,
+      files?: ExcalidrawFiles
+    ) => {
+      let elementsToExport = elements
+      let appStateToExport = appState
+
+      if (!elementsToExport && excalidrawAPI) {
+        const api = excalidrawAPI as {
+          getSceneElements: () => ExcalidrawElement[]
+          getAppState: () => ExcalidrawAppState
+        }
+        elementsToExport = api.getSceneElements()
+        appStateToExport = api.getAppState()
+      }
+
+      if (!elementsToExport) return
+
+      setIsLoading(true)
+      try {
+        // 正确的 API 调用方式
+        const { exportToSvg } = await import('@excalidraw/excalidraw')
+
+        console.log('开始导出 SVG，元素数量:', elementsToExport.length)
+
+        // 使用正确的参数格式 - 对象格式
+        const svgElement = await exportToSvg({
+          elements: elementsToExport,
+          appState: {
+            ...(appStateToExport || {}),
+            exportBackground: true,
+            viewBackgroundColor:
+              (appStateToExport as any)?.viewBackgroundColor ||
+              (currentTheme === 'dark' ? '#1a1a1a' : '#ffffff'),
+          } as any,
+          files: files || ({} as ExcalidrawFiles),
+          exportPadding: 10,
+        })
+
+        // 将 SVG 元素转换为字符串
+        const svgString = new XMLSerializer().serializeToString(svgElement)
+        const blob = new Blob([svgString], { type: 'image/svg+xml' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `excalidraw-${Date.now()}.svg`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        console.log('SVG 导出成功，SVG 长度:', svgString.length)
+
+        // 显示成功消息
+        const successMessage = document.createElement('div')
+        successMessage.textContent = '✓ SVG 导出成功'
+        successMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        animation: fadeInOut 2s ease-in-out;
+      `
+        document.body.appendChild(successMessage)
+        setTimeout(() => successMessage.remove(), 2000)
+      } catch (error) {
+        console.error('导出 SVG 失败:', error)
+        alert('导出 SVG 失败: ' + (error instanceof Error ? error.message : String(error)))
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [excalidrawAPI, currentTheme]
+  )
+
+  // 处理导出 JSON - 导出完整的绘图数据
+  const handleExportJSON = useCallback(
+    async (
+      elements?: ExcalidrawElement[],
+      appState?: ExcalidrawAppState,
+      files?: ExcalidrawFiles
+    ) => {
+      let elementsToExport = elements
+      let appStateToExport = appState
+
+      if (!elementsToExport && excalidrawAPI) {
+        const api = excalidrawAPI as {
+          getSceneElements: () => ExcalidrawElement[]
+          getAppState: () => ExcalidrawAppState
+          getFiles: () => ExcalidrawFiles
+        }
+        elementsToExport = api.getSceneElements()
+        appStateToExport = api.getAppState()
+      }
+
+      if (!elementsToExport) return
+
+      setIsLoading(true)
+      try {
+        console.log('开始导出 JSON，元素数量:', elementsToExport.length)
+
+        const api = excalidrawAPI as {
+          getFiles: () => ExcalidrawFiles
+        }
+
+        const exportData = {
+          type: 'excalidraw',
+          version: 2,
+          source: 'https://excalidraw.com',
+          elements: elementsToExport,
+          appState: appStateToExport,
+          files: files || (api?.getFiles ? api.getFiles() : {}),
+          metadata: {
+            exportDate: new Date().toISOString(),
+            exportSource: 'Zhengbi Yong Blog',
+          },
+        }
+
+        const json = JSON.stringify(exportData, null, 2)
+        const blob = new Blob([json], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `excalidraw-${Date.now()}.json`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        console.log('JSON 导出成功，数据大小:', json.length)
+
+        // 显示成功消息
+        const successMessage = document.createElement('div')
+        successMessage.textContent = '✓ JSON 导出成功'
+        successMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        z-index: 10000;
+        animation: fadeInOut 2s ease-in-out;
+      `
+        document.body.appendChild(successMessage)
+        setTimeout(() => successMessage.remove(), 2000)
+      } catch (error) {
+        console.error('导出 JSON 失败:', error)
+        alert('导出 JSON 失败: ' + (error instanceof Error ? error.message : String(error)))
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [excalidrawAPI]
+  )
+
+  // 添加键盘快捷键支持
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // 检查是否按下了 Ctrl 或 Cmd
+      const isCtrlOrCmd = event.ctrlKey || event.metaKey
+
+      // 检查是否在输入框中，如果是则不触发快捷键
+      const target = event.target as HTMLElement
+      const isInputElement =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.contentEditable === 'true'
+
+      if (isInputElement) return
+
+      // Ctrl/Cmd + S: 保存
+      if (isCtrlOrCmd && event.key === 's') {
+        event.preventDefault()
+        handleSave()
+        return
+      }
+
+      // Ctrl/Cmd + Shift + E: 导出 PNG
+      if (isCtrlOrCmd && event.shiftKey && event.key === 'E') {
+        event.preventDefault()
+        handleExportPNG()
+        return
+      }
+
+      // Ctrl/Cmd + Shift + S: 导出 SVG
+      if (isCtrlOrCmd && event.shiftKey && event.key === 'S') {
+        event.preventDefault()
+        handleExportSVG()
+        return
+      }
+
+      // Ctrl/Cmd + Shift + J: 导出 JSON
+      if (isCtrlOrCmd && event.shiftKey && event.key === 'J') {
+        event.preventDefault()
+        handleExportJSON()
+        return
+      }
     }
-  }, [excalidrawAPI, onSave])
 
-  // 处理导出 PNG
-  const handleExportPNG = useCallback(async () => {
-    if (!excalidrawAPI) return
-
-    setIsLoading(true)
-    try {
-      const api = excalidrawAPI as {
-        getSceneElements: () => ExcalidrawElement[]
-        getAppState: () => ExcalidrawAppState
-      }
-      const elements = api.getSceneElements()
-      const appState = api.getAppState()
-
-      console.log('开始导出 PNG，元素数量:', elements.length)
-
-      // 使用正确的 exportToBlob API
-      const { exportToBlob } = await import('@excalidraw/excalidraw')
-
-      const blob = await exportToBlob({
-        elements: elements,
-        appState: {
-          ...appState,
-          exportBackground: true,
-          viewBackgroundColor: appState.viewBackgroundColor || '#ffffff',
-        },
-        files: {} as ExcalidrawFiles,
-        mimeType: 'image/png',
-        exportPadding: 10,
-      })
-
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `excalidraw-${Date.now()}.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-
-      console.log('PNG 导出成功，文件大小:', blob.size)
-    } catch (error) {
-      console.error('导出 PNG 失败:', error)
-      alert('导出 PNG 失败: ' + error.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [excalidrawAPI])
-
-  // 处理导出 SVG
-  const handleExportSVG = useCallback(async () => {
-    if (!excalidrawAPI) return
-
-    setIsLoading(true)
-    try {
-      // 正确的 API 调用方式
-      const { exportToSvg } = await import('@excalidraw/excalidraw')
-      const api = excalidrawAPI as {
-        getSceneElements: () => ExcalidrawElement[]
-        getAppState: () => ExcalidrawAppState
-      }
-      const elements = api.getSceneElements()
-      const appState = api.getAppState()
-
-      console.log('开始导出 SVG，元素数量:', elements.length)
-
-      // 使用正确的参数格式 - 对象格式
-      const svgElement = await exportToSvg({
-        elements: elements,
-        appState: {
-          ...appState,
-          exportBackground: true,
-          viewBackgroundColor: appState.viewBackgroundColor || '#ffffff',
-        },
-        files: {} as ExcalidrawFiles,
-        exportPadding: 10,
-      })
-
-      // 将 SVG 元素转换为字符串
-      const svgString = new XMLSerializer().serializeToString(svgElement)
-      const blob = new Blob([svgString], { type: 'image/svg+xml' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `excalidraw-${Date.now()}.svg`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-
-      console.log('SVG 导出成功，SVG 长度:', svgString.length)
-    } catch (error) {
-      console.error('导出 SVG 失败:', error)
-      alert('导出 SVG 失败: ' + error.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [excalidrawAPI])
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleSave, handleExportPNG, handleExportSVG, handleExportJSON])
 
   // 加载最新保存的绘图
   useEffect(() => {
@@ -399,13 +649,23 @@ export function ExcalidrawViewer({
             {/* 操作按钮 */}
             {showToolbar && (
               <>
-                <Button onClick={handleSave} size="sm" disabled={isLoading}>
+                <Button onClick={() => handleSave()} size="sm" disabled={isLoading}>
                   {isLoading ? '保存中...' : '保存'}
                 </Button>
-                <Button onClick={handleExportPNG} size="sm" variant="outline" disabled={isLoading}>
+                <Button
+                  onClick={() => handleExportPNG()}
+                  size="sm"
+                  variant="outline"
+                  disabled={isLoading}
+                >
                   {isLoading ? '导出中...' : '导出 PNG'}
                 </Button>
-                <Button onClick={handleExportSVG} size="sm" variant="outline" disabled={isLoading}>
+                <Button
+                  onClick={() => handleExportSVG()}
+                  size="sm"
+                  variant="outline"
+                  disabled={isLoading}
+                >
                   {isLoading ? '导出中...' : '导出 SVG'}
                 </Button>
                 <Button
@@ -446,9 +706,70 @@ export function ExcalidrawViewer({
           }}
           initialData={initialData || { elements: [], appState: {} }}
           onChange={handleChange}
+          onSave={handleSave}
           viewModeEnabled={viewModeEnabled}
           theme={currentTheme}
           name="新绘图"
+          // 配置 UI 选项和自定义动作
+          UIOptions={{
+            canvasActions: {
+              // 保存按钮会触发 onSave 回调
+              save: true,
+              // 导出按钮 - 我们通过 action 自定义导出行为
+              export: {
+                render: (exportElements, exportAppState, exportFiles) => (
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button
+                      onClick={() => handleExportPNG(exportElements, exportAppState, exportFiles)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem',
+                        background: 'white',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      导出 PNG
+                    </button>
+                    <button
+                      onClick={() => handleExportSVG(exportElements, exportAppState, exportFiles)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem',
+                        background: 'white',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      导出 SVG
+                    </button>
+                    <button
+                      onClick={() => handleExportJSON(exportElements, exportAppState, exportFiles)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.375rem',
+                        background: 'white',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      导出 JSON
+                    </button>
+                  </div>
+                ),
+              },
+              // 其他可用选项
+              clearCanvas: true,
+              loadScene: true,
+              saveAsScene: true,
+              help: true,
+              toggleTheme: false, // 我们使用外部主题控制
+              changeViewBackgroundColor: true,
+            },
+          }}
         />
       </div>
     </div>
