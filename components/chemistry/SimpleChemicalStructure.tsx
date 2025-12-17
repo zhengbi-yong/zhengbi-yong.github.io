@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-interface ChemicalStructureProps {
+interface SimpleChemicalStructureProps {
   /** 结构文件路径（相对于public目录） */
   file?: string
   /** 内联结构数据（字符串格式） */
@@ -24,10 +24,10 @@ interface ChemicalStructureProps {
 }
 
 /**
- * ChemicalStructure - 3D化学结构可视化组件
- * 使用3Dmol.js渲染分子和晶体结构
+ * SimpleChemicalStructure - 简化版3D化学结构可视化组件
+ * 使用CDN加载3Dmol.js
  */
-export default function ChemicalStructure({
+export default function SimpleChemicalStructure({
   file,
   data,
   format = 'pdb',
@@ -37,12 +37,12 @@ export default function ChemicalStructure({
   backgroundColor,
   className = '',
   autoRotate = false,
-}: ChemicalStructureProps) {
+}: SimpleChemicalStructureProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<any>(null)
-  const [isClient, setIsClient] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
   const animationFrameRef = useRef<number | null>(null)
   const rotationRef = useRef(0) // 用于跟踪旋转角度
 
@@ -55,61 +55,53 @@ export default function ChemicalStructure({
 
     const initViewer = async () => {
       try {
-        if (!containerRef.current) return
-
         // 清理之前的动画
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current)
           animationFrameRef.current = null
         }
 
-        // 加载3Dmol库
-        let $3Dmol: any
-
-        // 首先尝试从npm包导入
-        try {
-          $3Dmol = await import('3dmol')
-          // 确保全局可访问
-          if (typeof window !== 'undefined') {
-            ;(window as any).$3Dmol = $3Dmol
-          }
-        } catch (importError) {
-          // 如果npm包导入失败，尝试从CDN加载
+        // 确保已经加载了3Dmol.js
+        if (typeof window === 'undefined' || !(window as any).$3Dmol) {
+          // 动态加载3Dmol.js
           const script = document.createElement('script')
           script.src = 'https://unpkg.com/3dmol@2.5.3/build/3Dmol-min.js'
+          script.async = true
 
           await new Promise((resolve, reject) => {
             script.onload = resolve
             script.onerror = reject
             document.head.appendChild(script)
           })
-
-          $3Dmol = (window as any).$3Dmol
         }
 
-        // 确保容器样式正确
+        const $3Dmol = (window as any).$3Dmol
+        if (!$3Dmol) {
+          throw new Error('3Dmol.js 加载失败')
+        }
+
+        // 创建viewer - 确保容器有正确的尺寸
         const container = containerRef.current
+        if (!container) return
+
+        // 设置容器的最小尺寸以确保3Dmol能正确渲染
+        const containerWidth = typeof width === 'number' ? width : container.offsetWidth
+        const containerHeight = typeof height === 'number' ? height : 400
+
+        // 确保容器样式正确
         container.style.width = typeof width === 'number' ? `${width}px` : width
         container.style.height = typeof height === 'number' ? `${height}px` : height
         container.style.position = 'relative'
         container.style.overflow = 'hidden'
 
-        // 创建viewer
         const viewer = $3Dmol.createViewer(container, {
           defaultcolors: $3Dmol.rasmolElementColors,
-          backgroundColor: backgroundColor || 0xffffff,
+          backgroundColor:
+            backgroundColor ||
+            (document.documentElement.classList.contains('dark') ? 0x1a1a1a : 0xffffff),
         })
 
         viewerRef.current = viewer
-
-        // 设置背景色
-        if (backgroundColor) {
-          viewer.setBackgroundColor(backgroundColor)
-        } else {
-          // 根据主题设置背景色
-          const isDark = document.documentElement.classList.contains('dark')
-          viewer.setBackgroundColor(isDark ? 0x1a1a1a : 0xffffff)
-        }
 
         // 加载结构数据
         try {
@@ -146,7 +138,7 @@ export default function ChemicalStructure({
             const rotate = () => {
               if (!viewerRef.current) return
 
-              rotationRef.current += 0.3 // 使用更慢的旋转速度
+              rotationRef.current += 0.5
               viewerRef.current.rotate(rotationRef.current)
               viewerRef.current.render()
 
