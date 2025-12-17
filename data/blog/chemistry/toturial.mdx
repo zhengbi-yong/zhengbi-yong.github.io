@@ -340,6 +340,15 @@ CIF格式用于晶体结构：
 <ChemicalStructure file="/structures/water.pdb" style="stick" height={400} />
 ```
 
+实际效果：
+
+<SimpleChemicalStructure
+  file="/structures/water.pdb"
+  style="stick"
+  height={400}
+  autoRotate={true}
+/>
+
 #### Sphere（球模型）
 
 球模型用不同大小的球表示原子：
@@ -448,7 +457,12 @@ $$\ce{2H2 + O2 ->[点燃] 2H2O}$$
 
 以下是水分子的3D结构（球棍模型）：
 
-<ChemicalStructure file="/structures/water.pdb" style="stick" height={400} />
+<SimpleChemicalStructure
+  file="/structures/water.pdb"
+  style="stick"
+  height={400}
+  autoRotate={true}
+/>
 
 ## 水的性质
 
@@ -456,6 +470,40 @@ $$\ce{2H2 + O2 ->[点燃] 2H2O}$$
 - 沸点：100°C（标准大气压）
 - 密度：1 g/cm³（4°C）
 ```
+
+### 水分子的多种展示样式
+
+水分子（$\ce{H2O}$）是最简单的极性分子之一。以下是使用不同样式展示的水分子结构：
+
+#### 球棍模型（Stick）
+
+球棍模型清晰地显示了原子间的化学键：
+
+<SimpleChemicalStructure
+  file="/structures/water.pdb"
+  style="stick"
+  height={350}
+  autoRotate={true}
+/>
+
+#### 球模型（Sphere）
+
+球模型更直观地展示了原子的相对大小：
+
+<SimpleChemicalStructure
+  file="/structures/water.pdb"
+  style="sphere"
+  height={350}
+  autoRotate={true}
+/>
+
+#### 线模型（Line）
+
+线模型是最简洁的展示方式：
+
+<SimpleChemicalStructure file="/structures/water.pdb" style="line" height={350} autoRotate={true} />
+
+水分子的键角约为104.5°，这是由于氧原子的孤对电子排斥作用导致的。水分子是极性分子，这种极性使得水具有许多独特的物理和化学性质。
 
 ---
 

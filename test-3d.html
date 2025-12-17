@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3Dmol.js Test</title>
+    <script src="https://unpkg.com/3dmol@2.5.3/build/3Dmol-min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #viewer {
+            width: 400px;
+            height: 400px;
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        .error {
+            color: red;
+            background-color: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            background-color: #e6ffe6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>3Dmol.js 测试</h1>
+
+    <div id="status">正在测试 3Dmol.js...</div>
+
+    <div id="viewer"></div>
+
+    <div id="results"></div>
+
+    <script>
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+
+        // 测试1: 检查3Dmol是否加载
+        if (typeof $3Dmol !== 'undefined') {
+            status.innerHTML = '<div class="success">✓ 3Dmol.js 已成功加载</div>';
+        } else {
+            status.innerHTML = '<div class="error">✗ 3Dmol.js 未能加载</div>';
+            return;
+        }
+
+        // 测试2: 创建viewer
+        let viewer;
+        try {
+            viewer = $3Dmol.createViewer(document.getElementById('viewer'), {
+                backgroundColor: 'white'
+            });
+            results.innerHTML += '<div class="success">✓ Viewer 创建成功</div>';
+        } catch (e) {
+            results.innerHTML += `<div class="error">✗ Viewer 创建失败: ${e.message}</div>`;
+            return;
+        }
+
+        // 测试3: 加载water.pdb文件
+        fetch('/structures/water.pdb')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(pdbData => {
+                results.innerHTML += '<div class="success">✓ water.pdb 文件加载成功</div>';
+
+                // 测试4: 加载分子结构
+                try {
+                    viewer.addModel(pdbData, 'pdb');
+                    viewer.setStyle({}, { stick: {} });
+                    viewer.zoomTo();
+                    viewer.render();
+                    results.innerHTML += '<div class="success">✓ 水分子结构渲染成功</div>';
+                } catch (e) {
+                    results.innerHTML += `<div class="error">✗ 分子结构渲染失败: ${e.message}</div>`;
+                }
+            })
+            .catch(error => {
+                results.innerHTML += `<div class="error">✗ water.pdb 文件加载失败: ${error.message}</div>`;
+
+                // 测试5: 使用内联数据
+                results.innerHTML += '<p>尝试使用内联数据...</p>';
+                try {
+                    const xyzData = `3
+Water
+O 0.0000 0.0000 0.0000
+H 0.9500 0.0000 -0.3000
+H -0.9500 0.0000 -0.3000`;
+
+                    viewer.addModel(xyzData, 'xyz');
+                    viewer.setStyle({}, { sphere: {} });
+                    viewer.zoomTo();
+                    viewer.render();
+                    results.innerHTML += '<div class="success">✓ 内联XYZ数据渲染成功</div>';
+                } catch (e) {
+                    results.innerHTML += `<div class="error">✗ 内联数据渲染失败: ${e.message}</div>`;
+                }
+            });
+    </script>
+</body>
+</html>

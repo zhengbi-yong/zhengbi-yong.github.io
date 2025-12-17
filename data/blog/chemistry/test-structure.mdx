@@ -1,0 +1,53 @@
+---
+title: 'Test Chemical Structure'
+date: '2025-01-17'
+tags: ['Test', 'Chemistry']
+draft: false
+---
+
+# Testing 3D Molecular Structure
+
+## Water Molecule Test (Original Component)
+
+Testing basic water molecule display:
+
+<ChemicalStructure file="/structures/water.pdb" style="stick" height={400} />
+
+## Water Molecule Test (Simple Component)
+
+Testing with simplified component that loads from CDN:
+
+<SimpleChemicalStructure
+  file="/structures/water.pdb"
+  style="stick"
+  height={400}
+  autoRotate={true}
+/>
+
+## Test with different format
+
+Testing with explicit format:
+
+<SimpleChemicalStructure
+  file="/structures/water.pdb"
+  format="pdb"
+  style="sphere"
+  height={400}
+  autoRotate={true}
+/>
+
+## Test with inline data
+
+Testing with inline XYZ data:
+
+<SimpleChemicalStructure
+  data={`3
+Water
+O 0.0000 0.0000 0.0000
+H 0.9500 0.0000 -0.3000
+H -0.9500 0.0000 -0.3000`}
+  format="xyz"
+  style="stick"
+  height={400}
+  autoRotate={true}
+/>

@@ -29,8 +29,8 @@ const generateSecurityHeaders = () => {
     {
       key: 'Content-Security-Policy',
       value: isProduction
-        ? "default-src 'self'; script-src 'self' 'unsafe-inline' giscus.app analytics.umami.is; style-src 'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net; img-src 'self' data: https: avatars.githubusercontent.com picsum.photos; font-src 'self' data: blob: https: unpkg.com cdn.jsdelivr.net; connect-src 'self' https: https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://o1046881.ingest.sentry.io unpkg.com cdn.jsdelivr.net; frame-src giscus.app excalidraw.com; worker-src 'self' blob:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
-        : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: blob: https: unpkg.com cdn.jsdelivr.net; connect-src 'self' https: unpkg.com cdn.jsdelivr.net; frame-src excalidraw.com;",
+        ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' giscus.app analytics.umami.is unpkg.com; style-src 'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net; img-src 'self' data: https: avatars.githubusercontent.com picsum.photos; font-src 'self' data: blob: https: unpkg.com cdn.jsdelivr.net; connect-src 'self' https: https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://o1046881.ingest.sentry.io unpkg.com cdn.jsdelivr.net; frame-src giscus.app excalidraw.com; worker-src 'self' blob:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+        : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' unpkg.com; style-src 'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: blob: https: unpkg.com cdn.jsdelivr.net; connect-src 'self' https: unpkg.com cdn.jsdelivr.net; frame-src excalidraw.com;",
     },
     // Referrer-Policy
     {
