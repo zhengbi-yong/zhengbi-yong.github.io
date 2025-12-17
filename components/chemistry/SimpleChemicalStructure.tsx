@@ -43,8 +43,7 @@ export default function SimpleChemicalStructure({
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isClient, setIsClient] = useState(false)
-  const animationFrameRef = useRef<number | null>(null)
-  const rotationRef = useRef(0) // 用于跟踪旋转角度
+  // 移除所有动画相关的ref，只保留viewer引用
 
   useEffect(() => {
     setIsClient(true)
@@ -55,12 +54,6 @@ export default function SimpleChemicalStructure({
 
     const initViewer = async () => {
       try {
-        // 清理之前的动画
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current)
-          animationFrameRef.current = null
-        }
-
         // 确保已经加载了3Dmol.js
         if (typeof window === 'undefined' || !(window as any).$3Dmol) {
           // 动态加载3Dmol.js
@@ -131,24 +124,8 @@ export default function SimpleChemicalStructure({
 
           setIsLoading(false)
 
-          // 自动旋转
-          if (autoRotate) {
-            // 重置旋转角度
-            rotationRef.current = 0
-            const rotate = () => {
-              if (!viewerRef.current) return
-
-              rotationRef.current += 0.5
-              viewerRef.current.rotate(rotationRef.current)
-              viewerRef.current.render()
-
-              // 使用更慢的旋转速度
-              setTimeout(() => {
-                animationFrameRef.current = requestAnimationFrame(rotate)
-              }, 16) // 约60fps
-            }
-            animationFrameRef.current = requestAnimationFrame(rotate)
-          }
+          // 3Dmol.js 默认支持鼠标交互（拖拽旋转、滚轮缩放）
+          // 不需要额外的自动旋转代码
         } catch (err) {
           console.error('加载结构失败:', err)
           const errorMsg = `加载结构失败: ${err instanceof Error ? err.message : '未知错误'}`
@@ -167,12 +144,6 @@ export default function SimpleChemicalStructure({
 
     // 清理函数
     return () => {
-      // 清理动画
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current)
-        animationFrameRef.current = null
-      }
-
       // 清理viewer
       if (viewerRef.current) {
         try {

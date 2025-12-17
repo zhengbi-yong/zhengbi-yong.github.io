@@ -17,24 +17,13 @@ Testing basic water molecule display:
 
 Testing with simplified component that loads from CDN:
 
-<SimpleChemicalStructure
-  file="/structures/water.pdb"
-  style="stick"
-  height={400}
-  autoRotate={true}
-/>
+<SimpleChemicalStructure file="/structures/water.pdb" style="stick" height={400} />
 
 ## Test with different format
 
 Testing with explicit format:
 
-<SimpleChemicalStructure
-  file="/structures/water.pdb"
-  format="pdb"
-  style="sphere"
-  height={400}
-  autoRotate={true}
-/>
+<SimpleChemicalStructure file="/structures/water.pdb" format="pdb" style="sphere" height={400} />
 
 ## Test with inline data
 
@@ -49,5 +38,4 @@ H -0.9500 0.0000 -0.3000`}
   format="xyz"
   style="stick"
   height={400}
-  autoRotate={true}
 />
