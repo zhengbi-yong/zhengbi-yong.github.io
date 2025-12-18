@@ -83,6 +83,35 @@ const SimpleChemicalStructure = dynamic(
   }
 )
 
+// 动态导入RDKit化学结构组件
+const RDKitStructure = dynamic(
+  () => import('./chemistry/RDKitStructure').then((mod) => mod.default),
+  {
+    loading: () => (
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col items-center gap-3">
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载2D结构查看器...</p>
+        </div>
+      </div>
+    ),
+  }
+)
+
+const MoleculeFingerprint = dynamic(
+  () => import('./chemistry/MoleculeFingerprint').then((mod) => mod.default),
+  {
+    loading: () => (
+      <div className="my-6 items-center justify-center rounded-lg border border-dashed border-gray-200 p-4 dark:border-gray-700">
+        <div className="flex flex-col items-center gap-3">
+          <div className="border-t-primary-500 h-6 w-6 animate-spin rounded-full border-4 border-gray-300" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载分子指纹...</p>
+        </div>
+      </div>
+    ),
+  }
+)
+
 // 动态导入图表组件
 const EChartsComponent = dynamic(() => import('./charts').then((mod) => mod.EChartsComponent), {
   loading: () => (
@@ -261,6 +290,8 @@ export const components: MDXComponents = {
   // 化学结构组件（动态导入，按需加载）
   ChemicalStructure,
   SimpleChemicalStructure,
+  RDKitStructure,
+  MoleculeFingerprint,
   // 图表组件（动态导入，按需加载，客户端渲染，带错误边界）
   EChartsComponent: WrappedEChartsComponent,
   NivoBarChart: WrappedNivoBarChart,
