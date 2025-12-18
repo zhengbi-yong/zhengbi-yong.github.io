@@ -100,7 +100,8 @@ M  END`,
         getMol: false,
         getSmiles: false,
         getSVG: false,
-        error: null,
+        error: null as string | null,
+        svg: '',
       }
 
       try {
@@ -108,10 +109,10 @@ M  END`,
         addLog('  → Testing with molToSVG...')
         try {
           const svg = await molToSVG(molecule.data)
-          result.getSVG = svg && svg.length > 0
+          result.getSVG = Boolean(svg && svg.length > 0)
           result.getMol = true
           addLog(
-            `  → molToSVG(): ${result.getSVG ? 'SUCCESS (length=' + svg.length + ')' : 'FAILED'}`
+            `  → molToSVG(): ${result.getSVG ? 'SUCCESS (length=' + (svg?.length || 0) + ')' : 'FAILED'}`
           )
 
           // If molToSVG succeeded, we have a valid molecule
