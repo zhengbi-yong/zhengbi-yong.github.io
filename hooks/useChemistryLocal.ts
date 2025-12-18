@@ -47,9 +47,11 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
           return
         }
 
-        // 加载本地RDKit脚本
+        // 尝试使用完整的RDKit CDN版本
         const script = document.createElement('script')
-        script.src = '/chemistry/rdkit/RDKit_minimal.js'
+        // 使用官方CDN的完整版本
+        script.src = 'https://rdkit.org/RDKit_minimal.js' // 官方minimal版本
+        // script.src = 'https://rdkit.org/RDKit.js' // 完整版本可能不可用
         script.async = true
 
         const loadPromise = new Promise<void>((resolve, reject) => {
@@ -78,7 +80,39 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
           }
 
           script.onerror = () => {
-            reject(new Error('Failed to load RDKit.js'))
+            // CDN加载失败，尝试本地版本
+            console.log('CDN failed, trying local RDKit...')
+            const localScript = document.createElement('script')
+            localScript.src = '/chemistry/rdkit/RDKit_minimal.js'
+            localScript.async = true
+
+            localScript.onload = () => {
+              const checkInitRDKit = () => {
+                if ((window as any).initRDKitModule) {
+                  ;(window as any)
+                    .initRDKitModule()
+                    .then((RDKitModule: any) => {
+                      rdkitRef.current = RDKitModule
+                      setRDKit(RDKitModule)
+                      setIsLoaded(true)
+                      setError(null)
+                      resolve()
+                    })
+                    .catch((err: any) => {
+                      reject(new Error(`Failed to initialize local RDKit: ${err}`))
+                    })
+                } else {
+                  setTimeout(checkInitRDKit, 100)
+                }
+              }
+              checkInitRDKit()
+            }
+
+            localScript.onerror = () => {
+              reject(new Error('Failed to load both CDN and local RDKit.js'))
+            }
+
+            document.head.appendChild(localScript)
           }
         })
 
@@ -126,117 +160,59 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
     }
 
     try {
-      // 对于 MOL 格式，RDKit 需要特定的格式
+      // First try to identify the molecule and get its SMILES
+      const { getSMILESFromMOL } = await import('@/lib/molecule-database')
+      const smiles = getSMILESFromMOL(molData)
+
+      if (smiles) {
+        console.log(`Identified molecule, using SMILES: ${smiles}`)
+        return await smilesToSVG(smiles)
+      }
+
+      // Try direct MOL parsing (minimal RDKit might not support it)
       let processedMolData = molData.trim()
 
       // 检查是否是 MOL 块格式
       if (processedMolData.includes('V2000') || processedMolData.includes('V3000')) {
-        // 解析 MOL 块
-        const lines = processedMolData
-          .split('\n')
-          .map((line) => line.trim())
-          .filter((line) => line)
-        const isV3000 = processedMolData.includes('V3000')
-
-        if (lines.length >= 4) {
-          // 第三行应该是计数行（原子数和键数）
-          let countLine = lines[3]
-
-          if (!isV3000) {
-            // V2000 格式处理
-            const countMatch = countLine.match(/^(\d+)\s+(\d+)/)
-
-            if (!countMatch) {
-              // 如果没有有效的计数行，尝试计算原子和键的数量
-              const atomLines = lines.slice(4).filter((line) => {
-                const parts = line.split(/\s+/)
-                return parts.length >= 9 && /^\d+$/.test(parts[0])
-              })
-
-              const bondLines = lines.slice(4).filter((line) => {
-                const parts = line.split(/\s+/)
-                return parts.length >= 4 && parts.length < 9 && /^\d+$/.test(parts[0])
-              })
-
-              // 创建正确的计数行
-              countLine = `${atomLines.length.toString().padStart(3)}  ${bondLines.length.toString().padStart(3)}  0  0  0  0            999 V2000`
-              lines[3] = countLine
-              console.log('Generated new count line:', countLine)
-            }
-
-            // 确保 M END 行存在
-            if (!lines[lines.length - 1].startsWith('M  END')) {
-              lines.push('M  END')
-            }
-
-            // 重新构建 MOL 数据
-            processedMolData = lines.join('\n')
+        // 最小化处理 - 只移除 ChemDraw 标题，保持其他不变
+        if (processedMolData.startsWith('ChemDraw')) {
+          const lines = processedMolData.split('\n')
+          const vIndex = lines.findIndex((line) => line.includes('V2000') || line.includes('V3000'))
+          if (vIndex > 0) {
+            // 只保留 V2000 行及其之后的内容
+            processedMolData = lines.slice(vIndex).join('\n')
           }
         }
 
-        // 额外的格式检查
-        const atomLines = processedMolData.split('\n').filter((line) => {
-          const parts = line.trim().split(/\s+/)
-          return parts.length >= 9 && /^[A-Z][a-z]?$/.test(parts[3]) // 第4个位置应该是元素符号
-        })
+        // 确保 M END 存在
+        if (!processedMolData.includes('M  END')) {
+          processedMolData += '\nM  END'
+        }
 
-        if (atomLines.length === 0) {
-          throw new Error('No valid atom lines found in MOL data')
+        // 直接尝试解析
+        const molecule = RDKit.get_mol(processedMolData)
+
+        if (molecule) {
+          const svg = molecule.get_svg()
+          molecule.delete()
+          if (svg) return svg
         }
       }
 
-      // 尝试解析处理后的数据
-      const molecule = RDKit.get_mol(processedMolData)
-      if (!molecule) {
-        // 如果仍然失败，尝试移除 ChemDraw 标题行
-        let cleanedData = processedMolData
-        if (cleanedData.startsWith('ChemDraw')) {
-          const lines = cleanedData.split('\n')
-          // 跳过第一行（ChemDraw 标题）
-          if (lines.length > 1 && lines[1].trim() === '') {
-            cleanedData = lines.slice(2).join('\n')
-          } else {
-            cleanedData = lines.slice(1).join('\n')
-          }
-
-          // 再次尝试
-          const mol = RDKit.get_mol(cleanedData)
-          if (mol) {
-            const svg = mol.get_svg()
-            mol.delete()
-            if (svg) return svg
-          }
-        }
-
-        // 尝试作为 SMILES 处理
-        console.warn(
-          'Failed to parse as MOL, trying as SMILES:',
-          processedMolData.substring(0, 100)
-        )
-        const mol = RDKit.get_mol(processedMolData)
-        if (!mol) {
-          throw new Error(
-            `Unable to parse chemical data. Format detected: ${detectChemicalFormat(molData)}`
-          )
-        }
-        const svg = mol.get_svg()
-        mol.delete()
+      // 如果是 SMILES，直接解析
+      const molecule = RDKit.get_mol(molData)
+      if (molecule) {
+        const svg = molecule.get_svg()
+        molecule.delete()
         return svg
       }
 
-      const svg = molecule.get_svg()
-      if (!svg) {
-        throw new Error('Failed to generate SVG from MOL data')
-      }
-      molecule.delete()
-      return svg
+      throw new Error(
+        `Unable to identify molecule from MOL data. The RDKit minimal build doesn't support MOL format parsing. Please use SMILES format instead.`
+      )
     } catch (err) {
-      console.error('MOL to SVG error:', {
-        data: molData.substring(0, 200) + '...',
-        format: detectChemicalFormat(molData),
-        error: err,
-      })
-      throw new Error(`Failed to convert MOL to SVG: ${err}`)
+      const errorMessage = err instanceof Error ? err.message : String(err)
+      throw new Error(`Failed to convert MOL to SVG: ${errorMessage}`)
     }
   }
 
@@ -258,19 +234,28 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
 
       // 根据格式处理输入
       if (format === 'mol') {
-        // 对于 MOL 格式，先尝试直接解析
-        mol = RDKit.get_mol(processedInput)
+        // First try to identify the molecule and get its SMILES
+        const { getSMILESFromMOL } = await import('@/lib/molecule-database')
+        const smiles = getSMILESFromMOL(input)
 
-        if (!mol) {
-          // 如果失败，尝试清理 MOL 数据
-          if (processedInput.startsWith('ChemDraw')) {
-            const lines = processedInput.split('\n')
-            processedInput = lines.slice(2).join('\n') // 跳过 ChemDraw 标题和空行
-            mol = RDKit.get_mol(processedInput)
+        if (smiles) {
+          console.log(`Identified molecule for fingerprint, using SMILES: ${smiles}`)
+          mol = RDKit.get_mol(smiles)
+        } else {
+          // For MOL format, try direct parsing (won't work with minimal build)
+          mol = RDKit.get_mol(processedInput)
+
+          if (!mol) {
+            // If failed, try cleaning MOL data
+            if (processedInput.startsWith('ChemDraw')) {
+              const lines = processedInput.split('\n')
+              processedInput = lines.slice(2).join('\n') // Skip ChemDraw header
+              mol = RDKit.get_mol(processedInput)
+            }
           }
         }
       } else if (format === 'smiles') {
-        // 对于 SMILES 格式，直接解析
+        // For SMILES format, parse directly
         mol = RDKit.get_mol(processedInput)
       } else {
         throw new Error(
@@ -282,8 +267,8 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
         throw new Error(`Failed to parse chemical data. Format: ${format}`)
       }
 
-      // 生成 Morgan 指纹 - 使用正确的 RDKit API
-      // RDKit 的 get_morgan_fp 方法接受参数作为 JSON 字符串
+      // Generate Morgan fingerprint - use correct RDKit API
+      // RDKit's get_morgan_fp method accepts parameters as JSON string
       const options = JSON.stringify({ radius, nBits: bits })
       const fingerprint = mol.get_morgan_fp(options)
 
