@@ -57,6 +57,7 @@ export default [
     ignores: [
       'next.config.js', // Next.js 配置文件使用 CommonJS，忽略 ESLint 检查
       '.storybook/**', // Storybook 配置文件有自己的配置，排除 ESLint 检查
+      'public/chemistry/rdkit/**', // 第三方库文件，排除 ESLint 检查
     ],
   },
   js.configs.recommended,
