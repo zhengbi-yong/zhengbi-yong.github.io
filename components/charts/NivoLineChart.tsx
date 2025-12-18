@@ -15,7 +15,7 @@ interface NivoLineChartProps {
   }
   xScale?: any
   yScale?: any
-  curve?: string
+  curve?: any
   colors?: any
   theme?: any
   animate?: boolean
@@ -52,7 +52,7 @@ export const NivoLineChart: React.FC<NivoLineChartProps> = ({
         margin={margin}
         xScale={xScale}
         yScale={yScale}
-        curve={curve}
+        curve={curve as any}
         colors={colors}
         theme={theme}
         animate={animate}

@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { beforeAll, afterEach, vi } from 'vitest'
+import { beforeAll, afterEach, vi, expect } from 'vitest'
 
 // 模拟 Next.js 路由
 const mockRouter = {

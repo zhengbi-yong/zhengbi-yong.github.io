@@ -3,7 +3,8 @@
  * This plugin converts \ce{...} to LaTeX code using mhchemparser
  */
 import { visit } from 'unist-util-visit'
-import type { Root } from 'hast'
+// import type { Root } from 'hast'
+type Root = any
 import { mhchemParser } from 'mhchemparser'
 
 export default function rehypeMhchem() {

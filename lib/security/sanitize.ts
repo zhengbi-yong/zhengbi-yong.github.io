@@ -97,38 +97,34 @@ export function sanitizeHtml(
   const { isMdx = false, allowImages = true, allowLinks = true, allowStyle = false } = options
 
   // 构建配置
-  const config = {
-    RETURN_TRUSTED_TYPE: true,
-    IN_PLACE: true,
-  }
-
   // 选择基础配置
   const baseConfig = isMdx ? MDX_HTML_CONFIG : SAFE_HTML_CONFIG
 
   // 应用选项
-  config.ALLOWED_TAGS = baseConfig.ALLOWED_TAGS.filter((tag) => {
-    if (!allowImages && tag === 'img') return false
-    return true
-  })
-
-  config.ALLOWED_ATTR = baseConfig.ALLOWED_ATTR.filter((attr) => {
-    if (!allowImages && (attr === 'src' || attr === 'alt')) return false
-    if (!allowLinks && attr === 'href') return false
-    return true
-  })
-
-  config.ALLOWED_URI_REGEXP = baseConfig.ALLOWED_URI_REGEXP
+  const config = {
+    RETURN_TRUSTED_TYPE: true,
+    IN_PLACE: true,
+    ALLOWED_TAGS: baseConfig.ALLOWED_TAGS.filter((tag) => {
+      if (!allowImages && tag === 'img') return false
+      return true
+    }),
+    ALLOWED_ATTR: baseConfig.ALLOWED_ATTR.filter((attr) => {
+      if (!allowImages && (attr === 'src' || attr === 'alt')) return false
+      if (!allowLinks && attr === 'href') return false
+      return true
+    }),
+    ALLOWED_URI_REGEXP: baseConfig.ALLOWED_URI_REGEXP,
+    ADD_ATTR: ['data-*'],
+    ADD_DATA_URI_TAGS: ['img', 'video', 'audio'],
+  }
 
   if (allowStyle) {
     config.ALLOWED_ATTR.push('style')
   }
 
-  // 添加自定义规则
-  config.ADD_ATTR = ['data-*']
-
   // 对于 MDX，允许一些额外的属性
   if (isMdx) {
-    config.ADD_DATA_URI_TAGS = true
+    // ADD_DATA_URI_TAGS 已经在 config 中设置
   }
 
   // 执行清理
