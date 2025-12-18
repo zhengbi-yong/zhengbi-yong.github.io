@@ -1,11 +1,13 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { formatDate } from 'pliny/utils/formatDate'
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
+import { shouldDisableComplexAnimations } from '@/lib/utils/performance-optimized'
 
 interface ArticleCardProps {
   article: CoreContent<Blog>
@@ -19,12 +21,21 @@ export default function ArticleCard({
   categoryColor = 'bg-primary-500',
 }: ArticleCardProps) {
   const { path, date, title, summary, tags } = article
+  const [disableComplexAnimations, setDisableComplexAnimations] = useState(false)
+
+  useEffect(() => {
+    setDisableComplexAnimations(shouldDisableComplexAnimations())
+  }, [])
+
+  const cardClasses = disableComplexAnimations
+    ? 'group/card relative overflow-hidden rounded-xl border border-gray-200/70 bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm dark:border-gray-700/70 dark:from-gray-900/90 dark:to-gray-800/90'
+    : `group/card hover:border-primary-400/80 dark:hover:border-primary-500/80 hover:shadow-primary-500/20 dark:hover:shadow-primary-400/20 relative overflow-hidden rounded-xl border border-gray-200/70 bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl dark:border-gray-700/70 dark:from-gray-900/90 dark:to-gray-800/90 animate-fade-in-up`
 
   return (
     <article
-      className="group/card hover:border-primary-400/80 dark:hover:border-primary-500/80 hover:shadow-primary-500/20 dark:hover:shadow-primary-400/20 relative overflow-hidden rounded-xl border border-gray-200/70 bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl dark:border-gray-700/70 dark:from-gray-900/90 dark:to-gray-800/90"
+      className={cardClasses}
       style={{
-        animationDelay: `${index * 50}ms`,
+        animationDelay: disableComplexAnimations ? '0ms' : `${index * 50}ms`,
       }}
     >
       {/* 左侧彩色条 */}
@@ -71,26 +82,28 @@ export default function ArticleCard({
         )}
 
         {/* 阅读更多提示（悬停时显示） */}
-        <Link href={`/${path}`} className="block">
-          <div className="mt-2 flex items-center justify-end opacity-0 transition-opacity duration-300 group-hover/card:opacity-100">
-            <span className="text-primary-500 dark:text-primary-400 flex cursor-pointer items-center gap-1.5 text-xs font-semibold">
-              阅读更多
-              <svg
-                className="h-4 w-4 transition-transform duration-300 group-hover/card:translate-x-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </span>
-          </div>
-        </Link>
+        {!disableComplexAnimations && (
+          <Link href={`/${path}`} className="block">
+            <div className="mt-2 flex items-center justify-end opacity-0 transition-opacity duration-300 group-hover/card:opacity-100">
+              <span className="text-primary-500 dark:text-primary-400 flex cursor-pointer items-center gap-1.5 text-xs font-semibold">
+                阅读更多
+                <svg
+                  className="h-4 w-4 transition-transform duration-300 group-hover/card:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </span>
+            </div>
+          </Link>
+        )}
       </div>
     </article>
   )

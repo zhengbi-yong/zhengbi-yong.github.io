@@ -1,12 +1,13 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import { categorizePostsByBookStructure } from '@/lib/utils/book-categorizer'
 import Book from '@/components/book/Book'
 import ArticleCard from '@/components/book/ArticleCard'
 import { PopularArticles } from '@/components/ArticleAnalytics'
+import { shouldDisableComplexAnimations } from '@/lib/utils/performance-optimized'
 
 interface BookShelfLayoutProps {
   posts: CoreContent<Blog>[]
@@ -14,6 +15,12 @@ interface BookShelfLayoutProps {
 }
 
 export default function BookShelfLayout({ posts, title = '博客书架' }: BookShelfLayoutProps) {
+  const [disableComplexAnimations, setDisableComplexAnimations] = useState(false)
+
+  useEffect(() => {
+    setDisableComplexAnimations(shouldDisableComplexAnimations())
+  }, [])
+
   // 将文章按书籍结构分类
   const bookShelfData = useMemo(() => {
     return categorizePostsByBookStructure(posts)
@@ -44,9 +51,13 @@ export default function BookShelfLayout({ posts, title = '博客书架' }: BookS
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             {/* 书架主要内容 */}
             <div className="lg:col-span-3">
-              <div className="grid grid-cols-1 gap-8 px-4 py-8 sm:gap-10 sm:px-6 md:grid-cols-2 xl:grid-cols-3">
+              <div
+                className={`grid grid-cols-1 gap-8 px-4 py-8 sm:gap-10 sm:px-6 md:grid-cols-2 xl:grid-cols-3 ${
+                  disableComplexAnimations ? '' : 'animate-fade-in-up'
+                }`}
+              >
                 {bookShelfData.books.map((book, index) => (
-                  <Book key={book.name} book={book} index={index} />
+                  <Book key={book.name} book={book} index={disableComplexAnimations ? 0 : index} />
                 ))}
               </div>
             </div>
@@ -64,9 +75,17 @@ export default function BookShelfLayout({ posts, title = '博客书架' }: BookS
         {bookShelfData.uncategorized.length > 0 && (
           <div className="mt-12">
             <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">其他文章</h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div
+              className={`grid gap-4 md:grid-cols-2 lg:grid-cols-3 ${
+                disableComplexAnimations ? '' : 'animate-fade-in-up'
+              }`}
+            >
               {bookShelfData.uncategorized.map((article, index) => (
-                <ArticleCard key={article.path} article={article} index={index} />
+                <ArticleCard
+                  key={article.path}
+                  article={article}
+                  index={disableComplexAnimations ? 0 : index}
+                />
               ))}
             </div>
           </div>

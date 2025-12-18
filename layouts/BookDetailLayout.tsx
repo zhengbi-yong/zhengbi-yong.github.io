@@ -6,6 +6,10 @@ import { getCategoryColorScheme, getCategoryColorForCard } from '@/lib/utils/boo
 import { getBookIcon } from '@/components/book/BookIcons'
 import Chapter from '@/components/book/Chapter'
 import BackToShelfButton from '@/components/book/BackToShelfButton'
+import {
+  getOptimizedAnimationParams,
+  shouldDisableComplexAnimations,
+} from '@/lib/utils/performance-optimized'
 
 interface BookDetailLayoutProps {
   book: BookCategory
@@ -16,13 +20,18 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
   const bookIcon = getBookIcon(book.name)
   const categoryColor = getCategoryColorForCard(book.name)
 
+  // 获取性能优化的动画参数
+  const { duration, useReducedMotion } = getOptimizedAnimationParams(0.3, 0.2)
+  const disableComplexAnimations = shouldDisableComplexAnimations()
+
   return (
     <motion.div
       className="relative min-h-screen w-full"
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: useReducedMotion ? 1 : 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.3 }}
+      exit={{ opacity: 0, scale: useReducedMotion ? 1 : 0.95 }}
+      transition={{ duration }}
+      style={{ willChange: 'opacity' }}
     >
       {/* 背景 */}
       <div className="fixed inset-0 -z-10">
@@ -46,9 +55,9 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
           {/* 书籍封面区域 */}
           <motion.div
             className="mb-12"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: disableComplexAnimations ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            transition={{ delay: disableComplexAnimations ? 0 : 0.1, duration }}
           >
             <div
               className={`${colorScheme.gradient} dark:${colorScheme.gradientDark} relative flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-2xl p-8 text-white shadow-2xl shadow-black/20 sm:min-h-[400px] sm:p-12 dark:shadow-black/40`}
@@ -62,14 +71,20 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
               {/* 书籍内容 - 前景层 */}
               <div className="relative z-10 w-full px-4 text-center">
                 {/* 图标 */}
-                <motion.div
-                  className={`${colorScheme.iconColor} mb-6 flex justify-center`}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
-                >
-                  <div className="h-20 w-20 sm:h-24 sm:w-24">{bookIcon}</div>
-                </motion.div>
+                {!disableComplexAnimations ? (
+                  <motion.div
+                    className={`${colorScheme.iconColor} mb-6 flex justify-center`}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                  >
+                    <div className="h-20 w-20 sm:h-24 sm:w-24">{bookIcon}</div>
+                  </motion.div>
+                ) : (
+                  <div className={`${colorScheme.iconColor} mb-6 flex justify-center`}>
+                    <div className="h-20 w-20 sm:h-24 sm:w-24">{bookIcon}</div>
+                  </div>
+                )}
 
                 {/* 标题 */}
                 <h1 className="mb-4 text-4xl font-bold capitalize drop-shadow-lg sm:text-5xl md:text-6xl">
@@ -115,9 +130,9 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
           {/* 章节列表区域 */}
           <motion.div
             className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: disableComplexAnimations ? 0 : 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
+            transition={{ delay: disableComplexAnimations ? 0 : 0.2, duration }}
           >
             {book.chapters.length === 0 ? (
               <div className="py-12 text-center">

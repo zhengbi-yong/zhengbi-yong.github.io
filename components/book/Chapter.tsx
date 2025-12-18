@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import type { Chapter as ChapterType } from '@/lib/utils/book-categorizer'
 import ArticleCard from './ArticleCard'
+import { shouldDisableComplexAnimations } from '@/lib/utils/performance-optimized'
 
 interface ChapterProps {
   chapter: ChapterType
@@ -19,6 +20,11 @@ export default function Chapter({
   categoryColor,
 }: ChapterProps) {
   const [isOpen, setIsOpen] = useState(isExpanded)
+  const [disableComplexAnimations, setDisableComplexAnimations] = useState(false)
+
+  useEffect(() => {
+    setDisableComplexAnimations(shouldDisableComplexAnimations())
+  }, [])
 
   const toggleOpen = () => {
     setIsOpen(!isOpen)
@@ -54,30 +60,50 @@ export default function Chapter({
         </button>
       )}
 
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
-          className={`grid gap-5 ${chapter.name ? 'border-primary-200/50 dark:border-primary-800/50 ml-6 border-l-2 pl-8' : ''} ${
-            chapter.articles.length === 1
-              ? 'grid-cols-1'
-              : chapter.articles.length === 2
-                ? 'grid-cols-1 md:grid-cols-2'
-                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-          }`}
-        >
-          {chapter.articles.map((article, index) => (
-            <ArticleCard
-              key={article.path}
-              article={article}
-              index={index}
-              categoryColor={categoryColor}
-            />
-          ))}
-        </motion.div>
-      )}
+      {isOpen &&
+        (disableComplexAnimations ? (
+          <div
+            className={`grid gap-5 ${chapter.name ? 'border-primary-200/50 dark:border-primary-800/50 ml-6 border-l-2 pl-8' : ''} ${
+              chapter.articles.length === 1
+                ? 'grid-cols-1'
+                : chapter.articles.length === 2
+                  ? 'grid-cols-1 md:grid-cols-2'
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            }`}
+          >
+            {chapter.articles.map((article, index) => (
+              <ArticleCard
+                key={article.path}
+                article={article}
+                index={0} // 禁用动画时的索引设为0
+                categoryColor={categoryColor}
+              />
+            ))}
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }} // 减少动画时长
+            className={`grid gap-5 ${chapter.name ? 'border-primary-200/50 dark:border-primary-800/50 ml-6 border-l-2 pl-8' : ''} ${
+              chapter.articles.length === 1
+                ? 'grid-cols-1'
+                : chapter.articles.length === 2
+                  ? 'grid-cols-1 md:grid-cols-2'
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            }`}
+          >
+            {chapter.articles.map((article, index) => (
+              <ArticleCard
+                key={article.path}
+                article={article}
+                index={index}
+                categoryColor={categoryColor}
+              />
+            ))}
+          </motion.div>
+        ))}
     </div>
   )
 }
