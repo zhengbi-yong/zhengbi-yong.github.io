@@ -41,7 +41,9 @@ export class ResourceManager {
       this.eventListeners.set(element, [])
     }
 
-    this.eventListeners.get(element)!.push({ event: event as string, handler, options })
+    this.eventListeners
+      .get(element)!
+      .push({ event: event as string, handler: handler as EventListener, options })
   }
 
   // 定时器管理
@@ -107,7 +109,7 @@ export class ResourceManager {
         if (object.geometry) object.geometry.dispose()
         if (object.material) {
           if (Array.isArray(object.material)) {
-            object.material.forEach((material) => material.dispose())
+            object.material.forEach((material: any) => material.dispose())
           } else {
             object.material.dispose()
           }

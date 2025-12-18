@@ -22,10 +22,7 @@ export default defineConfig({
         '.next/',
       ],
     },
-    // 忽略一些转换警告
-    transformMode: {
-      web: [/\.[jt]sx?$/],
-    },
+    // 移除无效的transformMode配置
   },
   resolve: {
     alias: {
