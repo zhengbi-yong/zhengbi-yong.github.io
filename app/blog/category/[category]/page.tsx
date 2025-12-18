@@ -3,7 +3,7 @@ import { getSortedPosts } from '@/lib/utils/blog-cache'
 import { getBookByCategory, categorizePostsByBookStructure } from '@/lib/utils/book-categorizer'
 import { genPageMetadata } from 'app/seo'
 import BookDetailLayout from '@/layouts/BookDetailLayout'
-import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
+import ShaderBackgroundClientOptimized from '@/components/ShaderBackgroundClientOptimized'
 
 export async function generateMetadata(props: { params: Promise<{ category: string }> }) {
   const params = await props.params
@@ -36,9 +36,9 @@ export default async function CategoryPage(props: { params: Promise<{ category: 
 
   return (
     <div className="relative min-h-screen">
-      {/* 着色器背景 */}
+      {/* 着色器背景 - 使用优化版本 */}
       <div className="fixed inset-0 -z-10">
-        <ShaderBackgroundClient intensity={0.6} />
+        <ShaderBackgroundClientOptimized intensity={0.6} />
       </div>
       {/* 内容背景遮罩 */}
       <div className="fixed inset-0 -z-[5] bg-white/30 backdrop-blur-sm dark:bg-gray-950/40" />

@@ -6,6 +6,10 @@ import Link from 'next/link'
 import type { BookCategory } from '@/lib/utils/book-categorizer'
 import { getCategoryColorScheme } from '@/lib/utils/book-categorizer'
 import { getBookIcon } from './BookIcons'
+import {
+  getOptimizedAnimationParams,
+  shouldDisableComplexAnimations,
+} from '@/lib/utils/performance-optimized'
 
 interface BookProps {
   book: BookCategory
@@ -14,6 +18,7 @@ interface BookProps {
 
 export default function Book({ book, index }: BookProps) {
   const [isMobile, setIsMobile] = useState(false)
+  const [disableComplexAnimations, setDisableComplexAnimations] = useState(false)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -24,6 +29,12 @@ export default function Book({ book, index }: BookProps) {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  useEffect(() => {
+    setDisableComplexAnimations(shouldDisableComplexAnimations())
+  }, [])
+
+  // 获取性能优化的动画参数
+  const { delay, duration } = getOptimizedAnimationParams(0.5, index * 0.1)
   const colorScheme = getCategoryColorScheme(book.name)
   const bookIcon = getBookIcon(book.name)
   const categoryUrl = `/blog/category/${encodeURIComponent(book.name)}`
@@ -31,16 +42,17 @@ export default function Book({ book, index }: BookProps) {
   return (
     <motion.div
       className="relative mb-8"
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: disableComplexAnimations ? 0 : 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
+      transition={{ delay: disableComplexAnimations ? 0 : delay, duration }}
+      style={{ willChange: 'opacity, transform' }}
     >
       {/* 书籍容器 */}
       <Link href={categoryUrl} className="block">
         <motion.div
           className="group relative cursor-pointer"
-          whileHover={{ scale: 1.03, y: -5 }}
-          whileTap={{ scale: 0.97 }}
+          whileHover={disableComplexAnimations ? {} : { scale: 1.03, y: -5 }}
+          whileTap={disableComplexAnimations ? {} : { scale: 0.97 }}
         >
           {/* 书籍3D效果 */}
           <motion.div
@@ -119,26 +131,28 @@ export default function Book({ book, index }: BookProps) {
           </motion.div>
 
           {/* 点击提示 */}
-          <motion.div
-            className="absolute -bottom-8 left-1/2 z-10 -translate-x-1/2 text-gray-400 dark:text-gray-500"
-            animate={{ y: [0, -5, 0] }}
-            transition={{
-              duration: 1.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          >
-            <div className="rounded-full bg-white/80 p-2 shadow-lg backdrop-blur-sm dark:bg-gray-900/80">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </div>
-          </motion.div>
+          {!disableComplexAnimations && (
+            <motion.div
+              className="absolute -bottom-8 left-1/2 z-10 -translate-x-1/2 text-gray-400 dark:text-gray-500"
+              animate={{ y: [0, -5, 0] }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <div className="rounded-full bg-white/80 p-2 shadow-lg backdrop-blur-sm dark:bg-gray-900/80">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
       </Link>
     </motion.div>
