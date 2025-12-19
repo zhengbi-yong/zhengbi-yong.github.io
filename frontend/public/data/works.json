@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Ricoog",
+    "description": "A modern portfolio template for designers and developers",
+    "image": "/assets/works/ricoog.jpg",
+    "url": "https://ricoog.xyz",
+    "tags": ["Portfolio", "Next.js", "TailwindCSS"],
+    "video": "/assets/works/ricoog.mp4",
+    "isShow": true
+  },
+  {
+    "name": "UI/UX Deck",
+    "description": "A comprehensive UI components library for modern web applications",
+    "image": "/assets/works/uiuxdeck.jpg",
+    "url": "https://uiuxdeck.com",
+    "tags": ["UI Library", "React", "TypeScript"],
+    "video": null,
+    "isShow": true
+  },
+  {
+    "name": "GradientHub",
+    "description": "A beautiful gradient collection for designers and developers",
+    "image": "/assets/works/gradientshub.jpg",
+    "url": "https://gradientshub.com",
+    "tags": ["Design Tool", "Gradients", "CSS"],
+    "video": "/assets/works/gradientshub.mp4",
+    "isShow": true
+  },
+  {
+    "name": "Inspoweb",
+    "description": "A minimalist portfolio template for creative professionals",
+    "image": "/assets/works/inspoweb.jpg",
+    "url": "https://inspoweb.template",
+    "tags": ["Portfolio", "Minimalist", "Modern"],
+    "video": null,
+    "isShow": true
+  },
+  {
+    "name": "3D Valentines",
+    "description": "An interactive 3D Valentine's Day card experience",
+    "image": "/assets/works/3d-valentines.jpg",
+    "url": "https://3d-valentines.demo",
+    "tags": ["3D", "Interactive", "Three.js"],
+    "video": "/assets/works/3d-valentines.mp4",
+    "isShow": true
+  },
+  {
+    "name": "Luon Models",
+    "description": "3D modeling and visualization services",
+    "image": "/assets/works/luonmodels.jpg",
+    "url": "https://luonmodels.com",
+    "tags": ["3D Modeling", "Visualization", "Blender"],
+    "video": "/assets/works/luonmodels.mp4",
+    "isShow": true
+  }
+]

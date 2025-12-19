@@ -1,6 +1,6 @@
 'use client'
 
-import worksData from '@/works.json'
+import worksData from '@/data/works'
 import WorkCard from './WorkCard'
 
 interface Work {
