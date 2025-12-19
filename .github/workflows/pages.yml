@@ -35,7 +35,7 @@ jobs:
       - name: Verify pnpm
         run: pnpm --version
 
-      # 4. 设置 pnpm store 缓存
+      # 4. 设置 pnpm store 缓存（更新路径到frontend目录）
       - name: Get pnpm store directory
         shell: bash
         run: |
@@ -44,27 +44,29 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('frontend/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
       - id: configurepages
         uses: actions/configure-pages@v5
         
-      # 5. 恢复 Next.js 缓存（保留 Next.js 特定的缓存）
+      # 5. 恢复 Next.js 缓存（更新路径到frontend目录）
       - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
-          path: .next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          path: frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('frontend/pnpm-lock.yaml') }}-${{ hashFiles('frontend/**/*.[jt]s', 'frontend/**/*.[jt]sx') }}
           restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-nextjs-${{ hashFiles('frontend/pnpm-lock.yaml') }}-
 
-      # 6. 安装依赖 (现在 pnpm 肯定在 PATH 中)
+      # 6. 安装依赖 (切换到frontend目录)
       - name: Install dependencies
+        working-directory: ./frontend
         run: pnpm install --frozen-lockfile
 
       - name: Generate contentlayer files
+        working-directory: ./frontend
         run: pnpm contentlayer
 
       - name: Determine base path
@@ -88,8 +90,9 @@ jobs:
             echo "根路径部署，basePath 为空"
           fi
           
-       # 7. 构建
+       # 7. 构建 (在frontend目录中执行)
       - run: pnpm build
+        working-directory: ./frontend
         env:
           EXPORT: 1
           UNOPTIMIZED: 1
@@ -98,34 +101,34 @@ jobs:
 
       - name: Ensure musicxml files are copied
         run: |
-          echo "检查 public/musicxml 目录..."
-          if [ -d "public/musicxml" ]; then
-            echo "✓ public/musicxml 目录存在"
-            ls -la public/musicxml/
+          echo "检查 frontend/public/musicxml 目录..."
+          if [ -d "frontend/public/musicxml" ]; then
+            echo "✓ frontend/public/musicxml 目录存在"
+            ls -la frontend/public/musicxml/
             echo ""
-            echo "确保 out/musicxml 目录存在..."
-            mkdir -p out/musicxml
+            echo "确保 frontend/out/musicxml 目录存在..."
+            mkdir -p frontend/out/musicxml
             echo "复制 musicxml 文件到 out 目录..."
-            cp -r public/musicxml/* out/musicxml/ 2>&1
+            cp -r frontend/public/musicxml/* frontend/out/musicxml/ 2>&1
             if [ $? -eq 0 ]; then
               echo "✓ 复制成功"
             else
               echo "✗ 复制失败"
             fi
             echo ""
-            echo "验证 out/musicxml 目录..."
-            if [ -d "out/musicxml" ]; then
-              echo "✓ out/musicxml 目录存在"
-              ls -la out/musicxml/
+            echo "验证 frontend/out/musicxml 目录..."
+            if [ -d "frontend/out/musicxml" ]; then
+              echo "✓ frontend/out/musicxml 目录存在"
+              ls -la frontend/out/musicxml/
               echo ""
               echo "检查文件数量..."
-              FILE_COUNT=$(find out/musicxml -type f | wc -l)
+              FILE_COUNT=$(find frontend/out/musicxml -type f | wc -l)
               echo "找到 $FILE_COUNT 个文件"
             else
-              echo "✗ out/musicxml 目录不存在"
+              echo "✗ frontend/out/musicxml 目录不存在"
             fi
           else
-            echo "✗ public/musicxml 目录不存在"
+            echo "✗ frontend/public/musicxml 目录不存在"
           fi
 
       - name: Build Slidev presentations
@@ -136,7 +139,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./out
+          path: ./frontend/out
 
   # Deployment job
   deploy:
