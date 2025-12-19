@@ -20,11 +20,17 @@ const slidevDir = join(rootDir, 'slidev')
 const outDir = join(rootDir, 'out')
 
 // 获取仓库名称（从环境变量或 GitHub Actions 上下文）
-// 注意：这个变量主要用于日志，实际的 base path 在各自的 package.json 中配置
-const repoName = process.env.GITHUB_REPOSITORY ? process.env.GITHUB_REPOSITORY.split('/')[1] : 'pre' // 默认值，可以根据实际情况修改
+const repoFullName = process.env.GITHUB_REPOSITORY || 'zhengbi-yong/zhengbi-yong.github.io'
+const [owner, repo] = repoFullName.split('/')
+// 检测是否是 username.github.io 格式的仓库
+const isUserSite = repo.endsWith('.github.io') && repo === `${owner}.github.io`
+// 根据仓库类型确定部署路径
+const deployPath = isUserSite ? '' : `/${repo}`
+console.log(`🏠 部署模式: ${isUserSite ? '根路径部署' : '子路径部署'}`)
+console.log(`📂 部署路径: ${deployPath || '/'}`)
 
 console.log(`📦 开始构建 Slidev 演示文稿...`)
-console.log(`📁 仓库名称: ${repoName}`)
+console.log(`📁 仓库名称: ${repo}`)
 console.log(`📂 Slidev 目录: ${slidevDir}`)
 console.log(`📂 输出目录: ${outDir}\n`)
 
@@ -83,14 +89,15 @@ for (const projectName of slidevProjects) {
       stdio: 'inherit',
     })
 
-    // 复制构建产物到 out/pre 目录
+    // 复制构建产物到输出目录
     const distDir = join(projectDir, 'dist')
-    const preDir = join(outDir, 'pre')
-    const targetDir = join(preDir, projectName)
+    // 根据部署模式确定目标目录
+    const targetDir = join(outDir, deployPath.replace(/^\//, ''), projectName)
 
-    // 确保 pre 目录存在
-    if (!existsSync(preDir)) {
-      mkdirSync(preDir, { recursive: true })
+    // 确保父目录存在
+    const parentDir = dirname(targetDir)
+    if (!existsSync(parentDir)) {
+      mkdirSync(parentDir, { recursive: true })
     }
 
     if (existsSync(distDir)) {
@@ -180,7 +187,27 @@ for (const projectName of slidevProjects) {
         if (!indexContent.includes('window.SLIDEV')) {
           indexContent = indexContent.replace(
             '</body>',
-            '  <script>\n    console.log("Slidev page loaded");\n    console.log("Current URL:", window.location.href);\n    console.log("Current path:", window.location.pathname);\n    \n    // 确保我们在正确的路径下\n    if (!window.location.pathname.includes("/pre/hardware/")) {\n      console.log("Redirecting to correct path...");\n      window.location.href = "/pre/hardware/#/0";\n    } else {\n      // 等待 Slidev 应用初始化\n      setTimeout(() => {\n        if (!window.location.hash || window.location.hash === "#/") {\n          console.log("Redirecting to first slide");\n          window.location.hash = "#/0";\n        }\n      }, 100);\n    }\n  </script>\n</body>'
+            `  <script>
+    console.log("Slidev page loaded");
+    console.log("Current URL:", window.location.href);
+    console.log("Current path:", window.location.pathname);
+
+    // 根据部署模式检查路径
+    const expectedPath = "${deployPath}/hardware/";
+    if (!window.location.pathname.includes(expectedPath)) {
+      console.log("Redirecting to correct path...");
+      window.location.href = "${deployPath}/hardware/#/0";
+    } else {
+      // 等待 Slidev 应用初始化
+      setTimeout(() => {
+        if (!window.location.hash || window.location.hash === "#/") {
+          console.log("Redirecting to first slide");
+          window.location.hash = "#/0";
+        }
+      }, 100);
+    }
+  </script>
+</body>`
           )
         }
         writeFileSync(indexPath, indexContent, 'utf-8')
@@ -213,14 +240,15 @@ for (const projectName of slidevProjects) {
         console.log(`   ✅ 已修复 JS/CSS 资源路径`)
       }
 
-      // 修复 _redirects 文件以适配 GitHub Pages 子路径
+      // 修复 _redirects 文件以适配部署路径
       const redirectsPath = join(targetDir, '_redirects')
       if (existsSync(redirectsPath)) {
         let redirectsContent = readFileSync(redirectsPath, 'utf-8')
-        // 更新重定向路径为完整的子路径
+        // 更新重定向路径为正确的路径
+        const redirectTarget = `${deployPath}/${projectName}/index.html`
         redirectsContent = redirectsContent.replace(
           /\/\*.*\/index\.html/g,
-          `/*    /pre/${projectName}/index.html   200`
+          `/*    ${redirectTarget}   200`
         )
         writeFileSync(redirectsPath, redirectsContent, 'utf-8')
         console.log(`   ✅ 已修复重定向路径`)
