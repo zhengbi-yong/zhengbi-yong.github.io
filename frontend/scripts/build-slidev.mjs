@@ -103,10 +103,37 @@ for (const projectName of slidevProjects) {
       cpSync(distDir, targetDir, { recursive: true })
 
       // 创建 .nojekyll 确保 GitHub Pages 正确处理所有文件
-      const { writeFileSync } = await import('fs')
+      const { writeFileSync, readFileSync } = await import('fs')
       const noJekyllPath = join(targetDir, '.nojekyll')
       writeFileSync(noJekyllPath, '', 'utf-8')
       console.log(`   ✅ 已创建 .nojekyll`)
+
+      // 修复 HTML 文件中的资源路径
+      const indexPath = join(targetDir, 'index.html')
+      if (existsSync(indexPath)) {
+        let indexContent = readFileSync(indexPath, 'utf-8')
+        // 将绝对路径改为相对路径，适配 GitHub Pages 子路径
+        indexContent = indexContent
+          .replace(/src="\/assets\//g, 'src="./assets/')
+          .replace(/href="\/assets\//g, 'href="./assets/')
+          .replace(/from "\/assets\//g, 'from "./assets/')
+          .replace(/import "\/assets\//g, 'import "./assets/')
+        writeFileSync(indexPath, indexContent, 'utf-8')
+        console.log(`   ✅ 已修复资源路径`)
+      }
+
+      // 修复 _redirects 文件以适配 GitHub Pages 子路径
+      const redirectsPath = join(targetDir, '_redirects')
+      if (existsSync(redirectsPath)) {
+        let redirectsContent = readFileSync(redirectsPath, 'utf-8')
+        // 更新重定向路径为完整的子路径
+        redirectsContent = redirectsContent.replace(
+          /\/\*.*\/index\.html/g,
+          `/*    /pre/${projectName}/index.html   200`
+        )
+        writeFileSync(redirectsPath, redirectsContent, 'utf-8')
+        console.log(`   ✅ 已修复重定向路径`)
+      }
 
       // 注意：使用 hash 模式路由（routerMode: hash），不需要 404.html
       // URL 格式：https://zhengbi-yong.github.io/pre/slidev1/#/0
