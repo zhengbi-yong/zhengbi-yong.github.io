@@ -18,9 +18,9 @@ transition: slide-left
 # enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
 # base path for GitHub Pages deployment - note the trailing slash is important
-base: /pre/hardware
+base: /pre/hardware/
 # download url for assets
-download: /pre/hardware
+download: /pre/hardware/
 # router mode for GitHub Pages compatibility
 routerMode: hash
 ---
