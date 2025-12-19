@@ -126,6 +126,21 @@ for (const projectName of slidevProjects) {
           .replace(/href="\/assets\//g, 'href="./assets/')
           .replace(/from "\/assets\//g, 'from "./assets/')
           .replace(/import "\/assets\//g, 'import "./assets/')
+          .replace(/>\s*<script/g, '>\n  <script')
+          .replace(/<\/script>\s*<link/g, '</script>\n  <link')
+
+        // 添加 base tag 和初始化脚本
+        if (!indexContent.includes('<base')) {
+          indexContent = indexContent.replace('<head>', '<head>\n  <base href="/pre/hardware/">')
+        }
+
+        // 在 body 结束前添加初始化脚本
+        if (!indexContent.includes('window.SLIDEV')) {
+          indexContent = indexContent.replace(
+            '</body>',
+            '  <script>\n    console.log("Slidev page loaded");\n    console.log("Current URL:", window.location.href);\n    if (!window.location.hash || window.location.hash === "#/") {\n      console.log("Redirecting to first slide");\n      window.location.hash = "#/0";\n    }\n  </script>\n</body>'
+          )
+        }
         writeFileSync(indexPath, indexContent, 'utf-8')
         console.log(`   ✅ 已修复 HTML 资源路径`)
       }
