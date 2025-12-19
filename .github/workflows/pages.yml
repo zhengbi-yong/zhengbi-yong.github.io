@@ -133,7 +133,7 @@ jobs:
 
       - name: Build Slidev presentations
         run: |
-          node scripts/build-slidev.mjs
+          cd frontend && node scripts/build-slidev.mjs
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
 
