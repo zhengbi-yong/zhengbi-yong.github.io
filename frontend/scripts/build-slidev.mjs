@@ -126,7 +126,6 @@ for (const projectName of slidevProjects) {
           .replace(/href="\/assets\//g, 'href="./assets/')
           .replace(/from "\/assets\//g, 'from "./assets/')
           .replace(/import "\/assets\//g, 'import "./assets/')
-          .replace(/>\/assets\//g, '>./assets/')
           .replace(/>\s*<script/g, '>\n  <script')
           .replace(/<\/script>\s*<link/g, '</script>\n  <link')
 
@@ -134,7 +133,7 @@ for (const projectName of slidevProjects) {
       const assetsDir = join(targetDir, 'assets')
       if (existsSync(assetsDir)) {
         const { readdirSync, statSync } = await import('fs')
-        const { join } = await import('path')
+        const { join, dirname } = await import('path')
 
         // 递归处理所有子目录中的 JS 和 CSS 文件
         const processDir = (dir, basePath = '') => {
@@ -148,16 +147,26 @@ for (const projectName of slidevProjects) {
               processDir(filePath, relativePath)
             } else if (file.endsWith('.js') || file.endsWith('.css')) {
               let content = readFileSync(filePath, 'utf-8')
+
+              // 计算当前文件到 assets 根目录的相对路径深度
+              const depth = (relativePath.split('/').length - 1)
+              const prefix = depth > 0 ? '../'.repeat(depth) : ''
+
               // 修复所有可能的资源路径引用
               content = content
-                .replace(/"\/assets\//g, '"./assets/')
-                .replace(/'\/assets\//g, "'./assets/")
-                .replace(/from "\/assets\//g, 'from "./assets/')
-                .replace(/import "\/assets\//g, 'import "./assets/')
-                .replace(/url\("\/assets\//g, 'url("./assets/')
-                .replace(/url\('\/assets\//g, "url('./assets/")
-                .replace(/from "\.\/assets\//g, `from "./${relativePath.includes('../') ? '../' : ''}assets/`)
-                .replace(/import "\.\/assets\//g, `import "./${relativePath.includes('../') ? '../' : ''}assets/`)
+                // 修复绝对路径
+                .replace(/"\/assets\//g, `"${prefix}assets/`)
+                .replace(/'\/assets\//g, `'${prefix}assets/`)
+                .replace(/from "\/assets\//g, `from "${prefix}assets/`)
+                .replace(/import "\/assets\//g, `import "${prefix}assets/`)
+                .replace(/url\("\/assets\//g, `url("${prefix}assets/`)
+                .replace(/url\('\/assets\//g, `url('${prefix}assets/`)
+                // 修复已存在的相对路径
+                .replace(/from "\.\/assets\//g, `from "${prefix}assets/`)
+                .replace(/import "\.\/assets\//g, `import "${prefix}assets/`)
+                // 修复模块预加载路径
+                .replace(/(modulepreload|preload)\s*:\s*["']\/assets\//g, `$1: "${prefix}assets/`)
+
               writeFileSync(filePath, content, 'utf-8')
             }
           }
