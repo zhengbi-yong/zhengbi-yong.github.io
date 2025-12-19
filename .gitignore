@@ -12,6 +12,9 @@ target/
 backend/target/
 Cargo.lock
 
+# Claude Code
+.claude/
+
 # testing
 /coverage
 
