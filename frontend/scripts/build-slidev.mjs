@@ -126,8 +126,46 @@ for (const projectName of slidevProjects) {
           .replace(/href="\/assets\//g, 'href="./assets/')
           .replace(/from "\/assets\//g, 'from "./assets/')
           .replace(/import "\/assets\//g, 'import "./assets/')
+          .replace(/>\/assets\//g, '>./assets/')
           .replace(/>\s*<script/g, '>\n  <script')
           .replace(/<\/script>\s*<link/g, '</script>\n  <link')
+
+      // 修复 JS 和 CSS 文件中的资源路径（更全面）
+      const assetsDir = join(targetDir, 'assets')
+      if (existsSync(assetsDir)) {
+        const { readdirSync, statSync } = await import('fs')
+        const { join } = await import('path')
+
+        // 递归处理所有子目录中的 JS 和 CSS 文件
+        const processDir = (dir, basePath = '') => {
+          const files = readdirSync(dir)
+          for (const file of files) {
+            const filePath = join(dir, file)
+            const relativePath = join(basePath, file)
+            const stat = statSync(filePath)
+
+            if (stat.isDirectory()) {
+              processDir(filePath, relativePath)
+            } else if (file.endsWith('.js') || file.endsWith('.css')) {
+              let content = readFileSync(filePath, 'utf-8')
+              // 修复所有可能的资源路径引用
+              content = content
+                .replace(/"\/assets\//g, '"./assets/')
+                .replace(/'\/assets\//g, "'./assets/")
+                .replace(/from "\/assets\//g, 'from "./assets/')
+                .replace(/import "\/assets\//g, 'import "./assets/')
+                .replace(/url\("\/assets\//g, 'url("./assets/')
+                .replace(/url\('\/assets\//g, "url('./assets/")
+                .replace(/from "\.\/assets\//g, `from "./${relativePath.includes('../') ? '../' : ''}assets/`)
+                .replace(/import "\.\/assets\//g, `import "./${relativePath.includes('../') ? '../' : ''}assets/`)
+              writeFileSync(filePath, content, 'utf-8')
+            }
+          }
+        }
+
+        processDir(assetsDir)
+        console.log(`   ✅ 已修复所有 JS/CSS 资源路径`)
+      }
 
         // 在 body 结束前添加初始化脚本
         if (!indexContent.includes('window.SLIDEV')) {
