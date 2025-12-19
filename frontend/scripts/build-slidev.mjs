@@ -129,16 +129,11 @@ for (const projectName of slidevProjects) {
           .replace(/>\s*<script/g, '>\n  <script')
           .replace(/<\/script>\s*<link/g, '</script>\n  <link')
 
-        // 添加 base tag 和初始化脚本
-        if (!indexContent.includes('<base')) {
-          indexContent = indexContent.replace('<head>', '<head>\n  <base href="/pre/hardware/">')
-        }
-
         // 在 body 结束前添加初始化脚本
         if (!indexContent.includes('window.SLIDEV')) {
           indexContent = indexContent.replace(
             '</body>',
-            '  <script>\n    console.log("Slidev page loaded");\n    console.log("Current URL:", window.location.href);\n    if (!window.location.hash || window.location.hash === "#/") {\n      console.log("Redirecting to first slide");\n      window.location.hash = "#/0";\n    }\n  </script>\n</body>'
+            '  <script>\n    console.log("Slidev page loaded");\n    console.log("Current URL:", window.location.href);\n    console.log("Current path:", window.location.pathname);\n    \n    // 确保我们在正确的路径下\n    if (!window.location.pathname.includes("/pre/hardware/")) {\n      console.log("Redirecting to correct path...");\n      window.location.href = "/pre/hardware/#/0";\n    } else {\n      // 等待 Slidev 应用初始化\n      setTimeout(() => {\n        if (!window.location.hash || window.location.hash === "#/") {\n          console.log("Redirecting to first slide");\n          window.location.hash = "#/0";\n        }\n      }, 100);\n    }\n  </script>\n</body>'
           )
         }
         writeFileSync(indexPath, indexContent, 'utf-8')
