@@ -9,6 +9,17 @@ const nextConfig = {
     // 指定项目根目录
     root: __dirname,
   },
+  // GitHub Pages 静态导出配置
+  output: process.env.EXPORT === '1' ? 'export' : undefined,
+  // 静态导出时的基础路径
+  basePath: process.env.BASE_PATH,
+  // 禁用图片优化以支持静态导出
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    unoptimized: true,
+  },
   // 其他配置
   reactStrictMode: true,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
@@ -16,13 +27,6 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   // 压缩配置
   compress: true,
-  // 图片配置
-  images: {
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    unoptimized: true,
-  },
   // 实验性功能
   experimental: {
     optimizePackageImports: [
@@ -70,18 +74,24 @@ const generateSecurityHeaders = () => {
   return headers
 }
 
+const finalConfig = {
+  ...nextConfig,
+  // 解决外部包问题
+  serverExternalPackages: ['@opentelemetry/api'],
+}
+
+// 只在非静态导出时添加 headers
+if (process.env.EXPORT !== '1') {
+  finalConfig.headers = async () => {
+    return [
+      {
+        source: '/(.*)',
+        headers: generateSecurityHeaders(),
+      },
+    ]
+  }
+}
+
 module.exports = withContentlayer(
-  withSentryConfig({
-    ...nextConfig,
-    async headers() {
-      return [
-        {
-          source: '/(.*)',
-          headers: generateSecurityHeaders(),
-        },
-      ]
-    },
-    // 解决外部包问题
-    serverExternalPackages: ['@opentelemetry/api'],
-  })
+  withSentryConfig(finalConfig)
 )
