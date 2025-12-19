@@ -102,6 +102,14 @@ for (const projectName of slidevProjects) {
       }
       cpSync(distDir, targetDir, { recursive: true })
 
+      // 复制 images 目录（如果存在）
+      const imagesDir = join(projectDir, 'images')
+      const targetImagesDir = join(targetDir, 'images')
+      if (existsSync(imagesDir)) {
+        cpSync(imagesDir, targetImagesDir, { recursive: true })
+        console.log(`   ✅ 已复制图片目录`)
+      }
+
       // 创建 .nojekyll 确保 GitHub Pages 正确处理所有文件
       const { writeFileSync, readFileSync } = await import('fs')
       const noJekyllPath = join(targetDir, '.nojekyll')
@@ -119,7 +127,33 @@ for (const projectName of slidevProjects) {
           .replace(/from "\/assets\//g, 'from "./assets/')
           .replace(/import "\/assets\//g, 'import "./assets/')
         writeFileSync(indexPath, indexContent, 'utf-8')
-        console.log(`   ✅ 已修复资源路径`)
+        console.log(`   ✅ 已修复 HTML 资源路径`)
+      }
+
+      // 修复 JS 和 CSS 文件中的资源路径
+      const assetsDir = join(targetDir, 'assets')
+      if (existsSync(assetsDir)) {
+        const { readdirSync } = await import('fs')
+        const assetFiles = readdirSync(assetsDir)
+
+        for (const file of assetFiles) {
+          const filePath = join(assetsDir, file)
+          if (file.endsWith('.js') || file.endsWith('.css')) {
+            let content = readFileSync(filePath, 'utf-8')
+            // 修复图片路径引用
+            content = content
+              .replace(/"\/images\//g, '"./images/')
+              .replace(/'\/images\//g, "'./images/")
+              .replace(/from "\/images\//g, 'from "./images/')
+              .replace(/import "\/images\//g, 'import "./images/')
+              .replace(/url\("\/images\//g, 'url("./images/')
+              .replace(/url\('\/images\//g, "url('./images/")
+              .replace(/"images\//g, '"./images/')
+              .replace(/'images\//g, "'./images/")
+            writeFileSync(filePath, content, 'utf-8')
+          }
+        }
+        console.log(`   ✅ 已修复 JS/CSS 资源路径`)
       }
 
       // 修复 _redirects 文件以适配 GitHub Pages 子路径
