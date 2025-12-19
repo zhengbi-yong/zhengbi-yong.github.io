@@ -173,6 +173,9 @@ for (const projectName of slidevProjects) {
                 .replace(/import "\.\/assets\//g, `import "${prefix}assets/`)
                 // 修复模块预加载路径
                 .replace(/(modulepreload|preload)\s*:\s*["']\/assets\//g, `$1: "${prefix}assets/`)
+                // 修复Vite的依赖映射表中的路径
+                .replace(/"assets\//g, `"${prefix}assets/`)
+                .replace(/'assets\//g, `'${prefix}assets/`)
 
               writeFileSync(filePath, content, 'utf-8')
             }
