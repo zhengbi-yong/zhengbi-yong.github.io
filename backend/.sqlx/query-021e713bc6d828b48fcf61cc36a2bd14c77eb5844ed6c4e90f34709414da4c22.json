@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO outbox_events (topic, payload, run_after)\n            VALUES ('post.viewed', $1, NOW())\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "021e713bc6d828b48fcf61cc36a2bd14c77eb5844ed6c4e90f34709414da4c22"
+}

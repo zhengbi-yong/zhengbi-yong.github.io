@@ -1,17 +1,25 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules
+frontend/node_modules
 /.pnp
 .pnp.js
 .pnpm-store
 
+# Rust
+target/
+backend/target/
+Cargo.lock
+
 # testing
 /coverage
 
-# next.js
+# Next.js
 /.next/
+frontend/.next/
 /out/
+frontend/out/
 public/sitemap.xml
 .vercel
 
@@ -45,6 +53,7 @@ pnpm-debug.log*
 
 # Contentlayer
 .contentlayer
+frontend/.contentlayer
 
 # visitor data
 visitors.json

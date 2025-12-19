@@ -1,0 +1,74 @@
+[package]
+name = "blog-api"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "api"
+path = "src/main_minimal.rs"
+
+[dependencies]
+# Workspace dependencies
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+tokio = { workspace = true }
+sqlx = { workspace = true }
+deadpool-redis = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+jsonwebtoken = { workspace = true }
+argon2 = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+time = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+prometheus = { workspace = true }
+sentry = { workspace = true }
+utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+redis = { workspace = true }
+validator = { workspace = true }
+
+# Internal crates
+blog-core = { path = "../core" }
+blog-db = { path = "../db" }
+blog-shared = { path = "../shared" }
+
+# Additional dependencies
+axum-extra = { workspace = true }
+ammonia = { workspace = true }
+base64 = { workspace = true }
+bytes = { workspace = true }
+futures = { workspace = true }
+futures-util = { workspace = true }
+http = { workspace = true }
+http-body = { workspace = true }
+http-body-util = { workspace = true }
+pin-project-lite = { workspace = true }
+rustls-pki-types = { workspace = true }
+sync_wrapper = { workspace = true }
+tokio-stream = { workspace = true }
+
+[dev-dependencies]
+# Testing
+axum-test = { workspace = true }
+reqwest = { workspace = true }
+tower-http = { workspace = true, features = ["trace"] }
+
+# Test utilities
+mockall = "0.12"
+pretty_assertions = "1.4"
+serial_test = "3.0"
+
+# Async testing
+tokio-test = "0.4"
+
+[features]
+default = []
+test = []

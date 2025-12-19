@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: blog-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-blog_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-blog_password}
+      POSTGRES_DB: ${POSTGRES_DB:-blog_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-blog_user} -d ${POSTGRES_DB:-blog_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: blog-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_password}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+  # Blog API 服务
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: blog-api
+    environment:
+      # 数据库配置
+      DATABASE_URL: postgresql://${POSTGRES_USER:-blog_user}:${POSTGRES_PASSWORD:-blog_password}@postgres:5432/${POSTGRES_DB:-blog_db}
+
+      # Redis 配置
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
+
+      # JWT 配置
+      JWT_SECRET: ${JWT_SECRET}
+
+      # 服务器配置
+      HOST: 0.0.0.0
+      PORT: 3000
+
+      # 邮件配置
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+
+      # 环境配置
+      RUST_LOG: ${RUST_LOG:-info}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+
+      # 安全配置
+      PASSWORD_PEPPER: ${PASSWORD_PEPPER}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://yourdomain.com}
+
+      # 速率限制
+      RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
+
+      # 会话配置
+      SESSION_SECRET: ${SESSION_SECRET}
+      SESSION_TIMEOUT_HOURS: ${SESSION_TIMEOUT_HOURS:-24}
+
+      # 监控配置
+      SENTRY_DSN: ${SENTRY_DSN}
+      PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+  # Nginx 反向代理 (可选)
+  nginx:
+    image: nginx:alpine
+    container_name: blog-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+    networks:
+      - blog-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  blog-network:
+    driver: bridge

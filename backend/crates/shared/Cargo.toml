@@ -1,0 +1,18 @@
+[package]
+name = "blog-shared"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Workspace dependencies
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+validator = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+redis = { workspace = true }
+axum = { workspace = true }
+sqlx = { workspace = true }

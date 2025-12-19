@@ -1,0 +1,162 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                c.id,\n                c.slug,\n                c.user_id,\n                c.parent_id,\n                c.content,\n                c.html_sanitized,\n                c.status as \"status: blog_db::CommentStatus\",\n                c.path,\n                c.depth,\n                c.like_count,\n                c.created_at,\n                c.updated_at,\n                c.deleted_at,\n                c.created_ip,\n                c.user_agent,\n                c.moderation_reason,\n                u.username,\n                u.profile as \"profile: _\"\n            FROM comments c\n            JOIN users u ON c.user_id = u.id\n            WHERE c.slug = $1 AND c.status = $2\n            ORDER BY c.created_at DESC\n            LIMIT $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "slug",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "parent_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "html_sanitized",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "status: blog_db::CommentStatus",
+        "type_info": {
+          "Custom": {
+            "name": "comment_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "spam",
+                "deleted"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "path",
+        "type_info": {
+          "Custom": {
+            "name": "ltree",
+            "kind": "Simple"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "depth",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
+        "name": "like_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "deleted_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 13,
+        "name": "created_ip",
+        "type_info": "Inet"
+      },
+      {
+        "ordinal": 14,
+        "name": "user_agent",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 15,
+        "name": "moderation_reason",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 16,
+        "name": "username",
+        "type_info": {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "profile: _",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        {
+          "Custom": {
+            "name": "comment_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "approved",
+                "rejected",
+                "spam",
+                "deleted"
+              ]
+            }
+          }
+        },
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "28b29ff89154cd99e7daaa50634bf6c06a6f2fb2cba369a55160b64b4a0cbc12"
+}
