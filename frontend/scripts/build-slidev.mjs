@@ -30,8 +30,9 @@ console.log(`📂 输出目录: ${outDir}\n`)
 
 // 检查目录是否存在
 if (!existsSync(slidevDir)) {
-  console.error(`❌ 错误: Slidev 目录不存在: ${slidevDir}`)
-  process.exit(1)
+  console.log(`⚠️ 警告: Slidev 目录不存在: ${slidevDir}`)
+  console.log(`📦 跳过 Slidev 构建（这是可选功能）`)
+  process.exit(0)
 }
 
 // 确保输出目录存在
