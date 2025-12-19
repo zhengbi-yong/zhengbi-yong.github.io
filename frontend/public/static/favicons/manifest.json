@@ -1,0 +1,112 @@
+{
+  "name": "Zhengbi Yong's Blog",
+  "short_name": "ZY Blog",
+  "description": "Personal blog about technology, robotics, automation, mathematics and computer science",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "lang": "zh-CN",
+  "scope": "/",
+  "categories": ["technology", "education", "personal", "blog"],
+  "icons": [
+    {
+      "src": "/static/favicons/android-icon-36x36.png",
+      "sizes": "36x36",
+      "type": "image/png",
+      "density": "0.75",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/favicons/android-icon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "density": "1.0",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/favicons/android-icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "density": "1.5",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/favicons/android-icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "density": "2.0",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/favicons/android-icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "density": "3.0",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/favicons/android-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "density": "4.0",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/favicons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/images/pwa-screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Blog homepage on desktop"
+    },
+    {
+      "src": "/static/images/pwa-screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Blog homepage on mobile"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Latest Articles",
+      "short_name": "Articles",
+      "description": "View the latest blog articles",
+      "url": "/blog",
+      "icons": [{ "src": "/static/favicons/android-icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Projects",
+      "short_name": "Projects",
+      "description": "View featured projects",
+      "url": "/projects",
+      "icons": [{ "src": "/static/favicons/android-icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "About Me",
+      "short_name": "About",
+      "description": "Learn more about the author",
+      "url": "/about",
+      "icons": [{ "src": "/static/favicons/android-icon-96x96.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://zhengbi-yong.top/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

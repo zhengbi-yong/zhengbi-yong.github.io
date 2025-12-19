@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: blog-postgres-dev
+    environment:
+      POSTGRES_USER: blog_user
+      POSTGRES_PASSWORD: blog_password
+      POSTGRES_DB: blog_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog_user -d blog_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blog-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: blog-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blog-network
+
+  # Blog API 服务 (开发模式)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: blog-api-dev
+    environment:
+      # 数据库配置
+      DATABASE_URL: postgresql://blog_user:blog_password@postgres:5432/blog_db
+
+      # Redis 配置
+      REDIS_URL: redis://redis:6379
+
+      # JWT 配置
+      JWT_SECRET: dev-secret-key-for-testing-only
+
+      # 服务器配置
+      HOST: 0.0.0.0
+      PORT: 3000
+
+      # 环境配置
+      RUST_LOG: debug
+      ENVIRONMENT: development
+
+      # 安全配置
+      PASSWORD_PEPPER: dev-pepper
+      CORS_ORIGIN: http://localhost:3000
+
+      # 速率限制
+      RATE_LIMIT_PER_MINUTE: 1000
+
+      # 会话配置
+      SESSION_SECRET: dev-session-secret
+      SESSION_TIMEOUT_HOURS: 24
+
+      # 监控配置
+      PROMETHEUS_ENABLED: true
+    ports:
+      - "3000:3000"
+    volumes:
+      # 挂载源代码以实现热重载
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - blog-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  cargo-cache:
+  target-cache:
+
+networks:
+  blog-network:
+    driver: bridge

@@ -1,0 +1,20 @@
+{
+  "name": "Zhengbi Yong's Blog",
+  "short_name": "Blog",
+  "description": "Personal blog about robotics, automation, and computer science",
+  "icons": [
+    {
+      "src": "/static/favicons/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/favicons/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

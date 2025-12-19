@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO outbox_events (topic, payload)\n        VALUES ('comment.created', $1)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "475dd23e6d7abc1a7a7b052a2cc41152870e7d7a2ffd3518c9a03d585217ac2c"
+}
