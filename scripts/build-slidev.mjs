@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url)
 // eslint-disable-next-line no-redeclare
 const __dirname = dirname(__filename)
 const rootDir = join(__dirname, '..')
-const slidevDir = join(rootDir, 'slidev')
+const slidevDir = join(rootDir, 'frontend', 'slidev')
 const outDir = join(rootDir, 'out')
 
 // 获取仓库名称（从环境变量或 GitHub Actions 上下文）
