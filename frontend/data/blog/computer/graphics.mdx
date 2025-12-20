@@ -1,0 +1,1370 @@
+---
+title: 计算机图形学核心原理与实现
+date: 2024-12-20
+category: 计算机科学
+tags: [计算机图形学, 渲染, OpenGL, WebGL, 图形管线]
+---
+
+# 计算机图形学核心原理与实现
+
+## 目录
+1. [图形学基础](#1-图形学基础)
+2. [图形渲染管线](#2-图形渲染管线)
+3. [光照与着色](#3-光照与着色)
+4. [纹理映射](#4-纹理映射)
+5. [现代图形API](#5-现代图形api)
+6. [实时渲染技术](#6-实时渲染技术)
+7. [高级渲染技术](#7-高级渲染技术)
+8. [实践项目](#8-实践项目)
+
+## 1. 图形学基础
+
+### 1.1 向量和矩阵运算
+
+#### 向量基础
+```cpp
+// 3D向量类定义
+class Vector3 {
+public:
+    float x, y, z;
+
+    Vector3(float x = 0, float y = 0, float z = 0) : x(x), y(y), z(z) {}
+
+    // 向量加法
+    Vector3 operator+(const Vector3& other) const {
+        return Vector3(x + other.x, y + other.y, z + other.z);
+    }
+
+    // 向量减法
+    Vector3 operator-(const Vector3& other) const {
+        return Vector3(x - other.x, y - other.y, z - other.z);
+    }
+
+    // 标量乘法
+    Vector3 operator*(float scalar) const {
+        return Vector3(x * scalar, y * scalar, z * scalar);
+    }
+
+    // 点积
+    float dot(const Vector3& other) const {
+        return x * other.x + y * other.y + z * other.z;
+    }
+
+    // 叉积
+    Vector3 cross(const Vector3& other) const {
+        return Vector3(
+            y * other.z - z * other.y,
+            z * other.x - x * other.z,
+            x * other.y - y * other.x
+        );
+    }
+
+    // 向量长度
+    float length() const {
+        return sqrt(x * x + y * y + z * z);
+    }
+
+    // 归一化
+    Vector3 normalize() const {
+        float len = length();
+        return Vector3(x / len, y / len, z / len);
+    }
+};
+```
+
+#### 矩阵运算
+```cpp
+class Matrix4 {
+public:
+    float m[4][4];
+
+    Matrix4() {
+        // 初始化为单位矩阵
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                m[i][j] = (i == j) ? 1.0f : 0.0f;
+            }
+        }
+    }
+
+    // 平移矩阵
+    static Matrix4 translate(float x, float y, float z) {
+        Matrix4 result;
+        result.m[0][3] = x;
+        result.m[1][3] = y;
+        result.m[2][3] = z;
+        return result;
+    }
+
+    // 缩放矩阵
+    static Matrix4 scale(float x, float y, float z) {
+        Matrix4 result;
+        result.m[0][0] = x;
+        result.m[1][1] = y;
+        result.m[2][2] = z;
+        return result;
+    }
+
+    // 绕Y轴旋转矩阵
+    static Matrix4 rotateY(float angle) {
+        Matrix4 result;
+        float c = cos(angle);
+        float s = sin(angle);
+        result.m[0][0] = c;
+        result.m[0][2] = s;
+        result.m[2][0] = -s;
+        result.m[2][2] = c;
+        return result;
+    }
+
+    // 透视投影矩阵
+    static Matrix4 perspective(float fov, float aspect, float near, float far) {
+        Matrix4 result;
+        float tanHalfFov = tan(fov / 2.0f);
+
+        result.m[0][0] = 1.0f / (aspect * tanHalfFov);
+        result.m[1][1] = 1.0f / tanHalfFov;
+        result.m[2][2] = -(far + near) / (far - near);
+        result.m[2][3] = -(2.0f * far * near) / (far - near);
+        result.m[3][2] = -1.0f;
+        result.m[3][3] = 0.0f;
+        return result;
+    }
+
+    // 矩阵乘法
+    Matrix4 operator*(const Matrix4& other) const {
+        Matrix4 result;
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                result.m[i][j] = 0;
+                for (int k = 0; k < 4; k++) {
+                    result.m[i][j] += m[i][k] * other.m[k][j];
+                }
+            }
+        }
+        return result;
+    }
+
+    // 向量变换
+    Vector3 transformVector(const Vector3& v) const {
+        Vector3 result;
+        result.x = m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3];
+        result.y = m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z + m[1][3];
+        result.z = m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z + m[2][3];
+        return result;
+    }
+};
+```
+
+### 1.2 变换矩阵组合
+
+```cpp
+class Transform {
+public:
+    Vector3 position;
+    Vector3 rotation;  // 欧拉角
+    Vector3 scale;
+
+    Transform() : position(0, 0, 0), rotation(0, 0, 0), scale(1, 1, 1) {}
+
+    // 获取模型矩阵
+    Matrix4 getModelMatrix() const {
+        Matrix4 T = Matrix4::translate(position.x, position.y, position.z);
+        Matrix4 RX = Matrix4::rotateX(rotation.x);
+        Matrix4 RY = Matrix4::rotateY(rotation.y);
+        Matrix4 RZ = Matrix4::rotateZ(rotation.z);
+        Matrix4 S = Matrix4::scale(scale.x, scale.y, scale.z);
+
+        return T * RZ * RY * RX * S;  // 注意顺序
+    }
+
+    // 视图矩阵（相机变换）
+    static Matrix4 lookAt(const Vector3& eye, const Vector3& center, const Vector3& up) {
+        Vector3 f = (center - eye).normalize();
+        Vector3 s = f.cross(up).normalize();
+        Vector3 u = s.cross(f);
+
+        Matrix4 result;
+        result.m[0][0] = s.x;
+        result.m[1][0] = s.y;
+        result.m[2][0] = s.z;
+        result.m[0][1] = u.x;
+        result.m[1][1] = u.y;
+        result.m[2][1] = u.z;
+        result.m[0][2] = -f.x;
+        result.m[1][2] = -f.y;
+        result.m[2][2] = -f.z;
+        result.m[3][0] = -s.dot(eye);
+        result.m[3][1] = -u.dot(eye);
+        result.m[3][2] = f.dot(eye);
+
+        return result;
+    }
+};
+```
+
+## 2. 图形渲染管线
+
+### 2.1 顶点着色器
+
+```glsl
+#version 330 core
+
+layout (location = 0) in vec3 aPos;      // 顶点位置
+layout (location = 1) in vec3 aNormal;   // 法向量
+layout (location = 2) in vec2 aTexCoord; // 纹理坐标
+
+uniform mat4 model;      // 模型矩阵
+uniform mat4 view;       // 视图矩阵
+uniform mat4 projection; // 投影矩阵
+uniform mat3 normalMatrix; // 法向量变换矩阵
+
+out vec3 FragPos;        // 片段位置（世界坐标）
+out vec3 Normal;         // 法向量（世界坐标）
+out vec2 TexCoord;       // 纹理坐标
+
+void main() {
+    // 计算世界空间顶点位置
+    FragPos = vec3(model * vec4(aPos, 1.0));
+
+    // 法向量需要用法向量矩阵变换
+    Normal = normalMatrix * aNormal;
+
+    // 传递纹理坐标
+    TexCoord = aTexCoord;
+
+    // 计算最终位置
+    gl_Position = projection * view * vec4(FragPos, 1.0);
+}
+```
+
+### 2.2 片段着色器
+
+```glsl
+#version 330 core
+
+out vec4 FragColor;
+
+in vec3 FragPos;    // 片段位置
+in vec3 Normal;     // 法向量
+in vec2 TexCoord;   // 纹理坐标
+
+uniform sampler2D texture1;
+uniform sampler2D texture2;
+
+uniform vec3 lightPos;     // 光源位置
+uniform vec3 lightColor;   // 光照颜色
+uniform vec3 viewPos;      // 相机位置
+
+void main() {
+    // 漫反射纹理
+    vec4 texColor1 = texture(texture1, TexCoord);
+    vec4 texColor2 = texture(texture2, TexCoord);
+    vec3 objectColor = mix(texColor1.rgb, texColor2.rgb, 0.5);
+
+    // 环境光照
+    float ambientStrength = 0.1;
+    vec3 ambient = ambientStrength * lightColor;
+
+    // 漫反射光照
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(lightPos - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * lightColor;
+
+    // 镜面反射
+    float specularStrength = 0.5;
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    vec3 specular = specularStrength * spec * lightColor;
+
+    // 合并光照结果
+    vec3 result = (ambient + diffuse + specular) * objectColor;
+    FragColor = vec4(result, 1.0);
+}
+```
+
+## 3. 光照与着色
+
+### 3.1 Phong光照模型
+
+```cpp
+class PhongLighting {
+public:
+    struct Light {
+        Vector3 position;
+        Vector3 color;
+        float intensity;
+    };
+
+    struct Material {
+        Vector3 ambient;   // 环境反射系数
+        Vector3 diffuse;   // 漫反射系数
+        Vector3 specular;  // 镜面反射系数
+        float shininess;   // 光泽度
+    };
+
+    static Vector3 calculateLighting(
+        const Vector3& fragPos,
+        const Vector3& normal,
+        const Vector3& viewPos,
+        const Light& light,
+        const Material& material
+    ) {
+        Vector3 result(0, 0, 0);
+
+        // 归一化向量
+        Vector3 N = normal.normalize();
+        Vector3 L = (light.position - fragPos).normalize();
+        Vector3 V = (viewPos - fragPos).normalize();
+        Vector3 R = reflect(-L, N);
+
+        // 环境光照
+        Vector3 ambient = material.ambient * light.color;
+
+        // 漫反射
+        float diff = max(N.dot(L), 0.0f);
+        Vector3 diffuse = material.diffuse * diff * light.color;
+
+        // 镜面反射
+        float spec = pow(max(V.dot(R), 0.0f), material.shininess);
+        Vector3 specular = material.specular * spec * light.color;
+
+        // 合并结果
+        result = ambient + diffuse + specular;
+        return result * light.intensity;
+    }
+
+private:
+    static Vector3 reflect(const Vector3& I, const Vector3& N) {
+        return I - N * 2.0f * I.dot(N);
+    }
+};
+```
+
+### 3.2 基于物理的渲染（PBR）
+
+```glsl
+#version 330 core
+
+// PBR材质参数
+struct PBRMaterial {
+    sampler2D albedoMap;
+    sampler2D normalMap;
+    sampler2D metallicMap;
+    sampler2D roughnessMap;
+    sampler2D aoMap;
+};
+
+// 光源参数
+struct Light {
+    vec3 position;
+    vec3 color;
+    float intensity;
+};
+
+const float PI = 3.14159265359;
+
+// 分布函数
+float distributionGGX(vec3 N, vec3 H, float roughness) {
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+
+    float num = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+
+    return num / denom;
+}
+
+// 几何函数
+float geometrySchlickGGX(float NdotV, float roughness) {
+    float r = (roughness + 1.0);
+    float k = (r * r) / 8.0;
+
+    float num = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return num / denom;
+}
+
+float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = geometrySchlickGGX(NdotV, roughness);
+    float ggx1 = geometrySchlickGGX(NdotL, roughness);
+
+    return ggx1 * ggx2;
+}
+
+// 菲涅尔方程
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+// PBR光照计算
+vec3 calculatePBRLighting(
+    vec3 fragPos, vec3 N, vec3 V,
+    Light light, PBRMaterial material
+) {
+    // 材质参数
+    vec3 albedo = texture(material.albedoMap, TexCoords).rgb;
+    float metallic = texture(material.metallicMap, TexCoords).r;
+    float roughness = texture(material.roughnessMap, TexCoords).r;
+    float ao = texture(material.aoMap, TexCoords).r;
+
+    // 计算反射率
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
+
+    // 计算辐射率
+    vec3 L = normalize(light.position - fragPos);
+    vec3 H = normalize(V + L);
+    float distance = length(light.position - fragPos);
+    float attenuation = 1.0 / (distance * distance);
+    vec3 radiance = light.color * attenuation * light.intensity;
+
+    // Cook-Torrance BRDF
+    float NDF = distributionGGX(N, H, roughness);
+    float G = geometrySmith(N, V, L, roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - metallic;
+
+    vec3 numerator = NDF * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+    vec3 specular = numerator / denominator;
+
+    // 漫反射和镜面反射的BRDF
+    vec3 diffuse = kD * albedo / PI;
+
+    // 计算出射辐射度
+    float NdotL = max(dot(N, L), 0.0);
+    vec3 Lo = (diffuse + specular) * radiance * NdotL;
+
+    // 环境光
+    vec3 ambient = vec3(0.03) * albedo * ao;
+
+    vec3 color = ambient + Lo;
+
+    // HDR色调映射
+    color = color / (color + vec3(1.0));
+    // Gamma校正
+    color = pow(color, vec3(1.0/2.2));
+
+    return color;
+}
+```
+
+## 4. 纹理映射
+
+### 4.1 纹理坐标和采样
+
+```cpp
+class Texture {
+private:
+    unsigned int textureID;
+    int width, height, nrChannels;
+
+public:
+    // 从文件加载纹理
+    bool loadFromFile(const std::string& path) {
+        // 生成纹理
+        glGenTextures(1, &textureID);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        // 设置纹理参数
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        // 加载图片
+        unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+        if (data) {
+            GLenum format;
+            if (nrChannels == 1)
+                format = GL_RED;
+            else if (nrChannels == 3)
+                format = GL_RGB;
+            else if (nrChannels == 4)
+                format = GL_RGBA;
+
+            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0,
+                        format, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        } else {
+            std::cout << "Failed to load texture: " << path << std::endl;
+            return false;
+        }
+
+        stbi_image_free(data);
+        return true;
+    }
+
+    // 绑定纹理
+    void bind(unsigned int textureUnit = GL_TEXTURE0) {
+        glActiveTexture(textureUnit);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+    }
+};
+```
+
+### 4.2 立方体贴图（天空盒）
+
+```cpp
+class Skybox {
+private:
+    unsigned int skyboxVAO, skyboxVBO;
+    unsigned int cubemapTexture;
+
+public:
+    Skybox() {
+        // 立方体顶点
+        float skyboxVertices[] = {
+            // positions
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            -1.0f,  1.0f, -1.0f,
+             1.0f,  1.0f, -1.0f,
+             1.0f,  1.0f,  1.0f,
+             1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f, -1.0f,
+             1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+             1.0f, -1.0f,  1.0f
+        };
+
+        // 设置VAO和VBO
+        glGenVertexArrays(1, &skyboxVAO);
+        glGenBuffers(1, &skyboxVBO);
+        glBindVertexArray(skyboxVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    }
+
+    // 加载立方体贴图
+    bool loadCubemap(std::vector<std::string> faces) {
+        glGenTextures(1, &cubemapTexture);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
+        int width, height, nrChannels;
+        for (unsigned int i = 0; i < faces.size(); i++) {
+            unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+            if (data) {
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB,
+                            width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+                stbi_image_free(data);
+            } else {
+                std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+                stbi_image_free(data);
+                return false;
+            }
+        }
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        return true;
+    }
+};
+```
+
+## 5. 现代图形API
+
+### 5.1 OpenGL渲染器封装
+
+```cpp
+class OpenGLRenderer {
+private:
+    GLFWwindow* window;
+    int windowWidth, windowHeight;
+    Shader* currentShader;
+
+public:
+    OpenGLRenderer(int width = 800, int height = 600)
+        : windowWidth(width), windowHeight(height) {
+        // 初始化GLFW
+        glfwInit();
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        // 创建窗口
+        window = glfwCreateWindow(width, height, "OpenGL Renderer", NULL, NULL);
+        if (window == NULL) {
+            std::cout << "Failed to create GLFW window" << std::endl;
+            glfwTerminate();
+            return;
+        }
+
+        glfwMakeContextCurrent(window);
+
+        // 初始化GLAD
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+            std::cout << "Failed to initialize GLAD" << std::endl;
+            return;
+        }
+
+        // 配置全局OpenGL状态
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    // 主渲染循环
+    void run() {
+        while (!glfwWindowShouldClose(window)) {
+            // 处理输入
+            processInput();
+
+            // 清屏
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            // 渲染场景
+            renderScene();
+
+            // 交换缓冲
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
+
+        glfwTerminate();
+    }
+
+private:
+    void processInput() {
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
+    }
+
+    void renderScene() {
+        // 场景渲染逻辑
+    }
+};
+```
+
+### 5.2 WebGL实现
+
+```javascript
+class WebGLRenderer {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+
+        if (!this.gl) {
+            console.error('WebGL not supported');
+            return;
+        }
+
+        this.initGL();
+    }
+
+    initGL() {
+        const gl = this.gl;
+
+        // 设置视口
+        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
+        // 开启深度测试
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+
+        // 开启混合
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        // 设置清屏色
+        gl.clearColor(0.1, 0.1, 0.1, 1.0);
+    }
+
+    // 创建着色器程序
+    createShaderProgram(vertexShaderSource, fragmentShaderSource) {
+        const gl = this.gl;
+
+        // 创建顶点着色器
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, vertexShaderSource);
+        gl.compileShader(vertexShader);
+
+        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            console.error('Vertex shader compilation error:',
+                         gl.getShaderInfoLog(vertexShader));
+            return null;
+        }
+
+        // 创建片段着色器
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, fragmentShaderSource);
+        gl.compileShader(fragmentShader);
+
+        if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            console.error('Fragment shader compilation error:',
+                         gl.getShaderInfoLog(fragmentShader));
+            return null;
+        }
+
+        // 创建着色器程序
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            console.error('Shader program linking error:',
+                         gl.getProgramInfoLog(shaderProgram));
+            return null;
+        }
+
+        // 清理着色器
+        gl.deleteShader(vertexShader);
+        gl.deleteShader(fragmentShader);
+
+        return shaderProgram;
+    }
+
+    // 渲染循环
+    render(renderCallback) {
+        const render = () => {
+            const gl = this.gl;
+
+            // 清屏
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            // 执行渲染回调
+            renderCallback(gl);
+
+            // 请求下一帧
+            requestAnimationFrame(render);
+        };
+
+        render();
+    }
+}
+```
+
+## 6. 实时渲染技术
+
+### 6.1 阴影映射
+
+```glsl
+// 阴影映射片段着色器
+#version 330 core
+
+out vec4 FragColor;
+
+in vec3 FragPos;
+in vec3 Normal;
+in vec2 TexCoords;
+
+uniform sampler2D diffuseTexture;
+uniform sampler2D shadowMap;
+
+uniform vec3 lightPos;
+uniform vec3 viewPos;
+
+// 计算阴影
+float calculateShadow(vec4 fragPosLightSpace) {
+    // 透视除法
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+    // 转换到[0,1]范围
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // 获取最近深度
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+
+    // 获取当前深度
+    float currentDepth = projCoords.z;
+
+    // 检查是否在阴影中
+    float bias = 0.005;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+
+    // PCF软阴影
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x) {
+        for(int y = -1; y <= 1; ++y) {
+            float pcfDepth = texture(shadowMap, projCoords.xy +
+                                    vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0;
+
+    return shadow;
+}
+
+void main() {
+    vec3 color = texture(diffuseTexture, TexCoords).rgb;
+    vec3 normal = normalize(Normal);
+    vec3 lightColor = vec3(1.0);
+
+    // 环境光
+    vec3 ambient = 0.15 * color;
+
+    // 漫反射
+    vec3 lightDir = normalize(lightPos - FragPos);
+    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 diffuse = diff * lightColor;
+
+    // 计算阴影
+    vec4 fragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
+    float shadow = calculateShadow(fragPosLightSpace);
+
+    // 合并结果
+    vec3 lighting = (ambient + (1.0 - shadow) * diffuse) * color;
+    FragColor = vec4(lighting, 1.0);
+}
+```
+
+### 6.2 延迟渲染
+
+```cpp
+class DeferredRenderer {
+private:
+    unsigned int gBuffer;
+    unsigned int gPosition, gNormal, gColorSpec;
+    unsigned int rboDepth;
+
+public:
+    DeferredRenderer(int width, int height) {
+        // 配置G缓冲
+        glGenFramebuffers(1, &gBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+
+        // 位置缓冲
+        glGenTextures(1, &gPosition);
+        glBindTexture(GL_TEXTURE_2D, gPosition);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0,
+                    GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                              GL_TEXTURE_2D, gPosition, 0);
+
+        // 法向量缓冲
+        glGenTextures(1, &gNormal);
+        glBindTexture(GL_TEXTURE_2D, gNormal);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0,
+                    GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+                              GL_TEXTURE_2D, gNormal, 0);
+
+        // 颜色和镜面反射缓冲
+        glGenTextures(1, &gColorSpec);
+        glBindTexture(GL_TEXTURE_2D, gColorSpec);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
+                    GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2,
+                              GL_TEXTURE_2D, gColorSpec, 0);
+
+        // 深度缓冲
+        glGenRenderbuffers(1, &rboDepth);
+        glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                 GL_RENDERBUFFER, rboDepth);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    // 第一遍：几何通道
+    void geometryPass(std::vector<Object>& objects, Shader& geometryShader) {
+        glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        geometryShader.use();
+        for (auto& object : objects) {
+            geometryShader.setMat4("model", object.transform);
+            object.draw(geometryShader);
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    // 第二遍：光照通道
+    void lightingPass(Shader& lightingShader, const vector<Light>& lights) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        lightingShader.use();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gPosition);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, gNormal);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, gColorSpec);
+
+        lightingShader.setInt("gPosition", 0);
+        lightingShader.setInt("gNormal", 1);
+        lightingShader.setInt("gColorSpec", 2);
+
+        // 渲染全屏四边形
+        renderQuad();
+    }
+
+    void renderQuad() {
+        if (quadVAO == 0) {
+            float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+            };
+
+            glGenVertexArrays(1, &quadVAO);
+            glGenBuffers(1, &quadVBO);
+            glBindVertexArray(quadVAO);
+            glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                                 (void*)(3 * sizeof(float)));
+        }
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+    }
+};
+```
+
+## 7. 高级渲染技术
+
+### 7.1 体积渲染
+
+```glsl
+// 体积渲染实现
+#version 330 core
+
+in vec2 TexCoords;
+out vec4 FragColor;
+
+uniform sampler3D volumeTexture;
+uniform sampler2D transferFunction;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
+uniform vec3 volumeBoundsMin;
+uniform vec3 volumeBoundsMax;
+
+vec3 raymarch(vec3 rayOrigin, vec3 rayDirection) {
+    float stepSize = 0.01;
+    int maxSteps = 500;
+
+    vec4 accumColor = vec4(0.0);
+    float accumAlpha = 0.0;
+
+    // 计算光线与体积盒的交点
+    vec3 entryPoint, exitPoint;
+    if (!intersectVolumeBox(rayOrigin, rayDirection,
+                           volumeBoundsMin, volumeBoundsMax,
+                           entryPoint, exitPoint)) {
+        return vec3(0.0);
+    }
+
+    vec3 currentPos = entryPoint;
+    float distance = length(exitPoint - entryPoint);
+    int steps = int(distance / stepSize);
+
+    for (int i = 0; i < min(steps, maxSteps); i++) {
+        // 采样体积数据
+        vec3 texCoord = (currentPos - volumeBoundsMin) /
+                       (volumeBoundsMax - volumeBoundsMin);
+
+        float density = texture(volumeTexture, texCoord).r;
+
+        if (density > 0.01) {
+            // 从传输函数获取颜色
+            vec4 tfColor = texture(transferFunction, vec2(density, 0.5));
+
+            // 前向合成
+            accumColor += tfColor * (1.0 - accumAlpha);
+            accumAlpha += tfColor.a * (1.0 - accumAlpha);
+
+            // 早期终止
+            if (accumAlpha > 0.99) {
+                break;
+            }
+        }
+
+        currentPos += rayDirection * stepSize;
+    }
+
+    return accumColor.rgb;
+}
+
+void main() {
+    // 计算世界空间射线
+    vec4 rayClip = vec4(TexCoords * 2.0 - 1.0, -1.0, 1.0);
+    vec4 rayView = inverse(projectionMatrix) * rayClip;
+    rayView = vec4(rayView.xy, -1.0, 0.0);
+
+    vec3 rayDirection = (inverse(viewMatrix) * rayView).xyz;
+    rayDirection = normalize(rayDirection);
+
+    vec3 rayOrigin = inverse(viewMatrix)[3].xyz;
+
+    // 执行体积渲染
+    vec3 color = raymarch(rayOrigin, rayDirection);
+
+    FragColor = vec4(color, 1.0);
+}
+```
+
+## 8. 实践项目
+
+### 8.1 软渲染器实现
+
+```cpp
+class SoftwareRenderer {
+private:
+    std::vector<unsigned int> framebuffer;
+    std::vector<float> depthBuffer;
+    int width, height;
+
+public:
+    SoftwareRenderer(int w, int h) : width(w), height(h) {
+        framebuffer.resize(width * height);
+        depthBuffer.resize(width * height, 1.0f);
+    }
+
+    // 清空缓冲区
+    void clear(unsigned int color = 0xFF000000) {
+        std::fill(framebuffer.begin(), framebuffer.end(), color);
+        std::fill(depthBuffer.begin(), depthBuffer.end(), 1.0f);
+    }
+
+    // 绘制线段（Bresenham算法）
+    void drawLine(int x0, int y0, int x1, int y1, unsigned int color) {
+        bool steep = false;
+        if (std::abs(x0 - x1) < std::abs(y0 - y1)) {
+            std::swap(x0, y0);
+            std::swap(x1, y1);
+            steep = true;
+        }
+        if (x0 > x1) {
+            std::swap(x0, x1);
+            std::swap(y0, y1);
+        }
+
+        int dx = x1 - x0;
+        int dy = y1 - y0;
+        int derror2 = std::abs(dy) * 2;
+        int error2 = 0;
+        int y = y0;
+
+        for (int x = x0; x <= x1; x++) {
+            if (steep) {
+                setPixel(y, x, color);
+            } else {
+                setPixel(x, y, color);
+            }
+
+            error2 += derror2;
+            if (error2 > dx) {
+                y += (y1 > y0 ? 1 : -1);
+                error2 -= dx * 2;
+            }
+        }
+    }
+
+    // 3D三角形渲染（带深度测试）
+    void drawTriangle3D(const Vec3f& v0, const Vec3f& v1, const Vec3f& v2,
+                       const Vec2f& uv0, const Vec2f& uv1, const Vec2f& uv2,
+                       const std::vector<unsigned int>& texture) {
+        // 顶点变换到屏幕空间
+        Vec3f pts[3] = {v0, v1, v2};
+        Vec2f uvs[3] = {uv0, uv1, uv2};
+
+        // 排序顶点
+        if (pts[0].y > pts[1].y) {
+            std::swap(pts[0], pts[1]);
+            std::swap(uvs[0], uvs[1]);
+        }
+        if (pts[0].y > pts[2].y) {
+            std::swap(pts[0], pts[2]);
+            std::swap(uvs[0], uvs[2]);
+        }
+        if (pts[1].y > pts[2].y) {
+            std::swap(pts[1], pts[2]);
+            std::swap(uvs[1], uvs[2]);
+        }
+
+        int total_height = pts[2].y - pts[0].y;
+
+        for (int y = pts[0].y; y <= pts[2].y; y++) {
+            bool second_half = y > pts[1].y || pts[1].y == pts[0].y;
+            int segment_height = second_half ?
+                (pts[2].y - pts[1].y) : (pts[1].y - pts[0].y);
+
+            float alpha = (float)(y - pts[0].y) / total_height;
+            float beta = (float)(y - (second_half ? pts[1].y : pts[0].y)) / segment_height;
+
+            Vec3f A = pts[0] + (pts[2] - pts[0]) * alpha;
+            Vec3f B = second_half ?
+                pts[1] + (pts[2] - pts[1]) * beta :
+                pts[0] + (pts[1] - pts[0]) * beta;
+
+            Vec2f uvA = uvs[0] + (uvs[2] - uvs[0]) * alpha;
+            Vec2f uvB = second_half ?
+                uvs[1] + (uvs[2] - uvs[1]) * beta :
+                uvs[0] + (uvs[1] - uvs[0]) * beta;
+
+            if (A.x > B.x) {
+                std::swap(A, B);
+                std::swap(uvA, uvB);
+            }
+
+            for (int x = A.x; x <= B.x; x++) {
+                float phi = B.x == A.x ? 1.0f : (float)(x - A.x) / (B.x - A.x);
+
+                Vec3f P = A + (B - A) * phi;
+                Vec2f uvP = uvA + (uvB - uvA) * phi;
+
+                // 深度测试
+                float depth = P.z;
+                int idx = y * width + x;
+
+                if (depth < depthBuffer[idx]) {
+                    depthBuffer[idx] = depth;
+
+                    // 纹理采样
+                    int texX = int(uvP.x * (texture.size() - 1));
+                    int texY = int(uvP.y * (texture.size() - 1));
+                    unsigned int color = texture[texY * texture.size() + texX];
+
+                    // 简单光照
+                    float intensity = std::max(0.2f, std::min(1.0f, P.z));
+
+                    // 调整颜色亮度
+                    unsigned char r = (color >> 16) & 0xFF;
+                    unsigned char g = (color >> 8) & 0xFF;
+                    unsigned char b = color & 0xFF;
+
+                    r = (unsigned char)(r * intensity);
+                    g = (unsigned char)(g * intensity);
+                    b = (unsigned char)(b * intensity);
+
+                    framebuffer[idx] = (r << 16) | (g << 8) | b | 0xFF000000;
+                }
+            }
+        }
+    }
+
+    // 设置像素
+    void setPixel(int x, int y, unsigned int color) {
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+            framebuffer[y * width + x] = color;
+        }
+    }
+};
+```
+
+### 8.2 光线追踪器
+
+```cpp
+class RayTracer {
+private:
+    struct Ray {
+        Vec3f origin;
+        Vec3f direction;
+
+        Ray(const Vec3f& o, const Vec3f& d) : origin(o), direction(normalize(d)) {}
+    };
+
+    struct Sphere {
+        Vec3f center;
+        float radius;
+        Vec3f color;
+
+        bool intersect(const Ray& ray, float& t) const {
+            Vec3f oc = ray.origin - center;
+            float a = dot(ray.direction, ray.direction);
+            float b = 2.0f * dot(oc, ray.direction);
+            float c = dot(oc, oc) - radius * radius;
+
+            float discriminant = b * b - 4 * a * c;
+            if (discriminant < 0) {
+                return false;
+            }
+
+            float sqrt_discriminant = sqrt(discriminant);
+            float t0 = (-b - sqrt_discriminant) / (2.0f * a);
+            float t1 = (-b + sqrt_discriminant) / (2.0f * a);
+
+            if (t0 > 0.001f) {
+                t = t0;
+                return true;
+            }
+
+            if (t1 > 0.001f) {
+                t = t1;
+                return true;
+            }
+
+            return false;
+        }
+    };
+
+    std::vector<Sphere> spheres;
+    Vec3f lightPos;
+    Vec3f lightColor;
+
+public:
+    RayTracer() : lightPos(5.0f, 5.0f, 5.0f), lightColor(1.0f, 1.0f, 1.0f) {
+        // 添加场景物体
+        spheres.push_back({Vec3f(0.0f, 0.0f, -5.0f), 1.0f, Vec3f(1.0f, 0.0f, 0.0f)});
+        spheres.push_back({Vec3f(-2.0f, 0.0f, -5.0f), 1.0f, Vec3f(0.0f, 1.0f, 0.0f)});
+        spheres.push_back({Vec3f(2.0f, 0.0f, -5.0f), 1.0f, Vec3f(0.0f, 0.0f, 1.0f)});
+    }
+
+    // 追踪光线
+    Vec3f traceRay(const Ray& ray, int depth = 0) {
+        if (depth > 3) return Vec3f(0.1f, 0.1f, 0.1f); // 背景色
+
+        float closest_t = std::numeric_limits<float>::infinity();
+        const Sphere* closest_sphere = nullptr;
+
+        // 寻找最近的交点
+        for (const auto& sphere : spheres) {
+            float t;
+            if (sphere.intersect(ray, t) && t < closest_t) {
+                closest_t = t;
+                closest_sphere = &sphere;
+            }
+        }
+
+        if (!closest_sphere) {
+            return Vec3f(0.1f, 0.1f, 0.1f); // 背景色
+        }
+
+        // 计算交点
+        Vec3f hitPoint = ray.origin + ray.direction * closest_t;
+        Vec3f normal = normalize(hitPoint - closest_sphere->center);
+
+        // 计算光照
+        Vec3f color = Vec3f(0.0f);
+
+        // 环境光
+        Vec3f ambient = closest_sphere->color * 0.1f;
+        color += ambient;
+
+        // 漫反射和镜面反射
+        Ray lightRay(hitPoint + normal * 0.001f, normalize(lightPos - hitPoint));
+        bool inShadow = false;
+
+        for (const auto& sphere : spheres) {
+            float t;
+            if (&sphere != closest_sphere && sphere.intersect(lightRay, t)) {
+                inShadow = true;
+                break;
+            }
+        }
+
+        if (!inShadow) {
+            // 漫反射
+            float diff = std::max(0.0f, dot(normal, lightRay.direction));
+            Vec3f diffuse = closest_sphere->color * diff * lightColor;
+            color += diffuse;
+
+            // 镜面反射
+            Vec3f viewDir = normalize(-ray.direction);
+            Vec3f reflectDir = reflect(-lightRay.direction, normal);
+            float spec = pow(std::max(0.0f, dot(viewDir, reflectDir)), 32.0f);
+            Vec3f specular = Vec3f(1.0f) * spec * lightColor * 0.5f;
+            color += specular;
+
+            // 反射
+            Ray reflectRay(hitPoint + normal * 0.001f, reflectDir);
+            Vec3f reflectionColor = traceRay(reflectRay, depth + 1);
+            color += reflectionColor * 0.3f;
+        }
+
+        return color;
+    }
+
+    // 渲染场景
+    void render(int width, int height, std::vector<unsigned int>& framebuffer) {
+        framebuffer.resize(width * height);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                float u = (2.0f * x) / width - 1.0f;
+                float v = (2.0f * y) / height - 1.0f;
+
+                Ray ray(Vec3f(0.0f), Vec3f(u, v, -1.0f));
+                Vec3f color = traceRay(ray);
+
+                // 转换颜色
+                unsigned char r = (unsigned char)(std::min(255.0f, color.x * 255.0f));
+                unsigned char g = (unsigned char)(std::min(255.0f, color.y * 255.0f));
+                unsigned char b = (unsigned char)(std::min(255.0f, color.z * 255.0f));
+
+                framebuffer[y * width + x] = (r << 16) | (g << 8) | b;
+            }
+        }
+    }
+};
+```
+
+## 总结
+
+计算机图形学是一个复杂而有趣的领域，涵盖了从基础的数学运算到高级的渲染技术。本文档涵盖了：
+
+1. **基础知识**：向量、矩阵运算和变换
+2. **渲染管线**：从顶点处理到像素着色的完整流程
+3. **光照模型**：从Phong到PBR的演进
+4. **纹理技术**：2D纹理、法线贴图、立方体贴图
+5. **现代API**：OpenGL和WebGL的使用
+6. **高级技术**：阴影、延迟渲染、体积渲染
+7. **实践项目**：软渲染器和光线追踪器
+
+通过理解和实现这些概念，你可以创建出令人惊叹的视觉效果和实时渲染应用。记住，计算机图形学是一个不断发展的领域，持续学习新技术和方法是非常重要的。
