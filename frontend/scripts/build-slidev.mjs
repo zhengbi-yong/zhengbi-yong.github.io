@@ -19,18 +19,11 @@ const rootDir = join(__dirname, '..')
 const slidevDir = join(rootDir, 'slidev')
 const outDir = join(rootDir, 'out')
 
-// 获取仓库名称（从环境变量或 GitHub Actions 上下文）
-const repoFullName = process.env.GITHUB_REPOSITORY || 'zhengbi-yong/zhengbi-yong.github.io'
-const [owner, repo] = repoFullName.split('/')
-// 检测是否是 username.github.io 格式的仓库
-const isUserSite = repo.endsWith('.github.io') && repo === `${owner}.github.io`
-// 根据仓库类型确定部署路径
-const deployPath = isUserSite ? '' : `/${repo}`
-console.log(`🏠 部署模式: ${isUserSite ? '根路径部署' : '子路径部署'}`)
-console.log(`📂 部署路径: ${deployPath || '/'}`)
+// 固定部署路径：所有 Slidev 项目发布在 /pre/<project>/
+const deployBase = '/pre'
+console.log(`📂 部署路径前缀: ${deployBase}/<project>/`)
 
 console.log(`📦 开始构建 Slidev 演示文稿...`)
-console.log(`📁 仓库名称: ${repo}`)
 console.log(`📂 Slidev 目录: ${slidevDir}`)
 console.log(`📂 输出目录: ${outDir}\n`)
 
@@ -91,8 +84,8 @@ for (const projectName of slidevProjects) {
 
     // 复制构建产物到输出目录
     const distDir = join(projectDir, 'dist')
-    // 根据部署模式确定目标目录
-    const targetDir = join(outDir, deployPath.replace(/^\//, ''), projectName)
+    // 统一输出到 /pre/<project>/
+    const targetDir = join(outDir, deployBase.replace(/^\//, ''), projectName)
 
     // 确保父目录存在
     const parentDir = dirname(targetDir)
@@ -196,10 +189,10 @@ for (const projectName of slidevProjects) {
     console.log("Current path:", window.location.pathname);
 
     // 根据部署模式检查路径
-    const expectedPath = "${deployPath}/hardware/";
+    const expectedPath = "${deployBase}/hardware/";
     if (!window.location.pathname.includes(expectedPath)) {
       console.log("Redirecting to correct path...");
-      window.location.href = "${deployPath}/hardware/#/0";
+      window.location.href = "${deployBase}/hardware/#/0";
     } else {
       // 等待 Slidev 应用初始化
       setTimeout(() => {
@@ -248,7 +241,7 @@ for (const projectName of slidevProjects) {
       if (existsSync(redirectsPath)) {
         let redirectsContent = readFileSync(redirectsPath, 'utf-8')
         // 更新重定向路径为正确的路径
-        const redirectTarget = `${deployPath}/${projectName}/index.html`
+        const redirectTarget = `${deployBase}/${projectName}/index.html`
         redirectsContent = redirectsContent.replace(
           /\/\*.*\/index\.html/g,
           `/*    ${redirectTarget}   200`
