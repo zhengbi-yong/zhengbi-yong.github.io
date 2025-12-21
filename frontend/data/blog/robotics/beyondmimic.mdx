@@ -1,0 +1,77 @@
+---
+title: BeyondMimic
+description: From Motion Tracking to Versatile Humanoid Control via Guided Diffusion
+tags: [robotics, humanoid, motion-tracking, diffusion-model]
+author: Cornell Tech
+date: 2024
+---
+
+# BeyondMimic: 从动作追踪到通用人形机器人控制
+
+BeyondMimic 是由康奈尔大学（Cornell Tech）开发的一个革命性框架，旨在通过引导扩散技术实现从人类动作追踪到多功能、自然化的人形机器人控制。
+
+## 核心创新
+
+### 1. 动作追踪管道
+BeyondMimic 提供了一个可扩展、高质量的动作追踪框架，能够：
+- 将运动学参考转化为真实硬件上的稳健、极具动态性的动作
+- 实现具有挑战性的技能，如跳跃旋转、冲刺和侧手翻
+- 达到业界领先的动作质量
+
+### 2. 统一扩散策略
+框架引入了统一的扩散策略，实现了：
+- 零样本任务特定控制
+- 测试时使用简单的成本函数进行引导
+- 灵活合成人类动作基元
+
+## 技术特点
+
+### 动作质量
+基于 LAFAN1 数据集训练的策略展示了卓越的性能：
+- 在 14 个不同的约 3 分钟序列上进行训练
+- 所有策略使用完全相同的 MDP 设置和超参数
+- 能够稳定、可重复地追踪复杂动作
+
+### 实际应用
+在真实硬件部署中，BeyondMimic 能够执行多样化任务：
+- 航点导航（waypoint navigation）
+- 操纵杆远程操作（joystick teleoperation）
+- 障碍物回避（obstacle avoidance）
+
+## 研究团队
+
+**主要贡献者：**
+- Qiayuan Liao*
+- Takara Truong*
+- Xiaoyu Huang*
+- Guy Tevet
+- Koushil Sreenath†
+- C. Karen Liu†
+
+*同等贡献，顺序由抛硬币决定
+†同等指导，顺序与抛硬币镜像对应
+
+## 技术意义
+
+BeyondMimic 框架在以下方面取得了突破：
+1. **弥合模拟到现实的差距**：成功将模拟中的动作追踪应用到真实机器人硬件
+2. **动作组合能力**：能够学习动作基元并将它们组合起来解决下游任务
+3. **零样本泛化**：测试时能够处理未见过的任务，无需额外训练
+
+## 开源贡献
+
+BeyondMimic 是一个开源项目，为研究社区提供了：
+- 完整的动作追踪管道
+- 预训练的策略模型
+- 详细的实现文档和代码
+
+这个框架代表了人形机器人控制领域的重要进展，为实现更加通用和自然化的机器人运动控制铺平了道路。
+
+## 相关链接
+
+- [官方网站](https://beyondmimic.github.io/)
+- [相关论文](https://arxiv.org/html/2508.08241v3)
+
+---
+
+*更新日期：2025-12-21*
