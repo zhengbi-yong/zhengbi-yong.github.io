@@ -30,8 +30,14 @@ if [[ ":$PATH:" != *":$node_bin_path:"* ]]; then
     export PATH="$node_bin_path:$PATH"
 fi
 
+# 获取脚本所在目录和项目根目录
+# zsh 兼容方式：使用 $0 获取脚本路径
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+project_root="$(dirname "$script_dir")"
+frontend_dir="$project_root/frontend"
+
 # 配置变量
-source_folder="$(pwd)/out"
+source_folder="$frontend_dir/out"
 
 # 从环境变量读取配置（如果存在），否则使用默认值
 # 使用系统默认的 SSH 配置（假设已配置 SSH 密钥认证）
@@ -43,6 +49,10 @@ remote_path="${DEPLOY_REMOTE_PATH:-/home/ubuntu/PersonalBlog/out/}"
 # 强制覆盖选项：如果设置为 true，将忽略时间戳和内容比较，强制传输所有文件
 # 如果网站没有更新，可以尝试将此选项设置为 true
 force_overwrite=false
+
+# 切换到前端目录
+write-step "切换到前端目录: $frontend_dir"
+cd "$frontend_dir" || exit 1
 
 # 检查必需的工具（Ubuntu/Linux 版本）
 write-step "检查必需的工具..."
@@ -291,3 +301,6 @@ echo "\033[33m  2. 远程目录权限是否正确\033[0m"
 echo "\033[33m  3. Web 服务器是否已重启或重新加载配置\033[0m"
 echo "\033[33m  4. 浏览器缓存（尝试强制刷新 Ctrl+F5）\033[0m"
 echo "\033[33m  5. 如果仍然没有更新，尝试将脚本中的 force_overwrite = false 改为 force_overwrite = true\033[0m"
+
+# 恢复工作目录
+cd "$project_root" || exit 1

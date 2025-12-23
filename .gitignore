@@ -23,20 +23,20 @@ Cargo.lock
 frontend/.next/
 /out/
 frontend/out/
-public/sitemap.xml
+frontend/public/sitemap.xml
 .vercel
 
 # production
 /build
 *.xml
-# 但允许 public/musicxml 目录下的 XML 文件
-!public/musicxml/*.xml
+# 但允许 frontend/public/musicxml 目录下的 XML 文件
+!frontend/public/musicxml/*.xml
 
 # rss feed
-/public/feed.xml
+frontend/public/feed.xml
 
 # search
-/public/search.json
+frontend/public/search.json
 
 # misc
 .DS_Store
@@ -62,8 +62,8 @@ frontend/.contentlayer
 visitors.json
 
 # Slidev
-slidev/*/dist
-slidev/*/node_modules
+frontend/slidev/*/dist
+frontend/slidev/*/node_modules
 
 # 部署配置（包含敏感信息）
 .env.deploy

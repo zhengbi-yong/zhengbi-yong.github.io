@@ -27,8 +27,13 @@ function Write-WarningMsg {
     Write-Host "[警告] $Message" -ForegroundColor Yellow
 }
 
+# 获取脚本所在目录和项目根目录
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent $scriptDir
+$frontendDir = Join-Path $projectRoot "frontend"
+
 # 配置变量
-$sourceFolder = Join-Path (Get-Location).Path "out"
+$sourceFolder = Join-Path $frontendDir "out"
 $remoteUser = "ubuntu"
 $remoteIP = "152.136.43.194"
 $remotePort = 22
@@ -37,6 +42,10 @@ $remotePath = "/home/ubuntu/PersonalBlog/out/"
 # 强制覆盖选项：如果设置为 $true，将忽略时间戳和内容比较，强制传输所有文件
 # 如果网站没有更新，可以尝试将此选项设置为 $true
 $forceOverwrite = $false
+
+# 切换到前端目录
+Write-Step "切换到前端目录: $frontendDir"
+Push-Location $frontendDir
 
 # 检查必需的工具
 Write-Step "检查必需的工具..."
@@ -92,7 +101,7 @@ Write-Step "步骤 2/4: 构建项目 (pnpm build)"
 
 # 设置环境变量
 corepack enable
-$env:PWD = $(Get-Location).Path
+$env:PWD = $frontendDir
 $env:EXPORT = "1"
 # 静态导出模式下必须设置 UNOPTIMIZED=1，否则 Next.js Image 组件无法正确处理图片路径
 # 注意：静态导出模式下 Next.js 图片优化器不可用，必须禁用优化
@@ -346,3 +355,6 @@ Write-Host "  2. 远程目录权限是否正确" -ForegroundColor Yellow
 Write-Host "  3. Web 服务器是否已重启或重新加载配置" -ForegroundColor Yellow
 Write-Host "  4. 浏览器缓存（尝试强制刷新 Ctrl+F5）" -ForegroundColor Yellow
 Write-Host '  5. 如果仍然没有更新，尝试将脚本中的 $forceOverwrite = $false 改为 $forceOverwrite = $true' -ForegroundColor Yellow
+
+# 恢复工作目录
+Pop-Location
