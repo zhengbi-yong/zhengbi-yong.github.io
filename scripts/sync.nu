@@ -23,8 +23,20 @@ def write-warning-msg [message: string] {
     print $"(ansi yellow)[警告] ($message)(ansi reset)"
 }
 
+# 获取脚本所在目录和项目根目录
+# 使用兼容方式：检查当前目录结构来确定项目根目录
+let current_dir = $env.PWD
+let project_root = (if (($current_dir | path join "frontend" | path exists) or ($current_dir | path join "scripts" | path exists)) {
+    # 如果当前目录有 frontend 或 scripts 目录，说明当前目录就是项目根目录
+    $current_dir
+} else {
+    # 否则，假设脚本在 scripts/ 目录下，项目根目录是父目录
+    ($current_dir | path dirname)
+})
+let frontend_dir = ($project_root | path join "frontend")
+
 # 配置变量
-let source_folder = ("out" | path expand)
+let source_folder = ($frontend_dir | path join "out")
 let remote_user = "ubuntu"
 let remote_ip = "152.136.43.194"
 let remote_port = 22
@@ -33,6 +45,10 @@ let remote_path = "/home/ubuntu/PersonalBlog/out/"
 # 强制覆盖选项：如果设置为 true，将忽略时间戳和内容比较，强制传输所有文件
 # 如果网站没有更新，可以尝试将此选项设置为 true
 let force_overwrite = false
+
+# 切换到前端目录
+write-step $"切换到前端目录: ($frontend_dir)"
+cd $frontend_dir
 
 # 检查必需的工具
 write-step "检查必需的工具..."
@@ -433,4 +449,7 @@ print $"(ansi yellow)  2. 远程目录权限是否正确(ansi reset)"
 print $"(ansi yellow)  3. Web 服务器是否已重启或重新加载配置(ansi reset)"
 print $"(ansi yellow)  4. 浏览器缓存（尝试强制刷新 Ctrl+F5）(ansi reset)"
 print $"(ansi yellow)  5. 如果仍然没有更新，尝试将脚本中的 force_overwrite = false 改为 force_overwrite = true(ansi reset)"
+
+# 恢复工作目录
+cd $project_root
 

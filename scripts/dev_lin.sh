@@ -1,4 +1,10 @@
 #!/usr/bin/env zsh
+# 获取脚本所在目录和项目根目录
+# zsh 兼容方式：使用 $0 获取脚本路径
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+project_root="$(dirname "$script_dir")"
+frontend_dir="$project_root/frontend"
+
 # 设置环境变量
 export NODE_OPTIONS="--no-warnings"
 export CHOKIDAR_USEPOLLING="true"
@@ -8,6 +14,10 @@ node_bin_path="/home/sisyphus/.nvm/versions/node/v24.11.1/bin"
 if [[ ":$PATH:" != *":$node_bin_path:"* ]]; then
     export PATH="$node_bin_path:$PATH"
 fi
+
+# 切换到前端目录
+echo "\n📋 切换到前端目录: $frontend_dir"
+cd "$frontend_dir" || exit 1
 
 # 启用 corepack
 corepack enable >/dev/null 2>&1
