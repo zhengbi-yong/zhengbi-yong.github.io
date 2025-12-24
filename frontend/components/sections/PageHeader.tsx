@@ -38,7 +38,7 @@ export default function PageHeader({
           {tags.map((tag, index) => (
             <span
               key={index}
-              className="text-primary-600/85 dark:text-primary-400/85 border-primary-500/35 dark:border-primary-400/25 inline-flex items-center rounded-full border bg-gray-100/80 px-3 py-1 text-[11px] font-light tracking-wide dark:bg-gray-800/15"
+              className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-light tracking-wide text-muted-foreground"
             >
               {tag}
             </span>

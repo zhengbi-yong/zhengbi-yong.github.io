@@ -1,7 +1,6 @@
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import Button from '@/components/ui/Button'
-import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
 import AnimatedText from '@/components/home/AnimatedText'
 import HeroCard from '@/components/home/HeroCard'
 import SocialCard from '@/components/home/SocialCard'
@@ -17,14 +16,8 @@ interface HomeProps {
 export default function Home({ posts }: HomeProps) {
   return (
     <div className="relative min-h-screen">
-      {/* 着色器背景 - 固定定位覆盖整个视口 */}
-      <div className="fixed inset-0 -z-10">
-        <ShaderBackgroundClient intensity={0.8} />
-      </div>
       {/* 主页内容 */}
       <div className="relative z-10 mx-auto mt-16 w-full px-4 md:mt-18 lg:mt-20 xl:px-8">
-        {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/20 backdrop-blur-sm dark:bg-gray-950/60" />
         {/* Hero 区域 */}
         <div className="relative mx-auto mb-16 flex w-full max-w-6xl flex-col items-center justify-between px-4 md:flex-row">
           {/* 左侧：标题和描述 */}

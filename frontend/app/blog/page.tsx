@@ -1,7 +1,6 @@
 import { getSortedPosts } from '@/lib/utils/blog-cache'
 import { genPageMetadata } from 'app/seo'
 import BookShelfLayout from '@/layouts/BookShelfLayout'
-import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
 
 export const metadata = genPageMetadata({ title: 'Blog' })
 
@@ -18,16 +17,7 @@ export default async function BlogPage() {
 
   return (
     <div className="relative min-h-screen">
-      {/* 着色器背景 - 固定定位覆盖整个视口 */}
-      <div className="fixed inset-0 -z-10">
-        <ShaderBackgroundClient intensity={0.8} />
-      </div>
-      {/* 博客内容 */}
-      <div className="relative z-10">
-        {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/50 backdrop-blur-sm dark:bg-gray-950/60" />
-        <BookShelfLayout posts={sortedPosts} title="博客书架" />
-      </div>
+      <BookShelfLayout posts={sortedPosts} title="博客书架" />
     </div>
   )
 }

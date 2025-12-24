@@ -39,7 +39,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
   return (
     <article
       className={cn(
-        'group border-primary-500/35 dark:border-primary-400/35 relative overflow-hidden rounded-2xl border bg-white/50 p-4 backdrop-blur-sm transition-all duration-500 dark:bg-gray-900/50',
+        'group relative overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all duration-500',
         isHorizontal && 'md:flex md:items-center',
         className
       )}
@@ -60,9 +60,9 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
           loading="lazy"
         />
 
-        {/* Gradient overlay and button shown on hover */}
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-all duration-500 group-hover:opacity-100">
-          <span className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white/95 opacity-0 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110 dark:bg-neutral-800/95">
+        {/* Overlay and button shown on hover */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-all duration-500 group-hover:opacity-100">
+          <span className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white opacity-0 shadow-lg transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110 dark:bg-gray-800">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="22"
@@ -73,7 +73,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-primary-500 dark:text-primary-400"
+              className="text-primary"
             >
               <path d="M7 7h10v10"></path>
               <path d="M7 17 17 7"></path>
@@ -114,7 +114,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
           {tags && tags.length > 0 && (
             <>
               <span className="text-neutral-400 dark:text-neutral-500">·</span>
-              <span className="text-primary-500/75 dark:text-primary-400/85 border-primary-500/25 dark:border-primary-400/25 inline-flex items-center rounded-full border bg-white/80 px-3 py-1 text-[11px] font-light dark:bg-gray-800/15">
+              <span className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-light text-muted-foreground">
                 {tags[0]}
               </span>
             </>
@@ -125,7 +125,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
         <Link href={postLink}>
           <h2
             className={cn(
-              'group-hover:text-primary-500 dark:group-hover:text-primary-400 mb-3 line-clamp-2 leading-tight font-bold text-neutral-900 transition-colors duration-300 dark:text-white',
+              'group-hover:text-primary mb-3 line-clamp-2 leading-tight font-bold text-foreground transition-colors duration-300',
               isHorizontal ? 'text-3xl' : 'text-2xl'
             )}
           >
@@ -135,7 +135,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
 
         {/* Description */}
         {description && (
-          <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+          <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
             {description}
           </p>
         )}
@@ -144,11 +144,11 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
         <div className="mt-auto pt-4">
           <Link
             href={postLink}
-            className="text-primary-500 dark:text-primary-400 group/link inline-flex items-center gap-2 text-sm font-semibold transition-all duration-300"
+            className="text-primary group/link inline-flex items-center gap-2 text-sm font-semibold transition-all duration-300"
           >
             <span className="relative">
               Read More
-              <span className="bg-primary-500 dark:bg-primary-400 absolute bottom-0 left-0 h-[1px] w-0 transition-all duration-300 group-hover/link:w-full"></span>
+              <span className="bg-primary absolute bottom-0 left-0 h-[1px] w-0 transition-all duration-300 group-hover/link:w-full"></span>
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -5,8 +5,8 @@
   width: 3rem;
   height: 3rem;
   border-radius: 50%;
-  background: rgb(99 102 241);
-  color: white;
+  background: var(--brand-color, #7c1823);
+  color: var(--primary-foreground, #FFFFFF);
   border: none;
   cursor: pointer;
   display: flex;
@@ -17,13 +17,35 @@
   transform: translateY(1rem);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px rgba(124, 24, 35, 0.3);
 }
 
 .backToTop:hover {
-  background: rgb(79 70 229);
+  background: var(--color-primary-600);
   transform: translateY(0);
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 8px 20px rgba(124, 24, 35, 0.4);
+}
+
+.dark .backToTop {
+  background: var(--brand-color, #74b09b);
+  color: var(--site-bg, #1E3A5F);
+  box-shadow: 0 4px 12px rgba(116, 176, 155, 0.3);
+}
+
+.dark .backToTop:hover {
+  background: #B2F0D9;
+  box-shadow: 0 8px 20px rgba(116, 176, 155, 0.4);
+}
+
+.dark .backToTop {
+  background: var(--brand-color, #E8E8E8);
+  color: var(--site-bg, #1E3A5F);
+  box-shadow: 0 4px 12px rgba(232, 232, 232, 0.3);
+}
+
+.dark .backToTop:hover {
+  background: #F5F5F5;
+  box-shadow: 0 8px 20px rgba(232, 232, 232, 0.4);
 }
 
 .backToTop:active {

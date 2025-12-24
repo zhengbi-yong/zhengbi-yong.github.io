@@ -64,7 +64,7 @@ export default function BookShelfLayout({ posts, title = '博客书架' }: BookS
 
             {/* 侧边栏 */}
             <div className="lg:col-span-1">
-              <div className="sticky top-20 px-4 py-8">
+              <div className="sticky top-24 px-4 py-8">
                 <PopularArticles limit={5} />
               </div>
             </div>

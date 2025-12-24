@@ -28,8 +28,8 @@ export default function ArticleCard({
   }, [])
 
   const cardClasses = disableComplexAnimations
-    ? 'group/card relative overflow-hidden rounded-xl border border-gray-200/70 bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm dark:border-gray-700/70 dark:from-gray-900/90 dark:to-gray-800/90'
-    : `group/card hover:border-primary-400/80 dark:hover:border-primary-500/80 hover:shadow-primary-500/20 dark:hover:shadow-primary-400/20 relative overflow-hidden rounded-xl border border-gray-200/70 bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl dark:border-gray-700/70 dark:from-gray-900/90 dark:to-gray-800/90 animate-fade-in-up`
+    ? 'group/card relative overflow-hidden rounded-xl border border-gray-200/70 bg-white dark:border-gray-700/70 dark:bg-gray-900'
+    : `group/card hover:border-primary-400/80 dark:hover:border-primary-500/80 hover:shadow-primary-500/20 dark:hover:shadow-primary-400/20 relative overflow-hidden rounded-xl border border-gray-200/70 bg-white transition-all duration-300 hover:-translate-y-2 hover:shadow-xl dark:border-gray-700/70 dark:bg-gray-900 animate-fade-in-up`
 
   return (
     <article

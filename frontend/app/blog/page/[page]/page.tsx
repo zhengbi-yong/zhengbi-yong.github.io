@@ -1,7 +1,6 @@
 import ListLayout from '@/layouts/ListLayout'
 import { getSortedPosts, getPaginatedPosts } from '@/lib/utils/blog-cache'
 import { notFound } from 'next/navigation'
-import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
 
 const POSTS_PER_PAGE = 50
 
@@ -31,21 +30,12 @@ export default async function Page(props: { params: Promise<{ page: string }> })
 
   return (
     <div className="relative min-h-screen">
-      {/* 着色器背景 - 固定定位覆盖整个视口 */}
-      <div className="fixed inset-0 -z-10">
-        <ShaderBackgroundClient intensity={0.8} />
-      </div>
-      {/* 博客内容 */}
-      <div className="relative z-10">
-        {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/50 backdrop-blur-sm dark:bg-gray-950/60" />
-        <ListLayout
-          posts={sortedPosts}
-          initialDisplayPosts={posts}
-          pagination={pagination}
-          title="博客"
-        />
-      </div>
+      <ListLayout
+        posts={sortedPosts}
+        initialDisplayPosts={posts}
+        pagination={pagination}
+        title="博客"
+      />
     </div>
   )
 }

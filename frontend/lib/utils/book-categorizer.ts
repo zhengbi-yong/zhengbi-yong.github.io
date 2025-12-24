@@ -39,89 +39,23 @@ export interface CategoryColorScheme {
 
 /**
  * 根据分类名称生成颜色方案
- * 使用 HSL 色相循环生成和谐的配色
+ * 统一使用主题色，不再使用彩色渐变
  */
 export function getCategoryColorScheme(name: string): CategoryColorScheme {
-  const normalizedName = name.toLowerCase()
-
-  // 为每个分类分配固定的色相值（HSL）
-  const hueMap: Record<string, number> = {
-    computer: 220, // 蓝色
-    robotics: 280, // 紫色
-    math: 260, // 深紫色
-    music: 320, // 粉紫色
-    photography: 200, // 青色
-    motor: 30, // 橙色
-    social: 340, // 红色
-  }
-
-  const hue = hueMap[normalizedName] || (normalizedName.charCodeAt(0) * 137.508) % 360
-
-  // 生成渐变颜色（使用 Tailwind 颜色系统）
-  // 根据色相映射到 Tailwind 颜色
-  const colorMap: Record<number, { light: string; dark: string }> = {
-    220: {
-      light: 'from-blue-500 via-indigo-500 to-purple-500',
-      dark: 'from-blue-600 via-indigo-600 to-purple-600',
-    },
-    280: {
-      light: 'from-purple-500 via-pink-500 to-rose-500',
-      dark: 'from-purple-600 via-pink-600 to-rose-600',
-    },
-    260: {
-      light: 'from-indigo-500 via-purple-500 to-pink-500',
-      dark: 'from-indigo-600 via-purple-600 to-pink-600',
-    },
-    320: {
-      light: 'from-pink-500 via-rose-500 to-red-500',
-      dark: 'from-pink-600 via-rose-600 to-red-600',
-    },
-    200: {
-      light: 'from-cyan-500 via-blue-500 to-indigo-500',
-      dark: 'from-cyan-600 via-blue-600 to-indigo-600',
-    },
-    30: {
-      light: 'from-orange-500 via-amber-500 to-yellow-500',
-      dark: 'from-orange-600 via-amber-600 to-yellow-600',
-    },
-    340: {
-      light: 'from-rose-500 via-pink-500 to-purple-500',
-      dark: 'from-rose-600 via-pink-600 to-purple-600',
-    },
-  }
-
-  const colors = colorMap[hue] || {
-    light: 'from-blue-500 via-purple-500 to-pink-500',
-    dark: 'from-blue-600 via-purple-600 to-pink-600',
-  }
-
   return {
-    gradient: `bg-gradient-to-br ${colors.light}`,
-    gradientDark: `bg-gradient-to-br ${colors.dark}`,
+    gradient: 'bg-primary-500',
+    gradientDark: 'bg-primary-500',
     iconColor: 'text-white',
-    pattern: 'bg-paper-pattern', // 可以添加自定义背景图案
+    pattern: 'bg-paper-pattern',
   }
 }
 
 /**
  * 根据分类名称获取卡片装饰颜色
- * 返回用于左侧彩色条的 Tailwind 颜色类名
+ * 统一使用主题色
  */
 export function getCategoryColorForCard(name: string): string {
-  const normalizedName = name.toLowerCase()
-
-  // 为每个分类分配固定的颜色
-  const colorMap: Record<string, string> = {
-    computer: 'bg-blue-500',
-    robotics: 'bg-purple-500',
-    math: 'bg-indigo-500',
-    music: 'bg-pink-500',
-    photography: 'bg-cyan-500',
-    motor: 'bg-orange-500',
-    social: 'bg-rose-500',
-  }
-
-  return colorMap[normalizedName] || 'bg-primary-500'
+  return 'bg-primary-500'
 }
 
 /**

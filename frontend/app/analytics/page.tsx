@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAnalyticsStorage } from '@/components/hooks/useAnalyticsStorage'
 import { useTranslation } from 'react-i18next'
-import PageTitle from '@/components/PageTitle'
 import { Download, Upload, Trash2, FileJson, BarChart3, Eye, Clock, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/ButtonSimple'
 
@@ -84,15 +83,19 @@ export default function AnalyticsPage() {
 
   return (
     <div className="divide-y divide-gray-200 dark:divide-gray-700">
-      <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-        <PageTitle>📊 分析数据管理</PageTitle>
-        <p className="text-lg leading-7 text-gray-600 dark:text-gray-400">
-          管理和导出您的博客文章阅读分析数据
-        </p>
-      </div>
+      <div className="pt-8 pb-10 md:pt-12 md:pb-12">
+        {/* 标题区域 */}
+        <div className="mb-8 text-center md:mb-12">
+          <h1 className="mx-auto mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
+            分析数据管理
+          </h1>
+          <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
+            管理和导出您的博客文章阅读分析数据
+          </p>
+        </div>
 
-      {/* 数据统计 */}
-      <div className="py-8">
+        {/* 数据统计 */}
+        <div className="px-4 py-8 sm:px-6">
         <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">数据概览</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
@@ -145,9 +148,9 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* 数据操作 */}
-      <div className="py-8">
-        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">数据操作</h2>
+        {/* 数据操作 */}
+        <div className="px-4 py-8 sm:px-6">
+          <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">数据操作</h2>
         <div className="flex flex-wrap gap-4">
           <Button
             onClick={exportData}
@@ -194,12 +197,12 @@ export default function AnalyticsPage() {
         )}
       </div>
 
-      {/* 文章列表 */}
-      {Object.keys(allData).length > 0 && (
-        <div className="py-8">
-          <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            文章分析详情
-          </h2>
+        {/* 文章列表 */}
+        {Object.keys(allData).length > 0 && (
+          <div className="px-4 py-8 sm:px-6">
+            <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              文章分析详情
+            </h2>
           <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -261,13 +264,13 @@ export default function AnalyticsPage() {
               </table>
             </div>
           </div>
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* 说明信息 */}
-      <div className="py-8">
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/20">
-          <h3 className="mb-2 text-lg font-semibold text-blue-900 dark:text-blue-100">📌 说明</h3>
+        {/* 说明信息 */}
+        <div className="px-4 py-8 sm:px-6">
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/20">
+            <h3 className="mb-2 text-lg font-semibold text-blue-900 dark:text-blue-100">说明</h3>
           <ul className="list-inside list-disc space-y-1 text-sm text-blue-800 dark:text-blue-200">
             <li>所有分析数据都存储在您的浏览器本地存储中</li>
             <li>导出功能会将所有数据保存为 JSON 文件，方便备份和迁移</li>
@@ -275,6 +278,7 @@ export default function AnalyticsPage() {
             <li>参与度分数综合考虑了浏览次数、阅读时间和滚动深度</li>
             <li>清除数据操作不可恢复，请谨慎操作</li>
           </ul>
+          </div>
         </div>
       </div>
     </div>

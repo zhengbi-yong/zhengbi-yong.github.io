@@ -13,19 +13,19 @@
     'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
 
-  /* Colors */
-  /* Primary color based on RGB(102, 8, 116) - Deep Purple */
-  --color-primary-50: oklch(0.95 0.05 305);
-  --color-primary-100: oklch(0.88 0.08 305);
-  --color-primary-200: oklch(0.78 0.12 305);
-  --color-primary-300: oklch(0.65 0.15 305);
-  --color-primary-400: oklch(0.5 0.18 305);
-  --color-primary-500: oklch(0.3 0.18 305); /* RGB(102, 8, 116) - Deep Purple */
-  --color-primary-600: oklch(0.25 0.16 305);
-  --color-primary-700: oklch(0.2 0.14 305);
-  --color-primary-800: oklch(0.16 0.12 305);
-  --color-primary-900: oklch(0.12 0.1 305);
-  --color-primary-950: oklch(0.08 0.08 305);
+  /* Colors - 红绿配色方案：米白+红色 / 藏蓝+绿色 */
+  /* Primary color - 深红色 (Dark Red) #7c1823 - 白天模式强调色 */
+  --color-primary-50: oklch(0.95 0.03 15);
+  --color-primary-100: oklch(0.88 0.05 15);
+  --color-primary-200: oklch(0.78 0.08 15);
+  --color-primary-300: oklch(0.65 0.12 15);
+  --color-primary-400: oklch(0.50 0.15 15);
+  --color-primary-500: oklch(0.40 0.15 15); /* #7c1823 - 深红色 */
+  --color-primary-600: oklch(0.35 0.15 15); /* #63000f */
+  --color-primary-700: oklch(0.28 0.14 15); /* #4a0000 */
+  --color-primary-800: oklch(0.22 0.12 15); /* #320000 */
+  --color-primary-900: oklch(0.16 0.10 15); /* #200000 */
+  --color-primary-950: oklch(0.10 0.08 15); /* #100000 */
 
   --color-gray-50: oklch(0.985 0.002 247.839);
   --color-gray-100: oklch(0.967 0.003 264.542);
@@ -39,20 +39,20 @@
   --color-gray-900: oklch(0.21 0.034 264.665);
   --color-gray-950: oklch(0.13 0.028 261.692);
 
-  /* TOC (Table of Contents) Colors - 统一使用 primary 颜色系列 */
+  /* TOC (Table of Contents) Colors - 统一使用 primary 颜色系列（红色/绿色） */
   --color-toc-active-text-light: var(--color-primary-600);
-  --color-toc-active-text-dark: var(--color-primary-400);
-  --color-toc-active-bg-light: oklch(0.967 0.003 264.542); /* gray-100 */
-  --color-toc-active-bg-dark: oklch(0.278 0.033 256.848); /* gray-800 */
+  --color-toc-active-text-dark: oklch(0.75 0.08 150); /* 深绿色 #74b09b */
+  --color-toc-active-bg-light: oklch(0.98 0.01 15); /* 极浅红色背景 */
+  --color-toc-active-bg-dark: oklch(0.20 0.02 240); /* 藏蓝背景 */
   --color-toc-active-indicator-light: var(--color-primary-600);
-  --color-toc-active-indicator-dark: var(--color-primary-400);
+  --color-toc-active-indicator-dark: oklch(0.75 0.08 150); /* 深绿色 */
   --color-toc-hover-light: var(--color-primary-600);
-  --color-toc-hover-dark: var(--color-primary-400);
-  /* 阴影颜色使用 rgba 格式，基于新的深紫色 RGB(102, 8, 116) */
-  --color-toc-shadow-light: rgba(102, 8, 116, 0.1); /* primary-600 with opacity */
-  --color-toc-shadow-dark: rgba(102, 8, 116, 0.15); /* primary-400 with opacity */
-  --color-toc-indicator-shadow-light: rgba(102, 8, 116, 0.4); /* primary-600 with opacity */
-  --color-toc-indicator-shadow-dark: rgba(102, 8, 116, 0.5); /* primary-400 with opacity */
+  --color-toc-hover-dark: oklch(0.75 0.08 150); /* 深绿色 */
+  /* 阴影颜色 */
+  --color-toc-shadow-light: rgba(45, 41, 38, 0.06);
+  --color-toc-shadow-dark: rgba(0, 0, 0, 0.3);
+  --color-toc-indicator-shadow-light: rgba(124, 24, 35, 0.2); /* 红色阴影 */
+  --color-toc-indicator-shadow-dark: rgba(116, 176, 155, 0.3); /* 绿色阴影 */
 
   /* Line heights */
   --line-height-11: 2.75rem;
@@ -148,7 +148,7 @@ input:-webkit-autofill:focus {
 }
 
 .prose pre:hover {
-  scrollbar-color: rgb(209 213 219) transparent;
+  scrollbar-color: var(--muted-foreground, #5A5652) transparent;
 }
 
 .prose pre::-webkit-scrollbar {
@@ -168,11 +168,23 @@ input:-webkit-autofill:focus {
 }
 
 .prose pre:hover::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: var(--muted-foreground, #5A5652);
 }
 
 .prose pre::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  background: var(--text-secondary, #5A5652);
+}
+
+.dark .prose pre:hover {
+  scrollbar-color: var(--muted-foreground, #B8C5D1) transparent;
+}
+
+.dark .prose pre:hover::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground, #B8C5D1);
+}
+
+.dark .prose pre::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary, #B8C5D1);
 }
 
 .prose pre code {
@@ -213,39 +225,50 @@ input:-webkit-autofill:focus {
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* 红绿配色方案 - 白天模式：米白色 + 深红色 */
+  /* 背景主色：米白色 #F5F3F0 - 温暖的高级纸张质感 */
+  --site-bg: #F5F3F0;
+  --card-bg: #FFFFFF;
+  --text-primary: #2D2926; /* 深咖啡色，与米白背景形成优雅对比 */
+  --text-secondary: #5A5652; /* 中咖啡色 */
+  --brand-color: #7c1823; /* 深红色 - 主要强调色 */
+  --accent-color: #922e34; /* 稍浅的红色，用于次要强调 */
+  --transition-speed: 0.3s;
+
+  /* 兼容现有变量系统 */
+  --background: #F5F3F0; /* 米白色背景 */
+  --foreground: #2D2926; /* 深咖啡色文字 */
+  --card: #FFFFFF; /* 纯白卡片 */
+  --card-foreground: #2D2926;
+  --popover: #FFFFFF;
+  --popover-foreground: #2D2926;
+  --primary: #7c1823; /* 深红色 */
+  --primary-foreground: #FFFFFF; /* 白色 */
+  --secondary: oklch(0.98 0.01 15); /* 极浅红色背景 */
+  --secondary-foreground: #2D2926;
+  --muted: oklch(0.98 0.01 15);
+  --muted-foreground: #5A5652;
+  --accent: #7c1823;
+  --accent-foreground: #FFFFFF;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #E8E5E0; /* 浅米色边框 */
+  --input: #FFFFFF; /* 纯白输入框 */
+  --ring: #7c1823; /* 深红色焦点环 */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.75rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #2D2926;
+  --sidebar-primary: #7c1823;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: oklch(0.98 0.01 15);
+  --sidebar-accent-foreground: #2D2926;
+  --sidebar-border: #E8E5E0;
+  --sidebar-ring: #7c1823;
 
   /* TOC Colors - 浅色模式 */
   --toc-active-text: var(--color-toc-active-text-light);
@@ -254,41 +277,71 @@ input:-webkit-autofill:focus {
   --toc-hover: var(--color-toc-hover-light);
   --toc-shadow: var(--color-toc-shadow-light);
   --toc-indicator-shadow: var(--color-toc-indicator-shadow-light);
+
+  /* 精致多层阴影 - 使用红色调阴影 */
+  --shadow-tinted: rgba(45, 41, 38, 0.05);
+  --shadow-tinted-md: rgba(45, 41, 38, 0.08);
+  --shadow-tinted-lg: rgba(45, 41, 38, 0.12);
+  --shadow-tinted-xl: rgba(45, 41, 38, 0.16);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* 红绿配色方案 - 黑夜模式：藏蓝色 + 深绿色 */
+  /* 背景主色：藏蓝色 #1E3A5F - 深邃优雅的蓝色 */
+  --site-bg: #1E3A5F;
+  --card-bg: #2A4A6F; /* 稍亮的藏蓝色卡片 */
+  --text-primary: #E8E8E8; /* 亮银色文字 */
+  --text-secondary: #B8C5D1; /* 中亮银色 */
+  --brand-color: #74b09b; /* 深绿色 - 主要强调色 */
+  --accent-color: #B2F0D9; /* 稍浅的绿色，用于次要强调 */
+  --transition-speed: 0.3s;
+
+  /* 覆盖 primary 色系为绿色系 */
+  --color-primary-50: oklch(0.95 0.02 150);
+  --color-primary-100: oklch(0.92 0.03 150);
+  --color-primary-200: oklch(0.88 0.04 150);
+  --color-primary-300: oklch(0.82 0.05 150);
+  --color-primary-400: oklch(0.78 0.06 150);
+  --color-primary-500: oklch(0.75 0.08 150); /* #74b09b - 深绿色 */
+  --color-primary-600: oklch(0.70 0.08 150); /* #397561 */
+  --color-primary-700: oklch(0.60 0.07 150); /* #003e2d */
+  --color-primary-800: oklch(0.45 0.06 150); /* #00180b */
+  --color-primary-900: oklch(0.30 0.05 150);
+  --color-primary-950: oklch(0.15 0.04 150);
+
+  /* 兼容现有变量系统 */
+  --background: #1E3A5F; /* 藏蓝色背景 */
+  --foreground: #E8E8E8; /* 亮银色文字 */
+  --card: #2A4A6F; /* 藏蓝色卡片 */
+  --card-foreground: #E8E8E8;
+  --popover: #2A4A6F;
+  --popover-foreground: #E8E8E8;
+  --primary: #74b09b; /* 深绿色 */
+  --primary-foreground: #1E3A5F;
+  --secondary: oklch(0.25 0.02 240); /* 深藏蓝 */
+  --secondary-foreground: #E8E8E8;
+  --muted: oklch(0.25 0.02 240);
+  --muted-foreground: #B8C5D1;
+  --accent: #74b09b;
+  --accent-foreground: #1E3A5F;
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --border: #3A5A7F; /* 藏蓝色边框，比背景稍亮 */
+  --input: #2A4A6F;
+  --ring: #74b09b; /* 深绿色焦点环 */
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar: #2A4A6F;
+  --sidebar-foreground: #E8E8E8;
+  --sidebar-primary: #74b09b;
+  --sidebar-primary-foreground: #1E3A5F;
+  --sidebar-accent: oklch(0.25 0.02 240);
+  --sidebar-accent-foreground: #E8E8E8;
+  --sidebar-border: #3A5A7F;
+  --sidebar-ring: #74b09b;
 
   /* TOC Colors - 深色模式 */
   --toc-active-text: var(--color-toc-active-text-dark);
@@ -297,6 +350,12 @@ input:-webkit-autofill:focus {
   --toc-hover: var(--color-toc-hover-dark);
   --toc-shadow: var(--color-toc-shadow-dark);
   --toc-indicator-shadow: var(--color-toc-indicator-shadow-dark);
+
+  /* 暗夜模式阴影 - 使用边框描边和轻微阴影 */
+  --shadow-tinted: rgba(0, 0, 0, 0.2);
+  --shadow-tinted-md: rgba(0, 0, 0, 0.3);
+  --shadow-tinted-lg: rgba(0, 0, 0, 0.4);
+  --shadow-tinted-xl: rgba(0, 0, 0, 0.5);
 }
 
 @theme inline {
@@ -350,6 +409,9 @@ input:-webkit-autofill:focus {
   }
   body {
     @apply bg-background text-foreground;
+    background-color: var(--site-bg);
+    color: var(--text-primary);
+    transition: background-color var(--transition-speed, 0.4s) ease, color var(--transition-speed, 0.4s) ease;
   }
 }
 
@@ -476,4 +538,135 @@ html.cursor-hidden .case-go {
 
 .blog-pagination-button {
   transition: all 0.2s ease-in-out;
+}
+
+/* 复古轻奢风格增强 */
+
+/* 精致多层阴影工具类 - 参考 Linear/Vercel 的细腻阴影 */
+.shadow-tinted {
+  box-shadow: 
+    0 1px 2px 0 var(--shadow-tinted),
+    0 1px 3px 0 var(--shadow-tinted);
+}
+
+.shadow-tinted-md {
+  box-shadow: 
+    0 4px 6px -1px var(--shadow-tinted-md),
+    0 2px 4px -2px var(--shadow-tinted-md),
+    0 1px 2px 0 var(--shadow-tinted);
+}
+
+.shadow-tinted-lg {
+  box-shadow: 
+    0 10px 15px -3px var(--shadow-tinted-lg),
+    0 4px 6px -4px var(--shadow-tinted-md),
+    0 2px 4px -2px var(--shadow-tinted);
+}
+
+.shadow-tinted-xl {
+  box-shadow: 
+    0 20px 25px -5px var(--shadow-tinted-xl),
+    0 10px 10px -5px var(--shadow-tinted-lg),
+    0 4px 6px -4px var(--shadow-tinted-md);
+}
+
+.dark .shadow-tinted,
+.dark .shadow-tinted-md,
+.dark .shadow-tinted-lg,
+.dark .shadow-tinted-xl {
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
+
+/* 移除毛玻璃效果，使用纯色背景 */
+.glass-effect {
+  background-color: var(--card-bg, #FFFFFF);
+  border: 1px solid var(--border, #E8E5E0);
+}
+
+.dark .glass-effect {
+  background-color: var(--card-bg, #2A4A6F);
+  border: 1px solid var(--border, #3A5A7F);
+}
+
+/* 卡片样式 - 精致卡片设计，参考 Linear/Vercel */
+.card-elevated {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-tinted-md);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-elevated:hover {
+  box-shadow: var(--shadow-tinted-lg);
+  transform: translateY(-1px);
+}
+
+.dark .card-elevated {
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.dark .card-elevated:hover {
+  border-color: var(--sidebar-border);
+}
+
+/* 非对称留白工具类 */
+.spacing-generous {
+  padding: 3rem 2rem;
+}
+
+@media (min-width: 768px) {
+  .spacing-generous {
+    padding: 4rem 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .spacing-generous {
+    padding: 5rem 4rem;
+  }
+}
+
+/* 金色装饰 - 仅用于小元素 */
+.accent-gold {
+  color: var(--accent-gold);
+}
+
+.accent-gold-border {
+  border-color: var(--accent-gold);
+}
+
+/* 品牌色按钮 - 红绿配色按钮设计 */
+.btn-brand {
+  background-color: var(--brand-color);
+  color: var(--primary-foreground);
+  border-radius: var(--radius);
+  padding: 0.625rem 1.25rem;
+  font-weight: 500;
+  transition: all var(--transition-speed, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px 0 rgba(124, 24, 35, 0.2);
+}
+
+.btn-brand:hover {
+  background-color: var(--color-primary-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 24, 35, 0.3);
+}
+
+.btn-brand:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px 0 rgba(124, 24, 35, 0.2);
+}
+
+.dark .btn-brand {
+  background-color: var(--brand-color);
+  color: var(--site-bg);
+  box-shadow: 0 1px 3px 0 rgba(116, 176, 155, 0.2);
+}
+
+.dark .btn-brand:hover {
+  background-color: #B2F0D9;
+  box-shadow: 0 4px 12px rgba(116, 176, 155, 0.3);
 }
