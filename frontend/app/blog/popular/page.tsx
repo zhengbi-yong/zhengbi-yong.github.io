@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { allBlogs } from 'contentlayer/generated'
 import { CoreContent } from 'pliny/utils/contentlayer'
 import { getPopularArticles } from '@/components/hooks/useArticleAnalytics'
-import PageTitle from '@/components/PageTitle'
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
@@ -18,16 +17,30 @@ function formatArticleTitle(slug: string): string {
     .join(' ')
 }
 
-function getArticleBySlug(slug: string): CoreContent<(typeof allBlogs)[0]> | undefined {
+function getArticleBySlug(articleId: string): CoreContent<(typeof allBlogs)[0]> | undefined {
   // 尝试直接匹配 slug
-  let article = allBlogs.find((blog) => blog.slug === slug)
+  let article = allBlogs.find((blog) => blog.slug === articleId)
 
-  // 如果没找到，尝试匹配 path 的最后一部分
+  // 如果没找到，尝试匹配 path
   if (!article) {
+    article = allBlogs.find((blog) => blog.path === articleId)
+  }
+
+  // 如果还没找到，尝试匹配 path 的最后一部分
+  if (!article) {
+    const pathParts = articleId.split('/')
+    const lastPart = pathParts[pathParts.length - 1]
     article = allBlogs.find((blog) => {
-      const pathParts = blog.path.split('/')
-      return pathParts[pathParts.length - 1] === slug
+      const blogPathParts = blog.path.split('/')
+      return blogPathParts[blogPathParts.length - 1] === lastPart
     })
+  }
+
+  // 如果还没找到，尝试匹配 slug 的最后一部分
+  if (!article) {
+    const pathParts = articleId.split('/')
+    const lastPart = pathParts[pathParts.length - 1]
+    article = allBlogs.find((blog) => blog.slug === lastPart)
   }
 
   return article
@@ -46,29 +59,42 @@ export default function PopularArticlesPage() {
     const articles = getPopularArticles(20) // 获取前20篇热门文章
     setPopularArticles(articles)
   }, [])
-  const validArticles = popularArticles.filter(({ articleId }) => {
-    // 过滤掉无效的文章ID
-    return !articleId.includes('.') && !articleId.includes('/') && articleId.length > 0
+  
+  // 过滤并验证文章：只保留能找到对应文章的数据，且参与度分数大于0
+  const validArticles = popularArticles.filter(({ articleId, analytics }) => {
+    // 过滤掉空ID
+    if (!articleId || articleId.length === 0) return false
+    
+    // 过滤掉参与度分数为0的文章（没有实际阅读数据）
+    if (!analytics || analytics.engagementScore === 0) return false
+    
+    // 尝试找到对应的文章，如果能找到就保留
+    const article = getArticleBySlug(articleId)
+    return !!article
   })
 
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-          <PageTitle>🔥 热门文章</PageTitle>
-          <p className="text-lg leading-7 text-gray-600 dark:text-gray-400">
-            基于读者参与度排序的最受欢迎文章
-          </p>
-        </div>
-
-        {validArticles.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
-              暂时没有热门文章数据。开始阅读一些文章来生成排行榜吧！
+        <div className="pt-8 pb-10 md:pt-12 md:pb-12">
+          {/* 标题区域 */}
+          <div className="mb-8 text-center md:mb-12">
+            <h1 className="mx-auto mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
+              热门文章
+            </h1>
+            <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
+              基于读者参与度排序的最受欢迎文章
             </p>
           </div>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+
+          {validArticles.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-gray-600 dark:text-gray-400">
+                暂时没有热门文章数据。开始阅读一些文章来生成排行榜吧！
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 px-4 py-8 sm:gap-10 sm:px-6 md:grid-cols-2 xl:grid-cols-3">
             {validArticles.map(({ articleId, analytics }, index) => {
               const article = getArticleBySlug(articleId)
               const title = article?.title || formatArticleTitle(articleId)
@@ -188,14 +214,15 @@ export default function PopularArticlesPage() {
                 </article>
               )
             })}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 提示信息 */}
       <div className="mt-12 rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/20">
         <h3 className="mb-2 text-lg font-semibold text-blue-900 dark:text-blue-100">
-          📊 关于热门文章排行
+          关于热门文章排行
         </h3>
         <p className="text-sm text-blue-800 dark:text-blue-200">
           热度分数综合考虑了浏览次数、阅读时间和滚动深度。分数范围从0到100，分数越高表示文章越受欢迎。

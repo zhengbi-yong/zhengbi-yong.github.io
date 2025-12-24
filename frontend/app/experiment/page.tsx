@@ -46,21 +46,15 @@ export default function ExperimentPage() {
   // 移除低性能模式检查，所有功能都正常显示
   return (
     <div className="relative min-h-screen">
-      {/* 着色器背景 - 固定定位覆盖整个视口 */}
-      <div className="fixed inset-0 -z-10">
-        <ShaderBackgroundWrapper intensity={0.8} />
-      </div>
-      {/* 内容背景遮罩 - 提升文字可读性 */}
-      <div className="fixed inset-0 -z-[5] bg-white/50 backdrop-blur-sm dark:bg-gray-950/60" />
       {/* 实验内容 */}
       <div className="relative z-10 space-y-10 py-8 md:py-12">
         {/* 标题区域 - 居中 */}
         <header className="space-y-4 pt-8 pb-4 text-center">
           <p className="text-primary-500 text-sm font-medium tracking-[0.4em] uppercase">Labs</p>
-          <h1 className="mx-auto bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
+          <h1 className="mx-auto text-4xl leading-tight font-extrabold tracking-tight text-foreground sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight">
             实验场
           </h1>
-          <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
+          <p className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg">
             这里是网站新功能与炫酷动效的试验田，每个模块均采用懒加载与骨架屏确保体验顺畅。
           </p>
         </header>

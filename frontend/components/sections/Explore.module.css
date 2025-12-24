@@ -51,12 +51,12 @@
   font-size: 0.75rem;
   line-height: 1.3;
   font-weight: 400;
-  color: rgb(156 163 175);
+  color: var(--text-secondary, #5A5652);
   margin-bottom: 0;
 }
 
 .dark .content p {
-  color: rgb(209 213 219);
+  color: var(--text-secondary, #B8C5D1);
 }
 
 @media (min-width: 640px) {

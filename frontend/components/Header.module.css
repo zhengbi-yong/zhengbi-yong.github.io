@@ -3,19 +3,9 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 毛玻璃效果增强 - 使用 CSS 变量确保一致性 */
+/* 移除毛玻璃效果，使用纯色背景 */
 .header #site-container {
-  /* 确保毛玻璃效果在支持的浏览器中生效 */
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-}
-
-/* 确保毛玻璃效果在支持的浏览器中生效 */
-@supports (backdrop-filter: blur(16px)) {
-  .header #site-container {
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-  }
+  /* 不再使用毛玻璃效果 */
 }
 
 /* Ensure mobile menu doesn't stick to edges */
@@ -46,7 +36,7 @@
   position: relative;
 }
 
-/* Desktop underline animation */
+/* Desktop underline animation - 使用深红色/深绿色 */
 @media (min-width: 640px) {
   .nav a::after {
     content: '';
@@ -56,7 +46,7 @@
     transform: translateX(-50%) scaleX(0);
     width: 70%;
     height: 2px;
-    background: var(--color-primary, #2d6dc3);
+    background: var(--brand-color, #7c1823);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 2px;
   }
@@ -84,18 +74,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Mobile menu background blur effect enhancement */
-@supports (backdrop-filter: blur(12px)) {
-  .mobileMenuBackground {
-    backdrop-filter: blur(12px);
-  }
-
-  @media (max-width: 639px) {
-    .menuBackground {
-      backdrop-filter: blur(16px);
-    }
-  }
-}
+/* 移除移动端菜单的毛玻璃效果 */
 
 /* Ensure Logo doesn't shrink on mobile */
 .flexShrink0 {
@@ -125,20 +104,25 @@
   }
 }
 
-/* Ensure mobile menu has good shadow */
+/* Ensure mobile menu has good shadow - 色彩化阴影 */
 @media (max-width: 639px) {
   .menuBackground {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 25px -5px rgba(45, 41, 38, 0.08), 0 8px 10px -6px rgba(45, 41, 38, 0.05);
   }
 
   .dark .menuBackground {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    border: 1px solid #333333;
+    box-shadow: none;
   }
 }
 
-/* Dark mode toggle icon container shadow */
+/* Dark mode toggle icon container shadow - 色彩化阴影 */
 .darkToggleIcon {
-  box-shadow: 0px 2px 3px 0 rgba(55, 52, 209, 0.21);
+  box-shadow: 0px 2px 3px 0 rgba(45, 41, 38, 0.1);
+}
+
+.dark .darkToggleIcon {
+  box-shadow: none;
 }
 
 /* Optimize mobile touch feedback */

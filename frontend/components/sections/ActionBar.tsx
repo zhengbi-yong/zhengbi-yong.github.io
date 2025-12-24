@@ -64,7 +64,7 @@ export default function ActionBar({
         className
       )}
     >
-      <div className="flex max-w-[92vw] items-center gap-1 rounded-2xl bg-neutral-900/85 px-2 py-2 text-neutral-100 shadow-[0_6px_28px_rgba(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur-xl sm:gap-2 dark:bg-neutral-900/85">
+      <div className="flex max-w-[92vw] items-center gap-1 rounded-2xl bg-neutral-900 px-2 py-2 text-neutral-100 shadow-[0_6px_28px_rgba(0,0,0,0.25)] ring-1 ring-white/10 sm:gap-2 dark:bg-neutral-900">
         {/* Logo block */}
         <div className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-neutral-800 ring-1 ring-white/10 sm:h-10 sm:w-10">
           {logoSrc ? (

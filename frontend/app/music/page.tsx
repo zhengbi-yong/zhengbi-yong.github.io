@@ -1,5 +1,4 @@
 import { genPageMetadata } from 'app/seo'
-import ShaderBackgroundClient from '@/components/ShaderBackgroundClient'
 import MusicCard from '@/components/MusicCard'
 import musicSheets from '@/data/musicData'
 
@@ -8,22 +7,16 @@ export const metadata = genPageMetadata({ title: 'Music' })
 export default function MusicPage() {
   return (
     <div className="relative min-h-screen">
-      {/* 着色器背景 - 固定定位覆盖整个视口 */}
-      <div className="fixed inset-0 -z-10">
-        <ShaderBackgroundClient intensity={0.8} />
-      </div>
       {/* 音乐内容 */}
       <div className="relative z-10">
-        {/* 内容背景遮罩 - 提升文字可读性 */}
-        <div className="fixed inset-0 -z-[5] bg-white/50 backdrop-blur-sm dark:bg-gray-950/60" />
-        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="divide-y divide-border">
           {/* 标题区域 - 居中 */}
           <div className="pt-8 pb-10 md:pt-12 md:pb-12">
             <div className="mb-8 text-center md:mb-10">
-              <h1 className="mx-auto mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
+              <h1 className="mx-auto mb-4 text-4xl leading-tight font-extrabold tracking-tight text-foreground sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight">
                 音乐
               </h1>
-              <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
+              <p className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg">
                 探索我的音乐作品和乐谱收藏
               </p>
             </div>

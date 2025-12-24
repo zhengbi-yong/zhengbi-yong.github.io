@@ -66,15 +66,9 @@ export default function Book({ book, index }: BookProps) {
             <div className="relative">
               {/* 书籍封面 */}
               <motion.div
-                className={`${colorScheme.gradient} dark:${colorScheme.gradientDark} group-hover:shadow-3xl relative flex min-h-[200px] flex-col justify-between overflow-hidden rounded-xl p-6 text-white shadow-2xl shadow-black/20 transition-all duration-300 group-hover:shadow-black/30 sm:min-h-[240px] sm:p-8 dark:shadow-black/40 dark:group-hover:shadow-black/50`}
+                className="group-hover:shadow-3xl relative flex min-h-[200px] flex-col justify-between overflow-hidden rounded-xl border border-border bg-card p-6 shadow-lg transition-all duration-300 sm:min-h-[240px] sm:p-8"
               >
-                {/* 纸张纹理效果 - 背景层 */}
-                <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(255,255,255,0.15)_1px,_transparent_0)] bg-[length:20px_20px] opacity-10"></div>
-
-                {/* 渐变遮罩增强深度 - 背景层 */}
-                <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-white/10 via-transparent to-black/10"></div>
-
-                {/* 书籍内容 - 前景层 */}
+                {/* 书籍内容 */}
                 <div className="relative z-10 flex h-full flex-col">
                   {/* 图标和标题区域 */}
                   <div className="mb-6 flex items-start justify-between gap-4">
@@ -83,48 +77,34 @@ export default function Book({ book, index }: BookProps) {
                         {book.name}
                       </h2>
                       <div className="space-y-1.5">
-                        <p className="text-xs font-medium text-white/90 sm:text-sm">
+                        <p className="text-xs font-medium text-foreground sm:text-sm">
                           {book.totalArticles} 篇文章
                         </p>
                         {book.chapters.length > 0 && (
-                          <p className="text-xs text-white/70">{book.chapters.length} 个章节</p>
+                          <p className="text-xs text-muted-foreground">{book.chapters.length} 个章节</p>
                         )}
                       </div>
                     </div>
                     {/* 分类图标 */}
-                    <div
-                      className={`${colorScheme.iconColor} flex-shrink-0 opacity-90 drop-shadow-lg`}
-                    >
+                    <div className="flex-shrink-0 text-primary opacity-90">
                       {bookIcon}
                     </div>
                   </div>
 
                   {/* 底部装饰条 */}
                   <div className="mt-auto pt-4">
-                    <div className="h-1 rounded-full bg-white/20"></div>
+                    <div className="h-1 rounded-full bg-border"></div>
                   </div>
                 </div>
 
-                {/* 书籍厚度效果（右侧书脊） */}
+                {/* 书籍厚度效果（右侧书脊） - 简化，移除渐变和模糊 */}
                 <div
-                  className="absolute top-2 -right-2 bottom-2 hidden w-3 rounded-r-xl opacity-80 sm:-right-3 sm:block sm:w-4"
-                  style={{
-                    background: `linear-gradient(to right, rgba(0,0,0,0.3), rgba(0,0,0,0.5))`,
-                    transform: 'rotateY(-90deg)',
-                    transformOrigin: 'right center',
-                    filter: 'blur(1px)',
-                  }}
+                  className="absolute top-2 -right-2 bottom-2 hidden w-3 rounded-r-xl bg-border opacity-50 sm:-right-3 sm:block sm:w-4"
                 />
 
-                {/* 底部厚度阴影 */}
+                {/* 底部厚度阴影 - 简化，移除渐变和模糊 */}
                 <div
-                  className="absolute right-2 -bottom-2 left-2 hidden h-2 rounded-b-xl opacity-60 sm:block"
-                  style={{
-                    background: `linear-gradient(to bottom, rgba(0,0,0,0.2), transparent)`,
-                    transform: 'rotateX(90deg)',
-                    transformOrigin: 'bottom center',
-                    filter: 'blur(2px)',
-                  }}
+                  className="absolute right-2 -bottom-2 left-2 hidden h-2 rounded-b-xl bg-border opacity-30 sm:block"
                 />
               </motion.div>
             </div>

@@ -189,7 +189,7 @@ export default function WorkCard({
   return (
     <article
       className={cn(
-        'group border-primary-500/15 dark:border-primary-400/15 relative mb-8 overflow-hidden rounded-2xl border-[0.75px] border-solid bg-white/85 p-5 backdrop-blur-sm transition-all duration-500 dark:bg-gray-900/85',
+        'group relative mb-8 overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all duration-500',
         className
       )}
     >
@@ -226,12 +226,12 @@ export default function WorkCard({
           />
         )}
 
-        {/* Gradient overlay shown on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-black/10 to-transparent opacity-0 transition-all duration-500 group-hover:opacity-100"></div>
+        {/* Overlay shown on hover */}
+        <div className="absolute inset-0 bg-black/10 opacity-0 transition-all duration-500 group-hover:opacity-100"></div>
 
         {/* Link button shown on hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100">
-          <div className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white/95 shadow-lg backdrop-blur-sm transition-all duration-500 group-hover:translate-y-0 group-hover:scale-110">
+          <div className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white shadow-lg transition-all duration-500 group-hover:translate-y-0 group-hover:scale-110 dark:bg-gray-800">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -242,7 +242,7 @@ export default function WorkCard({
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-primary-500 dark:text-primary-400"
+              className="text-primary"
             >
               <path d="M7 7h10v10"></path>
               <path d="M7 17 17 7"></path>
@@ -257,7 +257,7 @@ export default function WorkCard({
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3
             className={cn(
-              'group-hover:text-primary-500 dark:group-hover:text-primary-400 leading-tight font-bold text-neutral-900 transition-colors duration-300 dark:text-white',
+              'group-hover:text-primary leading-tight font-bold text-foreground transition-colors duration-300',
               layout === 'featured' ? 'text-2xl md:text-3xl' : 'text-2xl'
             )}
           >
@@ -266,7 +266,7 @@ export default function WorkCard({
 
           {/* Link icon */}
           <div className="mt-1 flex-shrink-0">
-            <div className="bg-primary-500/10 dark:bg-primary-400/20 text-primary-500 dark:text-primary-400 group-hover:bg-primary-500 dark:group-hover:bg-primary-400 flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 group-hover:rotate-45 group-hover:text-white dark:group-hover:text-neutral-900">
+            <div className="bg-primary/10 text-primary group-hover:bg-primary flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 group-hover:rotate-45 group-hover:text-primary-foreground">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -291,7 +291,7 @@ export default function WorkCard({
             {tags.map((tag, tagIndex) => (
               <span
                 key={tagIndex}
-                className="bg-primary-500/8 dark:bg-primary-400/15 text-primary-500 dark:text-primary-400 border-primary-500/10 dark:border-primary-400/20 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium"
+                className="bg-primary/10 text-primary border-primary/20 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium"
               >
                 {tag}
               </span>
@@ -303,7 +303,7 @@ export default function WorkCard({
         {description && (
           <p
             className={cn(
-              'leading-relaxed text-neutral-600 dark:text-neutral-400',
+              'leading-relaxed text-muted-foreground',
               layout === 'featured' ? 'line-clamp-2 text-base md:text-lg' : 'line-clamp-2 text-sm'
             )}
           >

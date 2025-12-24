@@ -33,18 +33,10 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
       transition={{ duration }}
       style={{ willChange: 'opacity' }}
     >
-      {/* 背景 */}
-      <div className="fixed inset-0 -z-10">
-        <div
-          className={`${colorScheme.gradient} dark:${colorScheme.gradientDark} absolute inset-0 opacity-10`}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-white/80 backdrop-blur-sm dark:from-gray-950/80 dark:via-gray-900/60 dark:to-gray-950/80"></div>
-      </div>
-
       {/* 内容容器 */}
       <div className="relative z-10 min-h-screen">
         {/* 顶部导航栏 */}
-        <div className="sticky top-0 z-20 border-b border-gray-200/50 bg-white/80 shadow-sm backdrop-blur-md dark:border-gray-700/50 dark:bg-gray-900/80">
+        <div className="sticky top-0 z-20 border-b border-gray-200/50 bg-white shadow-sm dark:border-gray-700/50 dark:bg-gray-900">
           <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
             <BackToShelfButton />
           </div>
@@ -60,20 +52,14 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
             transition={{ delay: disableComplexAnimations ? 0 : 0.1, duration }}
           >
             <div
-              className={`${colorScheme.gradient} dark:${colorScheme.gradientDark} relative flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-2xl p-8 text-white shadow-2xl shadow-black/20 sm:min-h-[400px] sm:p-12 dark:shadow-black/40`}
+              className="relative flex min-h-[300px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-lg sm:min-h-[400px] sm:p-12"
             >
-              {/* 纸张纹理效果 - 背景层 */}
-              <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(255,255,255,0.15)_1px,_transparent_0)] bg-[length:20px_20px] opacity-10"></div>
-
-              {/* 渐变遮罩 - 背景层 */}
-              <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-white/10 via-transparent to-black/10"></div>
-
-              {/* 书籍内容 - 前景层 */}
+              {/* 书籍内容 */}
               <div className="relative z-10 w-full px-4 text-center">
                 {/* 图标 */}
                 {!disableComplexAnimations ? (
                   <motion.div
-                    className={`${colorScheme.iconColor} mb-6 flex justify-center`}
+                    className="mb-6 flex justify-center text-primary"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
@@ -81,18 +67,18 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
                     <div className="h-20 w-20 sm:h-24 sm:w-24">{bookIcon}</div>
                   </motion.div>
                 ) : (
-                  <div className={`${colorScheme.iconColor} mb-6 flex justify-center`}>
+                  <div className="mb-6 flex justify-center text-primary">
                     <div className="h-20 w-20 sm:h-24 sm:w-24">{bookIcon}</div>
                   </div>
                 )}
 
                 {/* 标题 */}
-                <h1 className="mb-4 text-4xl font-bold capitalize drop-shadow-lg sm:text-5xl md:text-6xl">
+                <h1 className="mb-4 text-4xl font-bold capitalize text-foreground sm:text-5xl md:text-6xl">
                   {book.name}
                 </h1>
 
                 {/* 统计信息 */}
-                <div className="flex flex-wrap items-center justify-center gap-6 text-white/90">
+                <div className="flex flex-wrap items-center justify-center gap-6 text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -139,7 +125,7 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
                 <p className="text-lg text-gray-500 dark:text-gray-400">暂无章节</p>
               </div>
             ) : (
-              <div className="rounded-2xl border border-gray-200/50 bg-white/60 p-6 shadow-lg backdrop-blur-sm sm:p-8 dark:border-gray-700/50 dark:bg-gray-900/60">
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
                 <div className="space-y-6">
                   {book.chapters.map((chapter, chapterIndex) => (
                     <Chapter

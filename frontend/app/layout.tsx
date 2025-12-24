@@ -86,13 +86,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <link
         rel="mask-icon"
         href={`${basePath}/static/favicons/safari-pinned-tab.svg`}
-        color="#5bbad5"
+        color="#7c1823"
       />
-      <meta name="msapplication-TileColor" content="#000000" />
-      <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
-      <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
+      <meta name="msapplication-TileColor" content="#1E3A5F" />
+      <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F3F0" />
+      <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1E3A5F" />
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
-      <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
+      <body className="pl-[calc(100vw-100%)] antialiased" style={{ backgroundColor: 'var(--site-bg)', color: 'var(--text-primary)' }}>
         <Script id="load-env-variables" strategy="beforeInteractive">
           {`window["EXCALIDRAW_ASSET_PATH"] = "/";`}
         </Script>
