@@ -111,6 +111,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
     use axum::routing::{get, post, delete};
 
     // 公开路由 (无需认证)
+    // 前端需要对包含斜杠的 slug 进行 URL 编码（如 chemistry/tutorial -> chemistry%2Ftutorial）
     let public_routes = Router::new()
         .route("/auth/register", post(blog_api::routes::auth::register))
         .route("/auth/login", post(blog_api::routes::auth::login))

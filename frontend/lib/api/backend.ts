@@ -54,6 +54,15 @@ export const refreshAccessToken = async (): Promise<string> => {
   return refreshPromise
 }
 
+// ==================== Helper Functions ====================
+/**
+ * Encode slug for URL - handles slashes and special characters
+ * Example: "chemistry/tutorial" -> "chemistry%2Ftutorial"
+ */
+function encodeSlug(slug: string): string {
+  return encodeURIComponent(slug)
+}
+
 // ==================== Auth Service ====================
 export const authService = {
   /**
@@ -158,7 +167,7 @@ export const postService = {
    * Get post statistics (views, likes, comments count)
    */
   async getStats(slug: string): Promise<PostStats> {
-    const response = await api.get<PostStats>(`${BACKEND_API_URL}/posts/${slug}/stats`)
+    const response = await api.get<PostStats>(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/stats`)
     return response.data
   },
 
@@ -166,21 +175,21 @@ export const postService = {
    * Record a post view
    */
   async recordView(slug: string): Promise<void> {
-    await api.post(`${BACKEND_API_URL}/posts/${slug}/view`, undefined, { cache: false })
+    await api.post(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/view`, undefined, { cache: false })
   },
 
   /**
    * Like a post
    */
   async likePost(slug: string): Promise<void> {
-    await api.post(`${BACKEND_API_URL}/posts/${slug}/like`, undefined, { cache: false })
+    await api.post(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/like`, undefined, { cache: false })
   },
 
   /**
    * Unlike a post
    */
   async unlikePost(slug: string): Promise<void> {
-    await api.delete(`${BACKEND_API_URL}/posts/${slug}/like`, { cache: false })
+    await api.delete(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/like`, { cache: false })
   },
 }
 
@@ -194,7 +203,7 @@ export const commentService = {
     if (cursor) params.append('cursor', cursor)
     if (limit !== 20) params.append('limit', limit.toString())
 
-    const url = `${BACKEND_API_URL}/posts/${slug}/comments${params.toString() ? '?' + params.toString() : ''}`
+    const url = `${BACKEND_API_URL}/posts/${encodeSlug(slug)}/comments${params.toString() ? '?' + params.toString() : ''}`
     const response = await api.get<CommentListResponse>(url)
     return response.data
   },
@@ -204,7 +213,7 @@ export const commentService = {
    */
   async createComment(slug: string, data: CreateCommentRequest): Promise<CommentResponse> {
     const response = await api.post<CommentResponse>(
-      `${BACKEND_API_URL}/posts/${slug}/comments`,
+      `${BACKEND_API_URL}/posts/${encodeSlug(slug)}/comments`,
       data,
       { cache: false }
     )

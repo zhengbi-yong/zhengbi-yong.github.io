@@ -37,7 +37,9 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
       }
       onClose()
     } catch (err) {
-      // Error is handled by the store
+      // Error is handled by the store - just log for debugging
+      console.log('[AuthModal] Login/Register error:', err)
+      console.log('[AuthModal] Current error state:', useAuthStore.getState().error)
     }
   }
 
@@ -81,7 +83,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {error && (
-            <div className="bg-destructive/15 text-destructive text-sm p-3 rounded-md border border-destructive/20">
+            <div className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm p-3 rounded-md border border-red-200 dark:border-red-800">
               {error}
             </div>
           )}
