@@ -127,8 +127,8 @@ export default function RDKitStructure({
   if (rdkitError) {
     return (
       <div
-        className={`flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-4 ${className}`}
-        style={{ width, height, backgroundColor }}
+        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-4 ${className}`}
+        style={{ width, height, backgroundColor, maxWidth: '100%' }}
       >
         <div className="text-center">
           <div className="mb-2 text-red-500">⚠️ Chemistry Engine Error</div>
@@ -142,8 +142,8 @@ export default function RDKitStructure({
   if (isLoading) {
     return (
       <div
-        className={`flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 ${className}`}
-        style={{ width, height }}
+        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 ${className}`}
+        style={{ width, height, maxWidth: '100%' }}
       >
         <div className="text-center">
           <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"></div>
@@ -156,8 +156,8 @@ export default function RDKitStructure({
   if (error) {
     return (
       <div
-        className={`flex items-center justify-center rounded-lg border-2 border-dashed border-red-300 p-4 ${className}`}
-        style={{ width, height, backgroundColor }}
+        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-red-300 p-4 ${className}`}
+        style={{ width, height, backgroundColor, maxWidth: '100%' }}
       >
         <div className="text-center">
           <div className="mb-2 text-red-500">❌ Structure Error</div>
@@ -171,7 +171,7 @@ export default function RDKitStructure({
   }
 
   return (
-    <div className={`flex flex-col items-center ${className}`}>
+    <div className={`flex flex-col items-center max-w-full ${className}`}>
       <div
         className="overflow-hidden rounded-lg border border-gray-200"
         style={{

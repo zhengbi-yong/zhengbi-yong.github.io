@@ -7,7 +7,6 @@ import Link from '@/components/Link'
 import PageTitle from '@/components/PageTitle'
 import SectionContainer from '@/components/SectionContainer'
 import siteMetadata from '@/data/siteMetadata'
-import ScrollTopAndComment from '@/components/ScrollTopAndComment'
 import FloatingTOC from '@/components/FloatingTOC'
 import type { TOC } from '@/lib/types/toc'
 
@@ -25,7 +24,6 @@ export default function PostLayout({ content, next, prev, children, toc, showTOC
 
   return (
     <SectionContainer>
-      <ScrollTopAndComment />
       <article>
         <div>
           <header>
