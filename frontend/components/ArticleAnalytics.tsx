@@ -233,8 +233,8 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
   }
 
   return (
-    <div className="rounded-xl border border-gray-200/80 bg-white/80 backdrop-blur-sm shadow-sm dark:border-gray-700/80 dark:bg-gray-900/80">
-      <div className="border-b border-gray-200/50 px-5 py-4 dark:border-gray-700/50">
+    <div className="flex h-full flex-col rounded-xl border-2 border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
+      <div className="flex-shrink-0 border-b border-gray-200 px-4 py-3 dark:border-gray-700" style={{ minHeight: '48px' }}>
         <h3
           className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100"
           suppressHydrationWarning
@@ -244,7 +244,7 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
         </h3>
       </div>
 
-      <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
+      <div className="flex-1 min-h-0 divide-y divide-gray-100 dark:divide-gray-800/50">
         {popularArticles.map(({ articleId, analytics }, index) => {
           const article = getArticleBySlug(articleId)
           const title = article?.title || articleId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
@@ -254,7 +254,7 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
             <Link
               key={articleId}
               href={path ? `/${path}` : '#'}
-              className="group block px-5 py-4 transition-colors hover:bg-gray-50/80 dark:hover:bg-gray-800/50"
+              className="group block px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
