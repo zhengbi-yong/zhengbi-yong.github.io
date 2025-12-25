@@ -2,19 +2,18 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTheme } from 'next-themes'
-import { SunMedium, Moon, Download } from 'lucide-react'
+import { SunMedium, Moon } from 'lucide-react'
 import headerNavLinks from '@/data/headerNavLinks'
 import Logo from './Logo'
 import Link from './Link'
 import SearchButton from './SearchButton'
-import LanguageSwitch from './LanguageSwitch'
 import { cn } from './lib/utils'
 import styles from './Header.module.css'
 
 /**
  * Header - 页头组件
  * 基于提供的 Astro Header 组件转换而来
- * 包含 Logo、导航菜单、深色模式切换、Resume 按钮等功能
+ * 包含 Logo、导航菜单、深色模式切换等功能
  */
 export default function Header() {
   const [mounted, setMounted] = useState(false)
@@ -62,15 +61,6 @@ export default function Header() {
 
   // 过滤掉首页链接（通常不需要在导航中显示）
   const menuItems = headerNavLinks.filter((link) => link.href !== '/')
-
-  // 处理 Resume 按钮点击
-  const handleResumeClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    // TODO: 替换为实际的 Resume PDF 文件路径
-    // 例如: window.open('/resume.pdf', '_blank')
-    // 临时禁用，等待简历文件准备就绪
-    // window.open('/resume.pdf', '_blank')
-  }, [])
 
   // 处理键盘事件（用于可访问性）
   const handleKeyDown = useCallback((e: React.KeyboardEvent, action: () => void) => {
@@ -154,24 +144,6 @@ export default function Header() {
                   </Link>
                 ))}
               </div>
-
-              {/* Contact Button (Mobile) */}
-              <div className="relative z-10 mt-3 w-full px-5 sm:hidden">
-                <button
-                  onClick={handleResumeClick}
-                  className={cn(
-                    'flex w-full items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium',
-                    'bg-white/40 backdrop-blur-sm dark:bg-neutral-900/40',
-                    'border-[0.5px] border-white/30 dark:border-white/10',
-                    'text-neutral-700 dark:text-neutral-200',
-                    'hover:bg-white/50 hover:shadow-md dark:hover:bg-neutral-900/50',
-                    'transition-all duration-200 active:scale-95',
-                    'cursor-pointer'
-                  )}
-                >
-                  Resume <Download size={16} />
-                </button>
-              </div>
             </div>
           </nav>
 
@@ -184,9 +156,6 @@ export default function Header() {
 
           {/* Mobile Menu Toggle Buttons */}
           <div className="mr-1 flex items-center gap-2 justify-self-end sm:hidden">
-            {/* Language Switch (Mobile) */}
-            <LanguageSwitch />
-
             {/* Search Button (Mobile) */}
             <div
               className={cn(
@@ -209,6 +178,7 @@ export default function Header() {
               onClick={toggleTheme}
               onKeyDown={(e) => handleKeyDown(e, toggleTheme)}
               aria-label="切换深色模式"
+              title={mounted ? (isDark ? 'Dark' : 'Light') : '切换深色模式'}
             >
               <div
                 className={cn(
@@ -291,26 +261,8 @@ export default function Header() {
 
           {/* Desktop Actions */}
           <div className="relative mr-2 hidden items-center gap-3 justify-self-end sm:mr-3 sm:flex lg:mr-4">
-            {/* Language Switch */}
-            <LanguageSwitch />
             {/* Search Button */}
             <SearchButton />
-
-            {/* Contact Button (Desktop) */}
-            <button
-              onClick={handleResumeClick}
-              className={cn(
-                'flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium',
-                'bg-white/40 backdrop-blur-sm dark:bg-neutral-900/40',
-                'border-[0.5px] border-white/30 dark:border-white/10',
-                'text-neutral-700 dark:text-neutral-200',
-                'hover:bg-white/50 hover:shadow-md dark:hover:bg-neutral-900/50',
-                'transition-all duration-200 active:scale-95',
-                'cursor-pointer'
-              )}
-            >
-              Resume <Download size={16} />
-            </button>
 
             {/* Dark Mode Toggle (Desktop) */}
             <div
@@ -320,11 +272,12 @@ export default function Header() {
               className={cn(
                 styles.darkToggle,
                 styles.tapHighlight,
-                'relative flex h-9 cursor-pointer items-center gap-1.5 rounded-xl border-[0.5px] border-white/30 bg-white/40 px-3 font-medium backdrop-blur-sm transition-all duration-200 hover:bg-white/50 hover:shadow-md active:scale-95 dark:border-white/10 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/50'
+                'relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border-[0.5px] border-white/30 bg-white/40 backdrop-blur-sm transition-all duration-200 hover:bg-white/50 hover:shadow-md active:scale-95 dark:border-white/10 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/50'
               )}
               onClick={toggleTheme}
               onKeyDown={(e) => handleKeyDown(e, toggleTheme)}
               aria-label="切换深色模式"
+              title={mounted ? (isDark ? 'Dark' : 'Light') : '切换深色模式'}
             >
               <div
                 className={cn(
@@ -350,28 +303,6 @@ export default function Header() {
                   </>
                 )}
               </div>
-              {mounted && (
-                <span className="hidden whitespace-nowrap sm:inline-block">
-                  <span
-                    id="dayText"
-                    className={cn(
-                      'flex-shrink-0 text-left text-sm text-neutral-700 dark:text-neutral-200',
-                      isDark ? 'hidden' : 'block'
-                    )}
-                  >
-                    Light
-                  </span>
-                  <span
-                    id="nightText"
-                    className={cn(
-                      'flex-shrink-0 text-left text-sm text-neutral-700 dark:text-neutral-200',
-                      isDark ? 'block' : 'hidden'
-                    )}
-                  >
-                    Dark
-                  </span>
-                </span>
-              )}
             </div>
           </div>
         </div>

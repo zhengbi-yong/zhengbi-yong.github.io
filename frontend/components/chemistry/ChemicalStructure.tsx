@@ -206,8 +206,8 @@ export default function ChemicalStructure({
   if (!isClient) {
     return (
       <div
-        className={`my-6 flex items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 ${className}`}
-        style={{ width, height: typeof height === 'number' ? `${height}px` : height }}
+        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 ${className}`}
+        style={{ width, height: typeof height === 'number' ? `${height}px` : height, maxWidth: '100%' }}
       >
         <div className="flex flex-col items-center gap-3">
           <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
@@ -220,8 +220,8 @@ export default function ChemicalStructure({
   if (error) {
     return (
       <div
-        className={`my-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 ${className}`}
-        style={{ width, height: typeof height === 'number' ? `${height}px` : height }}
+        className={`my-6 max-w-full rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 ${className}`}
+        style={{ width, height: typeof height === 'number' ? `${height}px` : height, maxWidth: '100%' }}
       >
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       </div>
@@ -229,7 +229,7 @@ export default function ChemicalStructure({
   }
 
   return (
-    <div className={`my-6 ${className}`}>
+    <div className={`my-6 max-w-full ${className}`}>
       <div
         ref={containerRef}
         className="rounded-lg border border-gray-200 dark:border-gray-700"
@@ -237,6 +237,7 @@ export default function ChemicalStructure({
           width: typeof width === 'number' ? `${width}px` : width,
           height: typeof height === 'number' ? `${height}px` : height,
           minHeight: typeof height === 'number' ? `${height}px` : height,
+          maxWidth: '100%',
           position: 'relative',
           overflow: 'hidden',
           backgroundColor: 'transparent',

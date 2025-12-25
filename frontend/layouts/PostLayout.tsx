@@ -8,7 +8,6 @@ import SectionContainer from '@/components/SectionContainer'
 import Image from '@/components/Image'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
-import ScrollTopAndComment from '@/components/ScrollTopAndComment'
 import FadeIn from '@/components/animations/FadeIn'
 import FloatingTOC from '@/components/FloatingTOC'
 import JsonLd from '@/components/seo/JsonLd'
@@ -118,7 +117,6 @@ export default function PostLayout({
       {/* JSON-LD 结构化数据 */}
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
-      <ScrollTopAndComment />
 
       {/* 阅读进度条 */}
       <ReadingProgress />
@@ -155,7 +153,7 @@ export default function PostLayout({
             {/* 中间：文章内容 */}
             <div className="md:col-span-1 xl:col-span-1 dark:divide-gray-700 xl:px-4">
               <FadeIn delay={0.2} duration={0.6} whileInView={true}>
-                <div className="prose dark:prose-invert prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-p:leading-7 prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline mx-auto w-full max-w-full min-w-0 pt-10 pb-8 sm:max-w-2xl md:max-w-none xl:max-w-4xl">
+                <div className="prose dark:prose-invert prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-p:leading-7 prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline mx-auto w-full max-w-full min-w-0 pt-10 pb-8 sm:max-w-2xl md:max-w-none">
                   {children}
                 </div>
               </FadeIn>
