@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes'
 import type { TOC, TOCItem } from '@/lib/types/toc'
 import styles from './FloatingTOC.module.css'
 import { cn } from './lib/utils'
+import { List } from 'lucide-react'
 
 interface FloatingTOCProps {
   toc?: TOC
@@ -22,7 +23,6 @@ interface HeadingNode extends TOCItem {
  */
 function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCProps) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false)
-  const [isDesktopExpanded, setIsDesktopExpanded] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -123,11 +123,6 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
     if (e.target === e.currentTarget) {
       setIsMobileExpanded(false)
     }
-  }, [])
-
-  // 处理桌面端折叠/展开
-  const handleDesktopToggle = useCallback(() => {
-    setIsDesktopExpanded((prev) => !prev)
   }, [])
 
   // 处理链接点击
@@ -741,44 +736,21 @@ function FloatingTOC({ toc, enabled = true, mobileOnly = false }: FloatingTOCPro
       {!mobileOnly && shouldRenderDesktop && !isMobile && (
         <div ref={containerRef} className={styles.tocContainer}>
           {/* 桌面端标题 */}
-          <div className={cn(styles.tocTitle, 'dark:border-gray-700')}>
-            <span className={cn(styles.tocTitleText, 'font-brand text-base dark:text-gray-100')}>
-              TOC
-            </span>
-            <button
-              id="toc-toggle-desktop"
-              className={cn(
-                styles.tocToggleDesktop,
-                'dark:hover:text-primary-400 dark:text-gray-400 dark:hover:bg-gray-800'
-              )}
-              onClick={handleDesktopToggle}
-              aria-expanded={isDesktopExpanded}
-              aria-controls="toc-content"
-              aria-label="Toggle table of contents"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={cn(styles.chevronUp, isDesktopExpanded ? 'rotate-0' : 'rotate-180')}
-              >
-                <path d="m18 15-6-6-6 6" />
-              </svg>
-            </button>
+          <div className={styles.tocTitle}>
+            <div className="flex items-center gap-2">
+              <List size={16} className="text-gray-400 dark:text-gray-500" />
+              <span className={cn(styles.tocTitleText, 'dark:text-gray-300')}>
+                目录
+              </span>
+            </div>
           </div>
 
           {/* 目录内容 */}
           <nav
             ref={tocContentRef}
             id="toc-content"
-            className={cn(styles.toc, !isDesktopExpanded && styles.collapsed)}
-            aria-label="TOC"
+            className={styles.toc}
+            aria-label="目录"
           >
             <ul>{tree.map((node) => renderTOCNode(node))}</ul>
           </nav>

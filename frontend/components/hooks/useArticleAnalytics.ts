@@ -185,11 +185,11 @@ export function useArticleAnalytics({
 
   // 获取热门度标签
   const getPopularityLabel = useCallback((): string => {
-    if (analytics.engagementScore >= 80) return '🔥 热门'
-    if (analytics.engagementScore >= 60) return '📈 受欢迎'
-    if (analytics.engagementScore >= 40) return '👀 关注'
-    if (analytics.engagementScore >= 20) return '📝 普通'
-    return '🆕 新作'
+    if (analytics.engagementScore >= 80) return '热门'
+    if (analytics.engagementScore >= 60) return '受欢迎'
+    if (analytics.engagementScore >= 40) return '关注'
+    if (analytics.engagementScore >= 20) return '普通'
+    return '新作'
   }, [analytics.engagementScore])
 
   // 初始化时跟踪页面访问

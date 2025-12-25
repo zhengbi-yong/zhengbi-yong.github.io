@@ -65,7 +65,7 @@ export default function ArticleAnalytics({
           {displayAnalytics.viewCount}
         </span>
         <span suppressHydrationWarning>{displayPopularityLabel}</span>
-        {displayIsPopular && <TrendingUp size={14} className="text-orange-500" />}
+        {displayIsPopular && <TrendingUp size={14} className="text-gray-400 dark:text-gray-500" />}
       </div>
     )
   }
@@ -82,13 +82,13 @@ export default function ArticleAnalytics({
         </span>
         <div className="flex items-center gap-2">
           <span
-            className="text-sm font-bold text-orange-600 dark:text-orange-400"
+            className="text-sm font-bold text-gray-600 dark:text-gray-300"
             suppressHydrationWarning
           >
             {displayPopularityLabel}
           </span>
-          {displayIsPopular && <TrendingUp size={16} className="text-orange-500" />}
-          {displayAnalytics.engagementScore >= 80 && <Award size={16} className="text-red-500" />}
+          {displayIsPopular && <TrendingUp size={16} className="text-gray-400 dark:text-gray-500" />}
+          {displayAnalytics.engagementScore >= 80 && <Award size={16} className="text-gray-400 dark:text-gray-500" />}
         </div>
       </div>
 
@@ -233,18 +233,18 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
   }
 
   return (
-    <div className="flex h-full flex-col rounded-xl border-2 border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
-      <div className="flex-shrink-0 border-b border-gray-200 px-4 py-3 dark:border-gray-700" style={{ minHeight: '48px' }}>
+    <div className="flex h-full flex-col rounded-xl border border-gray-200/60 bg-[#F5F3F0] shadow-sm dark:border-gray-700 dark:bg-gray-900" style={{ height: '100%', maxHeight: '100%' }}>
+      <div className="flex-shrink-0 border-b border-gray-200/40 px-4 py-3 dark:border-gray-700">
         <h3
-          className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100"
+          className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"
           suppressHydrationWarning
         >
-          <TrendingUp size={18} className="text-orange-500" />
+          <TrendingUp size={16} className="text-gray-400 dark:text-gray-500" />
           {displayText('analytics.popularArticles')}
         </h3>
       </div>
 
-      <div className="flex-1 min-h-0 divide-y divide-gray-100 dark:divide-gray-800/50">
+      <div className="flex-1 min-h-0 divide-y divide-gray-200/30 dark:divide-gray-800/50 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:transparent_transparent] hover:[scrollbar-color:rgb(209_213_219)_transparent] dark:hover:[scrollbar-color:rgb(75_85_99)_transparent]">
         {popularArticles.map(({ articleId, analytics }, index) => {
           const article = getArticleBySlug(articleId)
           const title = article?.title || articleId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
@@ -254,7 +254,7 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
             <Link
               key={articleId}
               href={path ? `/${path}` : '#'}
-              className="group block px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="group block px-4 py-2.5 transition-colors hover:bg-white/50 dark:hover:bg-gray-800/50"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
@@ -287,11 +287,11 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
                     <span
                       className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                         analytics.engagementScore >= 80
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                          ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                           : analytics.engagementScore >= 60
-                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                            ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                             : analytics.engagementScore >= 40
-                              ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                              ? 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                               : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                       }`}
                       suppressHydrationWarning
@@ -303,11 +303,11 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
                       <div
                         className={`h-full transition-all duration-300 ${
                           analytics.engagementScore >= 80
-                            ? 'bg-gradient-to-r from-red-500 to-red-600'
+                            ? 'bg-gradient-to-r from-gray-500 to-gray-600'
                             : analytics.engagementScore >= 60
-                              ? 'bg-gradient-to-r from-orange-500 to-orange-600'
+                              ? 'bg-gradient-to-r from-gray-500 to-gray-600'
                               : analytics.engagementScore >= 40
-                                ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+                                ? 'bg-gradient-to-r from-gray-400 to-gray-500'
                                 : 'bg-gradient-to-r from-gray-400 to-gray-500'
                         }`}
                         style={{ width: `${analytics.engagementScore}%` }}

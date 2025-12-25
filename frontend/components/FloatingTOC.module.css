@@ -2,9 +2,19 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  /* 默认高度：使用 clamp 确保在不同屏幕尺寸下都有合理的高度 */
-  height: clamp(400px, 80vh, 900px);
-  max-height: clamp(400px, 80vh, 900px);
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(229, 225, 224, 0.6);
+  background: #F5F3F0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+:global(.dark) .tocContainer {
+  border-color: #374151;
+  background: #111827;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
 }
 
 .tocHeader {
@@ -211,13 +221,10 @@
 .toc {
   flex: 1;
   min-height: 0;
-  /* 内容区域高度：考虑标题栏高度，使用 clamp 确保合理范围 */
-  max-height: clamp(350px, calc(80vh - 4rem), 850px);
   overflow-y: auto;
   overflow-x: hidden;
-  font-size: 1rem;
+  font-size: 0.875rem;
   padding: 0;
-  border-radius: 0.75rem;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   /* 只在内容超出时显示滚动条，默认透明 */
   scrollbar-width: thin;
@@ -261,15 +268,15 @@
 }
 
 /* Dark mode scrollbar */
-.dark .toc {
+:global(.dark) .toc {
   scrollbar-color: var(--muted-foreground, #B8C5D1) transparent;
   }
 
-.dark .toc::-webkit-scrollbar-thumb {
+:global(.dark) .toc::-webkit-scrollbar-thumb {
   background: var(--muted-foreground, #B8C5D1);
   }
 
-.dark .toc::-webkit-scrollbar-thumb:hover {
+:global(.dark) .toc::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary, #B8C5D1);
 }
 
@@ -279,49 +286,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border, #E8E5E0);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(229, 225, 224, 0.4);
   flex-shrink: 0;
 }
 
+:global(.dark) .tocTitle {
+  border-bottom-color: #374151;
+}
+
 .tocTitleText {
-  letter-spacing: 1px;
-  color: var(--text-primary, #2D2926);
-}
-
-.tocToggleDesktop {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--muted-foreground, #5A5652);
-  padding: 0.375rem 0.625rem;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.025em;
+  font-size: 0.875rem;
+  font-weight: 600;
   text-transform: uppercase;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.05em;
+  color: #4B5563;
 }
 
-.tocToggleDesktop:hover {
-  color: var(--toc-hover);
-  background: var(--toc-active-bg);
-}
-
-.tocToggleDesktop:active {
-  transform: scale(0.95);
-}
-
-.tocToggleDesktop svg {
-  width: 14px;
-  height: 14px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+:global(.dark) .tocTitleText {
+  color: #D1D5DB;
 }
 
 .toc ul {
@@ -332,6 +315,8 @@
 
 .toc > ul {
   padding-left: 0;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
 .tocItem {
@@ -342,15 +327,24 @@
   display: block;
   color: var(--muted-foreground, #5A5652);
   text-decoration: none;
-  padding: 0.5rem 0.75rem;
-  margin: 0.125rem 0;
-  border-radius: 0.5rem;
+  padding: 0.625rem 1rem;
+  margin: 0;
+  border-radius: 0;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   line-height: 1.5;
   font-weight: 400;
-  font-size: 1rem;
-  letter-spacing: 0.5px;
+  font-size: 0.875rem;
+  letter-spacing: 0;
   position: relative;
+}
+
+:global(.dark) .tocItem a {
+  color: #9CA3AF;
+}
+
+:global(.dark) .tocItem a:hover {
+  color: #D1D5DB;
+  background: rgba(55, 65, 81, 0.5);
 }
 
 .tocItem a:hover {
@@ -407,12 +401,8 @@
 /* 平板尺寸 (768px - 1023px) */
 @media (min-width: 768px) and (max-width: 1023px) {
   .tocContainer {
-    height: clamp(450px, 75vh, 800px);
-    max-height: clamp(450px, 75vh, 800px);
-  }
-
-  .toc {
-    max-height: clamp(400px, calc(75vh - 4rem), 750px);
+    flex: 1 1 0;
+    min-height: 0;
   }
 }
 
@@ -422,49 +412,16 @@
     position: relative;
     width: 100%;
     z-index: 1;
-    /* 桌面端：根据屏幕高度动态调整，小屏幕用更大比例，大屏幕用较小比例 */
-    height: clamp(500px, min(80vh, 85vh), 1000px);
-    max-height: clamp(500px, min(80vh, 85vh), 1000px);
-  }
-
-  .toc {
-    width: 100%;
-    max-height: clamp(450px, calc(min(80vh, 85vh) - 4rem), 950px);
-  }
-
-  .tocToggleDesktop {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex: 1 1 0;
+    min-height: 0;
   }
 }
 
 /* 超大屏幕 (1440px+) */
 @media (min-width: 1440px) {
   .tocContainer {
-    /* 超大屏幕：使用固定比例，避免过高 */
-    height: clamp(600px, 75vh, 900px);
-    max-height: clamp(600px, 75vh, 900px);
-  }
-
-  .toc {
-    max-height: clamp(550px, calc(75vh - 4rem), 850px);
-  }
-}
-
-/* 桌面端折叠状态和动画 */
-@media (min-width: 1024px) {
-  .collapsed {
-    max-height: 0 !important;
-    overflow: hidden !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    border-width: 0 !important;
-    visibility: hidden !important;
-  }
-
-  .chevronUp {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    flex: 1 1 0;
+    min-height: 0;
   }
 }
 
@@ -503,11 +460,11 @@
   border-radius: 6px !important;
 }
 
-.dark #tocContent::-webkit-scrollbar-track {
+:global(.dark) #tocContent::-webkit-scrollbar-track {
   background: var(--border, #3A5A7F) !important;
 }
 
-.dark #tocContent::-webkit-scrollbar-thumb {
+:global(.dark) #tocContent::-webkit-scrollbar-thumb {
   background: var(--muted-foreground, #B8C5D1) !important;
 }
 

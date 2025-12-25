@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { allBlogs } from 'contentlayer/generated'
 import { CoreContent } from 'pliny/utils/contentlayer'
 import { sortPosts, allCoreContent } from 'pliny/utils/contentlayer'
-import { Clock, Calendar } from 'lucide-react'
+import { Clock, FileText } from 'lucide-react'
 import Link from './Link'
 import { useTranslation } from 'react-i18next'
 
@@ -38,23 +38,23 @@ export function RecentArticles({ limit = 5 }: RecentArticlesProps) {
   }
 
   return (
-    <div className="flex h-full flex-col rounded-xl border-2 border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
-      <div className="flex-shrink-0 border-b border-gray-200 px-4 py-3 dark:border-gray-700" style={{ minHeight: '48px' }}>
+    <div className="flex h-full flex-col rounded-xl border border-gray-200/60 bg-[#F5F3F0] shadow-sm dark:border-gray-700 dark:bg-gray-900" style={{ height: '100%', maxHeight: '100%' }}>
+      <div className="flex-shrink-0 border-b border-gray-200/40 px-4 py-3 dark:border-gray-700">
         <h3
-          className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-gray-100"
+          className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"
           suppressHydrationWarning
         >
-          <Calendar size={18} className="text-blue-500" />
-          最新文章
+          <FileText size={16} className="text-gray-400 dark:text-gray-500" />
+          文章
         </h3>
       </div>
 
-      <div className="flex-1 min-h-0 divide-y divide-gray-100 dark:divide-gray-800/50">
+      <div className="flex-1 min-h-0 divide-y divide-gray-200/30 dark:divide-gray-800/50 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:transparent_transparent] hover:[scrollbar-color:rgb(209_213_219)_transparent] dark:hover:[scrollbar-color:rgb(75_85_99)_transparent]">
         {recentArticles.map((article, index) => (
           <Link
             key={article.slug}
             href={`/${article.path}`}
-            className="group block px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="group block px-4 py-2.5 transition-colors hover:bg-white/50 dark:hover:bg-gray-800/50"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
