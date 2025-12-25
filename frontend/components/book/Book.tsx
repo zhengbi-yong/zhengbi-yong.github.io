@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import type { BookCategory } from '@/lib/utils/book-categorizer'
 import { getCategoryColorScheme } from '@/lib/utils/book-categorizer'
@@ -19,6 +20,12 @@ interface BookProps {
 export default function Book({ book, index }: BookProps) {
   const [isMobile, setIsMobile] = useState(false)
   const [disableComplexAnimations, setDisableComplexAnimations] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const { resolvedTheme } = useTheme()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -33,6 +40,8 @@ export default function Book({ book, index }: BookProps) {
     setDisableComplexAnimations(shouldDisableComplexAnimations())
   }, [])
 
+  const isDark = mounted && resolvedTheme === 'dark'
+
   // 获取性能优化的动画参数
   const { delay, duration } = getOptimizedAnimationParams(0.5, index * 0.1)
   const colorScheme = getCategoryColorScheme(book.name)
@@ -41,43 +50,59 @@ export default function Book({ book, index }: BookProps) {
 
   return (
     <motion.div
-      className="relative mb-8"
+      className="relative h-full"
       initial={{ opacity: 0, y: disableComplexAnimations ? 0 : 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: disableComplexAnimations ? 0 : delay, duration }}
       style={{ willChange: 'opacity, transform' }}
     >
       {/* 书籍容器 */}
-      <Link href={categoryUrl} className="block">
+      <Link href={categoryUrl} className="block h-full">
         <motion.div
-          className="group relative cursor-pointer"
-          whileHover={disableComplexAnimations ? {} : { scale: 1.03, y: -5 }}
-          whileTap={disableComplexAnimations ? {} : { scale: 0.97 }}
+          className="group relative cursor-pointer h-full"
+          whileHover={disableComplexAnimations ? {} : { scale: 1.02 }}
+          whileTap={disableComplexAnimations ? {} : { scale: 0.98, y: 2 }}
         >
           {/* 书籍3D效果 */}
           <motion.div
-            className="relative"
+            className="relative h-full"
             style={{
               perspective: !isMobile ? '1000px' : 'none',
               transformStyle: !isMobile ? 'preserve-3d' : 'flat',
             }}
           >
             {/* 书籍主体 */}
-            <div className="relative">
-              {/* 书籍封面 */}
+            <div className="relative h-full">
+              {/* 书籍封面 - 添加边缘发光和按下效果 */}
               <motion.div
-                className="group-hover:shadow-3xl relative flex min-h-[200px] flex-col justify-between overflow-hidden rounded-xl border border-border bg-card p-6 shadow-lg transition-all duration-300 sm:min-h-[240px] sm:p-8"
+                className="relative flex h-full flex-col justify-between overflow-hidden rounded-xl border-2 border-gray-200 bg-card p-4 shadow-lg transition-all duration-300 dark:border-gray-700"
+                whileHover={
+                  disableComplexAnimations
+                    ? {}
+                    : {
+                        boxShadow: isDark
+                          ? '0 0 20px rgba(192, 192, 192, 0.6), 0 0 40px rgba(192, 192, 192, 0.4)' // 黑夜：银色
+                          : '0 0 20px rgba(124, 24, 35, 0.5), 0 0 40px rgba(124, 24, 35, 0.3)', // 白天：暗红色
+                        borderColor: isDark
+                          ? 'rgba(192, 192, 192, 0.7)' // 黑夜：银色
+                          : 'rgba(124, 24, 35, 0.6)', // 白天：暗红色
+                      }
+                }
+                whileTap={{
+                  boxShadow: 'inset 0 4px 8px rgba(0, 0, 0, 0.2)',
+                  y: 2,
+                }}
               >
                 {/* 书籍内容 */}
                 <div className="relative z-10 flex h-full flex-col">
                   {/* 图标和标题区域 */}
-                  <div className="mb-6 flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <h2 className="mb-3 text-xl font-bold capitalize drop-shadow-lg sm:text-2xl">
+                      <h2 className="mb-2 text-lg font-bold capitalize sm:text-xl">
                         {book.name}
                       </h2>
-                      <div className="space-y-1.5">
-                        <p className="text-xs font-medium text-foreground sm:text-sm">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-medium text-foreground">
                           {book.totalArticles} 篇文章
                         </p>
                         {book.chapters.length > 0 && (
@@ -86,14 +111,9 @@ export default function Book({ book, index }: BookProps) {
                       </div>
                     </div>
                     {/* 分类图标 */}
-                    <div className="flex-shrink-0 text-primary opacity-90">
+                    <div className="flex-shrink-0 text-primary opacity-90 text-2xl">
                       {bookIcon}
                     </div>
-                  </div>
-
-                  {/* 底部装饰条 */}
-                  <div className="mt-auto pt-4">
-                    <div className="h-1 rounded-full bg-border"></div>
                   </div>
                 </div>
 
@@ -110,29 +130,6 @@ export default function Book({ book, index }: BookProps) {
             </div>
           </motion.div>
 
-          {/* 点击提示 */}
-          {!disableComplexAnimations && (
-            <motion.div
-              className="absolute -bottom-8 left-1/2 z-10 -translate-x-1/2 text-gray-400 dark:text-gray-500"
-              animate={{ y: [0, -5, 0] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            >
-              <div className="rounded-full bg-white/80 p-2 shadow-lg backdrop-blur-sm dark:bg-gray-900/80">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2.5}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </div>
-            </motion.div>
-          )}
         </motion.div>
       </Link>
     </motion.div>
