@@ -15,6 +15,7 @@ import JsonLd from '@/components/seo/JsonLd'
 import type { TOC } from '@/lib/types/toc'
 import ReadingProgress from '@/components/ReadingProgress'
 import ArticleAnalytics from '@/components/ArticleAnalytics'
+import { RecentArticles } from '@/components/RecentArticles'
 
 const editUrl = (path: string) => `${siteMetadata.siteRepo}/blob/main/data/${path}`
 const discussUrl = (path: string) =>
@@ -143,17 +144,28 @@ export default function PostLayout({
               </div>
             </div>
           </header>
-          <div className="divide-y divide-gray-200 pb-8 md:grid md:grid-cols-[3fr_1fr] md:gap-x-6 md:divide-y-0 dark:divide-gray-700">
-            <div className="md:col-span-1 dark:divide-gray-700">
+          <div className="divide-y divide-gray-200 pb-8 md:grid md:grid-cols-[3fr_1fr] xl:grid-cols-[1.5fr_3fr_1.5fr] md:gap-x-4 xl:gap-x-8 md:divide-y-0 dark:divide-gray-700">
+            {/* 左侧：最新文章 - 在xl以下屏幕隐藏 */}
+            <div className="hidden xl:flex xl:col-span-1 flex-shrink-0 flex-col">
+              <div className="sticky top-20 flex flex-col h-full w-full" style={{ height: 'calc(100vh - 5rem)', maxHeight: 'calc(100vh - 5rem)' }}>
+                <RecentArticles limit={15} />
+              </div>
+            </div>
+
+            {/* 中间：文章内容 */}
+            <div className="md:col-span-1 xl:col-span-1 dark:divide-gray-700 xl:px-4">
               <FadeIn delay={0.2} duration={0.6} whileInView={true}>
                 <div className="prose dark:prose-invert prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-p:leading-7 prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline mx-auto w-full max-w-full min-w-0 pt-10 pb-8 sm:max-w-2xl md:max-w-none xl:max-w-4xl">
                   {children}
                 </div>
               </FadeIn>
             </div>
-            <div className="hidden space-y-6 md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start">
-              <FloatingTOC toc={toc} enabled={showTOC} />
-              <ArticleAnalytics articleId={slug || path} showDetails={true} />
+
+            {/* 右侧：TOC */}
+            <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start" style={{ height: 'calc(100vh - 5rem)', maxHeight: 'calc(100vh - 5rem)' }}>
+              <div className="flex flex-col h-full w-full" style={{ height: '100%', maxHeight: '100%' }}>
+                <FloatingTOC toc={toc} enabled={showTOC} />
+              </div>
             </div>
           </div>
           {/* 移动端浮动 ToC - 在布局外部渲染，只渲染移动端组件 */}

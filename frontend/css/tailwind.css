@@ -145,6 +145,168 @@ input:-webkit-autofill:focus {
   /* 滚动条默认透明，只在hover或滚动时显示 */
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
+  /* 代码块背景色 - 白天模式 */
+  background-color: #f6f8fa;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  /* 代码文字颜色 - 白天模式（深色） */
+  color: #24292e;
+}
+
+/* 夜间模式代码块背景色 */
+.dark .prose pre {
+  background-color: #1e293b;
+  color: #e1e4e8;
+}
+
+/* 白天模式 - 代码高亮颜色（深色系，适合浅色背景） */
+.prose pre .token.comment,
+.prose pre .token.prolog,
+.prose pre .token.cdata {
+  color: #6a737d;
+}
+
+.prose pre .token.punctuation {
+  color: #24292e;
+}
+
+.prose pre .namespace {
+  color: #24292e;
+}
+
+.prose pre .token.deleted {
+  color: #b31d28;
+}
+
+.prose pre .token.symbol,
+.prose pre .token.property {
+  color: #005cc5;
+}
+
+.prose pre .token.tag,
+.prose pre .token.operator,
+.prose pre .token.keyword {
+  color: #d73a49;
+}
+
+.prose pre .token.boolean {
+  color: #005cc5;
+}
+
+.prose pre .token.number {
+  color: #005cc5;
+}
+
+.prose pre .token.constant,
+.prose pre .token.function,
+.prose pre .token.builtin,
+.prose pre .token.char {
+  color: #6f42c1;
+}
+
+.prose pre .token.selector,
+.prose pre .token.doctype {
+  color: #22863a;
+}
+
+.prose pre .token.attr-name,
+.prose pre .token.inserted {
+  color: #22863a;
+}
+
+.prose pre .token.string,
+.prose pre .token.url,
+.prose pre .token.entity,
+.prose pre .language-css .token.string,
+.prose pre .style .token.string {
+  color: #032f62;
+}
+
+.prose pre .token.class-name,
+.prose pre .token.atrule,
+.prose pre .token.attr-value {
+  color: #e36209;
+}
+
+.prose pre .token.regex,
+.prose pre .token.important,
+.prose pre .token.variable {
+  color: #005cc5;
+}
+
+/* 夜间模式 - 代码高亮颜色（浅色系，适合深色背景 - Night Owl主题） */
+.dark .prose pre .token.comment,
+.dark .prose pre .token.prolog,
+.dark .prose pre .token.cdata {
+  color: rgb(99, 119, 119);
+}
+
+.dark .prose pre .token.punctuation {
+  color: rgb(199, 146, 234);
+}
+
+.dark .prose pre .namespace {
+  color: rgb(178, 204, 214);
+}
+
+.dark .prose pre .token.deleted {
+  color: rgba(239, 83, 80, 0.56);
+}
+
+.dark .prose pre .token.symbol,
+.dark .prose pre .token.property {
+  color: rgb(128, 203, 196);
+}
+
+.dark .prose pre .token.tag,
+.dark .prose pre .token.operator,
+.dark .prose pre .token.keyword {
+  color: rgb(127, 219, 202);
+}
+
+.dark .prose pre .token.boolean {
+  color: rgb(255, 88, 116);
+}
+
+.dark .prose pre .token.number {
+  color: rgb(247, 140, 108);
+}
+
+.dark .prose pre .token.constant,
+.dark .prose pre .token.function,
+.dark .prose pre .token.builtin,
+.dark .prose pre .token.char {
+  color: rgb(130, 170, 255);
+}
+
+.dark .prose pre .token.selector,
+.dark .prose pre .token.doctype {
+  color: rgb(199, 146, 234);
+}
+
+.dark .prose pre .token.attr-name,
+.dark .prose pre .token.inserted {
+  color: rgb(173, 219, 103);
+}
+
+.dark .prose pre .token.string,
+.dark .prose pre .token.url,
+.dark .prose pre .token.entity,
+.dark .prose pre .language-css .token.string,
+.dark .prose pre .style .token.string {
+  color: rgb(173, 219, 103);
+}
+
+.dark .prose pre .token.class-name,
+.dark .prose pre .token.atrule,
+.dark .prose pre .token.attr-value {
+  color: rgb(255, 203, 139);
+}
+
+.dark .prose pre .token.regex,
+.dark .prose pre .token.important,
+.dark .prose pre .token.variable {
+  color: rgb(214, 222, 235);
 }
 
 .prose pre:hover {
