@@ -1,5 +1,5 @@
 use axum::{
-    extract::{State, Json},
+    extract::{State, Json, Extension},
     http::{header},
     response::IntoResponse,
 };
@@ -10,6 +10,7 @@ use blog_db::{
     RegisterRequest, LoginRequest, AuthResponse, UserInfo, User, RefreshToken,
 };
 use blog_shared::{AppError, AuthUser};
+use crate::state::AppState;
 use serde_json::json;
 
 /// 用户注册
@@ -25,7 +26,7 @@ use serde_json::json;
     )
 )]
 pub async fn register(
-    State(state): State<crate::AppState>,
+    State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // 验证输入
@@ -93,7 +94,7 @@ pub async fn register(
     sqlx::query(
         r#"
         INSERT INTO refresh_tokens (user_id, token_hash, family_id, expires_at, created_ip)
-        VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4)
+        VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4::inet)
         "#
     )
     .bind(user.id)
@@ -143,9 +144,8 @@ pub async fn register(
     )
 )]
 pub async fn login(
-    State(state): State<crate::AppState>,
+    State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
-    jar: CookieJar,
 ) -> Result<impl IntoResponse, AppError> {
     // 查找用户
     let row = sqlx::query!(
@@ -189,7 +189,7 @@ pub async fn login(
     .fetch_optional(&state.db)
     .await?;
 
-    let (refresh_token, family_id) = if let Some(token_row) = token_row {
+    let (refresh_token, _family_id) = if let Some(token_row) = token_row {
         let token_record = RefreshToken {
             id: token_row.id,
             user_id: token_row.user_id,
@@ -215,7 +215,7 @@ pub async fn login(
         sqlx::query(
             r#"
             INSERT INTO refresh_tokens (user_id, token_hash, family_id, expires_at, created_ip)
-            VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4)
+            VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4::inet)
             "#
         )
         .bind(user.id)
@@ -264,7 +264,7 @@ pub async fn login(
     )
 )]
 pub async fn refresh(
-    State(state): State<crate::AppState>,
+    State(state): State<AppState>,
     jar: CookieJar,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let refresh_token = jar
@@ -349,8 +349,8 @@ pub async fn refresh(
     )
 )]
 pub async fn me(
-    State(_state): State<crate::AppState>,
-    auth_user: AuthUser,
+    State(_state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
 ) -> Result<Json<UserInfo>, AppError> {
     Ok(Json(UserInfo {
         id: auth_user.id,
@@ -375,7 +375,7 @@ pub async fn me(
     )
 )]
 pub async fn logout(
-    State(state): State<crate::AppState>,
+    State(state): State<AppState>,
     jar: CookieJar,
 ) -> Result<(), AppError> {
     if let Some(refresh_token) = jar.get("refresh_token") {
@@ -390,7 +390,7 @@ pub async fn logout(
     }
 
     // 清除 cookie
-    let cookie = Cookie::build(("refresh_token", ""))
+    let _cookie = Cookie::build(("refresh_token", ""))
         .path("/")
         .http_only(true)
         .secure(true)

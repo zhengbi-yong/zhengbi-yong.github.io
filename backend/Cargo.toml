@@ -12,11 +12,12 @@ edition = "2021"
 axum = "0.8"
 tower = "0.5"
 tower-http = { version = "0.6", features = ["cors", "trace", "compression-br"] }
-hyper = "1.5"
+hyper = "1.8"
 hyper-util = "0.1"
+async-trait = "0.1"
 
 # 异步运行时
-tokio = { version = "1.42", features = ["full"] }
+tokio = { version = "1.48", features = ["full"] }
 
 # 数据库
 sqlx = { version = "0.8", features = [
@@ -28,7 +29,7 @@ sqlx = { version = "0.8", features = [
     "migrate",
     "ipnetwork"
 ] }
-deadpool-redis = "0.16"
+deadpool-redis = "0.22"
 
 # 序列化
 serde = { version = "1.0", features = ["derive"] }
@@ -45,16 +46,16 @@ pulldown-cmark = "0.12"
 
 # 工具库
 uuid = { version = "1.11", features = ["v4", "serde", "fast-rng"] }
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { version = "0.4.42", features = ["serde"] }
 sha2 = "0.10"
-validator = { version = "0.19", features = ["derive"] }
+validator = { version = "0.20", features = ["derive"] }
 time = { version = "0.3", features = ["serde-human-readable"] }
 
 # 日志与监控
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 prometheus = "0.13"
-sentry = { version = "0.35", features = ["anyhow", "tracing"] }
+sentry = { version = "0.46", features = ["anyhow", "tracing"] }
 
 # OpenAPI
 utoipa = { version = "5.4", features = ["axum_extras", "chrono", "uuid"] }
@@ -65,12 +66,12 @@ anyhow = "1.0"
 thiserror = "2.0"
 
 # Redis
-redis = { version = "0.26", features = ["tokio-comp", "connection-manager"] }
+redis = { version = "0.32", features = ["tokio-comp", "connection-manager"] }
 
 # 额外依赖
-axum-extra = { version = "0.10", features = ["typed-header", "cookie"] }
+axum-extra = { version = "0.12", features = ["typed-header", "cookie"] }
 base64 = "0.22"
-bytes = "1.9"
+bytes = "1.11"
 futures = "0.3"
 futures-util = "0.3"
 http = "1.2"

@@ -1,11 +1,13 @@
 import { caches } from '../cache/CacheManager'
 import { AppError, ErrorType } from '../error-handler'
+import { refreshAccessToken } from './backend'
 
 interface RequestOptions extends Omit<RequestInit, 'cache'> {
   cache?: boolean | number // false = 不缓存, true = 使用默认缓存, number = 缓存时间（毫秒）
   retries?: number // 重试次数
   retryDelay?: number // 重试延迟（毫秒）
   timeout?: number // 超时时间（毫秒）
+  skipAuthRefresh?: boolean // 跳过自动刷新token
 }
 
 interface ApiResponse<T = any> {
@@ -18,12 +20,25 @@ interface ApiResponse<T = any> {
 class APIClient {
   private baseURL: string
   private defaultHeaders: Record<string, string>
+  private isRefreshing: boolean = false
+  private refreshSubscribers: Array<(token: string) => void> = []
 
   constructor(baseURL: string = '') {
     this.baseURL = baseURL
     this.defaultHeaders = {
       'Content-Type': 'application/json',
     }
+  }
+
+  // 订阅token刷新事件
+  private subscribeTokenRefresh(callback: (token: string) => void) {
+    this.refreshSubscribers.push(callback)
+  }
+
+  // 取消订阅并通知所有订阅者
+  private onTokenRefreshed(token: string) {
+    this.refreshSubscribers.forEach((callback) => callback(token))
+    this.refreshSubscribers = []
   }
 
   // 生成缓存键
@@ -51,6 +66,38 @@ class APIClient {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
+  // 处理401错误，尝试刷新token
+  private async handle401Error(): Promise<boolean> {
+    // 如果正在刷新token，等待刷新完成
+    if (this.isRefreshing) {
+      return new Promise((resolve) => {
+        this.subscribeTokenRefresh((token) => {
+          this.setDefaultHeader('Authorization', `Bearer ${token}`)
+          resolve(true)
+        })
+      })
+    }
+
+    // 开始刷新token
+    this.isRefreshing = true
+    try {
+      const newToken = await refreshAccessToken()
+      this.setDefaultHeader('Authorization', `Bearer ${newToken}`)
+      this.onTokenRefreshed(newToken)
+      return true
+    } catch (error) {
+      // 刷新失败，清除认证信息
+      this.removeDefaultHeader('Authorization')
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('user_info')
+      }
+      return false
+    } finally {
+      this.isRefreshing = false
+    }
+  }
+
   // 核心请求方法
   private async makeRequest<T>(
     endpoint: string,
@@ -61,6 +108,7 @@ class APIClient {
       retries = 0,
       retryDelay = 1000,
       timeout = 10000,
+      skipAuthRefresh = false,
       headers = {},
       ...fetchOptions
     } = options
@@ -78,6 +126,7 @@ class APIClient {
     }
 
     let lastError: Error | null = null
+    let attempt401Handled = false
 
     // 重试逻辑
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -99,6 +148,16 @@ class APIClient {
 
         // 检查响应状态
         if (!response.ok) {
+          // 处理401未授权错误
+          if (response.status === 401 && !skipAuthRefresh && !attempt401Handled) {
+            const refreshSuccess = await this.handle401Error()
+            if (refreshSuccess) {
+              attempt401Handled = true
+              // 用新token重试请求
+              continue
+            }
+          }
+
           throw new AppError(
             `HTTP ${response.status}: ${response.statusText}`,
             this.getErrorType(response.status),
@@ -137,7 +196,11 @@ class APIClient {
 
         // 某些错误不应该重试
         if (error instanceof AppError) {
-          if (error.type === ErrorType.VALIDATION || error.statusCode === 401) {
+          if (error.type === ErrorType.VALIDATION) {
+            throw error
+          }
+          // 401错误已经处理过，不再重试
+          if (error.statusCode === 401) {
             throw error
           }
         }

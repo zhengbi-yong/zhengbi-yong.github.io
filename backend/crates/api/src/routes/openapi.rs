@@ -21,28 +21,7 @@ use utoipa::OpenApi;
         crate::metrics::metrics_endpoint,
     ),
     components(
-        schemas(
-            // Auth schemas
-            blog_db::RegisterRequest,
-            blog_db::LoginRequest,
-            blog_db::AuthResponse,
-            blog_db::UserInfo,
-            // Post schemas
-            blog_db::PostStats,
-            blog_db::PostStatsResponse,
-            // Comment schemas
-            blog_db::CreateCommentRequest,
-            blog_db::CommentResponse,
-            blog_db::CommentUser,
-            blog_db::CommentListResponse,
-            // Health schemas
-            crate::metrics::HealthStatus,
-            crate::metrics::DetailedHealth,
-            crate::metrics::SystemMetrics,
-            crate::metrics::ServiceStatus,
-            crate::metrics::MemoryUsage,
-            crate::metrics::DatabasePoolStatus,
-        )
+        schemas()
     ),
     tags(
         (name = "auth", description = "Authentication endpoints"),

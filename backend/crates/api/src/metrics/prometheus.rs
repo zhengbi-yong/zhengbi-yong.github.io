@@ -6,6 +6,7 @@ use axum::{
 };
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use crate::AppState;
 
 // Prometheus指标结构
 #[derive(Clone)]
@@ -231,9 +232,9 @@ impl MetricsMiddleware {
     )
 )]
 pub async fn metrics_endpoint(
-    State(state): State<Arc<RwLock<Metrics>>>
+    State(state): State<AppState>
 ) -> std::result::Result<Response, StatusCode> {
-    let metrics = state.read().await;
+    let metrics = state.metrics.read().await;
 
     match metrics.export() {
         Ok(data) => {

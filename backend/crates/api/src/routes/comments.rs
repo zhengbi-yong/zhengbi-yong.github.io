@@ -1,12 +1,12 @@
 use axum::{
-    extract::{Path, State, Query},
+    extract::{Path, State, Query, Extension},
     response::Json,
 };
 use blog_db::{
     CreateCommentRequest, CommentListParams, CommentListResponse, CommentResponse,
-    CommentStatus,
 };
 use blog_shared::{AppError, AuthUser};
+use crate::state::AppState;
 use ammonia::Builder;
 use utoipa;
 use sqlx::Row;
@@ -57,8 +57,8 @@ fn extract_user_agent() -> String {
     )
 )]
 pub async fn create_comment(
-    State(state): State<crate::AppState>,
-    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
     Path(slug): Path<String>,
     Json(payload): Json<CreateCommentRequest>,
 ) -> Result<Json<CommentResponse>, AppError> {
@@ -112,44 +112,46 @@ pub async fn create_comment(
     let mut tx = state.db.begin().await?;
 
     // 创建评论
-    let comment_row = sqlx::query!(
+    let comment_row = sqlx::query(
         r#"
         INSERT INTO comments (
             slug, user_id, parent_id, content, html_sanitized,
             path, depth, status, created_ip, user_agent
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9)
-        RETURNING id, slug, user_id, parent_id, content, html_sanitized, status as "status: blog_db::CommentStatus", path, depth, like_count, created_at, updated_at, deleted_at, created_ip, user_agent, moderation_reason
-        "#,
-        &slug,
-        &auth_user.id,
-        payload.parent_id,
-        &payload.content,
-        &html_content,
-        &path as _,
-        &depth,
-        &extract_real_ip() as _,
-        &extract_user_agent()
+        ) VALUES ($1, $2, $3, $4, $5, $6::ltree, $7, 'pending', $8::inet, $9)
+        RETURNING id, slug, user_id, parent_id, content, html_sanitized, status,
+                 path::text, depth, like_count, created_at, updated_at, deleted_at,
+                 created_ip, user_agent, moderation_reason
+        "#
     )
+    .bind(&slug)
+    .bind(&auth_user.id)
+    .bind(payload.parent_id)
+    .bind(&payload.content)
+    .bind(&html_content)
+    .bind(&path as &str)
+    .bind(&depth)
+    .bind(&extract_real_ip())
+    .bind(&extract_user_agent())
     .fetch_one(&mut *tx)
     .await?;
 
     let comment = blog_db::Comment {
-        id: comment_row.id,
-        post_slug: comment_row.slug,
-        user_id: comment_row.user_id,
-        parent_id: comment_row.parent_id,
-        content: comment_row.content,
-        html_sanitized: comment_row.html_sanitized,
+        id: comment_row.get("id"),
+        post_slug: comment_row.get("slug"),
+        user_id: comment_row.get("user_id"),
+        parent_id: comment_row.get("parent_id"),
+        content: comment_row.get("content"),
+        html_sanitized: comment_row.get("html_sanitized"),
         status: blog_db::CommentStatus::Pending,
-        path: comment_row.path.to_string(),
-        depth: comment_row.depth,
-        like_count: comment_row.like_count.unwrap_or(0),
-        created_at: comment_row.created_at,
-        updated_at: comment_row.updated_at,
-        deleted_at: comment_row.deleted_at,
-        created_ip: comment_row.created_ip.map(|ip| ip.to_string()),
-        user_agent: comment_row.user_agent,
-        moderation_reason: comment_row.moderation_reason,
+        path: comment_row.get::<String, _>("path"),
+        depth: comment_row.get("depth"),
+        like_count: comment_row.get::<Option<i32>, _>("like_count").unwrap_or(0),
+        created_at: comment_row.get("created_at"),
+        updated_at: comment_row.get("updated_at"),
+        deleted_at: comment_row.get("deleted_at"),
+        created_ip: comment_row.get::<Option<sqlx::types::ipnetwork::IpNetwork>, _>("created_ip").map(|ip| ip.to_string()),
+        user_agent: comment_row.get("user_agent"),
+        moderation_reason: comment_row.get("moderation_reason"),
     };
 
     // 更新评论计数
@@ -215,7 +217,7 @@ pub async fn create_comment(
     )
 )]
 pub async fn list_comments(
-    State(state): State<crate::AppState>,
+    State(state): State<AppState>,
     Path(slug): Path<String>,
     Query(params): Query<CommentListParams>,
 ) -> Result<Json<CommentListResponse>, AppError> {
@@ -231,7 +233,7 @@ pub async fn list_comments(
             r#"
             SELECT
                 c.id, c.slug, c.user_id, c.parent_id, c.content, c.html_sanitized,
-                c.status as status, c.path, c.depth, c.like_count, c.created_at,
+                c.status as status, c.path::text, c.depth, c.like_count, c.created_at,
                 c.updated_at, c.deleted_at, c.created_ip, c.user_agent, c.moderation_reason,
                 u.username, u.profile
             FROM comments c
@@ -279,7 +281,7 @@ pub async fn list_comments(
             r#"
             SELECT
                 c.id, c.slug, c.user_id, c.parent_id, c.content, c.html_sanitized,
-                c.status as status, c.path, c.depth, c.like_count, c.created_at,
+                c.status as status, c.path::text, c.depth, c.like_count, c.created_at,
                 c.updated_at, c.deleted_at, c.created_ip, c.user_agent, c.moderation_reason,
                 u.username, u.profile
             FROM comments c
@@ -367,8 +369,8 @@ pub async fn list_comments(
     )
 )]
 pub async fn like_comment(
-    State(state): State<crate::AppState>,
-    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Extension(_auth_user): Extension<AuthUser>,
     Path(id): Path<uuid::Uuid>,
 ) -> Result<(), AppError> {
     // 检查评论是否存在

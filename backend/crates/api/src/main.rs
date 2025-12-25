@@ -6,6 +6,7 @@ use tower_http::{
 };
 use tracing_subscriber::prelude::*;
 use blog_api::state::AppState;
+use std::str::FromStr;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -63,8 +64,9 @@ async fn main() -> anyhow::Result<()> {
         .route("/readyz", axum::routing::get(blog_api::metrics::readyz))
         // Prometheus 指标
         .route("/metrics", axum::routing::get(blog_api::metrics::metrics_endpoint))
-        // OpenAPI 文档
-        .merge(blog_api::routes::openapi::swagger_ui())
+        // OpenAPI 文档 - disabled due to utoipa stack overflow issue
+        // TODO: Fix utoipa derive macro causing stack overflow
+        // .merge(blog_api::routes::openapi::swagger_ui())
         // API v1
         .nest("/v1", v1_routes(state.clone()))
         // 中间件
@@ -72,16 +74,24 @@ async fn main() -> anyhow::Result<()> {
         .layer(CompressionLayer::new())
         .layer(
             CorsLayer::new()
-                .allow_origin(["https://yourdomain.com".parse().unwrap()])
+                .allow_origin(
+                    state.settings.cors.allowed_origins
+                        .iter()
+                        .filter_map(|s| s.parse::<axum::http::HeaderValue>().ok())
+                        .collect::<Vec<_>>()
+                )
                 .allow_methods([
                     axum::http::Method::GET,
                     axum::http::Method::POST,
                     axum::http::Method::PUT,
                     axum::http::Method::DELETE,
+                    axum::http::Method::PATCH,
+                    axum::http::Method::OPTIONS,
                 ])
                 .allow_headers([
                     axum::http::header::AUTHORIZATION,
                     axum::http::header::ACCEPT,
+                    axum::http::header::CONTENT_TYPE,
                 ])
                 .allow_credentials(true),
         )
@@ -101,26 +111,31 @@ async fn main() -> anyhow::Result<()> {
 fn v1_routes(state: AppState) -> Router<AppState> {
     use axum::routing::{get, post, delete};
 
-    Router::new()
-        // 认证路由
+    // 公开路由 (无需认证)
+    let public_routes = Router::new()
         .route("/auth/register", post(blog_api::routes::auth::register))
         .route("/auth/login", post(blog_api::routes::auth::login))
         .route("/auth/refresh", post(blog_api::routes::auth::refresh))
+        .route("/posts/{slug}/stats", get(blog_api::routes::posts::get_stats))
+        .route("/posts/{slug}/view", post(blog_api::routes::posts::view))
+        .route("/posts/{slug}/comments", get(blog_api::routes::comments::list_comments));
+
+    // 需要认证的路由
+    let protected_routes = Router::new()
         .route("/auth/logout", post(blog_api::routes::auth::logout))
         .route("/auth/me", get(blog_api::routes::auth::me))
+        .route("/posts/{slug}/like", post(blog_api::routes::posts::like))
+        .route("/posts/{slug}/like", delete(blog_api::routes::posts::unlike))
+        .route("/posts/{slug}/comments", post(blog_api::routes::comments::create_comment))
+        .route("/comments/{id}/like", post(blog_api::routes::comments::like_comment))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            blog_api::middleware::auth::auth_middleware,
+        ));
 
-        // 文章相关路由
-        .route("/posts/:slug/stats", get(blog_api::routes::posts::get_stats))
-        .route("/posts/:slug/view", post(blog_api::routes::posts::view))
-        .route("/posts/:slug/like", post(blog_api::routes::posts::like))
-        .route("/posts/:slug/like", delete(blog_api::routes::posts::unlike))
-
-        // 评论相关路由
-        .route("/posts/:slug/comments", get(blog_api::routes::comments::list_comments))
-        .route("/posts/:slug/comments", post(blog_api::routes::comments::create_comment))
-        .route("/comments/:id/like", post(blog_api::routes::comments::like_comment))
-
-        // 中间件
+    // 合并路由并应用限流中间件
+    public_routes
+        .merge(protected_routes)
         .layer(middleware::from_fn_with_state(
             state.clone(),
             blog_api::middleware::rate_limit_middleware,
