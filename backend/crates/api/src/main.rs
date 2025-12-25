@@ -6,7 +6,6 @@ use tower_http::{
 };
 use tracing_subscriber::prelude::*;
 use blog_api::state::AppState;
-use std::str::FromStr;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -116,13 +115,13 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .route("/auth/register", post(blog_api::routes::auth::register))
         .route("/auth/login", post(blog_api::routes::auth::login))
         .route("/auth/refresh", post(blog_api::routes::auth::refresh))
+        .route("/auth/logout", post(blog_api::routes::auth::logout)) // logout 不需要认证，只需 cookie
         .route("/posts/{slug}/stats", get(blog_api::routes::posts::get_stats))
         .route("/posts/{slug}/view", post(blog_api::routes::posts::view))
         .route("/posts/{slug}/comments", get(blog_api::routes::comments::list_comments));
 
     // 需要认证的路由
     let protected_routes = Router::new()
-        .route("/auth/logout", post(blog_api::routes::auth::logout))
         .route("/auth/me", get(blog_api::routes::auth::me))
         .route("/posts/{slug}/like", post(blog_api::routes::posts::like))
         .route("/posts/{slug}/like", delete(blog_api::routes::posts::unlike))

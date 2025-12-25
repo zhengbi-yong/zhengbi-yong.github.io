@@ -30,6 +30,44 @@ class APIClient {
     }
   }
 
+  // 获取当前的请求头（动态添加 Authorization）
+  private getRequestHeaders(): Record<string, string> {
+    const headers = { ...this.defaultHeaders }
+
+    // 动态从 localStorage 获取 token
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('access_token')
+      if (token && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+    }
+
+    return headers
+  }
+
+  // 翻译后端错误消息为中文
+  private translateErrorMessage(message: string): string {
+    const errorMap: Record<string, string> = {
+      'Invalid credentials': '邮箱或密码错误',
+      'Invalid token': '登录已过期，请重新登录',
+      'Token expired': '登录已过期，请重新登录',
+      'Missing refresh token': '请先登录',
+      'Email already exists': '该邮箱已被注册',
+      'Username already exists': '该用户名已被使用',
+      'User not found': '用户不存在',
+      'Post not found': '文章不存在',
+      'Comment not found': '评论不存在',
+      'Empty comment': '评论内容不能为空',
+      'Comment too long': '评论内容过长',
+      'Comment too deep': '评论层级过深',
+      'Invalid input': '输入内容无效',
+      'Rate limit exceeded': '请求过于频繁，请稍后再试',
+      'Internal server error': '服务器错误，请稍后重试',
+    }
+
+    return errorMap[message] || message
+  }
+
   // 订阅token刷新事件
   private subscribeTokenRefresh(callback: (token: string) => void) {
     this.refreshSubscribers.push(callback)
@@ -137,10 +175,11 @@ class APIClient {
         const response = await fetch(url, {
           ...fetchOptions,
           headers: {
-            ...this.defaultHeaders,
+            ...this.getRequestHeaders(),
             ...headers,
           },
           signal: controller.signal,
+          credentials: 'include', // 发送 cookie
         })
 
         // 清除超时
@@ -148,8 +187,22 @@ class APIClient {
 
         // 检查响应状态
         if (!response.ok) {
-          // 处理401未授权错误
-          if (response.status === 401 && !skipAuthRefresh && !attempt401Handled) {
+          // 尝试读取响应体中的错误信息
+          let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+          try {
+            const errorData = await response.json()
+            if (errorData.error) {
+              errorMessage = errorData.error
+            } else if (errorData.message) {
+              errorMessage = this.translateErrorMessage(errorData.message)
+            }
+          } catch {
+            // 如果无法解析 JSON，使用默认错误消息
+          }
+
+          // 处理401未授权错误 - 但跳过登录/注册接口的401（这些表示凭证错误，不是token过期）
+          const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register')
+          if (response.status === 401 && !skipAuthRefresh && !attempt401Handled && !isAuthEndpoint) {
             const refreshSuccess = await this.handle401Error()
             if (refreshSuccess) {
               attempt401Handled = true
@@ -159,7 +212,7 @@ class APIClient {
           }
 
           throw new AppError(
-            `HTTP ${response.status}: ${response.statusText}`,
+            errorMessage,
             this.getErrorType(response.status),
             'HIGH' as any,
             {
