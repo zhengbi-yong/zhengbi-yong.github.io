@@ -16,3 +16,4 @@ tracing = { workspace = true }
 redis = { workspace = true }
 axum = { workspace = true }
 sqlx = { workspace = true }
+async-trait = { workspace = true }

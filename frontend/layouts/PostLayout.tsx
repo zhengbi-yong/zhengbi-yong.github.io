@@ -15,6 +15,7 @@ import type { TOC } from '@/lib/types/toc'
 import ReadingProgress from '@/components/ReadingProgress'
 import ArticleAnalytics from '@/components/ArticleAnalytics'
 import { RecentArticles } from '@/components/RecentArticles'
+import { PostBackendIntegration } from '@/components/post/PostBackendIntegration'
 
 const editUrl = (path: string) => `${siteMetadata.siteRepo}/blob/main/data/${path}`
 const discussUrl = (path: string) =>
@@ -153,9 +154,11 @@ export default function PostLayout({
             {/* 中间：文章内容 */}
             <div className="md:col-span-1 xl:col-span-1 dark:divide-gray-700 xl:px-4">
               <FadeIn delay={0.2} duration={0.6} whileInView={true}>
-                <div className="prose dark:prose-invert prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-p:leading-7 prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline mx-auto w-full max-w-full min-w-0 pt-10 pb-8 sm:max-w-2xl md:max-w-none">
-                  {children}
-                </div>
+                <PostBackendIntegration slug={slug || path}>
+                  <div className="prose dark:prose-invert prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-p:leading-7 prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline mx-auto w-full max-w-full min-w-0 pt-10 pb-8 sm:max-w-2xl md:max-w-none">
+                    {children}
+                  </div>
+                </PostBackendIntegration>
               </FadeIn>
             </div>
 

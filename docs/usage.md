@@ -43,7 +43,11 @@ zhengbi-yong.github.io/
 │   ├── README.md             # 项目总体说明
 │   ├── PROJECT_GUIDE.md      # 详细项目指南
 │   ├── usage.md              # 本使用手册
-│   └── CLAUDE.md             # Claude Code 配置
+│   ├── backend_api_usage.md  # 后端API详细启动指南
+│   ├── Blog_API.postman_collection.json # Postman API集合
+│   ├── CLAUDE.md             # Claude Code 配置
+│   ├── writing_guide.md      # 写作指南
+│   └── ...                   # 其他文档
 ├── backend/                  # Rust 后端 API
 │   ├── crates/               # Rust工作空间
 │   │   ├── api/             # HTTP API层
@@ -51,6 +55,9 @@ zhengbi-yong.github.io/
 │   │   ├── db/              # 数据库模型
 │   │   ├── shared/          # 共享类型和工具
 │   │   └── worker/          # 后台任务
+│   ├── docs/                 # 后端文档
+│   │   ├── usage.md         # 后端使用指南（已合并到主docs）
+│   │   └── Blog_API.postman_collection.json
 │   ├── migrations/          # 数据库迁移文件
 │   ├── src/                 # 源代码
 │   ├── docker-compose.*.yml # Docker配置
@@ -80,6 +87,32 @@ zhengbi-yong.github.io/
 ```
 
 ## 快速开始
+
+### 后端快速启动
+
+**详细的后端 API 启动指南请查看**: [backend_api_usage.md](./backend_api_usage.md)
+
+后端快速启动命令：
+
+```bash
+cd backend
+
+# 1. 启动数据库服务
+docker compose up -d postgres redis
+
+# 2. 编译项目
+SQLX_OFFLINE=false cargo build
+
+# 3. 运行服务器
+cargo run
+
+# 4. 验证服务
+curl http://localhost:3000/healthz
+```
+
+后端 API 文档：
+- Swagger UI: http://localhost:3000/swagger-ui/
+- Postman Collection: [Blog_API.postman_collection.json](./Blog_API.postman_collection.json)
 
 ### 环境要求
 
@@ -159,8 +192,49 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3001
 
 #### 方法1：一键启动（推荐）
 
+**开发环境启动**:
+
 ```bash
-# 在项目根目录执行
+# 启动完整开发环境（数据库 + 后端 + 前端）
+./start-dev.sh
+
+# 仅启动数据库和后端
+./start-dev.sh --no-frontend
+
+# 仅启动前端（数据库和后端已运行）
+./start-dev.sh --no-backend --no-db
+
+# 清理并重新构建
+./start-dev.sh --clean
+```
+
+**生产环境部署**:
+
+```bash
+# 完整部署（构建镜像 + 启动服务）
+./start-prod.sh deploy
+
+# 仅启动服务（镜像已存在）
+./start-prod.sh start
+
+# 重启服务
+./start-prod.sh restart
+
+# 查看服务状态
+./start-prod.sh status
+
+# 查看日志
+./start-prod.sh logs backend
+./start-prod.sh logs frontend
+
+# 停止服务
+./start-prod.sh stop
+```
+
+#### 方法2：使用原有启动脚本
+
+```bash
+# 原有启动方式仍然支持
 ./start.sh
 ```
 
@@ -172,6 +246,17 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3001
 #### 方法2：分别启动
 
 **启动后端**：
+
+> **推荐使用新脚本**:
+> ```bash
+> # 开发环境
+> ./start-dev.sh --no-frontend   # 仅启动后端和数据库
+>
+> # 生产环境
+> ./start-prod.sh deploy
+> ```
+
+**传统方式**:
 ```bash
 cd backend
 
@@ -203,6 +288,15 @@ PORT=3001 pnpm dev
 ## 开发指南
 
 ### 后端开发
+
+> **详细的后端开发和启动指南请查看**: [backend_api_usage.md](./backend_api_usage.md)
+>
+> 该文档包含：
+> - 完整的环境配置说明
+> - 数据库迁移指南
+> - API 端点参考
+> - 故障排除方案
+> - 生产部署指南
 
 #### 项目结构说明
 
@@ -507,6 +601,48 @@ nvm use 20
 - 作者：雍征彼 (Zhengbi Yong)
 - 邮箱：zhengbi.yong@outlook.com
 - GitHub：https://github.com/zhengbi-yong
+
+## 相关文档
+
+- [start_scripts.md](./start_scripts.md) - 启动脚本详细说明 ⭐
+- [backend_api_usage.md](./backend_api_usage.md) - 后端 API 详细启动和使用指南
+- [Blog_API.postman_collection.json](./Blog_API.postman_collection.json) - Postman API 测试集合
+- [README.md](./README.md) - 项目总体说明
+- [CLAUDE.md](./CLAUDE.md) - Claude Code 配置说明
+- [writing_guide.md](./writing_guide.md) - 写作指南
+
+## 快速启动脚本
+
+### 开发环境
+
+```bash
+# 完整开发环境（数据库 + 后端 + 前端）
+./start-dev.sh
+
+# 仅后端和数据库
+./start-dev.sh --no-frontend
+
+# 清理并重新构建
+./start-dev.sh --clean
+```
+
+### 生产环境
+
+```bash
+# 完整部署
+./start-prod.sh deploy
+
+# 仅启动服务
+./start-prod.sh start
+
+# 查看状态
+./start-prod.sh status
+
+# 查看日志
+./start-prod.sh logs backend
+```
+
+详细用法请参考: [start_scripts.md](./start_scripts.md)
 
 ## 许可证
 

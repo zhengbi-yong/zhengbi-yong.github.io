@@ -7,6 +7,7 @@ import { Button } from '../ui/ButtonSimple'
 import LanguageSwitch from '../LanguageSwitch'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
+import { AuthButton } from '@/components/auth/AuthButton'
 
 interface HeaderActionsProps {
   className?: string
@@ -63,6 +64,9 @@ export function HeaderActions({ className, onSearchClick }: HeaderActionsProps) 
 
       {/* 语言切换 */}
       <LanguageSwitch />
+
+      {/* 登录/注册按钮 */}
+      <AuthButton />
     </div>
   )
 }

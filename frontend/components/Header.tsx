@@ -7,13 +7,14 @@ import headerNavLinks from '@/data/headerNavLinks'
 import Logo from './Logo'
 import Link from './Link'
 import SearchButton from './SearchButton'
+import { AuthButton } from '@/components/auth/AuthButton'
 import { cn } from './lib/utils'
 import styles from './Header.module.css'
 
 /**
  * Header - 页头组件
  * 基于提供的 Astro Header 组件转换而来
- * 包含 Logo、导航菜单、深色模式切换等功能
+ * 包含 Logo、导航菜单、深色模式切换、登录按钮等功能
  */
 export default function Header() {
   const [mounted, setMounted] = useState(false)
@@ -304,6 +305,9 @@ export default function Header() {
                 )}
               </div>
             </div>
+
+            {/* Auth Button - 登录/注册/用户信息 */}
+            <AuthButton />
           </div>
         </div>
       </header>

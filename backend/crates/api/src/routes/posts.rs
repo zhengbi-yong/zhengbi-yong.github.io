@@ -1,10 +1,11 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Path, State, Extension},
     http::header,
     response::{IntoResponse, Json},
 };
 use blog_db::PostStatsResponse;
 use blog_shared::{AppError, AuthUser};
+use crate::state::AppState;
 use utoipa;
 
 /// 获取文章统计
@@ -24,7 +25,7 @@ use utoipa;
     )
 )]
 pub async fn get_stats(
-    State(state): State<crate::AppState>,
+    State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
     // 尝试从 Redis 缓存获取
@@ -122,7 +123,7 @@ pub async fn get_stats(
     )
 )]
 pub async fn view(
-    State(state): State<crate::AppState>,
+    State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<(), AppError> {
     // 检查文章是否存在
@@ -184,8 +185,8 @@ pub async fn view(
     )
 )]
 pub async fn like(
-    State(state): State<crate::AppState>,
-    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
     Path(slug): Path<String>,
 ) -> Result<(), AppError> {
     // 使用事务确保原子性
@@ -268,8 +269,8 @@ pub async fn like(
     )
 )]
 pub async fn unlike(
-    State(state): State<crate::AppState>,
-    auth_user: AuthUser,
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
     Path(slug): Path<String>,
 ) -> Result<(), AppError> {
     // 使用事务确保原子性

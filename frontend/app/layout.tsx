@@ -18,6 +18,7 @@ import VisitorTracker from '@/components/VisitorTracker'
 import I18nProvider from '@/components/I18nProvider'
 import { Metadata } from 'next'
 import Script from 'next/script'
+import { AuthInitializer } from '@/components/auth/AuthInitializer'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteMetadata.siteUrl),
@@ -97,6 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {`window["EXCALIDRAW_ASSET_PATH"] = "/";`}
         </Script>
         <I18nProvider>
+          <AuthInitializer />
           <SkipLink />
           <ServiceWorkerRegister />
           <VisitorTracker />
