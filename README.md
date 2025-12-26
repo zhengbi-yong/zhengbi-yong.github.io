@@ -173,8 +173,35 @@ For detailed documentation, see:
 
 详细文档请查看：
 
+### Core Documentation / 核心文档
+
 - **[docs/README.md](docs/README.md)** - Comprehensive project documentation / 完整项目文档
 - **[docs/CLAUDE.md](docs/CLAUDE.md)** - Claude AI development guidelines / Claude AI 开发指南
+
+### Admin & Management / 管理后台
+
+- **[docs/admin.md](docs/admin.md)** - Complete admin panel documentation / 管理后台完整文档
+  - Quick start guide / 快速开始指南
+  - User management / 用户管理
+  - Comment moderation / 评论审核
+  - Technical implementation / 技术实现
+  - Testing guide / 测试指南
+  - Troubleshooting / 故障排查
+
+### Deployment & Operations / 部署与运维
+
+- **[docs/deploy.md](docs/deploy.md)** - Complete deployment and maintenance guide / 部署与维护完整指南
+  - Single server deployment / 单服务器部署
+  - High availability setup / 高可用配置
+  - Cluster deployment / 集群部署
+  - Daily maintenance / 日常维护
+  - Backup strategies / 备份策略
+  - Multi-project management / 多项目管理
+
+### API Reference / API 参考
+
+- **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)** - Complete API documentation / 完整 API 文档
+- **[docs/backend_api_usage.md](docs/backend_api_usage.md)** - Backend API usage guide / 后端 API 使用指南
 
 ---
 

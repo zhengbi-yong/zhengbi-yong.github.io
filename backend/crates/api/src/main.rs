@@ -8,17 +8,47 @@ use tracing_subscriber::prelude::*;
 use blog_api::state::AppState;
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() {
     // 初始化 tracing
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::from_default_env())
         .with(tracing_subscriber::fmt::layer())
         .init();
 
+    if let Err(e) = run_server().await {
+        eprintln!("");
+        eprintln!("❌ 服务器启动失败: {}", e);
+        eprintln!("");
+        eprintln!("错误详情:");
+        eprintln!("{:?}", e);
+        eprintln!("");
+        eprintln!("💡 故障排查建议:");
+        eprintln!("   1. 检查所有必需的环境变量是否已设置");
+        eprintln!("   2. 确保数据库和 Redis 服务正在运行");
+        eprintln!("   3. 检查 JWT_SECRET 长度是否至少 32 个字符");
+        eprintln!("   4. 检查 SMTP 配置是否正确");
+        eprintln!("   5. 查看上面的详细错误信息");
+        std::process::exit(1);
+    }
+}
+
+async fn run_server() -> anyhow::Result<()> {
     tracing::info!("Starting Blog API Server...");
 
     // 加载配置
-    let settings = blog_shared::Settings::from_env()?;
+    let settings = blog_shared::Settings::from_env()
+        .map_err(|e| {
+            eprintln!("❌ 配置加载失败: {}", e);
+            eprintln!("💡 请确保设置了以下环境变量:");
+            eprintln!("   - DATABASE_URL");
+            eprintln!("   - REDIS_URL");
+            eprintln!("   - JWT_SECRET (至少32个字符)");
+            eprintln!("   - PASSWORD_PEPPER");
+            eprintln!("   - SMTP_USERNAME");
+            eprintln!("   - SMTP_PASSWORD");
+            eprintln!("   - SMTP_FROM");
+            e
+        })?;
     tracing::info!("Configuration loaded successfully");
 
     // 初始化数据库连接池
@@ -35,8 +65,20 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("Redis connection established");
 
     // 初始化服务
-    let jwt = blog_core::JwtService::new(&settings.jwt_secret)?;
-    let email_service = blog_core::email::EmailService::new(&settings.smtp)?;
+    let jwt = blog_core::JwtService::new(&settings.jwt_secret)
+        .map_err(|e| {
+            eprintln!("❌ JWT 服务初始化失败: {:?}", e);
+            eprintln!("   JWT_SECRET 长度: {} 字符 (需要至少 32 个字符)", settings.jwt_secret.len());
+            anyhow::anyhow!("JWT service initialization failed: {:?}. JWT_SECRET must be at least 32 characters long (current length: {})", e, settings.jwt_secret.len())
+        })?;
+    
+    let email_service = blog_core::email::EmailService::new(&settings.smtp)
+        .map_err(|e| {
+            eprintln!("❌ Email 服务初始化失败: {:?}", e);
+            eprintln!("   SMTP 配置: host={}, port={}, tls={}, from={}", 
+                settings.smtp.host, settings.smtp.port, settings.smtp.tls, settings.smtp.from);
+            anyhow::anyhow!("Email service initialization failed: {:?}. Check SMTP configuration", e)
+        })?;
 
     // 初始化指标收集
     let metrics = std::sync::Arc::new(tokio::sync::RwLock::new(blog_api::metrics::Metrics::new()));
@@ -104,7 +146,6 @@ async fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-
 
 // v1 路由定义
 fn v1_routes(state: AppState) -> Router<AppState> {

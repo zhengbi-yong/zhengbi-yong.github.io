@@ -26,7 +26,7 @@ async fn main() -> anyhow::Result<()> {
     let redis_url = std::env::var("REDIS_URL")
         .unwrap_or_else(|_| "redis://localhost:6379".to_string());
     let jwt_secret = std::env::var("JWT_SECRET")
-        .unwrap_or_else(|_| "dev-secret-key-for-testing-only".to_string());
+        .unwrap_or_else(|_| "dev-secret-key-for-testing-only-x".to_string());
 
     // 初始化数据库连接
     let db = sqlx::postgres::PgPoolOptions::new()
