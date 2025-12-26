@@ -145,7 +145,7 @@ class APIClient {
       cache = true,
       retries = 0,
       retryDelay = 1000,
-      timeout = 10000,
+      timeout = 30000, // 增加到30秒
       skipAuthRefresh = false,
       headers = {},
       ...fetchOptions
@@ -225,7 +225,8 @@ class APIClient {
         }
 
         // 解析响应
-        const data = await response.json()
+        // 对于 204 No Content，响应体为空，直接返回 undefined
+        const data = response.status === 204 ? undefined : await response.json()
         const result: ApiResponse<T> = {
           data,
           success: true,

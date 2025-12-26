@@ -1,6 +1,6 @@
 use axum::{
     extract::{Path, State, Extension},
-    http::header,
+    http::{header, StatusCode},
     response::{IntoResponse, Json},
 };
 use blog_db::PostStatsResponse;
@@ -125,7 +125,7 @@ pub async fn get_stats(
 pub async fn view(
     State(state): State<AppState>,
     Path(slug): Path<String>,
-) -> Result<(), AppError> {
+) -> Result<impl IntoResponse, AppError> {
     // 检查文章是否存在
     let exists: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM post_stats WHERE slug = $1)"
@@ -163,7 +163,7 @@ pub async fn view(
         .await?;
     }
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// 点赞文章
@@ -188,7 +188,7 @@ pub async fn like(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
     Path(slug): Path<String>,
-) -> Result<(), AppError> {
+) -> Result<impl IntoResponse, AppError> {
     // 使用事务确保原子性
     let mut tx = state.db.begin().await?;
 
@@ -247,7 +247,7 @@ pub async fn like(
         .query_async(&mut conn)
         .await?;
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// 取消点赞文章
@@ -272,7 +272,7 @@ pub async fn unlike(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
     Path(slug): Path<String>,
-) -> Result<(), AppError> {
+) -> Result<impl IntoResponse, AppError> {
     // 使用事务确保原子性
     let mut tx = state.db.begin().await?;
 
@@ -318,7 +318,7 @@ pub async fn unlike(
         .query_async(&mut conn)
         .await?;
 
-    Ok(())
+    Ok(StatusCode::NO_CONTENT)
 }
 
 // 计算 ETag

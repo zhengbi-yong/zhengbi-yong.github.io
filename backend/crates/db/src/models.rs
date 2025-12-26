@@ -3,6 +3,20 @@ use sqlx::FromRow;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
+// 用户角色枚举
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "text", rename_all = "lowercase")]
+pub enum UserRole {
+    User,
+    Admin,
+    Moderator,
+}
+
+// 用于SQL查询的角色包装器
+#[derive(Debug, sqlx::FromRow)]
+pub struct UserRoleWrapper(pub UserRole);
+
+
 // 用户模型
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct User {
@@ -13,6 +27,7 @@ pub struct User {
     pub password_hash: String,
     pub profile: serde_json::Value,
     pub email_verified: bool,
+    pub role: UserRole,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
