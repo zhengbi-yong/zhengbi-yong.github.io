@@ -1,6 +1,7 @@
 use axum::{
     extract::{Path, State, Query, Extension},
-    response::Json,
+    response::{IntoResponse, Json},
+    http::StatusCode,
 };
 use blog_db::{
     CreateCommentRequest, CommentListParams, CommentListResponse, CommentResponse,
@@ -370,15 +371,17 @@ pub async fn list_comments(
 )]
 pub async fn like_comment(
     State(state): State<AppState>,
-    Extension(_auth_user): Extension<AuthUser>,
+    Extension(auth_user): Extension<AuthUser>,
     Path(id): Path<uuid::Uuid>,
-) -> Result<(), AppError> {
+) -> Result<impl IntoResponse, AppError> {
+    let user_id = auth_user.id;
+
     // 检查评论是否存在
     let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1 AND status = $2)"
+        "SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1 AND status = $2::comment_status)"
     )
     .bind(&id)
-    .bind("approved") // Use string instead of enum
+    .bind("approved")
     .fetch_one(&state.db)
     .await?;
 
@@ -386,8 +389,93 @@ pub async fn like_comment(
         return Err(AppError::CommentNotFound);
     }
 
-    // TODO: 实现评论点赞功能
-    // 这里需要一个评论点赞表，类似于文章点赞
+    // 检查是否已经点赞过
+    let already_liked: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM comment_likes WHERE comment_id = $1 AND user_id = $2)"
+    )
+    .bind(&id)
+    .bind(&user_id)
+    .fetch_one(&state.db)
+    .await?;
 
-    Ok(())
+    if already_liked {
+        return Err(AppError::AlreadyLiked);
+    }
+
+    // 添加点赞记录
+    sqlx::query(
+        "INSERT INTO comment_likes (comment_id, user_id) VALUES ($1, $2)"
+    )
+    .bind(&id)
+    .bind(&user_id)
+    .execute(&state.db)
+    .await?;
+
+    // 更新评论的点赞计数
+    sqlx::query(
+        "UPDATE comments SET like_count = like_count + 1 WHERE id = $1"
+    )
+    .bind(&id)
+    .execute(&state.db)
+    .await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Unlike a comment
+#[utoipa::path(
+    post,
+    path = "/comments/{id}/unlike",
+    responses(
+        (status = 204, description = "成功取消点赞"),
+        (status = 401, description = "未授权"),
+        (status = 404, description = "评论不存在")
+    ),
+    params(
+        ("id" = Uuid, Path, description = "评论ID")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn unlike_comment(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Path(id): Path<uuid::Uuid>,
+) -> Result<impl IntoResponse, AppError> {
+    let user_id = auth_user.id;
+
+    // 检查评论是否存在
+    let exists: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1)"
+    )
+    .bind(&id)
+    .fetch_one(&state.db)
+    .await?;
+
+    if !exists {
+        return Err(AppError::CommentNotFound);
+    }
+
+    // 删除点赞记录
+    let rows_affected = sqlx::query(
+        "DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2"
+    )
+    .bind(&id)
+    .bind(&user_id)
+    .execute(&state.db)
+    .await?
+    .rows_affected();
+
+    // 如果找到了点赞记录，更新评论的点赞计数
+    if rows_affected > 0 {
+        sqlx::query(
+            "UPDATE comments SET like_count = GREATEST(like_count - 1, 0) WHERE id = $1"
+        )
+        .bind(&id)
+        .execute(&state.db)
+        .await?;
+    }
+
+    Ok(StatusCode::NO_CONTENT)
 }

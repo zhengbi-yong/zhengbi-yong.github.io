@@ -65,3 +65,54 @@ export interface ApiError {
   code: number
   message: string
 }
+
+// ==================== Admin Types ====================
+export interface AdminStats {
+  total_users: number
+  total_comments: number
+  pending_comments: number
+  approved_comments: number
+  rejected_comments: number
+}
+
+export interface UserListItem {
+  id: string
+  email: string
+  username: string
+  role: string
+  email_verified: boolean
+  created_at: string
+}
+
+export interface UserListResponse {
+  users: UserListItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export interface UpdateUserRoleRequest {
+  role: string
+}
+
+export interface CommentAdminItem {
+  id: string
+  slug: string
+  user_id: string | null
+  username: string | null
+  content: string
+  status: string
+  created_at: string
+}
+
+export interface CommentListResponse {
+  comments: CommentAdminItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export interface UpdateCommentStatusRequest {
+  status: string
+  reason?: string
+}

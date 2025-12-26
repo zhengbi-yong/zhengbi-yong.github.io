@@ -1,0 +1,317 @@
+use axum::{
+    extract::{Path, Query, State, Extension},
+    http::StatusCode,
+    response::IntoResponse,
+    Json,
+};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+use blog_shared::{AppError, AuthUser};
+use crate::state::AppState;
+
+// ===== 简化的管理员权限检查 =====
+
+async fn is_admin(user_id: Uuid, state: &AppState) -> Result<bool, AppError> {
+    let role: Option<String> = sqlx::query_scalar(
+        "SELECT role FROM users WHERE id = $1"
+    )
+    .bind(user_id)
+    .fetch_optional(&state.db)
+    .await?;
+
+    Ok(role.as_deref() == Some("admin"))
+}
+
+// ===== API 模型 =====
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserListQuery {
+    pub page: Option<u32>,
+    pub page_size: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserListResponse {
+    pub users: Vec<UserListItem>,
+    pub total: i64,
+    pub page: u32,
+    pub page_size: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct UserListItem {
+    pub id: Uuid,
+    pub email: String,
+    pub username: String,
+    pub role: String,
+    pub email_verified: bool,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateUserRoleRequest {
+    pub role: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentListQuery {
+    pub page: Option<u32>,
+    pub page_size: Option<u32>,
+    pub status: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentListResponse {
+    pub comments: Vec<CommentAdminItem>,
+    pub total: i64,
+    pub page: u32,
+    pub page_size: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct CommentAdminItem {
+    pub id: Uuid,
+    pub slug: String,
+    pub user_id: Option<Uuid>,
+    pub username: Option<String>,
+    pub content: String,
+    pub status: String,
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateCommentStatusRequest {
+    pub status: String,
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminStats {
+    pub total_users: i64,
+    pub total_comments: i64,
+    pub pending_comments: i64,
+    pub approved_comments: i64,
+    pub rejected_comments: i64,
+}
+
+// ===== 用户管理 API =====
+
+pub async fn list_users(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Query(query): Query<UserListQuery>,
+) -> Result<Json<UserListResponse>, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    let page = query.page.unwrap_or(1).max(1);
+    let page_size = query.page_size.unwrap_or(20).min(100);
+    let offset = (page - 1) * page_size;
+
+    // 获取总数
+    let total: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users")
+        .fetch_one(&state.db)
+        .await?;
+
+    // 获取用户列表
+    let users = sqlx::query_as::<_, UserListItem>(
+        "SELECT id, email, username, role, email_verified, created_at::text FROM users
+         ORDER BY created_at DESC LIMIT $1 OFFSET $2"
+    )
+    .bind(page_size as i64)
+    .bind(offset as i64)
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok(Json(UserListResponse {
+        users,
+        total: total.0,
+        page,
+        page_size,
+    }))
+}
+
+pub async fn update_user_role(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Path(target_user_id): Path<Uuid>,
+    Json(req): Json<UpdateUserRoleRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    // 验证角色值
+    if !["user", "admin", "moderator"].contains(&req.role.as_str()) {
+        return Err(AppError::InvalidInput);
+    }
+
+    sqlx::query("UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2")
+        .bind(&req.role)
+        .bind(target_user_id)
+        .execute(&state.db)
+        .await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+pub async fn delete_user(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Path(target_user_id): Path<Uuid>,
+) -> Result<impl IntoResponse, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    if uid == target_user_id {
+        return Err(AppError::InvalidInput);
+    }
+
+    sqlx::query("DELETE FROM users WHERE id = $1")
+        .bind(target_user_id)
+        .execute(&state.db)
+        .await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ===== 评论管理 API =====
+
+pub async fn list_comments_admin(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Query(query): Query<CommentListQuery>,
+) -> Result<Json<CommentListResponse>, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    let page = query.page.unwrap_or(1).max(1);
+    let page_size = query.page_size.unwrap_or(20).min(100);
+    let offset = (page - 1) * page_size;
+
+    // 构建查询
+    let mut base_query = r#"
+        SELECT c.id, c.slug, c.user_id, c.content, c.status::text, c.created_at::text,
+               COALESCE(u.username, 'Anonymous') as username
+        FROM comments c
+        LEFT JOIN users u ON c.user_id = u.id
+    "#.to_string();
+
+    let mut count_query = "SELECT COUNT(*) FROM comments".to_string();
+
+    if let Some(status) = &query.status {
+        base_query.push_str(&format!(" WHERE c.status = '{}'", status));
+        count_query.push_str(&format!(" WHERE status = '{}'", status));
+    }
+
+    // 获取总数
+    let total: (i64,) = sqlx::query_as(&count_query)
+        .fetch_one(&state.db)
+        .await?;
+
+    // 获取评论列表
+    let final_query = format!("{} ORDER BY c.created_at DESC LIMIT {} OFFSET {}", base_query, page_size, offset);
+
+    let comments = sqlx::query_as::<_, CommentAdminItem>(&final_query)
+        .fetch_all(&state.db)
+        .await?;
+
+    Ok(Json(CommentListResponse {
+        comments,
+        total: total.0,
+        page,
+        page_size,
+    }))
+}
+
+pub async fn update_comment_status(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Path(comment_id): Path<Uuid>,
+    Json(req): Json<UpdateCommentStatusRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    // 验证状态值
+    if !["pending", "approved", "rejected", "spam"].contains(&req.status.as_str()) {
+        return Err(AppError::InvalidInput);
+    }
+
+    sqlx::query("UPDATE comments SET status = $1::comment_status, moderation_reason = $2, updated_at = NOW() WHERE id = $3")
+        .bind(&req.status)
+        .bind(&req.reason)
+        .bind(comment_id)
+        .execute(&state.db)
+        .await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+pub async fn delete_comment_admin(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Path(comment_id): Path<Uuid>,
+) -> Result<impl IntoResponse, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    sqlx::query("DELETE FROM comments WHERE id = $1")
+        .bind(comment_id)
+        .execute(&state.db)
+        .await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+// ===== 统计数据 API =====
+
+pub async fn get_admin_stats(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+) -> Result<Json<AdminStats>, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    let total_users: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users")
+        .fetch_one(&state.db)
+        .await?;
+
+    let total_comments: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM comments")
+        .fetch_one(&state.db)
+        .await?;
+
+    let pending_comments: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'pending'")
+        .fetch_one(&state.db)
+        .await?;
+
+    let approved_comments: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'approved'")
+        .fetch_one(&state.db)
+        .await?;
+
+    let rejected_comments: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'rejected'")
+        .fetch_one(&state.db)
+        .await?;
+
+    Ok(Json(AdminStats {
+        total_users: total_users.0,
+        total_comments: total_comments.0,
+        pending_comments: pending_comments.0,
+        approved_comments: approved_comments.0,
+        rejected_comments: rejected_comments.0,
+    }))
+}

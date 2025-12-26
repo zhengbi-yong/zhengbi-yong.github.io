@@ -11,6 +11,13 @@ import type {
   CommentResponse,
   CommentListResponse,
   CreateCommentRequest,
+  AdminStats,
+  UserListItem,
+  UserListResponse,
+  UpdateUserRoleRequest,
+  CommentAdminItem,
+  CommentListResponse as CommentAdminListResponse,
+  UpdateCommentStatusRequest,
 } from '../types/backend'
 
 // Backend API base URL - adjust based on your environment
@@ -228,9 +235,80 @@ export const commentService = {
   },
 }
 
+// ==================== Admin Service ====================
+export const adminService = {
+  /**
+   * Get admin statistics
+   */
+  async getStats(): Promise<AdminStats> {
+    const response = await api.get<AdminStats>(`${BACKEND_API_URL}/admin/stats`, { cache: false })
+    return response.data
+  },
+
+  /**
+   * Get list of users
+   */
+  async getUsers(page = 1, pageSize = 20): Promise<UserListResponse> {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('page_size', pageSize.toString())
+
+    const response = await api.get<UserListResponse>(
+      `${BACKEND_API_URL}/admin/users?${params.toString()}`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Update user role
+   */
+  async updateUserRole(userId: string, data: UpdateUserRoleRequest): Promise<void> {
+    await api.put(`${BACKEND_API_URL}/admin/users/${userId}/role`, data, { cache: false })
+  },
+
+  /**
+   * Delete user
+   */
+  async deleteUser(userId: string): Promise<void> {
+    await api.delete(`${BACKEND_API_URL}/admin/users/${userId}`, { cache: false })
+  },
+
+  /**
+   * Get list of comments
+   */
+  async getComments(page = 1, pageSize = 20, status?: string): Promise<CommentAdminListResponse> {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('page_size', pageSize.toString())
+    if (status) params.append('status', status)
+
+    const response = await api.get<CommentAdminListResponse>(
+      `${BACKEND_API_URL}/admin/comments?${params.toString()}`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Update comment status
+   */
+  async updateCommentStatus(commentId: string, data: UpdateCommentStatusRequest): Promise<void> {
+    await api.put(`${BACKEND_API_URL}/admin/comments/${commentId}/status`, data, { cache: false })
+  },
+
+  /**
+   * Delete comment
+   */
+  async deleteComment(commentId: string): Promise<void> {
+    await api.delete(`${BACKEND_API_URL}/admin/comments/${commentId}`, { cache: false })
+  },
+}
+
 // Export all services
 export const backendApi = {
   auth: authService,
   post: postService,
   comment: commentService,
+  admin: adminService,
 }

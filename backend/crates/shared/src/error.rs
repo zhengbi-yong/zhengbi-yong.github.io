@@ -25,6 +25,9 @@ pub enum AppError {
     #[error("Missing refresh token")]
     MissingRefreshToken,
 
+    #[error("Unauthorized")]
+    Unauthorized,
+
     #[error("Token creation failed")]
     TokenCreationError,
 
@@ -107,7 +110,8 @@ impl IntoResponse for AppError {
 
             // 权限错误 - 403
             AppError::InvalidTokenType
-            | AppError::TokenCreationError => {
+            | AppError::TokenCreationError
+            | AppError::Unauthorized => {
                 (StatusCode::FORBIDDEN, self.to_string())
             }
 

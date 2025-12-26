@@ -128,6 +128,21 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .route("/posts/{slug}/like", delete(blog_api::routes::posts::unlike))
         .route("/posts/{slug}/comments", post(blog_api::routes::comments::create_comment))
         .route("/comments/{id}/like", post(blog_api::routes::comments::like_comment))
+        .route("/comments/{id}/unlike", post(blog_api::routes::comments::unlike_comment))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            blog_api::middleware::auth::auth_middleware,
+        ));
+
+    // 管理员路由 (需要认证+管理员权限)
+    let admin_routes = Router::new()
+        .route("/stats", get(blog_api::routes::admin::get_admin_stats))
+        .route("/users", get(blog_api::routes::admin::list_users))
+        .route("/users/{id}/role", axum::routing::put(blog_api::routes::admin::update_user_role))
+        .route("/users/{id}", axum::routing::delete(blog_api::routes::admin::delete_user))
+        .route("/comments", get(blog_api::routes::admin::list_comments_admin))
+        .route("/comments/{id}/status", axum::routing::put(blog_api::routes::admin::update_comment_status))
+        .route("/comments/{id}", axum::routing::delete(blog_api::routes::admin::delete_comment_admin))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             blog_api::middleware::auth::auth_middleware,
@@ -136,6 +151,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
     // 合并路由并应用限流中间件
     public_routes
         .merge(protected_routes)
+        .nest("/admin", admin_routes)  // 管理员路由需要 /admin 前缀
         .layer(middleware::from_fn_with_state(
             state.clone(),
             blog_api::middleware::rate_limit_middleware,

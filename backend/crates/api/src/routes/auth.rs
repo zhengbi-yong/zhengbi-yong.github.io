@@ -68,7 +68,7 @@ pub async fn register(
 
     // 创建用户
     let row = sqlx::query!(
-        "INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3) RETURNING id, email, username, password_hash, profile, email_verified, created_at, updated_at",
+        "INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3) RETURNING id, email, username, password_hash, profile, email_verified, role, created_at, updated_at",
         &payload.email,
         &payload.username,
         &password_hash
@@ -83,6 +83,11 @@ pub async fn register(
         password_hash: row.password_hash,
         profile: row.profile,
         email_verified: row.email_verified,
+        role: match row.role.as_str() {
+            "admin" => blog_db::UserRole::Admin,
+            "moderator" => blog_db::UserRole::Moderator,
+            _ => blog_db::UserRole::User,
+        },
         created_at: row.created_at,
         updated_at: row.updated_at,
     };
@@ -149,7 +154,7 @@ pub async fn login(
 ) -> Result<impl IntoResponse, AppError> {
     // 查找用户
     let row = sqlx::query!(
-        "SELECT id, email, username, password_hash, profile, email_verified, created_at, updated_at FROM users WHERE email = $1",
+        "SELECT id, email, username, password_hash, profile, email_verified, role, created_at, updated_at FROM users WHERE email = $1",
         &payload.email
     )
     .fetch_optional(&state.db)
@@ -163,6 +168,11 @@ pub async fn login(
         password_hash: row.password_hash,
         profile: row.profile,
         email_verified: row.email_verified,
+        role: match row.role.as_str() {
+            "admin" => blog_db::UserRole::Admin,
+            "moderator" => blog_db::UserRole::Moderator,
+            _ => blog_db::UserRole::User,
+        },
         created_at: row.created_at,
         updated_at: row.updated_at,
     };
@@ -302,7 +312,7 @@ pub async fn refresh(
 
     // 获取用户信息
     let user_row = sqlx::query!(
-        "SELECT id, email, username, password_hash, profile, email_verified, created_at, updated_at FROM users WHERE id = $1",
+        "SELECT id, email, username, password_hash, profile, email_verified, role, created_at, updated_at FROM users WHERE id = $1",
         &token_record.user_id
     )
     .fetch_one(&state.db)
@@ -315,6 +325,11 @@ pub async fn refresh(
         password_hash: user_row.password_hash,
         profile: user_row.profile,
         email_verified: user_row.email_verified,
+        role: match user_row.role.as_str() {
+            "admin" => blog_db::UserRole::Admin,
+            "moderator" => blog_db::UserRole::Moderator,
+            _ => blog_db::UserRole::User,
+        },
         created_at: user_row.created_at,
         updated_at: user_row.updated_at,
     };
