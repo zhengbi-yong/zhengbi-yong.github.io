@@ -15,31 +15,36 @@ pub struct EmailService {
 
 impl EmailService {
     pub fn new(config: &SmtpConfig) -> Result<Self, AppError> {
+        // 解析邮箱地址，提供更详细的错误信息
+        let from_addr = config.from.parse().map_err(|e| {
+            tracing::error!("Invalid from email address '{}': {}", config.from, e);
+            AppError::InternalError
+        })?;
+
+        let from = Mailbox::new(None, from_addr);
+
+        // 创建凭据
         let creds = Credentials::new(config.username.clone(), config.password.clone());
 
+        // 构建 SMTP 传输
         let mailer = if config.tls {
             SmtpTransport::relay(&config.host)
                 .map_err(|e| {
-                    tracing::error!("Failed to create SMTP transport: {}", e);
+                    tracing::error!("Failed to create SMTP transport with TLS for host '{}': {}", config.host, e);
                     AppError::InternalError
                 })?
                 .port(config.port)
                 .credentials(creds)
                 .build()
         } else {
+            // 使用 builder_dangerous 用于开发环境（不验证证书）
             SmtpTransport::builder_dangerous(&config.host)
                 .port(config.port)
                 .credentials(creds)
                 .build()
         };
 
-        let from = Mailbox::new(
-            None,
-            config.from.parse().map_err(|e| {
-                tracing::error!("Invalid from email address: {}", e);
-                AppError::InternalError
-            })?,
-        );
+        tracing::info!("EmailService initialized with SMTP host: {}:{} (TLS: {})", config.host, config.port, config.tls);
 
         Ok(Self { mailer, from })
     }

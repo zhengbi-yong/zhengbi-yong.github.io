@@ -16,7 +16,7 @@ import type {
   UserListResponse,
   UpdateUserRoleRequest,
   CommentAdminItem,
-  CommentListResponse as CommentAdminListResponse,
+  CommentAdminListResponse,
   UpdateCommentStatusRequest,
 } from '../types/backend'
 

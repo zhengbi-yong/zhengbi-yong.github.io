@@ -1,695 +1,372 @@
-# 服务器部署切换指南
+# 部署与维护完整指南
 
-本文档提供了完整的服务器部署切换方案，让你能够快速在新服务器上部署应用，并实现零停机迁移。
+本文档是一份面向实践的完整教程，详细说明部署时需要做什么、为什么要这样做，以及日常维护的操作和意义。
 
 ## 目录
 
-- [部署架构](#部署架构)
-- [环境准备](#环境准备)
-- [快速部署](#快速部署)
-- [数据迁移](#数据迁移)
-- [服务管理](#服务管理)
-- [故障排查](#故障排查)
+- [第一部分：部署教程](#第一部分部署教程)
+  - [阶段一：单服务器部署](#阶段一单服务器部署)
+  - [阶段二：双服务器高可用部署](#阶段二双服务器高可用部署)
+  - [阶段三：小规模集群部署](#阶段三小规模集群部署)
+  - [阶段四：中等规模部署](#阶段四中等规模部署)
+  - [阶段五：世界级部署](#阶段五世界级部署)
+- [第二部分：维护教程](#第二部分维护教程)
+  - [日常检查](#日常检查)
+  - [数据备份](#数据备份)
+  - [性能优化](#性能优化)
+  - [安全维护](#安全维护)
+  - [故障处理](#故障处理)
+  - [容量规划](#容量规划)
+  - [成本优化](#成本优化)
+  - [升级更新](#升级更新)
+- [第三部分：常见场景](#第三部分常见场景)
+- [第四部分：多项目管理](#第四部分多项目管理)
+- [第五部分：服务器切换](#第五部分服务器切换)
 
 ---
 
-## 部署架构
+## 第一部分：部署教程
 
-### 系统架构图
+### 阶段一：单服务器部署
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Nginx (可选)                        │
-│                    http://localhost:80/443               │
-└──────────────────────┬────────────────────────────────────┘
-                       │
-        ┌──────────────┴──────────────┐
-        │                             │
-┌───────▼────────┐           ┌────────▼────────┐
-│  Frontend UI    │           │   Backend API    │
-│  Next.js 16     │           │   Axum/Rust      │
-│  Port: 3003     │◄────────►│   Port: 3000     │
-└─────────────────┘           └────────┬─────────┘
-                                         │
-        ┌────────────────────────────────┴────────┐
-        │                                         │
-┌───────▼────────┐           ┌────────────────▼─────┐
-│   PostgreSQL   │           │       Redis          │
-│   Port: 5432   │           │     Port: 6379        │
-└────────────────┘           └───────────────────────┘
-```
+**适用场景**：初创期、用户 < 1000、日 PV < 1万
 
-### 服务端口
+#### 步骤1：准备服务器环境
 
-| 服务 | 端口 | 说明 |
-|------|------|------|
-| Frontend (Next.js) | 3003 | 前端 UI 服务 |
-| Backend API | 3000 | 后端 API 服务 |
-| PostgreSQL | 5432 | 数据库 |
-| Redis | 6379 | 缓存服务 |
-
----
-
-## 环境准备
-
-### 1. 系统要求
-
-**支持的操作系统**：
-- Linux (Ubuntu 20.04+, Debian 10+, CentOS 7+)
-- Windows 10/11 (with WSL2)
-- macOS 11+
-
-**必需软件**：
-- Docker 20.10+
-- Docker Compose 1.29+
-- Git 2.0+
-- 至少 2GB RAM
-- 至少 10GB 可用磁盘空间
-
-### 2. 安装 Docker
-
-#### Ubuntu/Debian
-
+**做什么**：
 ```bash
-# 更新包索引
-sudo apt-get update
+# 更新系统
+sudo apt update && sudo apt upgrade -y
 
-# 安装依赖
-sudo apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release
+# 安装基础工具
+sudo apt install -y curl wget git vim ufw fail2ban
 
-# 添加 Docker 官方 GPG 密钥
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+# 创建专用用户
+sudo useradd -m -s /bin/bash blogadmin
+sudo usermod -aG sudo blogadmin
+```
 
-# 设置 Docker 仓库
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+**为什么**：
+- **更新系统**：修复已知安全漏洞，获得最新的功能支持
+- **安装基础工具**：curl/wget用于下载，git用于代码管理，vim用于编辑，ufw用于防火墙，fail2ban用于防暴力破解
+- **创建专用用户**：避免使用root用户操作，降低安全风险，权限隔离
 
-# 安装 Docker Engine
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+#### 步骤2：安装Docker
 
-# 启动 Docker
-sudo systemctl start docker
-sudo systemctl enable docker
+**做什么**：
+```bash
+# 安装Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# 将用户添加到docker组
+sudo usermod -aG docker blogadmin
+
+# 安装Docker Compose
+sudo apt install -y docker-compose-plugin
 
 # 验证安装
 docker --version
-docker-compose --version
+docker compose version
 ```
 
-#### CentOS/RHEL
+**为什么**：
+- **Docker容器化**：确保开发、测试、生产环境一致，避免"在我机器上能跑"问题
+- **隔离性**：数据库和应用运行在独立容器中，互不影响
+- **易迁移**：容器可以轻松在不同服务器间迁移
+- **用户添加到docker组**：避免每次使用docker都需要sudo
 
+#### 步骤3：配置防火墙
+
+**做什么**：
 ```bash
-# 安装 Docker
-sudo yum install -y yum-utils
-sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+# 设置默认策略
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
 
-# 启动 Docker
-sudo systemctl start docker
-sudo systemctl enable docker
+# 允许SSH（防止自己被锁在外面）
+sudo ufw allow 22/tcp
 
-# 验证安装
-docker --version
-```
+# 允许HTTP和HTTPS
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
 
-#### macOS
-
-```bash
-# 安装 Homebrew（如果未安装）
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 安装 Docker Desktop
-brew install --cask docker
-
-# 启动 Docker Desktop
-open /Applications/Docker.app
-```
-
-### 3. 配置防火墙
-
-```bash
-# Ubuntu/Debian (UFW)
-sudo ufw allow 22/tcp    # SSH
-sudo ufw allow 80/tcp    # HTTP
-sudo ufw allow 443/tcp   # HTTPS
-sudo ufw allow 3000/tcp  # Backend API (可选)
-sudo ufw allow 3003/tcp  # Frontend (可选)
+# 启用防火墙
 sudo ufw enable
 
-# CentOS/RHEL (firewalld)
-sudo firewall-cmd --permanent --add-service=http
-sudo firewall-cmd --permanent --add-service=https
-sudo firewall-cmd --permanent --add-port=3000/tcp
-sudo firewall-cmd --permanent --add-port=3003/tcp
-sudo firewall-cmd --reload
+# 查看状态
+sudo ufw status
 ```
 
-### 4. 创建部署用户（推荐）
+**为什么**：
+- **默认拒绝入站**：只开放明确需要的端口，其他端口全部关闭
+- **允许SSH**：确保你还能远程连接服务器（重要！）
+- **开放80/443**：让用户能通过HTTP/HTTPS访问网站
+- **安全第一**：未配置防火墙的服务器会在几分钟内被扫描和攻击
 
+#### 步骤4：部署数据库
+
+**做什么**：
 ```bash
-# 创建专用用户
-sudo useradd -m -s /bin/bash deploy
-sudo usermod -aG docker deploy
+# 创建项目目录
+mkdir -p ~/blog-system
+cd ~/blog-system
 
-# 切换到 deploy 用户
-sudo su - deploy
+# 创建docker-compose.yml
+cat > docker-compose.yml << 'EOF'
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: blog-postgres
+    environment:
+      POSTGRES_USER: blog_user
+      POSTGRES_PASSWORD: $(openssl rand -base64 32)
+      POSTGRES_DB: blog_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: blog-redis
+    command: redis-server --appendonly yes --requirepass $(openssl rand -base64 32)
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+EOF
+
+# 启动数据库
+docker compose up -d
+
+# 检查容器状态
+docker ps
 ```
 
----
+**为什么**：
+- **PostgreSQL**：关系型数据库，存储文章、用户等核心数据，支持事务和复杂查询
+- **Redis**：内存缓存，存储session和热点数据，大幅提升响应速度
+- **随机密码**：避免使用默认密码被攻击，使用`openssl`生成强密码
+- **数据卷挂载**：容器删除后数据不丢失，数据持久化存储
+- **restart策略**：服务器重启后容器自动启动，无需手动干预
+- **Alpine镜像**：体积小（约20MB），启动快，节省资源
 
-## 快速部署
+#### 步骤5：初始化数据库
 
-### 方法 1：一键部署脚本
-
-我们提供了自动化部署脚本，可以快速在新服务器上部署所有服务。
-
+**做什么**：
 ```bash
-#!/bin/bash
-# scripts/deploy.sh - 一键部署脚本
+# 复制迁移文件到服务器
+cd ~/blog-system
+mkdir -p migrations
 
-set -e  # 遇到错误立即退出
+# 执行迁移（按顺序执行）
+docker exec -i blog-postgres psql -U blog_user -d blog_db < migrations/0001_initial.sql
+docker exec -i blog-postgres psql -U blog_user -d blog_db < migrations/0002_add_tags.sql
+docker exec -i blog-postgres psql -U blog_user -d blog_db < migrations/0003_add_views.sql
+docker exec -i blog-postgres psql -U blog_user -d blog_db < migrations/0004_add_user_roles.sql
+docker exec -i blog-postgres psql -U blog_user -d blog_db < migrations/0005_add_comment_likes.sql
 
-echo "================================"
-echo "  博客系统一键部署脚本"
-echo "================================"
-echo ""
+# 创建管理员账户
+docker exec -i blog-postgres psql -U blog_user -d blog_db << 'EOSQL'
+INSERT INTO users (id, email, username, password_hash, profile, email_verified, role, created_at, updated_at)
+VALUES (
+  gen_random_uuid(),
+  'admin@yourdomain.com',
+  'admin',
+  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYzpLaEmc0i',
+  '{"bio": "系统管理员"}'::jsonb,
+  true,
+  'admin',
+  NOW(),
+  NOW()
+);
+EOSQL
 
-# 颜色定义
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# 验证数据
+docker exec -it blog-postgres psql -U blog_user -d blog_db -c "SELECT email, username, role FROM users;"
+```
 
-# 检查必要的命令
-check_command() {
-    if ! command -v $1 &> /dev/null; then
-        echo -e "${RED}✗ $1 未安装，请先安装${NC}"
-        exit 1
-    fi
-}
+**为什么**：
+- **按顺序执行迁移**：数据库结构有依赖关系，必须按顺序创建表和字段
+- **创建管理员**：首次部署需要管理员账户来登录后台管理
+- **验证数据**：确保数据导入成功，没有语法错误
+- **密码哈希**：使用bcrypt加密，即使数据库泄露也无法直接获取密码
 
-echo "→ 检查系统环境..."
-check_command "docker"
-check_command "docker-compose"
-check_command "git"
-echo -e "${GREEN}✓ 系统环境检查通过${NC}"
-echo ""
+#### 步骤6：部署后端应用
 
-# 项目配置
-PROJECT_DIR="${HOME}/blog"
-REPO_URL="https://github.com/your-username/zhengbi-yong.github.io.git"
-BACKUP_DIR="${HOME}/backups"
+**做什么**：
+```bash
+# 克隆代码
+cd ~/blog-system
+git clone https://github.com/yourusername/your-repo.git backend
 
-# 创建备份目录
-mkdir -p "$BACKUP_DIR"
-
-# 克隆或更新项目
-if [ -d "$PROJECT_DIR" ]; then
-    echo "→ 更新项目代码..."
-    cd "$PROJECT_DIR"
-    git fetch origin
-    git reset --hard origin/main
-    git pull origin main
-else
-    echo "→ 克隆项目仓库..."
-    git clone "$REPO_URL" "$PROJECT_DIR"
-    cd "$PROJECT_DIR"
-fi
-echo -e "${GREEN}✓ 项目代码已更新${NC}"
-echo ""
-
-# 检查 .env 文件
-if [ ! -f "$PROJECT_DIR/backend/.env" ]; then
-    echo "→ 创建配置文件..."
-    cp "$PROJECT_DIR/backend/.env.example" "$PROJECT_DIR/backend/.env" 2>/dev/null || cat > "$PROJECT_DIR/backend/.env" << 'EOF'
-# 数据库配置
-DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
-POSTGRES_USER=blog_user
-POSTGRES_PASSWORD=blog_password
-POSTGRES_DB=blog_db
-
-# Redis 配置
-REDIS_URL=redis://localhost:6379
-
-# JWT 密钥（生产环境请使用强密码）
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production-min-32-chars
-SESSION_SECRET=your-session-secret-change-this
-
-# 服务器配置
+# 配置环境变量
+cat > backend/.env << 'EOF'
+DATABASE_URL=postgresql://blog_user:your_password@localhost:5432/blog_db
+REDIS_URL=redis://://localhost:6379
+JWT_SECRET=$(openssl rand -base64 32)
+SESSION_SECRET=$(openssl rand -base64 24)
+PASSWORD_PEPPER=$(openssl rand -base64 16)
 HOST=0.0.0.0
 PORT=3000
 ENVIRONMENT=production
-PASSWORD_PEPPER=your-password-pepper-add-random-string-here
-
-# CORS 配置（允许的前端域名）
-CORS_ALLOWED_ORIGINS=http://localhost:3003,https://yourdomain.com
-
-# 速率限制
-RATE_LIMIT_PER_MINUTE=100
-
-# Prometheus 监控
-PROMETHEUS_ENABLED=false
-
-# SMTP 邮件配置（可选）
-SMTP_HOST=localhost
-SMTP_PORT=587
-SMTP_USERNAME=
-SMTP_PASSWORD=
-SMTP_FROM=noreply@yourdomain.com
 EOF
-    echo -e "${YELLOW}⚠ 请编辑 $PROJECT_DIR/backend/.env 配置生产环境密钥${NC}"
-fi
 
-# 停止旧容器（如果存在）
-echo "→ 停止旧容器..."
-cd "$PROJECT_DIR"
-docker-compose down 2>/dev/null || true
-echo -e "${GREEN}✓ 旧容器已停止${NC}"
-echo ""
-
-# 构建后端
-echo "→ 构建后端服务..."
-cd "$PROJECT_DIR/backend"
+# 构建Rust应用（本地编译或使用预编译二进制）
+cd backend
 cargo build --release --bin api
-echo -e "${GREEN}✓ 后端构建完成${NC}"
-echo ""
 
-# 构建前端
-echo "→ 构建前端服务..."
-cd "$PROJECT_DIR/frontend"
-pnpm install
-pnpm build
-echo -e "${GREEN}✓ 前端构建完成${NC}"
-echo ""
+# 创建systemd服务
+sudo cat > /etc/systemd/system/blog-backend.service << 'EOF'
+[Unit]
+Description=Blog Backend API
+After=network.target docker-compose.service
+
+[Service]
+Type=simple
+User=blogadmin
+WorkingDirectory=/home/blogadmin/blog-system/backend
+Environment="RUST_LOG=info"
+EnvironmentFile=/home/blogadmin/blog-system/backend/.env
+ExecStart=/home/blogadmin/blog-system/backend/target/release/api
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 # 启动服务
-echo "→ 启动所有服务..."
-cd "$PROJECT_DIR"
-docker-compose up -d postgres redis
+sudo systemctl daemon-reload
+sudo systemctl start blog-backend
+sudo systemctl enable blog-backend
 
-# 等待数据库启动
-echo "→ 等待数据库启动..."
-sleep 10
-
-# 启动应用
-docker-compose up -d
-
-echo ""
-echo "================================"
-echo -e "${GREEN}  部署完成！${NC}"
-echo "================================"
-echo ""
-echo "服务访问地址："
-echo "  前端: http://localhost:3003"
-echo "  后端: http://localhost:3000"
-echo ""
-echo "查看服务状态："
-echo "  docker-compose ps"
-echo ""
-echo "查看日志："
-echo "  docker-compose logs -f"
-echo ""
-echo "停止所有服务："
-echo "  docker-compose down"
-echo ""
-```
-
-### 方法 2：手动部署
-
-如果需要更多控制，可以手动执行以下步骤：
-
-#### 步骤 1：克隆项目
-
-```bash
-# 克隆项目到服务器
-git clone https://github.com/your-username/zhengbi-yong.github.io.git
-cd zhengbi-yong.github.io
-```
-
-#### 步骤 2：配置环境变量
-
-```bash
-# 复制示例配置文件
-cp backend/.env.example backend/.env
-
-# 编辑配置文件
-nano backend/.env
-```
-
-**重要配置项**：
-
-```bash
-# 生产环境必须修改的密钥
-JWT_SECRET=生产环境请使用至少32位的随机字符串
-SESSION_SECRET=同上
-PASSWORD_PEPPER=密码增强密钥
-
-# 数据库密码
-POSTGRES_PASSWORD=生产环境使用强密码
-
-# CORS 配置
-CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
-
-# SMTP 邮件配置（如果需要邮件功能）
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-SMTP_FROM=noreply@yourdomain.com
-```
-
-#### 步骤 3：构建应用
-
-```bash
-# 构建后端
-cd backend
-cargo build --release --bin api
-
-# 构建前端
-cd ../frontend
-pnpm install
-pnpm build
-```
-
-#### 步骤 4：启动服务
-
-```bash
-# 返回项目根目录
-cd ..
-
-# 启动数据库和缓存
-docker-compose up -d postgres redis
-
-# 等待数据库启动（约 10 秒）
-sleep 10
-
-# 启动应用
-docker-compose up -d
-```
-
-#### 步骤 5：验证部署
-
-```bash
-# 检查容器状态
-docker-compose ps
-
-# 检查服务健康
+# 检查状态
+sudo systemctl status blog-backend
 curl http://localhost:3000/health
-
-# 访问前端
-# 在浏览器中打开 http://your-server-ip:3003
 ```
 
----
+**为什么**：
+- **Rust编译**：编译后的二进制文件性能极高，无需运行时环境
+- **环境变量**：将敏感信息（密钥、密码）与代码分离，避免泄露
+- **随机密钥**：JWT_SECRET用于签名token，SESSION_SECRET用于加密session，必须随机生成且足够长
+- **systemd服务**：
+  - 自动重启：崩溃后自动恢复
+  - 开机启动：服务器重启后自动运行
+  - 日志管理：通过journalctl统一查看日志
+- **After=network.target**：确保网络就绪后再启动
+- **RestartSec=10**：连续崩溃时等待10秒再重启，避免快速循环重启
 
-## 数据迁移
+#### 步骤7：部署前端应用
 
-### 旧服务器数据备份
-
-在切换服务器前，需要备份所有数据：
-
-#### 1. 创建备份脚本
-
-创建 `scripts/backup.sh`:
-
+**做什么**：
 ```bash
-#!/bin/bash
-# scripts/backup.sh - 数据备份脚本
+# 克隆代码
+cd ~/blog-system
+git clone https://github.com/yourusername/your-repo.git frontend
 
-set -e
-
-BACKUP_DIR="$HOME/backups"
-DATE=$(date +%Y%m%d_%H%M%S)
-mkdir -p "$BACKUP_DIR"
-
-echo "→ 开始数据备份..."
-echo ""
-
-# 1. 备份数据库
-echo "→ 备份 PostgreSQL 数据库..."
-docker exec blog-postgres pg_dump -U blog_user blog_db \
-    --clean --if-exists \
-    > "$BACKUP_DIR/database_$DATE.sql"
-
-echo -e "  ✓ 数据库备份完成: database_$DATE.sql"
-
-# 2. 备份 Redis 数据
-echo "→ 备份 Redis 数据..."
-docker exec blog-redis redis-cli --rdb /data/dump.rdb BGSAVE
-sleep 2
-docker cp blog-redis:/data/dump.rdb "$BACKUP_DIR/redis_$DATE.rdb"
-
-echo -e "  ✓ Redis 备份完成: redis_$DATE.rdb"
-
-# 3. 备份上传的文件（如果有）
-echo "→ 备份上传的文件..."
-if [ -d "public/uploads" ]; then
-    tar -czf "$BACKUP_DIR/uploads_$DATE.tar.gz" public/uploads
-    echo -e "  ✓ 上传文件备份完成: uploads_$DATE.tar.gz"
-fi
-
-# 4. 备份配置文件
-echo "→ 备份配置文件..."
-tar -czf "$BACKUP_DIR/config_$DATE.tar.gz" \
-    backend/.env \
-    frontend/.env.local \
-    docker-compose.yml \
-    docker-compose.prod.yml 2>/dev/null
-
-echo -e "  ✓ 配置文件备份完成: config_$DATE.tar.gz"
-
-echo ""
-echo "================================"
-echo "  备份完成！"
-echo "================================"
-echo ""
-echo "备份文件位置: $BACKUP_DIR"
-echo ""
-ls -lh "$BACKUP_DIR"
-```
-
-#### 2. 执行备份
-
-```bash
-# 赋予执行权限
-chmod +x scripts/backup.sh
-
-# 执行备份
-./scripts/backup.sh
-```
-
-#### 3. 下载备份到本地
-
-```bash
-# 在本地机器上执行（将 old-server 替换为旧服务器地址）
-scp -r deploy@old-server:~/backups ./local_backups
-```
-
-### 新服务器数据恢复
-
-#### 1. 上传备份文件
-
-```bash
-# 上传备份到新服务器
-scp -r ./local_backups deploy@new-server:~/
-```
-
-#### 2. 恢复数据
-
-创建 `scripts/restore.sh`:
-
-```bash
-#!/bin/bash
-# scripts/restore.sh - 数据恢复脚本
-
-set -e
-
-if [ -z "$1" ]; then
-    echo "用法: ./restore.sh <backup_date>"
-    echo "示例: ./restore.sh 20251226_120000"
-    exit 1
-fi
-
-BACKUP_DIR="$HOME/backups"
-DATE=$1
-
-echo "→ 开始恢复数据..."
-echo ""
-
-# 1. 恢复数据库
-echo "→ 恢复 PostgreSQL 数据库..."
-if [ -f "$BACKUP_DIR/database_$DATE.sql" ]; then
-    docker exec -i blog-postgres psql -U blog_user -d blog_db \
-        < "$BACKUP_DIR/database_$DATE.sql"
-    echo -e "  ✓ 数据库恢复完成"
-else
-    echo -e "  ⚠ 数据库备份文件不存在: database_$DATE.sql"
-fi
-
-# 2. 恢复 Redis 数据
-echo "→ 恢复 Redis 数据..."
-if [ -f "$BACKUP_DIR/redis_$DATE.rdb" ]; then
-    docker cp "$BACKUP_DIR/redis_$DATE.rdb" blog-redis:/data/dump.rdb
-    docker restart blog-redis
-    sleep 3
-    echo -e "  ✓ Redis 恢复完成"
-else
-    echo -e "  ⚠ Redis 备份文件不存在: redis_$DATE.rdb"
-fi
-
-# 3. 恢复上传文件
-if [ -f "$BACKUP_DIR/uploads_$DATE.tar.gz" ]; then
-    echo "→ 恢复上传的文件..."
-    tar -xzf "$BACKUP_DIR/uploads_$DATE.tar.gz"
-    echo -e "  ✓ 上传文件恢复完成"
-fi
-
-# 4. 恢复配置文件
-if [ -f "$BACKUP_DIR/config_$DATE.tar.gz" ]; then
-    echo "→ 恢复配置文件..."
-    tar -xzf "$BACKUP_DIR/config_$DATE.tar.gz"
-    echo -e "  ✓ 配置文件恢复完成"
-fi
-
-echo ""
-echo "================================"
-echo "  数据恢复完成！"
-echo "================================"
-echo ""
-echo "请重启服务以使配置生效："
-echo "  docker-compose restart"
-```
-
-#### 3. 执行恢复
-
-```bash
-# 赋予执行权限
-chmod +x scripts/restore.sh
-
-# 恢复数据（使用备份日期）
-./scripts/restore.sh 20251226_120000
-
-# 重启服务
-docker-compose restart
-```
-
----
-
-## 服务管理
-
-### 启动服务
-
-```bash
-# 启动所有服务
-docker-compose up -d
-
-# 只启动数据库和缓存
-docker-compose up -d postgres redis
-
-# 启动后端（开发模式）
-cd backend
-cargo run --bin api
-
-# 启动前端（开发模式）
+# 安装依赖
 cd frontend
-pnpm dev
-```
+pnpm install
 
-### 停止服务
+# 配置环境变量
+cat > .env.production << 'EOF'
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+NEXT_PUBLIC_SITE_NAME=我的博客
+EOF
 
-```bash
-# 停止所有服务
-docker-compose down
-
-# 停止所有服务并删除数据卷（⚠️ 会删除数据）
-docker-compose down -v
-
-# 停止特定服务
-docker-compose stop backend
-docker-compose stop frontend
-```
-
-### 重启服务
-
-```bash
-# 重启所有服务
-docker-compose restart
-
-# 重启特定服务
-docker-compose restart backend
-docker-compose restart frontend
-docker-compose restart postgres
-```
-
-### 查看日志
-
-```bash
-# 查看所有服务日志
-docker-compose logs -f
-
-# 查看特定服务日志
-docker-compose logs -f backend
-docker-compose logs -f frontend
-docker-compose logs -f postgres
-
-# 查看最近 100 行日志
-docker-compose logs --tail=100 backend
-```
-
-### 更新应用
-
-```bash
-# 1. 更新代码
-git pull origin main
-
-# 2. 重新构建
-cd backend
-cargo build --release --bin api
-
-cd ../frontend
+# 构建生产版本
 pnpm build
 
-# 3. 重启服务
-cd ..
-docker-compose restart backend frontend
+# 创建systemd服务
+sudo cat > /etc/systemd/system/blog-frontend.service << 'EOF'
+[Unit]
+Description=Blog Frontend
+After=network.target
 
-# 4. 清理旧镜像（可选）
-docker image prune -a
+[Service]
+Type=simple
+User=blogadmin
+WorkingDirectory=/home/blogadmin/blog-system/frontend
+Environment="NODE_ENV=production"
+Environment="PORT=3001"
+Environment="HOSTNAME=0.0.0.0"
+ExecStart=$(which pnpm) start
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 启动服务
+sudo systemctl daemon-reload
+sudo systemctl start blog-frontend
+sudo systemctl enable blog-frontend
+
+# 检查状态
+sudo systemctl status blog-frontend
+curl http://localhost:3001
 ```
 
----
+**为什么**：
+- **pnpm install**：安装项目依赖，锁定版本避免不一致
+- **生产构建**：优化代码体积和性能，移除开发工具
+- **分离部署**：前端和后端独立运行，可以单独扩展和更新
+- **不同端口**：前端3001，后端3000，避免冲突
 
-## 生产环境优化
+#### 步骤8：配置Nginx反向代理
 
-### 1. 使用 Nginx 反向代理
+**做什么**：
+```bash
+# 安装Nginx
+sudo apt install -y nginx
 
-创建 `nginx.conf`:
-
-```nginx
+# 创建站点配置
+sudo cat > /etc/nginx/sites-available/blog << 'EOF'
+# HTTP服务器（自动重定向到HTTPS）
 server {
     listen 80;
-    server_name yourdomain.com;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # Let's Encrypt验证
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
+
+    # 其他请求重定向到HTTPS
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
+}
+
+# HTTPS服务器
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # SSL证书配置
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # 安全头
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
 
     # 前端
     location / {
-        proxy_pass http://localhost:3003;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # 后端 API
-    location /v1/ {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -697,22 +374,32 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # 后端API
+    location /api/ {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # 超时设置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 
     # 静态文件缓存
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
-        proxy_pass http://localhost:3003;
-        expires 1y;
+    location /_next/static/ {
+        proxy_pass http://localhost:3001;
+        proxy_cache_valid 200 7d;
         add_header Cache-Control "public, immutable";
     }
 }
-```
-
-启动 Nginx:
-
-```bash
-# 复制配置
-sudo cp nginx.conf /etc/nginx/sites-available/blog
+EOF
 
 # 启用站点
 sudo ln -s /etc/nginx/sites-available/blog /etc/nginx/sites-enabled/
@@ -720,801 +407,1191 @@ sudo ln -s /etc/nginx/sites-available/blog /etc/nginx/sites-enabled/
 # 测试配置
 sudo nginx -t
 
-# 重启 Nginx
-sudo systemctl restart nginx
+# 重载Nginx
+sudo systemctl reload nginx
 ```
 
-### 2. 配置 HTTPS（使用 Let's Encrypt）
+**为什么**：
+- **反向代理**：
+  - 统一入口：前端和后端通过同一个域名访问
+  - 隐藏端口：用户不需要知道3000/3001端口
+  - SSL终结：统一处理HTTPS加密
+- **HTTP重定向到HTTPS**：强制使用加密连接，保护用户数据
+- **安全头**：
+  - HSTS：强制浏览器只使用HTTPS
+  - X-Frame-Options：防止点击劫持
+  - X-Content-Type-Options：防止MIME类型混淆
+- **proxy_set_header**：传递真实IP和协议给后端，用于日志和安全检查
+- **静态文件缓存**：Next.js的静态文件可以缓存7天，减轻服务器压力
+- **http2**：多路复用，提升性能
 
+#### 步骤9：配置SSL证书
+
+**做什么**：
 ```bash
-# 安装 Certbot
-sudo apt-get install certbot python3-certbot-nginx
+# 安装Certbot
+sudo apt install -y certbot python3-certbot-nginx
 
-# 获取 SSL 证书
+# 申请证书
 sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 
-# 自动续期
+# 测试自动续期
 sudo certbot renew --dry-run
+
+# 查看定时任务
+sudo systemctl status certbot.timer
 ```
 
-### 3. 配置 systemd 服务
+**为什么**：
+- **HTTPS加密**：防止数据被窃听和篡改，现代浏览器对HTTP网站标记为"不安全"
+- **Let's Encrypt**：免费、自动化的SSL证书，降低成本
+- **自动续期**：证书有效期90天，certbot会自动续期，避免证书过期导致网站无法访问
+- **多域名**：同时为yourdomain.com和www.yourdomain.com申请证书
 
-创建 `/etc/systemd/system/blog-backend.service`:
+#### 步骤10：配置日志轮转
 
-```ini
-[Unit]
-Description=Blog Backend API
-After=network.target postgresql.service
-
-[Service]
-Type=simple
-User=deploy
-WorkingDirectory=/home/deploy/blog/backend
-Environment="DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db"
-Environment="REDIS_URL=redis://localhost:6379"
-ExecStart=/home/deploy/blog/backend/target/release/api
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-创建 `/etc/systemd/system/blog-frontend.service`:
-
-```ini
-[Unit]
-Description=Blog Frontend UI
-After=network.target
-
-[Service]
-Type=simple
-User=deploy
-WorkingDirectory=/home/deploy/blog/frontend
-Environment="NODE_ENV=production"
-Environment="PORT=3003"
-ExecStart=/usr/bin/node server/build/index.js
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
-
-启用服务：
-
+**做什么**：
 ```bash
-# 重载 systemd
-sudo systemctl daemon-reload
+# 创建日志轮转配置
+sudo cat > /etc/logrotate.d/blog << 'EOF'
+/home/blogadmin/blog-system/logs/*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 blogadmin blogadmin
+    sharedscripts
+    postrotate
+        systemctl reload blog-backend > /dev/null 2>&1 || true
+        systemctl reload blog-frontend > /dev/null 2>&1 || true
+    endscript
+}
+EOF
 
-# 启用自启动
-sudo systemctl enable blog-backend blog-frontend
-
-# 启动服务
-sudo systemctl start blog-backend blog-frontend
-
-# 查看状态
-sudo systemctl status blog-backend blog-frontend
+# 测试配置
+sudo logrotate -d /etc/logrotate.d/blog
 ```
 
-### 4. 数据库性能优化
-
-编辑 `backend/docker-compose.yml` 中的 PostgreSQL 配置：
-
-```yaml
-services:
-  postgres:
-    environment:
-      # 内存配置（根据服务器内存调整）
-      - POSTGRES_SHARED_BUFFERS=256MB
-      - POSTGRES_EFFECTIVE_CACHE_SIZE=2GB
-      - POSTGRES_WORK_MEM=32MB
-      # 连接配置
-      - POSTGRES_MAX_CONNECTIONS=100
-      # WAL 配置
-      - POSTGRES_WAL_BUFFERS=16MB
-      - POSTGRES_CHECKPOINT_COMPLETION_TARGET=0.9
-    command:
-      - "postgres"
-      - "-c shared_buffers=256MB"
-      - "-c effective_cache_size=2GB"
-      - "-c work_mem=32MB"
-      - "-c max_connections=100"
-      - "-c random_page_cost=1.1"
-      - "-c effective_io_concurrency=200"
-```
+**为什么**：
+- **日志轮转**：防止日志文件无限增长占满磁盘
+- **保留14天**：既能排查问题，又不会占用太多空间
+- **压缩旧日志**：节省磁盘空间
+- **postrotate**：轮转后通知应用重新打开日志文件
 
 ---
 
-## 故障排查
+### 阶段二：双服务器高可用部署
 
-### 问题 1：容器无法启动
+**适用场景**：用户 1000-10000、日 PV 1-10万、需要高可用
 
-**症状**：
+#### 为什么要升级到双服务器？
+
+**单服务器的问题**：
+1. **单点故障**：服务器宕机后服务完全不可用
+2. **性能瓶颈**：CPU、内存、磁盘都有限制
+3. **维护困难**：升级时必须停机
+
+**双服务器的优势**：
+1. **高可用**：一台故障，另一台接管
+2. **负载均衡**：两台分担请求，性能翻倍
+3. **零停机维护**：轮流升级，用户无感知
+
+#### 步骤1：准备第二台服务器
+
+**做什么**：
 ```bash
-docker-compose up -d
-# 容器立即退出
+# 在两台服务器上配置SSH密钥互信
+ssh-keygen -t rsa -b 4096
+
+# 将公钥复制到对方服务器
+ssh-copy-id blogadmin@server1-ip
+ssh-copy-id blogadmin@server2-ip
+
+# 测试免密登录
+ssh blogadmin@server1-ip
+ssh blogadmin@server2-ip
 ```
 
-**解决方案**：
+**为什么**：
+- **SSH互信**：服务器之间可以自动同步数据和配置，无需输入密码
+- **自动化**：为后续的数据同步和故障切换做准备
 
+#### 步骤2：配置Keepalived实现虚拟IP
+
+**做什么**：
 ```bash
-# 查看详细日志
-docker-compose logs backend
+# 在两台服务器上安装keepalived
+sudo apt install -y keepalived
 
-# 检查端口占用
-netstat -tulpn | grep -E '3000|3003|5432|6379'
-
-# 检查磁盘空间
-df -h
-
-# 重建容器
-docker-compose down
-docker-compose up -d --force-recreate
-```
-
-### 问题 2：数据库连接失败
-
-**症状**：
-```
-Error: Database connection failed
-```
-
-**解决方案**：
-
-```bash
-# 1. 检查数据库是否运行
-docker-compose ps postgres
-
-# 2. 检查数据库日志
-docker-compose logs postgres
-
-# 3. 测试连接
-docker exec -it blog-postgres psql -U blog_user -d blog_db
-
-# 4. 检查 .env 配置
-cat backend/.env | grep DATABASE_URL
-
-# 5. 重启数据库
-docker-compose restart postgres
-```
-
-### 问题 3：前端无法访问后端
-
-**症状**：
-- 前端页面显示但无法加载数据
-- 浏览器控制台显示 CORS 错误
-
-**解决方案**：
-
-```bash
-# 1. 检查后端是否运行
-curl http://localhost:3000/health
-
-# 2. 检查 CORS 配置
-cat backend/.env | grep CORS_ALLOWED_ORIGINS
-
-# 3. 临时允许所有域名（仅用于测试）
-export CORS_ALLOWED_ORIGINS=*
-docker-compose restart backend
-
-# 4. 检查防火墙
-sudo ufw status
-```
-
-### 问题 4：内存不足
-
-**症状**：
-```
-Cannot allocate memory
-```
-
-**解决方案**：
-
-```bash
-# 1. 检查内存使用
-free -h
-
-# 2. 创建 Swap 文件
-sudo fallocate -l 2G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-
-# 3. 永久启用 Swap
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-
-# 4. 限制 Docker 内存使用
-# 编辑 /etc/docker/daemon.json
-{
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "10m",
-    "max-file": "3"
-  },
-  "max-memory": "2g"
+# 在主服务器（MASTER）上配置
+sudo cat > /etc/keepalived/keepalived.conf << 'EOF'
+vrrp_script check_nginx {
+    script "/usr/bin/systemctl is-active nginx"
+    interval 2
+    weight -20
 }
 
-# 5. 重启 Docker
-sudo systemctl restart docker
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+
+    authentication {
+        auth_type PASS
+        auth_pass your-secret-password
+    }
+
+    virtual_ipaddress {
+        192.168.1.100/24
+    }
+
+    track_script {
+        check_nginx
+    }
+}
+EOF
+
+# 在备用服务器（BACKUP）上配置
+sudo cat > /etc/keepalived/keepalived.conf << 'EOF'
+vrrp_script check_nginx {
+    script "/usr/bin/systemctl is-active nginx"
+    interval 2
+    weight -20
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 51
+    priority 90  # 优先级低于MASTER
+    advert_int 1
+
+    authentication {
+        auth_type PASS
+        auth_pass your-secret-password
+    }
+
+    virtual_ipaddress {
+        192.168.1.100/24
+    }
+
+    track_script {
+        check_nginx
+    }
+}
+EOF
+
+# 启动keepalived
+sudo systemctl start keepalived
+sudo systemctl enable keepalived
+
+# 验证虚拟IP
+ip addr show eth0
 ```
 
-### 问题 5：端口被占用
+**为什么**：
+- **虚拟IP（VIP）**：对外提供一个固定的IP地址，不管哪台服务器在运行
+- **VRRP协议**：两台服务器之间通过心跳检测，主服务器故障时备用服务器自动接管VIP
+- **优先级**：主服务器100，备用90，确保主服务器正常运行时持有VIP
+- **健康检查**：定期检查Nginx是否运行，如果不正常则降低优先级，触发切换
+- **advert_int 1**：每秒发送一次心跳，快速检测故障
 
-**症状**：
-```
-Error: bind: address already in use
-```
+#### 步骤3：配置PostgreSQL主从复制
 
-**解决方案**：
-
+**做什么**：
 ```bash
-# 1. 查找占用端口的进程
-sudo lsof -i :3000
-sudo lsof -i :3003
-sudo lsof -i :5432
+# === 主服务器配置 ===
 
-# 2. 停止占用端口的进程
-sudo kill -9 <PID>
+# 修改postgresql.conf
+sudo cat >> /etc/postgresql/16/main/postgresql.conf << 'EOF'
+wal_level = replica
+max_wal_senders = 3
+wal_keep_size = 1GB
+synchronous_commit = on
+synchronous_standby_names = 'postgres-slave'
+EOF
 
-# 3. 或者修改端口
-# 编辑 backend/.env
-PORT=3001
+# 修改pg_hba.conf允许从服务器连接
+sudo cat >> /etc/postgresql/16/main/pg_hba.conf << 'EOF'
+host    replication     replicator      192.168.1.0/24      scram-sha-256
+EOF
 
-# 编辑 frontend/.env.local
-PORT=3004
+# 重启PostgreSQL
+sudo systemctl restart postgresql
+
+# 创建复制用户
+sudo -u postgres psql << 'EOSQL'
+CREATE USER replicator WITH REPLICATION ENCRYPTED PASSWORD 'replicator-password';
+EOSQL
+
+# === 从服务器配置 ===
+
+# 停止PostgreSQL
+sudo systemctl stop postgresql
+
+# 清空数据目录
+sudo rm -rf /var/lib/postgresql/16/main/*
+
+# 使用pg_basebackup从主服务器同步数据
+sudo -u postgres pg_basebackup \
+    -h 主服务器IP \
+    -D /var/lib/postgresql/16/main \
+    -U replicator \
+    -P \
+    -R
+
+# 启动PostgreSQL
+sudo systemctl start postgresql
+
+# 验证复制状态
+sudo -u postgres psql -x -c "SELECT * FROM pg_stat_replication;"
 ```
+
+**为什么**：
+- **数据冗余**：主从数据库各有完整数据，主数据库故障时可以切换到从数据库
+- **读写分离**：主数据库处理写操作，从数据库处理读操作，提升性能
+- **wal_level = replica**：启用WAL日志，用于数据复制
+- **pg_basebackup**：从主服务器完整复制数据到从服务器
+- **流复制**：主数据库的更改实时传输到从数据库，延迟通常<1秒
+
+#### 步骤4：配置Redis主从复制
+
+**做什么**：
+```bash
+# === 主服务器配置 ===
+
+# 修改redis.conf
+sudo cat >> /etc/redis/redis.conf << 'EOF'
+bind 0.0.0.0
+requirepass your-redis-password
+masterauth your-redis-password
+EOF
+
+# 重启Redis
+sudo systemctl restart redis
+
+# === 从服务器配置 ===
+
+# 修改redis.conf
+sudo cat >> /etc/redis/redis.conf << 'EOF'
+bind 0.0.0.0
+requirepass your-redis-password
+masterauth your-redis-password
+replicaof 主服务器IP 6379
+EOF
+
+# 重启Redis
+sudo systemctl restart redis
+
+# 验证复制状态
+redis-cli -a your-redis-password INFO replication
+```
+
+**为什么**：
+- **Redis复制**：主Redis的写入会同步到从Redis，数据保持一致
+- **Session冗余**：用户登录状态在两台Redis上都有，一台故障不影响用户
+- **读写分离**：应用可以从从Redis读取，减轻主Redis压力
+
+#### 步骤5：配置Nginx负载均衡
+
+**做什么**：
+```bash
+# 在两台服务器的Nginx上配置负载均衡
+
+sudo cat > /etc/nginx/nginx.conf << 'EOF'
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    # 上游服务器组
+    upstream backend_servers {
+        least_conn;
+        server 192.168.1.101:3000 max_fails=3 fail_timeout=30s;
+        server 192.168.1.102:3000 max_fails=3 fail_timeout=30s;
+    }
+
+    upstream frontend_servers {
+        least_conn;
+        server 192.168.1.101:3001 max_fails=3 fail_timeout=30s;
+        server 192.168.1.102:3001 max_fails=3 fail_timeout=30s;
+    }
+
+    # 其他配置...
+}
+EOF
+
+# 修改站点配置使用upstream
+sudo cat > /etc/nginx/sites-available/blog << 'EOF'
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
+
+    # SSL配置...
+
+    location / {
+        proxy_pass http://frontend_servers;
+        # 其他proxy配置...
+    }
+
+    location /api/ {
+        proxy_pass http://backend_servers;
+        # 其他proxy配置...
+    }
+}
+EOF
+
+# 重载Nginx
+sudo systemctl reload nginx
+```
+
+**为什么**：
+- **负载均衡**：请求分发到两台服务器，每台处理一半请求
+- **least_conn**：最少连接算法，将请求发给连接数较少的服务器，避免负载不均
+- **max_fails=3 fail_timeout=30s**：连续失败3次后，30秒内不再转发到该服务器，自动剔除故障节点
+- **高可用**：一台服务器故障时，另一台自动接管所有请求
 
 ---
 
-## 监控和维护
+### 阶段三：小规模集群部署
 
-### 健康检查脚本
+**适用场景**：用户 1万-10万、日 PV 10-100万
 
-创建 `scripts/health-check.sh`:
+#### 为什么要升级到集群？
 
+**双服务器的局限**：
+1. **仍有限制**：只能扩展到2倍性能
+2. **数据库瓶颈**：主从复制中，主数据库仍然承担所有写操作
+3. **扩展复杂**：添加更多服务器需要重新配置
+
+**集群的优势**：
+1. **无限扩展**：可以随时添加更多服务器
+2. **专业组件**：引入专业数据库集群、缓存集群
+3. **弹性伸缩**：根据流量自动调整资源
+
+#### 步骤1：部署PostgreSQL主从集群（1主2从）
+
+**做什么**：
 ```bash
-#!/bin/bash
-# scripts/health-check.sh - 系统健康检查
+# 使用 Patroni 管理PostgreSQL集群
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-NC='\033[0m'
+# 在所有数据库节点上安装
+sudo apt install -y postgresql-16 patroni etcd
 
-echo "================================"
-echo "  系统健康检查"
-echo "================================"
-echo ""
+# 配置Patroni（在节点1）
+sudo cat > /etc/patroni/patroni.yml << 'EOF'
+name: pg-node-1
+scope: pg-cluster
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: 192.168.1.101:8008
+etcd:
+  hosts:
+    - 192.168.1.101:2379
+    - 192.168.1.102:2379
+    - 192.168.1.103:2379
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+  postgresql:
+    use_pg_rewind: true
+    remove_data_directory_on_rewind_failure: true
+    data_dir: /var/lib/postgresql/16/main
+    bin_name: /usr/lib/postgresql/16/bin/postgres
+    config_dir: /etc/postgresql/16/main
+    pg_hba:
+      - host replication replicator 0.0.0.0/0 md5
+      - host all all 0.0.0.0/0 md5
+postgresql:
+  listen: 0.0.0.0:5432
+  connect_address: 192.168.1.101:5432
+  data_dir: /var/lib/postgresql/16/main
+  bin_name: /usr/lib/postgresql/16/bin/postgres
+  config_dir: /etc/postgresql/16/main
+  authentication:
+    replication:
+      username: replicator
+      password: replicator-password
+  parameters:
+    max_connections: 200
+    shared_buffers: 2GB
+    effective_cache_size: 6GB
+    maintenance_work_mem: 512MB
+    checkpoint_completion_target: 0.9
+    wal_buffers: 16MB
+    default_statistics_target: 100
+    random_page_cost: 1.1
+    effective_io_concurrency: 200
+    work_mem: 4MB
+    min_wal_size: 1GB
+    max_wal_size: 4GB
+    max_worker_processes: 4
+    max_parallel_workers_per_gather: 2
+    max_parallel_workers: 4
+tags:
+  nofailover: false
+  noloadbalance: false
+  clonefrom: false
+  nosync: false
+EOF
 
-# 检查容器状态
-echo "→ 容器状态"
-docker-compose ps
-echo ""
+# 启动Patroni（在每个节点上）
+sudo systemctl start patroni
+sudo systemctl enable patroni
 
-# 检查磁盘空间
-echo "→ 磁盘空间"
-df -h | grep -E "Filesystem|/dev/"
-echo ""
-
-# 检查内存使用
-echo "→ 内存使用"
-free -h
-echo ""
-
-# 检查后端健康
-echo "→ 后端健康检查"
-BACKEND_HEALTH=$(curl -s http://localhost:3000/health || echo "failed")
-if [ "$BACKEND_HEALTH" = "OK" ]; then
-    echo -e "  ${GREEN}✓ 后端服务正常${NC}"
-else
-    echo -e "  ${RED}✗ 后端服务异常${NC}"
-fi
-echo ""
-
-# 检查前端访问
-echo "→ 前端访问检查"
-FRONTEND_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3003)
-if [ "$FRONTEND_STATUS" = "200" ]; then
-    echo -e "  ${GREEN}✓ 前端服务正常${NC}"
-else
-    echo -e "  ${RED}✗ 前端服务异常 (HTTP $FRONTEND_STATUS)${NC}"
-fi
-echo ""
-
-# 检查数据库连接
-echo "→ 数据库连接"
-DB_CHECK=$(docker exec blog-postgres pg_isready -U blog_user 2>&1)
-if echo "$DB_CHECK" | grep -q "accepting connections"; then
-    echo -e "  ${GREEN}✓ 数据库正常${NC}"
-else
-    echo -e "  ${RED}✗ 数据库异常${NC}"
-fi
-echo ""
-
-# 检查 Redis
-echo "→ Redis 连接"
-REDIS_CHECK=$(docker exec blog-redis redis-cli ping 2>&1)
-if [ "$REDIS_CHECK" = "PONG" ]; then
-    echo -e "  ${GREEN}✓ Redis 正常${NC}"
-else
-    echo -e "  ${RED}✗ Redis 异常${NC}"
-fi
-echo ""
-
-echo "================================"
-echo "  检查完成"
-echo "================================"
+# 查看集群状态
+sudo patronictl -c /etc/patroni/patroni.yml list pg-cluster
 ```
 
-使用方法：
+**为什么**：
+- **自动故障切换**：主数据库故障时，Patroni自动将从数据库提升为主库，通常在30秒内完成
+- **避免脑裂**：通过etcd进行分布式协调，确保只有一个主数据库
+- **零停机维护**：可以逐个升级节点，不影响服务
+- **配置管理**：统一的配置文件，简化管理
 
+#### 步骤2：部署Redis Sentinel集群
+
+**做什么**：
 ```bash
-chmod +x scripts/health-check.sh
-./scripts/health-check.sh
+# 安装Redis
+sudo apt install -y redis-server
+
+# 配置Redis主节点
+sudo cat > /etc/redis/redis.conf << 'EOF'
+bind 0.0.0.0
+port 6379
+requirepass your-redis-password
+masterauth your-redis-password
+maxmemory 1gb
+maxmemory-policy allkeys-lru
+save 900 1
+save 300 10
+save 60 10000
+appendonly yes
+appendfsync everysec
+EOF
+
+# 配置Redis从节点
+sudo cat > /etc/redis/redis.conf << 'EOF'
+bind 0.0.0.0
+port 6379
+requirepass your-redis-password
+masterauth your-redis-password
+replicaof 主节点IP 6379
+maxmemory 1gb
+maxmemory-policy allkeys-lru
+EOF
+
+# 配置Sentinel（监控和自动故障切换）
+sudo cat > /etc/redis/sentinel.conf << 'EOF'
+port 26379
+sentinel monitor mymaster 主节点IP 6379 2
+sentinel auth-pass mymaster your-redis-password
+sentinel down-after-milliseconds mymaster 5000
+sentinel parallel-syncs mymaster 1
+sentinel failover-timeout mymaster 10000
+sentinel deny-scripts-reconfig yes
+EOF
+
+# 启动服务
+sudo systemctl start redis-server
+sudo systemctl start redis-sentinel
+sudo systemctl enable redis-server
+sudo systemctl enable redis-sentinel
+
+# 查看Sentinel状态
+redis-cli -p 26379 INFO sentinel
 ```
 
-### 自动备份设置
+**为什么**：
+- **自动故障切换**：主Redis故障时，Sentinel自动选举新的主节点
+- **高可用**：即使主节点故障，服务也能在几秒内恢复
+- **读写分离**：应用可以连接从节点读取数据，提升性能
+- **maxmemory-policy**：内存满时自动淘汰最少使用的key，避免OOM
 
-创建定时任务（每天凌晨 2 点自动备份）：
+#### 步骤3：部署应用服务器集群
 
+**做什么**：
 ```bash
-# 编辑 crontab
-crontab -e
+# 在多台应用服务器上部署后端
+# 使用 Docker Swarm 或 Kubernetes
 
-# 添加以下行
-0 2 * * * /home/deploy/blog/scripts/backup.sh >> /home/deploy/blog/backup.log 2>&1
-```
+# === 方案A：Docker Swarm（简单场景）===
 
-### 日志管理
+# 初始化Swarm集群
+docker swarm init --advertise-addr 192.168.1.101
 
-创建日志清理脚本 `scripts/clean-logs.sh`:
+# 添加工作节点
+# 在其他服务器上执行
+docker swarm join --token TOKEN 192.168.1.101:2377
 
-```bash
-#!/bin/bash
-# scripts/clean-logs.sh - 清理旧日志
-
-echo "→ 清理 Docker 日志..."
-docker system prune -af
-
-echo "→ 清理应用日志..."
-find ~/blog/logs -name "*.log" -mtime +30 -delete
-
-echo "→ 清理系统日志（保留最近 7 天）"
-sudo journalctl --vacuum-time=7d
-
-echo "  ✓ 日志清理完成"
-```
-
----
-
-## 快速切换服务器完整流程
-
-### 流程图
-
-```
-旧服务器                        新服务器
-    |                              |
-    |-- 1. 备份数据                |
-    |                              |
-    |-- 2. 下载备份                |-- 1. 准备环境
-    |                              |
-    |                              |-- 2. 部署应用
-    |                              |-- 3. 恢复数据
-    |                              |-- 4. 更新 DNS
-    |                              |
-    |-- 3. 更新 DNS ----------------→ 5. 验证服务
-    |                              |
-    |-- 4. 关闭服务                |
-```
-
-### 详细步骤
-
-#### 第 1 步：在旧服务器上备份
-
-```bash
-# SSH 到旧服务器
-ssh deploy@old-server.com
-
-# 进入项目目录
-cd ~/zhengbi-yong.github.io
-
-# 执行备份
-chmod +x scripts/backup.sh
-./scripts/backup.sh
-
-# 记录备份日期（用于恢复）
-ls -lt ~/backups/
-```
-
-#### 第 2 步：准备新服务器
-
-```bash
-# SSH 到新服务器
-ssh root@new-server.com
-
-# 安装 Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sh get-docker.sh
-
-# 创建部署用户
-useradd -m -s /bin/bash deploy
-usermod -aG docker deploy
-
-# 切换到 deploy 用户
-su - deploy
-
-# 下载项目
-git clone https://github.com/your-username/zhengbi-yong.github.io.git
-cd zhengbi-yong.github.io
-
-# 配置环境变量
-cp backend/.env.example backend/.env
-nano backend/.env  # 编辑配置
-```
-
-#### 第 3 步：部署到新服务器
-
-```bash
-# 执行一键部署
-chmod +x scripts/deploy.sh
-./scripts/deploy.sh
-
-# 验证部署
-./scripts/health-check.sh
-```
-
-#### 第 4 步：迁移数据
-
-```bash
-# 在本地机器上执行
-scp deploy@old-server:~/zhengbi-yong.github.io/backups/* ./backup/
-
-# 上传到新服务器
-scp ./backup/* deploy@new-server:~/backups/
-
-# 在新服务器上恢复
-cd ~/zhengbi-yong.github.io
-./scripts/restore.sh 20251226_120000
-
-# 重启服务
-docker-compose restart
-```
-
-#### 第 5 步：切换 DNS
-
-```bash
-# 在域名提供商处更新 DNS 记录
-# 将 A 记录从旧服务器 IP 改为新服务器 IP
-
-# 验证 DNS 解析
-dig yourdomain.com
-```
-
-#### 第 6 步：验证服务
-
-```bash
-# 检查网站访问
-curl https://yourdomain.com
-
-# 测试登录
-curl -X POST https://yourdomain.com/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"demo2024@test.com","password":"demo123456"}'
-
-# 检查管理后台
-curl https://yourdomain.com/admin
-```
-
-#### 第 7 步：关闭旧服务器（可选）
-
-```bash
-# 等待 1-2 天确保新服务器稳定后
-
-# 停止旧服务
-cd ~/zhengbi-yong.github.io
-docker-compose down
-
-# 或保留旧服务器作为备份
-```
-
----
-
-## 域名和 DNS 配置
-
-### 配置 DNS 记录
-
-在你的域名提供商处添加以下记录：
-
-```
-A 记录：
-  @        A    123.45.67.89      (主域名)
-  www      A    123.45.67.89      (www 子域名)
-
-CNAME 记录（可选）：
-  blog    CNAME  @              (blog.yourdomain.com)
-
-AAAA 记录（IPv6，可选）：
-  @        AAAA 2001:db8::1      (IPv6 地址)
-```
-
-### 配置子域名
-
-可以为不同服务配置子域名：
-
-```
-blog.yourdomain.com          → 前端 (3003)
-api.blog.yourdomain.com      → 后端 (3000)
-admin.blog.yourdomain.com    → 管理后台 (3003)
-```
-
----
-
-## 成本优化
-
-### 服务器选择建议
-
-根据流量选择合适的服务器配置：
-
-| 月 PV | 推荐配置 | 预计成本 |
-|-------|---------|---------|
-| < 10K | 2核 2GB | $5-10/月 |
-| 10K-50K | 2核 4GB | $10-20/月 |
-| 50K-100K | 4核 8GB | $20-40/月 |
-| 100K-500K | 4核 16GB | $40-80/月 |
-
-### 优化建议
-
-1. **使用 CDN**
-   - 静态资源托管到 CDN
-   - 减少服务器带宽压力
-   - 提高访问速度
-
-2. **数据库优化**
-   - 定期清理无用数据
-   - 优化慢查询
-   - 配置数据库连接池
-
-3. **缓存策略**
-   - 启用 Redis 缓存
-   - 配置合适的过期时间
-   - 缓存静态资源
-
-4. **自动扩容**
-   - 监控资源使用
-   - 设置告警阈值
-   - 必要时升级配置
-
----
-
-## 安全建议
-
-### 1. 系统安全
-
-```bash
-# 禁用 root SSH 登录
-sudo sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
-
-# 只允许密钥登录
-sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-
-# 重启 SSH
-sudo systemctl restart sshd
-
-# 安装 fail2ban
-sudo apt-get install fail2ban
-sudo systemctl enable fail2ban
-sudo systemctl start fail2ban
-```
-
-### 2. 应用安全
-
-```bash
-# 定期更新依赖
-cd ~/zhengbi-yong.github.io/backend
-cargo update
-
-cd frontend
-pnpm update
-
-# 检查安全漏洞
-cargo audit
-pnpm audit
-```
-
-### 3. 数据备份
-
-```bash
-# 自动备份（每天）
-0 2 * * * ~/blog/scripts/backup.sh
-
-# 异地备份（每周）
-0 3 * * 0 rsync -avz ~/backups/ user@backup-server:/backups/
-```
-
----
-
-## 应急预案
-
-### 场景 1：服务器宕机
-
-**解决方案**：
-
-1. 使用备用服务器
-2. 恢复最新备份
-3. 更新 DNS 指向备用服务器
-
-### 场景 2：数据库损坏
-
-**解决方案**：
-
-1. 停止写入操作
-2. 从最近的备份恢复
-3. 重放 WAL 日志（PostgreSQL）
-
-### 场景 3：被黑客攻击
-
-**解决方案**：
-
-1. 立即隔离服务器
-2. 分析入侵日志
-3. 修补安全漏洞
-4. 从干净的备份恢复
-
----
-
-## 联系支持
-
-如果遇到部署问题，可以：
-
-1. 查看本文档的故障排查章节
-2. 查看项目 Issues
-3. 查看数据库文档 `docs/database.md`
-4. 查看功能文档 `docs/function.md`
-
----
-
-## 附录
-
-### 完整的 docker-compose.yml 示例
-
-```yaml
+# 部署应用栈
+cat > docker-compose.yml << 'EOF'
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:14-alpine
-    container_name: blog-postgres
+  api:
+    image: your-registry/blog-api:latest
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     environment:
-      POSTGRES_USER: blog_user
-      POSTGRES_PASSWORD: blog_password
-      POSTGRES_DB: blog_db
-      POSTGRES_SHARED_BUFFERS: 256MB
-      POSTGRES_EFFECTIVE_CACHE_SIZE: 2GB
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U blog_user"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: blog-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: blog-backend
-    environment:
-      DATABASE_URL: postgresql://blog_user:blog_password@postgres:5432/blog_db
-      REDIS_URL: redis://redis:6379
-    ports:
-      - "3000:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    volumes:
-      - ./backend:/app
-    command: ./target/release/api
+      - DATABASE_URL=postgresql://user:pass@pg-cluster:5432/blog_db
+      - REDIS_URL=redis://redis-cluster:6379
+    networks:
+      - app-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: blog-frontend
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3000/v1
-    ports:
-      - "3003:3000"
-    depends_on:
-      - backend
-    restart: unless-stopped
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+    image: your-registry/blog-frontend:latest
+    deploy:
+      replicas: 3
+    networks:
+      - app-network
 
-volumes:
-  postgres_data:
-  redis_data:
+networks:
+  app-network:
+    driver: overlay
+EOF
+
+# 部署栈
+docker stack deploy -c docker-compose.yml blog
+
+# 查看服务状态
+docker service ls
+docker service ps blog_api
 ```
 
-### 生产环境 Dockerfile
+**为什么**：
+- **多副本**：3个API实例，一个故障其他继续服务
+- **负载均衡**：自动在副本间分配请求
+- **滚动更新**：更新时逐个替换副本，不影响服务
+- **资源限制**：防止单个容器占用过多资源
+- **健康检查**：自动重启不健康的容器
 
-后端 `Dockerfile`:
+---
 
-```dockerfile
-FROM rust:1.75 as builder
+## 第二部分：维护教程
 
-WORKDIR /app
+### 日常检查
 
-COPY Cargo.toml Cargo.lock ./
-COPY src ./src
-COPY migrations ./migrations
+#### 每日检查任务
 
-RUN cargo build --release
+**做什么**：
+```bash
+# 创建每日检查脚本
+cat > ~/scripts/daily-check.sh << 'EOF'
+#!/bin/bash
 
-FROM debian:bookworm-slim
+echo "=== 每日健康检查 $(date) ==="
 
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    libssl3 \
-    && rm -rf /var/lib/apt/lists/*
+# 1. 检查服务状态
+echo "### 服务状态 ###"
+systemctl is-active blog-backend && echo "✓ 后端运行正常" || echo "✗ 后端停止"
+systemctl is-active blog-frontend && echo "✓ 前端运行正常" || echo "✗ 前端停止"
+systemctl is-active nginx && echo "✓ Nginx运行正常" || echo "✗ Nginx停止"
+systemctl is-active docker && echo "✓ Docker运行正常" || echo "✗ Docker停止"
 
-WORKDIR /app
+# 2. 检查端口监听
+echo -e "\n### 端口监听 ###"
+netstat -tlnp | grep :3000 > /dev/null && echo "✓ 后端端口3000正常" || echo "✗ 后端端口未监听"
+netstat -tlnp | grep :3001 > /dev/null && echo "✓ 前端端口3001正常" || echo "✗ 前端端口未监听"
+netstat -tlnp | grep :80 > /dev/null && echo "✓ HTTP端口80正常" || echo "✗ HTTP端口未监听"
+netstat -tlnp | grep :443 > /dev/null && echo "✓ HTTPS端口443正常" || echo "✗ HTTPS端口未监听"
 
-COPY --from=builder /app/target/release/api /app/api
-COPY --from=builder /app/migrations /app/migrations
+# 3. 检查数据库
+echo -e "\n### 数据库状态 ###"
+docker exec blog-postgres pg_isready -U blog_user && echo "✓ PostgreSQL运行正常" || echo "✗ PostgreSQL停止"
+docker exec blog-redis redis-cli ping | grep -q PONG && echo "✓ Redis运行正常" || echo "✗ Redis停止"
 
-EXPOSE 3000
+# 4. 检查磁盘空间
+echo -e "\n### 磁盘空间 ###"
+DISK_USAGE=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
+if [ $DISK_USAGE -lt 70 ]; then
+    echo "✓ 磁盘使用率: ${DISK_USAGE}%"
+elif [ $DISK_USAGE -lt 85 ]; then
+    echo "⚠ 磁盘使用率: ${DISK_USAGE}% (需要注意)"
+else
+    echo "✗ 磁盘使用率: ${DISK_USAGE}% (需要清理)"
+fi
 
-CMD ["./api"]
+# 5. 检查内存使用
+echo -e "\n### 内存使用 ###"
+MEM_USAGE=$(free | grep Mem | awk '{printf "%.0f", $3/$2 * 100.0}')
+if [ $MEM_USAGE -lt 70 ]; then
+    echo "✓ 内存使用率: ${MEM_USAGE}%"
+elif [ $MEM_USAGE -lt 90 ]; then
+    echo "⚠ 内存使用率: ${MEM_USAGE}% (需要注意)"
+else
+    echo "✗ 内存使用率: ${MEM_USAGE}% (需要优化)"
+fi
+
+# 6. 检查SSL证书
+echo -e "\n### SSL证书 ###"
+CERT_DAYS=$(echo | openssl s_client -connect localhost:443 2>/dev/null | openssl x509 -noout -dates | grep notAfter | cut -d= -f2)
+CERT_EPOCH=$(date -d "$CERT_DAYS" +%s)
+CURRENT_EPOCH=$(date +%s)
+DAYS_LEFT=$(( ($CERT_EPOCH - $CURRENT_EPOCH) / 86400 ))
+
+if [ $DAYS_LEFT -gt 30 ]; then
+    echo "✓ SSL证书有效期: ${DAYS_LEFT}天"
+else
+    echo "✗ SSL证书即将过期: ${DAYS_LEFT}天 (需要更新)"
+fi
+
+# 7. API健康检查
+echo -e "\n### API健康检查 ###"
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/health)
+if [ "$HTTP_CODE" = "200" ]; then
+    echo "✓ 后端API正常"
+else
+    echo "✗ 后端API异常 (HTTP $HTTP_CODE)"
+fi
+
+# 8. 检查最近的错误日志
+echo -e "\n### 最近的错误 ###"
+echo "后端错误（最近10条）:"
+journalctl -u blog-backend --since "1 hour ago" --no-pager | grep -i error | tail -5
+
+echo "前端错误（最近10条）:"
+journalctl -u blog-frontend --since "1 hour ago" --no-pager | grep -i error | tail -5
+
+echo -e "\n=== 检查完成 ==="
+EOF
+
+chmod +x ~/scripts/daily-check.sh
+
+# 添加到定时任务（每天早上9点执行）
+crontab -e
+# 添加这行
+0 9 * * * /home/blogadmin/scripts/daily-check.sh >> /var/log/daily-check.log 2>&1
 ```
 
-前端 `Dockerfile`:
+**为什么**：
+- **主动发现**：在用户报告之前发现问题
+- **快速响应**：每天检查，及时处理异常
+- **趋势分析**：通过日志了解系统使用趋势
+- **预防性维护**：在问题严重化之前解决
 
-```dockerfile
-FROM node:20-alpine AS builder
+---
 
-WORKDIR /app
+### 数据备份
 
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+#### 为什么备份至关重要？
 
-FROM node:20-alpine
+**没有备份的后果**：
+1. **数据丢失**：硬件故障、误删操作、勒索软件都可能导致数据永久丢失
+2. **业务停摆**：没有数据无法提供服务，损失收入和声誉
+3. **法律风险**：用户数据丢失可能违反隐私保护法规
 
-WORKDIR /app
+**备份的价值**：
+1. **灾难恢复**：快速恢复业务，减少停机时间
+2. **数据归档**：保留历史数据，用于审计和分析
+3. **测试环境**：使用真实数据测试新功能
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/node_modules ./node_modules
+#### 自动备份脚本
 
-EXPOSE 3000
+**做什么**：
+```bash
+cat > ~/scripts/backup.sh << 'EOF'
+#!/bin/bash
+set -e
 
-CMD ["node", "server.js"]
+BACKUP_DIR="/home/blogadmin/backups"
+DATE=$(date +%Y%m%d_%H%M%S)
+RETENTION_DAYS=30
+
+mkdir -p $BACKUP_DIR
+
+echo "=== 开始备份 $DATE ==="
+
+# 1. 备份PostgreSQL
+echo "备份PostgreSQL..."
+docker exec blog-postgres pg_dump -U blog_user -d blog_db \
+  --clean --if-exists \
+  --format=plain \
+  --no-owner \
+  --no-acl \
+  > $BACKUP_DIR/postgres_$DATE.sql
+
+# 压缩SQL备份
+gzip $BACKUP_DIR/postgres_$DATE.sql
+
+# 2. 备份Redis
+echo "备份Redis..."
+docker exec blog-redis redis-cli SAVE
+docker cp blog-redis:/data/dump.rdb $BACKUP_DIR/redis_$DATE.rdb
+gzip $BACKUP_DIR/redis_$DATE.rdb
+
+# 3. 备份上传文件
+echo "备份上传文件..."
+tar czf $BACKUP_DIR/uploads_$DATE.tar.gz /home/blogadmin/blog-system/frontend/public/uploads/
+
+# 4. 备份配置文件
+echo "备份配置文件..."
+tar czf $BACKUP_DIR/config_$DATE.tar.gz \
+  /home/blogadmin/blog-system/backend/.env \
+  /home/blogadmin/blog-system/frontend/.env.production \
+  /etc/nginx/sites-available/blog \
+  /etc/systemd/system/blog-*.service
+
+# 5. 计算校验和
+echo "计算校验和..."
+sha256sum $BACKUP_DIR/*_$DATE.* > $BACKUP_DIR/checksums_$DATE.txt
+
+# 6. 清理旧备份
+echo "清理${RETENTION_DAYS}天前的备份..."
+find $BACKUP_DIR -name "*_$(date -d "$RETENTION_DAYS days ago" +%Y%m%d)*" -delete
+
+# 7. 检查备份大小
+echo -e "\n备份文件大小:"
+ls -lh $BACKUP_DIR/*_$DATE.*
+
+# 8. 测试备份完整性
+echo -e "\n测试备份完整性..."
+sha256sum -c $BACKUP_DIR/checksums_$DATE.txt
+
+echo -e "\n=== 备份完成 ==="
+echo "备份位置: $BACKUP_DIR"
+echo "备份大小: $(du -sh $BACKUP_DIR/*_$DATE.* | awk '{s+=$1} END {print s}' | numfmt --to=iec)"
+
+# 9. 可选：上传到云存储
+if [ -n "$S3_BUCKET" ]; then
+    echo "上传到S3..."
+    aws s3 sync $BACKUP_DIR s3://$S3_BUCKET/blog-backups/ \
+      --storage-class STANDARD_IA \
+      --exclude "*" \
+      --include "*_$DATE.*"
+    echo "已上传到S3"
+fi
+EOF
+
+chmod +x ~/scripts/backup.sh
+
+# 添加到定时任务（每天凌晨2点）
+crontab -e
+# 添加这行
+0 2 * * * /home/blogadmin/scripts/backup.sh >> /var/log/backup.log 2>&1
+```
+
+**为什么**：
+- **自动执行**：每天凌晨2点自动备份，避免人工遗漏
+- **多份备份**：数据库、缓存、文件、配置都备份
+- **压缩存储**：gzip压缩节省90%空间
+- **校验和**：SHA256验证备份完整性
+- **清理旧备份**：保留30天，平衡存储成本和数据安全
+- **云存储**：异地备份，防止机房故障
+
+---
+
+## 第三部分：常见场景
+
+### 场景1：流量突增应对
+
+**现象**：
+- 网站响应变慢
+- 服务器负载飙升
+- 部分请求超时
+
+**临时应对**：
+```bash
+# 1. 检查当前负载
+top
+htop
+
+# 2. 启用缓存（如果还没启用）
+# 在Nginx中启用快速缓存
+location /api/v1/posts {
+    proxy_cache api_cache;
+    proxy_cache_valid 200 1m;
+    proxy_cache_key "$scheme$request_method$host$request_uri";
+}
+
+# 3. 临时扩容
+# 增加应用实例
+docker compose up -d --scale api=3
+
+# 4. 降级非核心功能
+# 例如：暂停推荐算法、实时统计
+# 在应用配置中设置
+FEATURE_RECOMMENDATIONS=false
+FEATURE_REALTIME_STATS=false
+```
+
+**长期优化**：
+- 部署CDN
+- 实施读写分离
+- 增加服务器
+- 优化数据库查询
+
+### 场景2：数据库锁死
+
+**现象**：
+- 所有请求超时
+- 数据库CPU 100%
+- 查询无法执行
+
+**紧急处理**：
+```bash
+# 1. 找到阻塞进程
+docker exec blog-postgres psql -U blog_user -d blog_db << 'EOSQL'
+SELECT
+    pid,
+    usename,
+    application_name,
+    client_addr,
+    state,
+    query_start,
+    state_change,
+    waiting_event_type,
+    query
+FROM pg_stat_activity
+WHERE state != 'idle'
+ORDER BY query_start;
+EOSQL
+
+# 2. 杀死长时间运行的查询
+docker exec blog-postgres psql -U blog_user -d blog_db << 'EOSQL'
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE state = 'active'
+AND query_start < NOW() - INTERVAL '10 minutes';
+EOSQL
+
+# 3. 重启PostgreSQL（最后手段）
+docker restart blog-postgres
 ```
 
 ---
 
-**最后更新**: 2025-12-26
-**维护者**: Your Name
+## 第四部分：多项目管理
+
+### 使用同一套代码管理多个项目
+
+本文档详细说明如何使用同一套代码管理多个项目（如公司主页 + 个人主页）。
+
+#### 架构设计
+
+**整体架构**：
+```
+服务器 (123.56.78.90)
+│
+├── 共享代码库 (/opt/blog-system)
+│   ├── backend/          # 共享后端代码
+│   │   └── target/release/api  # 一个二进制文件
+│   ├── frontend/         # 共享前端代码
+│   │   ├── .next/        # 构建产物
+│   │   └── config/       # 不同项目的配置
+│   └── scripts/          # 共享脚本
+│
+├── Docker容器
+│   ├── company-postgres  (端口5432)  # 公司数据库
+│   ├── company-redis     (端口6379)  # 公司缓存
+│   ├── personal-postgres (端口5433)  # 个人数据库
+│   └── personal-redis    (端口6380)  # 个人缓存
+│
+├── 服务实例
+│   ├── company-backend   (端口3000)  # 公司后端
+│   ├── company-frontend  (端口3001)  # 公司前端
+│   ├── personal-backend  (端口3002)  # 个人后端
+│   └── personal-frontend (端口3003)  # 个人前端
+│
+└── Nginx反向代理
+    ├── company.com       → company-frontend
+    ├── blog.company.com  → company-backend
+    ├── personal.com      → personal-frontend
+    └── api.personal.com  → personal-backend
+```
+
+**关键设计原则**：
+1. **代码共享**：所有项目使用相同的后端和前端代码
+2. **数据隔离**：每个项目有独立的数据库和Redis实例
+3. **配置分离**：每个项目有独立的环境变量和配置文件
+4. **独立部署**：每个项目作为独立的systemd服务运行
+5. **统一维护**：代码更新时，所有项目同时升级
+
+#### 环境变量配置
+
+**公司项目配置**：
+```bash
+# 数据库配置
+DATABASE_URL=postgresql://company_user:company_password@localhost:5432/company_db
+POSTGRES_USER=company_user
+POSTGRES_PASSWORD=company_password_change_this
+POSTGRES_DB=company_db
+
+# Redis配置
+REDIS_URL=redis://localhost:6379
+
+# 安全配置（使用不同的密钥！）
+JWT_SECRET=company-jwt-secret-key-32-chars-minimum
+SESSION_SECRET=company-session-secret-24-chars
+PASSWORD_PEPPER=company-password-pepper-16-chars
+
+# 项目标识
+PROJECT_NAME=company
+PROJECT_ID=company
+
+# CORS配置（公司域名）
+CORS_ALLOWED_ORIGINS=https://www.company.com,https://company.com
+
+# 服务器配置
+HOST=0.0.0.0
+PORT=3000
+ENVIRONMENT=production
+```
+
+**个人项目配置**：
+```bash
+# 数据库配置
+DATABASE_URL=postgresql://personal_user:personal_password@localhost:5433/personal_db
+POSTGRES_USER=personal_user
+POSTGRES_PASSWORD=personal_password_change_this
+POSTGRES_DB=personal_db
+
+# Redis配置
+REDIS_URL=redis://localhost:6380
+
+# 安全配置（不同的密钥！）
+JWT_SECRET=personal-jwt-secret-key-32-chars-minimum
+SESSION_SECRET=personal-session-secret-24-chars
+PASSWORD_PEPPER=personal-password-pepper-16-chars
+
+# 项目标识
+PROJECT_NAME=personal
+PROJECT_ID=personal
+
+# CORS配置（个人域名）
+CORS_ALLOWED_ORIGINS=https://blog.personal.com,https://personal.com
+
+# 服务器配置
+HOST=0.0.0.0
+PORT=3002
+ENVIRONMENT=production
+```
+
+---
+
+## 第五部分：服务器切换
+
+本节说明如何在新服务器上部署应用，并实现零停机迁移。
+
+### 迁移步骤
+
+#### 1. 准备新服务器
+
+**在新服务器上**：
+```bash
+# 更新系统
+sudo apt update && sudo apt upgrade -y
+
+# 安装 Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# 安装基础工具
+sudo apt install -y git nginx certbot python3-certbot-nginx
+
+# 克隆代码
+git clone https://github.com/yourusername/your-repo.git ~/blog-system
+cd ~/blog-system
+```
+
+#### 2. 启动数据库
+
+```bash
+# 复制数据库配置
+cp backend/docker-compose.yml.example backend/docker-compose.yml
+# 编辑密码等配置
+
+# 启动数据库
+docker compose up -d
+
+# 等待数据库启动
+sleep 10
+
+# 验证
+docker ps
+```
+
+#### 3. 迁移数据
+
+**在旧服务器上**：
+```bash
+# 备份数据库
+docker exec blog-postgres pg_dump -U blog_user blog_db > backup.sql
+
+# 备份 Redis
+docker exec blog-redis redis-cli SAVE
+docker cp blog-redis:/data/dump.rdb redis_backup.rdb
+
+# 传输到新服务器
+scp backup.sql blogadmin@new-server-ip:~/blog-system/
+scp redis_backup.rdb blogadmin@new-server-ip:~/blog-system/
+```
+
+**在新服务器上**：
+```bash
+# 恢复数据库
+docker exec -i blog-postgres psql -U blog_user blog_db < backup.sql
+
+# 恢复 Redis
+docker cp redis_backup.rdb blog-redis:/data/dump.rdb
+docker restart blog-redis
+```
+
+#### 4. 部署应用
+
+**在新服务器上**：
+```bash
+# 配置环境变量
+cat > backend/.env << 'EOF'
+DATABASE_URL=postgresql://blog_user:your_password@localhost:5432/blog_db
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=$(openssl rand -base64 32)
+SESSION_SECRET=$(openssl rand -base64 24)
+PASSWORD_PEPPER=$(openssl rand -base64 16)
+HOST=0.0.0.0
+PORT=3000
+ENVIRONMENT=production
+EOF
+
+# 构建后端
+cd backend
+cargo build --release --bin api
+
+# 创建 systemd 服务
+sudo cat > /etc/systemd/system/blog-backend.service << 'EOF'
+[Unit]
+Description=Blog Backend API
+After=network.target docker-compose.service
+
+[Service]
+Type=simple
+User=blogadmin
+WorkingDirectory=/home/blogadmin/blog-system/backend
+Environment="RUST_LOG=info"
+EnvironmentFile=/home/blogadmin/blog-system/backend/.env
+ExecStart=/home/blogadmin/blog-system/backend/target/release/api
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 启动服务
+sudo systemctl daemon-reload
+sudo systemctl start blog-backend
+sudo systemctl enable blog-backend
+```
+
+**部署前端**（类似步骤）...
+
+#### 5. 配置 Nginx 和 SSL
+
+```bash
+# 配置 Nginx（同上）
+
+# 申请 SSL 证书
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
+
+#### 6. 切换 DNS
+
+1. **在旧服务器上运行**：保持服务运行
+2. **修改 DNS 记录**：将域名 A 记录指向新服务器 IP
+3. **等待 DNS 传播**：通常 10-60 分钟
+4. **验证新服务器**：通过域名访问，确认正常
+5. **停止旧服务器**：确认无流量后关闭
+
+#### 7. 监控和验证
+
+```bash
+# 检查服务状态
+sudo systemctl status blog-backend blog-frontend
+
+# 查看日志
+journalctl -u blog-backend -f
+
+# 测试 API
+curl http://localhost:3000/health
+```
+
+### 快速回滚
+
+如果新服务器有问题，快速回滚：
+
+```bash
+# 1. 修改 DNS 指回旧服务器 IP
+
+# 2. 在新服务器上停止服务
+sudo systemctl stop blog-backend blog-frontend
+
+# 3. 在旧服务器上确认服务运行
+sudo systemctl start blog-backend blog-frontend
+```
+
+---
+
+## 总结
+
+### 部署核心理念
+
+1. **自动化优于手动**：一切可自动化的都应该自动化
+2. **监控优于报警**：主动发现问题
+3. **备份优于后悔**：没有备份就不要上线
+4. **渐进优于激进**：分阶段升级，快速回滚
+5. **文档优于记忆**：记录所有操作和决策
+
+### 维护核心原则
+
+1. **预防胜于治疗**：定期检查，提前发现
+2. **小步快跑**：频繁小更新，避免大爆炸
+3. **故障演练**：平时多流汗，战时少流血
+4. **持续改进**：每次故障都是优化机会
+5. **文档同步**：更新代码的同时更新文档
+
+### 快速参考
+
+| 场景 | 命令 |
+|------|------|
+| 查看服务状态 | `sudo systemctl status blog-backend` |
+| 查看实时日志 | `journalctl -u blog-backend -f` |
+| 重启服务 | `sudo systemctl restart blog-backend` |
+| 查看容器状态 | `docker ps` |
+| 进入容器 | `docker exec -it container-name bash` |
+| 数据库连接 | `docker exec -it blog-postgres psql -U blog_user -d blog_db` |
+| 备份数据库 | `./scripts/backup.sh` |
+| 诊断问题 | `./scripts/diagnose.sh` |
+
+记住：**运维的核心不是解决问题，而是预防问题**。良好的监控、备份和自动化流程比任何故障处理技巧都重要。
+
+---
+
+**文档版本**：v2.0
+**最后更新**：2025-12-26
+**维护者**：开发团队

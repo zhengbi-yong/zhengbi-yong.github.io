@@ -105,7 +105,7 @@ export interface CommentAdminItem {
   created_at: string
 }
 
-export interface CommentListResponse {
+export interface CommentAdminListResponse {
   comments: CommentAdminItem[]
   total: number
   page: number

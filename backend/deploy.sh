@@ -24,7 +24,7 @@ DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
 REDIS_URL=redis://localhost:6379
 
 # JWT Configuration
-JWT_SECRET=dev-secret-key-for-testing-only
+JWT_SECRET=dev-secret-key-for-testing-only-x
 
 # Server Configuration
 HOST=127.0.0.1
