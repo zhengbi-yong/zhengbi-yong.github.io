@@ -4,63 +4,88 @@
  */
 
 import { DataProvider } from '@refinedev/core'
-import { api } from '@/lib/api/apiClient'
+import axios from 'axios'
 
 const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/v1'
 
+// 创建自定义的 axios 实例，添加拦截器来处理认证
+const customAxios = axios.create({
+  baseURL: BACKEND_API_URL,
+})
+
+// 辅助函数：创建符合 Refine HttpError 接口的错误对象
+const createHttpError = (
+  statusCode: number,
+  message: string,
+  errors?: any
+): { message: string; statusCode: number; errors?: any } => {
+  const error: any = new Error(message)
+  error.statusCode = statusCode
+  if (errors) {
+    error.errors = errors
+  }
+  return error
+}
+
+// 请求拦截器 - 添加 Authorization header
+customAxios.interceptors.request.use(
+  (config: any) => {
+    // 从 localStorage 获取 token
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error: any) => {
+    return Promise.reject(error)
+  }
+)
+
+// 创建 dataProvider 对象
 export const dataProvider: DataProvider = {
   getList: async ({ resource, pagination, filters, sorters, meta }) => {
-    // 特殊处理 admin/stats - 返回单个对象而不是列表
+    // 特殊处理 admin/stats
     if (resource === 'admin/stats') {
-      try {
-        const response = await api.get(`${BACKEND_API_URL}/admin/stats`, { cache: false })
-        return {
-          data: [response.data], // 包装成数组以符合列表格式
-          total: 1,
-        }
-      } catch (error: any) {
-        throw new Error(error?.message || 'Failed to fetch stats')
+      const response = await customAxios.get(`/admin/stats`)
+      return {
+        data: [response.data],
+        total: 1,
       }
     }
 
     const { current = 1, pageSize = 10 } = pagination ?? {}
-    
-    // 构建查询参数
-    const params = new URLSearchParams()
-    params.append('page', current.toString())
-    params.append('page_size', pageSize.toString())
-    
+
+    const params: any = {}
+    params.page = current
+    params.page_size = pageSize
+
     // 处理筛选
     if (filters && filters.length > 0) {
       filters.forEach((filter) => {
         if ('field' in filter && 'value' in filter && filter.value !== undefined && filter.value !== null) {
-          // 对于 status 筛选，直接添加到查询参数
           if (filter.field === 'status') {
-            params.append('status', String(filter.value))
+            params.status = String(filter.value)
           } else {
-            params.append(filter.field, String(filter.value))
+            params[filter.field] = String(filter.value)
           }
         }
       })
     }
-    
+
     // 处理排序
     if (sorters && sorters.length > 0) {
       const sorter = sorters[0]
       if (sorter.order) {
-        params.append('sort', sorter.order === 'asc' ? sorter.field : `-${sorter.field}`)
+        params.sort = sorter.order === 'asc' ? sorter.field : `-${sorter.field}`
       }
     }
-    
-    // 构建 URL - 资源名称直接作为路径（如 admin/users -> /admin/users）
-    let url = `${BACKEND_API_URL}/${resource}`
-    if (params.toString()) {
-      url += `?${params.toString()}`
-    }
-    
+
     try {
-      const response = await api.get<{ data?: any[]; users?: any[]; comments?: any[]; total: number }>(url, { cache: false })
-      
+      console.log('[DataProvider] getList called:', { resource, pagination: { current, pageSize }})
+      const response = await customAxios.get(`/${resource}`, { params })
+      console.log('[DataProvider] Response status:', response.status)
+
       // 处理不同的响应格式
       let data: any[] = []
       if (response.data.data) {
@@ -69,38 +94,57 @@ export const dataProvider: DataProvider = {
         data = response.data.users
       } else if (response.data.comments) {
         data = response.data.comments
+      } else if (response.data.posts) {
+        data = response.data.posts
       } else if (Array.isArray(response.data)) {
         data = response.data
       }
-      
-      return {
+
+      const result = {
         data,
         total: response.data.total || data.length,
       }
+
+      console.log('[DataProvider] Returning:', { dataCount: data.length, total: result.total })
+
+      return result
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to fetch list')
+      console.error('[DataProvider] Error:', error)
+      throw createHttpError(
+        error?.response?.status || 500,
+        error?.response?.statusText || 'Unknown Error',
+        error?.response?.data
+      )
     }
   },
 
   getOne: async ({ resource, id, meta }) => {
     try {
-      const response = await api.get(`${BACKEND_API_URL}/${resource}/${id}`, { cache: false })
+      const response = await customAxios.get(`/${resource}/${id}`)
       return {
         data: response.data,
       }
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to fetch resource')
+      throw createHttpError(
+        error?.response?.status || 500,
+        error?.response?.statusText || 'Unknown Error',
+        error?.response?.data
+      )
     }
   },
 
   create: async ({ resource, variables, meta }) => {
     try {
-      const response = await api.post(`${BACKEND_API_URL}/${resource}`, variables, { cache: false })
+      const response = await customAxios.post(`/${resource}`, variables)
       return {
         data: response.data,
       }
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to create resource')
+      throw createHttpError(
+        error?.response?.status || 500,
+        error?.response?.statusText || 'Unknown Error',
+        error?.response?.data
+      )
     }
   },
 
@@ -108,42 +152,82 @@ export const dataProvider: DataProvider = {
     try {
       // 对于 admin/users/{id}/role 这样的特殊端点
       if (resource === 'admin/users' && variables.role) {
-        await api.put(`${BACKEND_API_URL}/${resource}/${id}/role`, { role: variables.role }, { cache: false })
-        // 获取更新后的用户信息
-        const userResponse = await api.get(`${BACKEND_API_URL}/${resource}/${id}`, { cache: false })
+        await customAxios.put(`/${resource}/${id}/role`, { role: variables.role })
+        const userResponse = await customAxios.get(`/${resource}/${id}`)
         return {
           data: userResponse.data,
         }
       }
-      
+
       // 对于 admin/comments/{id}/status 这样的特殊端点
       if (resource === 'admin/comments' && variables.status) {
-        await api.put(`${BACKEND_API_URL}/${resource}/${id}/status`, { status: variables.status }, { cache: false })
-        // 获取更新后的评论信息
-        const commentResponse = await api.get(`${BACKEND_API_URL}/${resource}/${id}`, { cache: false })
+        await customAxios.put(`/${resource}/${id}/status`, { status: variables.status })
+        const commentResponse = await customAxios.get(`/${resource}/${id}`)
         return {
           data: commentResponse.data,
         }
       }
-      
+
       // 标准更新
-      const response = await api.put(`${BACKEND_API_URL}/${resource}/${id}`, variables, { cache: false })
+      const response = await customAxios.put(`/${resource}/${id}`, variables)
       return {
         data: response.data,
       }
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to update resource')
+      throw createHttpError(
+        error?.response?.status || 500,
+        error?.response?.statusText || 'Unknown Error',
+        error?.response?.data
+      )
     }
   },
 
   deleteOne: async ({ resource, id, meta }) => {
     try {
-      await api.delete(`${BACKEND_API_URL}/${resource}/${id}`, { cache: false })
+      await customAxios.delete(`/${resource}/${id}`)
       return {
         data: { id },
       }
     } catch (error: any) {
-      throw new Error(error?.message || 'Failed to delete resource')
+      throw createHttpError(
+        error?.response?.status || 500,
+        error?.response?.statusText || 'Unknown Error',
+        error?.response?.data
+      )
+    }
+  },
+
+  updateMany: async ({ resource, ids, variables, meta }) => {
+    try {
+      await Promise.all(
+        ids.map((id) => customAxios.put(`/${resource}/${id}`, variables))
+      )
+      return {
+        data: ids,
+      }
+    } catch (error: any) {
+      throw createHttpError(
+        error?.response?.status || 500,
+        error?.response?.statusText || 'Unknown Error',
+        error?.response?.data
+      )
+    }
+  },
+
+  deleteMany: async ({ resource, ids, meta }) => {
+    try {
+      await Promise.all(
+        ids.map((id) => customAxios.delete(`/${resource}/${id}`))
+      )
+      return {
+        data: ids,
+      }
+    } catch (error: any) {
+      throw createHttpError(
+        error?.response?.status || 500,
+        error?.response?.statusText || 'Unknown Error',
+        error?.response?.data
+      )
     }
   },
 
@@ -151,11 +235,9 @@ export const dataProvider: DataProvider = {
     return BACKEND_API_URL
   },
 
-  // 自定义方法，用于适配特殊的 API 端点
-  custom: async ({ url, method, filters, sorters, payload, query, headers, meta }) => {
+  custom: async ({ url, method, payload, query, headers, meta }) => {
     let requestUrl = url.startsWith('http') ? url : `${BACKEND_API_URL}${url}`
-    
-    // 添加查询参数
+
     if (query) {
       const params = new URLSearchParams()
       Object.entries(query).forEach(([key, value]) => {
@@ -167,40 +249,40 @@ export const dataProvider: DataProvider = {
         requestUrl += `?${params.toString()}`
       }
     }
-    
-    const options: any = {
-      cache: false,
-      headers: headers || {},
-    }
-    
+
     try {
       let response
       switch (method) {
         case 'GET':
-          response = await api.get(requestUrl, options)
+          response = await customAxios.get(requestUrl, { headers })
           break
         case 'POST':
-          response = await api.post(requestUrl, payload, options)
+          response = await customAxios.post(requestUrl, payload, { headers })
           break
         case 'PUT':
-          response = await api.put(requestUrl, payload, options)
+          response = await customAxios.put(requestUrl, payload, { headers })
           break
         case 'PATCH':
-          response = await api.patch(requestUrl, payload, options)
+          response = await customAxios.patch(requestUrl, payload, { headers })
           break
         case 'DELETE':
-          response = await api.delete(requestUrl, options)
+          response = await customAxios.delete(requestUrl, { headers })
           break
         default:
           throw new Error(`Unsupported method: ${method}`)
       }
-      
+
       return {
         data: response.data,
       }
     } catch (error: any) {
-      throw new Error(error?.message || 'Custom request failed')
+      throw createHttpError(
+        error?.response?.status || 500,
+        error?.response?.statusText || 'Unknown Error',
+        error?.response?.data
+      )
     }
   },
 }
+
 

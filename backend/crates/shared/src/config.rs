@@ -31,6 +31,39 @@ pub struct CorsConfig {
     pub allowed_headers: Vec<String>,
 }
 
+impl CorsConfig {
+    /// 验证 CORS 配置
+    pub fn validate(&self) -> anyhow::Result<()> {
+        for origin in &self.allowed_origins {
+            // 不允许通配符 origin
+            if origin == "*" {
+                anyhow::bail!("CORS: 通配符 origin (*) 不允许在生产环境使用");
+            }
+
+            // 验证格式
+            if let Err(e) = origin.parse::<axum::http::HeaderValue>() {
+                anyhow::bail!("CORS: 无效的 origin '{}': {}", origin, e);
+            }
+
+            // 如果是 URL，验证 scheme
+            if let Ok(url) = url::Url::parse(origin) {
+                // 只允许 http 和 https
+                if !matches!(url.scheme(), "http" | "https") {
+                    anyhow::bail!("CORS: origin '{}' 的 scheme 无效: {}", origin, url.scheme());
+                }
+
+                // 生产环境强制 HTTPS
+                if std::env::var("ENVIRONMENT").unwrap_or_default() == "production"
+                    && url.scheme() != "https" {
+                    tracing::warn!("CORS: 生产环境建议使用 HTTPS origin: {}", origin);
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct RateLimitConfig {
     pub auth_rps: u32,    // 认证相关请求每秒限制
@@ -46,7 +79,7 @@ pub struct RateLimitConfig {
 impl Settings {
     /// 从环境变量加载配置
     pub fn from_env() -> anyhow::Result<Self> {
-        Ok(Self {
+        let settings = Self {
             database_url: env::var("DATABASE_URL")
                 .map_err(|_| anyhow::anyhow!("DATABASE_URL must be set"))?,
             redis_url: env::var("REDIS_URL")
@@ -130,7 +163,12 @@ impl Settings {
                     .parse()
                     .map_err(|_| anyhow::anyhow!("Invalid RATE_LIMIT_DEFAULT_RPM"))?,
             },
-        })
+        };
+
+        // 验证 CORS 配置
+        settings.cors.validate()?;
+
+        Ok(settings)
     }
 
     /// 创建示例 .env 文件内容

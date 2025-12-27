@@ -1,6 +1,6 @@
 use axum::{
     extract::{State, Json, Extension},
-    http::{header},
+    http::header,
     response::IntoResponse,
 };
 use axum_extra::extract::cookie::{CookieJar, SameSite, Cookie};
@@ -9,8 +9,9 @@ use time;
 use blog_db::{
     RegisterRequest, LoginRequest, AuthResponse, UserInfo, User, RefreshToken,
 };
-use blog_shared::{AppError, AuthUser};
+use blog_shared::{AppError, AuthUser, PasswordValidator};
 use crate::state::AppState;
+use crate::utils::ip_extractor::RealIp;
 use serde_json::json;
 
 /// 用户注册
@@ -27,75 +28,86 @@ use serde_json::json;
 )]
 pub async fn register(
     State(state): State<AppState>,
+    RealIp(client_ip): RealIp,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    // 验证输入
-    if payload.email.len() < 3 || payload.username.len() < 3 || payload.password.len() < 8 {
+    // 验证输入 - 邮箱和用户名
+    if payload.email.len() < 3 || payload.email.len() > 255 {
         return Err(AppError::InvalidInput);
     }
+    if payload.username.len() < 3 || payload.username.len() > 50 {
+        return Err(AppError::InvalidInput);
+    }
+
+    // 验证密码强度
+    PasswordValidator::default()
+        .validate(&payload.password)
+        .map_err(|_e| AppError::InvalidInput)?;
+
+    // 密码哈希
+    let password_hash = state.jwt.hash_password(&payload.password)?;
 
     // 使用事务确保原子性
     let mut tx = state.db.begin().await?;
 
-    // 检查邮箱是否已存在
-    let existing: Option<bool> = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)"
-    )
-    .bind(&payload.email)
-    .fetch_one(&mut *tx)
-    .await?;
-
-    if existing.unwrap_or(false) {
-        return Err(AppError::EmailAlreadyExists);
-    }
-
-    // 检查用户名是否已存在
-    let existing: Option<bool> = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)"
-    )
-    .bind(&payload.username)
-    .fetch_one(&mut *tx)
-    .await?;
-
-    if existing.unwrap_or(false) {
-        return Err(AppError::UsernameAlreadyExists);
-    }
-
-    // 密码哈希
-
-    // 使用 JWT 服务的密码哈希功能（它会自动使用 salt）
-    let password_hash = state.jwt.hash_password(&payload.password)?;
-
-    // 创建用户
-    let row = sqlx::query!(
-        "INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3) RETURNING id, email, username, password_hash, profile, email_verified, role, created_at, updated_at",
+    // 优化：使用 ON CONFLICT 替代两次预检查查询
+    // 这样可以从 3 次数据库往返（检查邮箱 + 检查用户名 + 插入）减少到最多 2 次
+    let result = sqlx::query!(
+        r#"
+        INSERT INTO users (email, username, password_hash)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (email) DO NOTHING
+        RETURNING id, email, username, password_hash, profile, email_verified, role, created_at, updated_at
+        "#,
         &payload.email,
         &payload.username,
         &password_hash
     )
-    .fetch_one(&mut *tx)
+    .fetch_optional(&mut *tx)
     .await?;
 
-    let user = User {
-        id: row.id,
-        email: row.email,
-        username: row.username,
-        password_hash: row.password_hash,
-        profile: row.profile,
-        email_verified: row.email_verified,
-        role: match row.role.as_str() {
-            "admin" => blog_db::UserRole::Admin,
-            "moderator" => blog_db::UserRole::Moderator,
-            _ => blog_db::UserRole::User,
+    let user = match result {
+        Some(row) => {
+            // 插入成功，创建用户对象
+            User {
+                id: row.id,
+                email: row.email,
+                username: row.username,
+                password_hash: row.password_hash,
+                profile: row.profile,
+                email_verified: row.email_verified,
+                role: match row.role.as_str() {
+                    "admin" => blog_db::UserRole::Admin,
+                    "moderator" => blog_db::UserRole::Moderator,
+                    _ => blog_db::UserRole::User,
+                },
+                created_at: row.created_at,
+                updated_at: row.updated_at,
+            }
         },
-        created_at: row.created_at,
-        updated_at: row.updated_at,
+        None => {
+            // 插入失败，检查是否是用户名冲突（即使 email 通过）
+            let username_conflict = sqlx::query_scalar::<_, bool>(
+                "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 AND email != $2)"
+            )
+            .bind(&payload.username)
+            .bind(&payload.email)
+            .fetch_one(&mut *tx)
+            .await?;
+
+            if username_conflict {
+                return Err(AppError::UsernameAlreadyExists);
+            } else {
+                return Err(AppError::EmailAlreadyExists);
+            }
+        }
     };
 
     // 创建 refresh token
     let (refresh_token, family_id) = state.jwt.create_refresh_token(&user.id)?;
     let token_hash = state.jwt.hash_token(&refresh_token);
 
+    // 保存 refresh token 到数据库
     sqlx::query(
         r#"
         INSERT INTO refresh_tokens (user_id, token_hash, family_id, expires_at, created_ip)
@@ -105,7 +117,7 @@ pub async fn register(
     .bind(user.id)
     .bind(&token_hash)
     .bind(family_id)
-    .bind("127.0.0.1") // TODO: 从请求中获取真实 IP
+    .bind(&client_ip.to_string())
     .execute(&mut *tx)
     .await?;
 
@@ -150,6 +162,7 @@ pub async fn register(
 )]
 pub async fn login(
     State(state): State<AppState>,
+    RealIp(client_ip): RealIp,
     Json(payload): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // 查找用户
@@ -191,52 +204,43 @@ pub async fn login(
         return Err(AppError::InvalidCredentials);
     }
 
-    // 检查是否已有活跃的 refresh token
-    let token_row = sqlx::query!(
-        "SELECT id, user_id, token_hash, family_id, replaced_by_hash, revoked_at, expires_at, created_at, last_used_at, created_ip, user_agent_hash FROM refresh_tokens WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1",
+    // 使用事务确保原子性：吊销所有旧 token，创建新 token family
+    let mut tx = state.db.begin().await?;
+
+    // 吊销用户所有活跃的 refresh token（安全改进：登录时吊销旧 token）
+    let revoked_count = sqlx::query!(
+        "UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL AND expires_at > NOW()",
         &user.id
     )
-    .fetch_optional(&state.db)
+    .execute(&mut *tx)
+    .await?
+    .rows_affected();
+
+    if revoked_count > 0 {
+        tracing::info!("吊销了 {} 个旧 token（用户重新登录）", revoked_count);
+    }
+
+    // 创建新的 refresh token family
+    let (new_token, _) = state.jwt.create_refresh_token(&user.id)?;
+    let new_family_id = Uuid::new_v4();
+    let new_token_hash = state.jwt.hash_token(&new_token);
+
+    // 插入新的 refresh token（使用 sqlx::query 以支持字符串 IP）
+    sqlx::query(
+        r#"
+        INSERT INTO refresh_tokens (user_id, token_hash, family_id, expires_at, created_ip)
+        VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4::inet)
+        "#
+    )
+    .bind(user.id)
+    .bind(&new_token_hash)
+    .bind(new_family_id)
+    .bind(&client_ip.to_string())
+    .execute(&mut *tx)
     .await?;
 
-    let (refresh_token, _family_id) = if let Some(token_row) = token_row {
-        let token_record = RefreshToken {
-            id: token_row.id,
-            user_id: token_row.user_id,
-            token_hash: token_row.token_hash,
-            family_id: token_row.family_id,
-            replaced_by_hash: token_row.replaced_by_hash,
-            revoked_at: token_row.revoked_at,
-            expires_at: token_row.expires_at,
-            created_at: token_row.created_at,
-            last_used_at: token_row.last_used_at,
-            created_ip: token_row.created_ip.map(|ip| ip.to_string()),
-            user_agent_hash: token_row.user_agent_hash,
-        };
-        // 生成新的 refresh token（基于现有的 family_id）
-        let (new_token, _) = state.jwt.create_refresh_token(&user.id)?;
-        (new_token, token_record.family_id)
-    } else {
-        // 创建新的 refresh token
-        let (new_token, _) = state.jwt.create_refresh_token(&user.id)?;
-        let new_family_id = Uuid::new_v4();
-        let token_hash = state.jwt.hash_token(&new_token);
-
-        sqlx::query(
-            r#"
-            INSERT INTO refresh_tokens (user_id, token_hash, family_id, expires_at, created_ip)
-            VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4::inet)
-            "#
-        )
-        .bind(user.id)
-        .bind(&token_hash)
-        .bind(new_family_id)
-        .bind("127.0.0.1") // TODO: 从请求中获取真实 IP
-        .execute(&state.db)
-        .await?;
-
-        (new_token, new_family_id)
-    };
+    // 提交事务
+    tx.commit().await?;
 
     // 生成 access token
     let access_token = state.jwt.create_access_token(&user.id, &user.email, &user.username)?;
@@ -244,7 +248,7 @@ pub async fn login(
     // 设置 refresh token cookie
     let cookie = CookieJar::new()
         .add(
-            Cookie::build(("refresh_token", refresh_token))
+            Cookie::build(("refresh_token", new_token))
                 .path("/")
                 .http_only(true)
                 .secure(true)
@@ -364,15 +368,26 @@ pub async fn refresh(
     )
 )]
 pub async fn me(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
 ) -> Result<Json<UserInfo>, AppError> {
+    // 从数据库查询用户信息以获取最新的role
+    let user = sqlx::query!(
+        "SELECT id, email, username, profile, email_verified, role FROM users WHERE id = $1",
+        auth_user.id
+    )
+    .fetch_optional(&state.db)
+    .await?
+
+    .ok_or(AppError::Unauthorized)?;
+
     Ok(Json(UserInfo {
-        id: auth_user.id,
-        email: auth_user.email,
-        username: auth_user.username,
-        profile: auth_user.profile,
-        email_verified: auth_user.email_verified,
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        profile: user.profile,
+        email_verified: user.email_verified,
+        role: user.role,
     }))
 }
 

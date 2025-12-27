@@ -33,52 +33,45 @@ export function RefineProvider({ children }: RefineProviderProps) {
   )
 
   return (
-    <RefineKbarProvider>
-      <QueryClientProvider client={queryClient}>
-        <Refine
-          routerProvider={routerProvider}
-          dataProvider={dataProvider}
-          authProvider={authProvider}
-          resources={[
-            {
-              name: 'admin/users',
-              list: '/admin/users',
-              show: '/admin/users/show/:id',
-              edit: '/admin/users/edit/:id',
-              meta: {
-                label: '用户管理',
-              },
+    <QueryClientProvider client={queryClient}>
+      <Refine
+        dataProvider={dataProvider}
+        authProvider={authProvider}
+        resources={[
+          {
+            name: 'admin/posts',
+            list: '/admin/posts',
+            meta: {
+              label: '文章管理',
             },
-            {
-              name: 'admin/comments',
-              list: '/admin/comments',
-              show: '/admin/comments/show/:id',
-              edit: '/admin/comments/edit/:id',
-              meta: {
-                label: '评论管理',
-              },
+          },
+          {
+            name: 'admin/users',
+            list: '/admin/users',
+            meta: {
+              label: '用户管理',
             },
-            {
-              name: 'admin/stats',
-              list: '/admin',
-              meta: {
-                label: '仪表板',
-              },
+          },
+          {
+            name: 'admin/comments',
+            list: '/admin/comments',
+            meta: {
+              label: '评论管理',
             },
-          ]}
-          options={{
-            syncWithLocation: true,
-            warnWhenUnsavedChanges: true,
-            useNewQueryKeys: true,
-            projectId: 'admin-panel',
-          }}
-        >
-          {children}
-          <RefineKbar />
-          {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
-        </Refine>
-      </QueryClientProvider>
-    </RefineKbarProvider>
+          },
+        ]}
+        options={{
+          syncWithLocation: false,
+          warnWhenUnsavedChanges: true,
+          useNewQueryKeys: true,
+          projectId: 'admin-panel',
+          disableTelemetry: true,
+        }}
+      >
+        {children}
+      </Refine>
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={true} />}
+    </QueryClientProvider>
   )
 }
 

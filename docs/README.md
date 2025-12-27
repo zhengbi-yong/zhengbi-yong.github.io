@@ -1,557 +1,268 @@
-# Zhengbi Yong's Blog Platform
+# 文档导航中心
 
-## Project Overview
-
-This is Zhengbi Yong's (雍征彼) personal technical blog platform - a sophisticated dual-architecture blogging system built with modern web technologies. The blog features research and tutorials in robotics, automation, mathematics, computer science, and tactile sensing.
-
-**About the Author**: Zhengbi Yong is a Master's student at Beijing Institute of Technology (formerly at Tsinghua University), researching robotics and multimodal perception under Professor Shi Dawai.
-
-**Blog URL**: https://zhengbi-yong.github.io
+欢迎使用 zhengbi-yong.github.io 项目文档。本文档提供了所有项目文档的导航和快速访问入口。
 
 ---
 
-## Project Structure
+## 快速导航
 
-```
-zhengbi-yong.github.io/
-├── frontend/                    # Next.js 16 frontend application
-│   ├── app/                     # Next.js App Router pages
-│   │   ├── blog/               # Blog post pages with dynamic routing
-│   │   ├── tags/               # Tag listing and filter pages
-│   │   ├── page.tsx            # Homepage
-│   │   └── layout.tsx          # Root layout
-│   ├── components/             # React components
-│   │   ├── MDXComponents/      # Custom MDX components
-│   │   ├── analytics/          # Analytics integrations
-│   │   ├── comments/           # Giscus comments
-│   │   ├── search/             # Kbar search panel
-│   │   ├── 3d/                 # Three.js, TresJS, 3Dmol viewers
-│   │   ├── chemistry/          # RDKit chemistry visualizations
-│   │   ├── charts/             # Nivo, ECharts, G2, G6 chart components
-│   │   ├── music/              # Music notation and audio
-│   │   └── ...
-│   ├── data/                   # Blog content (MDX files)
-│   │   ├── blog/               # Blog posts organized by category
-│   │   │   ├── computer/       # Computer science articles
-│   │   │   ├── robotics/       # Robotics research
-│   │   │   ├── math/           # Mathematics content
-│   │   │   ├── chemistry/      # Chemistry articles
-│   │   │   ├── motor/          # Motor control topics
-│   │   │   ├── music/          # Music-related content
-│   │   │   ├── photography/    # Photography
-│   │   │   ├── social/         # Social articles
-│   │   │   ├── tactile/        # Tactile sensing research
-│   │   │   ├── tools/          # Tools and utilities
-│   │   │   ├── control/        # Control theory
-│   │   │   └── economics/      # Economics content
-│   │   ├── authors/            # Author information
-│   │   ├── siteMetadata.ts     # Site configuration
-│   │   └── tag-data.json       # Auto-generated tags
-│   ├── layouts/                # Page layouts
-│   │   ├── PostLayout.tsx      # Full-featured post layout
-│   │   ├── PostSimple.tsx      # Minimal post layout
-│   │   └── PostBanner.tsx      # Banner-style post layout
-│   ├── lib/                    # Utilities and configurations
-│   ├── public/                 # Static assets
-│   ├── styles/                 # Global styles (Tailwind CSS)
-│   ├── slidev/                # Slidev presentations
-│   │   └── hardware/          # Hardware-related slides
-│   └── .next/                 # Next.js build output
-│
-├── backend/                   # Rust API backend
-│   ├── crates/                # Rust workspace crates
-│   │   ├── api/               # HTTP API layer (Axum)
-│   │   ├── core/              # Core business logic
-│   │   ├── db/                # Database models (SQLx)
-│   │   ├── shared/            # Shared utilities
-│   │   └── worker/            # Background jobs
-│   ├── migrations/            # Database migrations
-│   ├── docs/                  # API documentation
-│   │   └── Blog_API.postman_collection.json
-│   ├── nginx/                 # Nginx configuration
-│   ├── deploy.sh              # Deployment script
-│   ├── docker-compose.simple.yml  # Development compose
-│   └── docker-compose.prod.yml    # Production compose
-│
-├── scripts/                   # Development and deployment scripts
-└── docs/                      # Project documentation
-    ├── README.md              # This file
-    └── CLAUDE.md              # Claude AI guidelines
-```
+### 按角色导航
+
+| 角色 | 推荐阅读路径 |
+|------|-------------|
+| **新手用户** | [快速开始](getting-started/quick-start.md) → [安装指南](getting-started/installation.md) → [故障排查](getting-started/troubleshooting.md) |
+| **内容创作者** | [写作指南](guides/writing-guide.md) → [内容管理](guides/content-management.md) → [管理后台](guides/admin-panel.md) |
+| **前端开发者** | [前端架构](development/frontend/overview.md) → [Refine 集成](development/frontend/refine-integration.md) → [前端测试](development/frontend/testing.md) |
+| **后端开发者** | [后端架构](development/backend/overview.md) → [API 参考](development/backend/api-reference.md) → [后端测试](development/backend/testing.md) |
+| **运维人员** | [部署总览](deployment/overview.md) → [单服务器部署](deployment/single-server.md) → [性能监控](development/operations/performance-monitoring.md) |
 
 ---
 
-## Getting Started
+## 文档目录
 
-### Prerequisites
+### 📚 快速开始 (Getting Started)
 
-- **Node.js** 20+ and **pnpm** (for frontend)
-- **Rust** 1.70+ and **Cargo** (for backend)
-- **Docker** and **Docker Compose** (for databases)
+| 文档 | 描述 |
+|------|------|
+| [快速开始](getting-started/quick-start.md) | 5 分钟启动项目 |
+| [安装指南](getting-started/installation.md) | 详细的安装步骤 |
+| [环境配置](getting-started/environment-setup.md) | 环境变量配置 |
+| [故障排查](getting-started/troubleshooting.md) | 常见问题解决 |
 
-### Frontend (Next.js)
+---
 
-```bash
-cd frontend
+### 📖 用户指南 (Guides)
 
-# Install dependencies
-pnpm install
+| 文档 | 描述 |
+|------|------|
+| [内容管理](guides/content-management.md) | 创建和管理文章 |
+| [写作指南](guides/writing-guide.md) | Markdown 和组件使用 |
+| [管理后台](guides/admin-panel.md) | 用户和评论管理 |
 
-# Start development server
-pnpm dev
-# Access at: http://localhost:3001
+---
 
-# Build for production
-pnpm build
+### 🔧 开发文档 (Development)
 
-# Start production server
-pnpm start
+#### 架构概览
 
-# Run tests
-pnpm test
-pnpm test:coverage
+| 文档 | 描述 |
+|------|------|
+| [系统架构](development/architecture.md) | 完整的系统架构说明 |
+| [组件参考](development/components-reference.md) | 所有组件的快速参考 |
+| [最佳实践](development/best-practices.md) | 开发规范和最佳实践 |
+
+#### 前端开发
+
+| 文档 | 描述 |
+|------|------|
+| [前端架构](development/frontend/overview.md) | Next.js 项目结构 |
+| [Refine 集成](development/frontend/refine-integration.md) | Refine 框架集成指南 |
+| [前端测试](development/frontend/testing.md) | 测试策略和规范 |
+
+#### 后端开发
+
+| 文档 | 描述 |
+|------|------|
+| [后端架构](development/backend/overview.md) | Rust 项目结构 |
+| [API 参考](development/backend/api-reference.md) | REST API 文档 |
+| [数据库设计](development/backend/database.md) | 数据库模式和关系 |
+| [后端测试](development/backend/testing.md) | 测试策略和规范 |
+
+#### 运维 (Operations)
+
+| 文档 | 描述 |
+|------|------|
+| [性能监控](development/operations/performance-monitoring.md) | 性能指标和监控 |
+| [安全指南](development/operations/security-guide.md) | 安全措施和最佳实践 |
+| [故障排查](development/operations/troubleshooting-guide.md) | 问题诊断和解决 |
+
+---
+
+### 🚀 部署文档 (Deployment)
+
+| 文档 | 描述 |
+|------|------|
+| [部署总览](deployment/overview.md) | 部署架构选项 |
+| [单服务器部署](deployment/single-server.md) | 快速部署指南 |
+| [高可用部署](deployment/high-availability.md) | 生产环境配置 |
+| [部署脚本](deployment/scripts.md) | 自动化脚本说明 |
+| [Slidev 部署](deployment/slidev.md) | 演示文稿部署 |
+
+---
+
+### 📋 参考文档 (Reference)
+
+| 文档 | 描述 |
+|------|------|
+| [颜色系统](reference/color-system.md) | 设计颜色规范 |
+| [AI 开发](reference/ai-development.md) | AI 功能开发指南 |
+
+---
+
+### 📎 附录 (Appendix)
+
+| 文档 | 描述 |
+|------|------|
+| [术语表](appendix/glossary.md) | 项目术语定义 |
+| [变更日志](appendix/changelog.md) | 版本更新记录 |
+| [常见问题](appendix/faq.md) | 常见问题解答 |
+
+---
+
+## 文档结构
+
 ```
-
-**Frontend Environment Variables**:
-
-Create a `.env.local` file in the `frontend/` directory:
-
-```bash
-# Site Configuration
-NEXT_PUBLIC_SITE_URL=http://localhost:3001
-NEXT_PUBLIC_BASE_PATH=
-
-# Analytics (Optional)
-NEXT_PUBLIC_UMAMI_ID=your-umami-id
-NEXT_PUBLIC_GA_ID=your-google-analytics-id
-
-# Comments (Optional)
-NEXT_PUBLIC_GISCUS_REPO=your-repo
-NEXT_PUBLIC_GISCUS_REPO_ID=your-repo-id
-NEXT_PUBLIC_GISCUS_CATEGORY=Announcements
-NEXT_PUBLIC_GISCUS_CATEGORY_ID=your-category-id
-
-# Sentry (Optional)
-NEXT_PUBLIC_SENTRY_DSN=your-sentry-dsn
-SENTRY_AUTH_TOKEN=your-auth-token
-```
-
-### Backend (Rust)
-
-```bash
-cd backend
-
-# Start development environment (PostgreSQL + Redis)
-./deploy.sh dev
-
-# Build and run the API
-export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
-export REDIS_URL=redis://localhost:6379
-cargo run --bin blog-api
-# Access at: http://localhost:3000
-
-# Production deployment
-./deploy.sh prod
-
-# Stop all services
-./deploy.sh stop
-
-# Check service status
-./deploy.sh status
-```
-
-**Backend Environment Variables**:
-
-The `deploy.sh dev` command creates a `.env` file with defaults:
-
-```bash
-# Database
-DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
-
-# Redis
-REDIS_URL=redis://localhost:6379
-
-# JWT
-JWT_SECRET=dev-secret-key-for-testing-only
-
-# Server
-HOST=127.0.0.1
-PORT=3000
-
-# Environment
-RUST_LOG=debug
-ENVIRONMENT=development
-
-# Security
-PASSWORD_PEPPER=dev-pepper
-CORS_ORIGIN=http://localhost:3000
-
-# Rate Limiting
-RATE_LIMIT_PER_MINUTE=1000
-
-# Session
-SESSION_SECRET=dev-session-secret
-SESSION_TIMEOUT_HOURS=24
-
-# Monitoring
-PROMETHEUS_ENABLED=true
+docs/
+├── README.md                           # 📍 文档导航中心（本文件）
+├── getting-started/                    # 🚀 快速开始
+│   ├── quick-start.md                  # 5 分钟启动
+│   ├── installation.md                 # 安装指南
+│   ├── environment-setup.md            # 环境配置
+│   └── troubleshooting.md              # 故障排查
+├── guides/                             # 📖 用户指南
+│   ├── writing-guide.md                # 写作指南
+│   ├── content-management.md           # 内容管理
+│   └── admin-panel.md                  # 管理后台
+├── development/                        # 🔧 开发文档
+│   ├── architecture.md                 # 系统架构
+│   ├── best-practices.md               # 最佳实践
+│   ├── components-reference.md         # 组件参考
+│   ├── frontend/                       # 前端开发
+│   │   ├── overview.md                 # 前端架构
+│   │   ├── refine-integration.md       # Refine 集成
+│   │   └── testing.md                  # 前端测试
+│   ├── backend/                        # 后端开发
+│   │   ├── overview.md                 # 后端架构
+│   │   ├── api-reference.md            # API 文档
+│   │   ├── database.md                 # 数据库设计
+│   │   └── testing.md                  # 后端测试
+│   └── operations/                     # 运维
+│       ├── performance-monitoring.md   # 性能监控
+│       ├── security-guide.md           # 安全指南
+│       └── troubleshooting-guide.md    # 故障排查
+├── deployment/                         # 🚀 部署文档
+│   ├── overview.md                     # 部署总览
+│   ├── single-server.md                # 单服务器部署
+│   ├── high-availability.md            # 高可用部署
+│   ├── scripts.md                      # 部署脚本
+│   └── slidev.md                       # Slidev 部署
+├── reference/                          # 📋 参考文档
+│   ├── color-system.md                 # 颜色系统
+│   └── ai-development.md               # AI 开发
+└── appendix/                           # 📎 附录
+    ├── glossary.md                     # 术语表
+    ├── changelog.md                    # 变更日志
+    └── faq.md                          # 常见问题
 ```
 
 ---
 
-## Technology Stack
+## 快速查找
 
-### Frontend
+### 按主题查找
 
-| Category | Technology |
-|----------|------------|
-| **Framework** | Next.js 16 with App Router and Turbopack |
-| **Language** | TypeScript with strict mode |
-| **Styling** | Tailwind CSS 4 with custom theme |
-| **Content** | MDX with Contentlayer2 processing |
-| **Animations** | Framer Motion, GSAP |
-| **3D Visualization** | Three.js, TresJS, 3Dmol.js, URDF Loader |
-| **Charts** | Nivo, ECharts + ECharts-GL, AntV G2, AntV G6 |
-| **Chemistry** | RDKit.js, MHChem |
-| **Math** | KaTeX |
-| **Code Highlighting** | Prism + rehype-prism-plus |
-| **Maps** | Leaflet + React Leaflet |
-| **Physics** | Matter.js |
-| **Drawing** | Excalidraw |
-| **Audio/Music** | Tone.js, OpenSheetMusicDisplay |
-| **Comments** | Giscus (GitHub Discussions) |
-| **Search** | Kbar command panel |
-| **Analytics** | Umami, Google Analytics |
-| **Error Tracking** | Sentry |
-| **Testing** | Vitest, Testing Library, Storybook |
+#### 🔐 认证与安全
+- [后端架构 - 认证系统](development/backend/overview.md#认证系统)
+- [API 参考 - 认证端点](development/backend/api-reference.md#认证端点)
+- [安全指南](development/operations/security-guide.md)
 
-### Backend
+#### 💾 数据库
+- [数据库设计](development/backend/database.md)
+- [数据库故障排查](development/operations/troubleshooting-guide.md#数据库问题)
 
-| Category | Technology |
-|----------|------------|
-| **Language** | Rust |
-| **Framework** | Axum web framework |
-| **Database** | PostgreSQL with SQLx |
-| **Cache** | Redis |
-| **Authentication** | JWT with refresh tokens |
-| **API Documentation** | OpenAPI (Swagger UI) |
-| **Monitoring** | Prometheus, health checks |
-| **Error Tracking** | Sentry |
-| **Containerization** | Docker, Docker Compose |
+#### 🧪 测试
+- [前端测试指南](development/frontend/testing.md)
+- [后端测试指南](development/backend/testing.md)
+
+#### 📊 监控与性能
+- [性能监控](development/operations/performance-monitoring.md)
+- [故障排查](development/operations/troubleshooting-guide.md)
 
 ---
 
-## Key Features
+### 按组件查找
 
-### Multi-Layout Blog Posts
-Three different layouts for different content types:
-- **PostLayout**: Full-featured layout with TOC, author info, comments
-- **PostSimple**: Minimal layout for focused reading
-- **PostBanner**: Banner-style layout with hero image
+#### 前端组件
+- [3D 可视化组件](development/components-reference.md#3d-可视化)
+- [数据图表组件](development/components-reference.md#数据图表)
+- [化学组件](development/components-reference.md#化学组件)
+- [音乐组件](development/components-reference.md#音乐组件)
 
-### Tag System
-- Automatic tag generation from frontmatter
-- Dynamic tag pages with filtering
-- Tag cloud visualization
-
-### Search Functionality
-- Kbar command palette (Cmd/Ctrl + K)
-- Full-text search across all posts
-- Search suggestions and keyboard navigation
-
-### Interactive Content
-- **3D Models**: Three.js viewer for robotics simulations
-- **Molecular Visualization**: 3Dmol.js for chemistry
-- **URDF Models**: Robot model viewer
-- **Chemical Structures**: RDKit integration
-- **Charts**: Multiple charting libraries for data visualization
-- **Music Notation**: Sheet music display
-- **Interactive Diagrams**: Excalidraw for sketches
-
-### Theme Support
-- Dark/light mode switching
-- System preference detection
-- Persistent theme selection
-
-### Performance
-- Static site generation (SSG) for GitHub Pages
-- Image optimization
-- Bundle analysis with `ANALYZE=true pnpm build`
-- Code splitting and lazy loading
-
-### Security
-- Content Security Policy headers
-- DOMPurify for HTML sanitization
-- Sentry error tracking
-- Security best practices
+#### 后端服务
+- [认证服务](development/backend/overview.md#认证系统)
+- [评论系统](development/backend/overview.md#评论系统)
+- [搜索功能](development/backend/overview.md#搜索功能)
 
 ---
 
-## Content Management
+## 搜索和帮助
 
-### Creating a New Blog Post
+### 搜索文档
 
-1. Create a new MDX file in `frontend/data/blog/[category]/`
+使用以下方式搜索文档：
 
-2. Add frontmatter:
-
-```yaml
----
-title: Your Post Title
-date: 2025-01-15
-tags: ['tag1', 'tag2', 'tag3']
-draft: false
-summary: Brief description for SEO and listing
-layout: PostLayout
-canonicalUrl: https://original-url.com (optional)
-authors:
-  - name: Zhengbi Yong
-    url: https://github.com/zhengbi-yong
-    image_url: https://github.com/zhengbi-yong.png
----
-```
-
-3. Write your content in MDX format:
-
-```mdx
-import { MyComponent } from '@/components/MyComponent'
-
-# Heading
-
-Regular **markdown** content.
-
-<MyComponent prop="value" />
-
-## Math
-
-Inline math: $E = mc^2$
-
-Block math:
-
-$$
-\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
-$$
-
-## Code
-
-```python
-def hello():
-    print("Hello, World!")
-```
-```
-
-### Supported Content Categories
-
-- **computer**: Computer science, AI, algorithms
-- **robotics**: Robotics research, ROS, control systems
-- **math**: Mathematics, linear algebra, calculus
-- **chemistry**: Chemistry, molecular visualization
-- **motor**: Motor control, servo systems
-- **music**: Music theory, notation
-- **photography**: Photography portfolio
-- **social**: Social commentary, essays
-- **tactile**: Tactile sensing research
-- **tools**: Development tools, utilities
-- **control**: Control theory, feedback systems
-- **economics**: Economics, game theory
-
-### MDX Components Available
-
-- `<3DModel />`: Three.js 3D model viewer
-- `<MoleculeViewer />`: 3Dmol molecular visualization
-- `<ChemicalStructure />`: RDKit chemical structure
-- `<LineChart />`, `<BarChart />`, `<PieChart />`: Nivo charts
-- `<EChart />`: ECharts component
-- `<G2Chart />`: AntV G2 chart
-- `<MusicNotation />`: Sheet music display
-- `<Map />`: Leaflet map
-- `<Excalidraw />`: Drawing canvas
+1. **浏览器搜索**: 使用 `Ctrl+F` 或 `Cmd+F` 在当前页面搜索
+2. **GitHub 搜索**: 在 GitHub 仓库中使用代码搜索
+3. **Kbar**: 在前端应用中按 `Cmd/Ctrl + K` 打开命令面板
 
 ---
 
-## Deployment
+### 获取帮助
 
-### GitHub Pages (Frontend)
+如果文档中没有找到答案：
 
-The frontend is configured for static export to GitHub Pages:
-
-```bash
-cd frontend
-
-# Build for static export
-EXPORT=1 BASE_PATH=/your-repo-name pnpm build
-
-# Output will be in frontend/out/
-# Deploy the contents of out/ to GitHub Pages
-```
-
-**GitHub Actions workflow**: The project includes automated deployment via GitHub Actions when pushing to the main branch.
-
-### Production Deployment (Full Stack)
-
-For full stack deployment with backend:
-
-1. **Backend Deployment**:
-```bash
-cd backend
-# Configure .env.production
-./deploy.sh prod
-```
-
-2. **Frontend Build**:
-```bash
-cd frontend
-# Configure API endpoint in .env.production
-pnpm build
-pnpm start
-```
-
-### Docker Deployment
-
-```bash
-# Development
-cd backend
-docker compose -f docker-compose.simple.yml up -d
-
-# Production
-docker compose -f docker-compose.prod.yml up -d
-```
+1. **查看 FAQ**: [常见问题](appendix/faq.md)
+2. **查看故障排查**: [故障排查指南](getting-started/troubleshooting.md)
+3. **提交 Issue**: 在 [GitHub Issues](https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues) 提问
 
 ---
 
-## API Documentation
+## 文档贡献
 
-### Backend Endpoints
+### 改进文档
 
-Once the backend is running, access:
+欢迎改进文档：
 
-- **API Root**: http://localhost:3000
-- **Health Check**: http://localhost:3000/health
-- **Swagger UI**: http://localhost:3000/swagger-ui/
-- **Prometheus Metrics**: http://localhost:3000/metrics
+1. **修复错误**: 如果发现文档错误，请提交 PR 修复
+2. **补充内容**: 如果发现内容缺失，欢迎补充
+3. **改进表达**: 如果觉得某些部分难以理解，请改进表达
 
-### Postman Collection
+### 文档规范
 
-Import `/backend/docs/Blog_API.postman_collection.json` into Postman for API testing.
-
----
-
-## Scripts Reference
-
-### Frontend Scripts
-
-```bash
-pnpm dev              # Start development server
-pnpm build            # Build for production
-pnpm start            # Start production server
-pnpm lint             # Run ESLint
-pnpm test             # Run Vitest tests
-pnpm test:coverage    # Run tests with coverage
-pnpm analyze          # Analyze bundle size
-```
-
-### Backend Scripts
-
-```bash
-./deploy.sh dev       # Start development databases
-./deploy.sh prod      # Start production stack
-./deploy.sh stop      # Stop all services
-./deploy.sh status    # Show service status
-./deploy.sh setup-db  # Setup database and migrations
-```
+- 使用 Markdown 格式
+- 遵循现有文档的结构和风格
+- 添加示例代码和使用场景
+- 更新相关文档的交叉引用
 
 ---
 
-## Troubleshooting
+## 更新日志
 
-### Common Issues
+### 最近更新
 
-**1. Port already in use**
-```bash
-# Kill process on port 3001
-lsof -ti:3001 | xargs kill -9
-```
-
-**2. Database connection failed**
-```bash
-# Check if PostgreSQL is running
-docker ps | grep postgres
-
-# Restart databases
-cd backend
-./deploy.sh stop
-./deploy.sh dev
-```
-
-**3. Build errors with contentlayer**
-```bash
-# Clean cache and rebuild
-rm -rf frontend/.next frontend/node_modules/.cache
-cd frontend
-pnpm install
-pnpm build
-```
-
-**4. Static export issues**
-```bash
-# Make sure to use EXPORT=1 and BASE_PATH if deploying to GitHub Pages
-EXPORT=1 BASE_PATH=/repo-name pnpm build
-```
-
-**5. MDX components not found**
-- Ensure the component is exported from `/components/MDXComponents/index.ts`
-- Check the import path is correct
-- Verify the component is properly typed
-
-### Debug Mode
-
-**Frontend**:
-```bash
-DEBUG=* pnpm dev
-```
-
-**Backend**:
-```bash
-RUST_LOG=debug cargo run
-```
+- **2025-12-27**: 完成文档全面整理和优化
+  - 清理了 27 个过时文档
+  - 整合了 15 个测试文档为 3 个
+  - 新增 8 个关键文档
+  - 优化了文档结构和导航
 
 ---
 
-## Development Protocol
+## 相关链接
 
-This project follows a strict 5-mode development protocol:
-
-1. **RESEARCH**: Information gathering and requirements analysis
-2. **INNOVATE**: Brainstorming and solution exploration
-3. **PLAN**: Detailed technical specifications
-4. **EXECUTE**: Implementation following the exact plan
-5. **REVIEW**: Verification against requirements
-
-Always follow this protocol when making changes to ensure structured development.
+- **项目主页**: https://zhengbi-yong.github.io
+- **GitHub 仓库**: https://github.com/zhengbi-yong/zhengbi-yong.github.io
+- **问题反馈**: https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues
 
 ---
 
-## Contributing Guidelines
-
-1. Follow the existing code style and conventions
-2. Add tests for new features
-3. Update documentation for API changes
-4. Use TypeScript strict mode
-5. Run linting before committing: `pnpm lint`
-6. Ensure all tests pass: `pnpm test`
+**最后更新**: 2025-12-27
+**维护者**: Documentation Team
 
 ---
 
-## License
+<div align="center">
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+**[返回顶部](#文档导航中心)**
 
----
-
-**Built with** by [Zhengbi Yong](https://zhengbi-yong.github.io)
-
-**Research Institution**: Beijing Institute of Technology
-
-**Advisor**: Professor Shi Dawai
-
-For more information, visit the [blog](https://zhengbi-yong.github.io) or [GitHub repository](https://github.com/zhengbi-yong/zhengbi-yong.github.io).
+</div>

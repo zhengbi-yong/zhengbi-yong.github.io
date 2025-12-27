@@ -1,0 +1,114 @@
+/**
+ * 设计令牌 - 间距系统
+ *
+ * 使用一致的间距规范，确保视觉节奏和一致性
+ * 基于 8px 网格系统
+ *
+ * 使用方法：
+ * .my-class {
+ *   padding: var(--spacing-md);
+ *   gap: var(--spacing-lg);
+ * }
+ */
+
+:root {
+  /* ==================== 基础间距（8px 基准） ==================== */
+
+  --spacing-0: 0;
+  --spacing-px: 1px; /* 1px - 用于精确控制 */
+
+  /* ==================== 小间距 ==================== */
+
+  --spacing-xs: 0.25rem;   /* 4px - 极小间距 */
+  --spacing-sm: 0.5rem;    /* 8px - 小间距 */
+  --spacing-md: 1rem;      /* 16px - 中等间距（基准） */
+
+  /* ==================== 大间距 ==================== */
+
+  --spacing-lg: 1.5rem;     /* 24px - 大间距 */
+  --spacing-xl: 2rem;       /* 32px - 超大间距 */
+  --spacing-2xl: 3rem;      /* 48px - 特大间距 */
+  --spacing-3xl: 4rem;      /* 64px - 巨大间距 */
+
+  /* ==================== 特殊间距 ==================== */
+
+  --spacing-4xl: 6rem;      /* 96px */
+  --spacing-5xl: 8rem;      /* 128px */
+  --spacing-6xl: 12rem;     /* 192px */
+  --spacing-7xl: 16rem;     /* 256px */
+
+  /* ==================== 组件特定间距 ==================== */
+
+  /* 内边距 */
+  --spacing-padding-sm: var(--spacing-sm);
+  --spacing-padding-md: var(--spacing-md);
+  --spacing-padding-lg: var(--spacing-lg);
+  --spacing-padding-xl: var(--spacing-xl);
+
+  /* 外边距 */
+  --spacing-margin-sm: var(--spacing-sm);
+  --spacing-margin-md: var(--spacing-md);
+  --spacing-margin-lg: var(--spacing-lg);
+  --spacing-margin-xl: var(--spacing-xl);
+
+  /* 间隙（用于 Flexbox 和 Grid） */
+  --spacing-gap-xs: var(--spacing-xs);
+  --spacing-gap-sm: var(--spacing-sm);
+  --spacing-gap-md: var(--spacing-md);
+  --spacing-gap-lg: var(--spacing-lg);
+
+  /* ==================== 响应式间距 ==================== */
+
+  /* 移动端 */
+  --spacing-mobile-sm: var(--spacing-sm);
+  --spacing-mobile-md: var(--spacing-md);
+  --spacing-mobile-lg: var(--spacing-lg);
+
+  /* 桌面端 */
+  --spacing-desktop-md: var(--spacing-lg);
+  --spacing-desktop-lg: var(--spacing-xl);
+  --spacing-desktop-xl: var(--spacing-2xl);
+}
+
+/* ==================== 媒体查询覆盖 ==================== */
+
+/* 平板及以上 */
+@media (min-width: 768px) {
+  :root {
+    --spacing-responsive-sm: var(--spacing-md);
+    --spacing-responsive-md: var(--spacing-lg);
+    --spacing-responsive-lg: var(--spacing-xl);
+  }
+}
+
+/* 桌面及以上 */
+@media (min-width: 1024px) {
+  :root {
+    --spacing-responsive-sm: var(--spacing-lg);
+    --spacing-responsive-md: var(--spacing-xl);
+    --spacing-responsive-lg: var(--spacing-2xl);
+  }
+}
+
+/* ==================== Tailwind 配置映射 ==================== */
+
+/*
+在 tailwind.config.js 中使用：
+
+module.exports = {
+  theme: {
+    extend: {
+      spacing: {
+        'xs': 'var(--spacing-xs)',
+        'sm': 'var(--spacing-sm)',
+        'md': 'var(--spacing-md)',
+        'lg': 'var(--spacing-lg)',
+        'xl': 'var(--spacing-xl)',
+        '2xl': 'var(--spacing-2xl)',
+        '3xl': 'var(--spacing-3xl)',
+        // ...
+      }
+    }
+  }
+}
+*/

@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useList, useUpdate, useDelete, useCustom } from '@refinedev/core'
+import { useList, useUpdate, useDelete } from '@refinedev/core'
 import type { UserListItem } from '@/lib/types/backend'
 import { Loader2, Search, Filter, Trash2, UserCog } from 'lucide-react'
 
@@ -29,7 +29,6 @@ export default function UserManagementPage() {
 
   const updateMutation = useUpdate()
   const deleteMutation = useDelete()
-  const { mutate: customMutate } = useCustom()
 
   const users = data?.data || []
   const total = data?.total || 0

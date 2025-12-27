@@ -19,6 +19,7 @@ import I18nProvider from '@/components/I18nProvider'
 import { Metadata } from 'next'
 import Script from 'next/script'
 import { AuthInitializer } from '@/components/auth/AuthInitializer'
+import { Toaster } from '@/components/ui/Toaster'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteMetadata.siteUrl),
@@ -118,6 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ErrorBoundary>
           </ThemeProviders>
         </I18nProvider>
+        <Toaster />
       </body>
     </html>
   )

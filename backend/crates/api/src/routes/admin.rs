@@ -95,6 +95,29 @@ pub struct AdminStats {
     pub rejected_comments: i64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostListQuery {
+    pub page: Option<u32>,
+    pub page_size: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostListResponse {
+    pub posts: Vec<PostAdminItem>,
+    pub total: i64,
+    pub page: u32,
+    pub page_size: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct PostAdminItem {
+    pub slug: String,
+    pub view_count: i64,
+    pub like_count: i32,
+    pub comment_count: i32,
+    pub updated_at: String,
+}
+
 // ===== 用户管理 API =====
 
 pub async fn list_users(
@@ -313,5 +336,47 @@ pub async fn get_admin_stats(
         pending_comments: pending_comments.0,
         approved_comments: approved_comments.0,
         rejected_comments: rejected_comments.0,
+    }))
+}
+
+// ===== 文章管理 API =====
+
+pub async fn list_posts_admin(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Query(query): Query<PostListQuery>,
+) -> Result<Json<PostListResponse>, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    let page = query.page.unwrap_or(1).max(1);
+    let page_size = query.page_size.unwrap_or(20).min(100);
+    let offset = (page - 1) * page_size;
+
+    // 获取总数
+    let total: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM post_stats WHERE slug != ''")
+        .fetch_one(&state.db)
+        .await?;
+
+    // 获取文章列表
+    let posts = sqlx::query_as::<_, PostAdminItem>(
+        "SELECT slug, view_count, like_count, comment_count, updated_at::text
+         FROM post_stats
+         WHERE slug != ''
+         ORDER BY updated_at DESC
+         LIMIT $1 OFFSET $2"
+    )
+    .bind(page_size as i64)
+    .bind(offset as i64)
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok(Json(PostListResponse {
+        posts,
+        total: total.0,
+        page,
+        page_size,
     }))
 }

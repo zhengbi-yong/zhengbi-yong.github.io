@@ -37,6 +37,29 @@ A sophisticated blogging platform built with Next.js 16, featuring advanced MDX 
 - **♿ Accessibility**: ARIA labels, keyboard navigation, reduced motion support
 - **🌍 Internationalization**: i18next with automatic language detection
 
+## 📚 Documentation
+
+For comprehensive documentation, see the main project docs: **[Complete Documentation](../docs/)**
+
+### Key Documents
+
+- **[Frontend Overview](../docs/development/frontend/overview.md)** - Next.js project structure and architecture
+- **[Refine Integration](../docs/development/frontend/refine-integration.md)** - Refine framework integration guide
+- **[Frontend Testing](../docs/development/frontend/testing.md)** - Testing strategies and coverage
+
+### User Guides
+
+- **[Content Management](../docs/guides/content-management.md)** - Creating and managing posts
+- **[Writing Guide](../docs/guides/writing-guide.md)** - Markdown and component usage
+- **[Admin Panel](../docs/guides/admin-panel.md)** - User and comment management
+
+### Operations
+
+- **[Performance Monitoring](../docs/development/operations/performance-monitoring.md)** - Frontend performance metrics
+- **[Security Guide](../docs/development/operations/security-guide.md)** - Security best practices
+
+---
+
 ## 🚀 Quick Start
 
 ### Requirements

@@ -114,7 +114,7 @@ export default function AdminDashboard() {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             快速操作
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <a
               href="/admin/users"
               className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -131,6 +131,33 @@ export default function AdminDashboard() {
               <h3 className="font-medium text-gray-900 dark:text-white">评论审核</h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 审核和管理评论
+              </p>
+            </a>
+            <a
+              href="/admin/posts"
+              className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <h3 className="font-medium text-gray-900 dark:text-white">文章管理</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                查看文章统计和详情
+              </p>
+            </a>
+            <a
+              href="/admin/analytics"
+              className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <h3 className="font-medium text-gray-900 dark:text-white">数据分析</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                查看用户增长和趋势
+              </p>
+            </a>
+            <a
+              href="/admin/monitoring"
+              className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <h3 className="font-medium text-gray-900 dark:text-white">系统监控</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                健康检查和性能指标
               </p>
             </a>
             <a

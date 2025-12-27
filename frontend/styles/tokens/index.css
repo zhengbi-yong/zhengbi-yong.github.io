@@ -1,0 +1,79 @@
+/**
+ * 设计令牌系统 - Design Tokens
+ *
+ * 全局设计系统变量，包括颜色、间距、字体等
+ * 确保整个应用的视觉一致性和可维护性
+ *
+ * 使用方法：
+ * 1. 在 globals.css 中导入此文件
+ * 2. 在组件中使用 var(--token-name)
+ * 3. 在 Tailwind 配置中引用
+ *
+ * @example
+ * // 在组件中使用
+ * .my-component {
+ *   color: var(--color-primary-600);
+ *   padding: var(--spacing-md);
+ *   font-size: var(--font-size-lg);
+ * }
+ */
+
+/* ==================== 颜色系统 ==================== */
+@import './colors.css';
+
+/* ==================== 间距系统 ==================== */
+@import './spacing.css';
+
+/* ==================== 字体系统 ==================== */
+/* TODO: 添加 fonts.css */
+
+/* ==================== 阴影系统 ==================== */
+/* TODO: 添加 shadows.css */
+
+/* ==================== 圆角系统 ==================== */
+/* TODO: 添加 radius.css */
+
+/* ==================== 动画系统 ==================== */
+/* TODO: 添加 transitions.css */
+
+/* ==================== Z-index 层级 ==================== */
+/* TODO: 添加 z-index.css */
+
+/* ==================== 断点系统 ==================== */
+/* TODO: 添加 breakpoints.css */
+
+/**
+ * 设计令牌使用指南
+ *
+ * 1. 颜色使用
+ *    - 主题色：var(--color-primary-500)
+ *    - 语义色：var(--color-text-primary)
+ *    - 背景色：var(--color-bg-primary)
+ *
+ * 2. 间距使用
+ *    - 小间距：var(--spacing-sm)      // 8px
+ *    - 中间距：var(--spacing-md)      // 16px
+ *    - 大间距：var(--spacing-lg)      // 24px
+ *
+ * 3. Tailwind 集成
+ *    tailwind.config.js:
+ *    colors: {
+ *      primary: {
+ *        50: 'var(--color-primary-50)',
+ *        500: 'var(--color-primary-500)',
+ *        600: 'var(--color-primary-600)',
+ *      }
+ *    },
+ *    spacing: {
+ *      'sm': 'var(--spacing-sm)',
+ *      'md': 'var(--spacing-md)',
+ *      'lg': 'var(--spacing-lg)',
+ *    }
+ *
+ * 4. TypeScript 支持
+ *    types/theme.d.ts:
+ *    export interface DesignTokens {
+ *      colors: Record<string, string>
+ *      spacing: Record<string, string>
+ *    }
+ */
