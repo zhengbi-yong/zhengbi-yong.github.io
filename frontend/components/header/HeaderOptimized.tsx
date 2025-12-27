@@ -18,6 +18,8 @@ import { MobileMenuButton } from './MobileMenuButton'
 interface HeaderState {
   mounted: boolean
   isMobileMenuOpen: boolean
+  scrollY: number
+  isVisible: boolean
 }
 
 /**
@@ -27,18 +29,70 @@ interface HeaderState {
  * 2. 使用 useMemo 缓存计算值
  * 3. 分离静态子组件
  * 4. 节流 resize 监听器
+ * 5. 滚动时逐渐隐藏header
  */
 export default function Header() {
   const [state, setState] = useState<HeaderState>({
     mounted: false,
     isMobileMenuOpen: false,
+    scrollY: 0,
+    isVisible: true,
   })
   const { theme, setTheme, resolvedTheme } = useTheme()
   const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lastScrollYRef = useRef(0)
 
   // 当组件挂载后，显示 UI
   useEffect(() => {
     setState((prev) => ({ ...prev, mounted: true }))
+  }, [])
+
+  // 监听滚动，实现header逐渐隐藏效果
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      const scrollDirection = currentScrollY > lastScrollYRef.current ? 'down' : 'up'
+
+      // 向下滚动时，根据滚动位置逐渐隐藏header
+      // 向上滚动时，显示header
+      let isVisible = true
+      let transformY = 0
+
+      if (scrollDirection === 'down' && currentScrollY > 100) {
+        // 向下滚动超过100px后开始隐藏，最大隐藏到-100%
+        const hideProgress = Math.min((currentScrollY - 100) / 200, 1) // 200px内完成隐藏
+        transformY = hideProgress * -100
+        isVisible = hideProgress < 1
+      } else {
+        // 向上滚动时显示
+        transformY = 0
+        isVisible = true
+      }
+
+      setState((prev) => ({
+        ...prev,
+        scrollY: currentScrollY,
+        isVisible,
+        transformY,
+      }))
+
+      lastScrollYRef.current = currentScrollY
+    }
+
+    // 节流滚动事件
+    let ticking = false
+    const throttledHandleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll()
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', throttledHandleScroll)
   }, [])
 
   // 使用 useMemo 缓存深色模式状态
@@ -182,6 +236,10 @@ export default function Header() {
 
       <header
         id="header"
+        style={{
+          transform: state.transformY ? `translateY(${state.transformY}%)` : undefined,
+          transition: 'transform 0.3s ease-out',
+        }}
         className={cn(
           styles.header,
           'fixed top-2 left-0 z-50 w-full px-4 pl-[calc(100vw-100%)] sm:top-4 sm:px-6 lg:px-8'
