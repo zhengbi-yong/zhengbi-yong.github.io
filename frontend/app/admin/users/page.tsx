@@ -17,8 +17,8 @@ export default function UserManagementPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
 
-  // 使用 Refine hooks
-  const { data, isLoading, error } = useList({
+  // 使用 Refine hooks (Refine v5 返回 { query, result } 结构)
+  const queryResult = useList({
     resource: 'admin/users',
     pagination: {
       current: page,
@@ -27,11 +27,17 @@ export default function UserManagementPage() {
     filters: roleFilter !== 'all' ? [{ field: 'role', operator: 'eq', value: roleFilter }] : [],
   })
 
+  const query = queryResult.query
+  const result = queryResult.result
+  const data = result?.data
+  const total = result?.total || 0
+  const isLoading = query?.isPending
+  const error = query?.isError ? query.error : undefined
+
   const updateMutation = useUpdate()
   const deleteMutation = useDelete()
 
-  const users = data?.data || []
-  const total = data?.total || 0
+  const users = data || []
   const totalPages = Math.ceil(total / pageSize)
 
   // 筛选用户
