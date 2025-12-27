@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useList, useUpdate, useDelete } from '@refinedev/core'
+import { useList, useUpdate, useDelete, useInvalidate } from '@refinedev/core'
 import type { CommentAdminItem } from '@/lib/types/backend'
 import { Loader2, Search, Filter, Trash2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
 
@@ -38,6 +38,7 @@ export default function CommentManagementPage() {
 
   const updateMutation = useUpdate()
   const deleteMutation = useDelete()
+  const invalidate = useInvalidate()
 
   const comments = data || []
   const totalPages = Math.ceil(total / pageSize)
@@ -73,6 +74,9 @@ export default function CommentManagementPage() {
         id: commentId,
         values: { status: newStatus },
       })
+      // 显示成功提示
+      alert(`评论状态已成功更新为"${statusLabels[newStatus] || newStatus}"`)
+      // Refine 会自动刷新列表
     } catch (err) {
       console.error('Failed to update comment status:', err)
       alert('更新评论状态失败')
@@ -89,6 +93,9 @@ export default function CommentManagementPage() {
         resource: 'admin/comments',
         id: commentId,
       })
+      // 显示成功提示
+      alert('评论已成功删除')
+      // Refine 会自动刷新列表
     } catch (err) {
       console.error('Failed to delete comment:', err)
       alert('删除评论失败')
@@ -103,16 +110,27 @@ export default function CommentManagementPage() {
 
     try {
       // 使用 Promise.all 并行更新所有评论状态
+      // 禁用自动刷新以提高性能
       await Promise.all(
         Array.from(selectedComments).map((commentId) =>
           updateMutation.mutateAsync({
             resource: 'admin/comments',
             id: commentId,
             values: { status },
+            meta: {
+              invalidates: [], // 禁用自动刷新
+            },
           })
         )
       )
+      // 显示成功提示
+      alert(`成功将 ${selectedComments.size} 条评论的状态更新为"${statusLabels[status] || status}"`)
       setSelectedComments(new Set())
+      // 统一刷新一次列表
+      invalidate({
+        resource: 'admin/comments',
+        invalidates: ['list'],
+      })
     } catch (err) {
       console.error('Failed to batch update status:', err)
       alert('批量更新状态失败')
@@ -127,15 +145,26 @@ export default function CommentManagementPage() {
 
     try {
       // 使用 Promise.all 并行删除所有评论
+      // 禁用自动刷新以提高性能
       await Promise.all(
         Array.from(selectedComments).map((commentId) =>
           deleteMutation.mutateAsync({
             resource: 'admin/comments',
             id: commentId,
+            meta: {
+              invalidates: [], // 禁用自动刷新
+            },
           })
         )
       )
+      // 显示成功提示
+      alert(`成功删除 ${selectedComments.size} 条评论`)
       setSelectedComments(new Set())
+      // 统一刷新一次列表
+      invalidate({
+        resource: 'admin/comments',
+        invalidates: ['list'],
+      })
     } catch (err) {
       console.error('Failed to batch delete comments:', err)
       alert('批量删除失败')

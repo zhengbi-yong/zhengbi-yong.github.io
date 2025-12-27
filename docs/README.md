@@ -76,6 +76,14 @@
 | [安全指南](development/operations/security-guide.md) | 安全措施和最佳实践 |
 | [故障排查](development/operations/troubleshooting-guide.md) | 问题诊断和解决 |
 
+#### 故障修复记录
+
+| 文档 | 描述 |
+|------|------|
+| [系统监控修复](development/SYSTEM_MONITORING_FIX.md) | 监控功能完整修复记录（404、数据结构、useCustom问题）|
+| [Refine Admin Panel 修复](development/REFINE_ADMIN_PANEL_FIX.md) | Admin Panel 集成 Refine 的修复过程 |
+| [Admin Panel 快速启动](development/ADMIN_PANEL_QUICK_START.md) | 管理后台快速启动指南 |
+
 ---
 
 ### 🚀 部署文档 (Deployment)

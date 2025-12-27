@@ -161,10 +161,14 @@ export const dataProvider: DataProvider = {
 
       // 对于 admin/comments/{id}/status 这样的特殊端点
       if (resource === 'admin/comments' && variables.status) {
+        // 调用更新状态 API
         await customAxios.put(`/${resource}/${id}/status`, { status: variables.status })
-        const commentResponse = await customAxios.get(`/${resource}/${id}`)
+        // 返回更新的数据（因为后端没有 GET /admin/comments/{id} 端点，我们手动构造返回数据）
         return {
-          data: commentResponse.data,
+          data: {
+            id,
+            status: variables.status,
+          },
         }
       }
 
