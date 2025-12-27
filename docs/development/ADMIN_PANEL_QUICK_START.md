@@ -24,7 +24,7 @@ pnpm dev
 
 ```
 邮箱: admin@test.com
-密码: Admin123XYZ
+密码: xK9#mP2$vL8@nQ5*wR4
 ```
 
 ---

@@ -10,7 +10,7 @@ Use the admin credentials below to log in:
 ### Admin User Account
 - **Username**: `admin_test`
 - **Email**: `admin@test.com`
-- **Password**: `Admin123XYZ`
+- **Password**: `xK9#mP2$vL8@nQ5*wR4`
 - **Role**: `admin`
 
 ### How to Use
@@ -18,8 +18,8 @@ Use the admin credentials below to log in:
 1. **Log out** of your current account
 2. **Log in** with the admin credentials:
    - Email: `admin@test.com`
-   - Password: `Admin123XYZ`
-3. Navigate to the **Comments Management** page at http://localhost:3003/admin/comments
+   - Password: `xK9#mP2$vL8@nQ5*wR4`
+3. Navigate to the **Comments Management** page at http://localhost:3000/admin/comments
 
 ### API Testing
 
@@ -29,7 +29,7 @@ You can also test the admin API directly:
 # Login and get token
 curl -X POST http://localhost:3000/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@test.com","password":"Admin123XYZ"}'
+  -d '{"email":"admin@test.com","password":"xK9#mP2$vL8@nQ5*wR4"}'
 
 # Get comments list
 curl http://localhost:3000/v1/admin/comments \
