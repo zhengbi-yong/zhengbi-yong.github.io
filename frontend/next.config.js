@@ -33,7 +33,86 @@ const nextConfig = {
       'lodash',
       'date-fns',
       'react-icons',
+      'echarts',
+      '@nivo/core',
+      '@nivo/bar',
+      '@nivo/line',
+      '@nivo/pie',
+      '@nivo/radar',
+      '@nivo/scatterplot',
+      'three',
+      'leaflet',
+      'framer-motion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-accordion',
     ],
+  },
+  // Webpack 配置：代码分割和 Bundle 优化
+  webpack: (config, { isServer }) => {
+    // 仅在客户端构建时优化
+    if (!isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            // 默认 vendor 组（所有 node_modules）
+            default: false,
+            vendors: false,
+            // React 核心库
+            react: {
+              name: 'react',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+              priority: 50,
+              reuseExistingChunk: true,
+            },
+            // UI 组件库（Radix UI）
+            radix: {
+              name: 'radix-ui',
+              test: /[\\/]node_modules[\\/](@radix-ui)[\\/]/,
+              priority: 40,
+              reuseExistingChunk: true,
+            },
+            // 可视化库（ECharts, Nivo, Three.js, Leaflet）
+            visualization: {
+              name: 'visualization',
+              test: /[\\/]node_modules[\\/](echarts|@echarts|@nivo|three|@tresjs|leaflet)[\\/]/,
+              priority: 30,
+              reuseExistingChunk: true,
+            },
+            // RDKit WASM 单独分离（非常大）
+            rdkit: {
+              name: 'rdkit',
+              test: /[\\/]node_modules[\\/]@rdkit[\\/]/,
+              priority: 35,
+              reuseExistingChunk: true,
+            },
+            // 动画库（GSAP, Framer Motion）
+            animation: {
+              name: 'animation',
+              test: /[\\/]node_modules[\\/](gsap|@gsap|framer-motion)[\\/]/,
+              priority: 25,
+              reuseExistingChunk: true,
+            },
+            // 工具库（Lodash, date-fns 等）
+            utils: {
+              name: 'utils',
+              test: /[\\/]node_modules[\\/](lodash|date-fns|clsx|class-variance-authority)[\\/]/,
+              priority: 20,
+              reuseExistingChunk: true,
+            },
+            // 其他大型依赖
+            large: {
+              name: 'large',
+              minChunks: 2,
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      }
+    }
+    return config
   },
 }
 
@@ -41,13 +120,46 @@ const nextConfig = {
 const generateSecurityHeaders = () => {
   const isProduction = process.env.NODE_ENV === 'production'
 
+  // 生产环境移除 unsafe-inline 和 unsafe-eval
+  const cspValue = isProduction
+    ? {
+        // 生产环境：更严格的 CSP，不使用 unsafe-inline
+        'default-src': "'self'",
+        'script-src': "'self' giscus.app analytics.umami.is unpkg.com",
+        'style-src': "'self' unpkg.com cdn.jsdelivr.net",
+        'img-src': "'self' data: https: avatars.githubusercontent.com picsum.photos",
+        'font-src': "'self' data: blob: https: unpkg.com cdn.jsdelivr.net",
+        'connect-src': "'self' https: https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://o1046881.ingest.sentry.io unpkg.com cdn.jsdelivr.net",
+        'frame-src': 'giscus.app excalidraw.com',
+        'worker-src': "'self' blob:",
+        'media-src': "'self'",
+        'object-src': "'none'",
+        'base-uri': "'self'",
+        'form-action': "'self'",
+        'frame-ancestors': "'none'",
+        'upgrade-insecure-requests': '',
+      }
+    : {
+        // 开发环境：允许 unsafe-inline 和 unsafe-eval 用于开发工具
+        'default-src': "'self'",
+        'script-src': "'self' 'unsafe-eval' 'unsafe-inline' unpkg.com",
+        'style-src': "'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net",
+        'img-src': "'self' data: https:",
+        'font-src': "'self' data: blob: https: unpkg.com cdn.jsdelivr.net",
+        'connect-src': "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 unpkg.com cdn.jsdelivr.net",
+        'frame-src': 'excalidraw.com',
+      }
+
+  // 将 CSP 对象转换为字符串
+  const cspString = Object.entries(cspValue)
+    .map(([key, value]) => `${key} ${value}`)
+    .join('; ')
+
   const headers = [
     // Content-Security-Policy
     {
       key: 'Content-Security-Policy',
-      value: isProduction
-        ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' giscus.app analytics.umami.is unpkg.com; style-src 'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net; img-src 'self' data: https: avatars.githubusercontent.com picsum.photos; font-src 'self' data: blob: https: unpkg.com cdn.jsdelivr.net; connect-src 'self' https: https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://o1046881.ingest.sentry.io unpkg.com cdn.jsdelivr.net; frame-src giscus.app excalidraw.com; worker-src 'self' blob:; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
-        : "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' unpkg.com; style-src 'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net; img-src 'self' data: https:; font-src 'self' data: blob: https: unpkg.com cdn.jsdelivr.net; connect-src 'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 unpkg.com cdn.jsdelivr.net; frame-src excalidraw.com;",
+      value: cspString,
     },
     // Referrer-Policy
     {
@@ -69,6 +181,16 @@ const generateSecurityHeaders = () => {
       key: 'X-DNS-Prefetch-Control',
       value: 'on',
     },
+    // Permissions-Policy (新增)
+    {
+      key: 'Permissions-Policy',
+      value: 'camera=(), microphone=(), geolocation=()',
+    },
+    // Strict-Transport-Security (仅生产环境)
+    ...(isProduction ? [{
+      key: 'Strict-Transport-Security',
+      value: 'max-age=31536000; includeSubDomains',
+    }] : []),
   ]
 
   return headers

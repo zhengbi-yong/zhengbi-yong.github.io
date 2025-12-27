@@ -17,3 +17,5 @@ redis = { workspace = true }
 axum = { workspace = true }
 sqlx = { workspace = true }
 async-trait = { workspace = true }
+# URL parsing for CORS validation
+url = "2.5"

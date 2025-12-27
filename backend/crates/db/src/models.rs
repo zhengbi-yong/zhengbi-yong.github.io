@@ -12,6 +12,16 @@ pub enum UserRole {
     Moderator,
 }
 
+impl UserRole {
+    pub fn as_str(&self) -> &str {
+        match self {
+            UserRole::Admin => "admin",
+            UserRole::Moderator => "moderator",
+            UserRole::User => "user",
+        }
+    }
+}
+
 // 用于SQL查询的角色包装器
 #[derive(Debug, sqlx::FromRow)]
 pub struct UserRoleWrapper(pub UserRole);
@@ -167,6 +177,7 @@ pub struct UserInfo {
     pub username: String,
     pub profile: serde_json::Value,
     pub email_verified: bool,
+    pub role: String,
 }
 
 impl From<User> for UserInfo {
@@ -177,6 +188,7 @@ impl From<User> for UserInfo {
             username: user.username,
             profile: user.profile,
             email_verified: user.email_verified,
+            role: user.role.as_str().to_string(),
         }
     }
 }

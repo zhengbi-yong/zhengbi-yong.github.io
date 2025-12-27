@@ -10,6 +10,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthModal } from '@/components/auth/AuthModal'
+import BreadcrumbNav from '@/components/admin/BreadcrumbNav'
+import ThemeToggle from '@/components/admin/ThemeToggle'
 import {
   LayoutDashboard,
   Users,
@@ -19,6 +21,9 @@ import {
   X,
   LogOut,
   ChevronRight,
+  BarChart3,
+  Activity,
+  FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -48,6 +53,24 @@ const navItems: NavItem[] = [
     label: '评论审核',
     icon: MessageSquare,
     href: '/admin/comments',
+  },
+  {
+    id: 'posts',
+    label: '文章管理',
+    icon: FileText,
+    href: '/admin/posts',
+  },
+  {
+    id: 'analytics',
+    label: '数据分析',
+    icon: BarChart3,
+    href: '/admin/analytics',
+  },
+  {
+    id: 'monitoring',
+    label: '系统监控',
+    icon: Activity,
+    href: '/admin/monitoring',
   },
   {
     id: 'settings',
@@ -249,14 +272,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Top bar */}
         <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <div className="flex-1" />
-            {/* 可以在这里添加通知、搜索等功能 */}
+            <div className="flex items-center flex-1">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden mr-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <div className="flex-1">
+                <BreadcrumbNav />
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <ThemeToggle />
+              {/* 可以在这里添加通知中心等其他功能 */}
+            </div>
           </div>
         </header>
 

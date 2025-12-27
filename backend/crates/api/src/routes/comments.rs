@@ -25,11 +25,8 @@ fn sanitize_comment_html(input: &str) -> String {
         .to_string()
 }
 
-// 提取真实 IP
-fn extract_real_ip() -> String {
-    // TODO: 从请求中提取真实 IP
-    "127.0.0.1".to_string()
-}
+// 注意：真实 IP 提取需要添加 Request 参数
+// TODO: 添加 Request 参数并使用 crate::utils::ip_extractor::extract_real_ip
 
 // 提取 User-Agent
 fn extract_user_agent() -> String {
@@ -131,7 +128,7 @@ pub async fn create_comment(
     .bind(&html_content)
     .bind(&path as &str)
     .bind(&depth)
-    .bind(&extract_real_ip())
+    .bind("127.0.0.1") // TODO: 从 Request 中提取真实 IP
     .bind(&extract_user_agent())
     .fetch_one(&mut *tx)
     .await?;

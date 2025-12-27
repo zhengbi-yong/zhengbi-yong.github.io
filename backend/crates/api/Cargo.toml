@@ -40,6 +40,9 @@ blog-core = { path = "../core" }
 blog-db = { path = "../db" }
 blog-shared = { path = "../shared" }
 
+# Environment variable loading
+dotenv = "0.15"
+
 # Additional dependencies
 axum-extra = { workspace = true }
 ammonia = { workspace = true }
@@ -62,12 +65,23 @@ reqwest = { workspace = true }
 tower-http = { workspace = true, features = ["trace"] }
 
 # Test utilities
-mockall = "0.12"
+mockall = "0.13"
 pretty_assertions = "1.4"
-serial_test = "3.0"
+serial_test = "3.1"
 
 # Async testing
 tokio-test = "0.4"
+
+# UUID for test data generation
+uuid = { workspace = true, features = ["v4"] }
+
+# 严格测试所需依赖
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.5"
+quickcheck = "1.0"
+rand = "0.8"
+futures = { workspace = true }
+futures-util = { workspace = true }
 
 [features]
 default = []

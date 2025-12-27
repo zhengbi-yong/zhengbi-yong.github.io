@@ -46,6 +46,30 @@ blog-backend/
 - **Async Runtime**: Tokio 1.42
 - **Logging**: tracing and tracing-subscriber
 
+## 📚 Documentation
+
+For comprehensive documentation, see the main project docs: **[Complete Documentation](../docs/)**
+
+### Key Documents
+
+- **[Backend Overview](../docs/development/backend/overview.md)** - Rust project structure and architecture
+- **[API Reference](../docs/development/backend/api-reference.md)** - Complete REST API documentation
+- **[Database Design](../docs/development/backend/database.md)** - Database schemas and relationships
+- **[Backend Testing](../docs/development/backend/testing.md)** - Testing strategies and coverage
+
+### Operations
+
+- **[Performance Monitoring](../docs/development/operations/performance-monitoring.md)** - Performance metrics and monitoring
+- **[Security Guide](../docs/development/operations/security-guide.md)** - Security best practices
+- **[Troubleshooting Guide](../docs/development/operations/troubleshooting-guide.md)** - Issue diagnosis and resolution
+
+### Deployment
+
+- **[Single Server Deployment](../docs/deployment/single-server.md)** - Quick deployment guide
+- **[High Availability Deployment](../docs/deployment/high-availability.md)** - Production setup
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites

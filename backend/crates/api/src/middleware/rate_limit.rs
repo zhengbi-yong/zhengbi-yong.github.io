@@ -6,6 +6,9 @@ use axum::{
 };
 use redis::Script;
 use crate::AppState;
+use crate::utils::ip_extractor::extract_real_ip;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 // Redis Lua 脚本：固定窗口限流
 const RATE_LIMIT_SCRIPT: &str = r#"
@@ -28,12 +31,14 @@ pub async fn rate_limit_middleware(
     request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
-    let ip = extract_real_ip(&request);
+    let ip = extract_real_ip(&request).to_string();
     let route = extract_route(&request);
 
-    // 构建限流键：rl:{ip}:{route}:{minute_bucket}
+    // 构建压缩的限流键：r:{ip}:{route_hash}:{bucket}
+    // 压缩后的键名更短，节省 Redis 内存
     let minute_bucket = chrono::Utc::now().format("%Y%m%d%H%M");
-    let key = format!("rl:{}:{}:{}", ip, route, minute_bucket);
+    let route_hash = compress_route(&route);
+    let key = format!("r:{}:{}:{}", ip, route_hash, minute_bucket);
 
     // 根据路由设置不同的限流策略
     let (limit, window) = match route.as_str() {
@@ -56,34 +61,18 @@ pub async fn rate_limit_middleware(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     if result == 0 {
-        tracing::warn!("Rate limit exceeded for IP: {}, Route: {}", ip, route);
+        tracing::warn!("Rate limit exceeded for IP: {}, Route: {} (hash: {})", ip, route, route_hash);
         return Err(StatusCode::TOO_MANY_REQUESTS);
     }
 
     Ok(next.run(request).await)
 }
 
-fn extract_real_ip(request: &Request) -> String {
-    // Cloudflare 优先
-    if let Some(ip) = request.headers().get("cf-connecting-ip") {
-        return ip.to_str().unwrap_or("unknown").to_string();
-    }
-
-    // 其次 x-real-ip
-    if let Some(ip) = request.headers().get("x-real-ip") {
-        return ip.to_str().unwrap_or("unknown").to_string();
-    }
-
-    // 最后 x-forwarded-for (取第一个)
-    if let Some(xff) = request.headers().get("x-forwarded-for") {
-        return xff.to_str()
-            .ok()
-            .and_then(|s| s.split(',').next())
-            .map(|s| s.trim().to_string())
-            .unwrap_or_else(|| "unknown".to_string());
-    }
-
-    "unknown".to_string()
+/// 压缩路由名称为 8 位哈希值
+fn compress_route(route: &str) -> String {
+    let mut hasher = DefaultHasher::new();
+    route.hash(&mut hasher);
+    format!("{:x}", hasher.finish())[..8].to_string()
 }
 
 fn extract_route(request: &Request) -> String {

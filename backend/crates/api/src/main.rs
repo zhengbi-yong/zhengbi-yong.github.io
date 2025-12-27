@@ -9,6 +9,12 @@ use blog_api::state::AppState;
 
 #[tokio::main]
 async fn main() {
+    // 加载 .env 文件（如果存在）
+    if let Err(e) = dotenv::dotenv() {
+        // .env 文件不存在不是错误，只是警告
+        eprintln!("⚠️  无法加载 .env 文件: {}. 将使用系统环境变量。", e);
+    }
+
     // 初始化 tracing
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::from_default_env())
@@ -113,29 +119,7 @@ async fn run_server() -> anyhow::Result<()> {
         // 中间件
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
-        .layer(
-            CorsLayer::new()
-                .allow_origin(
-                    state.settings.cors.allowed_origins
-                        .iter()
-                        .filter_map(|s| s.parse::<axum::http::HeaderValue>().ok())
-                        .collect::<Vec<_>>()
-                )
-                .allow_methods([
-                    axum::http::Method::GET,
-                    axum::http::Method::POST,
-                    axum::http::Method::PUT,
-                    axum::http::Method::DELETE,
-                    axum::http::Method::PATCH,
-                    axum::http::Method::OPTIONS,
-                ])
-                .allow_headers([
-                    axum::http::header::AUTHORIZATION,
-                    axum::http::header::ACCEPT,
-                    axum::http::header::CONTENT_TYPE,
-                ])
-                .allow_credentials(true),
-        )
+        .layer(create_cors_layer(state.settings.cors.allowed_origins.clone()))
         .with_state(state);
 
     // 启动服务器
@@ -184,6 +168,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .route("/comments", get(blog_api::routes::admin::list_comments_admin))
         .route("/comments/{id}/status", axum::routing::put(blog_api::routes::admin::update_comment_status))
         .route("/comments/{id}", axum::routing::delete(blog_api::routes::admin::delete_comment_admin))
+        .route("/posts", get(blog_api::routes::admin::list_posts_admin))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             blog_api::middleware::auth::auth_middleware,
@@ -197,5 +182,77 @@ fn v1_routes(state: AppState) -> Router<AppState> {
             state.clone(),
             blog_api::middleware::rate_limit_middleware,
         ))
+}
+
+/// 创建安全的 CORS 层
+///
+/// 根据环境变量配置决定 CORS 策略：
+/// - 开发环境（允许所有）：allowed_origins 包含 "*"
+/// - 生产环境（严格验证）：allowed_origins 包含具体域名列表
+fn create_cors_layer(allowed_origins: Vec<String>) -> CorsLayer {
+    use axum::http::HeaderValue;
+    use tower_http::cors::Any;
+
+    // 检查是否为开发环境（允许所有来源）
+    let is_dev = allowed_origins.iter().any(|origin| origin.trim() == "*");
+
+    if is_dev {
+        // 开发环境：允许所有来源
+        tracing::warn!("⚠️  CORS 开发模式已启用：允许所有来源（仅用于本地开发）");
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods([
+                axum::http::Method::GET,
+                axum::http::Method::POST,
+                axum::http::Method::PUT,
+                axum::http::Method::DELETE,
+                axum::http::Method::PATCH,
+                axum::http::Method::OPTIONS,
+            ])
+            .allow_headers([
+                axum::http::header::AUTHORIZATION,
+                axum::http::header::ACCEPT,
+                axum::http::header::CONTENT_TYPE,
+            ])
+            .allow_credentials(true)
+    } else {
+        // 生产环境：严格验证允许的来源
+        let origins: Result<Vec<HeaderValue>, _> = allowed_origins
+            .iter()
+            .map(|s| s.parse::<HeaderValue>())
+            .collect();
+
+        match origins {
+            Ok(parsed_origins) => {
+                tracing::info!("CORS 生产模式已启用：允许 {} 个来源", parsed_origins.len());
+                for origin in &parsed_origins {
+                    tracing::info!("  - {}", origin.to_str().unwrap_or("(invalid)"));
+                }
+
+                CorsLayer::new()
+                    .allow_origin(parsed_origins)
+                    .allow_methods([
+                        axum::http::Method::GET,
+                        axum::http::Method::POST,
+                        axum::http::Method::PUT,
+                        axum::http::Method::DELETE,
+                        axum::http::Method::PATCH,
+                        axum::http::Method::OPTIONS,
+                    ])
+                    .allow_headers([
+                        axum::http::header::AUTHORIZATION,
+                        axum::http::header::ACCEPT,
+                        axum::http::header::CONTENT_TYPE,
+                    ])
+                    .allow_credentials(true)
+            }
+            Err(e) => {
+                tracing::error!("❌ CORS 配置无效：{}", e);
+                tracing::error!("请检查 CORS_ALLOWED_ORIGINS 环境变量格式");
+                // 降级为严格模式：拒绝所有请求
+                CorsLayer::new()
+            }
+        }
+    }
 }
 

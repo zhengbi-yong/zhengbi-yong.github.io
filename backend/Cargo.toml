@@ -89,3 +89,6 @@ tower-service = "0.3"
 # 测试依赖
 axum-test = "18.0"
 reqwest = { version = "0.12", features = ["json"] }
+
+# 环境变量加载
+dotenv = "0.15"

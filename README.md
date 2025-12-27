@@ -1,6 +1,6 @@
 # Zhengbi Yong's Personal Blog
 
-# 雍征彼的个人博客系统
+雍征彼的个人博客系统
 
 A sophisticated dual-architecture blogging platform built with modern web technologies, featuring a Next.js 16 frontend and a Rust backend.
 
@@ -8,7 +8,7 @@ A sophisticated dual-architecture blogging platform built with modern web techno
 
 ---
 
-## Project Overview / 项目概述
+## 简介 / About
 
 This is Zhengbi Yong's personal technical blog, featuring research and tutorials in robotics, automation, mathematics, computer science, and tactile sensing.
 
@@ -24,15 +24,15 @@ Zhengbi Yong is a Master's student at Beijing Institute of Technology (formerly 
 
 ---
 
-## Quick Start / 快速开始
+## 快速开始 / Quick Start
 
-### Prerequisites / 前置要求
+### 前置要求 / Prerequisites
 
 - **Node.js** 20+ and **pnpm** (for frontend / 前端)
 - **Rust** 1.70+ and **Cargo** (for backend / 后端)
 - **Docker** and **Docker Compose** (for databases / 数据库)
 
-### Frontend / 前端
+### 前端 / Frontend
 
 ```bash
 cd frontend
@@ -44,117 +44,171 @@ Access at: http://localhost:3001
 
 访问地址: http://localhost:3001
 
-### Backend / 后端
+### 后端 / Backend
 
 ```bash
 cd backend
 ./deploy.sh dev
-```
 
-Then run the API:
-
-然后运行 API：
-
-```bash
+# 运行 API / Run API
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
 export REDIS_URL=redis://localhost:6379
-cargo run --bin blog-api
+cargo run
 ```
 
 API: http://localhost:3000
 
 ---
 
-## Project Structure / 项目结构
+## 主要特性 / Key Features
+
+### 交互式内容 / Interactive Content
+
+- **3D Models**: Three.js viewer for robotics simulations / 3D 模型：用于机器人仿真的 Three.js 查看器
+- **Molecular Visualization**: 3Dmol.js for chemistry / 分子可视化：用于化学的 3Dmol.js
+- **Charts**: Multiple charting libraries (Nivo, ECharts, G2, G6) / 图表：多种图表库
+- **Chemical Structures**: RDKit integration / 化学结构：RDKit 集成
+- **Music Notation**: Sheet music display / 音乐记谱：乐谱显示
+
+### 博客功能 / Blog Features
+
+- **Multi-Layout Posts**: Three different layouts / 多布局文章：三种不同的布局
+- **Tag System**: Automatic tag generation and filtering / 标签系统：自动生成和过滤标签
+- **Search**: Kbar command palette (Cmd/Ctrl + K) / 搜索：Kbar 命令面板
+- **Comments**: Giscus integration / 评论：Giscus 集成
+- **Theme**: Dark/light mode switching / 主题：深色/浅色模式切换
+
+---
+
+## 技术栈 / Technology Stack
+
+### 前端 / Frontend
+
+| 类别 / Category | 技术 / Technology |
+|-----------------|-------------------|
+| **框架 / Framework** | Next.js 16 |
+| **语言 / Language** | TypeScript |
+| **样式 / Styling** | Tailwind CSS 4 |
+| **内容 / Content** | MDX + Contentlayer2 |
+| **3D / 3D Graphics** | Three.js, 3Dmol.js |
+| **图表 / Charts** | Nivo, ECharts, G2, G6 |
+| **化学 / Chemistry** | RDKit.js |
+| **数学 / Math** | KaTeX |
+
+### 后端 / Backend
+
+| 类别 / Category | 技术 / Technology |
+|-----------------|-------------------|
+| **语言 / Language** | Rust |
+| **框架 / Framework** | Axum |
+| **数据库 / Database** | PostgreSQL + SQLx |
+| **缓存 / Cache** | Redis |
+| **认证 / Auth** | JWT |
+
+---
+
+## 文档 / Documentation
+
+For detailed documentation, see / 详细文档请查看：
+
+**[📚 完整文档 / Complete Documentation](docs/)**
+
+### 🚀 快速开始 / Quick Start
+
+- **[快速开始 / Quick Start](docs/getting-started/quick-start.md)** - 5分钟启动项目 / 5 minutes to start
+- **[安装指南 / Installation](docs/getting-started/installation.md)** - 详细的安装步骤 / Detailed setup steps
+- **[环境配置 / Environment Setup](docs/getting-started/environment-setup.md)** - 环境变量配置 / Environment variables
+- **[故障排查 / Troubleshooting](docs/getting-started/troubleshooting.md)** - 常见问题解决 / Common issues
+
+### 📖 使用指南 / User Guides
+
+- **[内容管理 / Content Management](docs/guides/content-management.md)** - 创建和管理文章 / Creating and managing posts
+- **[写作指南 / Writing Guide](docs/guides/writing-guide.md)** - Markdown 和组件使用 / Markdown and components
+- **[管理后台 / Admin Panel](docs/guides/admin-panel.md)** - 用户和评论管理 / User and comment management
+
+### 🔧 开发文档 / Development
+
+**架构概览**:
+- **[系统架构 / Architecture](docs/development/architecture.md)** - 完整的系统架构说明
+- **[组件参考 / Components Reference](docs/development/components-reference.md)** - 所有组件的快速参考
+- **[最佳实践 / Best Practices](docs/development/best-practices.md)** - 开发规范和最佳实践
+
+**前端开发**:
+- **[前端架构 / Frontend Overview](docs/development/frontend/overview.md)** - Next.js 项目结构
+- **[Refine 集成 / Refine Integration](docs/development/frontend/refine-integration.md)** - Refine 框架集成指南
+- **[前端测试 / Frontend Testing](docs/development/frontend/testing.md)** - 测试策略和规范
+
+**后端开发**:
+- **[后端架构 / Backend Overview](docs/development/backend/overview.md)** - Rust 项目结构
+- **[API 参考 / API Reference](docs/development/backend/api-reference.md)** - REST API 文档
+- **[数据库设计 / Database](docs/development/backend/database.md)** - 数据库模式和关系
+- **[后端测试 / Backend Testing](docs/development/backend/testing.md)** - 测试策略和规范
+
+**运维 / Operations**:
+- **[性能监控 / Performance Monitoring](docs/development/operations/performance-monitoring.md)** - 性能指标和监控
+- **[安全指南 / Security Guide](docs/development/operations/security-guide.md)** - 安全措施和最佳实践
+- **[故障排查 / Troubleshooting Guide](docs/development/operations/troubleshooting-guide.md)** - 问题诊断和解决
+
+### 🚀 部署文档 / Deployment
+
+- **[部署总览 / Deployment Overview](docs/deployment/overview.md)** - 部署架构选项 / Deployment architecture options
+- **[单服务器部署 / Single Server](docs/deployment/single-server.md)** - 快速部署指南 / Quick deployment guide
+- **[高可用部署 / High Availability](docs/deployment/high-availability.md)** - 生产环境配置 / Production setup
+
+### 📋 附录 / Appendix
+
+- **[术语表 / Glossary](docs/appendix/glossary.md)** - 项目术语定义
+- **[变更日志 / Changelog](docs/appendix/changelog.md)** - 版本更新记录
+- **[常见问题 / FAQ](docs/appendix/faq.md)** - 常见问题解答
+
+---
+
+## 项目结构 / Project Structure
 
 ```
 zhengbi-yong.github.io/
-├── frontend/                    # Next.js 16 frontend application
-│   ├── app/                     # Next.js App Router pages
-│   ├── components/              # React components
-│   │   ├── 3d/                 # Three.js, TresJS, 3Dmol viewers
-│   │   ├── chemistry/          # RDKit chemistry visualizations
-│   │   ├── charts/             # Nivo, ECharts, G2, G6 charts
-│   │   └── music/              # Music notation and audio
-│   ├── data/                   # Blog content (MDX)
-│   │   └── blog/               # Posts by category
-│   ├── layouts/                # Page layouts
-│   ├── lib/                    # Utilities
-│   └── slidev/                # Slidev presentations
-├── backend/                   # Rust API backend
-│   ├── crates/                # Workspace crates
-│   │   ├── api/               # HTTP API layer
-│   │   ├── core/              # Core logic
-│   │   ├── db/                # Database models
-│   │   ├── shared/            # Shared utilities
-│   │   └── worker/            # Background jobs
-│   ├── migrations/            # Database migrations
-│   └── deploy.sh              # Deployment script
-├── scripts/                   # Development scripts
-└── docs/                      # Project documentation
-    ├── README.md              # Detailed documentation
-    └── CLAUDE.md              # Claude AI guidelines
+├── frontend/                # Next.js 16 前端应用
+│   ├── app/                # App Router 页面
+│   ├── components/         # React 组件
+│   ├── data/blog/          # MDX 博客文章
+│   └── lib/                # 工具库
+├── backend/                # Rust API 后端
+│   ├── crates/
+│   │   ├── api/            # HTTP API 层
+│   │   ├── core/           # 核心业务逻辑
+│   │   ├── db/             # 数据库模型
+│   │   └── worker/         # 后台任务
+│   └── migrations/         # 数据库迁移
+├── docs/                   # 项目文档
+└── scripts/                # 开发脚本
 ```
 
 ---
 
-## Technology Stack / 技术栈
+## 常用命令 / Common Commands
 
-### Frontend / 前端
+### 前端 / Frontend
 
-| Category | Technology | Purpose / 用途 |
-|----------|------------|---------------|
-| Framework | Next.js 16 | React framework with App Router |
-| Language | TypeScript | Type-safe JavaScript |
-| Styling | Tailwind CSS 4 | Utility-first CSS |
-| Content | MDX + Contentlayer2 | Content processing |
-| 3D | Three.js, TresJS, 3Dmol.js | 3D visualization |
-| Charts | Nivo, ECharts, G2, G6 | Data visualization |
-| Chemistry | RDKit.js | Chemical structures |
-| Math | KaTeX | Math formulas |
-| Animations | Framer Motion, GSAP | Animations |
+```bash
+pnpm dev              # 启动开发服务器 / Start dev server
+pnpm build            # 构建生产版本 / Build for production
+pnpm lint             # 运行代码检查 / Run linting
+pnpm test             # 运行测试 / Run tests
+```
 
-### Backend / 后端
+### 后端 / Backend
 
-| Category | Technology | Purpose / 用途 |
-|----------|------------|---------------|
-| Language | Rust | Systems programming |
-| Framework | Axum | Async web framework |
-| Database | PostgreSQL + SQLx | Relational database |
-| Cache | Redis | In-memory cache |
-| Auth | JWT | Authentication |
+```bash
+./deploy.sh dev       # 启动开发环境 / Start dev environment
+./deploy.sh prod      # 启动生产环境 / Start production
+./deploy.sh stop      # 停止所有服务 / Stop all services
+cargo run             # 运行 API 服务 / Run API service
+cargo test            # 运行测试 / Run tests
+```
 
 ---
 
-## Key Features / 主要功能
-
-### Interactive Content / 交互式内容
-
-- **3D Models**: Three.js viewer for robotics simulations
-  - **3D 模型**: 用于机器人仿真的 Three.js 查看器
-- **Molecular Visualization**: 3Dmol.js for chemistry
-  - **分子可视化**: 用于化学的 3Dmol.js
-- **Charts**: Multiple charting libraries (Nivo, ECharts, G2, G6)
-  - **图表**: 多种图表库（Nivo、ECharts、G2、G6）
-- **Chemical Structures**: RDKit integration
-  - **化学结构**: RDKit 集成
-- **Music Notation**: Sheet music display
-  - **音乐记谱**: 乐谱显示
-
-### Blog Features / 博客功能
-
-- **Multi-Layout Posts**: Three different layouts
-  - **多布局文章**: 三种不同的布局
-- **Tag System**: Automatic tag generation and filtering
-  - **标签系统**: 自动生成和过滤标签
-- **Search**: Kbar command palette (Cmd/Ctrl + K)
-  - **搜索**: Kbar 命令面板（Cmd/Ctrl + K）
-- **Comments**: Giscus integration
-  - **评论**: Giscus 集成
-- **Theme**: Dark/light mode switching
-  - **主题**: 深色/浅色模式切换
-
-### Content Categories / 内容分类
+## 内容分类 / Content Categories
 
 - **Computer Science** (计算机科学): AI, algorithms, programming
 - **Robotics** (机器人学): ROS, control systems, automation
@@ -167,45 +221,7 @@ zhengbi-yong.github.io/
 
 ---
 
-## Documentation / 文档
-
-For detailed documentation, see:
-
-详细文档请查看：
-
-### Core Documentation / 核心文档
-
-- **[docs/README.md](docs/README.md)** - Comprehensive project documentation / 完整项目文档
-- **[docs/CLAUDE.md](docs/CLAUDE.md)** - Claude AI development guidelines / Claude AI 开发指南
-
-### Admin & Management / 管理后台
-
-- **[docs/admin.md](docs/admin.md)** - Complete admin panel documentation / 管理后台完整文档
-  - Quick start guide / 快速开始指南
-  - User management / 用户管理
-  - Comment moderation / 评论审核
-  - Technical implementation / 技术实现
-  - Testing guide / 测试指南
-  - Troubleshooting / 故障排查
-
-### Deployment & Operations / 部署与运维
-
-- **[docs/deploy.md](docs/deploy.md)** - Complete deployment and maintenance guide / 部署与维护完整指南
-  - Single server deployment / 单服务器部署
-  - High availability setup / 高可用配置
-  - Cluster deployment / 集群部署
-  - Daily maintenance / 日常维护
-  - Backup strategies / 备份策略
-  - Multi-project management / 多项目管理
-
-### API Reference / API 参考
-
-- **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)** - Complete API documentation / 完整 API 文档
-- **[docs/backend_api_usage.md](docs/backend_api_usage.md)** - Backend API usage guide / 后端 API 使用指南
-
----
-
-## Deployment / 部署
+## 部署 / Deployment
 
 ### GitHub Pages (Frontend / 前端)
 
@@ -227,29 +243,7 @@ cd backend
 
 ---
 
-## Scripts / 脚本
-
-### Frontend / 前端
-
-```bash
-pnpm dev              # Start development server / 启动开发服务器
-pnpm build            # Build for production / 构建生产版本
-pnpm lint             # Run linting / 运行代码检查
-pnpm test             # Run tests / 运行测试
-```
-
-### Backend / 后端
-
-```bash
-./deploy.sh dev       # Start development environment / 启动开发环境
-./deploy.sh prod      # Start production stack / 启动生产环境
-./deploy.sh stop      # Stop all services / 停止所有服务
-./deploy.sh status    # Show service status / 显示服务状态
-```
-
----
-
-## Development Protocol / 开发流程
+## 开发协议 / Development Protocol
 
 This project follows a 5-mode development protocol:
 
@@ -263,7 +257,7 @@ This project follows a 5-mode development protocol:
 
 ---
 
-## License / 许可证
+## 许可证 / License
 
 MIT License - See [LICENSE](LICENSE) for details.
 
@@ -271,7 +265,7 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 **Built with** by [Zhengbi Yong](https://zhengbi-yong.github.io)
 
-**Research Institution / 研究机构**: Beijing Institute Technology (北京理工大学)
+**Research Institution / 研究机构**: Beijing Institute of Technology (北京理工大学)
 
 **Advisor / 导师**: Professor Shi Dawai (石大发教授)
 
