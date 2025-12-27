@@ -128,14 +128,41 @@ export interface HealthStatus {
 export interface ServiceHealth {
   status: 'healthy' | 'unhealthy'
   message?: string
+  response_time_ms?: number
+  last_check?: string
   details?: Record<string, any>
 }
 
-export interface DetailedHealthStatus extends HealthStatus {
-  database: ServiceHealth
-  redis: ServiceHealth
-  jwt: ServiceHealth
-  email?: ServiceHealth
+// 后端实际返回的详细健康检查结构
+export interface DetailedHealthStatus {
+  status: 'healthy' | 'unhealthy'
+  timestamp: string
+  uptime_seconds: number
+  version: string
+  environment: string
+  services: {
+    database: ServiceHealth
+    redis: ServiceHealth
+    jwt: ServiceHealth
+    email: ServiceHealth
+  }
+  metrics: SystemMetrics
+}
+
+export interface SystemMetrics {
+  memory_usage: {
+    used_mb: number
+    total_mb: number
+    percentage: number
+  }
+  cpu_usage?: number
+  active_connections: number
+  database_pool: {
+    size: number
+    idle: number
+    active: number
+  }
+  redis_status: ServiceHealth
 }
 
 // ==================== Prometheus Metrics Types ====================

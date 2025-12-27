@@ -5,10 +5,36 @@
 
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Activity, Heart, BarChart3, Server, Zap, Database } from 'lucide-react'
+import { Activity, Heart, BarChart3, Server, Zap, Database, Loader2 } from 'lucide-react'
+import type { DetailedHealthStatus } from '@/lib/types/backend'
+import { useQuery } from '@tanstack/react-query'
 
 export default function MonitoringOverviewPage() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Health check endpoints are at root level, not under /v1
+  const backendBaseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/v1').replace('/v1', '')
+
+  // 使用 useQuery 获取健康检查数据
+  const { data: healthData, isLoading: healthLoading } = useQuery({
+    queryKey: ['health-check', 'overview'],
+    queryFn: async () => {
+      const response = await fetch(`${backendBaseUrl}/healthz/detailed`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json() as Promise<DetailedHealthStatus>
+    },
+    refetchInterval: 10000, // 10秒自动刷新
+    enabled: mounted,
+  })
+
   const monitoringModules = [
     {
       title: '健康检查',
@@ -26,28 +52,48 @@ export default function MonitoringOverviewPage() {
     },
   ]
 
+  // 根据健康检查数据生成快速统计
   const quickStats = [
     {
       label: '系统状态',
-      value: '运行中',
-      icon: <Server className="w-5 h-5 text-green-600" />,
+      value: healthData?.status === 'healthy' ? '健康' : '异常',
+      icon: healthData?.status === 'healthy'
+        ? <Server className="w-5 h-5 text-green-600" />
+        : <Server className="w-5 h-5 text-red-600" />,
     },
     {
       label: '响应时间',
-      value: '正常',
+      value: healthData?.services?.database?.response_time_ms
+        ? `${healthData.services.database.response_time_ms}ms`
+        : '检测中...',
       icon: <Activity className="w-5 h-5 text-blue-600" />,
     },
     {
       label: '数据库',
-      value: '连接正常',
-      icon: <Database className="w-5 h-5 text-green-600" />,
+      value: healthData?.services?.database?.status === 'healthy' ? '连接正常' : '连接异常',
+      icon: healthData?.services?.database?.status === 'healthy'
+        ? <Database className="w-5 h-5 text-green-600" />
+        : <Database className="w-5 h-5 text-red-600" />,
     },
     {
       label: '缓存',
-      value: '运行中',
-      icon: <Zap className="w-5 h-5 text-yellow-600" />,
+      value: healthData?.services?.redis?.status === 'healthy' ? '运行中' : '异常',
+      icon: healthData?.services?.redis?.status === 'healthy'
+        ? <Zap className="w-5 h-5 text-yellow-600" />
+        : <Zap className="w-5 h-5 text-red-600" />,
     },
   ]
+
+  if (healthLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+          <p className="text-gray-600 dark:text-gray-400">加载监控数据中...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -127,6 +173,11 @@ export default function MonitoringOverviewPage() {
             </h3>
             <p className="text-sm text-blue-700 dark:text-blue-300">
               所有监控页面支持自动刷新功能，数据每10秒更新一次。您可以随时切换自动刷新开关或手动刷新数据。
+              {healthData?.data?.timestamp && (
+                <span className="ml-2">
+                  最后更新：{new Date(healthData.data.timestamp).toLocaleTimeString('zh-CN')}
+                </span>
+              )}
             </p>
           </div>
         </div>

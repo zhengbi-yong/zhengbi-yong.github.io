@@ -6,24 +6,32 @@
 'use client'
 
 import { useState } from 'react'
-import { useCustom } from '@refinedev/core'
 import { RefreshCw, Activity, Database, Zap } from 'lucide-react'
 import { parsePrometheusMetrics, getRequestDurationStats, getDatabaseStats, getRedisStats } from '@/lib/utils/prometheus-parser'
 import { Loader2 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 
 export default function MetricsPage() {
   const [autoRefresh, setAutoRefresh] = useState(true)
 
-  const { data, isLoading, error, refetch } = useCustom<string>({
-    url: '/metrics',
-    method: 'GET',
-    queryOptions: {
-      refetchInterval: autoRefresh ? 10000 : false, // 10秒自动刷新
+  // Health check endpoints are at root level, not under /v1
+  const backendBaseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/v1').replace('/v1', '')
+
+  // 使用 useQuery 获取 Prometheus 指标
+  const { data, isLoading, error, refetch } = useQuery<string>({
+    queryKey: ['metrics'],
+    queryFn: async () => {
+      const response = await fetch(`${backendBaseUrl}/metrics`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.text()
     },
+    refetchInterval: autoRefresh ? 10000 : false, // 10秒自动刷新
   })
 
   // 解析Prometheus指标数据
-  const metrics = data?.data ? parsePrometheusMetrics(data.data) : null
+  const metrics = data ? parsePrometheusMetrics(data) : null
   const durationStats = metrics ? getRequestDurationStats(metrics) : null
   const dbStats = metrics ? getDatabaseStats(metrics) : null
   const redisStats = metrics ? getRedisStats(metrics) : null

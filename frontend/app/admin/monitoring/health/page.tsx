@@ -5,24 +5,30 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useCustom } from '@refinedev/core'
+import { useState } from 'react'
 import { CheckCircle2, XCircle, AlertCircle, RefreshCw } from 'lucide-react'
 import type { DetailedHealthStatus, ServiceHealth } from '@/lib/types/backend'
 import { Loader2 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 
 export default function HealthCheckPage() {
   const [autoRefresh, setAutoRefresh] = useState(true)
 
-  const { data, isLoading, error, refetch } = useCustom<DetailedHealthStatus>({
-    url: '/healthz/detailed',
-    method: 'GET',
-    queryOptions: {
-      refetchInterval: autoRefresh ? 10000 : false, // 10秒自动刷新
-    },
-  })
+  // Health check endpoints are at root level, not under /v1
+  const backendBaseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/v1').replace('/v1', '')
 
-  const healthData = data?.data
+  // 使用 Refine 的 useQuery (来自 @tanstack/react-query)
+  const { data: healthData, isLoading, error, refetch } = useQuery({
+    queryKey: ['health-check', 'detailed'],
+    queryFn: async () => {
+      const response = await fetch(`${backendBaseUrl}/healthz/detailed`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response.json() as Promise<DetailedHealthStatus>
+    },
+    refetchInterval: autoRefresh ? 10000 : false, // 10秒自动刷新
+  })
 
   const overallStatus = healthData?.status || 'unhealthy'
 
@@ -50,7 +56,7 @@ export default function HealthCheckPage() {
             {autoRefresh ? '自动刷新：开' : '自动刷新：关'}
           </button>
           <button
-            onClick={() => refetch()}
+            onClick={() => fetchHealthData()}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             title="手动刷新"
           >
@@ -126,37 +132,35 @@ export default function HealthCheckPage() {
       )}
 
       {/* Service Status Cards */}
-      {healthData && (
+      {healthData?.services && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Database */}
           <ServiceStatusCard
             name="数据库"
-            service={healthData.database}
+            service={healthData.services.database}
             icon="💾"
           />
 
           {/* Redis */}
           <ServiceStatusCard
             name="Redis缓存"
-            service={healthData.redis}
+            service={healthData.services.redis}
             icon="⚡"
           />
 
           {/* JWT */}
           <ServiceStatusCard
             name="JWT服务"
-            service={healthData.jwt}
+            service={healthData.services.jwt}
             icon="🔐"
           />
 
-          {/* Email (Optional) */}
-          {healthData.email && (
-            <ServiceStatusCard
-              name="邮件服务"
-              service={healthData.email}
-              icon="📧"
-            />
-          )}
+          {/* Email */}
+          <ServiceStatusCard
+            name="邮件服务"
+            service={healthData.services.email}
+            icon="📧"
+          />
         </div>
       )}
     </div>
@@ -211,23 +215,29 @@ function ServiceStatusCard({ name, service, icon }: ServiceStatusCardProps) {
         </p>
       )}
 
-      {service.details && Object.keys(service.details).length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            详细信息
-          </h4>
-          <dl className="space-y-2">
-            {Object.entries(service.details).map(([key, value]) => (
-              <div key={key} className="flex justify-between text-sm">
-                <dt className="text-gray-600 dark:text-gray-400">{key}:</dt>
-                <dd className="text-gray-900 dark:text-white font-medium">
-                  {String(value)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      )}
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          详细信息
+        </h4>
+        <dl className="space-y-2">
+          {service.response_time_ms && (
+            <div className="flex justify-between text-sm">
+              <dt className="text-gray-600 dark:text-gray-400">响应时间:</dt>
+              <dd className="text-gray-900 dark:text-white font-medium">
+                {service.response_time_ms}ms
+              </dd>
+            </div>
+          )}
+          {service.last_check && (
+            <div className="flex justify-between text-sm">
+              <dt className="text-gray-600 dark:text-gray-400">最后检查:</dt>
+              <dd className="text-gray-900 dark:text-white font-medium">
+                {new Date(service.last_check).toLocaleTimeString('zh-CN')}
+              </dd>
+            </div>
+          )}
+        </dl>
+      </div>
     </div>
   )
 }
