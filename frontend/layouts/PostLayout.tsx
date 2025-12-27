@@ -16,6 +16,9 @@ import ReadingProgress from '@/components/ReadingProgress'
 import ArticleAnalytics from '@/components/ArticleAnalytics'
 import { RecentArticles } from '@/components/RecentArticles'
 import { PostBackendIntegration } from '@/components/post/PostBackendIntegration'
+import { CommentForm } from '@/components/post/CommentForm'
+import { CommentListSimple } from '@/components/post/CommentListSimple'
+import { BackendComments } from '@/components/post/BackendComments'
 
 const editUrl = (path: string) => `${siteMetadata.siteRepo}/blob/main/data/${path}`
 const discussUrl = (path: string) =>
@@ -143,11 +146,11 @@ export default function PostLayout({
               </div>
             </div>
           </header>
-          <div className="divide-y divide-gray-200 pb-8 md:grid md:grid-cols-[3fr_1fr] xl:grid-cols-[1.5fr_3fr_1.5fr] md:gap-x-4 xl:gap-x-8 md:divide-y-0 dark:divide-gray-700">
-            {/* 左侧：最新文章 - 在xl以下屏幕隐藏 */}
+          <div className="divide-y divide-gray-200 pb-8 md:grid md:grid-cols-[3fr_1fr] xl:grid-cols-[191fr_618fr_191fr] md:gap-x-4 xl:gap-x-8 md:divide-y-0 dark:divide-gray-700">
+            {/* 左侧：目录 (TOC) - 在xl以下屏幕隐藏 */}
             <div className="hidden xl:flex xl:col-span-1 flex-shrink-0 flex-col">
               <div className="sticky top-20 flex flex-col h-full w-full" style={{ height: 'calc(100vh - 5rem)', maxHeight: 'calc(100vh - 5rem)' }}>
-                <RecentArticles limit={15} />
+                <FloatingTOC toc={toc} enabled={showTOC} />
               </div>
             </div>
 
@@ -162,12 +165,31 @@ export default function PostLayout({
               </FadeIn>
             </div>
 
-            {/* 右侧：TOC */}
-            <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start" style={{ height: 'calc(100vh - 5rem)', maxHeight: 'calc(100vh - 5rem)' }}>
-              <div className="flex flex-col h-full w-full" style={{ height: '100%', maxHeight: '100%' }}>
-                <FloatingTOC toc={toc} enabled={showTOC} />
+            {/* 右侧：相关文章 + 评论区 - 整体sticky容器 */}
+            <div className="hidden xl:flex xl:col-span-1 flex-shrink-0">
+              {/* 整体sticky容器，固定三个部分的相对位置 */}
+              <div className="sticky top-20 flex w-full flex-col" style={{ maxHeight: 'calc(100vh - 5rem)' }}>
+                <div className="flex flex-col gap-3 overflow-y-auto pr-2 [scrollbar-width:thin] [scrollbar-color:transparent_transparent] hover:[scrollbar-color:rgb(209_213_219)_transparent] dark:hover:[scrollbar-color:rgb(75_85_99)_transparent]">
+                  {/* 相关文章 - 38.2% */}
+                  <div style={{ flex: '0 0 calc((100vh - 5rem) * 0.382)' }}>
+                    <RecentArticles limit={3} currentSlug={slug} />
+                  </div>
+
+                  {/* 评论区（表单+列表）- 61.8% */}
+                  <div className="flex flex-col gap-3" style={{ flex: '0 0 calc((100vh - 5rem) * 0.618)' }}>
+                    {/* 评论表单 */}
+                    <CommentForm slug={slug || path} />
+                    {/* 评论列表 */}
+                    <CommentListSimple slug={slug || path} />
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
+
+          {/* 文章底部的完整评论区 - 包含评论表单和评论列表 */}
+          <div id="comments-section" className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+            <BackendComments slug={slug || path} />
           </div>
           {/* 移动端浮动 ToC - 在布局外部渲染，只渲染移动端组件 */}
           <div className="md:hidden" style={{ display: 'contents' }}>

@@ -10,9 +10,10 @@ import { useTranslation } from 'react-i18next'
 
 interface RecentArticlesProps {
   limit?: number
+  currentSlug?: string
 }
 
-export function RecentArticles({ limit = 5 }: RecentArticlesProps) {
+export function RecentArticles({ limit = 5, currentSlug }: RecentArticlesProps) {
   const { t } = useTranslation()
   const [isMounted, setIsMounted] = useState(false)
 
@@ -20,9 +21,9 @@ export function RecentArticles({ limit = 5 }: RecentArticlesProps) {
     setIsMounted(true)
   }, [])
 
-  // 获取最新文章
+  // 获取最新文章，排除当前文章
   const recentArticles = allCoreContent(sortPosts(allBlogs))
-    .filter((post) => !post.draft)
+    .filter((post) => !post.draft && post.slug !== currentSlug)
     .slice(0, limit)
 
   const displayText = (key: string) => (isMounted ? t(key) : key)
@@ -38,14 +39,14 @@ export function RecentArticles({ limit = 5 }: RecentArticlesProps) {
   }
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-gray-200/60 bg-[#F5F3F0] shadow-sm dark:border-gray-700 dark:bg-gray-900" style={{ height: '100%', maxHeight: '100%' }}>
+    <div className="flex h-full flex-col rounded-xl border border-gray-200/60 bg-[#F5F3F0] shadow-sm dark:border-gray-700 dark:bg-gray-900">
       <div className="flex-shrink-0 border-b border-gray-200/40 px-4 py-3 dark:border-gray-700">
         <h3
           className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"
           suppressHydrationWarning
         >
           <FileText size={16} className="text-gray-400 dark:text-gray-500" />
-          文章
+          相关文章
         </h3>
       </div>
 

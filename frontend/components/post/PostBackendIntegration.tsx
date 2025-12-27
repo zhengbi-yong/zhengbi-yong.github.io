@@ -40,9 +40,6 @@ export function PostBackendIntegration({ slug, children }: PostBackendIntegratio
 
       {/* Article Content */}
       {children}
-
-      {/* Comments Section */}
-      <BackendComments slug={slug} className="mt-12" />
     </>
   )
 }
