@@ -6,7 +6,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useList } from '@refinedev/core'
+import { useList, useCustom } from '@refinedev/core'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { format, subDays, startOfDay } from 'date-fns'
 import { Loader2 } from 'lucide-react'
@@ -15,15 +15,25 @@ export default function AnalyticsPage() {
   const [daysRange, setDaysRange] = useState(30)
 
   // 获取统计数据
-  const { data: statsData, isLoading: statsLoading } = useList({
+  const queryResult = useList({
     resource: 'admin/stats',
     pagination: { current: 1, pageSize: 1 },
   })
 
-  const stats = statsData?.data?.[0]
+  const stats = queryResult.result?.data?.[0]
+  const statsLoading = queryResult.query?.isPending
+
+  // 获取用户增长数据
+  const { data: userGrowthResponse, isLoading: userGrowthLoading } = useCustom({
+    url: '/admin/users/growth',
+    method: 'GET',
+    queryOptions: {
+      staleTime: 5 * 60 * 1000, // 5分钟缓存
+    },
+  })
 
   // 获取评论数据（用于生成趋势图）
-  const { data: commentsData, isLoading: commentsLoading } = useList({
+  const commentsQueryResult = useList({
     resource: 'admin/comments',
     pagination: { current: 1, pageSize: 1000 },
     queryOptions: {
@@ -31,25 +41,23 @@ export default function AnalyticsPage() {
     },
   })
 
-  // 生成模拟的用户增长数据
+  const commentsData = commentsQueryResult.result?.data || []
+  const commentsLoading = commentsQueryResult.query?.isPending
+
+  // 处理用户增长数据，转换为图表格式
   const userGrowthData = useMemo(() => {
-    const data = []
-    const baseUsers = stats?.total_users || 100
-    for (let i = daysRange - 1; i >= 0; i--) {
-      const date = startOfDay(subDays(new Date(), i))
-      const growth = Math.floor(Math.random() * 5) + 1
-      data.push({
-        date: format(date, 'MM-dd'),
-        新增用户: growth,
-        累计用户: baseUsers - (daysRange - i) * 3 + growth,
-      })
-    }
-    return data
-  }, [daysRange, stats])
+    if (!userGrowthResponse?.data) return []
+
+    return userGrowthResponse.data.map((item: any) => ({
+      date: format(new Date(item.date), 'MM-dd'),
+      新增用户: item.new_users,
+      累计用户: item.cumulative_users,
+    }))
+  }, [userGrowthResponse])
 
   // 生成评论活跃度数据
   const commentActivityData = useMemo(() => {
-    const comments = commentsData?.data || []
+    const comments = commentsData || []
     const groupedByDate: Record<string, { approved: number; pending: number; rejected: number }> = {}
 
     // 初始化所有日期
@@ -76,7 +84,7 @@ export default function AnalyticsPage() {
     }))
   }, [daysRange, commentsData])
 
-  if (statsLoading || commentsLoading) {
+  if (statsLoading || userGrowthLoading || commentsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center space-y-4">

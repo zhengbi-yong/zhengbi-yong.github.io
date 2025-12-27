@@ -165,6 +165,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .route("/users", get(blog_api::routes::admin::list_users))
         .route("/users/{id}/role", axum::routing::put(blog_api::routes::admin::update_user_role))
         .route("/users/{id}", axum::routing::delete(blog_api::routes::admin::delete_user))
+        .route("/users/growth", get(blog_api::routes::admin::get_user_growth))
         .route("/comments", get(blog_api::routes::admin::list_comments_admin))
         .route("/comments/{id}/status", axum::routing::put(blog_api::routes::admin::update_comment_status))
         .route("/comments/{id}", axum::routing::delete(blog_api::routes::admin::delete_comment_admin))

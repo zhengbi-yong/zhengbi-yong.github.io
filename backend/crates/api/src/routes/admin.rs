@@ -118,6 +118,24 @@ pub struct PostAdminItem {
     pub updated_at: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserGrowthQuery {
+    pub days: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserGrowthData {
+    pub date: String,
+    pub new_users: i64,
+    pub cumulative_users: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserGrowthResponse {
+    pub data: Vec<UserGrowthData>,
+    pub total_users: i64,
+}
+
 // ===== 用户管理 API =====
 
 pub async fn list_users(
@@ -378,5 +396,76 @@ pub async fn list_posts_admin(
         total: total.0,
         page,
         page_size,
+    }))
+}
+
+// ===== 用户增长数据 API =====
+
+pub async fn get_user_growth(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Query(query): Query<UserGrowthQuery>,
+) -> Result<Json<UserGrowthResponse>, AppError> {
+    let uid = auth_user.id;
+    if !is_admin(uid, &state).await? {
+        return Err(AppError::Unauthorized);
+    }
+
+    let days = query.days.unwrap_or(30).min(90) as i64;
+
+    // 计算起始日期
+    let start_date = (chrono::Utc::now() - chrono::Duration::days(days)).naive_utc().date();
+
+    // 获取每天的用户注册数据
+    let growth_data = sqlx::query!(
+        r#"
+        WITH date_series AS (
+            SELECT generate_series(
+                $1::date,
+                CURRENT_DATE,
+                INTERVAL '1 day'
+            )::date as date
+        ),
+        user_counts AS (
+            SELECT
+                ds.date,
+                COUNT(u.id) FILTER (WHERE DATE(u.created_at) = ds.date) as new_users,
+                (
+                    SELECT COUNT(*)
+                    FROM users
+                    WHERE DATE(created_at) <= ds.date
+                ) as cumulative_users
+            FROM date_series ds
+            LEFT JOIN users u ON DATE(u.created_at) = ds.date
+            GROUP BY ds.date
+            ORDER BY ds.date
+        )
+        SELECT
+            date::text as date,
+            COALESCE(new_users, 0)::bigint as new_users,
+            COALESCE(cumulative_users, 0)::bigint as cumulative_users
+        FROM user_counts
+        "#,
+        start_date
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    let total_users: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users")
+        .fetch_one(&state.db)
+        .await?;
+
+    let data = growth_data
+        .into_iter()
+        .map(|row| UserGrowthData {
+            date: row.date.unwrap_or_default(),
+            new_users: row.new_users.unwrap_or(0),
+            cumulative_users: row.cumulative_users.unwrap_or(0),
+        })
+        .collect();
+
+    Ok(Json(UserGrowthResponse {
+        data,
+        total_users: total_users.0,
     }))
 }
