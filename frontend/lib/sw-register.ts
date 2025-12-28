@@ -18,7 +18,7 @@ function isServiceWorkerSupported(): boolean {
  */
 export async function registerServiceWorker(): Promise<void> {
   if (!isServiceWorkerSupported()) {
-    console.debug('[SW] Service Worker not supported')
+    logger.debug('[SW] Service Worker not supported')
     return
   }
 
@@ -27,7 +27,7 @@ export async function registerServiceWorker(): Promise<void> {
       scope: '/',
     })
 
-    console.log('[SW] Service Worker registered:', registration.scope)
+    logger.log('[SW] Service Worker registered:', registration.scope)
 
     // 监听更新
     registration.addEventListener('updatefound', () => {
@@ -37,7 +37,7 @@ export async function registerServiceWorker(): Promise<void> {
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
           // 新版本已安装，提示用户刷新
-          console.log('[SW] New version available, please refresh the page')
+          logger.log('[SW] New version available, please refresh the page')
           // 可以在这里显示更新提示
         }
       })
@@ -46,7 +46,7 @@ export async function registerServiceWorker(): Promise<void> {
     // 检查更新
     await registration.update()
   } catch (error) {
-    console.error('[SW] Service Worker registration failed:', error)
+    logger.error('[SW] Service Worker registration failed:', error)
     // 注册失败不影响应用功能
   }
 }
@@ -63,10 +63,10 @@ export async function unregisterServiceWorker(): Promise<void> {
     const registration = await navigator.serviceWorker.getRegistration()
     if (registration) {
       await registration.unregister()
-      console.log('[SW] Service Worker unregistered')
+      logger.log('[SW] Service Worker unregistered')
     }
   } catch (error) {
-    console.error('[SW] Service Worker unregistration failed:', error)
+    logger.error('[SW] Service Worker unregistration failed:', error)
   }
 }
 

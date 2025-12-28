@@ -93,7 +93,7 @@ export default function FullscreenMusicSheet({
           rootFilePath = rootfile.getAttribute('full-path') || ''
         }
       } catch (err) {
-        console.warn('无法解析 container.xml，尝试查找 XML 文件:', err)
+        logger.warn('无法解析 container.xml，尝试查找 XML 文件:', err)
       }
     }
 
@@ -199,7 +199,7 @@ export default function FullscreenMusicSheet({
         }
       } catch (urlError) {
         // 如果 URL 加载失败，尝试使用 XML 字符串
-        console.warn('URL 加载失败，尝试使用 XML 字符串:', urlError)
+        logger.warn('URL 加载失败，尝试使用 XML 字符串:', urlError)
         await osmdInstanceRef.current.load(xmlContent)
       }
 
@@ -237,7 +237,7 @@ export default function FullscreenMusicSheet({
 
       setIsLoading(false)
     } catch (err) {
-      console.error('加载乐谱错误:', err)
+      logger.error('加载乐谱错误:', err)
       setError(`加载乐谱失败: ${err instanceof Error ? err.message : '未知错误'}`)
       setIsLoading(false)
     }
@@ -291,7 +291,7 @@ export default function FullscreenMusicSheet({
         // 加载乐谱
         await loadMusicXML(src)
       } catch (err) {
-        console.error('OSMD 初始化错误:', err)
+        logger.error('OSMD 初始化错误:', err)
         setError(`初始化失败: ${err instanceof Error ? err.message : '未知错误'}`)
         setIsLoading(false)
       }

@@ -10,13 +10,14 @@ import Link from 'next/link'
 import { Search, Eye, Heart, MessageSquare, FileText } from 'lucide-react'
 import { useList, useInvalidate } from '@refinedev/core'
 import { Loader2 } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 export default function PostsListPage() {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(20)
   const [searchQuery, setSearchQuery] = useState('')
 
-  console.log('[PostsPage] Component rendering, page:', page)
+  logger.debug('[PostsPage] Component rendering, page:', page)
 
   // 尝试使用 invalidate 来强制刷新
   const invalidate = useInvalidate()
@@ -30,7 +31,7 @@ export default function PostsListPage() {
     },
   })
 
-  console.log('[PostsPage] useList returned:', {
+  logger.debug('[PostsPage] useList returned:', {
     hasQueryResult: !!queryResult,
     keys: Object.keys(queryResult),
     allValues: queryResult,
@@ -49,23 +50,23 @@ export default function PostsListPage() {
   const error = query?.isError ? query.error : undefined
 
   // 调试日志 - 使用JSON.stringify确保能看到完整内容
-  console.log('=== Posts Debug Start ===')
-  console.log('isLoading:', isLoading)
-  console.log('error:', error)
-  console.log('data:', data)
-  console.log('data type:', typeof data)
-  console.log('data is null:', data === null)
-  console.log('data is undefined:', data === undefined)
+  logger.debug('=== Posts Debug Start ===')
+  logger.debug('isLoading:', isLoading)
+  logger.debug('error:', error)
+  logger.debug('data:', data)
+  logger.debug('data type:', typeof data)
+  logger.debug('data is null:', data === null)
+  logger.debug('data is undefined:', data === undefined)
   if (data) {
-    console.log('data keys:', Object.keys(data))
-    console.log('data.data:', data.data)
-    console.log('data.data type:', typeof data.data)
-    console.log('data.data is array:', Array.isArray(data.data))
-    console.log('data.data length:', Array.isArray(data.data) ? data.data.length : 'N/A')
-    console.log('data.total:', data.total)
-    console.log('First post:', Array.isArray(data.data) && data.data.length > 0 ? data.data[0] : 'No posts')
+    logger.debug('data keys:', Object.keys(data))
+    logger.debug('data.data:', data.data)
+    logger.debug('data.data type:', typeof data.data)
+    logger.debug('data.data is array:', Array.isArray(data.data))
+    logger.debug('data.data length:', Array.isArray(data.data) ? data.data.length : 'N/A')
+    logger.debug('data.total:', data.total)
+    logger.debug('First post:', Array.isArray(data.data) && data.data.length > 0 ? data.data[0] : 'No posts')
   }
-  console.log('=== Posts Debug End ===')
+  logger.debug('=== Posts Debug End ===')
 
   const posts = data || []
 

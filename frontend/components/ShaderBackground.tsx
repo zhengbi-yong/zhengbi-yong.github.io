@@ -147,7 +147,7 @@ export default function ShaderBackground({
       gl.compileShader(shader)
 
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error('Shader compilation error:', gl.getShaderInfoLog(shader))
+        logger.error('Shader compilation error:', gl.getShaderInfoLog(shader))
         gl.deleteShader(shader)
         return null
       }
@@ -169,7 +169,7 @@ export default function ShaderBackground({
       gl.linkProgram(program)
 
       if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        console.error('Program linking error:', gl.getProgramInfoLog(program))
+        logger.error('Program linking error:', gl.getProgramInfoLog(program))
         gl.deleteProgram(program)
         return null
       }
@@ -182,14 +182,14 @@ export default function ShaderBackground({
     const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource)
 
     if (!vertexShader || !fragmentShader) {
-      console.error('Failed to create shaders')
+      logger.error('Failed to create shaders')
       return
     }
 
     // 创建程序
     const program = createProgram(gl, vertexShader, fragmentShader)
     if (!program) {
-      console.error('Failed to create program')
+      logger.error('Failed to create program')
       return
     }
 

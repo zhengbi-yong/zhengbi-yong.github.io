@@ -81,7 +81,7 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
 
           script.onerror = () => {
             // CDN加载失败，尝试本地版本
-            console.log('CDN failed, trying local RDKit...')
+            logger.log('CDN failed, trying local RDKit...')
             const localScript = document.createElement('script')
             localScript.src = '/chemistry/rdkit/RDKit_minimal.js'
             localScript.async = true
@@ -119,7 +119,7 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
         document.head.appendChild(script)
         await loadPromise
       } catch (err) {
-        console.error('Failed to load RDKit:', err)
+        logger.error('Failed to load RDKit:', err)
         setError(err instanceof Error ? err.message : 'Failed to load RDKit')
         setIsLoaded(false)
       }
@@ -149,7 +149,7 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
       mol.delete()
       return svg
     } catch (err) {
-      console.error('SMILES to SVG error:', { smiles, error: err })
+      logger.error('SMILES to SVG error:', { smiles, error: err })
       throw new Error(`Failed to convert SMILES to SVG: ${err}`)
     }
   }
@@ -165,7 +165,7 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
       const smiles = getSMILESFromMOL(molData)
 
       if (smiles) {
-        console.log(`Identified molecule, using SMILES: ${smiles}`)
+        logger.log(`Identified molecule, using SMILES: ${smiles}`)
         return await smilesToSVG(smiles)
       }
 
@@ -239,7 +239,7 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
         const smiles = getSMILESFromMOL(input)
 
         if (smiles) {
-          console.log(`Identified molecule for fingerprint, using SMILES: ${smiles}`)
+          logger.log(`Identified molecule for fingerprint, using SMILES: ${smiles}`)
           mol = RDKit.get_mol(smiles)
         } else {
           // For MOL format, try direct parsing (won't work with minimal build)
@@ -280,7 +280,7 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
       mol.delete()
       return fingerprint
     } catch (err) {
-      console.error('Fingerprint generation error:', {
+      logger.error('Fingerprint generation error:', {
         input: input.substring(0, 100),
         format,
         radius,

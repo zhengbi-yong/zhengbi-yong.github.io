@@ -58,7 +58,7 @@ export default function UserManagementPage() {
         values: { role: newRole },
       })
     } catch (err) {
-      console.error('Failed to update user role:', err)
+      logger.error('Failed to update user role:', err)
       alert('更新用户角色失败')
     }
   }
@@ -74,7 +74,7 @@ export default function UserManagementPage() {
         id: userId,
       })
     } catch (err) {
-      console.error('Failed to delete user:', err)
+      logger.error('Failed to delete user:', err)
       alert('删除用户失败')
     }
   }
@@ -98,7 +98,7 @@ export default function UserManagementPage() {
       )
       setSelectedUsers(new Set())
     } catch (err) {
-      console.error('Failed to batch update roles:', err)
+      logger.error('Failed to batch update roles:', err)
       alert('批量更新角色失败')
     }
   }
@@ -123,7 +123,7 @@ export default function UserManagementPage() {
       )
       setSelectedUsers(new Set())
     } catch (err) {
-      console.error('Failed to batch delete users:', err)
+      logger.error('Failed to batch delete users:', err)
       alert('批量删除失败')
     }
   }

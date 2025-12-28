@@ -250,7 +250,7 @@ class ErrorHandler {
       // })
 
       // 临时使用 alert
-      console.warn('Toast notification:', {
+      logger.warn('Toast notification:', {
         title: this.getErrorTitle(error),
         message: error.message,
       })

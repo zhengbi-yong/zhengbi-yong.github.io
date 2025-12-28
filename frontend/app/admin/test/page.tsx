@@ -10,7 +10,7 @@ export default function AdminTestPage() {
   // 获取 apiUrl 来测试 Refine context
   const apiUrl = useApiUrl()
 
-  console.log('[AdminTest] Refine Context Test:', {
+  logger.log('[AdminTest] Refine Context Test:', {
     hasApiUrl: !!apiUrl,
     apiUrl,
     contextTest: refineContextTest,
@@ -39,10 +39,10 @@ export default function AdminTestPage() {
           },
         })
         const result = await response.json()
-        console.log('[Direct API] Result:', result)
+        logger.log('[Direct API] Result:', result)
         setDirectApiData(result)
       } catch (err) {
-        console.error('[Direct API] Error:', err)
+        logger.error('[Direct API] Error:', err)
       }
     }
 
@@ -57,7 +57,7 @@ export default function AdminTestPage() {
     })
   }, [apiUrl])
 
-  console.log('[AdminTest]', {
+  logger.log('[AdminTest]', {
     data,
     isLoading,
     error,
