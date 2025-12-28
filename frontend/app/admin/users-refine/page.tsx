@@ -47,7 +47,7 @@ export default function UsersRefinePage() {
           id: userId,
         })
       } catch (error) {
-        console.error('Failed to delete user:', error)
+        logger.error('Failed to delete user:', error)
         alert('删除失败')
       }
     }
@@ -63,7 +63,7 @@ export default function UsersRefinePage() {
         },
       })
     } catch (error) {
-      console.error('Failed to update user role:', error)
+      logger.error('Failed to update user role:', error)
       alert('更新角色失败')
     }
   }

@@ -13,7 +13,7 @@ export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
     <ErrorBoundaryV2
       onError={(error, errorInfo) => {
         // 全局错误处理逻辑
-        console.error('Global error handler:', error, errorInfo)
+        logger.error('Global error handler:', error, errorInfo)
 
         // 可以在这里添加其他全局错误处理逻辑
         // 例如：显示全局通知、发送到分析服务等

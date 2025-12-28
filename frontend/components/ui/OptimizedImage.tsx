@@ -62,7 +62,7 @@ export function OptimizedImage({
 // 类型安全的图片组件，强制要求 alt 属性
 export function AccessibleImage(props: OptimizedImageProps) {
   if (!props.alt) {
-    console.warn('AccessibleImage: alt prop is required for accessibility')
+    logger.warn('AccessibleImage: alt prop is required for accessibility')
     return <OptimizedImage {...props} alt="Image" />
   }
   return <OptimizedImage {...props} />

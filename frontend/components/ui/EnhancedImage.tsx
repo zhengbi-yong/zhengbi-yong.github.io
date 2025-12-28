@@ -72,7 +72,7 @@ export function EnhancedImage({
   // Handle load error
   const handleError = useCallback(
     (event: React.SyntheticEvent<HTMLImageElement>) => {
-      console.error('Image loading error:', event)
+      logger.error('Image loading error:', event)
       setHasError(true)
       setIsLoading(false)
 

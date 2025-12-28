@@ -63,7 +63,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       })
       .catch(() => {
         // 如果 logger 加载失败，使用 console.error 作为降级方案
-        console.error('ErrorBoundary 捕获到错误:', error, errorInfo)
+        logger.error('ErrorBoundary 捕获到错误:', error, errorInfo)
       })
 
     // 调用可选的错误回调

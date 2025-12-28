@@ -15,7 +15,7 @@ export default function VisitorTracker() {
         method: 'POST',
       }).catch((error) => {
         // 静默失败，不影响用户体验
-        console.debug('[VisitorTracker] Failed to record visitor:', error)
+        logger.debug('[VisitorTracker] Failed to record visitor:', error)
       })
     }, 1000)
 

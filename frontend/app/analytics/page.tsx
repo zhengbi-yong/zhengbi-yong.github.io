@@ -55,7 +55,7 @@ export default function AnalyticsPage() {
       refreshData()
       alert('数据导入成功！')
     } catch (error) {
-      console.error('Import failed:', error)
+      logger.error('Import failed:', error)
       setImportError(error instanceof Error ? error.message : '导入失败')
     } finally {
       setImporting(false)

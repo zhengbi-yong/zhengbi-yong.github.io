@@ -25,7 +25,7 @@ export function calculateContrastRatio(color1: string, color2: string): number {
   const rgb2 = hexToRgb(color2)
 
   if (!rgb1 || !rgb2) {
-    console.error('Invalid color format')
+    logger.error('Invalid color format')
     return 1
   }
 
@@ -317,10 +317,10 @@ export const checkTailwindColors = () => {
     { text: 'text-gray-700', bg: 'bg-gray-100' },
   ]
 
-  console.group('🎨 Tailwind Color Contrast Report')
+  logger.group('🎨 Tailwind Color Contrast Report')
   commonPairs.forEach((pair) => {
     // This would need to be implemented to get actual hex values
-    console.log(`${pair.text} on ${pair.bg}: Need to check contrast`)
+    logger.log(`${pair.text} on ${pair.bg}: Need to check contrast`)
   })
   console.groupEnd()
 }

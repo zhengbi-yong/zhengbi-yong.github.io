@@ -167,9 +167,9 @@ class ImagePreloader {
       await preloadImage(url)
       // 标记为已预加载
       this.preloadedUrls.add(url)
-      console.log(`[ImagePreloader] Preloaded: ${url}`)
+      logger.log(`[ImagePreloader] Preloaded: ${url}`)
     } catch (error) {
-      console.debug(`[ImagePreloader] Failed to preload image: ${url}`, error)
+      logger.debug(`[ImagePreloader] Failed to preload image: ${url}`, error)
     } finally {
       // 从活动列表中移除
       this.activePreloads.delete(url)

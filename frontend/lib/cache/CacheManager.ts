@@ -145,7 +145,7 @@ export class CacheManager<T = any> {
         this.cache = new Map(Object.entries(parsed))
       }
     } catch (error) {
-      console.warn('Failed to load cache from storage:', error)
+      logger.warn('Failed to load cache from storage:', error)
     }
   }
 
@@ -161,7 +161,7 @@ export class CacheManager<T = any> {
       const data = JSON.stringify(Object.fromEntries(this.cache))
       storage.setItem(this.storageKey, data)
     } catch (error) {
-      console.warn('Failed to save cache to storage:', error)
+      logger.warn('Failed to save cache to storage:', error)
     }
   }
 
@@ -176,7 +176,7 @@ export class CacheManager<T = any> {
       const storage = (window as any)[this.storage] as Storage
       storage.removeItem(this.storageKey)
     } catch (error) {
-      console.warn('Failed to remove cache from storage:', error)
+      logger.warn('Failed to remove cache from storage:', error)
     }
   }
 

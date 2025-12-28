@@ -83,7 +83,7 @@ export function parsePrometheusMetrics(text: string): PrometheusMetrics {
       }
     } catch (error) {
       // 忽略解析错误的行
-      console.debug('Failed to parse Prometheus line:', line, error)
+      logger.debug('Failed to parse Prometheus line:', line, error)
     }
   })
 

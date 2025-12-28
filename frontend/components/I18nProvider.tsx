@@ -16,7 +16,7 @@ export default function I18nProvider({ children }: { children: React.ReactNode }
     // 使用动态导入避免模块顶层的副作用，解决 HMR 问题
     initI18n().catch((error) => {
       // 错误已经在 initI18n 中记录，这里只做额外处理（如果需要）
-      console.error('Failed to initialize i18n:', error)
+      logger.error('Failed to initialize i18n:', error)
     })
   }, [])
 

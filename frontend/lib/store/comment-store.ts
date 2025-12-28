@@ -142,7 +142,7 @@ export const useCommentStore = create<CommentsState>()(
           }
         })
       } catch (error) {
-        console.error('Failed to like comment:', error)
+        logger.error('Failed to like comment:', error)
       }
     },
 

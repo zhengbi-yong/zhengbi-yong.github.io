@@ -56,7 +56,7 @@ export const usePostStore = create<PostStatsState>()(
         get().fetchStats(slug)
       } catch (error) {
         // Silently fail for view tracking
-        console.error('Failed to record view:', error)
+        logger.error('Failed to record view:', error)
       }
     },
 

@@ -87,7 +87,7 @@ export async function getGeolocation(ip: string): Promise<GeolocationData | null
     )
 
     if (!response.ok) {
-      console.warn(`[IP Geolocation] API returned ${response.status}`)
+      logger.warn(`[IP Geolocation] API returned ${response.status}`)
       return null
     }
 
@@ -105,16 +105,16 @@ export async function getGeolocation(ip: string): Promise<GeolocationData | null
 
     // API返回失败状态
     if (data.message) {
-      console.warn(`[IP Geolocation] API error: ${data.message}`)
+      logger.warn(`[IP Geolocation] API error: ${data.message}`)
     }
 
     return null
   } catch (error) {
     // 网络错误或超时
     if (error instanceof Error && error.name === 'AbortError') {
-      console.warn('[IP Geolocation] Request timeout')
+      logger.warn('[IP Geolocation] Request timeout')
     } else {
-      console.error('[IP Geolocation] Failed to fetch geolocation:', error)
+      logger.error('[IP Geolocation] Failed to fetch geolocation:', error)
     }
     return null
   }
