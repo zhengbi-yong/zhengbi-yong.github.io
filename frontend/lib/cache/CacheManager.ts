@@ -131,6 +131,11 @@ export class CacheManager<T = any> {
 
   // 从存储加载
   private loadFromStorage(): void {
+    // 只在客户端环境中加载
+    if (typeof window === 'undefined') {
+      return
+    }
+
     try {
       const storage = (window as any)[this.storage] as Storage
       const data = storage.getItem(this.storageKey)
@@ -146,6 +151,11 @@ export class CacheManager<T = any> {
 
   // 保存到存储
   private saveToStorage(): void {
+    // 只在客户端环境中保存
+    if (typeof window === 'undefined') {
+      return
+    }
+
     try {
       const storage = (window as any)[this.storage] as Storage
       const data = JSON.stringify(Object.fromEntries(this.cache))
@@ -157,6 +167,11 @@ export class CacheManager<T = any> {
 
   // 从存储删除
   private removeFromStorage(): void {
+    // 只在客户端环境中删除
+    if (typeof window === 'undefined') {
+      return
+    }
+
     try {
       const storage = (window as any)[this.storage] as Storage
       storage.removeItem(this.storageKey)
