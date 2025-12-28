@@ -185,7 +185,7 @@ class ConfigManager:
                 return False
 
             port = int(port)
-            if port < 1024 or port > 65535:
+            if port < 1 or port > 65535:
                 log_error(f"无效的端口号: {port}")
                 return False
 
