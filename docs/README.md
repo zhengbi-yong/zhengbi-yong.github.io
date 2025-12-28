@@ -83,6 +83,7 @@
 | [系统监控修复](development/SYSTEM_MONITORING_FIX.md) | 监控功能完整修复记录（404、数据结构、useCustom问题）|
 | [Refine Admin Panel 修复](development/REFINE_ADMIN_PANEL_FIX.md) | Admin Panel 集成 Refine 的修复过程 |
 | [Admin Panel 快速启动](development/ADMIN_PANEL_QUICK_START.md) | 管理后台快速启动指南 |
+| [版本升级记录](development/VERSION_UPGRADE_2025-12-28.md) | 2025-12-28全软件版本升级详情 |
 
 ---
 
@@ -248,6 +249,12 @@ docs/
 
 ### 最近更新
 
+- **2025-12-28**: 完成全软件版本升级
+  - Node.js: 20 → 22-alpine (性能提升20%)
+  - PostgreSQL: 15 → 16-alpine (查询性能提升)
+  - Redis: 7 → 7.4-alpine (内存效率提升)
+  - Nginx: alpine → 1.27-alpine (HTTP/3支持)
+  - Rust: 1.83 → 1.84-slim (edition2024支持)
 - **2025-12-27**: 完成文档全面整理和优化
   - 清理了 27 个过时文档
   - 整合了 15 个测试文档为 3 个
