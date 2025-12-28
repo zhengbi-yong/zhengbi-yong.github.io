@@ -15,6 +15,10 @@ RUN pnpm install --frozen-lockfile
 # Stage 2: 构建应用
 FROM node:22-alpine AS builder
 WORKDIR /app
+
+# 安装 pnpm (需要在 builder 阶段使用)
+RUN npm install -g pnpm
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
