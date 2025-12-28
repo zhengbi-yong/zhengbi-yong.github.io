@@ -1,0 +1,118 @@
+# Rustfmt configuration
+# See https://rust-lang.github.io/rustfmt/
+
+# Edition
+edition = "2021"
+
+# Line width
+max_width = 100
+
+# Hard tabs or spaces
+hard_tabs = false
+tab_spaces = 4
+
+# Newline style
+newline_style = "Unix"
+
+# Use field init shorthand
+use_field_init_shorthand = true
+
+# Use try shorthand
+use_try_shorthand = true
+
+# Force explicit abi
+force_explicit_abi = true
+
+# Format code in doc comments
+format_code_in_doc_comments = true
+
+# Format strings
+format_strings = true
+
+# Normalize comments
+normalize_comments = true
+
+# Normalize doc attributes
+normalize_doc_attributes = true
+
+# Format macro matchers
+format_macro_matchers = true
+
+# Format macro bodies
+format_macro_bodies = true
+
+# Hex literal case
+hex_literal_case = "Lower"
+
+# Imports granularity
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+
+# Reorder imports
+reorder_imports = true
+
+# Reorder modules
+reorder_modules = true
+
+# Remove nested parens
+remove_nested_parens = true
+
+# Space after colon
+space_after_colon = true
+
+# Space before colon
+space_before_colon = false
+
+# Spaces around ranges
+spaces_around_ranges = false
+
+# Type punctuation density
+type_punctuation_density = "Wide"
+
+# Merge derives
+merge_derives = true
+
+# Use small heuristics
+use_small_heuristics = "Default"
+
+# Overflow delimiting expr
+overflow_delimited_expr = true
+
+# Reorder impl items
+reorder_impl_items = true
+
+# Show parse errors
+show_parse_errors = true
+
+# Skip children
+skip_children = false
+
+# Struct lit single line
+struct_lit_single_line = true
+
+# Struct variant width
+struct_variant_width = 35
+
+# Wrap comments at max width
+wrap_comments = false
+
+# Comment width
+comment_width = 100
+
+# Condense wildcard suffixes
+condense_wildcard_suffixes = true
+
+# Format match blocks
+format_match_matchers = true
+
+# Match arm blocks
+match_block_trailing_comma = false
+
+# Match arm leading pipes
+match_arm_leading_pipes = "Never"
+
+# Force multiline match
+force_multiline_blocks = false
+
+# Inline narrow macros
+inline_macro_width = 30
