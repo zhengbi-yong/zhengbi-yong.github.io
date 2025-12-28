@@ -1,0 +1,324 @@
+# ========================================
+# 博客系统统一配置文件
+# ========================================
+# 所有配置项集中管理，修改后需要重新部署
+# 版本: 1.0.0
+
+# ========================================
+# 系统配置
+# ========================================
+system:
+  # 项目名称（用于容器命名）
+  project_name: blog
+
+  # 部署环境: development, staging, production
+  environment: production
+
+  # 时区
+  timezone: Asia/Shanghai
+
+  # 日志级别: error, warn, info, debug, trace
+  log_level: info
+
+# ========================================
+# 端口配置（固定，请勿轻易修改）
+# ========================================
+ports:
+  # 前端端口
+  frontend: 3001
+
+  # 后端API端口
+  backend: 3000
+
+  # PostgreSQL端口（仅用于开发，生产环境建议不暴露）
+  postgres: 5432
+
+  # Redis端口（仅用于开发，生产环境建议不暴露）
+  redis: 6379
+
+  # Nginx HTTP端口
+  nginx_http: 80
+
+  # Nginx HTTPS端口
+  nginx_https: 443
+
+# ========================================
+# 域名配置
+# ========================================
+domain:
+  # 主域名
+  main: zhengbi-yong.top
+
+  # www域名（可选）
+  www: www.zhengbi-yong.top
+
+  # 服务器IP（用于本地访问）
+  server_ip: 152.136.43.194
+
+  # 自动重定向HTTP到HTTPS
+  force_https: false  # 首次部署设为false，配置SSL后改为true
+
+# ========================================
+# 数据库配置
+# ========================================
+database:
+  # PostgreSQL配置
+  postgres:
+    # 数据库名称
+    name: blog_db
+
+    # 用户名
+    user: blog_user
+
+    # 密码（留空则自动生成）
+    password: ""
+
+    # 最大连接数
+    max_connections: 200
+
+    # 共享缓冲区（MB）
+    shared_buffers: 256
+
+    # 工作内存（MB）
+    work_mem: 4
+
+    # 持久化配置
+    persistence:
+      enabled: true
+      # 备份保留天数
+      backup_retention_days: 30
+
+  # Redis配置
+  redis:
+    # 密码（留空则无密码）
+    password: ""
+
+    # 持久化模式: no, appendonly, appendfsync_everysec, appendfsync_always
+    persistence_mode: appendonly
+
+    # 最大内存（MB）
+    max_memory: 512
+
+    # 内存淘汰策略: noeviction, allkeys-lru, volatile-lru, etc.
+    eviction_policy: allkeys-lru
+
+# ========================================
+# 安全配置
+# ========================================
+security:
+  # JWT密钥（留空则自动生成32位随机字符串）
+  jwt_secret: ""
+
+  # 密码加密密钥（留空则自动生成32位随机字符串）
+  password_pepper: ""
+
+  # 会话密钥（留空则自动生成32位随机字符串）
+  session_secret: ""
+
+  # CORS允许的来源（逗号分隔）
+  cors_origins: "http://localhost:3001,https://zhengbi-yong.top"
+
+  # 限流配置
+  rate_limit:
+    # 每分钟请求数
+    requests_per_minute: 60
+
+    # 突发请求数
+    burst: 10
+
+  # IP白名单（留空则不限制）
+  ip_whitelist: ""
+
+# ========================================
+# 邮件配置（可选）
+# ========================================
+email:
+  # 启用邮件功能
+  enabled: false
+
+  # SMTP服务器
+  smtp_host: smtp.gmail.com
+  smtp_port: 587
+
+  # SMTP认证
+  smtp_username: ""
+  smtp_password: ""
+
+  # 发件人
+  from_address: noreply@zhengbi-yong.top
+  from_name: "Zhengbi's Blog"
+
+# ========================================
+# SSL/TLS配置
+# ========================================
+ssl:
+  # 启用SSL
+  enabled: false
+
+  # SSL证书路径
+  certificate_path: /etc/nginx/ssl/fullchain.pem
+  private_key_path: /etc/nginx/ssl/privkey.pem
+  chain_path: /etc/nginx/ssl/chain.pem
+
+  # Let's Encrypt配置
+  letsencrypt:
+    # 自动续期
+    auto_renew: true
+
+    # 邮箱（用于证书申请）
+    email: ""
+
+# ========================================
+# 性能配置
+# ========================================
+performance:
+  # 前端性能
+  frontend:
+    # 启用压缩
+    compression: true
+
+    # 静态资源缓存时间（秒）
+    static_cache_ttl: 31536000  # 365天
+
+    # 图片缓存时间（秒）
+    image_cache_ttl: 2592000  # 30天
+
+  # 后端性能
+  backend:
+    # 工作线程数（0=自动）
+    worker_threads: 0
+
+    # 连接池大小
+    pool_size: 10
+
+    # 查询超时（秒）
+    query_timeout: 30
+
+  # 数据库性能
+  database:
+    # 启用慢查询日志
+    slow_query_log: true
+
+    # 慢查询阈值（秒）
+    slow_query_threshold: 2
+
+# ========================================
+# 备份配置
+# ========================================
+backup:
+  # 启用自动备份
+  enabled: true
+
+  # 备份目录
+  directory: ./backups
+
+  # 备份计划（cron格式）
+  schedule: "0 2 * * *"  # 每天凌晨2点
+
+  # 备份保留天数
+  retention_days: 30
+
+  # 备份类型: full, incremental
+  type: full
+
+# ========================================
+# 监控配置
+# ========================================
+monitoring:
+  # 启用监控
+  enabled: false
+
+  # Prometheus配置
+  prometheus:
+    port: 9090
+    enabled: false
+
+  # Grafana配置
+  grafana:
+    port: 3001
+    enabled: false
+    admin_password: ""
+
+# ========================================
+# 日志配置
+# ========================================
+logging:
+  # 日志驱动: json-file, syslog, journald, gelf, fluentd, etc.
+  driver: json-file
+
+  # 日志文件最大大小（MB）
+  max_size: 10
+
+  # 日志文件最大数量
+  max_files: 3
+
+  # 日志级别
+  level: info
+
+# ========================================
+# 资源限制
+# ========================================
+resources:
+  # 前端资源限制
+  frontend:
+    cpu_limit: "1"
+    cpu_reservation: "0.25"
+    memory_limit: "1G"
+    memory_reservation: "256M"
+
+  # 后端资源限制
+  backend:
+    cpu_limit: "2"
+    cpu_reservation: "0.5"
+    memory_limit: "2G"
+    memory_reservation: "512M"
+
+  # 数据库资源限制
+  postgres:
+    cpu_limit: "2"
+    cpu_reservation: "0.5"
+    memory_limit: "2G"
+    memory_reservation: "512M"
+
+  # Redis资源限制
+  redis:
+    cpu_limit: "1"
+    cpu_reservation: "0.25"
+    memory_limit: "1G"
+    memory_reservation: "256M"
+
+  # Nginx资源限制
+  nginx:
+    cpu_limit: "1"
+    cpu_reservation: "0.25"
+    memory_limit: "512M"
+    memory_reservation: "128M"
+
+# ========================================
+# 健康检查配置
+# ========================================
+healthcheck:
+  # 检查间隔（秒）
+  interval: 10
+
+  # 超时时间（秒）
+  timeout: 5
+
+  # 重试次数
+  retries: 5
+
+  # 启动等待时间（秒）
+  start_period: 30
+
+# ========================================
+# 开发配置
+# ========================================
+development:
+  # 热重载
+  hot_reload: true
+
+  # 源码映射
+  source_maps: true
+
+  # 调试模式
+  debug_mode: false
