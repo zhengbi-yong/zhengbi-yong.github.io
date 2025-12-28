@@ -159,7 +159,7 @@ class PostPreloader {
 
       // 标记为已预加载（HTML 已预取）
       this.preloadedSlugs.add(slug)
-      console.log(`[PostPreloader] Preloaded: ${slug}`)
+      logger.log(`[PostPreloader] Preloaded: ${slug}`)
 
       // 延迟移除 link 元素
       setTimeout(() => {
@@ -168,7 +168,7 @@ class PostPreloader {
         }
       }, 1000)
     } catch (error) {
-      console.debug(`[PostPreloader] Failed to preload post: ${slug}`, error)
+      logger.debug(`[PostPreloader] Failed to preload post: ${slug}`, error)
     } finally {
       // 从活动列表中移除
       this.activePreloads.delete(slug)

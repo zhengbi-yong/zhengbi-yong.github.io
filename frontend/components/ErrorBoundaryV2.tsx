@@ -49,7 +49,7 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
     })
 
     // 记录错误
-    console.error('Error Boundary caught an error:', error, errorInfo)
+    logger.error('Error Boundary caught an error:', error, errorInfo)
 
     // 调用错误回调
     if (this.props.onError) {
@@ -80,7 +80,7 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
     const { retryCount } = this.state
 
     if (retryCount >= maxRetries) {
-      console.warn('Max retries reached')
+      logger.warn('Max retries reached')
       return
     }
 

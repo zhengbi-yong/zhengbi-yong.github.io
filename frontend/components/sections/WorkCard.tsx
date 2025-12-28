@@ -57,7 +57,7 @@ function useVideoAutoplay(videoRef: React.RefObject<HTMLVideoElement | null>, vi
           })
           .catch((error) => {
             setIsPlaying(false)
-            console.debug(`Video autoplay attempt ${playAttemptsRef.current} failed:`, error.name)
+            logger.debug(`Video autoplay attempt ${playAttemptsRef.current} failed:`, error.name)
 
             // 如果是用户交互问题，等待用户交互后重试
             if (error.name === 'NotAllowedError') {

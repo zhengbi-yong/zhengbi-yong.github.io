@@ -30,7 +30,7 @@ export default function rehypeMhchem() {
                 return tex
               } catch (e) {
                 // 如果转换失败，返回原始内容
-                console.warn('Failed to parse mhchem:', content, e)
+                logger.warn('Failed to parse mhchem:', content, e)
                 return match
               }
             })

@@ -94,7 +94,7 @@ export function initI18n() {
       initPromise = null
     })
     .catch((error) => {
-      console.error('i18n initialization error:', error)
+      logger.error('i18n initialization error:', error)
       initPromise = null
       throw error
     })

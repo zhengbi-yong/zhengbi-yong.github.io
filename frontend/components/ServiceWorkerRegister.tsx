@@ -18,7 +18,7 @@ export default function ServiceWorkerRegister() {
 
     // 开发环境下可以通过环境变量禁用 Service Worker
     if (process.env.NEXT_PUBLIC_DISABLE_SW === 'true') {
-      console.debug('[SW] Service Worker disabled by NEXT_PUBLIC_DISABLE_SW')
+      logger.debug('[SW] Service Worker disabled by NEXT_PUBLIC_DISABLE_SW')
       return
     }
 
@@ -30,7 +30,7 @@ export default function ServiceWorkerRegister() {
         const { registerServiceWorker } = await import('@/lib/sw-register')
         await registerServiceWorker()
       } catch (error) {
-        console.error('[SW] Failed to register Service Worker:', error)
+        logger.error('[SW] Failed to register Service Worker:', error)
       }
     }
 

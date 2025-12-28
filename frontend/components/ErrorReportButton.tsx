@@ -32,7 +32,7 @@ export default function ErrorReportButton({ eventId }: { eventId?: string }) {
         setComment('')
       }, 2000)
     } catch (error) {
-      console.error('Failed to send feedback:', error)
+      logger.error('Failed to send feedback:', error)
     }
   }
 

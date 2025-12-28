@@ -261,7 +261,7 @@ class APIClient {
 
         // 如果是中止错误（超时），准备重试
         if (error instanceof Error && error.name === 'AbortError') {
-          console.warn(`Request timeout (attempt ${attempt + 1}/${retries + 1})`)
+          logger.warn(`Request timeout (attempt ${attempt + 1}/${retries + 1})`)
         }
 
         // 等待后重试

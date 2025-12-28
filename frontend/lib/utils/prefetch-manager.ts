@@ -118,7 +118,7 @@ class PrefetchManager {
           }
         }, 1000)
       } catch (error) {
-        console.debug('[PrefetchManager] Prefetch failed:', url, error)
+        logger.debug('[PrefetchManager] Prefetch failed:', url, error)
       } finally {
         // 从活动列表中移除
         this.activePrefetches.delete(url)

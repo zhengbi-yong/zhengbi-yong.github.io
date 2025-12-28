@@ -60,7 +60,7 @@ export function useCachedBlogs(serverPosts: CoreContent<Blog>[]): CoreContent<Bl
           setIsLoading(false)
         }
       } catch (error) {
-        console.error('[Cache] Failed to load cached data:', error)
+        logger.error('[Cache] Failed to load cached data:', error)
         if (mounted) {
           setCachedPosts(serverPosts)
           setIsLoading(false)
@@ -83,7 +83,7 @@ export function useCachedBlogs(serverPosts: CoreContent<Blog>[]): CoreContent<Bl
       // 更新 IndexedDB
       await blogDB.saveBlogs(posts)
     } catch (error) {
-      console.error('[Cache] Failed to update cache:', error)
+      logger.error('[Cache] Failed to update cache:', error)
     }
   }
 
