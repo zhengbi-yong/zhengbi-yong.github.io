@@ -1,7 +1,7 @@
 # =============================================================================
 # Development Stage
 # =============================================================================
-FROM rust:nightly-slim AS development
+FROM rustlang/rust:nightly-bookworm-slim AS development
 
 # 安装开发依赖
 RUN apt-get update && apt-get install -y \
@@ -34,7 +34,7 @@ CMD ["cargo", "run", "--bin", "blog-api"]
 # =============================================================================
 # Builder Stage
 # =============================================================================
-FROM rust:nightly-slim AS builder
+FROM rustlang/rust:nightly-bookworm-slim AS builder
 
 # 安装必要的系统依赖
 RUN apt-get update && apt-get install -y \
