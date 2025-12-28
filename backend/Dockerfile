@@ -1,7 +1,7 @@
 # =============================================================================
 # Development Stage
 # =============================================================================
-FROM rust:1.83-slim AS development
+FROM rust:1.84-slim AS development
 
 # 安装开发依赖
 RUN apt-get update && apt-get install -y \
@@ -34,7 +34,7 @@ CMD ["cargo", "run", "--bin", "blog-api"]
 # =============================================================================
 # Builder Stage
 # =============================================================================
-FROM rust:1.83-slim AS builder
+FROM rust:1.84-slim AS builder
 
 # 安装必要的系统依赖
 RUN apt-get update && apt-get install -y \
