@@ -1,0 +1,56 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit hooks..."
+
+echo "📦 Checking frontend..."
+cd frontend
+
+# Run ESLint
+echo "  → Running ESLint..."
+pnpm lint --max-warnings=200 || {
+  echo "❌ ESLint failed. Please fix the errors."
+  exit 1
+}
+
+# Check for console calls in production code
+echo "  → Checking for console calls..."
+if grep -r "console\." app components lib layouts scripts \
+  --include="*.ts" --include="*.tsx" \
+  --exclude-dir=node_modules --exclude-dir=.next \
+  | grep -v "test" | grep -v "debug" | grep -v "error.tsx" \
+  > /dev/null 2>&1; then
+  echo "⚠️  Warning: Console calls found in production code!"
+  echo "   Run 'pnpm cleanup-console' to fix automatically."
+  # Don't fail the commit, just warn
+fi
+
+echo "✅ Frontend checks passed!"
+
+echo "🦀 Checking backend..."
+cd ../backend
+
+# Run rustfmt
+echo "  → Running rustfmt..."
+cargo fmt --check || {
+  echo "❌ Code not formatted. Run 'cargo fmt' to fix."
+  exit 1
+}
+
+# Run clippy
+echo "  → Running clippy..."
+cargo clippy --quiet -- -D warnings || {
+  echo "❌ Clippy found issues. Please fix them."
+  exit 1
+}
+
+# Run tests (quick check, not full test suite)
+echo "  → Running quick tests..."
+cargo test --quiet --lib 2>/dev/null || {
+  echo "❌ Tests failed. Please fix them."
+  exit 1
+}
+
+echo "✅ Backend checks passed!"
+
+echo "✨ All checks passed! Ready to commit."
