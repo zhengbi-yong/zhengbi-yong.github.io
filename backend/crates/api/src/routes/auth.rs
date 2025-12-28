@@ -117,7 +117,7 @@ pub async fn register(
     .bind(user.id)
     .bind(&token_hash)
     .bind(family_id)
-    .bind(&client_ip.to_string())
+    .bind(client_ip.to_string())
     .execute(&mut *tx)
     .await?;
 
@@ -127,19 +127,17 @@ pub async fn register(
     let access_token = state.jwt.create_access_token(&user.id, &user.email, &user.username)?;
 
     // 设置 refresh token cookie
-    let cookie = CookieJar::new()
-        .add(
-            Cookie::build(("refresh_token", refresh_token))
-                .path("/")
-                .http_only(true)
-                .secure(true)
-                .same_site(SameSite::Lax)
-                .max_age(time::Duration::days(7))
-                .build(),
-        );
+    let cookie_value = Cookie::build(("refresh_token", refresh_token))
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Lax)
+        .max_age(time::Duration::days(7))
+        .build()
+        .to_string();
 
     Ok((
-        [(header::SET_COOKIE, cookie.get("refresh_token").unwrap().to_string())],
+        [(header::SET_COOKIE, cookie_value)],
         Json(AuthResponse {
             access_token,
             user: user.into(),
@@ -235,7 +233,7 @@ pub async fn login(
     .bind(user.id)
     .bind(&new_token_hash)
     .bind(new_family_id)
-    .bind(&client_ip.to_string())
+    .bind(client_ip.to_string())
     .execute(&mut *tx)
     .await?;
 
@@ -246,19 +244,17 @@ pub async fn login(
     let access_token = state.jwt.create_access_token(&user.id, &user.email, &user.username)?;
 
     // 设置 refresh token cookie
-    let cookie = CookieJar::new()
-        .add(
-            Cookie::build(("refresh_token", new_token))
-                .path("/")
-                .http_only(true)
-                .secure(true)
-                .same_site(SameSite::Lax)
-                .max_age(time::Duration::days(7))
-                .build(),
-        );
+    let cookie_value = Cookie::build(("refresh_token", new_token))
+        .path("/")
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Lax)
+        .max_age(time::Duration::days(7))
+        .build()
+        .to_string();
 
     Ok((
-        [(header::SET_COOKIE, cookie.get("refresh_token").unwrap().to_string())],
+        [(header::SET_COOKIE, cookie_value)],
         Json(AuthResponse {
             access_token,
             user: user.into(),

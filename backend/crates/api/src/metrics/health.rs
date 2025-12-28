@@ -153,7 +153,7 @@ pub async fn healthz_detailed(State(state): State<crate::AppState>) -> Result<im
         cpu_usage: get_cpu_usage().await,
         active_connections: get_active_connections(&state).await,
         database_pool: get_database_pool_status(&state.db).await,
-        redis_status: redis_status,
+        redis_status,
     };
 
     let health = DetailedHealth {

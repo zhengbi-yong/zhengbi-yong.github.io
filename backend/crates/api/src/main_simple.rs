@@ -89,7 +89,8 @@ async fn main() -> anyhow::Result<()> {
         .layer(CompressionLayer::new())
         .layer(
             CorsLayer::new()
-                .allow_origin("http://localhost:3001".parse::<HeaderValue>().unwrap())
+                .allow_origin("http://localhost:3001".parse::<HeaderValue>()
+                    .expect("Failed to parse CORS origin"))
                 .allow_methods([
                     Method::GET,
                     Method::POST,
@@ -97,8 +98,8 @@ async fn main() -> anyhow::Result<()> {
                     Method::DELETE,
                 ])
                 .allow_headers([
-                    "authorization".parse().unwrap(),
-                    "content-type".parse().unwrap(),
+                    "authorization".parse().expect("Failed to parse authorization header"),
+                    "content-type".parse().expect("Failed to parse content-type header"),
                 ])
         );
 
