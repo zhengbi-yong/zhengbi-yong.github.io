@@ -123,7 +123,7 @@ services:
 
   # Nginx 反向代理
   nginx:
-    image: nginx:1.25-alpine
+    image: nginx:alpine
     container_name: blog-nginx
     restart: unless-stopped
     ports:
