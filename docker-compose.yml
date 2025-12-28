@@ -1,6 +1,5 @@
 # 博客系统完整Docker Compose配置
 # 包含：前端、后端、数据库、缓存、反向代理
-version: '3.8'
 
 services:
   # PostgreSQL 数据库
@@ -50,7 +49,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       args:
-        RUST_VERSION: "1.84"
+        RUST_VERSION: "nightly"
     container_name: blog-backend
     restart: unless-stopped
     environment:
