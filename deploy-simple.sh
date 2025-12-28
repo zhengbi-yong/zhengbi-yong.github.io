@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 简化版一键部署脚本 - 绕过配置验证
 
 set -e
@@ -12,20 +12,38 @@ log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 获取脚本所在目录的绝对路径（兼容多种shell）
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="${SCRIPT_DIR}"
 cd "$PROJECT_ROOT"
 
 # 1. 检查环境
 log_info "检查Docker环境..."
-if ! command -v docker &> /dev/null; then
-    log_error "Docker未安装"
+
+# 检查 Docker 是否可用
+if command -v docker &> /dev/null; then
+    DOCKER_CMD="docker"
+elif [ -x "/usr/bin/docker" ]; then
+    DOCKER_CMD="/usr/bin/docker"
+else
+    log_error "Docker未安装或不在PATH中"
+    echo "请安装Docker: https://docs.docker.com/get-docker/"
     exit 1
 fi
+
+# 验证 Docker 可以运行
+if ! $DOCKER_CMD info &> /dev/null; then
+    log_error "Docker无法运行，请检查Docker服务状态"
+    echo "尝试: sudo systemctl start docker"
+    echo "或: sudo service docker start"
+    exit 1
+fi
+
 log_info "Docker环境检查通过 ✓"
 
 # 2. 停止旧服务
 log_info "停止旧服务..."
-docker compose down 2>/dev/null || true
+$DOCKER_CMD compose down 2>/dev/null || true
 
 # 3. 清理端口
 log_info "清理端口占用..."
@@ -108,7 +126,7 @@ fi
 
 # 5. 启动服务
 log_info "启动所有服务..."
-docker compose up -d
+$DOCKER_CMD compose up -d
 
 # 6. 等待服务健康
 log_info "等待服务启动..."
@@ -118,11 +136,11 @@ sleep 10
 echo ""
 log_info "部署完成！"
 echo ""
-docker compose ps
+$DOCKER_CMD compose ps
 echo ""
 log_info "访问地址："
 echo "  前端: https://zhengbi-yong.top"
 echo "  后端: https://zhengbi-yong.top/v1/"
 echo "  管理: https://zhengbi-yong.top/admin/"
 echo ""
-log_info "查看日志: docker compose logs -f"
+log_info "查看日志: $DOCKER_CMD compose logs -f"
