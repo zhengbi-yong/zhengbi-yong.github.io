@@ -9,8 +9,8 @@ const nextConfig = {
     // 指定项目根目录
     root: __dirname,
   },
-  // GitHub Pages 静态导出配置
-  output: process.env.EXPORT === '1' ? 'export' : undefined,
+  // 输出模式：standalone用于Docker，export用于静态导出
+  output: process.env.EXPORT === '1' ? 'export' : 'standalone',
   // 静态导出时的基础路径
   basePath: process.env.BASE_PATH,
   // 禁用图片优化以支持静态导出

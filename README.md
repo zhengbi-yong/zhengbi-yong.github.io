@@ -24,7 +24,67 @@ Zhengbi Yong is a Master's student at Beijing Institute of Technology (formerly 
 
 ---
 
-## 快速开始 / Quick Start
+## 🚀 Docker 一键部署（推荐） / Docker Deployment (Recommended)
+
+### 快速部署（3步） / Quick Deploy (3 Steps)
+
+```bash
+# 1. 克隆项目 / Clone repository
+git clone https://github.com/zhengbi-yong/zhengbi-yong.github.io.git
+cd zhengbi-yong.github.io
+
+# 2. 一键部署 / One-click deploy
+chmod +x scripts/deploy.sh
+./scripts/deploy.sh --auto-cleanup
+
+# 3. 访问应用 / Access application
+# Frontend: http://localhost or http://your-server-ip
+# Backend API: http://localhost:3000/v1/
+# Admin Panel: http://localhost:3000/admin/
+```
+
+**就这么简单！** 该脚本会自动：
+- ✅ 检查环境依赖 / Check dependencies
+- ✅ 生成安全密钥 / Generate security keys
+- ✅ 清理端口占用 / Cleanup port conflicts
+- ✅ 拉取Docker镜像 / Pull Docker images
+- ✅ 构建应用 / Build applications
+- ✅ 启动所有服务 / Start all services
+
+### 自定义配置 / Custom Configuration
+
+编辑 `config.yml` 文件来自定义配置：
+
+```yaml
+# 修改域名 / Modify domain
+domain:
+  main: your-domain.com
+
+# 配置SSL / Configure SSL
+ssl:
+  enabled: true
+
+# 调整性能 / Tune performance
+resources:
+  backend:
+    cpu_limit: "4"
+    memory_limit: "4G"
+```
+
+然后重新部署：
+```bash
+./scripts/deploy.sh --rebuild
+```
+
+### 文档 / Documentation
+
+- 📖 [完整部署指南](docs/deployment/docker.md) - Full deployment guide
+- ⚙️ [配置管理指南](docs/configuration/config-guide.md) - Configuration guide
+- 🚀 [快速开始指南](docs/quick-start.md) - Quick start guide
+
+---
+
+## 传统开发模式 / Traditional Development
 
 ### 前置要求 / Prerequisites
 
