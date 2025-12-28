@@ -232,7 +232,7 @@ export function ExcalidrawViewer({
         localStorage.setItem('excalidraw-latest', JSON.stringify(data))
 
         // 显示保存成功提示
-        console.log('保存成功:', {
+        logger.log('保存成功:', {
           elementsCount: elementsToSave.length,
           hasAppState: !!appStateToSave,
         })
@@ -256,7 +256,7 @@ export function ExcalidrawViewer({
 
         onSave?.(data)
       } catch (error) {
-        console.error('保存失败:', error)
+        logger.error('保存失败:', error)
         alert('保存失败，请重试')
       } finally {
         setIsLoading(false)
@@ -288,7 +288,7 @@ export function ExcalidrawViewer({
 
       setIsLoading(true)
       try {
-        console.log('开始导出 PNG，元素数量:', elementsToExport.length)
+        logger.log('开始导出 PNG，元素数量:', elementsToExport.length)
 
         // 使用正确的 exportToBlob API
         const { exportToBlob } = await import('@excalidraw/excalidraw')
@@ -316,7 +316,7 @@ export function ExcalidrawViewer({
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
 
-        console.log('PNG 导出成功，文件大小:', blob.size)
+        logger.log('PNG 导出成功，文件大小:', blob.size)
 
         // 显示成功消息
         const successMessage = document.createElement('div')
@@ -335,7 +335,7 @@ export function ExcalidrawViewer({
         document.body.appendChild(successMessage)
         setTimeout(() => successMessage.remove(), 2000)
       } catch (error) {
-        console.error('导出 PNG 失败:', error)
+        logger.error('导出 PNG 失败:', error)
         alert('导出 PNG 失败: ' + (error instanceof Error ? error.message : String(error)))
       } finally {
         setIsLoading(false)
@@ -370,7 +370,7 @@ export function ExcalidrawViewer({
         // 正确的 API 调用方式
         const { exportToSvg } = await import('@excalidraw/excalidraw')
 
-        console.log('开始导出 SVG，元素数量:', elementsToExport.length)
+        logger.log('开始导出 SVG，元素数量:', elementsToExport.length)
 
         // 使用正确的参数格式 - 对象格式
         const svgElement = await exportToSvg({
@@ -398,7 +398,7 @@ export function ExcalidrawViewer({
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
 
-        console.log('SVG 导出成功，SVG 长度:', svgString.length)
+        logger.log('SVG 导出成功，SVG 长度:', svgString.length)
 
         // 显示成功消息
         const successMessage = document.createElement('div')
@@ -417,7 +417,7 @@ export function ExcalidrawViewer({
         document.body.appendChild(successMessage)
         setTimeout(() => successMessage.remove(), 2000)
       } catch (error) {
-        console.error('导出 SVG 失败:', error)
+        logger.error('导出 SVG 失败:', error)
         alert('导出 SVG 失败: ' + (error instanceof Error ? error.message : String(error)))
       } finally {
         setIsLoading(false)
@@ -450,7 +450,7 @@ export function ExcalidrawViewer({
 
       setIsLoading(true)
       try {
-        console.log('开始导出 JSON，元素数量:', elementsToExport.length)
+        logger.log('开始导出 JSON，元素数量:', elementsToExport.length)
 
         const api = excalidrawAPI as {
           getFiles: () => ExcalidrawFiles
@@ -480,7 +480,7 @@ export function ExcalidrawViewer({
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
 
-        console.log('JSON 导出成功，数据大小:', json.length)
+        logger.log('JSON 导出成功，数据大小:', json.length)
 
         // 显示成功消息
         const successMessage = document.createElement('div')
@@ -499,7 +499,7 @@ export function ExcalidrawViewer({
         document.body.appendChild(successMessage)
         setTimeout(() => successMessage.remove(), 2000)
       } catch (error) {
-        console.error('导出 JSON 失败:', error)
+        logger.error('导出 JSON 失败:', error)
         alert('导出 JSON 失败: ' + (error instanceof Error ? error.message : String(error)))
       } finally {
         setIsLoading(false)
@@ -584,7 +584,7 @@ export function ExcalidrawViewer({
           }
         }
       } catch (error) {
-        console.error('加载保存的绘图失败:', error)
+        logger.error('加载保存的绘图失败:', error)
       }
     }
   }, [initialData, excalidrawAPI])
@@ -687,10 +687,10 @@ export function ExcalidrawViewer({
         <Excalidraw
           excalidrawAPI={(api: unknown) => {
             if (api) {
-              console.log('Excalidraw API 初始化成功:', api)
+              logger.log('Excalidraw API 初始化成功:', api)
               setExcalidrawAPI(api)
             } else {
-              console.log('Excalidraw API 初始化失败')
+              logger.log('Excalidraw API 初始化失败')
             }
           }}
           initialData={initialData}

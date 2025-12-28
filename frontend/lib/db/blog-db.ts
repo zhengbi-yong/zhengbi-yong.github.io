@@ -5,6 +5,7 @@
 
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
+import { logger } from '@/lib/utils/logger'
 
 const DB_NAME = 'blog-db'
 const DB_VERSION = 1
@@ -85,15 +86,15 @@ const blogDB: BlogDB = {
    */
   async init() {
     if (!isIndexedDBSupported()) {
-      console.debug('[IndexedDB] IndexedDB not supported')
+      logger.debug('[IndexedDB] IndexedDB not supported')
       return
     }
 
     try {
       this.db = await openDB()
-      console.log('[IndexedDB] Database initialized')
+      logger.log('[IndexedDB] Database initialized')
     } catch (error) {
-      console.error('[IndexedDB] Failed to initialize database:', error)
+      logger.error('[IndexedDB] Failed to initialize database:', error)
     }
   },
 
@@ -125,9 +126,9 @@ const blogDB: BlogDB = {
         value: Date.now(),
       })
 
-      console.log('[IndexedDB] Blogs saved:', blogs.length)
+      logger.log('[IndexedDB] Blogs saved:', blogs.length)
     } catch (error) {
-      console.error('[IndexedDB] Failed to save blogs:', error)
+      logger.error('[IndexedDB] Failed to save blogs:', error)
     }
   },
 
@@ -154,7 +155,7 @@ const blogDB: BlogDB = {
         }
       })
     } catch (error) {
-      console.error('[IndexedDB] Failed to get blogs:', error)
+      logger.error('[IndexedDB] Failed to get blogs:', error)
       return null
     }
   },
@@ -176,7 +177,7 @@ const blogDB: BlogDB = {
         cachedAt: Date.now(),
       })
     } catch (error) {
-      console.error('[IndexedDB] Failed to save post:', error)
+      logger.error('[IndexedDB] Failed to save post:', error)
     }
   },
 
@@ -203,7 +204,7 @@ const blogDB: BlogDB = {
         }
       })
     } catch (error) {
-      console.error('[IndexedDB] Failed to get post:', error)
+      logger.error('[IndexedDB] Failed to get post:', error)
       return null
     }
   },
@@ -227,9 +228,9 @@ const blogDB: BlogDB = {
           ? new Date(post.lastmod).getTime()
           : new Date(post.date).getTime(),
       })
-      console.log(`[IndexedDB] Post saved: ${slug}`)
+      logger.log(`[IndexedDB] Post saved: ${slug}`)
     } catch (error) {
-      console.error('[IndexedDB] Failed to save post full:', error)
+      logger.error('[IndexedDB] Failed to save post full:', error)
     }
   },
 
@@ -260,7 +261,7 @@ const blogDB: BlogDB = {
         }
       })
     } catch (error) {
-      console.error('[IndexedDB] Failed to get post full:', error)
+      logger.error('[IndexedDB] Failed to get post full:', error)
       return null
     }
   },
@@ -294,7 +295,7 @@ const blogDB: BlogDB = {
         }
       })
     } catch (error) {
-      console.error('[IndexedDB] Failed to check post cache validity:', error)
+      logger.error('[IndexedDB] Failed to check post cache validity:', error)
       return false
     }
   },
@@ -317,9 +318,9 @@ const blogDB: BlogDB = {
       const metadataTransaction = this.db.transaction([STORES.METADATA], 'readwrite')
       await metadataTransaction.objectStore(STORES.METADATA).clear()
 
-      console.log('[IndexedDB] Cache cleared')
+      logger.log('[IndexedDB] Cache cleared')
     } catch (error) {
-      console.error('[IndexedDB] Failed to clear cache:', error)
+      logger.error('[IndexedDB] Failed to clear cache:', error)
     }
   },
 }
@@ -327,7 +328,7 @@ const blogDB: BlogDB = {
 // 初始化数据库（在客户端）
 if (typeof window !== 'undefined') {
   blogDB.init().catch((error) => {
-    console.error('[IndexedDB] Initialization failed:', error)
+    logger.error('[IndexedDB] Initialization failed:', error)
   })
 }
 

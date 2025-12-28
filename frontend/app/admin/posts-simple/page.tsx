@@ -45,12 +45,12 @@ export default function PostsListSimplePage() {
       }
 
       const data = await response.json()
-      console.log('[PostsSimple] Received data:', data)
+      logger.log('[PostsSimple] Received data:', data)
 
       setPosts(data.posts || [])
       setTotal(data.total || 0)
     } catch (err: any) {
-      console.error('[PostsSimple] Error:', err)
+      logger.error('[PostsSimple] Error:', err)
       setError(err.message || 'Failed to fetch posts')
     } finally {
       setLoading(false)

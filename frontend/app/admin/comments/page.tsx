@@ -78,7 +78,7 @@ export default function CommentManagementPage() {
       alert(`评论状态已成功更新为"${statusLabels[newStatus] || newStatus}"`)
       // Refine 会自动刷新列表
     } catch (err) {
-      console.error('Failed to update comment status:', err)
+      logger.error('Failed to update comment status:', err)
       alert('更新评论状态失败')
     }
   }
@@ -97,7 +97,7 @@ export default function CommentManagementPage() {
       alert('评论已成功删除')
       // Refine 会自动刷新列表
     } catch (err) {
-      console.error('Failed to delete comment:', err)
+      logger.error('Failed to delete comment:', err)
       alert('删除评论失败')
     }
   }
@@ -132,7 +132,7 @@ export default function CommentManagementPage() {
         invalidates: ['list'],
       })
     } catch (err) {
-      console.error('Failed to batch update status:', err)
+      logger.error('Failed to batch update status:', err)
       alert('批量更新状态失败')
     }
   }
@@ -166,7 +166,7 @@ export default function CommentManagementPage() {
         invalidates: ['list'],
       })
     } catch (err) {
-      console.error('Failed to batch delete comments:', err)
+      logger.error('Failed to batch delete comments:', err)
       alert('批量删除失败')
     }
   }

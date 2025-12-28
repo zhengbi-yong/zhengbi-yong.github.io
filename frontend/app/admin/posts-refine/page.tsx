@@ -4,7 +4,7 @@ import { useList } from '@refinedev/core'
 import { FileText, Eye, Heart, MessageSquare } from 'lucide-react'
 
 export default function PostsRefinePage() {
-  console.log('[PostsRefine] Component rendering')
+  logger.log('[PostsRefine] Component rendering')
 
   const { data, isLoading, error } = useList({
     resource: 'admin/posts',
@@ -19,7 +19,7 @@ export default function PostsRefinePage() {
     },
   })
 
-  console.log('[PostsRefine] useList result:', {
+  logger.log('[PostsRefine] useList result:', {
     data,
     isLoading,
     error,
@@ -31,7 +31,7 @@ export default function PostsRefinePage() {
   })
 
   // 尝试直接访问可能的其他属性
-  console.log('[PostsRefine] All useList properties:', Object.keys({ data, isLoading, error }))
+  logger.log('[PostsRefine] All useList properties:', Object.keys({ data, isLoading, error }))
 
   const posts = data?.data || []
   const total = data?.total || 0

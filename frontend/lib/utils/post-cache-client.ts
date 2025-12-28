@@ -52,11 +52,11 @@ export function useCachedPost(
       if (post) {
         setCachedPost(post)
         setIsLoading(false)
-        console.log(`[PostCache] Loaded from cache: ${slug}`)
+        logger.log(`[PostCache] Loaded from cache: ${slug}`)
         return post
       }
     } catch (error) {
-      console.error('[PostCache] Failed to load from cache:', error)
+      logger.error('[PostCache] Failed to load from cache:', error)
     }
 
     setIsLoading(false)
@@ -72,9 +72,9 @@ export function useCachedPost(
 
       try {
         await blogDB.savePostFull(slug, post)
-        console.log(`[PostCache] Saved to cache: ${slug}`)
+        logger.log(`[PostCache] Saved to cache: ${slug}`)
       } catch (error) {
-        console.error('[PostCache] Failed to save to cache:', error)
+        logger.error('[PostCache] Failed to save to cache:', error)
       }
     },
     [slug]
@@ -107,7 +107,7 @@ export function useCachedPost(
         // 更新缓存
         await saveToCache(post)
       } catch (error) {
-        console.error('[PostCache] Failed to update cache in background:', error)
+        logger.error('[PostCache] Failed to update cache in background:', error)
       }
     },
     [slug, enableBackgroundUpdate, saveToCache]
@@ -169,8 +169,8 @@ export function useCachedPost(
 export async function preloadPost(slug: string, post: Blog): Promise<void> {
   try {
     await blogDB.savePostFull(slug, post)
-    console.log(`[PostCache] Preloaded: ${slug}`)
+    logger.log(`[PostCache] Preloaded: ${slug}`)
   } catch (error) {
-    console.error('[PostCache] Failed to preload post:', error)
+    logger.error('[PostCache] Failed to preload post:', error)
   }
 }

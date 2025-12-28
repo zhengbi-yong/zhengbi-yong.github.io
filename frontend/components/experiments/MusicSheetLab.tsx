@@ -150,7 +150,7 @@ export default function MusicSheetLab() {
   // 加载 MusicXML 文件
   const loadMusicXML = async (fileName: string) => {
     if (!osmdInstanceRef.current) {
-      console.error('OSMD 实例不存在，无法加载乐谱')
+      logger.error('OSMD 实例不存在，无法加载乐谱')
       setError('OSMD 实例未初始化')
       setIsLoading(false)
       if (containerRef.current) {
@@ -222,7 +222,7 @@ export default function MusicSheetLab() {
         await osmdInstanceRef.current.load(xmlPath)
       } catch (urlError) {
         // 如果URL加载失败，尝试使用XML字符串
-        console.warn('URL加载失败，尝试使用XML字符串:', urlError)
+        logger.warn('URL加载失败，尝试使用XML字符串:', urlError)
         await osmdInstanceRef.current.load(xmlContent)
       }
       osmdInstanceRef.current.render()
@@ -232,7 +232,7 @@ export default function MusicSheetLab() {
 
       setIsLoading(false)
     } catch (err) {
-      console.error('加载乐谱错误:', err)
+      logger.error('加载乐谱错误:', err)
       setError(`加载乐谱失败: ${err instanceof Error ? err.message : '未知错误'}`)
       setIsLoading(false)
       // 发生错误时隐藏容器
@@ -326,7 +326,7 @@ export default function MusicSheetLab() {
 
       await loadMusicXML(currentExample)
     } catch (err) {
-      console.error('OSMD 初始化错误详情:', err)
+      logger.error('OSMD 初始化错误详情:', err)
       const errorMessage = err instanceof Error ? err.message : String(err)
       setError(`初始化失败: ${errorMessage}`)
       setIsLoading(false)
@@ -360,7 +360,7 @@ export default function MusicSheetLab() {
         osmdInstanceRef.current.render()
       } catch (err) {
         // 如果 cursor API 不可用，忽略错误
-        console.warn('页面导航不可用:', err)
+        logger.warn('页面导航不可用:', err)
       }
     }
   }
@@ -372,7 +372,7 @@ export default function MusicSheetLab() {
         osmdInstanceRef.current.render()
       } catch (err) {
         // 如果 cursor API 不可用，忽略错误
-        console.warn('页面导航不可用:', err)
+        logger.warn('页面导航不可用:', err)
       }
     }
   }
@@ -468,7 +468,7 @@ export default function MusicSheetLab() {
 
       notesSequenceRef.current = notes
     } catch (err) {
-      console.error('解析音符失败:', err)
+      logger.error('解析音符失败:', err)
     }
   }
 
@@ -486,7 +486,7 @@ export default function MusicSheetLab() {
 
       return synth
     } catch (err) {
-      console.error('Tone.js 初始化失败:', err)
+      logger.error('Tone.js 初始化失败:', err)
       throw err
     }
   }
@@ -579,7 +579,7 @@ export default function MusicSheetLab() {
       // 开始播放
       Tone.Transport.start()
     } catch (err) {
-      console.error('播放失败:', err)
+      logger.error('播放失败:', err)
       setError(`播放失败: ${err instanceof Error ? err.message : '未知错误'}`)
       setIsPlaying(false)
       isPlayingRef.current = false
@@ -594,7 +594,7 @@ export default function MusicSheetLab() {
       Tone.Transport.cancel()
       Tone.Transport.position = 0
     } catch (err) {
-      console.error('停止 Transport 失败:', err)
+      logger.error('停止 Transport 失败:', err)
     }
 
     if (playbackTimeoutRef.current) {
