@@ -111,19 +111,32 @@ impl Metrics {
         )
         .expect("Failed to create comment_likes_total counter");
 
-        registry.register(Box::new(http_requests_total.clone())).unwrap();
-        registry.register(Box::new(http_request_duration.clone())).unwrap();
-        registry.register(Box::new(active_connections.clone())).unwrap();
-        registry.register(Box::new(database_connections_active.clone())).unwrap();
-        registry.register(Box::new(redis_connections_active.clone())).unwrap();
-        registry.register(Box::new(cache_hits.clone())).unwrap();
-        registry.register(Box::new(cache_misses.clone())).unwrap();
-        registry.register(Box::new(user_registrations_total.clone())).unwrap();
-        registry.register(Box::new(user_logins_total.clone())).unwrap();
-        registry.register(Box::new(comments_created_total.clone())).unwrap();
-        registry.register(Box::new(post_views_total.clone())).unwrap();
-        registry.register(Box::new(post_likes_total.clone())).unwrap();
-        registry.register(Box::new(comment_likes_total.clone())).unwrap();
+        registry.register(Box::new(http_requests_total.clone()))
+            .expect("Failed to register http_requests_total");
+        registry.register(Box::new(http_request_duration.clone()))
+            .expect("Failed to register http_request_duration");
+        registry.register(Box::new(active_connections.clone()))
+            .expect("Failed to register active_connections");
+        registry.register(Box::new(database_connections_active.clone()))
+            .expect("Failed to register database_connections_active");
+        registry.register(Box::new(redis_connections_active.clone()))
+            .expect("Failed to register redis_connections_active");
+        registry.register(Box::new(cache_hits.clone()))
+            .expect("Failed to register cache_hits");
+        registry.register(Box::new(cache_misses.clone()))
+            .expect("Failed to register cache_misses");
+        registry.register(Box::new(user_registrations_total.clone()))
+            .expect("Failed to register user_registrations_total");
+        registry.register(Box::new(user_logins_total.clone()))
+            .expect("Failed to register user_logins_total");
+        registry.register(Box::new(comments_created_total.clone()))
+            .expect("Failed to register comments_created_total");
+        registry.register(Box::new(post_views_total.clone()))
+            .expect("Failed to register post_views_total");
+        registry.register(Box::new(post_likes_total.clone()))
+            .expect("Failed to register post_likes_total");
+        registry.register(Box::new(comment_likes_total.clone()))
+            .expect("Failed to register comment_likes_total");
 
         Self {
             registry,
@@ -242,7 +255,7 @@ pub async fn metrics_endpoint(
                 .status(StatusCode::OK)
                 .header("Content-Type", "text/plain; version=0.0.4")
                 .body(axum::body::Body::from(data))
-                .unwrap();
+                .expect("Failed to build metrics response");
             Ok(response)
         },
         Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
