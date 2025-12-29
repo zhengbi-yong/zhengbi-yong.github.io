@@ -28,45 +28,45 @@ Zhengbi Yong is a Master's student at Beijing Institute of Technology (formerly 
 
 **跨平台支持**: Windows, Linux, macOS
 
-### 快速开始（三步）
+### 快速部署到服务器（推荐）
 
 ```bash
-# 1. 本地构建（选择适合你平台的方法）
-npm run build          # Node.js（所有平台）✨ 推荐
-# 或 Windows:
-.\build-all.ps1        # PowerShell
-# 或 Linux/macOS:
-bash build-all.sh      # Bash
+# 一键部署脚本（自动构建、导出、上传、部署）
+./scripts/deploy-production.sh <server-ip> <user>
 
-# 2. 推送镜像
-npm run push           # Node.js
-# 或
-.\push-images.ps1      # Windows
-bash push-images.sh    # Linux/macOS
-
-# 3. 服务器部署
-bash deploy-server.sh <registry> <version>
+# 示例
+./scripts/deploy-production.sh 152.136.43.194 ubuntu
 ```
 
 **优势**：
+- ✅ 一键部署，自动化所有步骤
 - ✅ 本地构建，服务器无需编译环境
-- ✅ 镜像版本管理，方便回滚
-- ✅ 跨平台统一命令
+- ✅ 包含 Nginx 反向代理配置
 - ✅ 支持离线部署
 
-### 平台选择指南
+### 手动部署步骤
 
-| 本地平台 | 推荐方法 | 命令 |
-|---------|---------|------|
-| **Windows** | Node.js 或 PowerShell | `npm run build` 或 `.\build-all.ps1` |
-| **Linux** | Node.js 或 Bash | `npm run build` 或 `bash build-all.sh` |
-| **macOS** | Node.js 或 Bash | `npm run build` 或 `bash build-all.sh` |
+```bash
+# 1. 本地构建
+npm run build
+
+# 2. 导出镜像
+npm run export
+
+# 3. 上传到服务器
+scp -r docker-images-export/ ubuntu@server:~/blog-deployment/
+
+# 4. 服务器部署
+ssh ubuntu@server
+cd ~/blog-deployment && bash import-images.sh
+```
 
 ### 详细文档
 
-- 📖 **[跨平台部署指南](CROSS_PLATFORM_DEPLOYMENT.md)** - Windows/Linux/macOS 完整指南 ⭐
-- 📖 [完整部署指南](DEPLOYMENT.md) - 本地构建 + 服务器部署
-- 📖 [Docker 部署](docs/deployment/docker.md) - 传统 Docker 部署
+- 📖 **[快速部署指南](DEPLOYMENT.md)** - 简洁的部署步骤 ⭐
+- 📖 **[完整部署指南](docs/SERVER_DEPLOYMENT_GUIDE.md)** - 详细的服务器部署文档
+- 📖 **[部署文件结构](docs/DEPLOYMENT_STRUCTURE.md)** - 部署相关文件说明
+- 📖 **[服务器配置说明](server-setup/README.md)** - 配置文件详解
 
 ### 镜像版本 / Image Versions
 

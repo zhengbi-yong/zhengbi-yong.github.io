@@ -8,6 +8,8 @@
     "build:all": "node scripts/build.js",
     "push": "node scripts/push.js",
     "export": "node scripts/export.js",
+    "upload:rsync": "node scripts/upload-rsync.js",
+    "package": "node scripts/package-deployment.js",
     "deploy:server": "node scripts/deploy-server.js"
   },
   "keywords": ["docker", "deployment", "cross-platform"],

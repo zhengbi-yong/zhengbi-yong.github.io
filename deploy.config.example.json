@@ -1,0 +1,4 @@
+{
+  "server": "user@your-server-ip",
+  "remotePath": "~/blog-deployment"
+}
