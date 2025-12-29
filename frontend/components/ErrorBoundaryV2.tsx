@@ -5,6 +5,7 @@ import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from './ui/ButtonSimple'
 import { AppError, ErrorType, ErrorSeverity } from '@/lib/error-handler'
+import { logger } from '@/lib/utils/logger'
 
 interface ErrorBoundaryState {
   hasError: boolean

@@ -56,28 +56,12 @@ export default function ChemicalStructure({
       try {
         if (!containerRef.current) return
 
-        // 加载3Dmol库
-        let $3Dmol: any
+        // 加载3Dmol库 - 直接使用npm包
+        const $3Dmol = await import('3dmol')
 
-        // 首先尝试从npm包导入
-        try {
-          $3Dmol = await import('3dmol')
-          // 确保全局可访问
-          if (typeof window !== 'undefined') {
-            ;(window as any).$3Dmol = $3Dmol
-          }
-        } catch (importError) {
-          // 如果npm包导入失败，尝试从CDN加载
-          const script = document.createElement('script')
-          script.src = 'https://unpkg.com/3dmol@2.5.3/build/3Dmol-min.js'
-
-          await new Promise((resolve, reject) => {
-            script.onload = resolve
-            script.onerror = reject
-            document.head.appendChild(script)
-          })
-
-          $3Dmol = (window as any).$3Dmol
+        // 确保全局可访问
+        if (typeof window !== 'undefined') {
+          ;(window as any).$3Dmol = $3Dmol
         }
 
         // 确保容器样式正确
@@ -89,19 +73,18 @@ export default function ChemicalStructure({
 
         // 创建viewer
         const viewer = $3Dmol.createViewer(container, {
-          defaultcolors: $3Dmol.rasmolElementColors,
           backgroundColor: backgroundColor || 0xffffff,
-        })
+        } as any)
 
         viewerRef.current = viewer
 
-        // 设置背景色
-        if (backgroundColor) {
-          viewer.setBackgroundColor(backgroundColor)
-        } else {
-          // 根据主题设置背景色
-          const isDark = document.documentElement.classList.contains('dark')
-          viewer.setBackgroundColor(isDark ? 0x1a1a1a : 0xffffff)
+        // 设置背景色（根据主题或自定义颜色）
+        const isDark = document.documentElement.classList.contains('dark')
+        const bgColor = backgroundColor || (isDark ? 0x1a1a1a : 0xffffff)
+        try {
+          ;(viewer as any).setBackgroundColor(bgColor)
+        } catch {
+          // 如果setBackgroundColor失败，忽略错误
         }
 
         // 加载结构数据

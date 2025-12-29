@@ -79,6 +79,12 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // 跳过化学可视化库文件（避免CSP问题）
+  // 这些库通过动态script标签加载，不应该被Service Worker拦截
+  if (url.pathname.startsWith('/chemistry/')) {
+    return
+  }
+
   // HTML 页面：Network First 策略
   // 特别处理文章页面，实现更激进的缓存
   if (CACHE_PATTERNS.html.test(url.pathname)) {

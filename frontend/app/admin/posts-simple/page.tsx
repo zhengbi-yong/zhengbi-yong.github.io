@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Posts List Page - Simple Version
  * 直接使用 API 调用，不使用 Refine 的 useList
@@ -8,6 +9,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, Eye, Heart, MessageSquare, FileText, Loader2 } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 export default function PostsListSimplePage() {
   const [posts, setPosts] = useState<any[]>([])

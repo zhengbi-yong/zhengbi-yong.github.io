@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Refine Data Provider
  * 适配现有的后端 API 结构

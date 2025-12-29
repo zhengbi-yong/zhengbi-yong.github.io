@@ -5,6 +5,8 @@
 
 'use client'
 
+import { logger } from './logger'
+
 interface PrefetchTask {
   url: string
   priority: 'high' | 'medium' | 'low'

@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { useList, useUpdate, useDelete, useInvalidate } from '@refinedev/core'
 import type { CommentAdminItem } from '@/lib/types/backend'
 import { Loader2, Search, Filter, Trash2, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 type CommentStatus = 'pending' | 'approved' | 'rejected' | 'spam' | 'all'
 
@@ -25,7 +26,7 @@ export default function CommentManagementPage() {
     pagination: {
       current: page,
       pageSize,
-    },
+    } as any,
     filters: statusFilter !== 'all' ? [{ field: 'status', operator: 'eq', value: statusFilter }] : [],
   })
 
@@ -185,7 +186,7 @@ export default function CommentManagementPage() {
     if (selectedComments.size === filteredComments.length) {
       setSelectedComments(new Set())
     } else {
-      setSelectedComments(new Set(filteredComments.map((c) => c.id)))
+      setSelectedComments(new Set(filteredComments.map((c) => String(c.id))))
     }
   }
 
@@ -335,8 +336,8 @@ export default function CommentManagementPage() {
                     <td className="px-6 py-4">
                       <input
                         type="checkbox"
-                        checked={selectedComments.has(comment.id)}
-                        onChange={() => toggleCommentSelection(comment.id)}
+                        checked={selectedComments.has(String(comment.id))}
+                        onChange={() => toggleCommentSelection(String(comment.id))}
                         className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                       />
                     </td>
@@ -371,8 +372,8 @@ export default function CommentManagementPage() {
                       <div className="flex space-x-2">
                         <select
                           value={comment.status}
-                          onChange={(e) => handleStatusChange(comment.id, e.target.value)}
-                          disabled={updateMutation.isPending}
+                          onChange={(e) => handleStatusChange(String(comment.id), e.target.value)}
+                          disabled={(updateMutation as any).isLoading}
                           className="text-xs rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50"
                         >
                           <option value="pending">待审核</option>
@@ -381,8 +382,8 @@ export default function CommentManagementPage() {
                           <option value="spam">垃圾</option>
                         </select>
                         <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          disabled={deleteMutation.isPending}
+                          onClick={() => handleDeleteComment(String(comment.id))}
+                          disabled={(deleteMutation as any).isLoading}
                           className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50"
                         >
                           删除

@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { RefreshCw, Activity, Database, Zap } from 'lucide-react'
+import { RefreshCw, Activity, Database, Zap, AlertCircle } from 'lucide-react'
 import { parsePrometheusMetrics, getRequestDurationStats, getDatabaseStats, getRedisStats } from '@/lib/utils/prometheus-parser'
 import { Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'

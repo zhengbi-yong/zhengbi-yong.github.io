@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Bug, Send, X } from 'lucide-react'
 import * as Sentry from '@sentry/nextjs'
+import { logger } from '@/lib/utils/logger'
 
 export default function ErrorReportButton({ eventId }: { eventId?: string }) {
   const [isOpen, setIsOpen] = useState(false)

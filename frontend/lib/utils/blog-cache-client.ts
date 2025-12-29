@@ -8,6 +8,7 @@
 import { useEffect, useState } from 'react'
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
+import { logger } from './logger'
 import blogDB from '@/lib/db/blog-db'
 import { useBlogStore } from '@/lib/store/blog-store'
 

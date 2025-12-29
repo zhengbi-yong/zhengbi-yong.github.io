@@ -13,6 +13,7 @@ import { ArrowLeft } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
+import { logger } from '@/lib/utils/logger'
 
 // 添加 CSS 动画样式
 const fadeInOutStyle = `

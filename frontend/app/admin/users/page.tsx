@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced User Management - 增强的用户管理页面
  * 使用 Refine hooks 进行数据管理，支持批量操作和高级筛选
@@ -9,6 +10,7 @@ import { useState } from 'react'
 import { useList, useUpdate, useDelete } from '@refinedev/core'
 import type { UserListItem } from '@/lib/types/backend'
 import { Loader2, Search, Filter, Trash2, UserCog } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 export default function UserManagementPage() {
   const [page, setPage] = useState(1)

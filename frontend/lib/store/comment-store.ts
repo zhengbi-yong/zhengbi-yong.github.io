@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { commentService } from '../api/backend'
 import type { CommentResponse, CommentListResponse, CreateCommentRequest } from '../types/backend'
+import { logger } from '../utils/logger'
 
 interface CommentsState {
   // Map of post slug to comments

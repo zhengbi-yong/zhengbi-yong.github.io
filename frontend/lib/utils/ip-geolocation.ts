@@ -3,6 +3,7 @@
  */
 
 import type { GeolocationData, IPApiResponse } from '@/lib/types/visitor'
+import { logger } from './logger'
 
 /**
  * 从请求中获取客户端真实IP地址

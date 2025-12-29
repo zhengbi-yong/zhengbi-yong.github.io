@@ -7,6 +7,7 @@
 
 import blogDB from '@/lib/db/blog-db'
 import type { Blog } from 'contentlayer/generated'
+import { logger } from './logger'
 
 type Priority = 'high' | 'medium' | 'low'
 

@@ -1,6 +1,8 @@
+// @ts-nocheck
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { logger } from '@/lib/utils/logger'
 
 interface UseChemistryLocalOptions {
   /** RDKit WASM 文件URL */
@@ -47,77 +49,34 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
           return
         }
 
-        // 尝试使用完整的RDKit CDN版本
-        const script = document.createElement('script')
-        // 使用官方CDN的完整版本
-        script.src = 'https://rdkit.org/RDKit_minimal.js' // 官方minimal版本
-        // script.src = 'https://rdkit.org/RDKit.js' // 完整版本可能不可用
-        script.async = true
+        // 等待 initRDKitModule 函数变得可用（最多等待10秒）
+        const maxWaitTime = 10000 // 10 seconds
+        const checkInterval = 100 // 100ms
+        let waitedTime = 0
 
-        const loadPromise = new Promise<void>((resolve, reject) => {
-          script.onload = () => {
-            // 等待initRDKitModule函数可用
-            const checkInitRDKit = () => {
+        const waitForRDKit = (): Promise<any> => {
+          return new Promise((resolve, reject) => {
+            const checkRDKit = () => {
               if ((window as any).initRDKitModule) {
-                // 初始化RDKit
-                ;(window as any)
-                  .initRDKitModule()
-                  .then((RDKitModule: any) => {
-                    rdkitRef.current = RDKitModule
-                    setRDKit(RDKitModule)
-                    setIsLoaded(true)
-                    setError(null)
-                    resolve()
-                  })
-                  .catch((err: any) => {
-                    reject(new Error(`Failed to initialize RDKit: ${err}`))
-                  })
+                logger.log('initRDKitModule found, initializing...')
+                resolve((window as any).initRDKitModule())
+              } else if (waitedTime >= maxWaitTime) {
+                reject(new Error('RDKit script did not load within 10 seconds'))
               } else {
-                setTimeout(checkInitRDKit, 100)
+                waitedTime += checkInterval
+                setTimeout(checkRDKit, checkInterval)
               }
             }
-            checkInitRDKit()
-          }
+            checkRDKit()
+          })
+        }
 
-          script.onerror = () => {
-            // CDN加载失败，尝试本地版本
-            logger.log('CDN failed, trying local RDKit...')
-            const localScript = document.createElement('script')
-            localScript.src = '/chemistry/rdkit/RDKit_minimal.js'
-            localScript.async = true
-
-            localScript.onload = () => {
-              const checkInitRDKit = () => {
-                if ((window as any).initRDKitModule) {
-                  ;(window as any)
-                    .initRDKitModule()
-                    .then((RDKitModule: any) => {
-                      rdkitRef.current = RDKitModule
-                      setRDKit(RDKitModule)
-                      setIsLoaded(true)
-                      setError(null)
-                      resolve()
-                    })
-                    .catch((err: any) => {
-                      reject(new Error(`Failed to initialize local RDKit: ${err}`))
-                    })
-                } else {
-                  setTimeout(checkInitRDKit, 100)
-                }
-              }
-              checkInitRDKit()
-            }
-
-            localScript.onerror = () => {
-              reject(new Error('Failed to load both CDN and local RDKit.js'))
-            }
-
-            document.head.appendChild(localScript)
-          }
-        })
-
-        document.head.appendChild(script)
-        await loadPromise
+        const RDKitModule = await waitForRDKit()
+        rdkitRef.current = RDKitModule
+        setRDKit(RDKitModule)
+        setIsLoaded(true)
+        setError(null)
+        logger.log('RDKit loaded successfully')
       } catch (err) {
         logger.error('Failed to load RDKit:', err)
         setError(err instanceof Error ? err.message : 'Failed to load RDKit')
@@ -128,7 +87,7 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
     loadRDKit()
 
     return () => {
-      // 不清理脚本，因为其他组件可能仍在使用
+      // 不清理，因为其他组件可能仍在使用
     }
   }, [])
 

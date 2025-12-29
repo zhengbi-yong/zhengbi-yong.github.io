@@ -3,6 +3,7 @@ import { getClientIP, getGeolocation } from '@/lib/utils/ip-geolocation'
 import type { VisitorData } from '@/lib/types/visitor'
 import { promises as fs } from 'fs'
 import path from 'path'
+import { logger } from '@/lib/utils/logger'
 
 // 允许静态导出（API路由在静态导出时不可用，但需要此配置避免构建错误）
 export const dynamic = 'force-static'

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useChemistryLocal } from '@/hooks/useChemistryLocal'
+import { useChemistryLocal } from '@/components/hooks/useChemistryLocal'
+import Script from 'next/script'
 
 export default function TestChemistryPage() {
   const [logs, setLogs] = useState<string[]>([])
@@ -171,8 +172,14 @@ M  END`,
   }
 
   return (
-    <div className="container mx-auto max-w-6xl p-8">
-      <h1 className="mb-8 text-3xl font-bold">RDKit Chemistry Test Suite</h1>
+    <>
+      {/* Load RDKit from local file before interactivity */}
+      <Script
+        src="/chemistry/rdkit/RDKit_minimal.js"
+        strategy="beforeInteractive"
+      />
+      <div className="container mx-auto max-w-6xl p-8">
+        <h1 className="mb-8 text-3xl font-bold">RDKit Chemistry Test Suite</h1>
 
       {/* Status Section */}
       <div className="mb-8 rounded bg-gray-100 p-4">
@@ -290,5 +297,6 @@ M  END`,
         </div>
       )}
     </div>
+    </>
   )
 }

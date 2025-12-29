@@ -1,7 +1,7 @@
 # =============================================================================
 # Development Stage
 # =============================================================================
-FROM rustlang/rust:nightly-bookworm-slim AS development
+FROM rustlang/rust:nightly-slim AS development
 
 # 安装开发依赖
 RUN apt-get update && apt-get install -y \
@@ -18,62 +18,42 @@ WORKDIR /app
 RUN useradd -m -u 1000 rustuser && \
     chown -R rustuser:rustuser /app
 
-# 复制 Cargo 文件
-COPY --chown=rustuser:rustuser Cargo.toml Cargo.lock ./
-COPY --chown=rustuser:rustuser crates ./crates
+# 复制所有源代码
+COPY --chown=rustuser:rustuser . .
 
 # 切换到非 root 用户
 USER rustuser
 
-# 构建依赖
-RUN cargo build
+# 构建所有二进制文件
+RUN cargo build -p blog-api -p blog-worker
 
 # 默认命令：直接运行应用
-CMD ["cargo", "run", "--bin", "blog-api"]
+CMD ["cargo", "run", "--bin", "api"]
 
 # =============================================================================
 # Builder Stage
 # =============================================================================
-FROM rustlang/rust:nightly-bookworm-slim AS builder
+FROM rustlang/rust:nightly-slim AS builder
 
 # 安装必要的系统依赖
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     libpq-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app
 
-# 复制 Cargo 文件
-COPY Cargo.toml Cargo.lock ./
-COPY crates ./crates
-
-# 创建虚拟 src 目录以缓存构建依赖
-RUN mkdir -p src && \
-    echo "fn main() {}" > src/main.rs && \
-    mkdir -p crates/api/src && \
-    echo "fn main() {}" > crates/api/src/lib.rs && \
-    mkdir -p crates/core/src && \
-    echo "fn main() {}" > crates/core/src/lib.rs && \
-    mkdir -p crates/db/src && \
-    echo "fn main() {}" > crates/db/src/lib.rs && \
-    mkdir -p crates/shared/src && \
-    echo "fn main() {}" > crates/shared/src/lib.rs && \
-    mkdir -p crates/worker/src && \
-    echo "fn main() {}" > crates/worker/src/lib.rs
-
-# 构建依赖（缓存层）
-RUN cargo build --release && \
-    rm -rf src && \
-    rm -rf crates/*/src
-
-# 复制源代码
+# 复制所有源代码（包括 Cargo 文件和 SQLx 缓存）
 COPY . .
 
-# 构建应用
-RUN cargo build --release
+# 设置 SQLx 离线模式
+ENV SQLX_OFFLINE=true
+
+# 构建所有二进制文件（api 和 worker）
+RUN cargo build --release -p blog-api -p blog-worker
 
 # =============================================================================
 # Production Stage
@@ -96,7 +76,7 @@ RUN groupadd -r rustuser && \
 WORKDIR /app
 
 # 从构建阶段复制二进制文件
-COPY --from=builder /app/target/release/blog-api /usr/local/bin/
+COPY --from=builder /app/target/release/api /usr/local/bin/
 COPY --from=builder /app/target/release/worker /usr/local/bin/
 
 # 复制迁移文件
@@ -120,4 +100,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 ENTRYPOINT ["dumb-init", "--"]
 
 # 启动应用
-CMD ["blog-api"]
+CMD ["api"]

@@ -8,6 +8,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { Blog } from 'contentlayer/generated'
 import blogDB from '@/lib/db/blog-db'
+import { logger } from './logger'
 
 const CACHE_EXPIRY = 24 * 60 * 60 * 1000 // 24小时
 

@@ -1,4 +1,5 @@
 // 统一的缓存管理器
+import { logger } from '../utils/logger'
 
 interface CacheOptions {
   ttl?: number // 生存时间（毫秒）
