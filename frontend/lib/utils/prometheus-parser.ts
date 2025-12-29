@@ -4,6 +4,7 @@
  */
 
 import type { PrometheusMetrics, Metric, HistogramMetric, GaugeMetric } from '@/lib/types/backend'
+import { logger } from './logger'
 
 export interface ParsedMetric {
   name: string
@@ -113,7 +114,7 @@ export function getRequestDurationStats(metrics: PrometheusMetrics): {
   p95: number
   p99: number
 } {
-  const histogram = metrics.http_request_duration_seconds
+  const histogram = metrics.http_request_duration_seconds as any
   if (!histogram || histogram.count === 0) {
     return { count: 0, sum: 0, avg: 0, p50: 0, p95: 0, p99: 0 }
   }

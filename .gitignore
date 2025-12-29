@@ -68,3 +68,11 @@ frontend/slidev/*/node_modules
 # 部署配置（包含敏感信息）
 .env.deploy
 .env.deploy.local
+.docker-registry
+
+# Docker 镜像导出
+docker-images-export/
+
+# Docker 备份
+docker-compose.yml.backup
+*.backup

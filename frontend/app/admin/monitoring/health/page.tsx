@@ -56,7 +56,7 @@ export default function HealthCheckPage() {
             {autoRefresh ? '自动刷新：开' : '自动刷新：关'}
           </button>
           <button
-            onClick={() => fetchHealthData()}
+            onClick={() => refetch()}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             title="手动刷新"
           >

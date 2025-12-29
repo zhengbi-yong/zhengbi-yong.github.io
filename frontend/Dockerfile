@@ -32,9 +32,9 @@ RUN pnpm build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 # 禁用遥测
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # 创建非root用户
 RUN addgroup --system --gid 1001 nodejs

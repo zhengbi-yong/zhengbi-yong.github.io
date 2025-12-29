@@ -173,9 +173,9 @@ export default function MonitoringOverviewPage() {
             </h3>
             <p className="text-sm text-blue-700 dark:text-blue-300">
               所有监控页面支持自动刷新功能，数据每10秒更新一次。您可以随时切换自动刷新开关或手动刷新数据。
-              {healthData?.data?.timestamp && (
+              {healthData?.timestamp && (
                 <span className="ml-2">
-                  最后更新：{new Date(healthData.data.timestamp).toLocaleTimeString('zh-CN')}
+                  最后更新：{new Date(healthData.timestamp).toLocaleTimeString('zh-CN')}
                 </span>
               )}
             </p>

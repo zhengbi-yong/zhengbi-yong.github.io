@@ -123,13 +123,16 @@ const generateSecurityHeaders = () => {
   // 生产环境移除 unsafe-inline 和 unsafe-eval
   const cspValue = isProduction
     ? {
-        // 生产环境：更严格的 CSP，不使用 unsafe-inline
+        // 生产环境：允许 unsafe-inline 用于 Next.js 内联脚本
+        // 化学可视化需要的外部CDN: cdn.jsdelivr.net (KaTeX/mhchem), unpkg.com (3Dmol), rdkit.org (RDKit)
+        // WebAssembly需要 'wasm-unsafe-eval' 和 'unsafe-eval' 才能运行
         'default-src': "'self'",
-        'script-src': "'self' giscus.app analytics.umami.is unpkg.com",
-        'style-src': "'self' unpkg.com cdn.jsdelivr.net",
+        'script-src': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app analytics.umami.is https://cloud.umami.is",
+        'script-src-elem': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app analytics.umami.is https://cloud.umami.is",
+        'style-src': "'self' 'unsafe-inline'",
         'img-src': "'self' data: https: avatars.githubusercontent.com picsum.photos",
-        'font-src': "'self' data: blob: https: unpkg.com cdn.jsdelivr.net",
-        'connect-src': "'self' https: https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://o1046881.ingest.sentry.io unpkg.com cdn.jsdelivr.net",
+        'font-src': "'self' data: blob: https:",
+        'connect-src': "'self' https: http://localhost:3000 https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://cloud.umami.is https://o1046881.ingest.sentry.io",
         'frame-src': 'giscus.app excalidraw.com',
         'worker-src': "'self' blob:",
         'media-src': "'self'",
@@ -141,12 +144,15 @@ const generateSecurityHeaders = () => {
       }
     : {
         // 开发环境：允许 unsafe-inline 和 unsafe-eval 用于开发工具
+        // 化学可视化需要的外部CDN: cdn.jsdelivr.net (KaTeX/mhchem), unpkg.com (3Dmol), rdkit.org (RDKit)
+        // WebAssembly需要 'wasm-unsafe-eval' 或 'unsafe-eval' 才能运行
         'default-src': "'self'",
-        'script-src': "'self' 'unsafe-eval' 'unsafe-inline' unpkg.com",
-        'style-src': "'self' 'unsafe-inline' unpkg.com cdn.jsdelivr.net",
+        'script-src': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' https://cloud.umami.is",
+        'script-src-elem': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' https://cloud.umami.is",
+        'style-src': "'self' 'unsafe-inline'",
         'img-src': "'self' data: https:",
-        'font-src': "'self' data: blob: https: unpkg.com cdn.jsdelivr.net",
-        'connect-src': "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 unpkg.com cdn.jsdelivr.net",
+        'font-src': "'self' data: blob: https:",
+        'connect-src': "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 https://cloud.umami.is",
         'frame-src': 'excalidraw.com',
       }
 

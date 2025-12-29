@@ -1,6 +1,7 @@
 import { caches } from '../cache/CacheManager'
 import { AppError, ErrorType } from '../error-handler'
 import { refreshAccessToken } from './backend'
+import { logger } from '../utils/logger'
 
 interface RequestOptions extends Omit<RequestInit, 'cache'> {
   cache?: boolean | number // false = 不缓存, true = 使用默认缓存, number = 缓存时间（毫秒）

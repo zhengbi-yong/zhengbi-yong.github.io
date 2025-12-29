@@ -7,6 +7,7 @@
 
 import { preloadImage } from '@/lib/utils/image-optimization'
 import type { Blog } from 'contentlayer/generated'
+import { logger } from './logger'
 
 type Priority = 'high' | 'medium' | 'low'
 

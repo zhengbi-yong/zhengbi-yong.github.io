@@ -2,6 +2,7 @@
  * Service Worker 注册和管理
  * 用于实现页面缓存和离线支持
  */
+import { logger } from './utils/logger'
 
 const SW_URL = '/sw.js'
 const SW_VERSION = 'v1.0.1'

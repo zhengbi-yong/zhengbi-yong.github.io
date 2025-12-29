@@ -5,6 +5,7 @@ import { useAnalyticsStorage } from '@/components/hooks/useAnalyticsStorage'
 import { useTranslation } from 'react-i18next'
 import { Download, Upload, Trash2, FileJson, BarChart3, Eye, Clock, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/ButtonSimple'
+import { logger } from '@/lib/utils/logger'
 
 export default function AnalyticsPage() {
   const { t } = useTranslation()

@@ -3,6 +3,7 @@ import 'katex/dist/katex.css'
 
 import dynamic from 'next/dynamic'
 import PageTitle from '@/components/PageTitle'
+import Script from 'next/script'
 
 // 动态导入mhchem初始化组件（Client Component，内部已有客户端检查）
 const MhchemInit = dynamic(() =>
@@ -172,6 +173,11 @@ export default async function Page(props: { params: Promise<{ slug: string[] }> 
           }}
         />
       )}
+      {/* Load RDKit from local file for 2D chemistry visualization */}
+      <Script
+        src="/chemistry/rdkit/RDKit_minimal.js"
+        strategy="beforeInteractive"
+      />
       {/* 初始化mhchem化学公式支持 */}
       <MhchemInit />
       {/* 自动缓存文章内容，后续访问瞬间打开 */}

@@ -6,6 +6,7 @@ import { visit } from 'unist-util-visit'
 // import type { Root } from 'hast'
 type Root = any
 import { mhchemParser } from 'mhchemparser'
+import { logger } from './utils/logger'
 
 export default function rehypeMhchem() {
   return (tree: Root) => {

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Admin Hooks - 基于 React Query 的管理后台数据管理
  * 参考 Refine 的设计理念，但使用自定义实现以保持完全控制

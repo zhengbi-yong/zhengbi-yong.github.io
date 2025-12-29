@@ -28,6 +28,16 @@ export const metadata: Metadata = {
     template: `%s | ${siteMetadata.title}`,
   },
   description: siteMetadata.description,
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/static/favicons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/static/favicons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/static/favicons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   openGraph: {
     title: siteMetadata.title,
     description: siteMetadata.description,

@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs'
+import { logger } from './utils/logger'
 
 // 错误类型定义
 export enum ErrorType {

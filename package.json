@@ -1,0 +1,16 @@
+{
+  "name": "blog-deployment-tools",
+  "version": "1.0.0",
+  "description": "跨平台 Docker 镜像构建和部署工具",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.js",
+    "build:all": "node scripts/build.js",
+    "push": "node scripts/push.js",
+    "export": "node scripts/export.js",
+    "deploy:server": "node scripts/deploy-server.js"
+  },
+  "keywords": ["docker", "deployment", "cross-platform"],
+  "author": "Zhengbi Yong",
+  "license": "MIT"
+}

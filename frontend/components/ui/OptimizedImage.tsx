@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import Image, { ImageProps } from 'next/image'

@@ -3,6 +3,7 @@
 import * as Sentry from '@sentry/nextjs'
 import React, { Component } from 'react'
 import ErrorReportButton from './ErrorReportButton'
+import { logger } from '@/lib/utils/logger'
 
 interface ErrorBoundaryProps {
   children: React.ReactNode

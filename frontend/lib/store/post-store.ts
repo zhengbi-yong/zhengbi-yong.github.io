@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { postService } from '../api/backend'
 import type { PostStats } from '../types/backend'
+import { logger } from '../utils/logger'
 
 interface PostStatsState {
   // Map of post slug to stats

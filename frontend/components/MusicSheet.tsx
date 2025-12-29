@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Spinner } from '@/components/loaders'
 import type { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
 import JSZip from 'jszip'
+import { logger } from '@/lib/utils/logger'
 
 interface MusicSheetProps {
   /** MusicXML 文件路径，相对于 public/musicxml/ 目录，支持 .xml 和 .mxl 格式 */

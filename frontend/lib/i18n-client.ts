@@ -1,6 +1,7 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
+import { logger } from './utils/logger'
 
 // 初始化状态标志，防止重复初始化（特别是在 HMR 更新时）
 let isInitialized = false

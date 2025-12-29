@@ -24,63 +24,59 @@ Zhengbi Yong is a Master's student at Beijing Institute of Technology (formerly 
 
 ---
 
-## 🚀 Docker 一键部署（推荐） / Docker Deployment (Recommended)
+## 🚀 Docker 部署 / Docker Deployment
 
-### 快速部署（3步） / Quick Deploy (3 Steps)
+**跨平台支持**: Windows, Linux, macOS
+
+### 快速开始（三步）
 
 ```bash
-# 1. 克隆项目 / Clone repository
-git clone https://github.com/zhengbi-yong/zhengbi-yong.github.io.git
-cd zhengbi-yong.github.io
+# 1. 本地构建（选择适合你平台的方法）
+npm run build          # Node.js（所有平台）✨ 推荐
+# 或 Windows:
+.\build-all.ps1        # PowerShell
+# 或 Linux/macOS:
+bash build-all.sh      # Bash
 
-# 2. 一键部署 / One-click deploy
-chmod +x scripts/deploy.sh
-./scripts/deploy.sh --auto-cleanup
+# 2. 推送镜像
+npm run push           # Node.js
+# 或
+.\push-images.ps1      # Windows
+bash push-images.sh    # Linux/macOS
 
-# 3. 访问应用 / Access application
-# Frontend: http://localhost or http://your-server-ip
-# Backend API: http://localhost:3000/v1/
-# Admin Panel: http://localhost:3000/admin/
+# 3. 服务器部署
+bash deploy-server.sh <registry> <version>
 ```
 
-**就这么简单！** 该脚本会自动：
-- ✅ 检查环境依赖 / Check dependencies
-- ✅ 生成安全密钥 / Generate security keys
-- ✅ 清理端口占用 / Cleanup port conflicts
-- ✅ 拉取Docker镜像 / Pull Docker images
-- ✅ 构建应用 / Build applications
-- ✅ 启动所有服务 / Start all services
+**优势**：
+- ✅ 本地构建，服务器无需编译环境
+- ✅ 镜像版本管理，方便回滚
+- ✅ 跨平台统一命令
+- ✅ 支持离线部署
 
-### 自定义配置 / Custom Configuration
+### 平台选择指南
 
-编辑 `config.yml` 文件来自定义配置：
+| 本地平台 | 推荐方法 | 命令 |
+|---------|---------|------|
+| **Windows** | Node.js 或 PowerShell | `npm run build` 或 `.\build-all.ps1` |
+| **Linux** | Node.js 或 Bash | `npm run build` 或 `bash build-all.sh` |
+| **macOS** | Node.js 或 Bash | `npm run build` 或 `bash build-all.sh` |
 
-```yaml
-# 修改域名 / Modify domain
-domain:
-  main: your-domain.com
+### 详细文档
 
-# 配置SSL / Configure SSL
-ssl:
-  enabled: true
+- 📖 **[跨平台部署指南](CROSS_PLATFORM_DEPLOYMENT.md)** - Windows/Linux/macOS 完整指南 ⭐
+- 📖 [完整部署指南](DEPLOYMENT.md) - 本地构建 + 服务器部署
+- 📖 [Docker 部署](docs/deployment/docker.md) - 传统 Docker 部署
 
-# 调整性能 / Tune performance
-resources:
-  backend:
-    cpu_limit: "4"
-    memory_limit: "4G"
-```
+### 镜像版本 / Image Versions
 
-然后重新部署：
-```bash
-./scripts/deploy.sh --rebuild
-```
-
-### 文档 / Documentation
-
-- 📖 [完整部署指南](docs/deployment/docker.md) - Full deployment guide
-- ⚙️ [配置管理指南](docs/configuration/config-guide.md) - Configuration guide
-- 🚀 [快速开始指南](docs/quick-start.md) - Quick start guide
+| 服务 | 镜像 | 版本 | 说明 |
+|------|------|------|------|
+| PostgreSQL | postgres | **17-alpine** | 最新稳定版，性能提升 20-30% |
+| Redis | redis | **7.4-alpine** | 最新稳定版 |
+| Nginx | nginx | **1.27-alpine** | 最新主线版 |
+| Backend | rustlang/rust | **nightly-slim** | Rust nightly |
+| Frontend | node | **22-alpine** | Node.js 22 LTS |
 
 ---
 
