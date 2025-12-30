@@ -1,0 +1,403 @@
+-- =============================================
+-- CMS 性能优化索引
+-- 版本: 0008
+-- 描述: 全文搜索和高级性能索引
+-- =============================================
+
+-- ===== 全文搜索配置 =====
+
+-- 添加全文搜索向量列（自动生成）
+ALTER TABLE posts
+    ADD COLUMN search_vector tsvector
+    GENERATED ALWAYS AS (
+        setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
+        setweight(to_tsvector('simple', coalesce(summary, '')), 'B') ||
+        setweight(to_tsvector('simple', coalesce(content, '')), 'C') ||
+        setweight(to_tsvector('simple', coalesce(meta_description, '')), 'D')
+    ) STORED;
+
+-- 创建 GIN 索引用于全文搜索
+CREATE INDEX idx_posts_search_gin ON posts USING GIN (search_vector)
+    WHERE deleted_at IS NULL;
+
+-- 为 categories 添加全文搜索
+ALTER TABLE categories
+    ADD COLUMN search_vector tsvector
+    GENERATED ALWAYS AS (
+        setweight(to_tsvector('simple', coalesce(name, '')), 'A') ||
+        setweight(to_tsvector('simple', coalesce(description, '')), 'B')
+    ) STORED;
+
+CREATE INDEX idx_categories_search_gin ON categories USING GIN (search_vector);
+
+-- ===== 高性能复合索引 =====
+
+-- 已发布文章的主要查询索引（覆盖索引）
+CREATE INDEX idx_posts_published_covering
+    ON posts (status, published_at DESC, slug)
+    INCLUDE (title, summary, author_id, category_id, view_count)
+    WHERE status = 'published' AND deleted_at IS NULL;
+
+-- 文章列表分页查询（包含分类筛选）
+CREATE INDEX idx_posts_list_pagination
+    ON posts (category_id, status, created_at DESC)
+    INCLUDE (title, slug, summary, view_count)
+    WHERE deleted_at IS NULL;
+
+-- 热门文章查询（基于浏览量和点赞数）
+CREATE INDEX idx_posts_popular
+    ON posts (status, view_count DESC, like_count DESC, created_at DESC)
+    INCLUDE (title, slug, summary)
+    WHERE status = 'published' AND deleted_at IS NULL AND view_count > 0;
+
+-- 相关文章查询（同分类、排除当前文章）
+CREATE INDEX idx_posts_related
+    ON posts (category_id, status, published_at DESC)
+    INCLUDE (title, slug, summary, author_id)
+    WHERE status = 'published' AND deleted_at IS NULL;
+
+-- 作者文章列表
+CREATE INDEX idx_posts_author_list
+    ON posts (author_id, status, created_at DESC)
+    INCLUDE (title, slug, summary, view_count)
+    WHERE deleted_at IS NULL;
+
+-- 定时发布文章查询
+CREATE INDEX idx_posts_scheduled
+    ON posts (status, scheduled_at)
+    INCLUDE (title, slug, author_id)
+    WHERE status = 'scheduled' AND scheduled_at IS NOT NULL AND deleted_at IS NULL;
+
+-- 草稿查询
+CREATE INDEX idx_posts_drafts
+    ON posts (status, updated_at DESC)
+    INCLUDE (title, slug, author_id)
+    WHERE status = 'draft' AND deleted_at IS NULL;
+
+-- ===== 媒体文件索引 =====
+
+-- 媒体文件类型和创建时间（用于媒体库列表）
+CREATE INDEX idx_media_library_list
+    ON media (media_type, created_at DESC)
+    INCLUDE (filename, original_filename, size_bytes, cdn_url)
+    WHERE deleted_at IS NULL;
+
+-- 媒体使用统计（用于清理未使用的媒体）
+CREATE INDEX idx_media_unused
+    ON media (usage_count, created_at DESC)
+    WHERE deleted_at IS NULL AND usage_count = 0;
+
+-- 图片尺寸查询（用于响应式图片）
+CREATE INDEX idx_media_images
+    ON media (media_type, width, height)
+    INCLUDE (storage_path, cdn_url)
+    WHERE deleted_at IS NULL AND media_type = 'image' AND width IS NOT NULL;
+
+-- ===== 标签索引优化 =====
+
+-- 标签自动补全索引（trigram 索引，需要 pg_trgm 扩展）
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX idx_tags_name_trigram
+    ON tags USING GIN (name gin_trgm_ops);
+
+-- 标签搜索和筛选
+CREATE INDEX idx_tags_search
+    ON tags (post_count DESC, name)
+    INCLUDE (slug, description);
+
+-- ===== 分类索引优化 =====
+
+-- 分类树查询（父子关系）
+CREATE INDEX idx_categories_tree
+    ON categories (parent_id, display_order, name)
+    INCLUDE (slug, description, icon, color);
+
+-- 顶级分类（无父分类）
+CREATE INDEX idx_categories_top_level
+    ON categories (display_order, name)
+    INCLUDE (slug, description, icon, color, post_count)
+    WHERE parent_id IS NULL;
+
+-- ===== 版本历史索引 =====
+
+-- 文章版本时间线
+CREATE INDEX idx_post_versions_timeline
+    ON post_versions (post_id, version_number DESC)
+    INCLUDE (title, created_by, created_at);
+
+-- 用户创建的版本
+CREATE INDEX idx_post_versions_by_user
+    ON post_versions (created_by, created_at DESC)
+    INCLUDE (post_id, version_number, title);
+
+-- ===== 统计查询索引 =====
+
+-- 文章统计汇总（用于仪表盘）
+CREATE INDEX idx_posts_stats_dashboard
+    ON posts (status)
+    INCLUDE (view_count, like_count, comment_count, created_at)
+    WHERE deleted_at IS NULL;
+
+-- 时间范围查询（用于归档）
+CREATE INDEX idx_posts_archive
+    ON posts (date_trunc('month', created_at), status)
+    INCLUDE (slug, title, view_count)
+    WHERE deleted_at IS NULL;
+
+-- ===== 复合唯一索引（防止重复） =====
+
+-- 防止同一路由的重复（考虑软删除）
+CREATE UNIQUE INDEX idx_posts_slug_unique
+    ON posts (slug)
+    WHERE deleted_at IS NULL;
+
+-- ===== 部分索引（特定场景优化） =====
+
+-- 仅索引已发布的文章（最常查询）
+CREATE INDEX idx_posts_published_only
+    ON posts (published_at DESC)
+    INCLUDE (slug, title, summary, author_id, category_id)
+    WHERE status = 'published' AND deleted_at IS NULL;
+
+-- 待审核或特殊状态的文章
+CREATE INDEX idx_posts_needs_attention
+    ON posts (status, created_at DESC)
+    WHERE status IN ('draft', 'scheduled') AND deleted_at IS NULL;
+
+-- ===== 草稿索引 =====
+
+-- 用户草稿查询
+CREATE INDEX idx_drafts_user_recent
+    ON drafts (user_id, saved_at DESC)
+    INCLUDE (post_id, title, content);
+
+-- 文章草稿（多人协作场景）
+CREATE INDEX idx_drafts_post_all
+    ON drafts (post_id, saved_at DESC)
+    INCLUDE (user_id, title);
+
+-- ===== 性能优化视图 =====
+
+-- 文章列表视图（预聚合常用数据）
+CREATE MATERIALIZED VIEW IF NOT EXISTS posts_list_view AS
+SELECT
+    p.id,
+    p.slug,
+    p.title,
+    p.summary,
+    p.status,
+    p.published_at,
+    p.created_at,
+    p.updated_at,
+    p.view_count,
+    p.like_count,
+    p.comment_count,
+    p.reading_time,
+    u.username AS author_name,
+    c.name AS category_name,
+    c.slug AS category_slug,
+    COUNT(DISTINCT pt.tag_id) AS tag_count
+FROM posts p
+LEFT JOIN users u ON p.author_id = u.id
+LEFT JOIN categories c ON p.category_id = c.id
+LEFT JOIN post_tags pt ON p.id = pt.post_id
+WHERE p.deleted_at IS NULL
+GROUP BY p.id, u.username, c.name, c.slug
+WITH DATA;
+
+-- 创建索引以加速物化视图查询
+CREATE INDEX idx_posts_list_view_slug ON posts_list_view(slug);
+CREATE INDEX idx_posts_list_view_status_published ON posts_list_view(status, published_at DESC);
+CREATE INDEX idx_posts_list_view_category ON posts_list_view(category_slug, published_at DESC);
+CREATE INDEX idx_posts_list_view_popular ON posts_list_view(view_count DESC) WHERE status = 'published';
+
+-- 创建刷新物化视图的函数
+CREATE OR REPLACE FUNCTION refresh_posts_list()
+RETURNS void AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY posts_list_view;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ===== 全文搜索辅助函数 =====
+
+-- 文章搜索函数（支持相关性排序）
+CREATE OR REPLACE FUNCTION search_posts(
+    search_query TEXT,
+    limit_count INT DEFAULT 10,
+    offset_count INT DEFAULT 0
+)
+RETURNS TABLE (
+    id UUID,
+    slug TEXT,
+    title TEXT,
+    summary TEXT,
+    rank REAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.slug,
+        p.title,
+        p.summary,
+        ts_rank(p.search_vector, plainto_tsquery('simple', search_query)) AS rank
+    FROM posts p
+    WHERE
+        p.deleted_at IS NULL
+        AND p.status = 'published'
+        AND p.search_vector @@ plainto_tsquery('simple', search_query)
+    ORDER BY rank DESC, p.published_at DESC
+    LIMIT limit_count
+    OFFSET offset_count;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- 高级搜索函数（支持分类和标签筛选）
+CREATE OR REPLACE FUNCTION search_posts_advanced(
+    search_query TEXT DEFAULT NULL,
+    category_slug TEXT DEFAULT NULL,
+    tag_slug TEXT DEFAULT NULL,
+    author_id UUID DEFAULT NULL,
+    limit_count INT DEFAULT 10,
+    offset_count INT DEFAULT 0
+)
+RETURNS TABLE (
+    id UUID,
+    slug TEXT,
+    title TEXT,
+    summary TEXT,
+    published_at TIMESTAMPTZ,
+    rank REAL
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        p.id,
+        p.slug,
+        p.title,
+        p.summary,
+        p.published_at,
+        COALESCE(
+            ts_rank(p.search_vector, plainto_tsquery('simple', search_query)),
+            0
+        ) AS rank
+    FROM posts p
+    LEFT JOIN categories c ON p.category_id = c.id
+    LEFT JOIN post_tags pt ON p.id = pt.post_id
+    LEFT JOIN tags t ON pt.tag_id = t.id
+    WHERE
+        p.deleted_at IS NULL
+        AND p.status = 'published'
+        AND (search_query IS NULL OR p.search_vector @@ plainto_tsquery('simple', search_query))
+        AND (category_slug IS NULL OR c.slug = category_slug)
+        AND (tag_slug IS NULL OR t.slug = tag_slug)
+        AND (author_id IS NULL OR p.author_id = author_id)
+    ORDER BY
+        CASE WHEN search_query IS NOT NULL THEN rank ELSE 0 END DESC,
+        p.published_at DESC
+    LIMIT limit_count
+    OFFSET offset_count;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- ===== 数据完整性函数 =====
+
+-- 清理未使用的媒体文件
+CREATE OR REPLACE FUNCTION get_unused_media()
+RETURNS TABLE (
+    media_id UUID,
+    filename TEXT,
+    created_at TIMESTAMPTZ
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        m.id,
+        m.filename,
+        m.created_at
+    FROM media m
+    WHERE
+        m.deleted_at IS NULL
+        AND m.usage_count = 0
+        AND m.created_at < NOW() - INTERVAL '30 days'
+    ORDER BY m.created_at ASC;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- 重新计算文章阅读时间
+CREATE OR REPLACE FUNCTION recalculate_reading_time()
+RETURNS void AS $$
+BEGIN
+    UPDATE posts
+    SET reading_time = jsonb_build_object(
+        'words',
+        length(regexp_replace(content, '[^\w\s]', '', 'g')) / 5,
+        'minutes',
+        CEIL(length(regexp_replace(content, '[^\w\s]', '', 'g')) / 5 / 200)
+    )
+    WHERE
+        deleted_at IS NULL
+        AND content IS NOT NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ===== 性能监控 =====
+
+-- 创建索引使用情况统计视图
+CREATE OR REPLACE VIEW index_usage_stats AS
+SELECT
+    schemaname,
+    tablename,
+    indexname,
+    idx_tup_read,
+    idx_tup_fetch,
+    idx_scan
+FROM pg_stat_user_indexes
+ORDER BY idx_scan DESC;
+
+-- 创建表大小统计视图
+CREATE OR REPLACE VIEW table_size_stats AS
+SELECT
+    schemaname,
+    tablename,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS total_size,
+    pg_size_pretty(pg_relation_size(schemaname||'.'||tablename)) AS table_size,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename) - pg_relation_size(schemaname||'.'||tablename)) AS index_size
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+
+-- ===== 注释 =====
+
+COMMENT ON MATERIALIZED VIEW posts_list_view IS '文章列表预聚合视图，用于快速查询';
+COMMENT ON FUNCTION search_posts IS '文章全文搜索函数，返回相关性排序结果';
+COMMENT ON FUNCTION search_posts_advanced IS '高级文章搜索，支持分类、标签、作者筛选';
+COMMENT ON FUNCTION refresh_posts_list IS '刷新文章列表物化视图';
+COMMENT ON FUNCTION get_unused_media IS '获取未使用的媒体文件（30天未使用）';
+COMMENT ON FUNCTION recalculate_reading_time IS '重新计算所有文章的阅读时间';
+COMMENT ON INDEX idx_posts_search_gin IS 'GIN 全文搜索索引，支持快速文本搜索';
+COMMENT ON INDEX idx_posts_published_covering IS '已发布文章的覆盖索引，包含常用查询字段';
+COMMENT ON INDEX idx_posts_popular IS '热门文章索引，基于浏览量和点赞数';
+
+-- ===== 自动任务建议 =====
+
+-- 建议使用 pg_cron 或应用层定时任务执行以下操作：
+
+-- 1. 每小时刷新物化视图
+-- SELECT refresh_posts_list();
+
+-- 2. 每天重新计算阅读时间（对新文章）
+-- UPDATE posts SET reading_time = NULL WHERE reading_time IS NULL;
+-- SELECT recalculate_reading_time();
+
+-- 3. 每周清理未使用的媒体文件
+-- SELECT get_unused_media();
+-- DELETE FROM media WHERE id IN (SELECT media_id FROM get_unused_media());
+
+-- 4. 每月分析表以优化查询计划
+-- ANALYZE posts;
+-- ANALYZE categories;
+-- ANALYZE tags;
+-- ANALYZE media;

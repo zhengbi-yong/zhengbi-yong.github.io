@@ -24,9 +24,44 @@ Zhengbi Yong is a Master's student at Beijing Institute of Technology (formerly 
 
 ---
 
-## 🚀 Docker 部署 / Docker Deployment
+## 🚀 本地开发 / Local Development
 
-**跨平台支持**: Windows, Linux, macOS
+**跨平台支持**: Windows, macOS, Linux
+
+### Docker 快速启动（推荐）
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/zhengbi-yong/zhengbi-yong.github.io.git
+cd zhengbi-yong.github.io
+
+# 2. 配置环境变量
+cp .env.docker.example .env
+
+# 3. 启动所有服务
+docker compose up -d
+```
+
+**访问**: http://localhost:3001
+
+**优势**：
+- ✅ 跨平台一致性
+- ✅ 一键启动所有服务（前端、后端、数据库）
+- ✅ 环境隔离，不污染本地环境
+- ✅ 5 分钟内完成启动
+
+### 平台特定文档
+
+📖 **[Docker 跨平台快速启动](docs/getting-started/docker-quick-start.md)** - Windows, macOS, Linux 通用指南 ⭐⭐⭐
+
+**详细平台指南**:
+- 📖 **[Windows 本地开发](docs/getting-started/local-development-windows.md)** - WSL2 和原生 Windows
+- 📖 **[macOS 本地开发](docs/getting-started/local-development-macos.md)** - Apple Silicon 和 Intel
+- 📖 **[Linux 本地开发](docs/getting-started/local-development-linux.md)** - Ubuntu, Debian, Fedora, Arch
+
+---
+
+## 🌐 生产部署 / Production Deployment
 
 ### 快速部署到服务器（推荐）
 
@@ -44,29 +79,12 @@ Zhengbi Yong is a Master's student at Beijing Institute of Technology (formerly 
 - ✅ 包含 Nginx 反向代理配置
 - ✅ 支持离线部署
 
-### 手动部署步骤
-
-```bash
-# 1. 本地构建
-npm run build
-
-# 2. 导出镜像
-npm run export
-
-# 3. 上传到服务器
-scp -r docker-images-export/ ubuntu@server:~/blog-deployment/
-
-# 4. 服务器部署
-ssh ubuntu@server
-cd ~/blog-deployment && bash import-images.sh
-```
-
-### 详细文档
+### 详细部署文档
 
 - 📖 **[快速部署指南](DEPLOYMENT.md)** - 简洁的部署步骤 ⭐
-- 📖 **[完整部署指南](docs/SERVER_DEPLOYMENT_GUIDE.md)** - 详细的服务器部署文档
-- 📖 **[部署文件结构](docs/DEPLOYMENT_STRUCTURE.md)** - 部署相关文件说明
-- 📖 **[服务器配置说明](server-setup/README.md)** - 配置文件详解
+- 📖 **[完整部署指南](docs/deployment/SERVER_DEPLOYMENT_GUIDE.md)** - 详细的服务器部署文档 ⭐⭐⭐
+- 📖 **[配置修改清单](docs/deployment/CONFIG_CHECKLIST.md)** - 部署前检查清单 ⭐⭐⭐
+- 📖 **[Docker 完整部署](docs/deployment/docker.md)** - Docker 部署详细指南
 
 ### 镜像版本 / Image Versions
 
@@ -82,11 +100,21 @@ cd ~/blog-deployment && bash import-images.sh
 
 ## 传统开发模式 / Traditional Development
 
+如果你更喜欢传统的开发方式（不使用 Docker），可以分别启动前端和后端。
+
 ### 前置要求 / Prerequisites
 
 - **Node.js** 20+ and **pnpm** (for frontend / 前端)
 - **Rust** 1.70+ and **Cargo** (for backend / 后端)
 - **Docker** and **Docker Compose** (for databases / 数据库)
+
+### 详细安装指南
+
+根据你的操作系统选择对应的指南：
+
+- **Windows**: [Windows 本地开发](docs/getting-started/local-development-windows.md)
+- **macOS**: [macOS 本地开发](docs/getting-started/local-development-macos.md)
+- **Linux**: [Linux 本地开发](docs/getting-started/local-development-linux.md)
 
 ### 前端 / Frontend
 

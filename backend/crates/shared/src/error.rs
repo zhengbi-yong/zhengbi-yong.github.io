@@ -50,6 +50,15 @@ pub enum AppError {
     #[error("Comment not found")]
     CommentNotFound,
 
+    #[error("Resource not found: {0}")]
+    NotFound(String),
+
+    #[error("Resource conflict: {0}")]
+    Conflict(String),
+
+    #[error("Bad request: {0}")]
+    BadRequest(String),
+
     // 业务逻辑错误
     #[error("Email already exists")]
     EmailAlreadyExists,
@@ -117,12 +126,15 @@ impl IntoResponse for AppError {
 
             // 资源未找到 - 404
             AppError::PostNotFound
-            | AppError::CommentNotFound => {
+            | AppError::CommentNotFound
+            | AppError::NotFound(_) => {
                 (StatusCode::NOT_FOUND, self.to_string())
             }
 
             // 请求错误 - 400
-            AppError::EmailAlreadyExists
+            AppError::Conflict(_)
+            | AppError::BadRequest(_)
+            | AppError::EmailAlreadyExists
             | AppError::UsernameAlreadyExists
             | AppError::AlreadyLiked
             | AppError::NotLiked

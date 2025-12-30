@@ -7,6 +7,9 @@ use tower_http::{
 use tracing_subscriber::prelude::*;
 use blog_api::state::AppState;
 
+// 导入所有路由模块
+use blog_api::routes::{self, categories, tags, posts, media, versions, search};
+
 #[tokio::main]
 async fn main() {
     // 加载 .env 文件（如果存在）
@@ -103,6 +106,9 @@ async fn run_server() -> anyhow::Result<()> {
         metrics,
     };
 
+    // 提取服务器地址（在移动 state 之前）
+    let addr = format!("{}:{}", state.settings.server_host, state.settings.server_port);
+
     // 构建路由
     let app = Router::new()
         // 健康检查
@@ -123,7 +129,7 @@ async fn run_server() -> anyhow::Result<()> {
         .with_state(state);
 
     // 启动服务器
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?;
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!("Server listening on {:?}", listener.local_addr());
 
     axum::serve(listener, app).await?;
@@ -133,18 +139,37 @@ async fn run_server() -> anyhow::Result<()> {
 
 // v1 路由定义
 fn v1_routes(state: AppState) -> Router<AppState> {
-    use axum::routing::{get, post, delete};
+    use axum::routing::{get, post, delete, patch};
 
     // 公开路由 (无需认证)
     // 前端需要对包含斜杠的 slug 进行 URL 编码（如 chemistry/tutorial -> chemistry%2Ftutorial）
     let public_routes = Router::new()
+        // 认证路由
         .route("/auth/register", post(blog_api::routes::auth::register))
         .route("/auth/login", post(blog_api::routes::auth::login))
         .route("/auth/refresh", post(blog_api::routes::auth::refresh))
-        .route("/auth/logout", post(blog_api::routes::auth::logout)) // logout 不需要认证，只需 cookie
+        .route("/auth/logout", post(blog_api::routes::auth::logout))
+        // 文章统计和浏览
         .route("/posts/{slug}/stats", get(blog_api::routes::posts::get_stats))
         .route("/posts/{slug}/view", post(blog_api::routes::posts::view))
-        .route("/posts/{slug}/comments", get(blog_api::routes::comments::list_comments));
+        .route("/posts/{slug}/comments", get(blog_api::routes::comments::list_comments))
+        // CMS 公开 API
+        .route("/posts", get(blog_api::routes::posts::list_posts))
+        .route("/posts/{slug}", get(blog_api::routes::posts::get_post))
+        .route("/categories", get(blog_api::routes::categories::list_categories))
+        .route("/categories/tree", get(blog_api::routes::categories::get_category_tree))
+        .route("/categories/{slug}", get(blog_api::routes::categories::get_category))
+        .route("/categories/{slug}/posts", get(blog_api::routes::categories::get_category_posts))
+        .route("/tags", get(blog_api::routes::tags::list_tags))
+        .route("/tags/popular", get(blog_api::routes::tags::get_popular_tags))
+        .route("/tags/autocomplete", get(blog_api::routes::tags::autocomplete_tags))
+        .route("/tags/{slug}", get(blog_api::routes::tags::get_tag))
+        .route("/tags/{slug}/posts", get(blog_api::routes::tags::get_tag_posts))
+        // 搜索 API
+        .route("/search", get(blog_api::routes::search::search_posts))
+        .route("/search/suggest", get(blog_api::routes::search::search_suggest))
+        .route("/search/trending", get(blog_api::routes::search::get_trending_keywords))
+        .route("/posts/{slug}/related", get(blog_api::routes::search::get_related_posts));
 
     // 需要认证的路由
     let protected_routes = Router::new()
@@ -161,6 +186,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
 
     // 管理员路由 (需要认证+管理员权限)
     let admin_routes = Router::new()
+        // 原有管理员路由
         .route("/stats", get(blog_api::routes::admin::get_admin_stats))
         .route("/users", get(blog_api::routes::admin::list_users))
         .route("/users/{id}/role", axum::routing::put(blog_api::routes::admin::update_user_role))
@@ -170,10 +196,32 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .route("/comments/{id}/status", axum::routing::put(blog_api::routes::admin::update_comment_status))
         .route("/comments/{id}", axum::routing::delete(blog_api::routes::admin::delete_comment_admin))
         .route("/posts", get(blog_api::routes::admin::list_posts_admin))
-        .layer(middleware::from_fn_with_state(
-            state.clone(),
-            blog_api::middleware::auth::auth_middleware,
-        ));
+        // CMS 管理路由 - 文章管理
+        .route("/posts", post(blog_api::routes::posts::create_post))
+        .route("/posts/{slug}", patch(blog_api::routes::posts::update_post))
+        .route("/posts/{slug}", axum::routing::delete(blog_api::routes::posts::delete_post))
+        // 分类管理
+        .route("/categories", post(blog_api::routes::categories::create_category))
+        .route("/categories/{slug}", patch(blog_api::routes::categories::update_category))
+        .route("/categories/{slug}", axum::routing::delete(blog_api::routes::categories::delete_category))
+        // 标签管理
+        .route("/tags", post(blog_api::routes::tags::create_tag))
+        .route("/tags/{slug}", patch(blog_api::routes::tags::update_tag))
+        .route("/tags/{slug}", axum::routing::delete(blog_api::routes::tags::delete_tag))
+        // 媒体管理（upload 暂时禁用，需要 multipart feature）
+        // .route("/media/upload", post(blog_api::routes::media::upload_media))
+        .route("/media", get(blog_api::routes::media::list_media))
+        .route("/media/unused", get(blog_api::routes::media::get_unused_media))
+        .route("/media/{id}", get(blog_api::routes::media::get_media))
+        .route("/media/{id}", patch(blog_api::routes::media::update_media))
+        .route("/media/{id}", axum::routing::delete(blog_api::routes::media::delete_media))
+        // 版本控制
+        .route("/posts/{post_id}/versions", post(blog_api::routes::versions::create_version))
+        .route("/posts/{post_id}/versions", get(blog_api::routes::versions::list_versions))
+        .route("/posts/{post_id}/versions/{version_number}", get(blog_api::routes::versions::get_version))
+        .route("/posts/{post_id}/versions/{version_number}/restore", post(blog_api::routes::versions::restore_version))
+        .route("/posts/{post_id}/versions/{version_number}", axum::routing::delete(blog_api::routes::versions::delete_version))
+        .route("/posts/{post_id}/versions/compare", get(blog_api::routes::versions::compare_versions));
 
     // 合并路由并应用限流中间件
     public_routes
