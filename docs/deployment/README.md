@@ -1,40 +1,86 @@
-# 服务器部署文档索引
+# 部署文档索引
 
 **版本**: v1.0.0
 **最后更新**: 2025-12-29
-**适用系统**: Ubuntu 20.04+, Debian 11+, CentOS 8+
 
 ---
 
 ## 📚 文档导航
 
-### 🚀 快速开始
+本目录包含所有部署相关文档，涵盖本地开发环境到生产服务器的完整部署流程。
 
-如果你是第一次部署，建议按以下顺序阅读：
+---
+
+## 🚀 快速开始指南
+
+### 本地开发环境
+
+如果你是第一次在本地运行项目，建议从以下文档开始：
+
+1. **[Docker 跨平台快速启动](../getting-started/docker-quick-start.md)** ⭐⭐⭐
+   - 适用于所有平台（Windows, macOS, Linux）
+   - 最简单、最可靠的启动方式
+   - 预计启动时间: 5-10 分钟
+
+2. **平台特定指南** ⭐⭐
+   - **[Windows 本地开发](../getting-started/local-development-windows.md)** - WSL2 和原生 Windows
+   - **[macOS 本地开发](../getting-started/local-development-macos.md)** - Apple Silicon 和 Intel
+   - **[Linux 本地开发](../getting-started/local-development-linux.md)** - Ubuntu, Debian, Fedora, Arch
+
+3. **[快速开始](../getting-started/quick-start.md)** ⭐⭐
+   - Docker 和传统开发模式概览
+   - 帮助选择合适的启动方式
+
+### 生产服务器部署
+
+如果你准备部署到生产服务器，建议按以下顺序阅读：
 
 1. **[服务器部署完整指南](SERVER_DEPLOYMENT_GUIDE.md)** ⭐⭐⭐
    - 最详细的部署指南
    - 包含所有步骤和故障排查
-   - 预计阅读时间: 20 分钟
+   - 预计部署时间: 30-60 分钟
+   - **适用系统**: Ubuntu 20.04+, Debian 11+, CentOS 8+
 
 2. **[配置修改清单](CONFIG_CHECKLIST.md)** ⭐⭐⭐
    - 快速检查所有需要修改的配置
    - 打勾式清单，不会遗漏
-   - 部署前必看
+   - **部署前必看**
 
-### 📋 验证和测试
+3. **[Docker 完整部署](docker.md)** ⭐⭐
+   - Docker 部署的详细说明
+   - 包含性能优化和安全加固
 
-3. **[部署验证报告](../DEPLOYMENT_VERIFICATION.md)** ⭐⭐
-   - 验证项目是否完全 Docker 化
-   - 检查外部依赖
-   - 了解部署就绪状态
+---
 
-### 🔧 相关文档
+## 📋 部署方式对比
 
-- **[跨平台部署指南](CROSS_PLATFORM_DEPLOYMENT.md)** - Windows/Linux/macOS 部署
-- **[本地部署成功记录](LOCAL_DEPLOYMENT_SUCCESS.md)** - 本地环境配置
-- **[Docker 构建总结](DOCKER_BUILD_SUMMARY.md)** - 镜像构建说明
-- **[平台快速参考](PLATFORM_QUICK_REFERENCE.md)** - 快速命令参考
+| 部署方式 | 适用场景 | 难度 | 时间 | 文档 |
+|---------|---------|------|------|------|
+| **Docker 本地开发** | 本地开发、测试 | ⭐ | 5-10 分钟 | [Docker 快速启动](../getting-started/docker-quick-start.md) |
+| **传统开发模式** | 前后端分离开发 | ⭐⭐ | 15-30 分钟 | [平台特定指南](../getting-started/) |
+| **服务器一键部署** | 生产环境部署 | ⭐⭐ | 20-40 分钟 | [服务器部署指南](SERVER_DEPLOYMENT_GUIDE.md) |
+| **手动服务器部署** | 定制化生产环境 | ⭐⭐⭐ | 1-2 小时 | [完整部署指南](SERVER_DEPLOYMENT_GUIDE.md) |
+
+---
+
+## 🔧 相关文档
+
+### 本地开发
+
+- **[Docker 快速启动](../getting-started/docker-quick-start.md)** - 跨平台 Docker 部署
+- **[Windows 本地开发](../getting-started/local-development-windows.md)** - Windows 特定指南
+- **[macOS 本地开发](../getting-started/local-development-macos.md)** - macOS 特定指南
+- **[Linux 本地开发](../getting-started/local-development-linux.md)** - Linux 特定指南
+- **[安装指南](../getting-started/installation.md)** - 详细的安装步骤
+- **[环境配置](../getting-started/environment-setup.md)** - 环境变量配置
+
+### 服务器部署
+
+- **[服务器部署完整指南](SERVER_DEPLOYMENT_GUIDE.md)** ⭐⭐⭐ - 详细的服务器部署文档
+- **[配置修改清单](CONFIG_CHECKLIST.md)** ⭐⭐⭐ - 部署前检查清单
+- **[Docker 完整部署](docker.md)** ⭐⭐ - Docker 部署详细说明
+- **[单服务器部署](single-server.md)** - 快速单服务器部署
+- **[高可用部署](high-availability.md)** - 生产环境高可用配置
 
 ---
 
