@@ -22,6 +22,9 @@ RUN npm install -g pnpm
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# 清理 contentlayer 缓存以避免依赖问题
+RUN rm -rf .contentlayer/.cache
+
 # 安装contentlayer（需要生成内容）
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
@@ -31,6 +34,9 @@ RUN pnpm build
 # Stage 3: 生产运行
 FROM node:22-alpine AS runner
 WORKDIR /app
+
+# 安装 curl 用于健康检查
+RUN apk add --no-cache curl
 
 ENV NODE_ENV=production
 # 禁用遥测

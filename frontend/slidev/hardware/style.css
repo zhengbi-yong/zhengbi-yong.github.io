@@ -222,3 +222,59 @@ code, pre {
 .delay-400 { animation-delay: 0.4s; }
 .delay-500 { animation-delay: 0.5s; }
 .delay-600 { animation-delay: 0.6s; }
+
+/* ========== 统一颜色强调系统 ========== */
+.section-title-blue { color: var(--accent-blue); }
+.section-title-purple { color: var(--accent-purple); }
+.section-title-green { color: var(--accent-green); }
+.section-title-orange { color: var(--accent-orange); }
+.section-title-pink { color: var(--accent-pink); }
+.section-title-teal { color: var(--accent-teal); }
+
+/* ========== 统一列表样式 ========== */
+ul.animated-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+ul.animated-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  color: var(--text-secondary);
+}
+
+ul.animated-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+/* 颜色变体 */
+ul.animated-list li.bullet-blue::before { color: var(--accent-blue); }
+ul.animated-list li.bullet-purple::before { color: var(--accent-purple); }
+ul.animated-list li.bullet-green::before { color: var(--accent-green); }
+ul.animated-list li.bullet-orange::before { color: var(--accent-orange); }
+ul.animated-list li.bullet-pink::before { color: var(--accent-pink); }
+ul.animated-list li.bullet-teal::before { color: var(--accent-teal); }
+
+/* ========== 统一排版 ========== */
+.slide-title {
+  font-size: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.list-item {
+  font-size: 1.125rem;
+  line-height: 1.75;
+}

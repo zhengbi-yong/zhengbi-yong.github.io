@@ -113,85 +113,106 @@ export const revalidate = 3600
 export default async function Page(props: { params: Promise<{ slug: string[] }> }) {
   const params = await props.params
   const slug = decodeURI(params.slug.join('/'))
-  // Filter out drafts in production - 使用缓存的排序结果
+
+  // 尝试从静态生成获取文章
   const sortedCoreContents = getSortedPosts()
   const postIndex = sortedCoreContents.findIndex((p) => p.slug === slug)
-  if (postIndex === -1) {
-    return notFound()
-  }
 
-  const prev = sortedCoreContents[postIndex + 1]
-  const next = sortedCoreContents[postIndex - 1]
-  const post = allBlogs.find((p) => p.slug === slug)
-  if (!post) {
-    return notFound()
-  }
-  const authorList = post.authors || ['default']
-  const authorDetails = authorList
-    .map((author) => allAuthors.find((p) => p.slug === author))
-    .filter(isAuthorEntry)
-    .map((author) => coreContent(author))
-  const mainContent = coreContent(post)
-  // 安全地获取structuredData，如果不存在则创建默认结构
-  const jsonLd = post.structuredData || {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: post.title,
-    datePublished: post.date,
-    dateModified: post.lastmod || post.date,
-    description: post.summary || '',
-    image:
-      post.images && Array.isArray(post.images) && post.images.length > 0
-        ? post.images[0]
-        : siteMetadata.socialBanner,
-    url: `${siteMetadata.siteUrl}/${post._raw.flattenedPath}`,
-  }
-  jsonLd['author'] = authorDetails.map((author) => {
-    return {
-      '@type': 'Person',
-      name: author.name,
+  if (postIndex !== -1) {
+    // 文章存在静态版本 - 使用现有的渲染逻辑
+    const prev = sortedCoreContents[postIndex + 1]
+    const next = sortedCoreContents[postIndex - 1]
+    const post = allBlogs.find((p) => p.slug === slug)
+
+    if (!post) {
+      return notFound()
     }
-  })
 
-  const layoutKey = post.layout && isLayoutKey(post.layout) ? post.layout : defaultLayout
-  const Layout = layouts[layoutKey]
+    const authorList = post.authors || ['default']
+    const authorDetails = authorList
+      .map((author) => allAuthors.find((p) => p.slug === author))
+      .filter(isAuthorEntry)
+      .map((author) => coreContent(author))
+    const mainContent = coreContent(post)
 
-  // 获取目录数据（computedFields 中的 toc 是目录数据）
-  // 注意：coreContent 可能会过滤掉 computedFields，所以直接从原始 post 对象获取
-  const toc: TOC | undefined = post.toc && Array.isArray(post.toc) ? (post.toc as TOC) : undefined
+    const jsonLd = post.structuredData || {
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: post.title,
+      datePublished: post.date,
+      dateModified: post.lastmod || post.date,
+      description: post.summary || '',
+      image:
+        post.images && Array.isArray(post.images) && post.images.length > 0
+          ? post.images[0]
+          : siteMetadata.socialBanner,
+      url: `${siteMetadata.siteUrl}/${post._raw.flattenedPath}`,
+    }
+    jsonLd['author'] = authorDetails.map((author) => {
+      return {
+        '@type': 'Person',
+        name: author.name,
+      }
+    })
 
-  // 计算是否显示目录：文章 frontmatter 中的 showTOC 优先，否则使用站点默认配置
-  const showTOC = post.showTOC !== undefined ? post.showTOC : (siteMetadata.defaultShowTOC ?? true)
+    const layoutKey = post.layout && isLayoutKey(post.layout) ? post.layout : defaultLayout
+    const Layout = layouts[layoutKey]
+    const toc: TOC | undefined = post.toc && Array.isArray(post.toc) ? (post.toc as TOC) : undefined
+    const showTOC = post.showTOC !== undefined ? post.showTOC : (siteMetadata.defaultShowTOC ?? true)
 
-  return (
-    <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(jsonLd, null, 0),
-          }}
+    return (
+      <>
+        {jsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(jsonLd, null, 0),
+            }}
+          />
+        )}
+        <Script
+          src="/chemistry/rdkit/RDKit_minimal.js"
+          strategy="beforeInteractive"
         />
-      )}
-      {/* Load RDKit from local file for 2D chemistry visualization */}
-      <Script
-        src="/chemistry/rdkit/RDKit_minimal.js"
-        strategy="beforeInteractive"
-      />
-      {/* 初始化mhchem化学公式支持 */}
-      <MhchemInit />
-      {/* 自动缓存文章内容，后续访问瞬间打开 */}
-      <CachedPostContent slug={slug} post={post} />
-      <Layout
-        content={mainContent}
-        authorDetails={authorDetails}
-        next={next}
-        prev={prev}
-        toc={toc}
-        showTOC={showTOC}
-      >
-        <MDXLayoutRenderer code={post.body.code} components={components} toc={post.toc} />
-      </Layout>
-    </>
-  )
+        <MhchemInit />
+        <CachedPostContent slug={slug} post={post} />
+        <Layout
+          content={mainContent}
+          authorDetails={authorDetails}
+          next={next}
+          prev={prev}
+          toc={toc}
+          showTOC={showTOC}
+        >
+          <MDXLayoutRenderer code={post.body.code} components={components} toc={post.toc} />
+        </Layout>
+      </>
+    )
+  }
+
+  // 文章不存在静态版本 - 返回动态渲染组件
+  return <DynamicPostPage slug={slug} />
 }
+
+// 动态文章页面组件（从API获取内容）
+// 这是一个客户端组件，在服务端组件中会被渲染
+import dynamic from 'next/dynamic'
+
+const DynamicPostPage = dynamic(
+  () => import('./DynamicPostPage').then((mod) => mod.DynamicPostPage),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-center">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-4"></div>
+          <div className="space-y-2">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    ),
+  }
+)

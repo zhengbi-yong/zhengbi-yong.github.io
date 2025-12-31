@@ -15,18 +15,28 @@ use utoipa::OpenApi;
         crate::routes::comments::list_comments,
         crate::routes::comments::create_comment,
         crate::routes::comments::like_comment,
-        crate::metrics::healthz,
-        crate::metrics::healthz_detailed,
+        crate::routes::admin::list_users,
+        crate::routes::admin::update_user_role,
+        crate::routes::admin::delete_user,
+        crate::routes::admin::list_comments_admin,
+        crate::routes::admin::update_comment_status,
+        crate::routes::admin::delete_comment_admin,
+        crate::routes::admin::get_admin_stats,
+        crate::routes::admin::list_posts_admin,
+        crate::routes::admin::get_user_growth,
+        crate::metrics::health,
+        crate::metrics::health_detailed,
         crate::metrics::readyz,
         crate::metrics::metrics_endpoint,
     ),
     components(
-        schemas()
+        // Schemas are auto-discovered from paths
     ),
     tags(
         (name = "auth", description = "Authentication endpoints"),
         (name = "posts", description = "Post related endpoints"),
         (name = "comments", description = "Comment related endpoints"),
+        (name = "admin", description = "Admin management endpoints - requires admin role"),
         (name = "monitoring", description = "Health check and monitoring endpoints"),
     ),
     info(

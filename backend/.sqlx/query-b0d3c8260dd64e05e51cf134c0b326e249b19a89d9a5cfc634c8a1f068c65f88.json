@@ -1,0 +1,183 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            p.id, p.slug, p.title, p.content, p.content_html, p.summary,\n            m.cdn_url as \"cover_image_url?\",\n            p.status as \"status!: blog_db::cms::PostStatus\",\n            p.published_at, p.scheduled_at,\n            p.meta_title, p.meta_description, p.canonical_url,\n            p.category_id, c.name as \"category_name?\", c.slug as \"category_slug?\",\n            p.author_id, u.username as \"author_name?\",\n            p.show_toc, p.layout,\n            p.view_count, p.like_count, p.comment_count,\n            p.created_at, p.updated_at, p.lastmod_at,\n            p.reading_time\n        FROM posts p\n        LEFT JOIN media m ON p.cover_image_id = m.id\n        LEFT JOIN categories c ON p.category_id = c.id\n        LEFT JOIN users u ON p.author_id = u.id\n        WHERE p.slug = $1 AND p.deleted_at IS NULL\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "slug",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "content",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "content_html",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "summary",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "cover_image_url?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "status!: blog_db::cms::PostStatus",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "published_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "scheduled_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "meta_title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "meta_description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "canonical_url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 13,
+        "name": "category_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 14,
+        "name": "category_name?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 15,
+        "name": "category_slug?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 16,
+        "name": "author_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 17,
+        "name": "author_name?",
+        "type_info": {
+          "Custom": {
+            "name": "citext",
+            "kind": "Simple"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "show_toc",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 19,
+        "name": "layout",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 20,
+        "name": "view_count",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 21,
+        "name": "like_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 22,
+        "name": "comment_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 23,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 24,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 25,
+        "name": "lastmod_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 26,
+        "name": "reading_time",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "b0d3c8260dd64e05e51cf134c0b326e249b19a89d9a5cfc634c8a1f068c65f88"
+}

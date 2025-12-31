@@ -1,0 +1,173 @@
+groups:
+  - name: api_alerts
+    interval: 30s
+    rules:
+      # API可用性告警
+      - alert: APIDown
+        expr: up{job="blog-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API服务不可用"
+          description: "API服务 {{ $labels.instance }} 已经宕机超过1分钟"
+
+      # API错误率告警
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "API错误率过高"
+          description: "过去5分钟API错误率为 {{ $value | humanizePercentage }}, 超过5%阈值"
+
+      # API响应时间告警
+      - alert: SlowAPIResponse
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "API响应缓慢"
+          description: "P95响应时间为 {{ $value }}s, 超过1秒阈值"
+
+      # 数据库连接池告警
+      - alert: DatabasePoolExhausted
+        expr: |
+          (
+            sum(database_pool_size) - sum(database_pool_idle)
+          ) / sum(database_pool_size) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "数据库连接池接近耗尽"
+          description: "数据库连接池使用率 {{ $value | humanizePercentage }}, 超过90%"
+
+      # Redis连接失败告警
+      - alert: RedisConnectionFailing
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis连接失败"
+          description: "Redis实例 {{ $labels.instance }} 无法连接"
+
+  - name: business_metrics
+    interval: 1m
+    rules:
+      # 文章阅读量突增
+      - alert: UnusualSpikeInViews
+        expr: |
+          (
+            rate(post_views_total[5m]) >
+            avg(rate(post_views_total[1h]) offset 1h) * 3
+          )
+        for: 10m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "文章阅读量异常增长"
+          description: "文章阅读速率是平常的3倍以上: {{ $value }}/s"
+
+      # 用户注册率下降
+      - alert: LowUserRegistration
+        expr: |
+          (
+            sum(increase(user_registrations_total[1h])) < 5
+          )
+        for: 2h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "用户注册率过低"
+          description: "过去1小时仅 {{ $value }} 个新用户注册"
+
+      # 评论待审核过多
+      - alert: PendingCommentsBacklog
+        expr: |
+          sum(comments_total{status="pending"}) > 50
+        for: 30m
+        labels:
+          severity: warning
+          component: moderation
+        annotations:
+          summary: "待审核评论积压"
+          description: "当前有 {{ $value }} 条评论待审核"
+
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # CPU使用率告警
+      - alert: HighCPUUsage
+        expr: |
+          (
+            100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+          ) > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "CPU使用率过高"
+          description: "实例 {{ $labels.instance }} CPU使用率为 {{ $value }}%"
+
+      # 内存使用率告警
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+          ) > 85
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "内存使用率过高"
+          description: "实例 {{ $labels.instance }} 内存使用率为 {{ $value }}%"
+
+      # 磁盘空间告警
+      - alert: LowDiskSpace
+        expr: |
+          (
+            (node_filesystem_avail_bytes{mountpoint="/"} /
+             node_filesystem_size_bytes{mountpoint="/"}) * 100
+          ) < 15
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "磁盘空间不足"
+          description: "实例 {{ $labels.instance }} 根分区剩余空间为 {{ $value }}%"
+
+      # API请求量突增（可能是DDoS）
+      - alert: SuspiciousRequestSpike
+        expr: |
+          (
+            sum(rate(http_requests_total[1m])) >
+            avg(sum(rate(http_requests_total[5m]) offset 5m)) * 10
+          )
+        for: 2m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "检测到异常请求量"
+          description: "API请求量在1分钟内突增10倍，可能是DDoS攻击"

@@ -1,13 +1,16 @@
+#![recursion_limit = "256"]
+
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use utoipa::ToSchema;
 
 // CMS models module
 pub mod cms;
 
 // 用户角色枚举
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, ToSchema)]
 #[sqlx(type_name = "text", rename_all = "lowercase")]
 pub enum UserRole {
     User,
@@ -31,7 +34,7 @@ pub struct UserRoleWrapper(pub UserRole);
 
 
 // 用户模型
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
@@ -46,7 +49,7 @@ pub struct User {
 }
 
 // Refresh Token 模型
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct RefreshToken {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -73,7 +76,7 @@ pub struct PostStats {
 }
 
 // 点赞记录模型
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct PostLike {
     pub post_slug: String,
     pub user_id: Uuid,
@@ -81,7 +84,7 @@ pub struct PostLike {
 }
 
 // 评论状态枚举
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, ToSchema)]
 #[sqlx(type_name = "comment_status", rename_all = "lowercase")]
 pub enum CommentStatus {
     Pending,
@@ -92,7 +95,7 @@ pub enum CommentStatus {
 }
 
 // 评论模型
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct Comment {
     pub id: Uuid,
     pub post_slug: String,
@@ -113,7 +116,7 @@ pub struct Comment {
 }
 
 // 带用户信息的评论模型
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct CommentWithUser {
     pub id: Uuid,
     pub slug: String,
@@ -136,7 +139,7 @@ pub struct CommentWithUser {
 }
 
 // 事件出队模型
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct OutboxEvent {
     pub id: Uuid,
     pub topic: String,
@@ -204,7 +207,7 @@ pub struct CreateCommentRequest {
 }
 
 // 评论查询参数
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct CommentListParams {
     pub cursor: Option<String>,
     pub limit: Option<i64>,

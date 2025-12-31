@@ -35,6 +35,9 @@ CMD ["cargo", "run", "--bin", "api"]
 # =============================================================================
 FROM rustlang/rust:nightly-slim AS builder
 
+# 接受数据库URL作为构建参数
+ARG DATABASE_URL
+
 # 安装必要的系统依赖
 RUN apt-get update && apt-get install -y \
     pkg-config \
@@ -49,11 +52,15 @@ WORKDIR /app
 # 复制所有源代码（包括 Cargo 文件和 SQLx 缓存）
 COPY . .
 
-# 设置 SQLx 离线模式
-ENV SQLX_OFFLINE=true
-
-# 构建所有二进制文件（api 和 worker）
-RUN cargo build --release -p blog-api -p blog-worker
+# 如果没有提供DATABASE_URL，设置离线模式
+RUN if [ -z "$DATABASE_URL" ]; then \
+        echo "Building in offline mode (SQLX_OFFLINE=true)"; \
+        export SQLX_OFFLINE=true; \
+    else \
+        echo "Building in online mode with DATABASE_URL"; \
+        export DATABASE_URL="$DATABASE_URL"; \
+    fi && \
+    cargo build --release -p blog-api -p blog-worker
 
 # =============================================================================
 # Production Stage
@@ -78,6 +85,7 @@ WORKDIR /app
 # 从构建阶段复制二进制文件
 COPY --from=builder /app/target/release/api /usr/local/bin/
 COPY --from=builder /app/target/release/worker /usr/local/bin/
+COPY --from=builder /app/target/release/create_admin /usr/local/bin/
 
 # 复制迁移文件
 COPY --from=builder /app/migrations ./migrations

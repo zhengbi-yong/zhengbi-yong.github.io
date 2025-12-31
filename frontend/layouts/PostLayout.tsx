@@ -13,6 +13,7 @@ import FloatingTOC from '@/components/FloatingTOC'
 import JsonLd from '@/components/seo/JsonLd'
 import type { TOC } from '@/lib/types/toc'
 import ReadingProgress from '@/components/ReadingProgress'
+import { ReadingProgressWithApi } from '@/components/ReadingProgressWithApi'
 import ArticleAnalytics from '@/components/ArticleAnalytics'
 import { RecentArticles } from '@/components/RecentArticles'
 import { PostBackendIntegration } from '@/components/post/PostBackendIntegration'
@@ -122,8 +123,8 @@ export default function PostLayout({
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
 
-      {/* 阅读进度条 */}
-      <ReadingProgress />
+      {/* 阅读进度条 - 集成后端API */}
+      <ReadingProgressWithApi postSlug={slug || path} />
 
       {/* 文章分析组件 - 使用 slug 作为文章ID */}
       <ArticleAnalytics articleId={slug || path} showDetails={false} compact={true} />

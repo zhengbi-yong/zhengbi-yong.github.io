@@ -1,0 +1,132 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-test.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: blog_user
+          POSTGRES_PASSWORD: blog_password
+          POSTGRES_DB: blog_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+          override: true
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('backend/**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: cargo fetch
+
+      - name: Run formatting check
+        working-directory: ./backend
+        run: cargo fmt -- --check
+
+      - name: Run Clippy lints
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://blog_user:blog_password@localhost:5432/blog_db
+          REDIS_URL: redis://localhost:6379
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run unit tests
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://blog_user:blog_password@localhost:5432/blog_db
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key-for-ci-32-chars-long
+          SESSION_SECRET: test-session-secret-for-ci
+          PASSWORD_PEPPER: test-pepper-for-ci
+        run: cargo test --lib --bins
+
+      - name: Run integration tests
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://blog_user:blog_password@localhost:5432/blog_db
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key-for-ci-32-chars-long
+          SESSION_SECRET: test-session-secret-for-ci
+          PASSWORD_PEPPER: test-pepper-for-ci
+        run: cargo test --test '*'
+
+      - name: Generate coverage report
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://blog_user:blog_password@localhost:5432/blog_db
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key-for-ci-32-chars-long
+          SESSION_SECRET: test-session-secret-for-ci
+          PASSWORD_PEPPER: test-pepper-for-ci
+        run: |
+          cargo install grcov
+          cargo clean
+          cargo build --tests
+          cargo test --tests || true
+          grcov ./target/debug/ -s . -t lcov --llvm --branch --ignore-not-existing
+          mv lcov.info lcov-full.info
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./backend/lcov-full.info
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+      - name: Coverage Summary
+        run: |
+          echo "## Backend Coverage Summary 📊" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All tests passed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage report has been uploaded to Codecov." >> $GITHUB_STEP_SUMMARY

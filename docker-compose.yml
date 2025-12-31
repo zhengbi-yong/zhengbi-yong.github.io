@@ -1,8 +1,16 @@
 # 博客系统完整Docker Compose配置
-# 包含：前端、后端、数据库、缓存、反向代理
+# 包含：前端、后端、数据库、缓存、监控、备份
+#
+# 使用方法:
+#   docker-compose up -d              # 启动所有服务
+#   docker-compose up -d postgres redis backend  # 仅启动核心服务
+#   docker-compose down               # 停止所有服务
+#   docker-compose exec postgres psql -U blog_user -d blog_db  # 进入数据库
+#
+# 环境变量: 复制 .env.example 到 .env 并配置
 
 services:
-  # PostgreSQL 数据库
+  # ==================== 数据库层 ====================
   postgres:
     image: postgres:17-alpine
     container_name: blog-postgres
@@ -14,6 +22,7 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups:ro  # 挂载备份目录供备份脚本使用
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
@@ -24,7 +33,6 @@ services:
     networks:
       - blog-network
 
-  # Redis 缓存
   redis:
     image: redis:7.4-alpine
     container_name: blog-redis
@@ -42,7 +50,7 @@ services:
     networks:
       - blog-network
 
-  # 后端 API (Rust)
+  # ==================== 应用层 ====================
   backend:
     build:
       context: ./backend
@@ -59,7 +67,7 @@ services:
       # 服务器
       HOST: 0.0.0.0
       PORT: 3000
-      ENVIRONMENT: production
+      ENVIRONMENT: ${ENVIRONMENT:-production}
       RUST_LOG: ${RUST_LOG:-info}
       # 安全
       JWT_SECRET: ${JWT_SECRET}
@@ -69,14 +77,20 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3001,https://zhengbi-yong.top}
       # 限流
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-60}
+      # 监控
+      PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
+      # MDX同步
+      FRONTEND_BLOG_DIR: /app/frontend/data/blog
       # 可选：邮件
-      SMTP_HOST: ${SMTP_HOST:-smtp.example.com}
+      SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USERNAME: ${SMTP_USERNAME:-noreply@example.com}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-placeholder}
-      SMTP_FROM: ${SMTP_FROM:-noreply@example.com}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     ports:
       - "${BACKEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend/data/blog:/app/frontend/data/blog:ro  # 挂载MDX文件用于同步
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,25 +105,22 @@ services:
     networks:
       - blog-network
 
-  # 前端 (Next.js)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        NODE_VERSION: "20"
+    image: blog-frontend:with-curl
     container_name: blog-frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3001
-      # API URL（前端访问后端）
-      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000/v1}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-http://localhost:3000/v1}
+      NEXT_PUBLIC_USE_API: ${NEXT_PUBLIC_USE_API:-true}
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3001}
     ports:
       - "${FRONTEND_PORT:-3001}:3001"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001"]
       interval: 30s
@@ -119,9 +130,53 @@ services:
     networks:
       - blog-network
 
-  # Nginx 反向代理
+  # ==================== 监控层 ====================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: blog-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts:/etc/prometheus/alerts:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      - backend
+    networks:
+      - blog-network
+    profiles:
+      - monitoring  # 使用 --profile monitoring 启动监控服务
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: blog-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3000}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "${GRAFANA_PORT:-3002}:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - blog-network
+    profiles:
+      - monitoring  # 使用 --profile monitoring 启动监控服务
+
+  # ==================== 反向代理（可选） ====================
   nginx:
-    image: nginx:1.27-alpine
+    image: nginx:alpine
     container_name: blog-nginx
     restart: unless-stopped
     ports:
@@ -137,17 +192,23 @@ services:
       - backend
     networks:
       - blog-network
+    profiles:
+      - production  # 使用 --profile production 启动Nginx
 
-# 数据持久化卷
+# ==================== 数据持久化 ====================
 volumes:
   postgres_data:
     driver: local
   redis_data:
     driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
   nginx_logs:
     driver: local
 
-# 网络配置
+# ==================== 网络配置 ====================
 networks:
   blog-network:
     driver: bridge

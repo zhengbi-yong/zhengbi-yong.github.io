@@ -13,22 +13,30 @@ const nextConfig = {
   output: process.env.EXPORT === '1' ? 'export' : 'standalone',
   // 静态导出时的基础路径
   basePath: process.env.BASE_PATH,
-  // 禁用图片优化以支持静态导出
+  // 图片优化配置：仅在静态导出时禁用
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    unoptimized: true,
+    // 仅在静态导出时禁用优化，其他情况下启用
+    unoptimized: process.env.EXPORT === '1',
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // 其他配置
   reactStrictMode: true,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   // 禁用生产环境的浏览器 source map
   productionBrowserSourceMaps: false,
-  // 压缩配置
+  // 压缩配置 - 使用 SWC 压缩（比 Terser 快）
   compress: true,
+  swcMinify: true,
   // 实验性功能
   experimental: {
+    // 优化 CSS 处理
+    optimizeCss: true,
     optimizePackageImports: [
       'lodash',
       'date-fns',
@@ -45,6 +53,8 @@ const nextConfig = {
       'framer-motion',
       '@radix-ui/react-dialog',
       '@radix-ui/react-accordion',
+      '@tanstack/react-query',
+      'lucide-react',
     ],
   },
   // Webpack 配置：代码分割和 Bundle 优化

@@ -371,7 +371,8 @@ pub async fn create_post(
     }
 
     // 计算阅读时间
-    let reading_time = ReadingTime::from_content(&req.content).to_json();
+    let reading_time_obj = ReadingTime::from_content(&req.content);
+    let reading_time = reading_time_obj.minutes as i32;
 
     // 插入文章
     let post_id = sqlx::query_scalar!(
@@ -544,7 +545,7 @@ pub async fn get_post(
                 created_at: row.created_at,
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
-                reading_time: row.reading_time,
+                reading_time: Some(row.reading_time),
                 tags: Vec::new(), // 将在下面填充
             };
             // 获取标签
