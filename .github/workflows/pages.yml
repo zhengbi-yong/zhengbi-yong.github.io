@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # 1. 设置 Node.js（不启用缓存，避免自动检测 pnpm）
       - name: Setup Node.js
