@@ -84,14 +84,14 @@ pub fn get_uptime_seconds() -> u64 {
 /// 基础健康检查
 #[utoipa::path(
     get,
-    path = "/healthz",
+    path = "/health",
     tag = "monitoring",
     responses(
         (status = 200, description = "服务健康", body = HealthStatus),
         (status = 503, description = "服务不健康")
     )
 )]
-pub async fn healthz() -> impl IntoResponse {
+pub async fn health() -> impl IntoResponse {
     let status = HealthStatus {
         status: "healthy".to_string(),
         timestamp: Utc::now(),
@@ -106,14 +106,14 @@ pub async fn healthz() -> impl IntoResponse {
 /// 详细健康检查（包括依赖服务）
 #[utoipa::path(
     get,
-    path = "/healthz/detailed",
+    path = "/health/detailed",
     tag = "monitoring",
     responses(
         (status = 200, description = "服务健康", body = DetailedHealth),
         (status = 503, description = "服务不健康")
     )
 )]
-pub async fn healthz_detailed(State(state): State<crate::AppState>) -> Result<impl IntoResponse, StatusCode> {
+pub async fn health_detailed(State(state): State<crate::AppState>) -> Result<impl IntoResponse, StatusCode> {
     let start_time = std::time::Instant::now();
     let mut services = HashMap::new();
     let mut healthy = true;

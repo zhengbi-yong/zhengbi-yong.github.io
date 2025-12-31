@@ -1,0 +1,23 @@
+# Docker Compose 开发环境配置
+# 用法: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development  # 使用 development 阶段（包含 cargo）
+    environment:
+      RUST_LOG: debug       # 开发日志级别
+      RUST_BACKTRACE: 1    # 显示详细错误堆栈
+    volumes:
+      # 挂载源代码，支持热重载
+      - ./backend:/app
+      # 缓存 cargo 依赖，加速构建
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    command: ["cargo", "run", "--bin", "api"]
+
+volumes:
+  cargo-cache:
+  target-cache:

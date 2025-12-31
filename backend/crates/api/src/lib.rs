@@ -2,6 +2,8 @@
 //!
 //! This crate contains the HTTP API implementation using Axum.
 
+#![recursion_limit = "256"]
+
 pub mod routes;
 pub mod middleware;
 pub mod metrics;

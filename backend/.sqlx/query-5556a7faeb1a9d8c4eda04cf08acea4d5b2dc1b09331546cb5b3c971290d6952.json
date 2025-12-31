@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT t.id, t.slug, t.name\n                FROM tags t\n                JOIN post_tags pt ON t.id = pt.tag_id\n                JOIN posts p ON pt.post_id = p.id\n                WHERE p.slug = $1\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "slug",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5556a7faeb1a9d8c4eda04cf08acea4d5b2dc1b09331546cb5b3c971290d6952"
+}

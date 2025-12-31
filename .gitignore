@@ -48,6 +48,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Backend specific logs
+backend/api.log
+backend/*.log
+
 # local env files
 .env.local
 .env.development.local

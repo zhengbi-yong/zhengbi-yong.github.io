@@ -1,5 +1,125 @@
 // Backend API Type Definitions
 
+// ==================== Blog Types ====================
+export interface PostListItem {
+  id: string
+  slug: string
+  title: string
+  summary: string | null
+  cover_image_url: string | null
+  status: 'draft' | 'published' | 'archived'
+  published_at: string | null
+  category_name: string | null
+  category_slug: string | null
+  author_name: string | null
+  view_count: number
+  like_count: number
+  comment_count: number
+  created_at: string
+  reading_time: any | null
+  tag_count: number
+}
+
+export interface PostDetail {
+  id: string
+  slug: string
+  title: string
+  content: string
+  content_html: string | null
+  summary: string | null
+  cover_image_url: string | null
+  status: 'draft' | 'published' | 'archived'
+  published_at: string | null
+  scheduled_at: string | null
+  meta_title: string | null
+  meta_description: string | null
+  canonical_url: string | null
+  category_id: string | null
+  category_name: string | null
+  category_slug: string | null
+  author_id: string | null
+  author_name: string | null
+  show_toc: boolean
+  layout: string
+  view_count: number
+  like_count: number
+  comment_count: number
+  created_at: string
+  updated_at: string
+  tags: TagBasic[]
+}
+
+export interface PostListResponse {
+  posts: PostListItem[]
+  total: number
+  page: number
+  limit: number
+  total_pages: number
+}
+
+export interface Category {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  parent_id: string | null
+  icon: string | null
+  color: string | null
+  display_order: number
+  post_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface CategoryBasic {
+  id: string
+  slug: string
+  name: string
+  icon: string | null
+  color: string | null
+  post_count: number
+}
+
+export interface Tag {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  post_count: number
+  created_at: string
+}
+
+export interface TagBasic {
+  id: string
+  slug: string
+  name: string
+}
+
+export interface SearchResult {
+  id: string
+  slug: string
+  title: string
+  summary: string | null
+  published_at: string | null
+  rank: number
+}
+
+export interface SearchResponse {
+  results: SearchResult[]
+  total: number
+  query: string
+}
+
+export interface PostListParams {
+  page?: number
+  limit?: number
+  status?: 'published' | 'draft' | 'archived'
+  category_slug?: string
+  tag_slug?: string
+  sort_by?: 'published_at' | 'created_at' | 'view_count' | 'like_count'
+  sort_order?: 'asc' | 'desc'
+}
+
 // ==================== Auth Types ====================
 export interface LoginRequest {
   email: string

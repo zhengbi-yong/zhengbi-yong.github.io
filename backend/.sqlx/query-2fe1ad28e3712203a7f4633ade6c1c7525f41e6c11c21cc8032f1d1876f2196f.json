@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            COALESCE(split_part(title, ' ', 1), '') as \"keyword!\",\n            SUM(view_count)::BIGINT as \"count!\"\n        FROM posts\n        WHERE\n            published_at > NOW() - INTERVAL '7 days'\n            AND status = 'published'\n            AND deleted_at IS NULL\n            AND title IS NOT NULL\n        GROUP BY COALESCE(split_part(title, ' ', 1), '')\n        ORDER BY \"count!\" DESC\n        LIMIT 20\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "keyword!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "2fe1ad28e3712203a7f4633ade6c1c7525f41e6c11c21cc8032f1d1876f2196f"
+}

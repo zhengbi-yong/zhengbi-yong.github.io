@@ -1,0 +1,680 @@
+---
+title: '机器人运动控制：从MPC到强化学习的综合综述'
+date: '2025-01-30'
+tags:
+  - 'Robotics'
+  - 'Locomotion'
+  - 'MPC'
+  - 'Reinforcement Learning'
+  - 'Quadruped'
+  - 'Humanoid'
+  - 'Control Theory'
+draft: false
+summary: 机器人运动控制领域综述，涵盖模型预测控制(MPC)、强化学习(RL)、扩散模型等主要方法，以及IsaacLab和MuJoCo等仿真框架的应用
+showTOC: true
+---
+
+## 概述
+
+机器人运动控制（Locomotion）是机器人学的核心研究领域之一，旨在使机器人能够在各种环境中实现稳定、高效、自适应的移动。与轮式机器人相比，足式机器人（四足、人形）具有更强的地形适应能力，但也面临着更复杂的控制挑战。
+
+### 运动控制的核心挑战
+
+| 挑战 | 描述 | 解决方案方向 |
+|------|------|--------------|
+| **动态平衡** | 在运动过程中保持质心稳定 | MPC、质心动力学建模 |
+| **地形适应性** | 应对平坦、粗糙、崎岖等不同地形 | 感知融合、在线适应、强化学习 |
+| **能耗优化** | 最小化关节扭矩和能量消耗 | 轨迹优化、奖励函数设计 |
+| **实时性要求** | 控制频率通常需达到500-1000Hz | GPU加速、高效求解器 |
+| **接触切换** | 处理足端与地面的接触/分离事件 | 混合系统建模、事件触发控制 |
+
+### 机器人分类
+
+**四足机器人（Quadruped）**
+- **代表平台**: ANYmal (ETH Zurich), Unitree Go1/B2, Spot (Boston Dynamics)
+- **优势**: 静态和动态稳定性好、负载能力强
+- **应用**: 工业巡检、物流配送、救援探测
+
+**人形机器人（Humanoid）**
+- **代表平台**: Atlas (Boston Dynamics), Unitree H1/G1, Figure 01, Tesla Optimus
+- **优势**: 与人类环境兼容、双臂操作能力
+- **应用**: 服务机器人、制造业、协作作业
+
+**混合系统**
+- **代表平台**: Ascento (轮足复合), CENTAURO
+- **优势**: 结合轮式的速度和足式的越障能力
+- **应用**: 最后一公里配送、城市巡检
+
+---
+
+## 模型预测控制 (MPC)
+
+模型预测控制（Model Predictive Control, MPC）是足式机器人运动控制的主流方法之一，其核心思想是在每个时刻求解一个有限时域内的优化问题，仅应用最优控制序列的第一个元素，然后滚动优化。
+
+### 数学原理
+
+#### 优化问题表述
+
+MPC在每个时间步求解以下约束优化问题：
+
+```
+minimize   Σ(k=0 to N-1) [x_kᵀ Q x_k + u_kᵀ R u_k] + x_Nᵀ Q_f x_N
+
+subject to  x_{k+1} = A x_k + B u_k            (系统动力学)
+            F x_k + G u_k ≤ h                   (约束条件)
+            x_0 = x(t)                          (初始条件)
+```
+
+其中：
+- `x_k`：状态向量（位置、速度、姿态）
+- `u_k`：控制输入（足端接触力或关节扭矩）
+- `Q, R`：权重矩阵
+- `N`：预测时域（Prediction Horizon）
+- `F, G, h`：约束矩阵
+
+#### Centroidal Dynamics 模型
+
+对于足式机器人，**质心动力学模型**（Centroidal Dynamics）将完整系统简化为单刚体模型：
+
+**状态空间表示**：
+```
+ẋ = A_c(t) x + B_c(t) u
+```
+
+**状态向量**（12维）：
+```
+x = [p, ṗ, Θ, ω]ᵀ
+```
+- `p = [x, y, z]ᵀ`：质心位置
+- `ṗ = [vx, vy, vz]ᵀ`：质心速度
+- `Θ = [roll, pitch, yaw]ᵀ`：姿态（欧拉角或四元数）
+- `ω = [ωx, ωy, ωz]ᵀ`：角速度
+
+**控制输入**（12维，四足机器人）：
+```
+u = [f₁, f₂, f₃, f₄]ᵀ
+```
+- `f_i = [f_x, f_y, f_z]ᵀ`：第i个足端的接触力
+
+#### 关键约束
+
+**1. 摩擦锥约束（Friction Cone）**
+
+防止足端打滑，约束接触力必须在摩擦锥内：
+
+```
+√(f_x² + f_y²) ≤ μ f_z
+f_z ≥ 0  (地面只能提供支撑力，不能提供拉力)
+```
+
+其中 `μ` 是摩擦系数（典型值0.5-0.8）。
+
+**线性化近似（金字塔摩擦锥）**：
+```
+|f_x| ≤ μ/√2 · f_z
+|f_y| ≤ μ/√2 · f_z
+```
+
+**2. 关节限位**
+
+```
+q_min ≤ q ≤ q_max          (关节位置约束)
+τ_min ≤ τ ≤ τ_max          (关节扭矩约束)
+```
+
+**3. 质心动力学完整性**
+
+```
+ħ = F_ext + Σ(f_i)                      (线性动量变化率)
+L̇ = Σ(r_i × f_i)                        (角动量变化率)
+```
+
+其中 `r_i` 是第i个足端相对于质心的位置。
+
+### MPC 变体
+
+| 变体 | 描述 | 计算复杂度 | 适用场景 |
+|------|------|-----------|---------|
+| **线性MPC** | 线性动力学模型、凸优化 | 低（QP求解器） | 实时控制、高频 |
+| **非线性MPC** | 完整动力学模型 | 高（非线性优化） | 高动态动作、跳跃 |
+| **时变MPC** | A、B矩阵随时间变化 | 中等 | 步态切换、非平坦地形 |
+| **分层MPC** | 高层规划+底层跟踪 | 中-高 | 复杂任务规划 |
+
+### 实现框架
+
+**oMPC（Online MPC）**
+- 迭代优化求解
+- 求解器：OSQP、qpOASES、SNOPT
+- 优化质量高，但计算时间不确定
+
+**rMPC（Real-time MPC）**
+- 单次快速求解
+- 预计算离线解、在线插值
+- 保证实时性，但次优
+
+---
+
+## 强化学习方法 (RL)
+
+强化学习（Reinforcement Learning, RL）通过试错学习最优策略，已成为足式机器人运动控制的重要方法。与基于模型的方法相比，RL能够处理复杂的非线性动力学，无需显式建模。
+
+### PPO: Proximal Policy Optimization
+
+PPO是目前最流行的RL算法之一，IsaacLab默认采用PPO-k变体。
+
+#### 目标函数
+
+**CLIP目标函数**：
+
+```
+L^CLIP(θ) = Ê_t[min(r_t(θ)Â_t, clip(r_t(θ), 1-ε, 1+ε)Â_t)]
+```
+
+其中：
+- `r_t(θ) = π_θ(a_t|s_t) / π_θ_old(a_t|s_t)`：重要性采样比
+- `Â_t`：优势函数估计
+- `ε`：裁剪参数（典型值0.2）
+- `Ê_t`：经验均值
+
+**完整目标函数**（含熵正则化）：
+
+```
+L(θ) = Ê_t[L^CLIP(θ) - c₁ · L^VF(θ) + c₂ · S[π_θ](s_t)]
+```
+
+- `L^VF`：价值函数损失
+- `S[π_θ]`：策略熵（鼓励探索）
+- `c₁, c₂`：系数
+
+#### PPO-k 变体
+
+IsaacLab采用的PPO-k在多个epoch上重复使用经验数据：
+
+```python
+for epoch in range(num_epochs):
+    for batch in experience_buffer:
+        # 计算优势函数
+        advantages = compute_gae(rewards, values, dones)
+
+        # PPO更新
+        ratio = policy(new_probs) / policy(old_probs)
+        clipped_ratio = clamp(ratio, 1-ε, 1+ε)
+        loss = -min(ratio * advantages, clipped_ratio * advantages)
+
+        # 反向传播
+        optimizer.step()
+```
+
+#### 优势函数估计 (GAE)
+
+**广义优势估计**（Generalized Advantage Estimation）：
+
+```
+Â_t = Σ(l=0 to ∞) (γλ)^l δ_{t+l}
+```
+
+其中：
+- `δ_t = r_t + γ V(s_{t+1}) - V(s_t)`：TD残差
+- `γ`：折扣因子（典型值0.99）
+- `λ`：GAE参数（λ=1时为蒙特卡洛，λ=0时为TD）
+
+### 其他RL算法
+
+**SAC (Soft Actor-Critic)**
+- 离策略（Off-policy）
+- 最大熵框架
+- 样本效率高
+- 适用于复杂任务
+
+**TD3 (Twin Delayed DDPG)**
+- 解决过估计问题
+- 目标策略平滑
+- 延迟更新
+
+**DDPG (Deep Deterministic Policy Gradient)**
+- 连续动作空间
+- Actor-Critic架构
+- 确定性策略
+
+### 训练框架
+
+#### IsaacLab + rl-games
+
+IsaacLab集成了`rl-games`库，提供高效的PPO实现：
+
+```python
+from isaaclab.envs import ManagerBasedEnv, ManagerBasedEnvCfg
+from isaaclab.rl.rl_cfg import PPOCfg
+
+# 环境配置
+env_cfg = ManagerBasedEnvCfg(
+    env_name="Isaac-Velocity-Cartpole-v0",
+    num_envs=4096,
+)
+
+# PPO配置
+ppo_cfg = PPOCfg(
+    seed=42,
+    policy="ActorCritic",
+    optimizer={
+        "class_name": "AdamW",
+        "lr": 3e-4,
+    },
+    num_epochs=10000,
+    save_interval=100,
+)
+
+# 训练循环
+env = ManagerBasedEnv(env_cfg)
+for epoch in range(ppo_cfg.num_epochs):
+    actions = policy(obs)
+    next_obs, rewards, dones = env.step(actions)
+    policy.update(rewards, dones)
+```
+
+#### 虚实迁移 (Sim-to-Real)
+
+**域随机化（Domain Randomization）**：
+```python
+# 物理参数随机化
+randomize_friction = Uniform(0.5, 0.8)
+randomize_mass = Uniform(0.8, 1.2)  # 相对于名义质量
+randomize_joint_damping = Uniform(0.9, 1.1)
+```
+
+**系统辨识（System Identification）**：
+- 在真实机器人上采集数据
+- 优化仿真参数以匹配真实世界
+- 迭代改进仿真精度
+
+### 奖励函数设计
+
+奖励函数是RL训练的核心，需要平衡多个目标：
+
+```python
+def compute_reward(obs, actions):
+    reward = 0.0
+
+    # 1. 跟踪期望速度（主要目标）
+    reward += reward_tracking * (v_desired · v_actual)
+
+    # 2. 惩罚过大能耗
+    reward += reward_energy * -|actions|²
+
+    # 3. 惩罚关节速度突变（平滑性）
+    reward += reward_smooth * -|Δactions|
+
+    # 4. 惩罚高度偏差
+    reward += reward_height * -|z - z_desired|
+
+    # 5. 惩罚朝向偏差
+    reward += reward_orientation * -|orientation_error|
+
+    # 6. 惩罚足端打滑
+    reward += reward_slip * -foot_slip
+
+    # 7. 生存奖励（鼓励长期稳定）
+    reward += reward_alive if not terminated else 0
+
+    return reward
+```
+
+**奖励调度的关键**：
+- 使用 Curriculum Learning：从简单任务开始
+- 奖励缩放：确保各项奖励在同一量级
+- 终止条件：定义合理的失败条件（摔倒、超时）
+
+---
+
+## 扩散模型方法 (Diffusion Models)
+
+扩散模型（Diffusion Models）在机器人运动控制领域崭露头角，特别是DiffuseLoco框架展示了其在实时控制中的潜力。
+
+### DiffuseLoco 框架
+
+DiffuseLoco (2024) 是首个将扩散模型应用于足式机器人实时控制的框架。
+
+#### 核心思想
+
+传统扩散模型用于图像生成，DiffuseLoco将其改造用于序列决策：
+- **输入**：当前状态、目标
+- **输出**：未来的动作序列
+- **推理**：~1kHz，满足实时控制要求
+
+#### 网络架构
+
+**Encoder-Decoder Transformer**：
+
+```
+状态序列 s_{t-H:t} → Encoder → 潜在表示 z
+噪声动作 a' → Decoder → 去噪动作 a
+```
+
+**前向扩散过程**（训练时）：
+```
+q(a_{t} | a_{t-1}) = N(a_t; √(1-β_t) a_{t-1}, β_t I)
+```
+
+逐步向动作序列添加高斯噪声，持续T步（典型值T=1000）。
+
+**反向去噪过程**（推理时）：
+```
+p_θ(a_{t-1} | a_t) = N(a_{t-1}; μ_θ(a_t, t), Σ_θ(a_t, t))
+```
+
+学习从噪声动作恢复清晰动作的条件分布。
+
+#### 训练过程
+
+**损失函数**（简化DDPM）：
+```
+L = E_{t, a_0, ε} [||ε - ε_θ(√(ᾱ_t) a_0 + √(1-ᾱ_t) ε, t)||²]
+```
+
+其中：
+- `a_0`：真实动作序列
+- `ε`：标准高斯噪声
+- `ε_θ`：噪声预测网络
+- `ᾱ_t`：噪声调度参数
+
+**条件引导**：
+- 输入状态序列作为条件
+- 使用分类器自由引导（Classifier-Free Guidance）
+- 提高条件满足度
+
+#### 优势
+
+**1. 多模态行为学习**
+- 单个策略可学习多种行为（行走、小跑、跳跃）
+- 自动适应当前任务需求
+
+**2. 从离线数据学习**
+- 可从人类演示、其他策略收集的数据学习
+- 不需要环境交互（离线训练）
+
+**3. 长时程规划**
+- 扩散过程隐式建模长期依赖
+- 相比单步决策更鲁棒
+
+#### 实时性优化
+
+**关键加速技术**：
+- 减少去噪步数（从1000降到~10）
+- 知识蒸馏（Teacher-Student）
+- CUDA核函数优化
+
+---
+
+## 混合方法 (Hybrid Approaches)
+
+单一方法各有局限，混合方法结合传统控制和学习方法的优势。
+
+### MPC + RL
+
+**策略正则化MPC (Policy Regularized MPC)**：
+```
+minimize   Σ(xᵀQx + uᵀRu) + λ · D_KL(π_MPC || π_RL)
+subject to  dynamics and constraints
+```
+
+RL策略作为先验，MPC进行在线修正：
+- RL处理常见情况
+- MPC处理异常场景
+
+**学习成本函数**：
+- 使用逆向RL学习MPC的权重
+- 自动调优奖励参数
+
+**约束学习**：
+- 神经网络近似可行域
+- 加速MPC求解
+
+### 仿生学习 (Imitation Learning)
+
+从专家演示学习，避免复杂的奖励工程。
+
+**行为克隆 (Behavior Cloning)**：
+```
+L(θ) = E_{(s,a)~D} [||π_θ(s) - a||²]
+```
+
+**逆向强化学习 (Inverse RL)**：
+- 从演示推断奖励函数
+- 然后用RL学习策略
+
+**从动物视频学习** (2025新趋势)：
+- 处理真实动物的运动视频
+- 提取运动模式
+- 迁移到机器人
+
+---
+
+## 仿真框架
+
+### Isaac Lab
+
+Isaac Lab是基于NVIDIA Isaac Sim的统一机器人学习框架，专为大规模并行训练设计。
+
+#### 核心特性
+
+| 特性 | 描述 |
+|------|------|
+| **GPU加速** | 可达152x速度提升（相比CPU） |
+| **并行环境** | 单GPU可模拟数千个环境 |
+| **可微渲染** | 支持可微物理和渲染 |
+| **OpenUSD** | 统一的场景描述格式 |
+
+#### 内置运动环境
+
+**四足机器人环境**：
+```python
+# Isaac-Legged-Robot-ANYmal-v0
+# Isaac-Velocity-Cartpole-v0
+```
+
+- 平坦地形、粗糙地形
+- 速度跟踪、方向控制
+- 障碍物穿越
+
+**人形机器人环境**：
+```python
+# Isaac-Humanoid-H1-v0
+```
+
+- Unitree H1/G1
+- 行走、搬运
+- 跌倒恢复
+
+#### 训练管道
+
+```bash
+# 训练四足机器人运动策略
+python train.py --task Isaac-Legged-Robot-ANYmal-v0 --headless
+
+# 监控训练
+tensorboard --logdir logs/isaac-legged-robot-anymal-v0
+```
+
+### MuJoCo / MJX
+
+**MuJoCo**（Multi-Joint dynamics with Contact）：
+- 高效的接触动力学
+- 轻量级、易部署
+- Python原生API
+
+**MJX**（JAX后端）：
+- GPU/TPU加速
+- JIT编译
+- 可微物理
+
+**MuJoCo-Warp**（Newton Physics集成）：
+- 基于NVIDIA Warp
+- 相比MJX可达313x加速
+
+### 框架对比
+
+| 特性 | Isaac Lab | MuJoCo MJX | Newton |
+|------|-----------|------------|--------|
+| **GPU加速** | ✅ | ✅ | ✅ |
+| **可微物理** | 部分 | ❌ | ✅ |
+| **并行环境** | 数千 | 数百 | 数千 |
+| **开源协议** | BSD-2 | Apache-2 | Apache-2 |
+| **渲染引擎** | RTXRenderer | OpenGL | OpenGL/USD |
+| **学习曲线** | 陡峭 | 平缓 | 中等 |
+| **部署难度** | 高 | 低 | 中 |
+
+**选择建议**：
+- **大规模RL训练** → Isaac Lab
+- **快速原型验证** → MuJoCo
+- **可微仿真/研究** → Newton
+
+---
+
+## 应用案例
+
+### 四足机器人
+
+**ANYmal (ETH Zurich)**
+- **应用场景**: 地下矿井探测、工业巡检
+- **控制方法**: MPC + RL混合
+- **成果**: 粗糙地形速度可达1 m/s，爬坡角度30°
+
+**Unitree Go1**
+- **应用场景**: 教育、研究、娱乐
+- **控制方法**: 纯RL训练（Isaac Gym）
+- **成果**: 后空翻、侧空翻、跳跃
+
+**Spot (Boston Dynamics)**
+- **应用场景**: 建筑巡检、石油天然气
+- **控制方法**: 经典MPC + 步态规划
+- **成果**: 商业化最成功，负载14kg
+
+### 人形机器人
+
+**Atlas (Boston Dynamics)**
+- **应用场景**: 跑酷、搬运、搜索救援
+- **控制方法**: MPC + 全身控制器
+- **成果**: 后空翻、跑酷、搬运箱子
+
+**Unitree H1**
+- **应用场景**: 科研平台、轻工业
+- **控制方法**: RL训练（Isaac Lab）
+- **成果**: 稳定行走1.5 m/s，成本仅9万美元
+
+**Figure 01**
+- **应用场景**: 制造业、物流
+- **控制方法**: VLA（Vision-Language-Action）模型
+- **成果**: 煮咖啡、搬运、对话
+
+---
+
+## 前沿研究方向
+
+### 多模态感知融合
+
+结合视觉、触觉、本体感觉（Proprioception）：
+- **视觉相机**：地形分类、障碍物检测
+- **IMU**：姿态、角速度估计
+- **关节编码器**：位置、速度反馈
+- **足端力传感器**：接触检测、力控制
+
+### 世界模型 (World Models)
+
+学习环境的动力学模型：
+- DreamerV3：基于模型的RL
+- 采样高效（Sim-to-Real友好）
+- 长时程规划能力
+
+### 元学习 (Meta-Learning)
+
+"学会学习"：
+- 快速适应新任务
+- MAML（Model-Agnostic Meta-Learning）
+- 少样本学习
+
+### 在线适应 (Online Adaptation)
+
+部署后持续学习：
+- 在线微调（Online Fine-tuning）
+- 系统辨识更新
+- 域自适应
+
+### 安全约束学习 (Safe RL)
+
+保证学习过程和最终策略的安全性：
+- 安全MDP formulation
+- Lyapunov约束
+- 信任区域方法
+
+---
+
+## 参考资源
+
+### 论文
+
+**综述与比较**
+- [Benchmarking Model Predictive Control and Reinforcement Learning](https://arxiv.org/abs/2501.16590) (Akki et al., 2025)
+- [Next generation legged robot locomotion: A review](https://www.sciencedirect.com/science/article/pii/S2405844024132689) (2024)
+- [Imitation learning for legged robot locomotion: a survey](https://www.frontiersin.org/journals/robotics-and-ai/articles/10.3389/frobt.2025.1678567/pdf) (2025)
+
+**MPC方法**
+- [Model predictive control of legged and humanoid robots](https://www.tandfonline.com/doi/full/10.1080/01691864.2023.2168134)
+- [Convex Model Predictive Control of Single Rigid Body](http://www.seas.ucla.edu/~junjie/publication/Convex%20Model%20Predictive%20Control%20of%20Single%20Rigid%20Body%20Model%20on%20SO(3)%20for%20Versatile%20Dynamic%20Legged%20Motions.pdf)
+
+**强化学习**
+- [Learning Agile Locomotion with Simulated Environments](https://proceedings.iclr.cc/paper_files/paper/2024/file/3c6bd2021c10462c5164638d22f3d5d8-Paper-Conference.pdf) (ICLR 2024)
+- [Real-world humanoid locomotion with reinforcement learning](https://www.science.org/doi/10.1126/scirobotics.adi9579)
+- [Sample-Efficient Privileged Learning for Humanoid](https://arxiv.org/html/2402.06783v2)
+
+**扩散模型**
+- [DiffuseLoco: Real-Time Legged Locomotion Control with Diffusion](https://arxiv.org/abs/2404.19264) (2024)
+- [Diffusion Policy](https://www.roboticsproceedings.org/rss19/p026.pdf) (RSS 2023)
+
+### 框架文档
+
+- [Isaac Lab Documentation](https://isaac-sim.github.io/IsaacLab/)
+- [Isaac Lab Available Environments](https://isaac-sim.github.io/IsaacLab/main/source/overview/environments.html)
+- [MuJoCo Documentation](https://mujoco.org/)
+- [Newton Physics Documentation](https://newton-physics.github.io/newton/)
+
+### 项目仓库
+
+- [IsaacLab GitHub](https://github.com/isaac-sim/IsaacLab)
+- [legged_gym (ETH Zurich)](https://github.com/leggedrobotics/legged_gym)
+- [DiffuseLoco Official](https://diffuselo.co/)
+- [rsl_rl (Robotics Systems Lab)](https://github.com/leggedrobotics/rsl_rl)
+
+### 教程与资源
+
+- [Introduction to Isaac Lab RL with the Isaac Humanoid](https://medium.com/correll-lab/introduction-to-isaac-lab-reinforcement-learning-with-the-isaac-humanoid-062a4c3f6b99) (2025)
+- [How to Train a Custom Quadruped Robot to Walk Using Isaac Lab](https://www.youtube.com/watch?v=z62oU4hM1xM)
+- [Proximal Policy Optimization (OpenAI Spinning Up)](https://spinningup.openai.com/en/latest/algorithms/ppo.html)
+
+---
+
+## 总结
+
+机器人运动控制领域正在经历从传统控制到学习控制的范式转变。MPC提供了坚实的理论基础和可解释性，强化学习带来了端到端的优化能力和适应性，而扩散模型等新兴方法则为多模态行为学习和长时程规划开辟了新途径。
+
+**实践建议**：
+1. **入门**：从MuJoCo开始，学习基础动力学和控制
+2. **研究**：使用IsaacLab进行大规模RL训练
+3. **部署**：结合MPC和RL，鲁棒性和性能兼顾
+4. **前沿**：关注扩散模型、世界模型等新方向
+
+随着GPU加速、可微仿真、大规模强化学习等技术的成熟，我们有理由相信足式机器人将在更多真实场景中发挥重要作用。
+
+---
+
+**Sources:**
+
+- [Benchmarking MPC and RL](https://arxiv.org/abs/2501.16590)
+- [DiffuseLoco](https://arxiv.org/abs/2404.19264)
+- [Learning Agile Locomotion](https://proceedings.iclr.cc/paper_files/paper/2024/file/3c6bd2021c10462c5164638d22f3d5d8-Paper-Conference.pdf)
+- [Imitation Learning Survey](https://www.frontiersin.org/journals/robotics-and-ai/articles/10.3389/frobt.2025.1678567/pdf)
+- [Isaac Lab](https://isaac-sim.github.io/IsaacLab/)
+- [MuJoCo](https://mujoco.org/)
+- [Newton Physics](https://newton-physics.github.io/newton/)
+- [IsaacLab GitHub](https://github.com/isaac-sim/IsaacLab)
+- [Next Generation Locomotion Review](https://www.sciencedirect.com/science/article/pii/S2405844024132689)
+- [Real-world Humanoid Locomotion](https://www.science.org/doi/10.1126/scirobotics.adi9579)

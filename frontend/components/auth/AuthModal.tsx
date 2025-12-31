@@ -11,6 +11,8 @@ import {
 } from '@/components/shadcn/ui/dialog'
 import { Button } from '@/components/shadcn/ui/button'
 import { X } from 'lucide-react'
+import { PasswordStrengthIndicator } from './PasswordStrengthIndicator'
+import { isPasswordValid } from '@/lib/utils/password'
 
 interface AuthModalProps {
   isOpen: boolean
@@ -28,6 +30,22 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     clearError()
+
+    // 验证密码强度（仅注册时）
+    if (mode === 'register') {
+      const strength = password ? { requirements: {
+        minLength: password.length >= 12,
+        hasUppercase: /[A-Z]/.test(password),
+        hasLowercase: /[a-z]/.test(password),
+        hasDigit: /[0-9]/.test(password),
+        hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+      }} : null
+
+      if (!strength || !Object.values(strength.requirements).every(Boolean)) {
+        useAuthStore.getState().setError('密码不符合要求，请检查密码强度提示')
+        return
+      }
+    }
 
     try {
       if (mode === 'login') {
@@ -131,10 +149,13 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={8}
+              minLength={12}
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="••••••••"
             />
+            {mode === 'register' && password && (
+              <PasswordStrengthIndicator password={password} />
+            )}
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>

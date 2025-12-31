@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM post_versions WHERE post_id = $1 AND version_number = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8666accf0638520e8318d6ad9a91daa7ab2407149f29e0110ee2334ee5eb593c"
+}

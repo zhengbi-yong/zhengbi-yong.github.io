@@ -31,7 +31,7 @@
       {
         "ordinal": 3,
         "name": "role",
-        "type_info": "Text"
+        "type_info": "Varchar"
       }
     ],
     "parameters": {

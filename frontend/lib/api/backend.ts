@@ -18,10 +18,18 @@ import type {
   CommentAdminItem,
   CommentAdminListResponse,
   UpdateCommentStatusRequest,
+  PostDetail,
+  PostListResponse,
+  PostListParams,
+  Category,
+  Tag,
+  SearchResponse,
+  TagBasic,
+  CategoryBasic,
 } from '../types/backend'
 
 // Backend API base URL - adjust based on your environment
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/v1'
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1'
 
 // Token refresh state management
 let refreshPromise: Promise<string> | null = null
@@ -171,6 +179,35 @@ export const authService = {
 // ==================== Post Service ====================
 export const postService = {
   /**
+   * Get list of posts with pagination and filtering
+   */
+  async getPosts(params?: PostListParams): Promise<PostListResponse> {
+    const queryParams = new URLSearchParams()
+
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.limit) queryParams.append('limit', params.limit.toString())
+    if (params?.status) queryParams.append('status', params.status)
+    if (params?.category_slug) queryParams.append('category_slug', params.category_slug)
+    if (params?.tag_slug) queryParams.append('tag_slug', params.tag_slug)
+    if (params?.sort_by) queryParams.append('sort_by', params.sort_by)
+    if (params?.sort_order) queryParams.append('sort_order', params.sort_order)
+
+    const url = `${BACKEND_API_URL}/posts${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+    const response = await api.get<PostListResponse>(url, { cache: 60 * 1000 }) // 1 minute cache
+    return response.data
+  },
+
+  /**
+   * Get post detail by slug
+   */
+  async getPost(slug: string): Promise<PostDetail> {
+    const response = await api.get<PostDetail>(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}`, {
+      cache: 5 * 60 * 1000, // 5 minute cache
+    })
+    return response.data
+  },
+
+  /**
    * Get post statistics (views, likes, comments count)
    */
   async getStats(slug: string): Promise<PostStats> {
@@ -197,6 +234,112 @@ export const postService = {
    */
   async unlikePost(slug: string): Promise<void> {
     await api.delete(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/like`, { cache: false })
+  },
+}
+
+// ==================== Category Service ====================
+export const categoryService = {
+  /**
+   * Get all categories
+   */
+  async getCategories(): Promise<Category[]> {
+    const response = await api.get<Category[]>(`${BACKEND_API_URL}/categories`, {
+      cache: 10 * 60 * 1000, // 10 minute cache
+    })
+    return response.data
+  },
+
+  /**
+   * Get category by slug
+   */
+  async getCategory(slug: string): Promise<Category> {
+    const response = await api.get<Category>(`${BACKEND_API_URL}/categories/${slug}`, {
+      cache: 10 * 60 * 1000,
+    })
+    return response.data
+  },
+
+  /**
+   * Get category tree (with subcategories)
+   */
+  async getCategoryTree(): Promise<Category[]> {
+    const response = await api.get<Category[]>(`${BACKEND_API_URL}/categories/tree`, {
+      cache: 10 * 60 * 1000,
+    })
+    return response.data
+  },
+}
+
+// ==================== Tag Service ====================
+export const tagService = {
+  /**
+   * Get all tags
+   */
+  async getTags(): Promise<Tag[]> {
+    const response = await api.get<Tag[]>(`${BACKEND_API_URL}/tags`, {
+      cache: 10 * 60 * 1000, // 10 minute cache
+    })
+    return response.data
+  },
+
+  /**
+   * Get tag by slug
+   */
+  async getTag(slug: string): Promise<Tag> {
+    const response = await api.get<Tag>(`${BACKEND_API_URL}/tags/${slug}`, {
+      cache: 10 * 60 * 1000,
+    })
+    return response.data
+  },
+
+  /**
+   * Get popular tags
+   */
+  async getPopularTags(limit = 20): Promise<Tag[]> {
+    const response = await api.get<Tag[]>(`${BACKEND_API_URL}/tags/popular?limit=${limit}`, {
+      cache: 5 * 60 * 1000, // 5 minute cache
+    })
+    return response.data
+  },
+}
+
+// ==================== Search Service ====================
+export const searchService = {
+  /**
+   * Search posts
+   */
+  async search(query: string, filters?: {
+    category_slug?: string
+    tag_slug?: string
+    limit?: number
+    offset?: number
+  }): Promise<SearchResponse> {
+    const queryParams = new URLSearchParams()
+    queryParams.append('q', query)
+
+    if (filters?.category_slug) queryParams.append('category_slug', filters.category_slug)
+    if (filters?.tag_slug) queryParams.append('tag_slug', filters.tag_slug)
+    if (filters?.limit) queryParams.append('limit', filters.limit.toString())
+    if (filters?.offset) queryParams.append('offset', filters.offset.toString())
+
+    const response = await api.get<SearchResponse>(
+      `${BACKEND_API_URL}/search?${queryParams.toString()}`,
+      { cache: 2 * 60 * 1000 } // 2 minute cache
+    )
+    return response.data
+  },
+
+  /**
+   * Get search suggestions (autocomplete)
+   */
+  async getSuggestions(query: string, limit = 5): Promise<string[]> {
+    if (query.length < 2) return []
+
+    const response = await api.get<string[]>(
+      `${BACKEND_API_URL}/search/suggest?q=${encodeURIComponent(query)}&limit=${limit}`,
+      { cache: 5 * 60 * 1000 }
+    )
+    return response.data
   },
 }
 
@@ -311,4 +454,7 @@ export const backendApi = {
   post: postService,
   comment: commentService,
   admin: adminService,
+  category: categoryService,
+  tag: tagService,
+  search: searchService,
 }

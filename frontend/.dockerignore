@@ -1,5 +1,6 @@
 # 依赖
 node_modules
+**/node_modules
 npm-debug.log
 yarn-error.log
 .pnpm-store
@@ -9,6 +10,7 @@ yarn-error.log
 out
 dist
 build
+.contentlayer
 
 # 开发文件
 .env.development

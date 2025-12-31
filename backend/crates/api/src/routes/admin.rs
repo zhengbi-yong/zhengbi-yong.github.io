@@ -6,6 +6,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use utoipa::ToSchema;
 
 use blog_shared::{AppError, AuthUser};
 use crate::state::AppState;
@@ -25,13 +26,13 @@ async fn is_admin(user_id: Uuid, state: &AppState) -> Result<bool, AppError> {
 
 // ===== API 模型 =====
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserListQuery {
     pub page: Option<u32>,
     pub page_size: Option<u32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserListResponse {
     pub users: Vec<UserListItem>,
     pub total: i64,
@@ -39,7 +40,7 @@ pub struct UserListResponse {
     pub page_size: u32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 pub struct UserListItem {
     pub id: Uuid,
     pub email: String,
@@ -49,19 +50,19 @@ pub struct UserListItem {
     pub created_at: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UpdateUserRoleRequest {
     pub role: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CommentListQuery {
     pub page: Option<u32>,
     pub page_size: Option<u32>,
     pub status: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CommentListResponse {
     pub comments: Vec<CommentAdminItem>,
     pub total: i64,
@@ -69,7 +70,7 @@ pub struct CommentListResponse {
     pub page_size: u32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 pub struct CommentAdminItem {
     pub id: Uuid,
     pub slug: String,
@@ -80,13 +81,13 @@ pub struct CommentAdminItem {
     pub created_at: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UpdateCommentStatusRequest {
     pub status: String,
     pub reason: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AdminStats {
     pub total_users: i64,
     pub total_comments: i64,
@@ -95,13 +96,13 @@ pub struct AdminStats {
     pub rejected_comments: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct PostListQuery {
     pub page: Option<u32>,
     pub page_size: Option<u32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct PostListResponse {
     pub posts: Vec<PostAdminItem>,
     pub total: i64,
@@ -109,7 +110,7 @@ pub struct PostListResponse {
     pub page_size: u32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
 pub struct PostAdminItem {
     pub slug: String,
     pub view_count: i64,
@@ -118,19 +119,19 @@ pub struct PostAdminItem {
     pub updated_at: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserGrowthQuery {
     pub days: Option<u32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserGrowthData {
     pub date: String,
     pub new_users: i64,
     pub cumulative_users: i64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserGrowthResponse {
     pub data: Vec<UserGrowthData>,
     pub total_users: i64,
@@ -138,6 +139,23 @@ pub struct UserGrowthResponse {
 
 // ===== 用户管理 API =====
 
+#[utoipa::path(
+    get,
+    path = "/admin/users",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    params(
+        ("page" = Option<u32>, Query, description = "页码，从1开始", example = 1),
+        ("page_size" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
+    ),
+    responses(
+        (status = 200, description = "成功获取用户列表", body = UserListResponse),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn list_users(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
@@ -175,6 +193,24 @@ pub async fn list_users(
     }))
 }
 
+#[utoipa::path(
+    put,
+    path = "/admin/users/{id}/role",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    params(
+        ("id" = Uuid, Path, description = "用户ID"),
+    ),
+    request_body = UpdateUserRoleRequest,
+    responses(
+        (status = 204, description = "成功更新用户角色"),
+        (status = 400, description = "无效的角色值"),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn update_user_role(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
@@ -200,6 +236,23 @@ pub async fn update_user_role(
     Ok(StatusCode::NO_CONTENT)
 }
 
+#[utoipa::path(
+    delete,
+    path = "/admin/users/{id}",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    params(
+        ("id" = Uuid, Path, description = "用户ID"),
+    ),
+    responses(
+        (status = 204, description = "成功删除用户"),
+        (status = 400, description = "不能删除自己"),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn delete_user(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
@@ -224,6 +277,24 @@ pub async fn delete_user(
 
 // ===== 评论管理 API =====
 
+#[utoipa::path(
+    get,
+    path = "/admin/comments",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    params(
+        ("page" = Option<u32>, Query, description = "页码，从1开始", example = 1),
+        ("page_size" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
+        ("status" = Option<String>, Query, description = "评论状态筛选：pending, approved, rejected, spam"),
+    ),
+    responses(
+        (status = 200, description = "成功获取评论列表", body = CommentListResponse),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn list_comments_admin(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
@@ -273,6 +344,24 @@ pub async fn list_comments_admin(
     }))
 }
 
+#[utoipa::path(
+    put,
+    path = "/admin/comments/{id}/status",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    params(
+        ("id" = Uuid, Path, description = "评论ID"),
+    ),
+    request_body = UpdateCommentStatusRequest,
+    responses(
+        (status = 204, description = "成功更新评论状态"),
+        (status = 400, description = "无效的状态值"),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn update_comment_status(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
@@ -299,6 +388,22 @@ pub async fn update_comment_status(
     Ok(StatusCode::NO_CONTENT)
 }
 
+#[utoipa::path(
+    delete,
+    path = "/admin/comments/{id}",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    params(
+        ("id" = Uuid, Path, description = "评论ID"),
+    ),
+    responses(
+        (status = 204, description = "成功删除评论"),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn delete_comment_admin(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
@@ -319,6 +424,19 @@ pub async fn delete_comment_admin(
 
 // ===== 统计数据 API =====
 
+#[utoipa::path(
+    get,
+    path = "/admin/stats",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    responses(
+        (status = 200, description = "成功获取管理员统计数据", body = AdminStats),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn get_admin_stats(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
@@ -359,6 +477,23 @@ pub async fn get_admin_stats(
 
 // ===== 文章管理 API =====
 
+#[utoipa::path(
+    get,
+    path = "/admin/posts",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    params(
+        ("page" = Option<u32>, Query, description = "页码，从1开始", example = 1),
+        ("page_size" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
+    ),
+    responses(
+        (status = 200, description = "成功获取文章列表", body = PostListResponse),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn list_posts_admin(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,
@@ -401,6 +536,22 @@ pub async fn list_posts_admin(
 
 // ===== 用户增长数据 API =====
 
+#[utoipa::path(
+    get,
+    path = "/admin/user-growth",
+    tag = "admin",
+    security(
+        ("BearerAuth" = [])
+    ),
+    params(
+        ("days" = Option<u32>, Query, description = "统计天数，1-90天", example = 30),
+    ),
+    responses(
+        (status = 200, description = "成功获取用户增长数据", body = UserGrowthResponse),
+        (status = 401, description = "未授权"),
+        (status = 403, description = "权限不足，需要管理员权限"),
+    ),
+)]
 pub async fn get_user_growth(
     State(state): State<AppState>,
     Extension(auth_user): Extension<AuthUser>,

@@ -10,6 +10,7 @@ import SectionContainer from '@/components/SectionContainer'
 import siteMetadata from '@/data/siteMetadata'
 import FloatingTOC from '@/components/FloatingTOC'
 import type { TOC } from '@/lib/types/toc'
+import { ReadingProgressWithApi } from '@/components/ReadingProgressWithApi'
 
 interface LayoutProps {
   content: CoreContent<Blog>
@@ -27,6 +28,8 @@ export default function PostMinimal({ content, next, prev, children, toc, showTO
 
   return (
     <SectionContainer>
+      {/* 阅读进度条 - 集成后端API */}
+      <ReadingProgressWithApi postSlug={slug} />
       <article>
         <div>
           <div className="space-y-1 pb-10 text-center dark:border-gray-700">

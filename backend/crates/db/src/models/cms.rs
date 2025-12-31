@@ -1,3 +1,5 @@
+#![recursion_limit = "256"]
+
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -77,7 +79,7 @@ pub struct Post {
     pub updated_at: DateTime<Utc>,
     pub lastmod_at: Option<DateTime<Utc>>,
     pub deleted_at: Option<DateTime<Utc>>,
-    pub reading_time: Option<serde_json::Value>,
+    pub reading_time: Option<i32>,
 }
 
 // 文章详情（包含关联数据）
@@ -109,7 +111,7 @@ pub struct PostDetail {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub lastmod_at: Option<DateTime<Utc>>,
-    pub reading_time: Option<serde_json::Value>,
+    pub reading_time: Option<i32>,
     #[serde(default)]
     pub tags: Vec<TagBasic>,
 }
@@ -130,7 +132,7 @@ pub struct PostListItem {
     pub like_count: i64,
     pub comment_count: i64,
     pub created_at: DateTime<Utc>,
-    pub reading_time: Option<serde_json::Value>,
+    pub reading_time: Option<i32>,
     pub tag_count: i64,
 }
 
@@ -196,7 +198,7 @@ pub struct UpdatePostRequest {
 }
 
 // 文章列表查询参数
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct PostListParams {
     pub page: Option<u32>,
     pub limit: Option<u32>,
@@ -370,7 +372,7 @@ pub struct UpdateMediaRequest {
 }
 
 // 媒体列表查询参数
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct MediaListParams {
     pub page: Option<u32>,
     pub limit: Option<u32>,
@@ -468,7 +470,7 @@ pub struct SearchResponse {
 }
 
 // 搜索请求
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct SearchRequest {
     pub q: String,
     pub category_slug: Option<String>,
@@ -497,12 +499,12 @@ pub struct SlugResponse {
 
 // ===== 批量操作模型 =====
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct BulkDeleteRequest {
     pub ids: Vec<Uuid>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct BulkUpdateRequest {
     pub ids: Vec<Uuid>,
     pub updates: serde_json::Value,
@@ -531,7 +533,7 @@ pub struct DashboardStats {
 
 // ===== 阅读时间辅助 =====
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ReadingTime {
     pub minutes: u32,
     pub words: u32,

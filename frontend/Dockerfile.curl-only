@@ -1,0 +1,13 @@
+# 基于之前构建好的镜像，只添加 curl
+FROM blog-frontend:latest
+
+# 切换到 root 用户安装 curl
+USER root
+RUN apk add --no-cache curl
+
+# 切换回 nextjs 用户
+USER nextjs
+
+EXPOSE 3001
+
+CMD ["node", "server.js"]

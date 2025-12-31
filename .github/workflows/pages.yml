@@ -65,6 +65,31 @@ jobs:
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
 
+      # 7. 运行Linting检查
+      - name: Run ESLint
+        working-directory: ./frontend
+        run: pnpm lint --max-warnings=0
+
+      # 8. 运行TypeScript类型检查
+      - name: TypeScript type check
+        working-directory: ./frontend
+        run: pnpm tsc --noEmit
+
+      # 9. 运行单元测试
+      - name: Run unit tests
+        working-directory: ./frontend
+        run: pnpm test --run --coverage --reporter=verbose
+
+      # 10. 上传覆盖率报告
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          fail_ci_if_error: false
+
+      # 11. 生成contentlayer文件
       - name: Generate contentlayer files
         working-directory: ./frontend
         run: pnpm contentlayer

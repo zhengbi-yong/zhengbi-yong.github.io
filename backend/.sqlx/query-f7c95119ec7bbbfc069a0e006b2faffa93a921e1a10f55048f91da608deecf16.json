@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            keyword as \"keyword!\",\n            search_count as \"count!\",\n            COALESCE(last_searched_at, NOW()) as \"last_searched_at!\"\n        FROM trending_keywords\n        ORDER BY search_count DESC, last_searched_at DESC\n        LIMIT 20\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "keyword!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "count!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_searched_at!",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      true,
+      true,
+      null
+    ]
+  },
+  "hash": "f7c95119ec7bbbfc069a0e006b2faffa93a921e1a10f55048f91da608deecf16"
+}

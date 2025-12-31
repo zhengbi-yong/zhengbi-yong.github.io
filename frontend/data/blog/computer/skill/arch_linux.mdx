@@ -1,0 +1,1385 @@
+---
+title: 'Arch Linux 从零搭建指南：高性能 Hyprland 桌面环境配置'
+date: '2025-01-17'
+tags:
+  ['Arch Linux', 'Hyprland', 'Linux', 'System Administration', 'Performance', 'Configuration', 'Wayland']
+draft: false
+summary: 从零开始搭建高性能、高鲁棒性的 Arch Linux 系统，配置 Hyprland 桌面环境。涵盖完整安装流程、系统优化、性能调优、稳定性配置等各个方面，打造一个既快速又可靠的 Linux 工作环境。
+showTOC: true
+---
+
+## 引言
+
+Arch Linux 以其简洁、灵活和高度可定制的特性，成为追求极致性能和完全控制权的 Linux 用户的首选。配合 Hyprland 这一现代化的 Wayland 合成器，可以打造出一个既美观又高性能的桌面环境。
+
+本文将从零开始，详细介绍如何搭建一个**高性能、高鲁棒性**的 Arch Linux 系统，并配置 Hyprland 桌面环境。我们将重点关注：
+
+- **性能优化**：系统级和桌面级的性能调优
+- **稳定性配置**：确保系统长期稳定运行
+- **最佳实践**：遵循 Arch Linux 社区的最佳实践
+- **故障恢复**：配置备份和恢复机制
+
+## 第一部分：Arch Linux 基础安装
+
+### 准备工作
+
+**1. 下载 Arch Linux ISO**
+
+从官方或镜像站下载最新的 Arch Linux ISO：
+- 官方站点：https://archlinux.org/download/
+- 国内镜像：清华大学、中科大等镜像站
+
+**2. 制作启动盘**
+
+```bash
+# Linux/macOS 使用 dd 命令
+sudo dd if=archlinux-xxxx.xx.xx-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+
+# Windows 使用 Rufus 或 balenaEtcher
+```
+
+**3. 启动 Live 环境**
+
+- 设置 BIOS/UEFI 从 USB 启动
+- 进入 Arch Linux Live 环境
+- 确保网络连接正常
+
+### 网络配置
+
+**有线网络（通常自动连接）**
+
+```bash
+# 检查网络接口
+ip link
+
+# 如果未自动连接，手动启动
+systemctl start dhcpcd@enp0s3.service  # 替换为实际接口名
+```
+
+**无线网络**
+
+```bash
+# 使用 iwd 连接 Wi-Fi
+iwctl
+
+# 在 iwd 提示符下
+[iwd]# device list
+[iwd]# station wlan0 scan
+[iwd]# station wlan0 get-networks
+[iwd]# station wlan0 connect <SSID>
+[iwd]# exit
+
+# 验证连接
+ping -c 3 archlinux.org
+```
+
+### 磁盘分区
+
+**推荐分区方案（UEFI + GPT）**
+
+```bash
+# 查看磁盘
+lsblk
+fdisk -l
+
+# 使用 cfdisk 进行分区（推荐）
+cfdisk /dev/nvme0n1  # 或 /dev/sda
+
+# 分区方案：
+# /dev/nvme0n1p1: EFI 系统分区 (512MB-1GB, FAT32)
+# /dev/nvme0n1p2: 交换分区 (可选，建议内存大小或 2x 内存)
+# /dev/nvme0n1p3: 根分区 (剩余空间, ext4 或 BTRFS)
+```
+
+**高级分区方案（BTRFS + 子卷）**
+
+对于追求性能和鲁棒性的用户，推荐使用 BTRFS 文件系统：
+
+```bash
+# 创建分区
+cfdisk /dev/nvme0n1
+
+# 格式化 EFI 分区
+mkfs.fat -F32 /dev/nvme0n1p1
+
+# 格式化 BTRFS 根分区
+mkfs.btrfs -L ArchRoot /dev/nvme0n1p3
+
+# 挂载根分区
+mount /dev/nvme0n1p3 /mnt
+
+# 创建 BTRFS 子卷（推荐结构）
+cd /mnt
+btrfs subvolume create @
+btrfs subvolume create @home
+btrfs subvolume create @var
+btrfs subvolume create @snapshots
+
+# 卸载并重新挂载
+cd /
+umount /mnt
+
+# 挂载根子卷
+mount -o subvol=@,compress=zstd:3,noatime /dev/nvme0n1p3 /mnt
+
+# 创建目录并挂载其他子卷
+mkdir -p /mnt/{boot/efi,home,var,.snapshots}
+mount -o subvol=@home,compress=zstd:3,noatime /dev/nvme0n1p3 /mnt/home
+mount -o subvol=@var,compress=zstd:3,noatime /dev/nvme0n1p3 /mnt/var
+mount -o subvol=@snapshots,compress=zstd:3,noatime /dev/nvme0n1p3 /mnt/.snapshots
+
+# 挂载 EFI 分区
+mount /dev/nvme0n1p1 /mnt/boot/efi
+
+# 如果使用交换分区
+mkswap /dev/nvme0n1p2
+swapon /dev/nvme0n1p2
+```
+
+**传统 ext4 方案（更简单）**
+
+```bash
+# 格式化分区
+mkfs.fat -F32 /dev/nvme0n1p1
+mkfs.ext4 /dev/nvme0n1p3
+mkswap /dev/nvme0n1p2
+swapon /dev/nvme0n1p2
+
+# 挂载
+mount /dev/nvme0n1p3 /mnt
+mkdir -p /mnt/boot/efi
+mount /dev/nvme0n1p1 /mnt/boot/efi
+```
+
+### 配置镜像源（可选但推荐）
+
+```bash
+# 编辑镜像列表
+vim /etc/pacman.d/mirrorlist
+
+# 或使用 reflector 自动选择最快的镜像
+pacman -Sy reflector
+reflector --country China --latest 10 --sort rate --save /etc/pacman.d/mirrorlist
+```
+
+### 安装基本系统
+
+```bash
+# 安装基础系统包
+pacstrap /mnt base base-devel linux linux-firmware linux-headers
+
+# 如果使用 BTRFS，添加 btrfs-progs
+pacstrap /mnt base base-devel linux linux-firmware linux-headers btrfs-progs
+
+# 生成 fstab
+genfstab -U /mnt >> /mnt/etc/fstab
+
+# 检查 fstab（BTRFS 用户需要确认挂载选项）
+cat /mnt/etc/fstab
+```
+
+### 进入新系统
+
+```bash
+# 切换到新系统
+arch-chroot /mnt
+
+# 设置时区
+ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+hwclock --systohc
+
+# 本地化设置
+vim /etc/locale.gen
+# 取消注释：en_US.UTF-8 UTF-8 和 zh_CN.UTF-8 UTF-8
+locale-gen
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+
+# 设置主机名
+echo "myarch" > /etc/hostname
+
+# 配置 hosts
+cat >> /etc/hosts << EOF
+127.0.0.1	localhost
+::1		localhost
+127.0.1.1	myarch.localdomain	myarch
+EOF
+```
+
+### 安装引导加载程序
+
+**GRUB（推荐）**
+
+```bash
+# 安装 GRUB
+pacman -S grub efibootmgr
+
+# 安装到 EFI 分区
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+
+# 生成配置文件
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+
+**systemd-boot（更轻量）**
+
+```bash
+# 安装 systemd-boot
+bootctl install
+
+# 创建引导条目
+cat > /boot/loader/entries/arch.conf << EOF
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options root=UUID=你的根分区UUID rw
+EOF
+
+# 配置引导加载器
+cat > /boot/loader/loader.conf << EOF
+default arch.conf
+timeout 3
+editor  no
+EOF
+```
+
+### 创建用户
+
+```bash
+# 设置 root 密码
+passwd
+
+# 创建普通用户（添加到 wheel 组以使用 sudo）
+useradd -m -G wheel -s /bin/bash username
+
+# 设置用户密码
+passwd username
+
+# 配置 sudo
+pacman -S sudo
+visudo
+# 取消注释：%wheel ALL=(ALL) ALL
+```
+
+### 完成安装
+
+```bash
+# 退出 chroot
+exit
+
+# 卸载分区
+umount -R /mnt
+
+# 重启
+reboot
+```
+
+## 第二部分：系统基础配置
+
+### 首次启动后配置
+
+**1. 更新系统**
+
+```bash
+sudo pacman -Syu
+```
+
+**2. 安装基础工具**
+
+```bash
+sudo pacman -S \
+  git \
+  vim \
+  neovim \
+  curl \
+  wget \
+  htop \
+  tree \
+  rsync \
+  openssh \
+  networkmanager \
+  network-manager-applet \
+  nm-connection-editor \
+  bluez \
+  bluez-utils \
+  pipewire \
+  pipewire-alsa \
+  pipewire-pulse \
+  pipewire-jack \
+  wireplumber \
+  alsa-utils \
+  pavucontrol
+```
+
+**3. 启用网络服务**
+
+```bash
+sudo systemctl enable NetworkManager
+sudo systemctl enable bluetooth
+sudo systemctl start NetworkManager
+sudo systemctl start bluetooth
+```
+
+**4. 安装 AUR 助手（yay）**
+
+```bash
+cd /tmp
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+```
+
+### 显卡驱动安装
+
+**Intel 集成显卡**
+
+```bash
+sudo pacman -S mesa vulkan-intel intel-media-driver
+```
+
+**AMD 显卡**
+
+```bash
+sudo pacman -S mesa vulkan-radeon lib32-mesa lib32-vulkan-radeon
+```
+
+**NVIDIA 显卡（注意：Hyprland 对 NVIDIA 支持有限）**
+
+```bash
+# 安装 NVIDIA 驱动
+sudo pacman -S nvidia nvidia-utils nvidia-settings lib32-nvidia-utils
+
+# 安装 Wayland 支持（实验性）
+sudo pacman -S egl-wayland
+
+# 配置内核参数
+sudo vim /etc/default/grub
+# 添加：nvidia-drm.modeset=1
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+```
+
+### 性能优化配置
+
+**1. 内核参数优化**
+
+编辑 `/etc/default/grub`：
+
+```bash
+sudo vim /etc/default/grub
+```
+
+添加以下参数：
+
+```bash
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash nowatchdog mitigations=off iommu=soft pcie_aspm.policy=performance"
+```
+
+对于 NVIDIA 用户：
+
+```bash
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash nvidia-drm.modeset=1 nowatchdog mitigations=off iommu=soft pcie_aspm.policy=performance"
+```
+
+应用更改：
+
+```bash
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+```
+
+**2. 系统服务优化**
+
+禁用不必要的服务：
+
+```bash
+# 查看所有服务
+systemctl list-unit-files --type=service
+
+# 禁用不必要的服务（根据需求调整）
+sudo systemctl disable bluetooth.service  # 如果不用蓝牙
+sudo systemctl disable avahi-daemon.service
+sudo systemctl disable cups.service  # 如果不用打印机
+```
+
+**3. 文件系统优化**
+
+**BTRFS 优化（如果使用）**
+
+编辑 `/etc/fstab`，确保挂载选项包含：
+
+```bash
+subvol=@,compress=zstd:3,noatime,space_cache=v2,commit=120
+```
+
+创建 BTRFS 快照脚本：
+
+```bash
+sudo vim /usr/local/bin/btrfs-snapshot.sh
+```
+
+```bash
+#!/bin/bash
+# BTRFS 快照脚本
+
+SNAPSHOT_DIR="/.snapshots"
+DATE=$(date +%Y%m%d-%H%M%S)
+
+# 创建根分区快照
+btrfs subvolume snapshot -r / /.snapshots/root-$DATE
+
+# 创建家目录快照
+btrfs subvolume snapshot -r /home /.snapshots/home-$DATE
+
+# 保留最近 10 个快照
+ls -dt /.snapshots/root-* | tail -n +11 | xargs -r btrfs subvolume delete
+ls -dt /.snapshots/home-* | tail -n +11 | xargs -r btrfs subvolume delete
+
+echo "快照创建完成: $DATE"
+```
+
+```bash
+sudo chmod +x /usr/local/bin/btrfs-snapshot.sh
+
+# 添加到 crontab（每天凌晨 2 点）
+sudo crontab -e
+# 添加：0 2 * * * /usr/local/bin/btrfs-snapshot.sh
+```
+
+**ext4 优化**
+
+编辑 `/etc/fstab`，添加挂载选项：
+
+```bash
+noatime,commit=60
+```
+
+**4. CPU 调频优化**
+
+```bash
+# 安装 CPU 调频工具
+sudo pacman -S cpupower
+
+# 设置性能模式
+sudo cpupower frequency-set -g performance
+
+# 永久设置（创建 systemd 服务）
+sudo vim /etc/systemd/system/cpupower.service
+```
+
+```ini
+[Unit]
+Description=CPU performance governor
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cpupower frequency-set -g performance
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl enable cpupower.service
+```
+
+**5. I/O 调度器优化**
+
+```bash
+# 查看当前调度器
+cat /sys/block/nvme0n1/queue/scheduler
+
+# 设置调度器（SSD 推荐 none 或 mq-deadline，HDD 推荐 mq-deadline）
+echo mq-deadline | sudo tee /sys/block/nvme0n1/queue/scheduler
+
+# 永久设置
+sudo vim /etc/udev/rules.d/60-io-scheduler.rules
+```
+
+```
+ACTION=="add|change", KERNEL=="sd[a-z]|nvme[0-9]*", ATTR{queue/scheduler}="mq-deadline"
+```
+
+**6. 内存优化**
+
+```bash
+# 编辑 sysctl 配置
+sudo vim /etc/sysctl.d/99-sysctl.conf
+```
+
+添加以下内容：
+
+```bash
+# 减少 swap 使用倾向
+vm.swappiness=10
+
+# 提高文件系统缓存
+vm.vfs_cache_pressure=50
+
+# 网络优化
+net.core.rmem_max = 16777216
+net.core.wmem_max = 16777216
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+net.ipv4.tcp_congestion_control = bbr
+
+# 文件描述符限制
+fs.file-max = 2097152
+```
+
+应用配置：
+
+```bash
+sudo sysctl --system
+```
+
+**7. 启用 BBR（TCP 拥塞控制）**
+
+```bash
+# 检查是否已启用
+sysctl net.ipv4.tcp_congestion_control
+
+# 如果未启用，编辑 sysctl 配置（已在上面添加）
+sudo sysctl -p /etc/sysctl.d/99-sysctl.conf
+```
+
+## 第三部分：Hyprland 桌面环境安装与配置
+
+### 安装 Hyprland
+
+```bash
+# 安装 Hyprland 及相关组件
+sudo pacman -S hyprland \
+  xdg-desktop-portal-hyprland \
+  waybar \
+  rofi \
+  wofi \
+  alacritty \
+  kitty \
+  thunar \
+  thunar-archive-plugin \
+  file-roller \
+  polkit \
+  polkit-gnome \
+  gvfs \
+  gvfs-mtp \
+  gvfs-gphoto2 \
+  ttf-font-awesome \
+  ttf-jetbrains-mono \
+  noto-fonts \
+  noto-fonts-cjk \
+  noto-fonts-emoji \
+  wl-clipboard \
+  grim \
+  slurp \
+  swappy \
+  swaybg \
+  wlogout
+```
+
+### 基础 Hyprland 配置
+
+创建配置目录：
+
+```bash
+mkdir -p ~/.config/hypr
+```
+
+创建主配置文件 `~/.config/hypr/hyprland.conf`：
+
+```bash
+# 基础配置
+# 输入设备
+input {
+    kb_layout = us
+    kb_variant =
+    kb_model =
+    kb_options =
+    kb_rules =
+
+    follow_mouse = 1
+
+    touchpad {
+        natural_scroll = yes
+        tap-to-click = yes
+    }
+
+    sensitivity = 0 # -1.0 - 1.0, 0 means no modification.
+}
+
+# 通用设置
+general {
+    gaps_in = 5
+    gaps_out = 10
+    border_size = 2
+    col.active_border = rgba(33ccffee) rgba(00ff99ee) 45deg
+    col.inactive_border = rgba(595959aa)
+
+    layout = dwindle
+
+    allow_tearing = false
+}
+
+# 装饰
+decoration {
+    rounding = 10
+    
+    blur {
+        enabled = true
+        size = 3
+        passes = 1
+        
+        vibrancy = 0.1696
+    }
+
+    drop_shadow = yes
+    shadow_range = 4
+    shadow_render_power = 3
+    col.shadow = rgba(1a1a1aee)
+}
+
+# 动画
+animations {
+    enabled = yes
+
+    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
+
+    animation = windows, 1, 7, myBezier
+    animation = windowsOut, 1, 7, default, popin 80%
+    animation = border, 1, 10, default
+    animation = borderangle, 1, 8, default
+    animation = fade, 1, 7, default
+    animation = workspaces, 1, 6, default
+}
+
+# 布局
+dwindle {
+    pseudotile = yes # master switch for pseudotiling. e.g. can use it to bind a key to toggle pseudotiling for all windows.
+    preserve_split = yes # you probably want this
+}
+
+master {
+    new_is_master = true
+}
+
+# 手势
+gestures {
+    workspace_swipe = off
+}
+
+# 杂项
+misc {
+    force_default_wallpaper = -1 # Set to 0 or 1 to disable the anime mascot wallpapers
+    disable_hyprland_logo = false
+}
+
+# 窗口规则
+windowrule = float, ^(pavucontrol)$
+windowrule = float, ^(blueman-manager)$
+windowrule = float, ^(nm-connection-editor)$
+windowrule = float, ^(chromium)$
+windowrule = float, ^(thunar)$
+windowrule = float, ^(wlogout)$
+windowrule = float, ^(wofi)$
+
+# 启动应用
+exec-once = waybar
+exec-once = swaybg -i ~/.config/hypr/wallpaper.jpg
+exec-once = /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+
+# 快捷键
+$mainMod = SUPER
+
+# 应用启动器
+bind = $mainMod, D, exec, wofi --show drun
+bind = $mainMod, RETURN, exec, alacritty
+
+# 窗口管理
+bind = $mainMod, Q, killactive,
+bind = $mainMod, M, exit,
+bind = $mainMod, E, exec, thunar
+bind = $mainMod, V, togglefloating,
+bind = $mainMod, R, exec, wlogout
+bind = $mainMod, P, pseudo, # dwindle
+bind = $mainMod, J, togglesplit, # dwindle
+
+# 移动焦点
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+
+# 切换工作区
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+bind = $mainMod, 6, workspace, 6
+bind = $mainMod, 7, workspace, 7
+bind = $mainMod, 8, workspace, 8
+bind = $mainMod, 9, workspace, 9
+bind = $mainMod, 0, workspace, 10
+
+# 移动窗口到工作区
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+bind = $mainMod SHIFT, 6, movetoworkspace, 6
+bind = $mainMod SHIFT, 7, movetoworkspace, 7
+bind = $mainMod SHIFT, 8, movetoworkspace, 8
+bind = $mainMod SHIFT, 9, movetoworkspace, 9
+bind = $mainMod SHIFT, 0, movetoworkspace, 10
+
+# 鼠标绑定
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+```
+
+### Waybar 配置
+
+创建 `~/.config/waybar/config`：
+
+```json
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 4,
+    "modules-left": ["hyprland/workspaces"],
+    "modules-center": ["clock"],
+    "modules-right": ["idle_inhibitor", "pulseaudio", "network", "cpu", "memory", "temperature", "battery", "tray"],
+    
+    "hyprland/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{name}: {icon}",
+        "format-icons": {
+            "1": "󰨞",
+            "2": "󰈹",
+            "3": "󰊴",
+            "4": "󰝰",
+            "5": "󰨞",
+            "urgent": "󰃭",
+            "focused": "󰮯",
+            "default": "󰮯"
+        }
+    },
+    
+    "clock": {
+        "format": "{:%Y-%m-%d %H:%M}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+    
+    "cpu": {
+        "format": "{usage}% 󰻠",
+        "tooltip": false
+    },
+    
+    "memory": {
+        "format": "{}% 󰍛"
+    },
+    
+    "temperature": {
+        "critical-threshold": 80,
+        "format": "{temperatureC}°C {icon}",
+        "format-icons": ["󰈸", "󰈸", "󰈸"]
+    },
+    
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{capacity}% {icon}",
+        "format-charging": "{capacity}% 󰂄",
+        "format-plugged": "{capacity}% 󰂄",
+        "format-alt": "{time} {icon}",
+        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+    },
+    
+    "network": {
+        "format-wifi": "{essid} ({signalStrength}%) 󰤨",
+        "format-ethernet": "{ipaddr}/{cidr} 󰈀",
+        "tooltip-format": "{ifname} via {gwaddr}",
+        "format-linked": "{ifname} (No IP) 󰈀",
+        "format-disconnected": "Disconnected ⚠",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    },
+    
+    "pulseaudio": {
+        "format": "{volume}% {icon} {format_source}",
+        "format-bluetooth": "{volume}% {icon}󰂯 {format_source}",
+        "format-bluetooth-muted": "󰂲 {format_source}",
+        "format-source": "{volume}% 󰍬",
+        "format-source-muted": "󰍭",
+        "format-icons": {
+            "headphone": "󰋋",
+            "hands-free": "󰋋",
+            "headset": "󰋋",
+            "phone": "󰄜",
+            "portable": "󰦧",
+            "car": "󰄋",
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "on-click": "pavucontrol"
+    },
+    
+    "tray": {
+        "spacing": 10
+    },
+    
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "󰒳",
+            "deactivated": "󰒲"
+        }
+    }
+}
+```
+
+创建 `~/.config/waybar/style.css`：
+
+```css
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrains Mono", "Font Awesome 6 Free";
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: rgba(43, 48, 59, 0.5);
+    border-bottom: 3px solid rgba(100, 114, 125, 0.5);
+    color: #ffffff;
+    transition-property: background-color;
+    transition-duration: .5s;
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+#workspaces button {
+    padding: 0 5px;
+    background-color: transparent;
+    color: #ffffff;
+    border-bottom: 3px solid transparent;
+}
+
+#workspaces button:hover {
+    background: rgba(100, 114, 125, 0.5);
+}
+
+#workspaces button.focused {
+    background-color: #64727D;
+    border-bottom: 3px solid #ffffff;
+}
+
+#workspaces button.urgent {
+    background-color: #eb4d4b;
+}
+
+#mode {
+    background-color: #64727D;
+    border-bottom: 3px solid #ffffff;
+}
+
+#clock,
+#battery,
+#cpu,
+#memory,
+#temperature,
+#backlight,
+#network,
+#pulseaudio,
+#custom-media,
+#tray,
+#mode,
+#idle_inhibitor {
+    padding: 0 10px;
+    margin: 0 4px;
+    color: #ffffff;
+}
+
+#clock {
+    background-color: #64727D;
+}
+
+#battery {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+#battery.charging {
+    color: #ffffff;
+    background-color: #26A65B;
+}
+
+@keyframes blink {
+    to {
+        background-color: #ffffff;
+        color: #000000;
+    }
+}
+
+#battery.critical:not(.charging) {
+    background-color: #f53c3c;
+    color: #ffffff;
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+label:focus {
+    background-color: #000000;
+}
+
+#cpu {
+    background-color: #9ec400;
+    color: #000000;
+}
+
+#memory {
+    background-color: #9b59b6;
+}
+
+#temperature {
+    background-color: #f0932b;
+}
+
+#temperature.critical {
+    background-color: #eb4d4b;
+}
+
+#backlight {
+    background-color: #90b1b1;
+}
+
+#network {
+    background-color: #2980b9;
+}
+
+#network.disconnected {
+    background-color: #f53c3c;
+}
+
+#pulseaudio {
+    background-color: #f1c40f;
+    color: #000000;
+}
+
+#pulseaudio.muted {
+    background-color: #90b1b1;
+    color: #2a5c45;
+}
+
+#custom-media {
+    background-color: #66cc99;
+    color: #2a5c45;
+    min-width: 100px;
+}
+
+#custom-media.custom-spotify {
+    background-color: #66cc99;
+}
+
+#custom-media.custom-vlc {
+    background-color: #ffa000;
+}
+
+#tray {
+    background-color: #2980b9;
+}
+
+#idle_inhibitor {
+    background-color: #2d3436;
+}
+
+#idle_inhibitor.activated {
+    background-color: #ecf0f1;
+    color: #2d3436;
+}
+```
+
+### Hyprland 性能优化配置
+
+编辑 `~/.config/hypr/hyprland.conf`，添加性能优化选项：
+
+```bash
+# 性能优化
+misc {
+    # 禁用动画（提升性能）
+    # animate_manual_resizes = false
+    
+    # 启用零拷贝
+    enable_swallow = true
+    swallow_regex = ^(Alacritty)$
+    
+    # 减少延迟
+    vfr = true
+    vrr = 2
+    
+    # 禁用启动动画
+    disable_hyprland_logo = true
+    disable_splash_rendering = true
+}
+
+# 窗口规则优化
+windowrulev2 = opacity 0.0 override 0.0 override,class:^(xwaylandvideobridge)$
+windowrulev2 = noanim,class:^(xwaylandvideobridge)$
+windowrulev2 = noinitialfocus,class:^(xwaylandvideobridge)$
+windowrulev2 = maxsize 1 1,class:^(xwaylandvideobridge)$
+windowrulev2 = noblur,class:^(xwaylandvideobridge)$
+```
+
+### 启动 Hyprland
+
+**方式一：使用显示管理器（推荐）**
+
+```bash
+# 安装 SDDM
+sudo pacman -S sddm
+
+# 启用服务
+sudo systemctl enable sddm
+
+# 配置 SDDM 使用 Hyprland
+sudo vim /usr/share/sddm/scripts/Xsetup
+```
+
+添加：
+
+```bash
+#!/bin/sh
+export XDG_SESSION_TYPE=wayland
+export XDG_CURRENT_DESKTOP=Hyprland
+```
+
+**方式二：从 TTY 启动**
+
+编辑 `~/.zprofile` 或 `~/.bash_profile`：
+
+```bash
+if [ -z "$DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
+    exec Hyprland
+fi
+```
+
+## 第四部分：系统鲁棒性配置
+
+### 1. 自动备份配置
+
+创建备份脚本 `~/.local/bin/backup-config.sh`：
+
+```bash
+#!/bin/bash
+# 配置文件备份脚本
+
+BACKUP_DIR="$HOME/.config-backups"
+DATE=$(date +%Y%m%d-%H%M%S)
+BACKUP_PATH="$BACKUP_DIR/$DATE"
+
+mkdir -p "$BACKUP_PATH"
+
+# 备份重要配置
+cp -r ~/.config/hypr "$BACKUP_PATH/"
+cp -r ~/.config/waybar "$BACKUP_PATH/"
+cp -r ~/.config/rofi "$BACKUP_PATH/"
+cp -r ~/.config/alacritty "$BACKUP_PATH/"
+
+# 备份系统配置
+sudo cp /etc/fstab "$BACKUP_PATH/"
+sudo cp /etc/default/grub "$BACKUP_PATH/"
+
+# 压缩备份
+cd "$BACKUP_DIR"
+tar -czf "$DATE.tar.gz" "$DATE"
+rm -rf "$DATE"
+
+# 保留最近 7 天的备份
+find "$BACKUP_DIR" -name "*.tar.gz" -mtime +7 -delete
+
+echo "备份完成: $BACKUP_PATH.tar.gz"
+```
+
+```bash
+chmod +x ~/.local/bin/backup-config.sh
+
+# 添加到 crontab（每天凌晨 3 点）
+crontab -e
+# 添加：0 3 * * * $HOME/.local/bin/backup-config.sh
+```
+
+### 2. 系统监控
+
+安装监控工具：
+
+```bash
+sudo pacman -S btop neofetch htop iotop nethogs
+```
+
+### 3. 日志管理
+
+配置日志轮转：
+
+```bash
+sudo vim /etc/systemd/journald.conf
+```
+
+设置：
+
+```ini
+[Journal]
+SystemMaxUse=500M
+SystemKeepFree=1G
+SystemMaxFileSize=100M
+```
+
+### 4. 错误恢复
+
+**创建恢复脚本**
+
+```bash
+sudo vim /usr/local/bin/system-recovery.sh
+```
+
+```bash
+#!/bin/bash
+# 系统恢复脚本
+
+echo "=== Arch Linux 系统恢复工具 ==="
+echo "1. 检查文件系统"
+echo "2. 重建 initramfs"
+echo "3. 更新 GRUB"
+echo "4. 清理 pacman 缓存"
+echo "5. 检查损坏的包"
+
+read -p "选择操作 (1-5): " choice
+
+case $choice in
+    1)
+        echo "检查文件系统..."
+        sudo fsck -A -y
+        ;;
+    2)
+        echo "重建 initramfs..."
+        sudo mkinitcpio -P
+        ;;
+    3)
+        echo "更新 GRUB..."
+        sudo grub-mkconfig -o /boot/grub/grub.cfg
+        ;;
+    4)
+        echo "清理 pacman 缓存..."
+        sudo pacman -Sc
+        ;;
+    5)
+        echo "检查损坏的包..."
+        sudo pacman -Qkk
+        ;;
+    *)
+        echo "无效选择"
+        ;;
+esac
+```
+
+```bash
+sudo chmod +x /usr/local/bin/system-recovery.sh
+```
+
+### 5. 定期维护
+
+创建维护脚本：
+
+```bash
+vim ~/.local/bin/system-maintenance.sh
+```
+
+```bash
+#!/bin/bash
+# 系统维护脚本
+
+echo "=== Arch Linux 系统维护 ==="
+
+# 更新系统
+echo "更新系统..."
+sudo pacman -Syu
+
+# 清理 pacman 缓存
+echo "清理 pacman 缓存..."
+sudo pacman -Sc
+
+# 清理 AUR 构建缓存
+echo "清理 AUR 构建缓存..."
+yay -Sc
+
+# 清理 orphan 包
+echo "清理孤立包..."
+sudo pacman -Rns $(pacman -Qtdq) 2>/dev/null || true
+
+# 清理系统日志
+echo "清理系统日志..."
+sudo journalctl --vacuum-time=30d
+
+# 如果使用 BTRFS，清理旧快照
+if mount | grep -q btrfs; then
+    echo "清理旧 BTRFS 快照..."
+    sudo btrfs subvolume list /.snapshots | tail -n +11 | awk '{print $9}' | xargs -r -I {} sudo btrfs subvolume delete /.snapshots/{}
+fi
+
+echo "维护完成！"
+```
+
+```bash
+chmod +x ~/.local/bin/system-maintenance.sh
+
+# 每周执行一次
+crontab -e
+# 添加：0 2 * * 0 $HOME/.local/bin/system-maintenance.sh
+```
+
+## 第五部分：常用软件推荐
+
+### 开发工具
+
+```bash
+# 版本控制
+sudo pacman -S git git-lfs
+
+# 编辑器
+sudo pacman -S neovim emacs
+
+# 终端工具
+sudo pacman -S tmux zellij
+
+# 编程语言
+sudo pacman -S python python-pip nodejs npm go rust
+
+# 构建工具
+sudo pacman -S cmake make gcc clang
+```
+
+### 系统工具
+
+```bash
+# 文件管理
+sudo pacman -S ranger nnn
+
+# 网络工具
+sudo pacman -S curl wget aria2
+
+# 压缩工具
+sudo pacman -S zip unzip p7zip
+
+# 磁盘工具
+sudo pacman -S duf ncdu
+```
+
+### 多媒体
+
+```bash
+# 图片查看
+sudo pacman -S feh sxiv
+
+# 视频播放
+sudo pacman -S mpv vlc
+
+# 音频播放
+sudo pacman -S mpd ncmpcpp
+```
+
+### 浏览器
+
+```bash
+# Firefox
+sudo pacman -S firefox
+
+# Chromium
+sudo pacman -S chromium
+```
+
+## 第六部分：故障排除
+
+### 常见问题
+
+**1. Hyprland 无法启动**
+
+```bash
+# 检查日志
+journalctl -u sddm -b
+
+# 检查 Wayland 会话
+echo $XDG_SESSION_TYPE
+
+# 检查显卡驱动
+lspci | grep VGA
+```
+
+**2. 性能问题**
+
+```bash
+# 检查 CPU 频率
+cpupower frequency-info
+
+# 检查 I/O 调度器
+cat /sys/block/nvme0n1/queue/scheduler
+
+# 检查内存使用
+free -h
+
+# 检查进程
+htop
+```
+
+**3. 网络问题**
+
+```bash
+# 重启 NetworkManager
+sudo systemctl restart NetworkManager
+
+# 检查连接
+nmcli device status
+nmcli connection show
+```
+
+**4. 音频问题**
+
+```bash
+# 重启 PipeWire
+systemctl --user restart pipewire pipewire-pulse
+
+# 检查音频设备
+pactl list sinks
+```
+
+## 总结
+
+通过本文的详细指南，您应该能够：
+
+1. ✅ 从零开始安装 Arch Linux
+2. ✅ 配置高性能的系统参数
+3. ✅ 安装和配置 Hyprland 桌面环境
+4. ✅ 优化系统性能和稳定性
+5. ✅ 设置备份和恢复机制
+6. ✅ 安装常用软件和开发工具
+
+**关键要点：**
+
+- **性能优化**：通过内核参数、CPU 调频、I/O 调度器、内存管理等全面提升系统性能
+- **稳定性配置**：使用 BTRFS 快照、定期备份、日志管理确保系统鲁棒性
+- **Hyprland 配置**：合理配置窗口管理、动画效果、性能选项以获得最佳体验
+- **定期维护**：建立自动化维护流程，保持系统健康
+
+**下一步建议：**
+
+1. 根据个人需求进一步定制配置
+2. 探索更多 Hyprland 插件和主题
+3. 建立 dotfiles 仓库管理配置
+4. 深入学习 Arch Linux 和 Wayland 生态
+
+祝您使用愉快！如有问题，欢迎参考 ArchWiki 和 Hyprland Wiki。
+

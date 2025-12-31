@@ -1,5 +1,5 @@
 ---
-title: 'Newton：下一代GPU加速的机器人物理仿真引擎'
+title: 'Newton：GPU 加速物理模拟引擎研究'
 date: '2025-01-20'
 tags:
   [
@@ -8,1100 +8,643 @@ tags:
     'Physics Engine',
     'Newton',
     'GPU Acceleration',
-    'Differentiable Simulation',
+    'NVIDIA Warp',
   ]
 draft: false
-summary: 全面探索 Newton 物理仿真引擎，从基础概念到技术架构，从GPU加速到可微分仿真，深入了解 Newton 的模块化设计、多求解器集成、以及与 Isaac Lab 和 MuJoCo Playground 的集成，帮助理解下一代机器人仿真的核心技术。
+summary: Newton 是一个专为机器人学家和模拟研究人员设计的 GPU 加速物理模拟引擎，基于 NVIDIA Warp 构建，集成了 MuJoCo Warp，支持 OpenUSD、可微模拟和用户自定义扩展。
 showTOC: true
 ---
 
-## 引言
+## 项目概述
 
-在机器人学和强化学习的研究领域中，物理仿真引擎正在经历一场革命性的变革。传统的CPU基础仿真引擎虽然已经相当成熟，但在面对大规模并行仿真、复杂多物理场交互、以及需要可微分性的机器学习应用时，仍然面临着性能和功能上的限制。随着GPU计算能力的不断提升和机器学习技术的快速发展，新一代的GPU加速、可微分物理仿真引擎应运而生。
+**Newton** 是一个开源的 GPU 加速物理模拟引擎，专为机器人学家和模拟研究人员设计。该项目基于 **NVIDIA Warp** 构建，是对 Warp 已弃用的 `warp.sim` 模块的扩展和泛化，并集成了 **MuJoCo Warp** 作为主要后端。
 
-Newton 的出现，标志着物理仿真引擎进入了一个新的时代。作为一个由 NVIDIA、Google DeepMind 和 Disney Research 联合开发，并由 Linux Foundation 管理的开源项目，Newton 不仅继承了传统物理引擎的精确性，更通过 GPU 加速和可微分设计，为机器人学习和研究提供了前所未有的能力。Newton 的设计理念是创建一个统一、可扩展、高性能的物理仿真平台，能够支持从简单的刚体动力学到复杂的多物理场交互的各种仿真需求。
+### 基本信息
 
-Newton 的核心价值在于其独特的架构设计。通过基于 NVIDIA Warp 的 GPU 加速，Newton 能够将仿真速度提升数十倍甚至上百倍，这对于需要大量样本的强化学习训练至关重要。同时，Newton 支持可微分仿真，使得梯度可以反向传播通过仿真步骤，这对于基于梯度的优化方法、策略学习和参数估计等应用具有革命性的意义。更重要的是，Newton 的模块化设计允许研究人员轻松集成自定义求解器和组件，实现丰富的多物理场仿真，包括刚体、软体、布料、流体等各种物理现象。
+| 属性 | 详情 |
+|------|------|
+| **发起机构** | Disney Research, Google DeepMind, NVIDIA |
+| **管理组织** | Linux Foundation |
+| **许可证** | Apache-2.0 |
+| **开发状态** | Beta（活跃开发，API 不稳定） |
+| **Python 版本** | 3.10, 3.11, 3.12 |
+| **平台** | Linux, Windows (x86-64) |
+| **GPU 要求** | NVIDIA CUDA (Compute Capability ≥ 5.0, Maxwell 架构) |
 
-从技术角度来看，Newton 充分利用了现代 GPU 计算的优势。它不仅集成了 MuJoCo-Warp 这样的高性能求解器，还提供了统一的 API 接口，使得不同的求解器可以在同一个框架下协同工作。这种设计不仅提高了代码的复用性，更使得研究人员可以根据具体需求选择最适合的求解器。同时，Newton 支持多种模型格式（URDF、MJCF、USD），与现有的机器人框架和工具具有良好的互操作性。
-
-本文将带您全面深入地了解 Newton 的方方面面，从基础概念到技术架构，从 GPU 加速到可微分仿真，从安装配置到实际应用，从多求解器集成到与现有框架的兼容性。无论您是刚开始接触物理仿真的新手，还是希望探索下一代仿真技术的资深研究者，都能从本文中获得有价值的知识和实践指导。我们将重点关注实用操作，提供详细的技术分析和使用案例，帮助您在实际研究中快速应用 Newton 的强大功能。
-
-## 第一部分：Newton 基础概念
-
-### 什么是 Newton
-
-Newton 是一个开源的、GPU 加速的、可微分的物理仿真引擎，专为机器人研究和高级仿真工作流而设计。它由 Disney Research、Google DeepMind 和 NVIDIA 联合开发，并由 Linux Foundation 管理，旨在为机器人学习提供一个统一、可扩展、高性能的仿真平台。
-
-**Newton 的定位**
-
-在物理仿真生态系统中，Newton 代表了一个新的发展方向。它既不是传统意义上的单一物理引擎（如 MuJoCo、Bullet），也不是完整的机器人学习平台（如 Isaac Lab、MuJoCo Playground），而是一个可扩展的仿真框架，能够集成多种求解器，提供统一的 API 接口，支持从简单到复杂的各种仿真需求。
-
-**核心设计理念**
-
-Newton 遵循几个核心设计理念：
-
-1. **GPU 优先**：充分利用 GPU 的并行计算能力，实现高性能仿真
-2. **可微分性**：支持梯度计算，便于基于梯度的优化和学习
-3. **模块化设计**：提供可扩展的架构，易于集成新求解器和组件
-4. **统一接口**：通过统一的 API 支持多种求解器和模型格式
-5. **开源协作**：作为 Linux Foundation 项目，促进社区协作和持续改进
-
-### Newton 的技术背景
-
-**开发背景**
-
-Newton 的开发源于对高性能、可微分物理仿真的需求。传统的物理仿真引擎主要运行在 CPU 上，虽然精度和稳定性已经相当优秀，但在以下方面存在限制：
-
-- **性能瓶颈**：CPU 的并行计算能力有限，难以支持大规模并行仿真
-- **不可微分**：传统引擎不支持梯度计算，限制了在机器学习中的应用
-- **扩展性差**：难以集成新的物理模型和求解器
-- **格式限制**：对模型格式的支持有限，互操作性较差
-
-**技术基础**
+### 技术基础
 
 Newton 建立在两个核心技术之上：
 
-1. **NVIDIA Warp**：一个用于编写高性能模拟和计算代码的 Python 框架，允许开发者使用 Python 编写代码，然后自动编译为 GPU 代码
-2. **OpenUSD**：一个用于描述、组合、模拟和协作处理 3D 场景的开放标准，提供了丰富的场景描述能力
+1. **NVIDIA Warp** - 用于编写高性能模拟和计算代码的 Python 框架
+2. **MuJoCo-Warp** - Google DeepMind 开发的 GPU 优化版 MuJoCo
+3. **OpenUSD** - Pixar 开发的通用场景描述标准
 
-**与现有技术的关系**
+---
 
-Newton 并不是要替代现有的物理引擎，而是提供一个统一的框架，集成和扩展现有技术：
+## 核心特性
 
-- **MuJoCo-Warp**：Newton 集成了 MuJoCo-Warp，这是一个 GPU 优化的 MuJoCo 版本
-- **Isaac Lab**：Newton 正在与 Isaac Lab 集成，提供实验性的支持
-- **MuJoCo Playground**：Newton 与 MuJoCo Playground 兼容，可以共享模型和代码
+### 1. GPU 加速仿真
 
-### Newton 的核心特性
+Newton 的核心优势是其出色的 GPU 加速能力：
 
-Newton 提供了丰富的功能特性，这些特性使其成为下一代机器人仿真的理想平台。
-
-**GPU 加速仿真**
-
-Newton 的核心优势之一是其出色的 GPU 加速能力。通过利用 NVIDIA Warp 框架，Newton 可以将物理计算任务转移到 GPU 上执行，实现显著的性能提升：
-
-- **大规模并行**：可以同时仿真数千个环境实例
-- **高性能计算**：优化的 GPU 代码，充分利用 GPU 的计算能力
+- **大规模并行**：可同时仿真数千个环境实例
+- **高性能计算**：优化的 GPU 代码充分利用 GPU 计算能力
 - **可扩展性**：性能随 GPU 核心数量线性扩展
 
-根据测试数据，Newton 相比传统 CPU 仿真可以实现：
+### 2. 可微分物理
 
-- **人形机器人仿真**：70 倍以上的加速
-- **灵巧手操作任务**：100 倍的加速
-- **大规模并行仿真**：性能提升可达数百倍
+支持梯度计算和基于梯度的优化：
 
-**可微分物理仿真**
-
-Newton 支持可微分仿真，这是其最重要的创新之一。可微分性意味着梯度可以反向传播通过仿真步骤，这对于以下应用至关重要：
-
-- **基于梯度的优化**：可以直接优化控制参数、物理参数等
-- **策略学习**：可以通过梯度下降学习最优策略
-- **参数估计**：可以从观测数据中估计物理参数
-- **逆动力学**：可以计算达到目标状态所需的控制输入
-
-**模块化架构**
-
-Newton 采用模块化设计，允许用户轻松集成自定义求解器和组件：
-
-- **多求解器支持**：可以同时使用多个不同的求解器
-- **统一 API**：所有求解器通过统一的接口访问
-- **易于扩展**：可以添加新的物理模型、约束、执行器等
-- **组件化设计**：各个组件可以独立开发和测试
-
-**丰富的模型格式支持**
-
-Newton 支持多种模型格式，提高了与现有工具的互操作性：
-
-- **URDF**：机器人描述格式，广泛用于 ROS 生态系统
-- **MJCF**：MuJoCo 模型格式，用于 MuJoCo 仿真
-- **USD**：Universal Scene Description，用于复杂场景描述
-
-**多物理场仿真**
-
-Newton 的设计支持多物理场仿真，可以同时处理：
-
-- **刚体动力学**：传统的刚体物理仿真
-- **软体动力学**：可变形物体的仿真
-- **布料仿真**：布料和柔性材料的仿真
-- **流体仿真**：流体和颗粒物质的仿真
-- **接触和约束**：复杂的接触和约束处理
-
-## 第二部分：GPU 加速技术深度解析
-
-### NVIDIA Warp 框架
-
-要深入理解 Newton 的 GPU 加速能力，必须首先理解其底层技术基础——NVIDIA Warp。
-
-**Warp 的设计理念**
-
-NVIDIA Warp 是一个用于编写高性能模拟和计算代码的 Python 框架。它的核心思想是让开发者能够使用 Python 编写代码，然后自动编译为高效的 GPU 代码，在 NVIDIA GPU 上执行。
-
-**Warp 的优势**
-
-1. **Python 语法**：使用熟悉的 Python 语法，降低学习成本
-2. **自动编译**：自动将 Python 代码编译为 GPU 代码
-3. **高性能**：生成的 GPU 代码性能接近手写的 CUDA 代码
-4. **易于调试**：可以在 CPU 和 GPU 之间切换，便于调试
-
-**Warp 在 Newton 中的应用**
-
-Newton 利用 Warp 框架实现了以下功能：
-
-- **物理计算**：将物理计算任务编译为 GPU 代码
-- **并行仿真**：每个 GPU 线程处理一个独立的环境实例
-- **向量化操作**：利用 GPU 的向量化能力加速计算
-- **内存管理**：高效管理 GPU 内存，减少数据传输开销
-
-### GPU 并行计算架构
-
-**环境级并行**
-
-Newton 的核心并行策略是环境级并行。每个 GPU 线程处理一个独立的环境实例，这样可以同时仿真数千个环境：
-
-```python
-# 伪代码示例
-for env_id in range(num_envs):
-    # 每个环境在独立的 GPU 线程上执行
-    step_physics(env_id)
-```
-
-**计算任务并行化**
-
-除了环境级并行，Newton 还实现了计算任务的并行化：
-
-- **接触计算并行**：接触力的计算在 GPU 上并行执行
-- **约束求解并行**：约束求解器的迭代计算在 GPU 上并行化
-- **状态更新并行**：状态更新操作在 GPU 上并行执行
-
-**内存访问优化**
-
-Newton 通过优化内存访问模式来提高性能：
-
-- **合并内存访问**：确保相邻线程访问连续内存
-- **共享内存利用**：使用共享内存减少全局内存访问
-- **内存预取**：预取数据以减少内存延迟
-
-### 性能优化策略
-
-**批处理**
-
-Newton 通过批处理来提高 GPU 利用率：
-
-- **批量状态更新**：批量处理多个环境的状态更新
-- **批量接触检测**：批量处理接触检测和力计算
-- **批量渲染**：批量处理图像渲染任务
-
-**计算与数据传输重叠**
-
-Newton 使用异步操作来重叠计算和数据传输：
-
-- **异步内存传输**：在计算的同时传输数据
-- **流水线处理**：将计算任务组织成流水线
-- **多流执行**：使用多个 CUDA 流并行执行任务
-
-**自适应负载均衡**
-
-Newton 实现了自适应负载均衡，确保所有 GPU 核心得到充分利用：
-
-- **动态任务分配**：根据环境复杂度动态分配任务
-- **负载监控**：监控各个 GPU 核心的负载
-- **任务迁移**：在核心之间迁移任务以平衡负载
-
-## 第三部分：可微分仿真技术
-
-### 可微分仿真的概念
-
-可微分仿真是 Newton 最重要的创新之一。传统的物理仿真引擎是"黑盒"，输入参数后得到输出结果，但无法计算梯度。可微分仿真则允许梯度反向传播通过仿真步骤，这对于基于梯度的优化方法至关重要。
-
-**为什么需要可微分仿真**
-
-在机器人学习和研究中，许多问题可以表述为优化问题：
-
-- **策略优化**：找到最优的控制策略
+- **策略梯度学习**：可直接计算策略梯度用于强化学习
 - **参数估计**：从观测数据中估计物理参数
-- **轨迹优化**：找到最优的运动轨迹
-- **形状优化**：优化机器人的形状设计
+- **轨迹优化**：优化机器人的运动轨迹
+- **逆动力学**：计算达到目标状态所需的控制输入
 
-传统的优化方法需要大量的试错，而可微分仿真可以通过梯度下降直接优化，大大提高了效率。
-
-### 可微分仿真的实现
-
-**自动微分**
-
-Newton 使用自动微分（Automatic Differentiation）来实现可微分仿真。自动微分通过计算图跟踪计算过程，自动计算梯度：
+### 3. 模块化架构
 
 ```python
-# 伪代码示例
-def simulate_step(state, control):
-    # 前向传播：计算状态更新
-    new_state = physics_step(state, control)
-    return new_state
+from newton import ModelBuilder, Model, State
 
-# 自动微分：计算梯度
-gradient = autograd.grad(simulate_step, inputs=[state, control])
+# 构建模型
+builder = ModelBuilder()
+builder.add_articulation(...)
+model = builder.finalize()
+
+# 创建状态
+state = model.state()
 ```
 
-**计算图构建**
+**设计特点:**
+- **Model**: 存储所有静态数据（几何体、约束、参数）
+- **State**: 管理动态时变数据（位置、速度）
+- **Control**: 处理控制输入
 
-Newton 在仿真过程中构建计算图：
+### 4. 多物理求解器
 
-1. **操作记录**：记录每个操作及其输入输出
-2. **图构建**：构建有向无环图（DAG）
-3. **梯度计算**：反向传播计算梯度
+| 求解器 | 用途 |
+|--------|------|
+| `SolverMuJoCo` | 刚体动力学（基于 MuJoCo） |
+| `SolverFeatherstone` | 刚体动力学（Featherstone 算法） |
+| `SolverSemiImplicit` | 半隐式欧拉积分 |
+| `SolverXPBD` | 位置动力学（XPBD） |
+| `SolverVBD` | 速度动力学（VBD） |
+| `SolverImplicitMPM` | 隐式 MPM 求解器 |
+| `SolverStyle3D` | Style3D 服装模拟 |
 
-**内存优化**
-
-可微分仿真需要存储中间结果，这可能导致内存消耗大幅增加。Newton 通过以下技术优化内存：
-
-- **检查点机制**：只存储关键检查点，需要时重新计算
-- **内存复用**：复用内存缓冲区
-- **梯度检查点**：使用梯度检查点技术减少内存
-
-### 可微分仿真的应用
-
-**策略梯度学习**
-
-可微分仿真可以直接计算策略梯度，用于强化学习：
+### 5. 传感器系统
 
 ```python
-# 伪代码示例
-def compute_policy_gradient(policy, env):
-    # 运行仿真
-    trajectory = simulate(policy, env)
-    # 计算奖励
-    reward = compute_reward(trajectory)
-    # 计算梯度
-    gradient = autograd.grad(reward, inputs=[policy.parameters])
-    return gradient
+from newton.sensors import ContactSensor, RaycastSensor
+
+# 接触传感器
+contact_sensor = ContactSensor(model, shape_indices=[...])
+contact = contact_sensor.eval(model, state)
+
+# 光线投射传感器
+raycast_sensor = RaycastSensor(model, origins, directions)
+depth, _ = raycast_sensor.eval(model, state)
 ```
 
-**参数估计**
+### 6. 几何和碰撞检测
 
-可以从观测数据中估计物理参数：
+- **SDF** (Signed Distance Fields): 有符号距离场
+- **Mesh**: 网格几何体
+- **GJK 算法**: Gilbert-Johnson-Keerthi 碰撞检测
+- **Broad Phase**: 空间分割和包围体层次
+- **Raycast**: 光线投射查询
+
+---
+
+## 项目架构
+
+### 目录结构
+
+```
+newton/
+├── _src/
+│   ├── core/           # 核心类型和空间计算
+│   ├── geometry/       # 几何处理和碰撞检测
+│   │   ├── gjk.py              # GJK 碰撞检测算法
+│   │   ├── broad_phase_*.py    # 广相算法
+│   │   └── collision_primitive.py
+│   ├── sensors/        # 传感器系统
+│   │   ├── contact_sensor.py   # 接触传感器
+│   │   └── raycast_sensor.py   # 光线投射传感器
+│   ├── sim/           # 模拟引擎核心
+│   │   ├── model.py            # Model 类定义
+│   │   ├── builder.py          # ModelBuilder
+│   │   ├── articulation.py     # 机械臂系统
+│   │   ├── joints.py           # 关节类型
+│   │   └── ik.py               # 逆向运动学
+│   ├── solvers/       # 物理求解器
+│   │   ├── mujoco/             # MuJoCo 求解器
+│   │   ├── featherstone/       # Featherstone 算法
+│   │   ├── semi_implicit/      # 半隐式求解器
+│   │   ├── xpbd/               # XPBD 求解器
+│   │   ├── vbd/                # VBD 求解器
+│   │   ├── implicit_mpm/       # MPM 求解器
+│   │   └── style3d/            # Style3D 求解器
+│   ├── utils/         # 工具和导入器
+│   │   ├── import_urdf.py      # URDF 导入
+│   │   ├── import_mjcf.py      # MJCF 导入
+│   │   └── import_usd.py       # USD 导入
+│   └── viewer/        # 可视化系统
+│       ├── gl/                 # OpenGL 查看器
+│       ├── viewer_usd.py       # USD 输出
+│       └── viewer_rerun.py     # ReRun 集成
+├── examples/          # 示例代码
+│   ├── basic/         # 基础示例
+│   ├── robot/         # 机器人示例
+│   ├── cloth/         # 布料模拟
+│   ├── ik/            # 逆向运动学
+│   ├── mpm/           # MPM 物理
+│   ├── diffsim/       # 可微模拟
+│   └── sensors/       # 传感器示例
+└── tests/             # 测试套件
+```
+
+### 核心 API 组件
 
 ```python
-# 伪代码示例
-def estimate_parameters(observations):
-    # 初始化参数
-    params = initialize_params()
-    # 优化参数
-    for iteration in range(max_iterations):
-        # 运行仿真
-        predictions = simulate(params)
-        # 计算损失
-        loss = compute_loss(predictions, observations)
-        # 计算梯度
-        gradient = autograd.grad(loss, inputs=[params])
-        # 更新参数
-        params = params - learning_rate * gradient
-    return params
-```
-
-**轨迹优化**
-
-可以优化运动轨迹：
-
-```python
-# 伪代码示例
-def optimize_trajectory(initial_state, target_state):
-    # 初始化轨迹
-    trajectory = initialize_trajectory()
-    # 优化轨迹
-    for iteration in range(max_iterations):
-        # 运行仿真
-        final_state = simulate(trajectory)
-        # 计算损失
-        loss = compute_loss(final_state, target_state)
-        # 计算梯度
-        gradient = autograd.grad(loss, inputs=[trajectory])
-        # 更新轨迹
-        trajectory = trajectory - learning_rate * gradient
-    return trajectory
-```
-
-## 第四部分：模块化架构与多求解器集成
-
-### 模块化设计理念
-
-Newton 采用模块化设计，这使得它能够灵活地集成不同的求解器和组件。
-
-**模块化架构的优势**
-
-1. **可扩展性**：可以轻松添加新的求解器和组件
-2. **灵活性**：可以根据需求选择最适合的求解器
-3. **可维护性**：各个模块独立开发和维护
-4. **代码复用**：可以在不同模块之间复用代码
-
-**核心模块**
-
-Newton 的核心模块包括：
-
-- **求解器模块**：不同的物理求解器
-- **几何模块**：几何形状和碰撞检测
-- **约束模块**：各种约束类型
-- **执行器模块**：执行器模型和控制
-- **传感器模块**：传感器模型和数据采集
-
-### MuJoCo-Warp 求解器
-
-**MuJoCo-Warp 简介**
-
-MuJoCo-Warp 是 Google DeepMind 和 NVIDIA 联合开发的 GPU 优化版本的 MuJoCo 物理仿真器。它利用 NVIDIA Warp 框架，将 MuJoCo 的物理计算重写为 GPU 代码。
-
-**MuJoCo-Warp 的特点**
-
-- **GPU 加速**：利用 GPU 并行计算能力
-- **高精度**：保持与 CPU 版本 MuJoCo 相同的物理精度
-- **可微分**：支持梯度计算
-- **向后兼容**：与标准 MuJoCo 保持 API 兼容性
-
-**在 Newton 中的集成**
-
-Newton 集成了 MuJoCo-Warp 作为其核心求解器之一：
-
-```python
-# 伪代码示例
-from newton.solvers import MuJoCoSolver
-
-# 创建 MuJoCo 求解器
-solver = MuJoCoSolver()
-
-# 加载模型
-model = solver.load_model("robot.xml")
-
-# 运行仿真
-for step in range(num_steps):
-    solver.step(model, control_input)
-```
-
-### 统一 API 设计
-
-**API 抽象层**
-
-Newton 提供了统一的 API 抽象层，使得不同的求解器可以通过相同的接口访问：
-
-```python
-# 统一的求解器接口
-class Solver:
-    def load_model(self, model_path):
-        """加载模型"""
-        pass
-
-    def step(self, model, control):
-        """执行一步仿真"""
-        pass
-
-    def get_state(self, model):
-        """获取当前状态"""
-        pass
-
-    def set_state(self, model, state):
-        """设置状态"""
-        pass
-```
-
-**求解器切换**
-
-由于统一的 API 设计，可以轻松在不同求解器之间切换：
-
-```python
-# 使用 MuJoCo 求解器
-solver_mujoco = MuJoCoSolver()
-
-# 切换到其他求解器（如果可用）
-solver_other = OtherSolver()
-
-# 使用相同的 API
-model1 = solver_mujoco.load_model("robot.xml")
-model2 = solver_other.load_model("robot.xml")
-```
-
-### 自定义求解器集成
-
-**实现自定义求解器**
-
-用户可以轻松实现自定义求解器：
-
-```python
-from newton.solvers import BaseSolver
-
-class MyCustomSolver(BaseSolver):
-    def __init__(self):
-        super().__init__()
-        # 初始化自定义求解器
-
-    def load_model(self, model_path):
-        # 实现模型加载
-        pass
-
-    def step(self, model, control):
-        # 实现仿真步骤
-        pass
-```
-
-**注册求解器**
-
-将自定义求解器注册到 Newton：
-
-```python
-from newton import register_solver
-
-register_solver("my_solver", MyCustomSolver)
-```
-
-## 第五部分：模型格式与互操作性
-
-### 支持的模型格式
-
-**URDF 格式**
-
-URDF（Unified Robot Description Format）是 ROS 生态系统中广泛使用的机器人描述格式：
-
-```xml
-<!-- URDF 示例 -->
-<robot name="my_robot">
-  <link name="base_link">
-    <visual>
-      <geometry>
-        <box size="1 1 1"/>
-      </geometry>
-    </visual>
-  </link>
-</robot>
-```
-
-Newton 支持加载 URDF 格式的模型，这使得它可以与 ROS 生态系统无缝集成。
-
-**MJCF 格式**
-
-MJCF（MuJoCo XML Format）是 MuJoCo 使用的模型格式：
-
-```xml
-<!-- MJCF 示例 -->
-<mujoco model="my_robot">
-  <worldbody>
-    <body name="base">
-      <geom type="box" size="0.5 0.5 0.5"/>
-    </body>
-  </worldbody>
-</mujoco>
-```
-
-Newton 通过 MuJoCo-Warp 求解器支持 MJCF 格式，可以加载和使用 MuJoCo 模型。
-
-**USD 格式**
-
-USD（Universal Scene Description）是 Pixar 开发的场景描述格式，支持复杂的场景描述：
-
-```python
-# USD 示例（Python API）
-from pxr import Usd, UsdGeom
-
-stage = Usd.Stage.CreateNew("scene.usd")
-xform = UsdGeom.Xform.Define(stage, "/Robot")
-```
-
-Newton 支持 USD 格式，可以处理复杂的场景和模型。
-
-### 格式转换工具
-
-**自动转换**
-
-Newton 提供了自动格式转换功能，可以在不同格式之间转换：
-
-```python
-from newton import convert_model
-
-# 将 URDF 转换为 MJCF
-convert_model("robot.urdf", "robot.xml", format="mjcf")
-
-# 将 MJCF 转换为 USD
-convert_model("robot.xml", "robot.usd", format="usd")
-```
-
-**格式兼容性**
-
-Newton 确保不同格式之间的兼容性：
-
-- **几何兼容**：确保几何形状在不同格式间正确转换
-- **物理属性兼容**：确保质量、惯性等物理属性正确转换
-- **约束兼容**：确保关节和约束正确转换
-
-### 与现有工具的集成
-
-**ROS 集成**
-
-Newton 可以与 ROS 集成，使用 ROS 的模型和工具：
-
-```python
-# 从 ROS 包加载模型
-from newton import load_robot_from_ros
-
-robot = load_robot_from_ros("my_robot_package", "robot.urdf")
-```
-
-**MuJoCo 工具链**
-
-Newton 可以使用 MuJoCo 的工具链：
-
-- **模型编辑器**：使用 MuJoCo 的模型编辑器
-- **可视化工具**：使用 MuJoCo 的可视化工具
-- **分析工具**：使用 MuJoCo 的分析工具
-
-**Isaac Sim 集成**
-
-Newton 正在与 NVIDIA Isaac Sim 集成，提供更丰富的仿真能力。
-
-## 第六部分：与 Isaac Lab 和 MuJoCo Playground 的集成
-
-### Isaac Lab 集成
-
-**Isaac Lab 简介**
-
-Isaac Lab 是 NVIDIA 开发的机器人学习框架，提供了统一的 API 用于创建和管理强化学习和模仿学习工作流。
-
-**集成状态**
-
-Newton 与 Isaac Lab 的集成目前处于实验阶段，正在积极开发中。初始的训练环境专注于四足和双足机器人的运动，未来计划扩展支持更多的强化学习和模仿学习工作流。
-
-**集成优势**
-
-通过集成 Newton，Isaac Lab 可以获得以下优势：
-
-- **高性能仿真**：利用 Newton 的 GPU 加速能力
-- **可微分性**：支持基于梯度的优化方法
-- **多物理场**：支持更复杂的物理现象
-- **扩展性**：可以轻松添加新的物理模型
-
-**使用示例**
-
-```python
-from isaac.lab import create_env
-from newton import NewtonPhysics
-
-# 创建使用 Newton 物理引擎的环境
-env = create_env(
-    "Quadruped-Velocity-Flat",
-    physics_engine=NewtonPhysics()
+# 主要导出的 API
+from newton import (
+    # 核心类型
+    Model,
+    ModelBuilder,
+    State,
+    Control,
+
+    # 几何
+    Mesh,
+    SDF,
+    GeoType,
+
+    # 关节
+    JointType,
+    JointMode,
+
+    # 传感器
+    sensors,
+
+    # 求解器
+    solvers,
+
+    # IK
+    eval_ik,
+    eval_fk,
+
+    # 工具
+    utils,
+    viewer,
 )
 ```
 
-### MuJoCo Playground 兼容性
+---
 
-**MuJoCo Playground 简介**
+## 示例展示
 
-MuJoCo Playground 是一个用于机器人学习的开源框架，利用 MuJoCo 物理引擎，旨在促进 sim-to-real 强化学习策略的快速迭代和部署。
+### 基础示例
 
-**兼容性**
+| 示例 | 描述 | 命令 |
+|------|------|------|
+| 单摆 | 基础物理模拟 | `uv run -m newton.examples basic_pendulum` |
+| URDF 导入 | 加载机器人模型 | `uv run -m newton.examples basic_urdf` |
+| 基础形状 | 几何体演示 | `uv run -m newton.examples basic_shapes` |
+| 关节系统 | 关节连接演示 | `uv run -m newton.examples basic_joints` |
 
-Newton 与 MuJoCo Playground 兼容，可以共享模型和代码：
+### 机器人示例
 
-- **模型共享**：可以使用相同的 MJCF 模型
-- **代码复用**：可以复用训练代码和策略
-- **工具共享**：可以使用相同的工具和脚本
+| 示例 | 机器人类型 |
+|------|-----------|
+| `robot_cartpole` | 倒立摆 |
+| `robot_humanoid` | 人形机器人 |
+| `robot_g1` | Unitree G1 人形机器人 |
+| `robot_h1` | Unitree H1 人形机器人 |
+| `robot_anymal_d` | ANYmal D 四足机器人 |
+| `robot_anymal_c_walk` | ANYmal C 步态控制 |
+| `robot_ur10` | UR10 机械臂 |
+| `robot_policy` | 策略执行演示 |
 
-**迁移路径**
+### 高级示例
 
-从 MuJoCo Playground 迁移到 Newton 相对简单：
+#### 布料模拟
+- `cloth_bending` - 布料弯曲
+- `cloth_hanging` - 悬挂布料
+- `cloth_style3d` - Style3D 服装模拟
+- `cloth_h1` - H1 机器人布料交互
+- `cloth_franka` - Franka 机械臂布料操作
+- `cloth_twist` - 布料扭曲
 
-1. **模型转换**：MJCF 模型可以直接使用
-2. **代码适配**：只需要少量代码修改
-3. **性能提升**：自动获得 GPU 加速的性能提升
+#### 逆向运动学
+- `ik_franka` - Franka 机械臂 IK
+- `ik_h1` - H1 机器人 IK
+- `ik_benchmark` - IK 性能基准测试
 
-### 集成最佳实践
+#### MPM 物理模拟
+- `mpm_granular` - 颗粒材料模拟
+- `mpm_anymal` - 四足机器人与颗粒交互
 
-**选择合适的框架**
+#### 可微模拟
+- `diffsim_ball` - 球体可微模拟
+- `diffsim_cloth` - 布料可微模拟
+- `diffsim_drone` - 无人机可微模拟
+- `diffsim_spring_cage` - 弹簧笼系统
+- `diffsim_soft_body` - 软体物理
+- `diffsim_bear` - 四足机器人可微模拟
 
-根据具体需求选择合适的框架：
+#### 传感器示例
+- `selection_cartpole` - 倒立摆选择
+- `selection_materials` - 材料选择
+- `selection_articulations` - 机械臂选择
 
-- **Isaac Lab**：如果需要完整的机器人学习框架和工具链
-- **MuJoCo Playground**：如果需要快速原型开发和 sim-to-real 部署
-- **Newton 直接使用**：如果需要最大的灵活性和控制
+---
 
-**性能优化**
-
-在使用集成框架时，注意性能优化：
-
-- **环境数量**：合理设置并行环境数量
-- **批处理大小**：优化批处理大小
-- **内存管理**：注意 GPU 内存使用
-
-**调试技巧**
-
-- **使用可视化工具**：利用框架提供的可视化工具
-- **逐步调试**：从简单环境开始，逐步增加复杂度
-- **性能分析**：使用性能分析工具找出瓶颈
-
-## 第七部分：安装与配置
+## 安装和使用
 
 ### 系统要求
 
-**硬件要求**
+| 组件 | 要求 |
+|------|------|
+| **Python** | 3.10+ (仅支持 3.10, 3.11, 3.12) |
+| **架构** | x86-64 (Windows 或 Linux) |
+| **NVIDIA GPU** | Compute Capability ≥ 5.0 (Maxwell 架构) |
+| **CUDA** | CUDA 12.x |
 
-- **GPU**：NVIDIA GPU（支持 CUDA），这是必需的
-- **显存**：建议至少 8GB 显存，用于大规模并行仿真
-- **内存**：建议至少 16GB 系统内存
-- **存储**：至少 10GB 可用空间
-
-**软件要求**
-
-- **操作系统**：Linux（推荐）或 Windows
-- **Python**：Python 3.9 或更高版本
-- **CUDA**：CUDA 11.0 或更高版本
-- **cuDNN**：与 CUDA 版本匹配的 cuDNN
-
-### 安装方法
-
-**方法一：从源码安装（推荐）**
+### 使用 uv 安装（推荐）
 
 ```bash
 # 克隆仓库
-git clone https://github.com/newton-physics/newton.git
+git clone git@github.com:newton-physics/newton.git
 cd newton
 
-# 安装依赖
-pip install -r requirements.txt
+# 同步环境
+uv sync --extra examples
 
-# 安装 Newton
-pip install -e .
+# 运行示例
+uv run -m newton.examples basic_pendulum
 ```
 
-**方法二：使用 pip 安装**
+### 依赖项
+
+#### 核心依赖
+```toml
+dependencies = [
+    "warp-lang>=1.7.0.dev20250823"
+]
+```
+
+#### 可选依赖组
+
+**sim** (模拟核心)
+```toml
+sim = [
+    "mujoco-warp>=0.0.1",
+    "mujoco>=3.3.6.dev802089588",
+    "cbor2>=5.7.0",
+]
+```
+
+**importers** (资产导入)
+```toml
+importers = [
+    "scipy",
+    "fast-simplification>=0.1.11",
+    "alphashape>=1.3.1",
+    "coacd>=1.0.7",
+    "trimesh>=4.6.8",
+    "pycollada>=0.9",
+    "usd-core>=25.5",
+]
+```
+
+**examples** (示例和可视化)
+```toml
+examples = [
+    "newton[sim]",
+    "newton[importers]",
+    "pyglet>=2.1.6",
+    "GitPython>=3.1.44",
+    "imgui_bundle>=1.92.0",
+    "pyyaml>=6.0.2",
+]
+```
+
+**torch-cu12** (PyTorch 集成)
+```toml
+torch-cu12 = [
+    "newton[examples]",
+    "torch>=2.7.0",
+]
+```
+
+### 命令行选项
+
+所有示例支持以下参数：
+
+| 参数 | 描述 | 默认值 |
+|------|------|--------|
+| `--viewer` | 查看器类型 (gl/usd/rerun/null) | `gl` |
+| `--device` | 计算设备 (cpu/cuda:0) | `None` |
+| `--num-frames` | 模拟帧数 | `100` |
+| `--output-path` | USD 输出路径 | `None` |
+
+#### 使用示例
 
 ```bash
-pip install newton-physics
+# 列出所有示例
+uv run -m newton.examples
+
+# 使用 USD 查看器并保存到文件
+uv run -m newton.examples basic_viewer --viewer usd --output-path my_output.usd
+
+# 在指定设备上运行
+uv run -m newton.examples basic_urdf --device cuda:0
+
+# 组合选项
+uv run -m newton.examples basic_viewer --viewer gl --num-frames 500 --device cpu
 ```
 
-**方法三：使用 conda 安装**
+---
 
-```bash
-conda install -c conda-forge newton-physics
-```
+## Model 和 State 架构
 
-### 验证安装
+### Model 类
 
-安装完成后，运行以下代码验证安装：
+`Model` 类封装了模拟系统的所有静态（非时变）定义：
 
 ```python
-import newton
-import torch
+class Model:
+    """模拟模型的静态定义"""
 
-# 检查 GPU 是否可用
-print(f"CUDA available: {torch.cuda.is_available()}")
+    # 粒子系统
+    particle_q: wp.array          # 粒子位置
+    particle_qd: wp.array         # 粒子速度
+    particle_mass: wp.array       # 粒子质量
 
-# 检查 Newton 版本
-print(f"Newton version: {newton.__version__}")
+    # 刚体系统
+    body_q: wp.array              # 刚体位姿
+    body_qd: wp.array             # 刚体速度
+    body_mass: wp.array           # 刚体质量
+    body_inertia: wp.array        # 刚体惯性张量
 
-# 创建简单的仿真
-from newton.solvers import MuJoCoSolver
+    # 关节系统
+    joint_q: wp.array             # 关节位置
+    joint_qd: wp.array            # 关节速度
+    joint_type: wp.array          # 关节类型
 
-solver = MuJoCoSolver()
-print("Newton installed successfully!")
+    # 几何形状
+    shape_transform: wp.array     # 形状变换
+    shape_type: wp.array          # 形状类型
+    shape_material_mu: wp.array   # 摩擦系数
+
+    # 世界索引
+    particle_world: wp.array      # 粒子所属世界
+    body_world: wp.array          # 刚体所属世界
 ```
 
-### 环境配置
+**关键特性:**
+- **静态数据**: 存储几何体、约束、参数
+- **世界分组**: 支持多世界并行模拟
+- **设备管理**: 所有数据在同一设备上
 
-**CUDA 环境变量**
-
-确保 CUDA 环境变量正确设置：
-
-```bash
-export CUDA_HOME=/usr/local/cuda
-export PATH=$CUDA_HOME/bin:$PATH
-export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
-```
-
-**Python 环境**
-
-建议使用虚拟环境：
-
-```bash
-python -m venv newton_env
-source newton_env/bin/activate  # Linux/Mac
-# 或
-newton_env\Scripts\activate  # Windows
-```
-
-## 第八部分：基础使用与示例
-
-### 创建简单仿真
-
-**使用 MuJoCo 求解器**
+### State 类
 
 ```python
-import newton
-from newton.solvers import MuJoCoSolver
-import numpy as np
+state = model.state(requires_grad=True)
 
-# 创建求解器
-solver = MuJoCoSolver()
-
-# 创建简单模型
-xml = """
-<mujoco>
-  <worldbody>
-    <light pos="0 0 3"/>
-    <geom name="floor" type="plane" size="1 1 0.1" rgba="0.8 0.8 0.8 1"/>
-    <body name="box" pos="0 0 1">
-      <geom name="box_geom" type="box" size="0.1 0.1 0.1" rgba="1 0 0 1"/>
-      <joint type="free"/>
-    </body>
-  </worldbody>
-</mujoco>
-"""
-
-# 加载模型
-model = solver.load_model_from_xml(xml)
-data = solver.create_data(model)
-
-# 运行仿真
-for step in range(1000):
-    solver.step(model, data)
-    if step % 100 == 0:
-        pos = data.qpos[:3]
-        print(f"Step {step}: Position = {pos}")
+# State 包含:
+# - particle_q, particle_qd (粒子状态)
+# - body_q, body_qd (刚体状态)
+# - joint_q, joint_qd (关节状态)
 ```
 
-### GPU 并行仿真
-
-**批量仿真**
+### Control 类
 
 ```python
-import torch
-from newton.solvers import MuJoCoSolver
+control = model.control(requires_grad=True)
 
-# 创建求解器
-solver = MuJoCoSolver()
-
-# 加载模型
-model = solver.load_model("robot.xml")
-
-# 创建批量数据
-num_envs = 1024
-data_batch = solver.create_data_batch(model, num_envs)
-
-# 批量运行仿真
-for step in range(1000):
-    # 批量控制输入
-    control_batch = torch.randn(num_envs, model.nu)
-
-    # 批量仿真步骤
-    solver.step_batch(model, data_batch, control_batch)
-
-    if step % 100 == 0:
-        # 获取批量状态
-        states = solver.get_states_batch(data_batch)
-        print(f"Step {step}: Mean position = {states[:, :3].mean(dim=0)}")
+# Control 包含:
+# - joint_target (关节目标)
+# - joint_f (关节力)
+# - tri_activations (三角形激活)
+# - tet_activations (四面体激活)
+# - muscle_activations (肌肉激活)
 ```
 
-### 可微分仿真示例
-
-**计算梯度**
+### 模拟循环
 
 ```python
-import torch
-from newton.solvers import MuJoCoSolver
+from newton import ModelBuilder, State
+from newton.solvers import SolverMuJoCo
 
-# 创建求解器（启用可微分模式）
-solver = MuJoCoSolver(differentiable=True)
+# 构建模型
+builder = ModelBuilder()
+# ... 添加物体、关节等
+model = builder.finalize()
 
-# 加载模型
-model = solver.load_model("robot.xml")
-data = solver.create_data(model)
+# 创建状态
+state = model.state()
+control = model.control()
 
-# 定义可微分的控制输入
-control = torch.randn(model.nu, requires_grad=True)
+# 模拟循环
+solver = SolverMuJoCo(model)
+for step in range(num_steps):
+    # 更新控制输入
+    control.joint_target[...] = target_values
 
-# 运行仿真
-for step in range(100):
-    solver.step(model, data, control)
+    # 推进模拟
+    state = solver.step(model, state, control)
+```
 
-# 计算目标函数（例如：最终位置）
-target_pos = torch.tensor([1.0, 0.0, 1.0])
-final_pos = torch.tensor(data.qpos[:3])
-loss = torch.sum((final_pos - target_pos) ** 2)
+---
 
-# 反向传播
+## 技术亮点
+
+### 1. 多世界并行模拟
+
+Newton 支持在单个 Model 中创建多个独立的世界：
+
+```python
+# 世界索引: -1 表示全局, 0, 1, 2... 表示特定世界
+model.particle_world  # 每个粒子的世界索引
+model.body_world      # 每个刚体的世界索引
+
+# 优势:
+# - 碰撞检测优化（分离世界）
+# - 可视化（空间分离）
+# - 并行处理（独立世界）
+```
+
+### 2. 可微物理
+
+```python
+# 启用梯度计算
+model = builder.finalize(requires_grad=True)
+state = model.state(requires_grad=True)
+
+# 计算梯度
+loss = compute_loss(state)
 loss.backward()
 
-# 获取梯度
-print(f"Control gradient: {control.grad}")
+# 应用: 策略学习、参数估计、轨迹优化
 ```
 
-**优化控制参数**
+### 3. 资产导入
+
+支持多种模型格式：
+
+| 格式 | 描述 | 用途 |
+|------|------|------|
+| **URDF** | 统一机器人描述格式 | ROS 生态系统 |
+| **MJCF** | MuJoCo XML 格式 | MuJoCo 模型 |
+| **USD** | Universal Scene Description | 复杂场景描述 |
 
 ```python
-import torch
-import torch.optim as optim
-from newton.solvers import MuJoCoSolver
+from newton.utils import import_urdf, import_mjcf, import_usd
 
-# 创建求解器
-solver = MuJoCoSolver(differentiable=True)
-model = solver.load_model("robot.xml")
+# URDF 导入
+model, builder = import_urdf("robot.urdf")
 
-# 初始化控制参数
-control_params = torch.randn(100, model.nu, requires_grad=True)
-optimizer = optim.Adam([control_params], lr=0.01)
+# MJCF 导入
+model, builder = import_mjcf("robot.xml")
 
-# 目标：到达指定位置
-target_pos = torch.tensor([1.0, 0.0, 1.0])
-
-# 优化循环
-for iteration in range(100):
-    # 重置状态
-    data = solver.create_data(model)
-
-    # 运行仿真
-    for step in range(100):
-        control = control_params[step]
-        solver.step(model, data, control)
-
-    # 计算损失
-    final_pos = torch.tensor(data.qpos[:3])
-    loss = torch.sum((final_pos - target_pos) ** 2)
-
-    # 优化
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
-    if iteration % 10 == 0:
-        print(f"Iteration {iteration}: Loss = {loss.item()}")
+# USD 导入
+model, builder = import_usd("scene.usd")
 ```
 
-## 第九部分：应用案例与最佳实践
+### 4. 可视化选项
 
-### 典型应用场景
-
-**强化学习训练**
-
-Newton 特别适合强化学习训练，因为它可以提供：
-
-- **大规模并行**：同时运行数千个环境实例
-- **高性能**：GPU 加速使得训练速度大幅提升
-- **可微分性**：支持基于梯度的策略优化
+| 查看器 | 描述 | 用途 |
+|--------|------|------|
+| `gl` | OpenGL 实时查看器 | 交互式可视化 |
+| `usd` | USD 文件输出 | 离线渲染、场景编辑 |
+| `rerun` | ReRun 集成 | 数据可视化和调试 |
+| `null` | 无头模式 | 纯计算、无可视化 |
 
 ```python
-# 强化学习训练示例
-from newton.solvers import MuJoCoSolver
-import torch
+from newton.viewer import ViewerGL, ViewerUSD, ViewerRerun, ViewerNull
 
-solver = MuJoCoSolver()
-model = solver.load_model("robot.xml")
+# OpenGL 查看器
+viewer = ViewerGL()
 
-# 创建并行环境
-num_envs = 4096
-data_batch = solver.create_data_batch(model, num_envs)
+# USD 查看器
+viewer = ViewerUSD(output_path="output.usd")
 
-# 训练循环
-for episode in range(1000):
-    # 重置环境
-    solver.reset_batch(data_batch)
+# ReRun 查看器
+viewer = ViewerRerun()
 
-    # 运行一个回合
-    for step in range(1000):
-        # 获取观察
-        obs = solver.get_observations_batch(data_batch)
-
-        # 策略网络选择动作
-        actions = policy_network(obs)
-
-        # 执行动作
-        solver.step_batch(model, data_batch, actions)
-
-        # 计算奖励
-        rewards = compute_rewards(data_batch)
-
-        # 更新策略（使用强化学习算法）
-        update_policy(obs, actions, rewards)
+# 无头模式
+viewer = ViewerNull()
 ```
 
-**参数估计**
+---
 
-使用可微分仿真从观测数据中估计物理参数：
+## 测试和质量保证
 
-```python
-# 参数估计示例
-import torch
-from newton.solvers import MuJoCoSolver
+### 测试套件
 
-solver = MuJoCoSolver(differentiable=True)
-model = solver.load_model("robot.xml")
+```bash
+# 运行测试
+uv run -m newton.tests
 
-# 观测数据
-observations = load_observations("data.npy")
-
-# 待估计的参数（例如：质量、摩擦系数）
-params = torch.tensor([1.0, 0.5], requires_grad=True)
-optimizer = torch.optim.Adam([params], lr=0.01)
-
-# 优化循环
-for iteration in range(1000):
-    # 设置参数
-    model.mass = params[0]
-    model.friction = params[1]
-
-    # 运行仿真
-    data = solver.create_data(model)
-    predictions = []
-    for step in range(len(observations)):
-        solver.step(model, data)
-        predictions.append(data.qpos.clone())
-
-    # 计算损失
-    predictions = torch.stack(predictions)
-    loss = torch.mean((predictions - observations) ** 2)
-
-    # 优化
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
-    if iteration % 100 == 0:
-        print(f"Iteration {iteration}: Loss = {loss.item()}, Params = {params.data}")
+# 特定测试
+uv run -m newton.tests test_ik
+uv run -m newton.tests test_collision_pipeline
 ```
 
-**轨迹优化**
+### 测试覆盖
 
-优化机器人的运动轨迹：
+- **单元测试** - 核心功能测试
+- **集成测试** - 多组件交互测试
+- **性能测试** - 基准测试 (asv/benchmarks/)
+- **覆盖率测试** - Codecov 集成
 
-```python
-# 轨迹优化示例
-import torch
-from newton.solvers import MuJoCoSolver
+---
 
-solver = MuJoCoSolver(differentiable=True)
-model = solver.load_model("robot.xml")
+## 社区和支持
 
-# 初始和目标状态
-initial_state = torch.tensor([0.0, 0.0, 1.0])
-target_state = torch.tensor([2.0, 0.0, 1.0])
+### 资源链接
 
-# 初始化轨迹
-trajectory_length = 100
-trajectory = torch.randn(trajectory_length, model.nu, requires_grad=True)
-optimizer = torch.optim.Adam([trajectory], lr=0.01)
+| 资源 | 链接 |
+|------|------|
+| **官方文档** | https://newton-physics.github.io/newton/ |
+| **GitHub 仓库** | https://github.com/newton-physics/newton |
+| **治理文档** | https://github.com/newton-physics/newton-governance |
+| **讨论区** | GitHub Discussions |
 
-# 优化循环
-for iteration in range(1000):
-    # 重置状态
-    data = solver.create_data(model)
-    data.qpos[:3] = initial_state
+### 相关项目
 
-    # 运行轨迹
-    for step in range(trajectory_length):
-        solver.step(model, data, trajectory[step])
+- [NVIDIA Warp](https://github.com/NVIDIA/warp) - GPU 计算框架
+- [MuJoCo-Warp](https://github.com/google-deepmind/mujoco_warp) - GPU 加速 MuJoCo
+- [OpenUSD](https://openusd.org/) - 通用场景描述
+- [Isaac Lab](https://github.com/isaac-sim/IsaacLab) - 机器人学习框架（实验性集成）
 
-    # 计算损失（到达目标位置）
-    final_pos = torch.tensor(data.qpos[:3])
-    loss = torch.sum((final_pos - target_state) ** 2)
+---
 
-    # 添加平滑性约束
-    smoothness_loss = torch.mean((trajectory[1:] - trajectory[:-1]) ** 2)
-    total_loss = loss + 0.1 * smoothness_loss
+## 应用场景
 
-    # 优化
-    optimizer.zero_grad()
-    total_loss.backward()
-    optimizer.step()
+### 1. 机器人仿真
 
-    if iteration % 100 == 0:
-        print(f"Iteration {iteration}: Loss = {loss.item()}")
-```
+- **机械臂控制** - UR10, Franka 等
+- **四足机器人** - ANYmal, Unitree Go1
+- **人形机器人** - Unitree H1, G1
+- **移动操作** - 复杂操作任务
 
-### 最佳实践
+### 2. 强化学习
 
-**性能优化**
+- **大规模并行** - 同时训练数千个环境
+- **策略梯度** - 可微物理支持梯度优化
+- **Sim-to-Real** - 高保真仿真提升迁移性能
 
-1. **合理设置环境数量**：根据 GPU 显存和计算能力设置
-2. **使用批处理**：尽可能使用批量操作
-3. **减少数据传输**：尽量减少 CPU 和 GPU 之间的数据传输
-4. **内存管理**：注意 GPU 内存使用，及时释放不需要的数据
+### 3. 物理优化
 
-**可微分仿真使用**
+- **轨迹优化** - 运动规划
+- **参数估计** - 系统辨识
+- **控制优化** - 控制器调优
 
-1. **选择性启用**：只在需要梯度时启用可微分模式
-2. **内存管理**：可微分仿真需要更多内存，注意内存使用
-3. **数值稳定性**：注意数值稳定性，避免梯度爆炸或消失
+### 4. 多物理场
 
-**模型设计**
+- **布料模拟** - 服装、软体
+- **软体物理** - 可变形物体
+- **颗粒材料** - MPM 方法
+- **流体动力学** - 颗粒物质
 
-1. **简化模型**：在保证精度的前提下，尽量简化模型
-2. **合理的时间步长**：选择合适的时间步长，平衡精度和性能
-3. **参数调优**：根据具体应用调优物理参数
-
-**调试技巧**
-
-1. **使用可视化**：充分利用可视化工具调试
-2. **逐步调试**：从简单模型开始，逐步增加复杂度
-3. **性能分析**：使用性能分析工具找出瓶颈
-4. **单元测试**：为关键功能编写单元测试
-
-## 第十部分：未来发展与展望
-
-### 技术发展方向
-
-**性能优化**
-
-Newton 将继续优化性能，包括：
-
-- **更好的 GPU 利用率**：进一步优化 GPU 代码
-- **多 GPU 支持**：支持多 GPU 并行仿真
-- **混合精度计算**：使用混合精度提高性能
-
-**功能扩展**
-
-Newton 计划扩展以下功能：
-
-- **更多求解器**：集成更多物理求解器
-- **更多物理现象**：支持更多物理现象（流体、电磁等）
-- **更好的工具支持**：提供更好的开发和调试工具
-
-**生态系统建设**
-
-Newton 将继续建设生态系统：
-
-- **更多框架集成**：与更多机器人学习框架集成
-- **社区支持**：建立活跃的社区
-- **文档和教程**：提供更丰富的文档和教程
-
-### 应用前景
-
-**机器人学习**
-
-Newton 将在机器人学习中发挥越来越重要的作用：
-
-- **大规模训练**：支持更大规模的强化学习训练
-- **快速迭代**：加速算法开发和迭代
-- **Sim-to-Real**：提高仿真到现实的迁移能力
-
-**研究应用**
-
-Newton 将在以下研究领域有重要应用：
-
-- **机器人控制**：开发更先进的控制算法
-- **机器人设计**：优化机器人设计
-- **多机器人系统**：仿真多机器人系统
-
-**工业应用**
-
-Newton 也有望在工业应用中发挥作用：
-
-- **机器人测试**：在部署前测试机器人系统
-- **虚拟调试**：虚拟调试机器人系统
-- **培训和教育**：用于机器人培训和教育
+---
 
 ## 总结
 
-Newton 作为一个下一代 GPU 加速、可微分的物理仿真引擎，代表了物理仿真技术的重要发展方向。通过 GPU 加速、可微分设计和模块化架构，Newton 为机器人学习和研究提供了强大的工具。
+Newton 是一个功能强大、设计现代化的物理模拟引擎，具有以下优势：
 
-从技术角度来看，Newton 的核心优势在于其独特的架构设计。通过基于 NVIDIA Warp 的 GPU 加速，Newton 实现了显著的性能提升，这对于需要大量样本的强化学习训练至关重要。同时，Newton 的可微分设计使得基于梯度的优化方法成为可能，大大提高了优化效率。更重要的是，Newton 的模块化设计允许研究人员根据需要选择最适合的求解器和组件，实现了高度的灵活性。
+### 核心优势
 
-在实际应用中，Newton 已经证明了其在各种机器人任务中的有效性。从强化学习训练到参数估计，从轨迹优化到机器人设计，Newton 为这些复杂任务提供了高效的平台。更重要的是，Newton 与 Isaac Lab 和 MuJoCo Playground 的集成使得研究人员可以充分利用现有工具和框架，同时获得 Newton 的性能优势。
+1. **高性能** - GPU 加速实现大规模并行模拟
+2. **灵活性** - 多种求解器支持不同物理场景
+3. **可扩展** - 用户可自定义组件和求解器
+4. **易用性** - 清晰的 API 设计和丰富的示例
+5. **开源** - Apache-2.0 许可，社区驱动开发
 
-随着 GPU 计算能力的不断提升和物理仿真技术的持续发展，Newton 这样的 GPU 加速、可微分仿真引擎将在机器人学和强化学习研究中发挥越来越重要的作用。它们不仅能够加速算法开发和研究迭代，更能够推动机器人技术的实际应用，为未来的智能机器人系统奠定坚实的基础。
+### 与其他引擎对比
 
-对于研究人员和开发者来说，掌握 Newton 这样的工具，不仅能够提高研究效率，更能够探索更复杂的机器人任务和更先进的控制策略。随着技术的不断发展，我们有理由相信，基于 GPU 加速和可微分的物理仿真将成为机器人学研究的标准工具，而 Newton 正是这一趋势的典型代表。
+| 特性 | Newton | MuJoCo | Isaac Sim | Brax |
+|------|--------|--------|-----------|------|
+| **GPU 加速** | ✅ | ❌ (基础版) | ✅ | ✅ |
+| **可微物理** | ✅ | ❌ | 部分 | ✅ |
+| **多求解器** | ✅ | ❌ | ❌ | ❌ |
+| **OpenUSD** | ✅ | ❌ | ✅ | ❌ |
+| **开源** | ✅ | ✅ | ❌ | ✅ |
 
-希望本文能够帮助读者深入理解 Newton 的核心概念和技术特点，并在实际研究中有效应用 Newton 的强大功能。无论是进行基础研究还是开发实际应用，Newton 都提供了一个可靠、高效、灵活的物理仿真平台。
+### 发展前景
+
+Newton 目前处于 **Beta 阶段**，API 可能会有破坏性变更，但已经展示出在机器人仿真领域的巨大潜力。对于需要进行大规模、高保真物理模拟的研究人员和工程师来说，Newton 是一个值得关注和投入的项目。
+
+随着 GPU 计算能力的不断提升和物理仿真技术的持续发展，Newton 这样的 GPU 加速、可微分仿真引擎将在机器人学和强化学习研究中发挥越来越重要的作用。
+
+---
+
+## 参考资源
+
+- [Newton 官方文档](https://newton-physics.github.io/newton/)
+- [Newton GitHub](https://github.com/newton-physics/newton)
+- [NVIDIA Warp](https://github.com/NVIDIA/warp)
+- [MuJoCo-Warp](https://github.com/google-deepmind/mujoco_warp)
+- [OpenUSD](https://openusd.org/)

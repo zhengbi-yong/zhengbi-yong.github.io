@@ -1,0 +1,2411 @@
+---
+title: 'Hyprland 完全指南：现代化 Wayland 平铺式窗口管理器'
+date: '2025-12-30'
+tags: ['Hyprland', 'Wayland', 'Window Manager', 'Linux', 'Arch Linux', '窗口管理器']
+draft: false
+summary: 全面深入的 Hyprland 使用指南，涵盖基础概念、安装配置、窗口管理、外观定制和最佳实践，帮助 Linux 用户构建高效、美观的 Wayland 桌面环境。
+showTOC: true
+---
+
+## 引言
+
+在 Linux 桌面环境的演进过程中，窗口管理器一直是用户个性化体验的核心组件。长期以来，i3wm 作为 X11 时代的平铺式窗口管理器代表，以其简洁高效的设计赢得了大量用户的喜爱。然而，随着显示技术的进步和用户对视觉体验要求的提升，X11 协议的局限性日益显现。安全性问题、架构复杂性、以及对现代显示技术的支持不足，都促使社区寻找更好的解决方案。
+
+Wayland 作为下一代显示协议，以其简洁的架构和更好的安全性逐渐成为主流。Sway 作为 i3wm 的 Wayland 移植版本，为用户提供了平滑的迁移路径。然而，Sway 在设计上保持了对 i3wm 的兼容性，这意味着它无法充分利用 Wayland 的现代特性。在这个背景下，Hyprland 应运而生。
+
+Hyprland 是一个完全从零开始编写的 Wayland 合成器，采用 C++ 开发，不受 X11 时代的架构限制。它不仅提供了动态平铺式窗口管理功能，还引入了流畅的动画效果、强大的窗口规则系统、现代化的视觉效果等特性。Hyprland 的设计理念是"既要功能强大，又要视觉美观"，它在保持平铺式窗口管理器高效性的同时，带来了令人惊艳的用户体验。
+
+从技术角度来看，Hyprland 采用了模块化的架构设计，支持通过插件系统扩展功能。它的配置系统灵活且强大，窗口规则引擎可以精确控制窗口行为。更重要的是，Hyprland 积极拥抱 Wayland 的新特性，如动态刷新率、更好的多显示器支持等，为用户带来了真正现代化的桌面体验。
+
+本文将带您全面深入地了解 Hyprland 的方方面面。从基础概念到安装配置，从窗口管理到外观定制，从高级功能到故障排查，我们将系统地介绍如何使用 Hyprland 构建一个高效、美观且符合个人工作流的 Wayland 桌面环境。无论您是从 i3wm/Sway 迁移的老用户，还是第一次接触平铺式窗口管理器的新手，都能从本文中获得有价值的知识和实践指导。
+
+## 第一部分：Hyprland 基础
+
+### 1.1 什么是 Hyprland
+
+Hyprland 是一个用 C++ 编写的动态平铺式 Wayland 合成器。它的目标是提供一个现代化、功能强大且视觉美观的窗口管理解决方案。与传统的窗口管理器不同，Hyprland 从设计之初就完全基于 Wayland 协议，没有 X11 的历史包袱，这使得它能够充分利用 Wayland 的现代特性。
+
+**Hyprland 的核心特点：**
+
+1. **动态平铺式窗口管理**：自动管理和排列窗口，无需手动调整位置
+2. **纯 Wayland 实现**：不依赖 Xwayland，提供原生的 Wayland 体验
+3. **现代化设计**：流畅的动画、模糊效果、圆角窗口等视觉特性
+4. **高性能**：C++ 编写，优化良好，响应迅速
+5. **高度可配置**：强大的配置系统和窗口规则引擎
+6. **插件生态**：支持通过插件扩展功能
+
+**技术架构：**
+
+Hyprland 使用 wlroots 作为 Wayland 协议的实现库，这是一个由 Sway 开发的 Wayland 合成器工具包。wlroots 提供了输入处理、输出管理等功能，让 Hyprland 可以专注于窗口管理和用户体验的实现。
+
+### 1.2 核心特性
+
+**动态平铺式窗口管理**
+
+Hyprland 自动管理窗口布局，将屏幕分割为多个区域，新窗口会自动填充可用空间。用户可以轻松地在窗口之间导航、移动和调整大小，无需手动拖拽窗口。支持多种布局模式，如 dwindle（螺旋布局） 和 master（主从布局）。
+
+**原生 Wayland 支持**
+
+作为纯 Wayland 合成器，Hyprland 不需要 Xwayland 兼容层来运行原生 Wayland 应用。这意味着更好的性能、更低的延迟和更少的资源占用。对于需要 X11 应用的场景，Hyprland 也支持通过 Xwayland 运行。
+
+**流畅动画效果**
+
+Hyprland 内置了强大的动画系统，支持窗口打开/关闭动画、工作区切换动画、边框旋转动画等。所有动画都是流畅且可配置的，用户可以根据自己的喜好调整动画风格和速度。
+
+**强大的窗口规则系统**
+
+Hyprland 的窗口规则引擎非常强大，支持基于窗口类名、标题、初始位置等多种条件的规则。可以设置窗口浮动、调整大小、透明度、是否在特定工作区打开等。
+
+**多显示器支持**
+
+Hyprland 对多显示器的支持非常完善，支持不同的分辨率、刷新率，可以精确控制每个显示器的位置和布局。工作区可以绑定到特定显示器，实现多工作区跨显示器管理。
+
+**输入设备配置**
+
+支持键盘、鼠标、触摸板等多种输入设备的详细配置。支持触摸板手势，如三指滑动切换工作区。支持不同键盘布局切换。
+
+**插件系统**
+
+Hyprland 支持通过插件扩展功能，社区提供了丰富的插件，如窗口概览、动态显示器管理、额外布局等。插件 API 清晰，开发者可以轻松编写自己的插件。
+
+### 1.3 与其他窗口管理器对比
+
+为了更好地理解 Hyprland 的定位，让我们将其与其他流行的窗口管理器进行对比。
+
+| 特性 | i3wm | Sway | Hyprland |
+|------|------|------|----------|
+| **显示协议** | X11 | Wayland | Wayland |
+| **开发语言** | C | C | C++ |
+| **动画效果** | 无 | 基础 | 丰富流畅 |
+| **视觉效果** | 基础 | 基础 | 现代美观 |
+| **稳定性** | 非常稳定 | 稳定 | 较稳定 |
+| **配置难度** | 中等 | 低 | 中等 |
+| **窗口规则** | 基础 | 基础 | 强大 |
+| **插件系统** | 无（通过 i3status） | 有限 | 完善 |
+| **多显示器** | 支持 | 支持 | 完善支持 |
+| **学习曲线** | 中等 | 低 | 中等 |
+| **社区活跃度** | 维护模式 | 活跃 | 非常活跃 |
+
+**详细对比分析：**
+
+**vs i3wm**
+
+- **优势**：Hyprland 使用 Wayland，安全性更好；有动画效果，视觉体验更佳；窗口规则系统更强大；插件生态更丰富
+- **劣势**：i3wm 更稳定，配置更简单；文档更完善；历史更长，社区资源更多
+
+**vs Sway**
+
+- **优势**：Hyprland 有更现代的视觉效果和动画；窗口规则系统更强大；配置更灵活；功能更新更快
+- **劣势**：Sway 更稳定，与 i3wm 兼容性更好；配置更简单；更适合从 i3wm 迁移的用户
+
+### 1.4 Wayland vs Xorg
+
+理解 Hyprland 的价值，需要了解 Wayland 相对于 Xorg 的优势。
+
+**Wayland 的优势：**
+
+1. **架构简洁**：Wayland 的架构比 X11 简洁得多，减少了安全漏洞和 bug
+2. **更好的安全性**：应用无法监听其他应用的输入，也无法截屏其他应用的内容（除非获得授权）
+3. **更低的延迟**：直接合成，减少了中间环节，输入延迟更低
+4. **更好的性能**：减少了不必要的渲染和传输
+5. **现代特性支持**：原生支持动态刷新率、多显示器等现代显示技术
+6. **更容易开发**：API 更简单，开发者更容易实现新功能
+
+**Xorg 的优势：**
+
+1. **成熟稳定**：经过几十年发展，非常稳定可靠
+2. **广泛兼容**：几乎所有 Linux 应用都支持 X11
+3. **功能完整**：支持各种高级功能，如网络透明性
+4. **工具丰富**：有大量成熟的工具和配置选项
+
+**为什么选择 Wayland？**
+
+对于大多数现代桌面使用场景，Wayland 已经足够成熟。它提供了更好的安全性、性能和用户体验。虽然一些特殊应用（如某些屏幕录制工具）可能仍有兼容性问题，但这些问题正在逐步解决。Hyprland 作为纯 Wayland 合成器，代表了 Linux 桌面的未来方向。
+
+## 第二部分：安装与配置
+
+### 2.1 系统要求
+
+在安装 Hyprland 之前，需要确保系统满足以下要求：
+
+**操作系统支持**
+
+- **Arch Linux** / Arch Linux 衍生版（EndeavourOS、Manjaro 等）
+- **Fedora** / Fedora 衍生版
+- **NixOS**
+- **Ubuntu** / Debian（通过官方 PPA 或编译安装）
+- 其他支持 Wayland 的 Linux 发行版
+
+**硬件要求**
+
+- 支持 Wayland 的显卡驱动
+- 至少 2GB 内存（推荐 4GB+）
+- 支持现代图形加速的显卡
+
+**软件要求**
+
+- Wayland 显示服务器
+- 显卡驱动（AMD、Intel 或 NVIDIA）
+- 基础开发工具（如需从源码编译）
+
+### 2.2 Arch Linux 安装
+
+Arch Linux 是 Hyprland 的主要支持平台，安装最为简单。
+
+**从官方仓库安装：**
+
+```bash
+# 安装 Hyprland
+sudo pacman -S hyprland
+
+# 安装必需组件
+sudo pacman -S xdg-desktop-portal-hyprland
+```
+
+**从 AUR 安装最新版本：**
+
+```bash
+# 使用 paru
+paru -S hyprland-git
+
+# 或使用 yay
+yay -S hyprland-git
+```
+
+**其他发行版安装：**
+
+```bash
+# Fedora
+sudo dnf install hyprland
+
+# NixOS
+# 在 configuration.nix 中添加：
+# programs.hyprland = {
+#   enable = true;
+#   xwayland.enable = true;
+# };
+
+# Ubuntu/Debian
+# 添加 PPA 并安装
+sudo add-apt-repository ppa:hyprland/hyprland
+sudo apt update
+sudo apt install hyprland
+```
+
+### 2.3 初始配置
+
+**配置文件位置**
+
+Hyprland 的主配置文件位于 `~/.config/hypr/hyprland.conf`。首次启动时，Hyprland 会自动创建示例配置文件。
+
+**从示例配置开始：**
+
+```bash
+# 创建配置目录
+mkdir -p ~/.config/hypr
+
+# 复制示例配置
+cp /etc/hypr/hyprland.conf.example ~/.config/hypr/hyprland.conf
+
+# 编辑配置
+nvim ~/.config/hypr/hyprland.conf
+```
+
+**配置文件结构：**
+
+Hyprland 的配置文件分为多个部分：
+
+- **监控器配置 (Monitor)**：定义显示器布局
+- **通用设置 (General)**：窗口间距、边框大小、布局方式
+- **装饰设置 (Decoration)**：圆角、模糊、阴影等视觉效果
+- **动画设置 (Animations)**：定义各种动画效果
+- **输入设置 (Input)**：键盘、鼠标、触摸板配置
+- **绑定设置 (Bind)**：快捷键和手势
+- **窗口规则 (Window Rule)**：定义特定窗口的行为
+- **自动启动 (Exec)**：启动时自动运行的命令
+
+### 2.4 必需组件安装
+
+一个完整的 Hyprland 桌面环境需要安装一些辅助组件。
+
+**终端模拟器：**
+
+```bash
+# Kitty（推荐）
+sudo pacman -S kitty
+
+# Alacritty
+sudo pacman -S alacritty
+
+# WezTerm
+paru -S wezterm
+```
+
+**状态栏：**
+
+```bash
+# Waybar（推荐）
+sudo pacman -S waybar
+
+# 或使用 Eww（更灵活）
+paru -S eww
+```
+
+**应用启动器：**
+
+```bash
+# Wofi（Wayland 版 Rofi）
+paru -S wofi
+
+# 或 Rofi Wayland 分支
+paru -S rofi-wayland
+```
+
+**壁纸工具：**
+
+```bash
+# swww（推荐，支持动画）
+paru -S swww
+
+# 或 Hyprpaper（官方插件）
+paru -S hyprpaper
+
+# 或 Waypaper（图形界面）
+paru -S waypaper
+```
+
+**通知守护：**
+
+```bash
+# Dunst（简单轻量）
+sudo pacman -S dunst
+
+# Mako（推荐）
+sudo pacman -S mako
+
+# 或 Swaync（带图形界面）
+paru -S sway-notification-center
+```
+
+**屏幕锁定：**
+
+```bash
+# Hyprlock（官方工具）
+paru -S hyprlock
+
+# 或 Swaylock
+sudo pacman -S swaylock
+```
+
+**会话管理：**
+
+```bash
+# Wlogout
+paru -S wlogout
+
+# 用于退出登录、关机、重启等
+```
+
+**文件管理器：**
+
+```bash
+# Thunar（轻量）
+sudo pacman -S thunar
+
+# 或 Yazi（终端文件管理器，推荐）
+paru -S yazi
+
+# 或 Pcmanfm
+sudo pacman -S pcmanfm
+```
+
+**中文输入法：**
+
+```bash
+# Fcitx5（推荐）
+sudo pacman -S fcitx5-im fcitx5-chinese-addons fcitx5-pinyin-zhwiki
+
+# 或 IBus
+sudo pacman -S ibus ibus-libpinyin
+```
+
+**截图录屏工具：**
+
+```bash
+# 截图
+sudo pacman -S grim slurp
+
+# 录屏
+sudo pacman -S wf-recorder
+
+# 图形截图工具
+paru -S swappy
+```
+
+**其他实用工具：**
+
+```bash
+# 音量控制
+sudo pacman -S pamixer
+
+# 亮度控制
+sudo pacman -S brightnessctl
+
+# 网络管理（图形界面）
+sudo pacman -S network-manager-applet
+
+# 蓝牙管理（图形界面）
+sudo pacman -S blueman
+
+# 电源管理（笔记本）
+sudo pacman -S tlp
+
+# 剪贴板管理器
+paru -S cliphist
+```
+
+### 2.5 配置文件详解
+
+让我们创建一个基础的配置文件：
+
+**基础配置示例：**
+
+```conf
+# ~/.config/hypr/hyprland.conf
+
+# ================== 监控器配置 ==================
+monitor=eDP-1,1920x1080,0x0,1
+
+# ================== 通用设置 ==================
+general {
+    # 窗口之间的间距
+    gaps_in = 5
+    # 窗口与屏幕边缘的间距
+    gaps_out = 20
+    # 边框大小
+    border_size = 2
+    # 活动窗口颜色
+    col.active_border = rgb(89b4fa)
+    # 非活动窗口颜色
+    col.inactive_border = rgb(45475a)
+    # 布局方式：dwindle（螺旋）或 master（主从）
+    layout = dwindle
+}
+
+# ================== 装饰设置 ==================
+decoration {
+    # 圆角大小
+    rounding = 10
+
+    # 模糊效果
+    blur {
+        enabled = true
+        size = 8
+        passes = 3
+        new_optimizations = on
+    }
+
+    # 阴影
+    drop_shadow = yes
+    shadow_range = 4
+    shadow_render_power = 3
+    col.shadow = rgba(1a1a1aee)
+}
+
+# ================== 动画设置 ==================
+animations {
+    enabled = yes
+    # 窗口动画
+    animation = windows, 1, 7, default, slide
+    # 工作区切换动画
+    animation = workspaces, 1, 6, default, slidevert
+    # 边框动画
+    animation = border, 1, 10, default
+    # 淡入淡出
+    animation = fade, 1, 10, default
+}
+
+# ================== 输入设置 ==================
+input {
+    # 键盘布局
+    kb_layout = cn
+    # 鼠标跟随焦点
+    follow_mouse = 1
+    # 触摸板自然滚动
+    touchdevice {
+        natural_scroll = yes
+    }
+}
+
+# ================== 快捷键绑定 ==================
+# 定义主修饰键
+$mainMod = SUPER
+
+# 基础快捷键
+# 终端
+bind = $mainMod, Return, exec, kitty
+# 应用启动器
+bind = $mainMod, D, exec, wofi --show drun
+# 浏览器
+bind = $mainMod, B, exec, firefox
+# 文件管理器
+bind = $mainMod, E, exec, thunar
+
+# 窗口控制
+# 关闭窗口
+bind = $mainMod SHIFT, Q, killactive
+# 退出 Hyprland
+bind = $mainMod SHIFT, E, exit
+# 切换浮动/平铺
+bind = $mainMod, SPACE, togglefloating
+# 切换布局
+bind = $mainMod, S, togglesplit
+
+# 窗口焦点移动
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+
+# 窗口移动
+bind = $mainMod SHIFT, left, movewindow, l
+bind = $mainMod SHIFT, right, movewindow, r
+bind = $mainMod SHIFT, up, movewindow, u
+bind = $mainMod SHIFT, down, movewindow, d
+
+# 工作区切换
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+
+# 移动窗口到工作区
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+
+# 窗口大小调整（需要插件支持，或使用默认的鼠标拖拽）
+bind = $mainMod, R, submap, resize
+
+# 音量和亮度
+bind = , XF86AudioRaiseVolume, exec, pamixer -i 5
+bind = , XF86AudioLowerVolume, exec, pamixer -d 5
+bind = , XF86AudioMute, exec, pamixer -t
+bind = , XF86MonBrightnessUp, exec, brightnessctl set +5%
+bind = , XF86MonBrightnessDown, exec, brightnessctl set 5%-
+
+# 截图
+bind = , Print, exec, grim ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+bind = $mainMod, Print, exec, grim -g "$(slurp)" ~/Pictures/screenshot-$(date +%Y%m%d-%H%M%S).png
+
+# ================== 自动启动 ==================
+exec-once = waybar
+exec-once = dunst &
+exec-once = fcitx5 -d
+exec-once = swww init &
+exec-once = blueman-applet &
+exec-once = nm-applet --indicator &
+```
+
+**配置重载：**
+
+修改配置后，可以使用以下命令重载配置：
+
+```bash
+# 重载配置
+hyprctl reload
+
+# 或使用快捷键（需在配置中添加）
+bind = $mainMod SHIFT, R, exec, hyprctl reload
+```
+
+## 第三部分：窗口管理详解
+
+### 3.1 基础窗口操作
+
+Hyprland 提供了丰富的窗口操作快捷键，让窗口管理变得高效便捷。
+
+**焦点移动：**
+
+```conf
+# 使用方向键移动焦点
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+
+# 使用 Vim 键位移动焦点
+bind = $mainMod, h, movefocus, l
+bind = $mainMod, l, movefocus, r
+bind = $mainMod, k, movefocus, u
+bind = $mainMod, j, movefocus, d
+```
+
+**窗口移动：**
+
+```conf
+# 移动当前窗口到不同位置
+bind = $mainMod SHIFT, left, movewindow, l
+bind = $mainMod SHIFT, right, movewindow, r
+bind = $mainMod SHIFT, up, movewindow, u
+bind = $mainMod SHIFT, down, movewindow, d
+
+# 使用 Vim 键位移动窗口
+bind = $mainMod SHIFT, h, movewindow, l
+bind = $mainMod SHIFT, l, movewindow, r
+bind = $mainMod SHIFT, k, movewindow, u
+bind = $mainMod SHIFT, j, movewindow, d
+```
+
+**窗口大小调整：**
+
+Hyprland 支持通过快捷键调整窗口大小。默认情况下，可以使用 `SUPER + 鼠标拖拽` 来调整窗口大小。
+
+```conf
+# 使用 submap 进行窗口大小调整
+submap = resize
+# 进入 resize 模式后，可以使用以下快捷键
+binde = , right, resizeactive, 10 0
+binde = , left, resizeactive, -10 0
+binde = , up, resizeactive, 0 -10
+binde = , down, resizeactive, 0 10
+bind = , escape, submap, reset  # 退出 resize 模式
+submap = reset
+```
+
+**窗口操作：**
+
+```conf
+# 关闭窗口
+bind = $mainMod SHIFT, Q, killactive
+
+# 切换浮动/平铺
+bind = $mainMod, SPACE, togglefloating
+
+# 切换全屏
+bind = $mainMod, F, fullscreen, 0
+
+# 切换伪全屏（窗口占满工作区，但保留边框）
+bind = $mainMod SHIFT, F, fullscreen, 1
+
+# 切换裂分方向
+bind = $mainMod, S, togglesplit
+
+# 焦点下一个/上一个窗口
+bind = $mainMod, TAB, cyclenext
+bind = $mainMod SHIFT, TAB, cyclenext, prev
+
+# 改变窗口焦点顺序
+bind = $mainMod, grave, focusurgentorlast
+```
+
+**布局切换：**
+
+```conf
+# 切换到 dwindle 布局（螺旋）
+bind = $mainMod, comma, layoutmsg, orientationleft
+bind = $mainMod, period, layoutmsg, orientationright
+
+# 切换到 master 布局（主从）
+bind = $mainMod, m, layoutmsg, addmaster, 1
+bind = $mainMod SHIFT, m, layoutmsg, removemaster, 1
+```
+
+### 3.2 工作区管理
+
+工作区是组织窗口的重要方式，Hyprland 提供了灵活的工作区管理功能。
+
+**工作区切换：**
+
+```conf
+# 切换到指定工作区
+bind = $mainMod, 1, workspace, 1
+bind = $mainMod, 2, workspace, 2
+bind = $mainMod, 3, workspace, 3
+bind = $mainMod, 4, workspace, 4
+bind = $mainMod, 5, workspace, 5
+bind = $mainMod, 6, workspace, 6
+bind = $mainMod, 7, workspace, 7
+bind = $mainMod, 8, workspace, 8
+bind = $mainMod, 9, workspace, 9
+bind = $mainMod, 0, workspace, 10
+
+# 切换到上一个/下一个工作区
+bind = $mainMod, bracketleft, workspace, -1
+bind = $mainMod, bracketright, workspace, +1
+
+# 切换到紧急工作区（有通知的工作区）
+bind = $mainMod, U, focusurgentorlast
+```
+
+**移动窗口到工作区：**
+
+```conf
+# 移动当前窗口到指定工作区
+bind = $mainMod SHIFT, 1, movetoworkspace, 1
+bind = $mainMod SHIFT, 2, movetoworkspace, 2
+bind = $mainMod SHIFT, 3, movetoworkspace, 3
+bind = $mainMod SHIFT, 4, movetoworkspace, 4
+bind = $mainMod SHIFT, 5, movetoworkspace, 5
+bind = $mainMod SHIFT, 6, movetoworkspace, 6
+bind = $mainMod SHIFT, 7, movetoworkspace, 7
+bind = $mainMod SHIFT, 8, movetoworkspace, 8
+bind = $mainMod SHIFT, 9, movetoworkspace, 9
+bind = $mainMod SHIFT, 0, movetoworkspace, 10
+
+# 移动当前窗口到相邻工作区
+bind = $mainMod ALT, left, movetoworkspace, -1
+bind = $mainMod ALT, right, movetoworkspace, +1
+```
+
+**工作区绑定到显示器：**
+
+在多显示器环境中，可以将工作区绑定到特定显示器：
+
+```conf
+# 将工作区 1-5 绑定到 eDP-1（笔记本屏幕）
+workspace = 1, monitor:eDP-1, default:true
+workspace = 2, monitor:eDP-1
+workspace = 3, monitor:eDP-1
+workspace = 4, monitor:eDP-1
+workspace = 5, monitor:eDP-1
+
+# 将工作区 6-10 绑定到 HDMI-A-1（外接显示器）
+workspace = 6, monitor:HDMI-A-1, default:true
+workspace = 7, monitor:HDMI-A-1
+workspace = 8, monitor:HDMI-A-1
+workspace = 9, monitor:HDMI-A-1
+workspace = 10, monitor:HDMI-A-1
+```
+
+**工作区特殊规则：**
+
+```conf
+# 创建空工作区并命名
+workspace = name:特殊工作区, 1
+
+# 循环工作区（到达最后一个后回到第一个）
+bind = $mainMod, right, workspace, +1
+bind = $mainMod, left, workspace, -1
+```
+
+### 3.3 窗口规则
+
+窗口规则是 Hyprland 最强大的功能之一，可以精确控制特定窗口的行为。
+
+**基础窗口规则：**
+
+```conf
+# ================== 浮动窗口 ==================
+# 音量控制
+windowrule = float, ^(pavucontrol)$
+windowrule = float, ^(blueman-manager)$
+
+# 网络管理
+windowrule = float, ^(nm-connection-editor)$
+
+# 系统工具
+windowrule = float, ^(org.gnome.CPUFreq)$
+windowrule = float, ^(gnome-system-monitor)$
+
+# Steam 相关
+windowrule = float, ^(steam)$
+windowrule = float, title:^(Steam Settings)$
+
+# 图片查看器
+windowrule = float, ^(feh)$
+windowrule = float, ^(imv)$
+
+# 密码管理器
+windowrule = float, ^(keepassxc)$
+windowrule = float, ^(bitwarden)$
+
+# ================== 窗口大小和位置 ==================
+# 设置终端窗口默认大小
+windowrule = size 950 600, ^(kitty)$
+
+# YouTube 视频浮动
+windowrule = float, title:^(.*)(- Youtube)$
+windowrule = size 900 600, title:^(.*)(- Youtube)$
+
+# Steam 登录窗口居中
+windowrule = center, title:^(Steam Login)$
+
+# ================== 窗口透明度 ==================
+# 终端透明度
+windowrule = opacity 0.9 0.9, ^(kitty)$
+windowrule = opacity 0.85 0.85, ^(alacritty)$
+
+# 浏览器透明度
+windowrule = opacity 0.95 0.95, ^(firefox)$
+
+# 代码编辑器透明度
+windowrule = opacity 0.95 0.95, ^(code-oss)$
+windowrule = opacity 0.95 0.95, ^(VSCodium)$
+
+# ================== 窗口分组 ==================
+# 所有 Steam 游戏在同一工作区
+windowrule = workspace 3, ^(steam_app_\d+)$
+
+# 所有聊天应用在工作区 4
+windowrule = workspace 4, ^(telegramdesktop)$
+windowrule = workspace 4, ^(discord)$
+windowrule = workspace 4, ^(vesktop)$
+
+# ================== 特殊规则 ==================
+# 不聚焦特定窗口
+windowrule = nofocus, ^(rofi)$
+
+# 禁止全屏
+windowrule = nodimmer, ^(kitty)$
+
+# 保持在顶层
+windowrule = pin, ^(fcitx)$
+windowrule = pin, ^(ibus)$
+```
+
+**高级窗口规则（windowrulev2）：**
+
+```conf
+# 更复杂的规则使用 windowrulev2
+
+# 只对特定类名和标题的窗口应用规则
+windowrulev2 = float, class:^(kitty)$, title:^(ncmpcpp)$
+
+# 基于窗口初始大小
+windowrulev2 = float, initialClass:^(kitty)$, initialTitle:^(htop)$
+
+# 组合多个条件
+windowrulev2 = stayfocused, class:^(firefox)$, title:^(.*)(- YouTube)$
+
+# 针对 X11 应用
+windowrulev2 = rounding 0, xwayland:1, floating:0
+
+# 针对特定工作区
+windowrulev2 = workspace 1, class:^(kitty)$, title:^(nvim)$
+
+# 设置窗口层级
+windowrulev2 = stayfocused, class:^(firefox)$
+```
+
+**窗口动画规则：**
+
+```conf
+# 特定窗口禁用动画
+windowrule = animation none, ^(kitty)$
+
+# 特定窗口使用不同动画
+windowrule = animation popin 0.5, ^(rofi)$
+```
+
+### 3.4 快捷键配置
+
+Hyprland 的快捷键系统非常灵活，支持单键、组合键、多键绑定等。
+
+**快捷键基础语法：**
+
+```conf
+bind = MODIFIER, key, dispatcher, params
+
+# MODIFIER: SUPER, SHIFT, CTRL, ALT, 等
+# key: 按键名称（Return, Space, a, b, c, 等）
+# dispatcher: 动作类型（exec, killactive, togglefloating, 等）
+# params: 动作参数（命令名、数值等）
+```
+
+**常用快捷键示例：**
+
+```conf
+# 定义修饰键变量
+$mainMod = SUPER
+$altMod = ALT
+
+# ================== 应用启动 ==================
+bind = $mainMod, Return, exec, kitty
+bind = $mainMod, D, exec, wofi --show drun
+bind = $mainMod, B, exec, firefox
+bind = $mainMod, N, exec, thunar
+
+# ================== 系统控制 ==================
+bind = $mainMod SHIFT, E, exec, wlogout
+bind = $mainMod SHIFT, L, exec, hyprlock
+bind = $mainMod CTRL, R, exec, systemctl reboot
+bind = $mainMod CTRL SHIFT, R, exec, systemctl poweroff
+
+# ================== 媒体控制 ==================
+bind = , XF86AudioPlay, exec, playerctl play-pause
+bind = , XF86AudioNext, exec, playerctl next
+bind = , XF86AudioPrev, exec, playerctl previous
+bind = , XF86AudioStop, exec, playerctl stop
+
+# ================== 功能键 ==================
+# 触摸板开关
+bind = $mainMod, F1, exec, ~/.config/hypr/scripts/touchpad.sh
+
+# 音量/亮度快捷键
+bind = , XF86AudioRaiseVolume, exec, pamixer -i 5
+bind = , XF86AudioLowerVolume, exec, pamixer -d 5
+bind = , XF86AudioMute, exec, pamixer -t
+bind = , XF86MonBrightnessUp, exec, brightnessctl set +5%
+bind = , XF86MonBrightnessDown, exec, brightnessctl set 5-%
+bind = , XF86KbdBrightnessUp, exec, brightnessctl -d asus::kbd_backlight set +5%
+bind = , XF86KbdBrightnessDown, exec, brightnessctl -d asus::kbd_backlight set 5-%
+
+# ================== 鼠标绑定 ==================
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+```
+
+**多键绑定（绑定链）：**
+
+```conf
+# 使用 bindm 创建多键绑定
+# 先按 SUPER + r，然后按其他键执行不同操作
+bind = $mainMod, r, submap, resize
+
+submap = resize
+binde = , right, resizeactive, 10 0
+binde = , left, resizeactive, -10 0
+binde = , up, resizeactive, 0 -10
+binde = , down, resizeactive, 0 10
+binde = , l, resizeactive, 10 0
+binde = , h, resizeactive, -10 0
+binde = , k, resizeactive, 0 -10
+binde = , j, resizeactive, 0 10
+bind = , escape, submap, reset
+bind = , return, submap, reset
+submap = reset
+
+# 另一个示例：媒体控制子菜单
+bind = $mainMod, m, submap, media
+
+submap = media
+bind = , p, exec, playerctl play-pause
+bind = , n, exec, playerctl next
+bind = , b, exec, playerctl previous
+bind = , s, exec, playerctl stop
+bind = , escape, submap, reset
+submap = reset
+```
+
+**条件绑定：**
+
+```conf
+# 只在特定条件下生效的绑定
+# 示例：只在特定工作区生效
+# 需要使用插件或脚本来实现
+```
+
+**重复绑定（binde）：**
+
+```conf
+# binde 在按住键时会重复执行
+binde = , XF86MonBrightnessUp, exec, brightnessctl set +5%
+binde = , XF86MonBrightnessDown, exec, brightnessctl set 5-%
+```
+
+**鼠标绑定：**
+
+```conf
+# 鼠标点击绑定
+# 鼠标按钮 272 = 左键
+# 鼠标按钮 273 = 右键
+# 鼠标按钮 274 = 中键
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+```
+
+## 第四部分：外观与定制
+
+### 4.1 主题配置
+
+Hyprland 支持丰富的主题定制选项，可以创建独特且美观的桌面环境。
+
+**颜色方案：**
+
+```conf
+# ================== 颜色变量定义 ==================
+# 使用 Catppuccin Mocha 主题
+$rosewater = 0xfff5e0dc
+$flamingo  = 0xfff2cdcd
+$pink      = 0xfff5c2e7
+$mauve     = 0xffcba6f7
+$red       = 0xfff38ba8
+$maroon    = 0xffeba0ac
+$peach     = 0xfffab387
+$yellow    = 0xfff9e2af
+$green     = 0xffa6e3a1
+$teal      = 0xff94e2d5
+$sky       = 0xff89dceb
+$sapphire  = 0xff74c7ec
+$blue      = 0xff89b4fa
+$lavender  = 0xffb4befe
+$text      = 0xffcdd6f4
+$subtext1  = 0xffbac2de
+$subtext0  = 0xffa6adc8
+$overlay2  = 0xff9399b2
+$overlay1  = 0xff7f849c
+$overlay0  = 0xff6c7086
+$surface2  = 0xff585b70
+$surface1  = 0xff45475a
+$surface0  = 0xff313244
+$base      = 0xff1e1e2e
+$mantle    = 0xff181825
+$crust     = 0xff11111b
+
+# ================== 通用设置 ==================
+general {
+    # 间距
+    gaps_in = 5
+    gaps_out = 20
+
+    # 边框
+    border_size = 2
+    col.active_border = $blue
+    col.inactive_border = $surface1
+
+    # 布局
+    layout = dwindle
+
+    # 扩展到边缘（无间隙）
+    extend_border_grab_area = 5
+
+    # 悬停边框时切换焦点
+    hover_icon_on_border = true
+
+    # 窗口大小调整区域
+    resize_on_border = true
+}
+```
+
+**圆角设置：**
+
+```conf
+decoration {
+    # 窗口圆角
+    rounding = 10
+
+    # 特定窗口禁用圆角
+    # round_borders = 0
+
+    # 多显示器时保持圆角
+    # rounding_power = 2.0
+}
+```
+
+**阴影设置：**
+
+```conf
+decoration {
+    # 启用阴影
+    drop_shadow = yes
+
+    # 阴影范围
+    shadow_range = 4
+
+    # 阴影渲染精度（1-20）
+    shadow_render_power = 3
+
+    # 阴影颜色
+    col.shadow = rgba(1a1a1aee)
+
+    # 阴影偏移
+    shadow_offset = 0 2
+
+    # 特定窗口禁用阴影
+    # shadow_ignore_window = true
+}
+```
+
+**窗口模糊效果：**
+
+```conf
+decoration {
+    blur {
+        # 启用模糊
+        enabled = true
+
+        # 模糊大小
+        size = 8
+
+        # 模糊次数（更多 = 更模糊但更耗资源）
+        passes = 3
+
+        # 新优化算法（更好性能）
+        new_optimizations = on
+
+        # 模糊 X11 应用
+        blur_xray = true
+
+        # 特定窗口排除模糊
+        # ignore_opacity = false
+    }
+
+    # 模糊后的透明度
+    # opaque = true
+}
+```
+
+**窗口透明度：**
+
+```conf
+decoration {
+    # 活动窗口透明度
+    active_opacity = 1.0
+
+    # 非活动窗口透明度
+    inactive_opacity = 0.9
+
+    # 全屏窗口透明度
+    fullscreen_opacity = 1.0
+
+    # 拖动时禁用透明度
+    # dim_inactive = false
+}
+```
+
+### 4.2 Waybar 配置
+
+Waybar 是 Hyprland 的最佳状态栏伴侣，提供了丰富的配置选项。
+
+**基础配置：**
+
+```json
+// ~/.config/waybar/config
+{
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 0,
+    "margin-top": 5,
+    "margin-left": 10,
+    "margin-right": 10,
+
+    "modules-left": ["hyprland/workspaces", "hyprland/window"],
+    "modules-center": ["clock"],
+    "modules-right": ["tray", "cpu", "memory", "network", "pulseaudio"],
+
+    "hyprland/workspaces": {
+        "format": "{icon}",
+        "on-click": "activate",
+        "format-icons": {
+            "1": "",
+            "2": "",
+            "3": "",
+            "4": "",
+            "5": "",
+            "urgent": "",
+            "active": "",
+            "default": ""
+        }
+    },
+
+    "hyprland/window": {
+        "format": "{}",
+        "max-length": 40,
+        "rewrite": {
+            "(.*) — Mozilla Firefox": "  $1",
+            "(.*) - Visual Studio Code": "  $1"
+        }
+    },
+
+    "clock": {
+        "format": "{:%H:%M}",
+        "format-alt": "{:%Y-%m-%d %H:%M:%S}",
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "on-click-right": "notify-send 'Date' '$(date +%Y-%m-%d)'"
+    },
+
+    "cpu": {
+        "format": "  {usage}%",
+        "tooltip": true,
+        "interval": 2
+    },
+
+    "memory": {
+        "format": "  {}%",
+        "tooltip": true,
+        "interval": 2
+    },
+
+    "network": {
+        "format-wifi": "  {signalStrength}%",
+        "format-ethernet": "  {ipaddr}",
+        "format-disconnected": "  Disconnected",
+        "tooltip-format-wifi": "{essid} ({signalStrength}%)",
+        "tooltip-format-ethernet": "{ifname}: {ipaddr}"
+    },
+
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "",
+        "format-icons": {
+            "default": ["", "", ""]
+        },
+        "on-click": "pamixer -t",
+        "on-scroll-up": "pamixer -i 5",
+        "on-scroll-down": "pamixer -d 5"
+    },
+
+    "tray": {
+        "icon-size": 16,
+        "spacing": 5
+    }
+}
+```
+
+**样式配置：**
+
+```css
+/* ~/.config/waybar/style.css */
+* {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+window#waybar {
+    background: @crust;
+    border-radius: 10px;
+    border: 2px solid @surface0;
+}
+
+tooltip {
+    background: @base;
+    border: 2px solid @surface0;
+    border-radius: 10px;
+}
+
+tooltip label {
+    color: @text;
+}
+
+#workspaces {
+    margin-left: 10px;
+}
+
+#workspaces button {
+    padding: 0 10px;
+    color: @surface1;
+    background: transparent;
+    border: none;
+}
+
+#workspaces button:hover {
+    background: @surface0;
+    color: @text;
+}
+
+#workspaces button.focused {
+    color: @blue;
+}
+
+#workspaces button.urgent {
+    color: @red;
+}
+
+#window {
+    color: @text;
+    padding: 0 10px;
+}
+
+#clock {
+    color: @mauve;
+    padding: 0 15px;
+}
+
+#cpu {
+    color: @green;
+    padding: 0 10px;
+}
+
+#memory {
+    color: @yellow;
+    padding: 0 10px;
+}
+
+#network {
+    color: @sky;
+    padding: 0 10px;
+}
+
+#pulseaudio {
+    color: @peach;
+    padding: 0 10px;
+}
+
+#tray {
+    margin-right: 10px;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}
+```
+
+**Waybar 自动启动：**
+
+```conf
+# 在 hyprland.conf 中添加
+exec-once = waybar
+```
+
+### 4.3 壁纸设置
+
+**使用 swww（推荐）：**
+
+```bash
+# 安装 swww
+paru -S swww
+
+# 在 Hyprland 配置中启动
+exec-once = swww init
+
+# 设置壁纸
+swww img /path/to/wallpaper.png
+
+# 设置过渡动画
+swww img /path/to/wallpaper.png --transition-fps 60 --transition-type any
+
+# 针对不同显示器设置不同壁纸
+swww img /path/to/wallpaper1.png --outputs eDP-1
+swww img /path/to/wallpaper2.png --outputs HDMI-A-1
+```
+
+**壁纸切换脚本：**
+
+```bash
+#!/bin/bash
+# ~/.config/hypr/scripts/wallpaper.sh
+
+WALLPAPER_DIR="$HOME/Pictures/wallpapers"
+
+# 随机选择壁纸
+WALLPAPER=$(find "$WALLPAPER_DIR" -type f | shuf -n 1)
+
+# 设置壁纸和过渡效果
+swww img "$WALLPAPER" \
+    --transition-fps 60 \
+    --transition-type random \
+    --transition-duration 3
+
+# 更新 Waybar 颜色（可选）
+# wal -i "$WALLPAPER" -n
+```
+
+**快捷键绑定：**
+
+```conf
+# 设置壁纸快捷键
+bind = $mainMod, W, exec, ~/.config/hypr/scripts/wallpaper.sh
+
+# 下一张壁纸
+bind = $mainMod, bracketright, exec, ~/.config/hypr/scripts/wallpaper.sh
+```
+
+**使用 Hyprpaper：**
+
+```conf
+# 启用 Hyprpaper 插件
+plugin = /usr/lib/hyprland/hyprpaper.so
+
+# 设置壁纸
+exec-once = hyprpaper
+wallpaper = all, /path/to/wallpaper.png
+
+# 或为不同显示器设置不同壁纸
+wallpaper = eDP-1, /path/to/wallpaper1.png
+wallpaper = HDMI-A-1, /path/to/wallpaper2.png
+
+# 预加载壁纸
+preload = /path/to/wallpaper1.png
+preload = /path/to/wallpaper2.png
+```
+
+### 4.4 动画效果
+
+Hyprland 的动画系统非常强大，可以创建流畅且美观的窗口过渡效果。
+
+**基础动画配置：**
+
+```conf
+animations {
+    # 启用动画
+    enabled = yes
+
+    # 全局动画速度（越快越小）
+    # bezier = easings, 风格, 参数
+    bezier = easeOutQuint, 0.23, 1, 0.32, 1
+    bezier = easeInOutCubic, 0.65, 0.05, 0.36, 1
+    bezier = linear, 0, 0, 1, 1
+    bezier = almostLinear, 0.5, 0.5, 0.5, 0.5
+    bezier = easeOutQuad, 0.25, 1, 0.5, 1
+
+    # 动画定义：名称，速度，风格，参数
+    # 窗口动画
+    animation = windows, 1, 7, mycustom, slide
+    animation = windowsOut, 1, 7, default, fade
+
+    # 特殊窗口动画
+    animation = border, 1, 10, default
+    animation = borderangle, 1, 10, default, loop
+
+    # 淡入淡出
+    animation = fade, 1, 10, default
+    animation = workspaces, 1, 6, default, slidevert
+
+    # 浮动窗口
+    animation = specialWorkspace, 1, 6, default, slidevert
+}
+```
+
+**常用贝塞尔曲线：**
+
+```conf
+# 缓动函数
+bezier = linear, 0, 0, 1, 1                          # 线性
+bezier = easeInSine, 0.12, 0, 0.39, 0                # 正弦加速
+bezier = easeOutSine, 0.61, 1, 0.88, 1               # 正弦减速
+bezier = easeInOutSine, 0.37, 0, 0.63, 1             # 正弦加减速
+bezier = easeInQuad, 0.11, 0, 0.5, 0                 # 二次加速
+bezier = easeOutQuad, 0.5, 1, 0.89, 1                # 二次减速
+bezier = easeInOutQuad, 0.45, 0, 0.55, 1             # 二次加减速
+bezier = easeInCubic, 0.32, 0, 0.67, 0               # 三次加速
+bezier = easeOutCubic, 0.33, 1, 0.68, 1              # 三次减速
+bezier = easeInOutCubic, 0.65, 0, 0.35, 1            # 三次加减速
+bezier = easeInQuart, 0.11, 0, 0.5, 0                # 四次加速
+bezier = easeOutQuart, 0.5, 1, 0.89, 1               # 四次减速
+bezier = easeInOutQuart, 0.76, 0, 0.24, 1            # 四次加减速
+bezier = easeInQuint, 0.11, 0, 0.5, 0                # 五次加速
+bezier = easeOutQuint, 0.23, 1, 0.32, 1              # 五次减速
+bezier = easeInOutQuint, 0.86, 0, 0.07, 1            # 五次加减速
+bezier = easeInExpo, 0.11, 0, 0.5, 0                 # 指数加速
+bezier = easeOutExpo, 0.5, 1, 0.89, 1                # 指数减速
+bezier = easeInOutExpo, 0.87, 0, 0.13, 1             # 指数加减速
+bezier = easeInCirc, 0.11, 0, 0.5, 0                 # 圆形加速
+bezier = easeOutCirc, 0.5, 1, 0.89, 1                # 圆形减速
+bezier = easeInOutCirc, 0.78, 0, 0.22, 1             # 圆形加减速
+bezier = easeInBack, 0.36, 0, 0.66, -0.56            # 回弹加速
+bezier = easeOutBack, 0.34, 1.56, 0.64, 1            # 回弹减速
+bezier = easeInOutBack, 0.68, -0.6, 0.32, 1.6        # 回弹加减速
+
+# 使用示例
+animation = windows, 1, 7, easeOutQuint, slide
+animation = workspaces, 1, 6, easeInOutCubic, fade
+```
+
+**动画参数说明：**
+
+```conf
+# 语法：animation = name, speed, style, params
+
+# speed: 速度（1-10），越小越快
+# style: 贝塞尔曲线名称
+# params: 动画参数
+#   - slide: 滑动效果
+#   - fade: 淡入淡出
+#   - slidevert: 垂直滑动
+#   - slidefade: 滑动淡入淡出
+#   - popin: 弹出效果
+#   - loop: 循环动画（用于 borderangle）
+
+# 示例：
+animation = windows, 1, 5, easeOutQuint, fade     # 窗口淡入淡出
+animation = workspaces, 1, 4, easeInOutCubic, slide  # 工作区滑动
+animation = borderangle, 1, 10, linear, loop     # 边框旋转
+```
+
+**禁用动画（性能优化）：**
+
+```conf
+# 完全禁用动画
+animations {
+    enabled = no
+}
+
+# 或只禁用特定动画
+animation = windows, 0
+animation = workspaces, 0
+```
+
+### 4.5 模糊效果
+
+模糊效果是 Hyprland 最具视觉冲击力的特性之一。
+
+**完整模糊配置：**
+
+```conf
+decoration {
+    blur {
+        # 启用模糊
+        enabled = yes
+
+        # 模糊大小（1-20）
+        size = 8
+
+        # 模糊次数（更多 = 更模糊）
+        passes = 3
+
+        # 新优化算法（推荐）
+        new_optimizations = on
+
+        # 模糊亮度调整（-1.0 到 1.0）
+        brightness = 0.5
+
+        # 特殊颜色处理
+        # contrast = 0.5
+        # noise = 0.01
+
+        # 忽略不透明窗口
+        ignore_opacity = off
+
+        # 模糊 X11 应用
+        xray = on
+
+        # 模糊窗口后面内容（更耗资源）
+        layered = on
+    }
+
+    # 特定窗口模糊
+    # blur_transparent = on
+}
+```
+
+**针对特定窗口的模糊：**
+
+```conf
+# 终端模糊背景
+windowrule = blur, ^(kitty)$
+windowrule = blurenable, ^(kitty)$
+
+# 浏览器模糊
+windowrule = blur, ^(firefox)$
+
+# 禁用特定窗口模糊
+windowrule = noblur, ^(steam)$
+```
+
+**模糊性能优化：**
+
+```conf
+# 减少模糊效果以提升性能
+decoration {
+    blur {
+        enabled = yes
+        size = 4        # 减小大小
+        passes = 2      # 减少次数
+        new_optimizations = on
+        xray = off      # 禁用 X11 应用模糊
+    }
+}
+```
+
+## 第五部分：高级应用
+
+### 5.1 多显示器配置
+
+Hyprland 对多显示器的支持非常完善，可以精确控制每个显示器的行为。
+
+**显示器配置基础：**
+
+```conf
+# 语法：monitor=name,resolution,position,scale
+# name: 显示器名称（使用 hyprctl monitors 查看）
+# resolution: 分辨率或使用 "highres"、"preferred"
+# position: 位置（auto-left, auto-right, 或坐标）
+# scale: 缩放比例
+
+# 示例：笔记本屏幕
+monitor = eDP-1,1920x1080,0x0,1
+
+# 外接显示器（右侧）
+monitor = HDMI-A-1,2560x1440,1920x0,1
+
+# 外接显示器（左侧，自动位置）
+monitor = DP-1,highres,auto-left,1
+
+# 禁用显示器
+monitor = HDMI-A-1,disable
+
+# 使用首选分辨率
+monitor = eDP-1,preferred,auto,1
+```
+
+**多显示器工作区绑定：**
+
+```conf
+# 将工作区绑定到特定显示器
+workspace = 1, monitor:eDP-1, default:true
+workspace = 2, monitor:eDP-1
+workspace = 3, monitor:eDP-1
+workspace = 4, monitor:eDP-1
+workspace = 5, monitor:eDP-1
+
+workspace = 6, monitor:HDMI-A-1, default:true
+workspace = 7, monitor:HDMI-A-1
+workspace = 8, monitor:HDMI-A-1
+workspace = 9, monitor:HDMI-A-1
+workspace = 10, monitor:HDMI-A-1
+```
+
+**显示器快捷键：**
+
+```conf
+# 切换显示器焦点
+bind = $mainMod, comma, focusmonitor, l
+bind = $mainMod, period, focusmonitor, r
+
+# 移动窗口到显示器
+bind = $mainMod SHIFT, comma, movefocus, l
+bind = $mainMod SHIFT, period, movefocus, r
+
+# 移动工作区到显示器
+bind = $mainMod ALT, comma, movecurrentworkspacetomonitor, l
+bind = $mainMod ALT, period, movecurrentworkspacetomonitor, r
+
+# 切换显示器布局
+bind = $mainMod, F11, exec, ~/.config/hypr/scripts/toggle-monitor.sh
+```
+
+**HiDPI 显示器配置：**
+
+```conf
+# 4K 显示器缩放
+monitor = eDP-1,3840x2160,0x0,1.5
+
+# 或使用分数缩放
+monitor = eDP-1,preferred,auto,1.75
+```
+
+**动态显示器管理：**
+
+```bash
+# 查看当前显示器状态
+hyprctl monitors
+
+# 使用脚本自动配置显示器
+#!/bin/bash
+# ~/.config/hypr/scripts/setup-monitors.sh
+
+# 检测外接显示器
+if hyprctl monitors | grep -q "HDMI-A-1"; then
+    # 配置双显示器
+    hyprctl keyword monitor "eDP-1,1920x1080,0x0,1"
+    hyprctl keyword monitor "HDMI-A-1,2560x1440,1920x0,1"
+else
+    # 仅笔记本屏幕
+    hyprctl keyword monitor "eDP-1,1920x1080,0x0,1"
+fi
+```
+
+### 5.2 输入设备配置
+
+Hyprland 提供了详细的输入设备配置选项。
+
+**键盘配置：**
+
+```conf
+input {
+    # 键盘布局
+    kb_layout = cn
+    kb_variant =
+    kb_model =
+    kb_options = grp:alt_shift_toggle
+    kb_rules =
+
+    # NumLock 状态
+    numlock_by_default = yes
+
+    # 重复延迟和速率
+    repeat_rate = 50
+    repeat_delay = 300
+
+    # 灵敏度
+    sensitivity = 0.0  # -1.0 到 1.0
+
+    # 跟随鼠标
+    follow_mouse = 1  # 0=无, 1=聚焦时, 2=总是
+}
+```
+
+**鼠标配置：**
+
+```conf
+input {
+    # 鼠标加速配置
+    accel_profile = flat  # flat, adaptive
+
+    # 鼠标灵敏度
+    sensitivity = 0.0
+
+    # 鼠标按键重复
+    repeat_rate = 25
+    repeat_delay = 400
+}
+
+# 特定鼠标设备配置
+device {
+    name = logitech-g502
+    sensitivity = -0.5
+}
+```
+
+**触摸板配置：**
+
+```conf
+input {
+    # 触摸板配置
+    touchdevice {
+        # 禁用打字时触摸板
+        disable_while_typing = yes
+
+        # 自然滚动
+        natural_scroll = yes
+
+        # 点击方法
+        tap-to-click = yes
+        tap-and-drag = yes
+
+        # 中键点击（三指点击）
+        middle_button_emulation = yes
+
+        # 滚动方法
+        scroll_factor = 1.0
+
+        # 触摸板灵敏度
+        sensitivity = 0.0
+
+        # 相对输入
+        relative_input = no
+    }
+}
+```
+
+**平板电脑/绘图板：**
+
+```conf
+input {
+    tablet {
+        # 平板模式
+        # mode = absolute  # 绝对定位
+        # mode = relative  # 相对定位
+    }
+}
+```
+
+**多点触控手势：**
+
+```conf
+gestures {
+    # 工作区切换手势
+    workspace_swipe = yes
+    workspace_swipe_fingers = 3
+    workspace_swipe_distance = 200
+    workspace_swipe_invert = no
+    workspace_swipe_min_fingers = 3
+    workspace_swipe_cancel_ratio = 0.2
+}
+```
+
+### 5.3 手势支持
+
+Hyprland 内置了触摸板手势支持，可以方便地切换工作区等。
+
+**基础手势配置：**
+
+```conf
+gestures {
+    # 工作区切换（三指滑动）
+    workspace_swipe = yes
+    workspace_swipe_fingers = 3
+    workspace_swipe_distance = 300
+    workspace_swipe_invert = no  # 不反转方向
+
+    # 最小触发距离
+    workspace_swipe_min_fingers = 3
+
+    # 取消手势的阈值
+    workspace_swipe_cancel_ratio = 0.2
+}
+```
+
+**自定义手势绑定：**
+
+```conf
+# 手势绑定语法
+# gesture = fingers,direction,dispatcher,params
+
+# 示例：四指左滑切换到上一个工作区
+gesture = workspace:e-4, exec, hyprctl dispatch workspace e-1
+
+# 示例：四指右滑切换到下一个工作区
+gesture = workspace:e+4, exec, hyprctl dispatch workspace e+1
+
+# 示例：三指上滑打开应用启动器
+gesture = workspace:u+3, exec, wofi --show drun
+
+# 示例：三指下滑显示所有窗口（需要插件）
+# gesture = workspace:d+3, exec, hyprpicker
+```
+
+**手势与触摸板配置结合：**
+
+```conf
+input {
+    touchdevice {
+        # 确保触摸板正确配置
+        disable_while_typing = yes
+        natural_scroll = yes
+        tap-to-click = yes
+    }
+}
+
+gestures {
+    workspace_swipe = yes
+    workspace_swipe_fingers = 3
+    workspace_swipe_distance = 200
+}
+```
+
+### 5.4 自动启动
+
+Hyprland 的自动启动功能让常用应用和服务可以在登录时自动运行。
+
+**基础自动启动配置：**
+
+```conf
+# ================== 必需组件 ==================
+# 状态栏
+exec-once = waybar
+
+# 通知守护
+exec-once = dunst &
+exec-once = nm-applet --indicator &
+exec-once = blueman-applet &
+
+# 输入法
+exec-once = fcitx5 -d
+
+# 壁纸
+exec-once = swww init &
+exec-once = swww img ~/Pictures/wallpapers/default.png &
+
+# ================== 可选组件 ==================
+# 剪贴板管理
+exec-once = wl-paste --type text --watch cliphist store &
+exec-once = wl-paste --type image --watch cliphist store &
+
+# 屏幕过滤（夜间模式）
+exec-once = wlsunset -t 4500 -T 6500 &
+
+# 电源管理（笔记本）
+exec-once = xfce4-power-manager &
+
+# 同步工具
+exec-once = syncthing --no-browser &
+```
+
+**使用脚本组织自动启动：**
+
+```bash
+#!/bin/bash
+# ~/.config/hypr/scripts/autostart.sh
+
+# 等待 Hyprland 完全启动
+sleep 1
+
+# 设置壁纸
+swww init &
+sleep 0.5
+swww img ~/Pictures/wallpapers/default.png --transition-fps 60 &
+
+# 启动剪贴板历史
+wl-paste --type text --watch cliphist store &
+wl-paste --type image --watch cliphist store &
+
+# 启动同步工具
+syncthing --no-browser &
+
+# 设置环境变量
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+export INPUT_METHOD=fcitx
+
+# 启动输入法
+fcitx5 -d
+
+# 启动状态栏
+waybar &
+
+# 启动系统托盘图标
+nm-applet --indicator &
+blueman-applet &
+```
+
+在 `hyprland.conf` 中调用脚本：
+
+```conf
+exec-once = ~/.config/hypr/scripts/autostart.sh
+```
+
+**条件自动启动：**
+
+```bash
+#!/bin/bash
+# 根据条件启动不同应用
+
+# 只在笔记本上启动电源管理
+if hostname | grep -q "laptop"; then
+    exec xfce4-power-manager &
+fi
+
+# 只在特定显示器上启动特定应用
+if hyprctl monitors | grep -q "HDMI-A-1"; then
+    # 外接显示器连接时的配置
+    exec ~/.config/hypr/scripts/setup-secondary-monitor.sh &
+fi
+```
+
+### 5.5 插件系统
+
+Hyprland 的插件系统扩展了其功能，社区提供了丰富的插件。
+
+**官方插件仓库：**
+
+```bash
+# 克隆官方插件仓库
+git clone https://github.com/hyprwm/hyprland-plugins.git
+cd hyprland-plugins
+
+# 编译所有插件
+make all
+
+# 安装
+sudo cp ./hyp:* /usr/lib/hyprland/
+```
+
+**Hyprbars（窗口标题栏插件）：**
+
+```bash
+# 安装
+paru -S hyprbars
+
+# 配置
+plugin = /usr/lib/hyprland/hyprbars.so
+
+# 插件配置
+plugin {
+    hyprbars {
+        # 标题栏高度
+        bar_height = 28
+
+        # 启用按钮
+        col.text = rgb(f5e0dc)
+
+        # 按钮配置
+        bar_buttons_padding = 8
+        bar_button_padding = 8
+        bar_precedence_over_border = true
+
+        # 标题配置
+        bar_text_size = 10
+        bar_text_font = Sans
+        bar_text_align = center
+    }
+}
+
+# 绑定按钮
+bindm = SUPER, mouse:272, movewindow
+bindm = SUPER, mouse:273, resizewindow
+```
+
+**Hyprpaper（壁纸插件）：**
+
+```bash
+# 安装
+paru -S hyprpaper
+
+# 配置
+plugin = /usr/lib/hyprland/hyprpaper.so
+
+exec-once = hyprpaper
+wallpaper = all, ~/Pictures/wallpapers/default.png
+preload = ~/Pictures/wallpapers/wallpaper1.png
+```
+
+**Hyprspace（窗口概览插件）：**
+
+```bash
+# 安装
+paru -S hyprspace-git
+
+# 配置
+plugin = /usr/lib/hyprland/libhyprspace.so
+
+bind = $mainMod, tab, exec, hyprspace
+
+# 配置文件
+# ~/.config/hypr/hyprspace.conf
+gap = 10
+border_width = 2
+```
+
+**Borders-plus-plus（增强边框插件）：**
+
+```bash
+# 安装
+paru -S hyprland-borders-plus-plus-git
+
+# 配置
+plugin = /usr/lib/hyprland/libborders-plus-plus.so
+
+plugin {
+    borders-plus-plus {
+        # 添加额外的边框层
+        add_borders = 2
+        # 外层边框颜色和大小
+        natural_rounding = yes
+        border_size = 10
+        col.border_1 = rgb(fab387)
+        col.border_2 = rgb(89b4fa)
+    }
+}
+```
+
+**其他社区插件：**
+
+- **hyprview**: 窗口概览插件
+- **Hypr-Dynamic-Monitors**: 动态显示器管理
+- **hyprgrass**: 手势增强插件
+- **hyprsplit**: 窗口分割增强
+
+## 第六部分：故障排查与最佳实践
+
+### 6.1 常见问题
+
+**中文输入法问题：**
+
+问题：Fcitx5 无法在 Hyprland 中正常工作
+
+解决方案：
+
+```bash
+# 1. 安装 fcitx5 和相关组件
+sudo pacman -S fcitx5-im fcitx5-chinese-addons fcitx5-pinyin-zhwiki
+
+# 2. 设置环境变量
+# 在 ~/.config/hypr/hyprland.conf 中添加
+exec-once = fcitx5 -d
+env = GTK_IM_MODULE,fcitx
+env = QT_IM_MODULE,fcitx
+env = XMODIFIERS,@im=fcitx
+env = INPUT_METHOD,fcitx
+env = SDL_IM_MODULE,fcitx
+env = GLFW_IM_MODULE,ibus
+```
+
+或使用 `~/.config/hypr/hyprland.conf`：
+
+```conf
+# 设置环境变量
+env = GTK_IM_MODULE,fcitx
+env = QT_IM_MODULE,fcitx
+env = XMODIFIERS,@im=fcitx
+env = INPUT_METHOD,fcitx
+env = SDL_IM_MODULE,fcitx
+
+# 启动输入法
+exec-once = fcitx5 -d --verbose
+```
+
+**屏幕录制问题：**
+
+问题：OBS 无法在 Wayland 下录屏
+
+解决方案：
+
+```bash
+# 安装 Wayland 原生录屏工具
+sudo pacman -S grim slurp wf-recorder
+
+# 截图
+grim -g "$(slurp)" screenshot.png
+
+# 录屏
+wf-recorder -g "$(slurp)" -f output.mp4
+
+# 停止录屏
+pkill wf-recorder
+
+# 或使用 OBS 的 PipeWire 方法
+sudo pacman -S obs-studio-plugin-pipewire
+```
+
+**应用显示问题：**
+
+问题：某些应用显示不正常或崩溃
+
+解决方案：
+
+```conf
+# 针对特定应用禁用缩放
+windowrulev2 = rounding 0, xwayland:1, floating:0
+
+# 强制使用 Xwayland
+# exec-once = env GDK_BACKEND=x11 discord
+
+# 或针对特定应用
+exec-once = env WAYLAND_DISPLAY= xdg-desktop-portal-hyprland
+```
+
+**NVIDIA 显卡问题：**
+
+问题：NVIDIA 显卡在 Hyprland 下性能不佳或崩溃
+
+解决方案：
+
+```bash
+# 1. 确保 NVIDIA 驱动正确安装
+sudo pacman -S nvidia nvidia-utils
+
+# 2. 内核参数（编辑 /etc/default/grub）
+# GRUB_CMDLINE_LINUX_DEFAULT="nvidia_drm.modeset=1 nvidia_drm.fbdev=1"
+# sudo update-grub
+
+# 3. 创建模块配置
+# /etc/modprobe.d/nvidia.conf
+options nvidia_drm modeset=1 fbdev=1
+
+# 4. 重新生成 initramfs
+sudo mkinitcpio -P
+
+# 5. Hyprland 配置
+# 在 ~/.config/hypr/hyprland.conf 中添加
+env = WLR_NO_HARDWARE_CURSORS,1
+env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+```
+
+**显示器识别问题：**
+
+问题：Hyprland 无法识别显示器或分辨率错误
+
+解决方案：
+
+```bash
+# 查看当前显示器状态
+hyprctl monitors
+
+# 手动设置显示器
+hyprctl keyword monitor "eDP-1,1920x1080,0x0,1"
+
+# 使用 swayoutput 工具
+# 查看：wlr-randr
+# 设置：wlr-randr --output eDP-1 --scale 1.5
+```
+
+### 6.2 性能优化
+
+**减少动画和特效：**
+
+```conf
+# 禁用或减少动画
+animations {
+    enabled = no
+}
+
+# 或只减少部分动画
+animation = windows, 1, 3, default
+animation = workspaces, 1, 2, default
+
+# 禁用模糊
+decoration {
+    blur {
+        enabled = no
+    }
+}
+
+# 禁用阴影
+decoration {
+    drop_shadow = no
+}
+```
+
+**帧率和渲染优化：**
+
+```conf
+# 在 misc 部分添加
+misc {
+    # 可变刷新率
+    vfr = 1
+
+    # 可变刷新率同步
+    vrr = 0
+
+    # 强制满帧渲染（降低性能）
+    no_direct_scanout = 0
+
+    # 节能模式
+    mouse_move_enables_dpms = true
+    key_press_enables_dpms = true
+    disable_autoreload = false
+}
+
+# 限制帧率（在某些情况下可提升性能）
+# experimental = true
+```
+
+**减少窗口规则检查：**
+
+```conf
+# 将复杂的 windowrulev2 改为简单的 windowrule
+# 减少动态窗口规则的使用
+
+# 批量设置窗口规则
+windowrule = float, ^(pavucontrol|blueman-manager|nm-connection-editor)$
+```
+
+**禁用不必要的插件：**
+
+```conf
+# 注释掉不使用的插件
+# plugin = /usr/lib/hyprland/unused_plugin.so
+```
+
+**使用性能分析工具：**
+
+```bash
+# 查看 GPU 使用情况
+watch -n 0.5 nvidia-smi  # NVIDIA
+watch -n 0.5 cat /sys/class/drm/card0/device/gt_cur_freq_mhz  # Intel
+
+# 查看整体系统资源
+htop
+btop
+
+# 查看 Hyprland 日志
+cat ~/.local/share/hyprland/hyprland.log
+```
+
+### 6.3 安全配置
+
+**屏幕锁定：**
+
+```bash
+# 安装 hyprlock
+paru -S hyprlock
+
+# 配置快捷键
+bind = SUPER SHIFT, L, exec, hyprlock
+
+# 自动锁定（使用 xautolock 或类似工具）
+# paru -S xautolock
+exec-once = xautolock -time 10 -locker "hyprlock" &
+```
+
+**会话管理：**
+
+```bash
+# 安装 wlogout
+paru -S wlogout
+
+# 配置快捷键
+bind = SUPER, Escape, exec, wlogout
+
+# 配置样式
+# ~/.config/wlogout/style.css
+```
+
+**权限控制：**
+
+```conf
+# 配置 xdg-desktop-portal 权限
+exec-once = xdg-desktop-portal-hyprland
+exec-once = xdg-desktop-portal-gtk
+
+# Dconf 配置（可选）
+exec-once = /usr/libexec/polkit-gnome-authentication-agent-1
+```
+
+**防火墙配置：**
+
+```bash
+# 启用防火墙
+sudo ufw enable
+sudo ufw status
+
+# 允许特定端口
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+```
+
+### 6.4 实用技巧
+
+**窗口规则调试：**
+
+```bash
+# 查看当前窗口信息
+hyprctl clients
+
+# 查看窗口的 class 和 title
+hyprctl clients | grep -A 10 "window"
+
+# 实时监控窗口事件
+hyprctl clients -j | jq
+```
+
+**配置重载：**
+
+```bash
+# 重载配置
+hyprctl reload
+
+# 快捷键重载
+bind = SUPER SHIFT, R, exec, hyprctl reload
+
+# 查看当前配置
+hyprctl getoption [option_name]
+```
+
+**日志分析：**
+
+```bash
+# 查看日志
+cat ~/.local/share/hyprland/hyprland.log
+
+# 实时查看日志
+tail -f ~/.local/share/hyprland/hyprland.log
+
+# 过滤错误
+grep ERROR ~/.local/share/hyprland/hyprland.log
+```
+
+**快捷键调试：**
+
+```bash
+# 查看当前绑定
+hyprctl binds
+
+# 测试快捷键
+bind = SUPER, A, exec, notify-send "Test" "Shortcut works!"
+```
+
+**脚本管理：**
+
+```bash
+# 创建脚本目录
+mkdir -p ~/.config/hypr/scripts
+
+# 组织脚本
+~/.config/hypr/scripts/
+├── autostart.sh
+├── wallpaper.sh
+├── screenshot.sh
+├── lock.sh
+└── setup-monitors.sh
+
+# 添加执行权限
+chmod +x ~/.config/hypr/scripts/*
+
+# 在配置中调用
+exec-once = ~/.config/hypr/scripts/autostart.sh
+bind = SUPER, W, exec, ~/.config/hypr/scripts/wallpaper.sh
+```
+
+**备份配置：**
+
+```bash
+# 备份当前配置
+cp -r ~/.config/hypr ~/.config/hypr.backup.$(date +%Y%m%d)
+
+# 使用 Git 管理配置
+cd ~/.config/hypr
+git init
+git add .
+git commit -m "Initial Hyprland config"
+git remote add origin https://github.com/yourusername/dotfiles.git
+git push -u origin main
+```
+
+## 总结
+
+Hyprland 作为现代化的 Wayland 合成器，代表了 Linux 桌面环境的未来方向。通过本文的介绍，我们全面了解了 Hyprland 的基础概念、安装配置、窗口管理、外观定制、高级功能和故障排查等各个方面。
+
+**Hyprland 的核心优势总结：**
+
+1. **现代化架构**：纯 Wayland 实现，无 X11 历史包袱，充分利用现代显示技术
+2. **强大功能**：动态平铺窗口管理、丰富的动画效果、强大的窗口规则系统
+3. **高度可定制**：灵活的配置系统、插件生态、主题支持
+4. **优秀性能**：C++ 编写，优化良好，响应迅速
+5. **活跃社区**：快速更新、丰富的资源、友好的社区支持
+
+**适用场景：**
+
+- 追求现代化桌面体验的用户
+- 需要高效窗口管理的开发者
+- 愿意尝试新技术的 Linux 爱好者
+- 注重视觉体验和动画效果的用户
+
+**学习路径建议：**
+
+1. **入门阶段**：从默认配置开始，熟悉基础快捷键和窗口操作
+2. **进阶阶段**：自定义快捷键、添加窗口规则、配置外观主题
+3. **高级阶段**：探索插件生态、编写自定义脚本、优化性能
+4. **精通阶段**：参与社区贡献、开发插件、分享配置经验
+
+**不适用场景：**
+
+- 需要绝对稳定性的生产环境（建议使用 Sway 或 i3wm）
+- 完全依赖 X11 特定应用的工作流
+- 硬件配置较低的老旧设备
+- 不愿意投入时间学习新工具的用户
+
+Hyprland 的学习曲线适中，从基础配置到高级定制都有丰富的文档和社区资源。通过逐步探索和实践，用户可以打造出一个既高效又美观，完全符合个人工作流的桌面环境。无论您是从其他窗口管理器迁移，还是第一次接触平铺式窗口管理器，Hyprland 都值得您投入时间去探索和掌握。
+
+随着 Wayland 生态的不断完善和 Hyprland 的持续发展，相信未来会有更多用户选择 Hyprland 作为他们的日常桌面环境。希望本文能够帮助您快速上手 Hyprland，并在实际使用中获得更好的体验。
+
+## 参考资料
+
+**官方资源：**
+- [Hyprland 官方网站](https://hypr.land/)
+- [Hyprland GitHub 仓库](https://github.com/hyprwm/Hyprland)
+- [Hyprland Wiki 文档](https://wiki.hypr.land/)
+- [Hyprland 配置文档](https://wiki.hypr.land/Configuring/)
+- [ArchWiki - Hyprland](https://wiki.archlinux.org/title/Hyprland)
+
+**中文教程：**
+- [Hyprland 安装与配置超详细教程](https://www.vindo.cn/blog/hyprland-arch-linux)
+- [Arch+Hyprland安装配置教程](https://juejin.cn/post/7446712718882422835)
+- [Hyprland - Arch Linux 中文维基](https://wiki.archlinuxcn.org/zh-cn/Hyprland)
+- [Arch + Hyprland 安装美化手册](https://blog.zonowry.com/posts/install-hyprland-arch-beautify/)
+
+**配置参考：**
+- [Hyprland 官方配置示例](https://github.com/hyprwm/Hyprland/blob/main/example/hyprland.conf)
+- [Hyprland 插件仓库](https://github.com/hyprwm/hyprland-plugins)
+- [Window Rules 配置](https://wiki.hypr.land/Configuring/Window-Rules/)
+- [Binds 配置](https://wiki.hypr.land/Configuring/Binds/)
+- [Animations 配置](https://wiki.hyprland.org/0.46.0/Configuring/Animations/)
+- [Monitors 配置](https://wiki.hypr.land/Configuring/Monitors/)
+- [Gestures 配置](https://wiki.hypr.land/Configuring/Gestures/)
+
+**社区资源：**
+- [Hyprland Reddit 社区](https://www.reddit.com/r/hyprland/)
+- [Hyprland Discord 服务器](https://discord.gg/hQn70T)
+- [Awesome Hyprland 配置列表](https://github.com/hyprland-community/awesome-hyprland)
+
+**相关工具：**
+- [Waybar](https://github.com/Alexays/Waybar) - 状态栏
+- [swww](https://github.com/Horus645/swww) - 壁纸工具
+- [wofi](https://hg.sr.ht/~scoopta/wofi) - 应用启动器
+- [wf-recorder](https://github.com/ammen99/wf-recorder) - 屏幕录制
+- [hyprpaper](https://github.com/hyprwm/hyprpaper) - 官方壁纸插件
