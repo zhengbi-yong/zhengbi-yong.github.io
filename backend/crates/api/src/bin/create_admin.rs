@@ -38,7 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         email,
         username,
         password_hash,
-        false  // Don't overwrite existing password
+        true  // Always update password to Argon2 format
     )
     .fetch_one(&pool)
     .await?;
