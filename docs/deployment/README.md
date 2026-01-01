@@ -31,7 +31,7 @@ Welcome to the deployment documentation. / 欢迎来到部署文档中心。
 1. [Quick Start Guide](getting-started/quick-start.md) - 5-minute setup
 2. [Choosing Your Approach](getting-started/choosing-your-approach.md) - Pick deployment method
 3. [Production Server Guide](guides/server/production-server.md) - Full deployment walkthrough
-4. [Troubleshooting](getting-started/troubleshooting-common.md) - Common issues
+4. [Troubleshooting](getting-started/quick-start.md) - Common issues
 
 **Expected time**: 30-60 minutes / 预计时间：30-60分钟
 
@@ -40,10 +40,9 @@ Welcome to the deployment documentation. / 欢迎来到部署文档中心。
 **Goal**: Local development and testing / 本地开发和测试
 
 1. [Quick Start](getting-started/quick-start.md) - Local Docker setup
-2. [Docker Architecture](concepts/docker-architecture.md) - Understand Docker setup
-3. [Local Development](guides/docker/local-development.md) - Complete local dev guide
-4. [Cross-Platform Guide](guides/docker/cross-platform.md) - Windows/Linux/macOS
-5. [Image Management](guides/docker/image-management.md) - Build and push images
+2. [Architecture Overview](concepts/architecture.md) - Understand system architecture
+3. [Cross-Platform Guide](guides/docker/cross-platform.md) - Windows/Linux/macOS
+4. [Production Deployment](guides/docker/production-deployment.md) - Production Docker setup
 
 **Expected time**: 10-20 minutes / 预计时间：10-20分钟
 
@@ -132,7 +131,7 @@ Deployment Docs /
 | **Configure SSL** | [SSL Setup](guides/scripts/ssl-setup.md) |
 | **Backup Database** | [Backup Strategy](best-practices/backup-strategy.md) |
 | **Monitor Performance** | [Monitoring](best-practices/monitoring.md) |
-| **Troubleshoot Issues** | [Troubleshooting](getting-started/troubleshooting-common.md) |
+| **Troubleshoot Issues** | [Troubleshooting](getting-started/quick-start.md) |
 
 ---
 
@@ -247,7 +246,7 @@ bash scripts/deployment/verify-deployment.sh https://your-domain.com
 - [Quick Start](getting-started/quick-start.md) - 5-minute setup / 5分钟设置
 - [Choosing Your Approach](getting-started/choosing-your-approach.md) - Decision guide / 决策指南
 - [Prerequisites](getting-started/prerequisites.md) - Requirements / 系统要求
-- [Common Issues](getting-started/troubleshooting-common.md) - Troubleshooting / 故障排查
+- [Common Issues](getting-started/quick-start.md) - Troubleshooting / 故障排查
 
 ### Concepts / 核心概念
 - [Architecture Overview](concepts/architecture.md) - System design / 系统设计
@@ -297,7 +296,7 @@ bash scripts/deployment/verify-deployment.sh https://your-domain.com
 ### Common Issues / 常见问题
 
 1. **Check the troubleshooting guide / 查看故障排查指南**
-   - [Common Issues](getting-started/troubleshooting-common.md)
+   - [Common Issues](getting-started/quick-start.md)
 
 2. **Review your configuration / 检查配置**
    - [Configuration Checklist](reference/configuration-checklist.md)
