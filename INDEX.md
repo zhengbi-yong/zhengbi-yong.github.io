@@ -92,7 +92,36 @@
 
 ---
 
-### 5. [前后端解耦进度报告](./DECOUPLING_PROGRESS.md) 📊 实施记录
+### 5. [命名规范最佳实践指南](./docs/development/NAMING_CONVENTIONS.md) 📝 命名标准
+
+**适合人群**：所有开发者、代码审查人员
+
+**内容概要**：
+- 6个核心命名原则（清晰性、一致性、社区约定等）
+- Rust命名规范（Struct、Function、Constant、Module、Lifetime）
+- TypeScript/React命名规范（Component、Hook、Interface、Props）
+- Next.js路由命名规范（动态路由、路由组、特殊文件）
+- 数据库命名规范（Table、Column、Index、Foreign Key、Migration）
+- 配置文件命名规范（环境变量、Docker、Nginx、脚本）
+- 文档命名规范（指南、API文档、快速参考）
+- 快速参考表（所有命名规范速查）
+- 13+反模式示例（❌ vs ✅对比）
+- 对标世界顶级项目（Rust、TypeScript、React、PostgreSQL等）
+
+**何时使用**：
+- 编写新代码时，确定命名规范
+- 代码审查时，检查命名是否符合规范
+- 不确定如何命名某个变量、函数或文件时
+- 学习项目各技术栈的命名约定
+
+**重要性**：⭐⭐⭐⭐⭐
+- 确保代码库命名一致性（当前95%，目标99%）
+- 所有开发者应遵循的命名标准
+- 对标世界顶级项目最佳实践
+
+---
+
+### 6. [前后端解耦进度报告](./DECOUPLING_PROGRESS.md) 📊 实施记录
 
 **适合人群**：技术负责人、开发人员
 
@@ -116,9 +145,10 @@
 
 **阅读顺序**：
 1. [文件组织原则指南](./docs/development/FILE_ORGANIZATION_GUIDE.md) ⭐ **必读** - 了解代码库组织规范
-2. [快速参考指南](./QUICK_REFERENCE.md) - 快速了解项目
-3. [前后端开发与测试完整指南](./FRONTEND_BACKEND_GUIDE.md) - 深入学习
-4. [前后端解耦完成报告](./DECOUPLING_COMPLETE.md) - 了解项目成果
+2. [命名规范最佳实践指南](./docs/development/NAMING_CONVENTIONS.md) ⭐ **必读** - 学习命名规范
+3. [快速参考指南](./QUICK_REFERENCE.md) - 快速了解项目
+4. [前后端开发与测试完整指南](./FRONTEND_BACKEND_GUIDE.md) - 深入学习
+5. [前后端解耦完成报告](./DECOUPLING_COMPLETE.md) - 了解项目成果
 
 ### 前端开发者
 
@@ -215,6 +245,7 @@
 ## 🔄 文档更新记录
 
 ### 2026-01-01
+- ✅ 创建 [命名规范最佳实践指南](./docs/development/NAMING_CONVENTIONS.md) - 对标世界顶级项目
 - ✅ 创建 [前后端开发与测试完整指南](./FRONTEND_BACKEND_GUIDE.md)
 - ✅ 创建 [快速参考指南](./QUICK_REFERENCE.md)
 - ✅ 创建 [文档索引](./DOCUMENTATION_INDEX.md)
@@ -279,9 +310,11 @@
 |------|------|----------|------|
 | 快速参考指南 | ~10 页 | 50+ | ~3000 |
 | 完整开发指南 | ~50 页 | 100+ | ~15000 |
+| 命名规范指南 | ~35 页 | 80+ | ~11000 |
+| 文件组织指南 | ~30 页 | 60+ | ~9500 |
 | 解耦完成报告 | ~15 页 | 30+ | ~4000 |
 | 解耦进度报告 | ~20 页 | 40+ | ~6000 |
-| **总计** | **~95 页** | **220+** | **~28000** |
+| **总计** | **~160 页** | **360+** | **~48500** |
 
 ---
 
