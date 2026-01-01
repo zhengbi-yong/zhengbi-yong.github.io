@@ -27,10 +27,14 @@ blog-backend/
 │   ├── db/         # Database models and schemas
 │   ├── shared/     # Shared types and utilities
 │   └── worker/     # Background worker processes
-├── migrations/     # SQLx database migrations
-├── deployments/docker/compose-files/docker-compose.yml
-├── setup.sh       # Automated setup script
-├── SETUP.md       # Detailed setup guide
+├── migrations/         # SQLx database migrations
+├── scripts/           # Development and deployment scripts
+│   ├── deployment/    # Deployment scripts (setup.sh, deploy.sh, quick-start.sh)
+│   ├── development/   # Development helper scripts
+│   ├── data/          # Data management scripts
+│   ├── database/      # Database operation scripts
+│   ├── testing/       # Testing scripts
+│   └── openapi/       # OpenAPI specification scripts
 └── README.md
 ```
 
@@ -86,7 +90,7 @@ git clone https://github.com/yourusername/zhengbi-yong.github.io.git
 cd zhengbi-yong.github.io/blog-backend
 
 # Run the setup script
-./setup.sh
+./scripts/deployment/setup.sh
 ```
 
 The setup script will:
