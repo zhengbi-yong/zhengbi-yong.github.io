@@ -76,7 +76,19 @@ frontend/slidev/*/node_modules
 
 # Docker 镜像导出
 docker-images-export/
+deployments/docker/images/export/*.tar
 
 # Docker 备份
 docker-compose.yml.backup
 *.backup
+
+# Test results
+test-results/
+
+# Frontend test files
+frontend/test-*.html
+frontend/diagnose-*.js
+
+# Backend environment
+backend/.env
+backend/.env.local
