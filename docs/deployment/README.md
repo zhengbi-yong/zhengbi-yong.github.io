@@ -1,409 +1,369 @@
-# 部署文档索引
+# Deployment Documentation / 部署文档
 
-**版本**: v1.0.0
-**最后更新**: 2025-12-29
-
----
-
-## 📚 文档导航
-
-本目录包含所有部署相关文档，涵盖本地开发环境到生产服务器的完整部署流程。
+Welcome to the deployment documentation. / 欢迎来到部署文档中心。
 
 ---
 
-## 🚀 快速开始指南
+## 🚀 Quick Start / 快速开始
 
-### 本地开发环境
+**New to deployment? Start here: / 部署新手从这里开始：**
 
-如果你是第一次在本地运行项目，建议从以下文档开始：
+1. **[5-Minute Quick Start](getting-started/quick-start.md)** ⭐⭐⭐⭐⭐
+   - Get running in 5 minutes with Docker
+   - 5分钟Docker快速启动
 
-1. **[Docker 跨平台快速启动](../getting-started/docker-quick-start.md)** ⭐⭐⭐
-   - 适用于所有平台（Windows, macOS, Linux）
-   - 最简单、最可靠的启动方式
-   - 预计启动时间: 5-10 分钟
+2. **[Choose Your Deployment Approach](getting-started/choosing-your-approach.md)** ⭐⭐⭐⭐⭐
+   - Decision matrix for all deployment methods
+   - 部署方式决策矩阵
 
-2. **平台特定指南** ⭐⭐
-   - **[Windows 本地开发](../getting-started/local-development-windows.md)** - WSL2 和原生 Windows
-   - **[macOS 本地开发](../getting-started/local-development-macos.md)** - Apple Silicon 和 Intel
-   - **[Linux 本地开发](../getting-started/local-development-linux.md)** - Ubuntu, Debian, Fedora, Arch
-
-3. **[快速开始](../getting-started/quick-start.md)** ⭐⭐
-   - Docker 和传统开发模式概览
-   - 帮助选择合适的启动方式
-
-### 生产服务器部署
-
-如果你准备部署到生产服务器，建议按以下顺序阅读：
-
-1. **[服务器部署完整指南](SERVER_DEPLOYMENT_GUIDE.md)** ⭐⭐⭐
-   - 最详细的部署指南
-   - 包含所有步骤和故障排查
-   - 预计部署时间: 30-60 分钟
-   - **适用系统**: Ubuntu 20.04+, Debian 11+, CentOS 8+
-
-2. **[配置修改清单](CONFIG_CHECKLIST.md)** ⭐⭐⭐
-   - 快速检查所有需要修改的配置
-   - 打勾式清单，不会遗漏
-   - **部署前必看**
-
-3. **[Docker 完整部署](docker.md)** ⭐⭐
-   - Docker 部署的详细说明
-   - 包含性能优化和安全加固
+3. **[Prerequisites](getting-started/prerequisites.md)** ⭐⭐⭐⭐
+   - System requirements and preparation
+   - 系统要求和准备
 
 ---
 
-## 📋 部署方式对比
+## 👥 By User Type / 按用户类型
 
-| 部署方式 | 适用场景 | 难度 | 时间 | 文档 |
-|---------|---------|------|------|------|
-| **Docker 本地开发** | 本地开发、测试 | ⭐ | 5-10 分钟 | [Docker 快速启动](../getting-started/docker-quick-start.md) |
-| **传统开发模式** | 前后端分离开发 | ⭐⭐ | 15-30 分钟 | [平台特定指南](../getting-started/) |
-| **服务器一键部署** | 生产环境部署 | ⭐⭐ | 20-40 分钟 | [服务器部署指南](SERVER_DEPLOYMENT_GUIDE.md) |
-| **手动服务器部署** | 定制化生产环境 | ⭐⭐⭐ | 1-2 小时 | [完整部署指南](SERVER_DEPLOYMENT_GUIDE.md) |
+### 🌱 Beginners / 初学者
+
+**Goal**: Get the blog running quickly / 快速启动博客
+
+1. [Quick Start Guide](getting-started/quick-start.md) - 5-minute setup
+2. [Choosing Your Approach](getting-started/choosing-your-approach.md) - Pick deployment method
+3. [Production Server Guide](guides/server/production-server.md) - Full deployment walkthrough
+4. [Troubleshooting](getting-started/troubleshooting-common.md) - Common issues
+
+**Expected time**: 30-60 minutes / 预计时间：30-60分钟
+
+### 💻 Developers / 开发者
+
+**Goal**: Local development and testing / 本地开发和测试
+
+1. [Quick Start](getting-started/quick-start.md) - Local Docker setup
+2. [Docker Architecture](concepts/docker-architecture.md) - Understand Docker setup
+3. [Local Development](guides/docker/local-development.md) - Complete local dev guide
+4. [Cross-Platform Guide](guides/docker/cross-platform.md) - Windows/Linux/macOS
+5. [Image Management](guides/docker/image-management.md) - Build and push images
+
+**Expected time**: 10-20 minutes / 预计时间：10-20分钟
+
+### 🔧 DevOps Engineers / 运维工程师
+
+**Goal**: Production deployment and maintenance / 生产部署和维护
+
+1. [Production Server Guide](guides/server/production-server.md) ⭐⭐⭐⭐⭐ - Comprehensive guide
+2. [Configuration Checklist](reference/configuration-checklist.md) ⭐⭐⭐⭐⭐ - Pre-deployment checks
+3. [High Availability](guides/server/high-availability.md) - Enterprise deployment
+4. [Security Best Practices](best-practices/security.md) ⭐⭐⭐⭐ - Hardening guide
+5. [Monitoring](best-practices/monitoring.md) - Production monitoring
+6. [Backup Strategy](best-practices/backup-strategy.md) - Disaster recovery
+
+**Expected time**: 1-3 hours (first time) / 预计时间：1-3小时（首次）
+
+### 💰 Low Resource Users / 低配置服务器
+
+**Goal**: Deploy on 2GB RAM server / 在2GB内存服务器上部署
+
+1. [Low Resource Quick Start](guides/low-resource/quick-start.md) - 3-step deployment
+2. [Low Resource Guide](guides/low-resource/deployment-guide.md) - Complete guide
+3. [Performance Tuning](reference/performance-tuning.md) - Optimization
+
+**Expected time**: 20-40 minutes / 预计时间：20-40分钟
 
 ---
 
-## 🔧 相关文档
+## 📚 Documentation Structure / 文档结构
 
-### 本地开发
+This documentation follows cognitive learning patterns / 本文档遵循认知学习规律：
 
-- **[Docker 快速启动](../getting-started/docker-quick-start.md)** - 跨平台 Docker 部署
-- **[Windows 本地开发](../getting-started/local-development-windows.md)** - Windows 特定指南
-- **[macOS 本地开发](../getting-started/local-development-macos.md)** - macOS 特定指南
-- **[Linux 本地开发](../getting-started/local-development-linux.md)** - Linux 特定指南
-- **[安装指南](../getting-started/installation.md)** - 详细的安装步骤
-- **[环境配置](../getting-started/environment-setup.md)** - 环境变量配置
-
-### 服务器部署
-
-- **[服务器部署完整指南](SERVER_DEPLOYMENT_GUIDE.md)** ⭐⭐⭐ - 详细的服务器部署文档
-- **[配置修改清单](CONFIG_CHECKLIST.md)** ⭐⭐⭐ - 部署前检查清单
-- **[Docker 完整部署](docker.md)** ⭐⭐ - Docker 部署详细说明
-- **[单服务器部署](single-server.md)** - 快速单服务器部署
-- **[高可用部署](high-availability.md)** - 生产环境高可用配置
+```
+Deployment Docs /
+├── 🚀 Getting Started / 快速入门
+│   ├── Quick Start (5 min)
+│   ├── Choose Your Approach
+│   ├── Prerequisites
+│   └── Common Issues
+│
+├── 📖 Concepts / 核心概念
+│   ├── Architecture Overview
+│   ├── Deployment Options
+│   └── Docker Architecture
+│
+├── 📋 Guides / 部署指南
+│   ├── Docker / Docker部署
+│   ├── Server / 服务器部署
+│   ├── Low-Resource / 低配置部署
+│   └── Scripts / 脚本自动化
+│
+├── 📗 Reference / 参考文档
+│   ├── Configuration Checklist
+│   ├── Environment Variables
+│   ├── Commands Reference
+│   └── Performance Tuning
+│
+├── 🌟 Best Practices / 最佳实践
+│   ├── Security
+│   ├── Monitoring
+│   ├── Backup Strategy
+│   └── Scaling
+│
+└── 📦 Archive / 归档
+    └── Historical Documents
+```
 
 ---
 
-## 🛠️ 部署脚本
+## 🎯 Common Tasks / 常见任务
 
-所有脚本位于 `scripts/deployment/` 目录。
+### First-Time Deployment / 首次部署
 
-### 1️⃣ 快速部署脚本
+| Task / 任务 | Time / 时间 | Difficulty / 难度 | Guide / 指南 |
+|------------|-----------|-------------------|-------------|
+| **Local Development** | 5-10 min | ⭐ Easy | [Quick Start](getting-started/quick-start.md) |
+| **Single Server** | 20-40 min | ⭐⭐ Easy | [Production Server](guides/server/production-server.md) |
+| **Low Resource (2GB)** | 20-40 min | ⭐⭐ Easy | [Low Resource](guides/low-resource/quick-start.md) |
+| **High Availability** | 2-4 hours | ⭐⭐⭐⭐ Advanced | [High Availability](guides/server/high-availability.md) |
 
-**文件**: `scripts/deployment/quick-deploy.sh`
+### Maintenance Tasks / 维护任务
 
-**用途**: 一键自动部署博客系统
+| Task / 任务 | Guide / 指南 |
+|------------|-------------|
+| **Deploy Updates** | [Image Management](guides/docker/image-management.md) |
+| **Configure SSL** | [SSL Setup](guides/scripts/ssl-setup.md) |
+| **Backup Database** | [Backup Strategy](best-practices/backup-strategy.md) |
+| **Monitor Performance** | [Monitoring](best-practices/monitoring.md) |
+| **Troubleshoot Issues** | [Troubleshooting](getting-started/troubleshooting-common.md) |
 
-**使用方法**:
+---
+
+## 📊 Deployment Comparison / 部署方式对比
+
+### Quick Decision Matrix / 快速决策矩阵
+
+| Your Situation / 您的情况 | Recommended / 推荐 | Guide / 指南 | Resources / 资源 |
+|--------------------------|------------------|-------------|------------------|
+| Local development / 本地开发 | Docker Local | [Local Dev](guides/docker/local-development.md) | 8GB RAM local machine |
+| Personal blog / 个人博客 | Single Server | [Production Server](guides/server/production-server.md) | 2-4GB RAM, 20-40GB disk |
+| Low budget / 预算有限 | Low Resource | [Low Resource](guides/low-resource/quick-start.md) | 2GB RAM, 20GB disk |
+| Production / 生产环境 | Production Server | [Production Server](guides/server/production-server.md) | 4-8GB RAM, 40GB+ disk |
+| Enterprise / 企业级 | High Availability | [High Availability](guides/server/high-availability.md) | Multiple servers |
+
+### Detailed Comparison / 详细对比
+
+**Docker Local / 本地Docker**
+- **Best for**: Development, testing / 开发、测试
+- **Resources**: 8GB RAM local machine / 本地机器8GB内存
+- **Time**: 5-10 minutes
+- **Difficulty**: ⭐ (Very Easy / 非常简单)
+- **Cost**: Free / 免费
+- [Read More](guides/docker/local-development.md)
+
+**Single Server / 单服务器**
+- **Best for**: Personal blogs, small projects / 个人博客、小型项目
+- **Resources**: 2-4GB RAM, 20-40GB disk
+- **Time**: 20-40 minutes
+- **Difficulty**: ⭐⭐ (Easy / 简单)
+- **Cost**: $5-10/month / 月
+- [Read More](guides/server/single-server.md)
+
+**Production Server / 生产服务器**
+- **Best for**: Production, growing sites / 生产环境、成长中站点
+- **Resources**: 4-8GB RAM, 40GB+ disk
+- **Time**: 30-60 minutes
+- **Difficulty**: ⭐⭐⭐ (Medium / 中等)
+- **Cost**: $10-20/month / 月
+- [Read More](guides/server/production-server.md) ⭐
+
+**High Availability / 高可用**
+- **Best for**: Enterprise, critical sites / 企业级、关键站点
+- **Resources**: Multiple servers / 多台服务器
+- **Time**: 2-4 hours
+- **Difficulty**: ⭐⭐⭐⭐ (Advanced / 高级)
+- **Cost**: $50+/month / 月
+- [Read More](guides/server/high-availability.md)
+
+**Low Resource / 低配置**
+- **Best for**: Budget-constrained deployment / 预算有限的部署
+- **Resources**: 2GB RAM, 20GB disk
+- **Time**: 20-30 minutes
+- **Difficulty**: ⭐⭐ (Easy / 简单)
+- **Cost**: $3-5/month / 月
+- [Read More](guides/low-resource/quick-start.md)
+
+---
+
+## 🛠️ Deployment Scripts / 部署脚本
+
+All scripts located in `scripts/deployment/` / 所有脚本位于 `scripts/deployment/`
+
+### 1️⃣ Quick Deploy / 快速部署
+
 ```bash
 bash scripts/deployment/quick-deploy.sh your-domain.com
 ```
 
-**功能**:
-- ✅ 自动生成所有安全密钥
-- ✅ 配置环境变量
-- ✅ 更新 Nginx 配置
-- ✅ 构建 Docker 镜像
-- ✅ 启动所有服务
-- ✅ 运行健康检查
+**Features / 功能**:
+- ✅ Auto-generate security keys / 自动生成安全密钥
+- ✅ Configure environment / 配置环境变量
+- ✅ Update Nginx / 更新Nginx配置
+- ✅ Build Docker images / 构建Docker镜像
+- ✅ Start all services / 启动所有服务
+- ✅ Health check / 健康检查
 
-**适合**: 首次部署或快速测试
+[Full Guide →](guides/scripts/quick-deploy.md)
 
-**预计时间**: 20-40 分钟
+### 2️⃣ SSL Setup / SSL配置
 
----
-
-### 2️⃣ SSL 证书配置脚本
-
-**文件**: `scripts/deployment/setup-ssl.sh`
-
-**用途**: 自动配置 Let's Encrypt SSL 证书
-
-**使用方法**:
 ```bash
-bash scripts/deployment/setup-ssl.sh your-domain.com [your-email@example.com]
+bash scripts/deployment/setup-ssl.sh your-domain.com [email@example.com]
 ```
 
-**功能**:
-- ✅ 自动申请 SSL 证书
-- ✅ 配置 Nginx HTTPS
-- ✅ 设置 HTTP 到 HTTPS 重定向
-- ✅ 配置证书自动续期
+**Features / 功能**:
+- ✅ Auto-request SSL certificate / 自动申请SSL证书
+- ✅ Configure HTTPS / 配置HTTPS
+- ✅ Auto-renewal setup / 配置自动续期
 
-**适合**: 已完成基础部署，需要配置 HTTPS
+[Full Guide →](guides/scripts/ssl-setup.md)
 
-**预计时间**: 5-10 分钟
+### 3️⃣ Verify Deployment / 验证部署
 
----
-
-### 3️⃣ 部署验证脚本
-
-**文件**: `scripts/deployment/verify-deployment.sh`
-
-**用途**: 自动检查所有功能是否正常
-
-**使用方法**:
 ```bash
-# HTTP
-bash scripts/deployment/verify-deployment.sh http://your-domain.com
-
-# HTTPS
 bash scripts/deployment/verify-deployment.sh https://your-domain.com
 ```
 
-**功能**:
-- ✅ 检查所有容器状态
-- ✅ 测试网络连接
-- ✅ 验证数据库功能
-- ✅ 检查化学可视化库
-- ✅ 测试性能基准
-- ✅ 检查安全配置
+**Features / 功能**:
+- ✅ Check container status / 检查容器状态
+- ✅ Test database / 测试数据库
+- ✅ Verify security / 验证安全配置
+- ✅ Performance test / 性能测试
 
-**输出**: 彩色的测试报告
-
-**适合**: 部署后验证或日常健康检查
+[Full Guide →](guides/scripts/verification.md)
 
 ---
 
-## 📖 完整部署流程
+## 📖 Full Documentation Index / 完整文档索引
 
-### 方案 A: 全自动部署（推荐新手）
+### Getting Started / 快速入门
+- [Quick Start](getting-started/quick-start.md) - 5-minute setup / 5分钟设置
+- [Choosing Your Approach](getting-started/choosing-your-approach.md) - Decision guide / 决策指南
+- [Prerequisites](getting-started/prerequisites.md) - Requirements / 系统要求
+- [Common Issues](getting-started/troubleshooting-common.md) - Troubleshooting / 故障排查
 
-```bash
-# 1. 上传项目到服务器
-git clone https://github.com/zhengbi-yong/zhengbi-yong.github.io.git
-cd zhengbi-yong.github.io
+### Concepts / 核心概念
+- [Architecture Overview](concepts/architecture.md) - System design / 系统设计
+- [Deployment Options](concepts/deployment-options.md) - All methods compared / 所有方法对比
+- [Docker Architecture](concepts/docker-architecture.md) - Docker patterns / Docker模式
 
-# 2. 运行快速部署脚本
-bash scripts/deployment/quick-deploy.sh your-domain.com
+### Guides - Docker / 指南 - Docker
+- [Local Development](guides/docker/local-development.md) - Local setup / 本地设置
+- [Production Deployment](guides/docker/production-deployment.md) - Production Docker / 生产Docker
+- [Cross-Platform](guides/docker/cross-platform.md) - Windows/Linux/macOS
+- [Image Management](guides/docker/image-management.md) - Build, push, export / 构建、推送、导出
+- [Compose Configuration](guides/docker/compose-configuration.md) - docker-compose.yml reference
 
-# 3. 配置 SSL 证书
-bash scripts/deployment/setup-ssl.sh your-domain.com
+### Guides - Server / 指南 - 服务器
+- [Single Server](guides/server/single-server.md) - Simple deployment / 简单部署
+- [Production Server](guides/server/production-server.md) ⭐ - Complete guide / 完整指南
+- [High Availability](guides/server/high-availability.md) - Enterprise HA / 企业级高可用
 
-# 4. 验证部署
-bash scripts/deployment/verify-deployment.sh https://your-domain.com
-```
+### Guides - Low Resource / 指南 - 低配置
+- [Quick Start](guides/low-resource/quick-start.md) - 3-step deployment / 3步部署
+- [Deployment Guide](guides/low-resource/deployment-guide.md) - Complete guide / 完整指南
+- [Index](guides/low-resource/index.md) - Navigation / 导航
 
-**优点**: 简单、快速、自动化
-**缺点**: 灵活性较低
+### Guides - Scripts / 指南 - 脚本
+- [Quick Deploy](guides/scripts/quick-deploy.md) - quick-deploy.sh guide
+- [SSL Setup](guides/scripts/ssl-setup.md) - setup-ssl.sh guide
+- [Verification](guides/scripts/verification.md) - verify-deployment.sh guide
+- [Backup & Restore](guides/scripts/backup-restore.md) - Backup procedures / 备份流程
 
----
+### Reference / 参考文档
+- [Configuration Checklist](reference/configuration-checklist.md) ⭐ - Pre-deployment checks / 部署前检查
+- [Environment Variables](reference/environment-variables.md) - Complete reference / 完整参考
+- [Commands Reference](reference/commands.md) - Docker & DB commands / Docker和数据库命令
+- [Ports & Networking](reference/ports-and-networking.md) - Network topology / 网络拓扑
+- [Performance Tuning](reference/performance-tuning.md) - Optimization / 优化
 
-### 方案 B: 手动部署（推荐有经验用户）
-
-**步骤**:
-
-1. **阅读文档** (15 分钟)
-   ```bash
-   # 阅读: SERVER_DEPLOYMENT_GUIDE.md
-   # 了解完整的部署流程
-   ```
-
-2. **准备服务器** (10 分钟)
-   ```bash
-   # 安装 Docker
-   curl -fsSL https://get.docker.com | sh
-
-   # 安装 Docker Compose
-   # 参考: SERVER_DEPLOYMENT_GUIDE.md 步骤 2
-   ```
-
-3. **上传项目** (5 分钟)
-   ```bash
-   # 方法 1: Git 克隆
-   git clone https://github.com/zhengbi-yong/zhengbi-yong.github.io.git
-
-   # 方法 2: 手动上传
-   # 参考: SERVER_DEPLOYMENT_GUIDE.md 步骤 5
-   ```
-
-4. **修改配置** (10 分钟)
-   ```bash
-   # 使用配置清单
-   # 参考: CONFIG_CHECKLIST.md
-
-   # 生成密钥
-   openssl rand -base64 32
-   ```
-
-5. **构建镜像** (20 分钟)
-   ```bash
-   docker compose build
-   ```
-
-6. **启动服务** (5 分钟)
-   ```bash
-   docker compose up -d
-   ```
-
-7. **配置 SSL** (10 分钟)
-   ```bash
-   bash scripts/deployment/setup-ssl.sh your-domain.com
-   ```
-
-8. **验证部署** (5 分钟)
-   ```bash
-   bash scripts/deployment/verify-deployment.sh https://your-domain.com
-   ```
-
-**优点**: 完全控制、可定制
-**缺点**: 需要一定经验
+### Best Practices / 最佳实践
+- [Security](best-practices/security.md) ⭐ - Security hardening / 安全加固
+- [Monitoring](best-practices/monitoring.md) - Logging & metrics / 日志和指标
+- [Backup Strategy](best-practices/backup-strategy.md) - Disaster recovery / 灾难恢复
+- [Scaling](best-practices/scaling.md) - Horizontal & vertical scaling / 水平和垂直扩展
 
 ---
 
-## ⚡ 快速命令参考
+## 🔍 Need Help? / 需要帮助？
 
-### 容器管理
+### Common Issues / 常见问题
 
-```bash
-# 启动所有服务
-docker compose up -d
+1. **Check the troubleshooting guide / 查看故障排查指南**
+   - [Common Issues](getting-started/troubleshooting-common.md)
 
-# 停止所有服务
-docker compose down
+2. **Review your configuration / 检查配置**
+   - [Configuration Checklist](reference/configuration-checklist.md)
 
-# 重启服务
-docker compose restart
+3. **Verify deployment steps / 验证部署步骤**
+   - Follow the appropriate guide for your deployment method
+   - Run verification script: `bash scripts/deployment/verify-deployment.sh`
 
-# 查看服务状态
-docker compose ps
-
-# 查看日志
-docker compose logs -f
-```
-
-### 验证测试
-
-```bash
-# 运行完整验证
-bash scripts/deployment/verify-deployment.sh https://your-domain.com
-
-# 快速健康检查
-curl https://your-domain.com/v1/health
-
-# 查看容器状态
-docker compose ps
-```
-
-### 备份恢复
-
-```bash
-# 数据库备份
-docker compose exec postgres pg_dump -U blog_user blog_db > backup.sql
-
-# 数据库恢复
-docker compose exec -T postgres psql -U blog_user blog_db < backup.sql
-
-# 备份所有数据
-./scripts/deployment/backup.sh
-```
+4. **Ask the community / 寻求社区帮助**
+   - Create an issue on GitHub
+   - Check existing issues and discussions
 
 ---
 
-## 🔍 故障排查
+## 🎓 Learning Path / 学习路径
 
-### 常见问题
+**New to deployment? Follow this path / 部署新手？按此路径学习：**
 
-| 问题 | 解决方案 | 文档链接 |
-|------|----------|----------|
-| 容器无法启动 | 查看日志检查错误 | [SERVER_DEPLOYMENT_GUIDE.md](SERVER_DEPLOYMENT_GUIDE.md#常见问题排查) |
-| 前端无法访问 | 检查 CORS 配置 | [CONFIG_CHECKLIST.md](CONFIG_CHECKLIST.md) |
-| 化学库不显示 | 检查文件是否存在 | [CHEMISTRY_VISUALIZATION_SETUP.md](../CHEMISTRY_VISUALIZATION_SETUP.md) |
-| SSL 证书失败 | 检查域名解析 | [SERVER_DEPLOYMENT_GUIDE.md](SERVER_DEPLOYMENT_GUIDE.md#问题-4-ssl-证书获取失败) |
+1. **Start** / 开始: [Quick Start](getting-started/quick-start.md) (5 min)
+2. **Choose** / 选择: [Your Approach](getting-started/choosing-your-approach.md) (5 min)
+3. **Prepare** / 准备: [Prerequisites](getting-started/prerequisites.md) (5 min)
+4. **Deploy** / 部署: Follow your chosen guide (20-60 min)
+5. **Verify** / 验证: [Verification Script](guides/scripts/verification.md) (5 min)
+6. **Secure** / 加固: [SSL Setup](guides/scripts/ssl-setup.md) (10 min)
+7. **Monitor** / 监控: [Monitoring Guide](best-practices/monitoring.md)
 
-### 获取帮助
-
-1. **查看日志**: `docker compose logs`
-2. **运行验证**: `bash scripts/deployment/verify-deployment.sh`
-3. **阅读文档**: 查看 `docs/` 目录下的相关文档
-4. **提交 Issue**: https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues
+**Total time**: 1-2 hours / 总时间：1-2小时
 
 ---
 
-## 📊 部署检查清单
+## 📈 What's Next? / 下一步做什么？
 
-### 部署前检查
+### After Deployment / 部署后
 
-- [ ] 服务器已安装 Docker 和 Docker Compose
-- [ ] 域名已解析到服务器 IP
-- [ ] 防火墙已开放 80、443 端口
-- [ ] 服务器内存至少 4GB
-- [ ] 服务器磁盘至少 20GB 可用空间
+1. **Configure SSL** / 配置SSL
+   - [SSL Setup Guide](guides/scripts/ssl-setup.md)
 
-### 配置修改检查
+2. **Setup Backups** / 设置备份
+   - [Backup Strategy](best-practices/backup-strategy.md)
 
-- [ ] 已修改 `.env` 文件中所有密码和密钥
-- [ ] 已修改 `CORS_ALLOWED_ORIGINS`
-- [ ] 已修改 `NEXT_PUBLIC_SITE_URL` 和 `NEXT_PUBLIC_API_URL`
-- [ ] 已修改 Nginx 配置中的域名
-- [ ] 已修改 deployments/docker/compose-files/docker-compose.yml 中的环境变量引用
+3. **Enable Monitoring** / 启用监控
+   - [Monitoring Guide](best-practices/monitoring.md)
 
-### 部署后验证
+4. **Security Hardening** / 安全加固
+   - [Security Best Practices](best-practices/security.md)
 
-- [ ] 所有容器状态正常
-- [ ] 前端页面可以访问
-- [ ] 后端 API 可以访问
-- [ ] 数据库连接正常
-- [ ] Redis 连接正常
-- [ ] 化学可视化功能正常
-- [ ] SSL 证书已配置（可选）
+### Advanced Topics / 高级主题
+
+- **Scaling**: [Scaling Guide](best-practices/scaling.md)
+- **Performance**: [Performance Tuning](reference/performance-tuning.md)
+- **High Availability**: [HA Deployment](guides/server/high-availability.md)
 
 ---
 
-## 🎯 推荐部署路径
+## 🤝 Contributing / 贡献
 
-### 路径 1: 快速测试（30 分钟）
+Found an issue? Want to improve the docs? / 发现问题？想要改进文档？
 
-```bash
-# 适合: 快速测试，学习使用
-git clone <repo>
-bash scripts/deployment/quick-deploy.sh test.your-domain.com
-```
-
-### 路径 2: 生产部署（1 小时）
-
-```bash
-# 适合: 正式上线
-git clone <repo>
-# 按照 SERVER_DEPLOYMENT_GUIDE.md 手动配置
-bash scripts/deployment/quick-deploy.sh your-domain.com
-bash scripts/deployment/setup-ssl.sh your-domain.com your@email.com
-bash scripts/deployment/verify-deployment.sh https://your-domain.com
-```
-
-### 路径 3: 高级定制（2 小时）
-
-```bash
-# 适合: 需要定制配置
-git clone <repo>
-# 详细阅读所有文档
-# 手动修改所有配置
-# 逐步部署和测试
-```
+1. Check [Best Practices](../development/best-practices/)
+2. Follow [Development Workflow](../development/getting-started/workflow/)
+3. Submit a pull request
 
 ---
 
-## 📞 联系方式
+**Version**: 2.0 (World-Class Deployment Documentation)
+**Last Updated**: 2026-01-01
+**Maintained By**: Deployment Team
 
-- **项目主页**: https://github.com/zhengbi-yong/zhengbi-yong.github.io
-- **博客地址**: https://zhengbi-yong.github.io
-- **Issues**: https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues
-
----
-
-## 📝 更新日志
-
-### v1.0.0 (2025-12-29)
-
-- ✅ 创建完整的部署指南
-- ✅ 创建配置修改清单
-- ✅ 创建自动部署脚本
-- ✅ 创建 SSL 配置脚本
-- ✅ 创建验证测试脚本
-- ✅ 创建文档索引
-
----
-
-**文档维护者**: Zhengbi Yong
-**最后更新**: 2025-12-29
-**反馈渠道**: GitHub Issues
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
