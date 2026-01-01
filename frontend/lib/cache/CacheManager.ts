@@ -212,7 +212,7 @@ export class CacheManager<T = any> {
 }
 
 // 全局缓存实例
-export const caches = {
+export const CACHE_REGISTRY = {
   api: new CacheManager('api-cache', { storage: 'sessionStorage', ttl: 5 * 60 * 1000 }), // 5 分钟
   images: new CacheManager('image-cache', { storage: 'localStorage', ttl: 24 * 60 * 60 * 1000 }), // 24 小时
   articles: new CacheManager('article-cache', { storage: 'localStorage', ttl: 30 * 60 * 1000 }), // 30 分钟
@@ -223,7 +223,7 @@ export const caches = {
 if (typeof window !== 'undefined') {
   setInterval(
     () => {
-      Object.values(caches).forEach((cache) => cache.cleanup())
+      Object.values(CACHE_REGISTRY).forEach((cache) => cache.cleanup())
     },
     5 * 60 * 1000
   ) // 每 5 分钟清理一次

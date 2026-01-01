@@ -1,4 +1,4 @@
-import { caches } from '../cache/CacheManager'
+import { CACHE_REGISTRY as caches } from '../cache/CacheManager'
 import { AppError, ErrorType } from '../error-handler'
 import { refreshAccessToken } from './backend'
 import { logger } from '../utils/logger'
