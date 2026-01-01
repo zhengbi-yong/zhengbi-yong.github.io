@@ -407,7 +407,7 @@ pub async fn create_post(
         auth_user.id,
         req.show_toc.unwrap_or(true),
         req.layout.unwrap_or_else(|| "PostSimple".to_string()),
-        reading_time
+        reading_time as i32
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -436,6 +436,18 @@ pub async fn create_post(
         req.content,
         req.summary,
         auth_user.id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    // 创建 post_stats 记录
+    sqlx::query!(
+        r#"
+        INSERT INTO post_stats (slug, view_count, like_count, comment_count, updated_at)
+        VALUES ($1, 0, 0, 0, NOW())
+        ON CONFLICT (slug) DO NOTHING
+        "#,
+        req.slug
     )
     .execute(&mut *tx)
     .await?;
@@ -503,7 +515,7 @@ pub async fn get_post(
             p.show_toc, p.layout,
             p.view_count, p.like_count, p.comment_count,
             p.created_at, p.updated_at, p.lastmod_at,
-            p.reading_time
+            p.reading_time as "reading_time?: i32"
         FROM posts p
         LEFT JOIN media m ON p.cover_image_id = m.id
         LEFT JOIN categories c ON p.category_id = c.id
@@ -538,14 +550,14 @@ pub async fn get_post(
                 author_id: row.author_id,
                 author_name: row.author_name,
                 show_toc: row.show_toc,
-                layout: row.layout.unwrap_or_else(|| "default".to_string()),
+                layout: row.layout,
                 view_count: row.view_count,
                 like_count: row.like_count,
                 comment_count: row.comment_count,
                 created_at: row.created_at,
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
-                reading_time: Some(row.reading_time),
+                reading_time: row.reading_time,
                 tags: Vec::new(), // 将在下面填充
             };
             // 获取标签
@@ -882,7 +894,7 @@ pub async fn list_posts(
             p.id, p.slug, p.title, p.summary,
             m.cdn_url,
             p.status, p.published_at,
-            c.name, c.slug,
+            c.name as category_name, c.slug as category_slug,
             u.username,
             p.view_count::bigint, p.like_count::bigint, p.comment_count::bigint,
             p.created_at, p.reading_time,
@@ -911,17 +923,17 @@ pub async fn list_posts(
             slug: row.get("slug"),
             title: row.get("title"),
             summary: row.get("summary"),
-            cover_image_url: row.get("cdn_url"),
+            cover_image_url: row.get::<Option<String>, _>("cdn_url"),
             status: row.get::<blog_db::cms::PostStatus, _>("status"),
-            published_at: row.get("published_at"),
-            category_name: row.get("name"),
-            category_slug: row.get("slug"),
-            author_name: row.get("username"),
+            published_at: row.get::<Option<chrono::DateTime<chrono::Utc>>, _>("published_at"),
+            category_name: row.get::<Option<String>, _>("category_name"),
+            category_slug: row.get::<Option<String>, _>("category_slug"),
+            author_name: row.get::<Option<String>, _>("username"),
             view_count: row.get("view_count"),
             like_count: row.get("like_count"),
             comment_count: row.get("comment_count"),
             created_at: row.get("created_at"),
-            reading_time: row.get("reading_time"),
+            reading_time: row.get::<Option<i32>, _>("reading_time"),
             tag_count: row.get("tag_count"),
         }
     }).collect();

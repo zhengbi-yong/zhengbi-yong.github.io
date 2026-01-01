@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Auth</title>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    <div id="result"></div>
+
+    <script>
+        async function testAuth() {
+            const result = document.getElementById('result');
+
+            // 1. Check localStorage
+            result.innerHTML += '<h2>1. localStorage Contents:</h2>';
+            result.innerHTML += `<pre>access_token: ${localStorage.getItem('access_token') ? 'EXISTS' : 'MISSING'}</pre>`;
+            result.innerHTML += `<pre>user_info: ${localStorage.getItem('user_info') || 'MISSING'}</pre>`;
+
+            // 2. Test login
+            result.innerHTML += '<h2>2. Testing Login:</h2>';
+            try {
+                const loginResponse = await fetch('http://localhost:3000/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'xK9#mP2$vL8@nQ5*wR4'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                result.innerHTML += `<pre>Login response: ${JSON.stringify(loginData, null, 2)}</pre>`;
+
+                // Store token
+                if (loginData.access_token) {
+                    localStorage.setItem('access_token', loginData.access_token);
+                    result.innerHTML += '<pre>Token stored to localStorage</pre>';
+                }
+
+                // 3. Test admin API with token
+                result.innerHTML += '<h2>3. Testing Admin API:</h2>';
+                const adminResponse = await fetch('http://localhost:3000/v1/admin/posts', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                result.innerHTML += `<pre>Status: ${adminResponse.status} ${adminResponse.statusText}</pre>`;
+
+                if (adminResponse.ok) {
+                    const adminData = await adminResponse.json();
+                    result.innerHTML += `<pre>Response: ${JSON.stringify(adminData, null, 2).substring(0, 500)}...</pre>`;
+                } else {
+                    const errorText = await adminResponse.text();
+                    result.innerHTML += `<pre>Error: ${errorText}</pre>`;
+                }
+
+            } catch (error) {
+                result.innerHTML += `<pre>Error: ${error.message}</pre>`;
+            }
+        }
+
+        testAuth();
+    </script>
+</body>
+</html>

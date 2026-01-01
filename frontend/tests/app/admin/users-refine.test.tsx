@@ -55,9 +55,14 @@ describe('UsersRefinePage', () => {
 
   it('should render loading state', () => {
     mockUseList.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      error: null,
+      query: {
+        isPending: true,
+        isError: false,
+      },
+      result: {
+        data: undefined,
+        total: 0,
+      },
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -79,12 +84,14 @@ describe('UsersRefinePage', () => {
 
   it('should render users list', async () => {
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockUsers,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -110,9 +117,15 @@ describe('UsersRefinePage', () => {
 
   it('should render error state', () => {
     mockUseList.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: new Error('Failed to load users'),
+      query: {
+        isPending: false,
+        isError: true,
+        error: new Error('Failed to load users'),
+      },
+      result: {
+        data: undefined,
+        total: 0,
+      },
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -135,12 +148,14 @@ describe('UsersRefinePage', () => {
 
   it('should handle search', async () => {
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockUsers,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -167,12 +182,14 @@ describe('UsersRefinePage', () => {
     const mockMutateAsync = vi.fn().mockResolvedValue({})
 
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockUsers,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -208,12 +225,14 @@ describe('UsersRefinePage', () => {
     window.confirm = vi.fn(() => true)
 
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockUsers,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -255,12 +274,14 @@ describe('UsersRefinePage', () => {
 
   it('should handle pagination', async () => {
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockUsers,
         total: 50,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -284,12 +305,14 @@ describe('UsersRefinePage', () => {
 
   it('should display stats cards', async () => {
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockUsers,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -314,4 +337,3 @@ describe('UsersRefinePage', () => {
     })
   })
 })
-

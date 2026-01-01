@@ -24,6 +24,16 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 
+// 模拟 localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+}
+
+global.localStorage = localStorageMock as any
+
 // 设置全局测试超时
 beforeAll(() => {
   vi.setConfig({ testTimeout: 10000 })

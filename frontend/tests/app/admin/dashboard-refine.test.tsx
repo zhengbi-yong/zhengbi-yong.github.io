@@ -68,9 +68,13 @@ describe('AdminDashboard', () => {
 
   it('should render loading state', () => {
     mockUseList.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      error: null,
+      query: {
+        isPending: true,
+        isError: false,
+      },
+      result: {
+        data: undefined,
+      },
     } as any)
 
     renderWithProviders(<AdminDashboard />)
@@ -80,12 +84,13 @@ describe('AdminDashboard', () => {
 
   it('should render dashboard with stats', async () => {
     mockUseList.mockReturnValue({
-      data: {
-        data: [mockStats],
-        total: 1,
+      query: {
+        isPending: false,
+        isError: false,
       },
-      isLoading: false,
-      error: null,
+      result: {
+        data: [mockStats],
+      },
     } as any)
 
     renderWithProviders(<AdminDashboard />)
@@ -102,9 +107,14 @@ describe('AdminDashboard', () => {
 
   it('should render error state', () => {
     mockUseList.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: new Error('Failed to load stats'),
+      query: {
+        isPending: false,
+        isError: true,
+        error: new Error('Failed to load stats'),
+      },
+      result: {
+        data: undefined,
+      },
     } as any)
 
     renderWithProviders(<AdminDashboard />)
@@ -115,12 +125,13 @@ describe('AdminDashboard', () => {
 
   it('should display all stat cards', async () => {
     mockUseList.mockReturnValue({
-      data: {
-        data: [mockStats],
-        total: 1,
+      query: {
+        isPending: false,
+        isError: false,
       },
-      isLoading: false,
-      error: null,
+      result: {
+        data: [mockStats],
+      },
     } as any)
 
     renderWithProviders(<AdminDashboard />)
@@ -139,12 +150,13 @@ describe('AdminDashboard', () => {
 
   it('should display quick actions', async () => {
     mockUseList.mockReturnValue({
-      data: {
-        data: [mockStats],
-        total: 1,
+      query: {
+        isPending: false,
+        isError: false,
       },
-      isLoading: false,
-      error: null,
+      result: {
+        data: [mockStats],
+      },
     } as any)
 
     renderWithProviders(<AdminDashboard />)

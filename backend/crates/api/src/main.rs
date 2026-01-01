@@ -13,6 +13,7 @@ use blog_api::state::AppState;
 
 // 导入所有路由模块（仅导入需要使用的模块）
 use blog_api::routes;
+use blog_api::middleware::auth::auth_middleware;
 
 #[tokio::main]
 async fn main() {
@@ -160,7 +161,29 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .merge(search_routes())
         .merge(comment_routes())
         .merge(reading_progress_routes())
-        .merge(admin_routes())
+        // admin路由需要添加认证中间件
+        .merge(
+            admin_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+        )
+        // 文章和评论管理路由也需要认证
+        .merge(
+            post_admin_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+        )
+        .merge(
+            comment_admin_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+        )
         // TEMPORARY: 公开的MDX同步端点用于测试（生产环境应该移除或添加认证）
         .route("/sync/mdx/public", post(blog_api::routes::mdx_sync::sync_mdx_to_db))
         .with_state(state)
@@ -193,7 +216,12 @@ fn post_routes() -> Router<AppState> {
         .route("/posts/{slug}/related", get(blog_api::routes::search::get_related_posts))
         .route("/posts/{slug}/like", post(blog_api::routes::posts::like))
         .route("/posts/{slug}/like", delete(blog_api::routes::posts::unlike))
-        .route("/posts/{slug}/comments", post(blog_api::routes::comments::create_comment))
+}
+
+// 文章管理路由（需要认证）
+fn post_admin_routes() -> Router<AppState> {
+    use axum::routing::{get, post, delete, patch};
+    Router::new()
         .route("/admin/posts", get(blog_api::routes::admin::list_posts_admin))
         .route("/admin/posts", post(blog_api::routes::posts::create_post))
         .route("/admin/posts/{slug}", patch(blog_api::routes::posts::update_post))
@@ -242,9 +270,16 @@ fn comment_routes() -> Router<AppState> {
     Router::new()
         .route("/comments/{id}/like", post(blog_api::routes::comments::like_comment))
         .route("/comments/{id}/unlike", post(blog_api::routes::comments::unlike_comment))
+}
+
+// 评论管理路由（需要认证）
+fn comment_admin_routes() -> Router<AppState> {
+    use axum::routing::{get, post, delete, put};
+    Router::new()
         .route("/admin/comments", get(blog_api::routes::admin::list_comments_admin))
         .route("/admin/comments/{id}/status", put(blog_api::routes::admin::update_comment_status))
         .route("/admin/comments/{id}", delete(blog_api::routes::admin::delete_comment_admin))
+        .route("/posts/{slug}/comments", post(blog_api::routes::comments::create_comment))
 }
 
 // 阅读进度路由
@@ -257,7 +292,7 @@ fn reading_progress_routes() -> Router<AppState> {
         .route("/reading-progress/history", get(blog_api::routes::reading_progress::get_reading_history_handler))
 }
 
-// 管理员路由
+// 管理员路由（核心管理功能，不包括文章和评论管理）
 fn admin_routes() -> Router<AppState> {
     use axum::routing::{get, post, delete, put, patch};
     Router::new()

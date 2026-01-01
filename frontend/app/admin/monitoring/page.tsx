@@ -25,7 +25,7 @@ export default function MonitoringOverviewPage() {
   const { data: healthData, isLoading: healthLoading } = useQuery({
     queryKey: ['health-check', 'overview'],
     queryFn: async () => {
-      const response = await fetch(`${backendBaseUrl}/healthz/detailed`)
+      const response = await fetch(`${backendBaseUrl}/health/detailed`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }

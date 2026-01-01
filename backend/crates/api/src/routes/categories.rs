@@ -478,7 +478,7 @@ pub async fn get_category_posts(
             c.name as "category_name?", c.slug as "category_slug?",
             u.username as "author_name?",
             p.view_count, p.like_count, p.comment_count,
-            p.created_at, p.reading_time,
+            p.created_at, p.reading_time as "reading_time?: i32",
             COUNT(DISTINCT pt.tag_id) as "tag_count!"
         FROM posts p
         LEFT JOIN media m ON p.cover_image_id = m.id

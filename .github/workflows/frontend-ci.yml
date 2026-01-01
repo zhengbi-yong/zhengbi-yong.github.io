@@ -1,0 +1,85 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['frontend/**']
+  pull_request:
+    branches: [main, develop]
+    paths: ['frontend/**']
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'frontend/pnpm-lock.yaml'
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+      - name: Run ESLint
+        working-directory: ./frontend
+        run: pnpm lint
+      - name: TypeScript check
+        working-directory: ./frontend
+        run: pnpm tsc --noEmit
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+      - name: Run tests
+        working-directory: ./frontend
+        run: pnpm test --coverage
+
+  build:
+    name: Build
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        working-directory: ./frontend
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_BACKEND_URL: https://api.example.com/v1
+
+  deploy:
+    name: Deploy to Vercel
+    needs: [build]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          working-directory: ./frontend
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'

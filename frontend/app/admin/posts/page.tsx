@@ -198,10 +198,16 @@ export default function PostsListPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                       {new Date(post.updated_at).toLocaleDateString('zh-CN')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
+                      <Link
+                        href={`/admin/posts/show/${encodeURIComponent(post.slug)}`}
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        详情
+                      </Link>
                       <Link
                         href={`/posts/${post.slug}`}
-                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                        className="text-green-600 dark:text-green-400 hover:underline"
                         target="_blank"
                       >
                         预览

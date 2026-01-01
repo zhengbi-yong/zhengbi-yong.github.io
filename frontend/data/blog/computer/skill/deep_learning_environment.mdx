@@ -1,0 +1,1883 @@
+---
+title: '跨平台深度学习环境配置完全指南：从开发到部署的一站式解决方案'
+description: '深入探索如何在 Windows、Linux、macOS 上配置统一的深度学习环境，涵盖 Docker、CUDA、cuDNN 版本管理，以及自动 GPU 检测和 CPU 降级策略。'
+pubDate: 2025-12-31
+tags: ['Deep Learning', 'Docker', 'CUDA', 'Environment', 'MLOps', 'PyTorch']
+author: 'Your Name'
+---
+
+# 跨平台深度学习环境配置完全指南：从开发到部署的一站式解决方案
+
+## 前言：为什么需要统一的环境配置？
+
+在深度学习项目中，我们经常面临这样的场景：
+
+- **开发环境混乱**：Windows 笔记本开发，Linux 服务器训练，macOS 上调试
+- **版本地狱**：CUDA 11.8 能用，CUDA 12.x 报错；PyTorch 2.0 不支持 CUDA 11.3
+- **团队协作困难**："我的机器上能跑"成为最常见的借口
+- **部署复杂**：每次换服务器都要重新配置环境，耗时数小时甚至数天
+- **GPU 依赖混乱**：有 GPU 的机器训练快，没有的训练慢，代码需要手动改设备
+
+**Docker + 自动检测方案出现了解决这些问题——它承诺"一次配置，到处运行"，无论是有 NVIDIA GPU 的服务器，还是只有 CPU 的 MacBook。**
+
+本指南将带你深入了解如何构建一个真正跨平台、智能降级的深度学习环境。
+
+---
+
+## 第一部分：问题定义与挑战
+
+### 1.1 跨平台环境配置的复杂性
+
+**现实场景：**
+
+```
+开发机器 A（Windows）：
+- Python 3.9
+- PyTorch 2.0.1 + CUDA 11.7
+- NVIDIA RTX 3060
+
+训练服务器 B（Linux）：
+- Python 3.10
+- PyTorch 2.1.0 + CUDA 11.8
+- NVIDIA A100
+
+调试机器 C（macOS M1）：
+- Python 3.11
+- PyTorch 2.1.0 (CPU/MPS)
+- Apple Silicon M1
+
+问题：
+1. 代码在 A 上跑，在 B 上 ImportError
+2. 模型在 B 上训练，在 C 上加载失败
+3. 依赖冲突，虚拟环境崩溃
+```
+
+### 1.2 CUDA/cuDNN 版本地狱
+
+**版本兼容性矩阵（2025）：**
+
+| NVIDIA 驱动 | CUDA Toolkit | cuDNN | PyTorch |
+|------------|--------------|-------|---------|
+| >= 525.x   | 12.1         | 8.9   | 2.0+    |
+| >= 525.x   | 12.4         | 9.1   | 2.2+    |
+| >= 535.x   | 12.6         | 9.5   | 2.5+    |
+
+**常见错误：**
+```
+RuntimeError: CUDA out of memory
+ImportError: libcudart.so_12.0: cannot open shared object file
+OSError: CUDA nvcc is not found
+AssertionError: Torch not compiled with CUDA enabled
+```
+
+### 1.3 实际痛点
+
+**时间成本：**
+- 初次环境配置：2-8 小时
+- 跨机器迁移：1-4 小时
+- 版本升级调试：2-6 小时
+
+**团队协作问题：**
+- "环境不一致"导致的 Bug 占比 30%+
+- 新成员 onboarding 需要一周
+- 代码复现困难
+
+---
+
+## 第二部分：技术背景
+
+### 2.1 深度学习环境组成要素
+
+**完整环境包括：**
+
+1. **操作系统**：Windows/Linux/macOS
+2. **Python 运行时**：3.9-3.11（推荐）
+3. **深度学习框架**：PyTorch/TensorFlow
+4. **GPU 加速**：
+   - **NVIDIA 驱动**：硬件驱动
+   - **CUDA Toolkit**：计算平台
+   - **cuDNN**：深度神经网络加速库
+   - **NCCL**（可选）：多 GPU 通信
+5. **依赖库**：numpy, pandas, scikit-learn 等
+
+**层次关系：**
+
+```
+应用代码（PyTorch/TensorFlow）
+    ↓
+GPU 支持（CUDA Runtime）
+    ↓
+深度学习加速（cuDNN）
+    ↓
+计算平台（CUDA Toolkit）
+    ↓
+硬件驱动（NVIDIA Driver）
+    ↓
+GPU 硬件（RTX/A100/H100）
+```
+
+### 2.2 CUDA/cuDNN 作用和关系
+
+**CUDA (Compute Unified Device Architecture)：**
+- NVIDIA 的并行计算平台
+- 提供 GPU 编程接口
+- 版本：11.x, 12.x（2025 主流）
+
+**cuDNN (CUDA Deep Neural Network library)：**
+- 针对深度学习的优化库
+- 提供卷积、池化、激活等加速实现
+- 极大提升训练和推理速度
+
+**关系：**
+- cuDNN 依赖 CUDA
+- CUDA 依赖 NVIDIA 驱动
+- PyTorch/TensorFlow 依赖 CUDA + cuDNN
+
+### 2.3 Docker 容器化基础
+
+**Docker 的优势：**
+
+✅ **环境隔离**：容器内环境独立，不受宿主影响
+✅ **可复现性**：相同镜像在任何机器上行为一致
+✅ **便携性**：镜像文件可传输、共享
+✅ **版本管理**：镜像版本化，可回滚
+✅ **快速部署**：拉取镜像即可运行，无需配置
+
+**核心概念：**
+
+```dockerfile
+# Dockerfile - 镜像构建脚本
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+COPY . /app
+RUN pip install torch torchvision
+CMD ["python", "train.py"]
+```
+
+```bash
+# 构建镜像
+docker build -t my-dl-project:latest .
+
+# 运行容器
+docker run --gpus all my-dl-project:latest
+```
+
+### 2.4 NVIDIA Container Toolkit
+
+**作用：** 让 Docker 容器能够访问宿主 GPU
+
+**工作原理：**
+```
+宿主 NVIDIA 驱动
+    ↓ (NVIDIA Container Toolkit)
+容器 GPU 访问
+    ↓
+CUDA Runtime (容器内)
+    ↓
+PyTorch GPU 加速
+```
+
+**关键组件：**
+- `nvidia-docker2`：旧版工具
+- `nvidia-container-toolkit`：新版工具（推荐）
+
+### 2.5 Conda 环境管理
+
+**为什么用 Conda？**
+
+✅ **跨平台**：自动适配不同操作系统
+✅ **依赖解析**：智能解决版本冲突
+✅ **环境隔离**：独立的 Python 环境
+✅ **二进制包**：预编译包，安装快速
+✅ **YAML 配置**：环境可版本控制
+
+**对比 pip：**
+| 特性 | Conda | pip |
+|------|-------|-----|
+| 依赖管理 | ✅ 强大 | ⚠️ 有限 |
+| 跨平台 | ✅ 自动 | ❌ 手动 |
+| 非 Python 包 | ✅ 支持 | ❌ 不支持 |
+| 环境隔离 | ✅ 完整 | ⚠️ 有限 |
+
+---
+
+## 第三部分：版本兼容性详解
+
+### 3.1 NVIDIA 驱动版本对照表
+
+**2025 年推荐配置：**
+
+| GPU 系列 | 最低驱动版本 | 推荐 CUDA | 推荐 cuDNN |
+|---------|-------------|-----------|-----------|
+| RTX 40 系列 | >= 525.x | 12.1/12.4 | 8.9/9.1 |
+| RTX 30 系列 | >= 510.x | 12.1 | 8.9 |
+| RTX 20 系列 | >= 450.x | 11.8/12.1 | 8.6/8.9 |
+| GTX 16 系列 | >= 450.x | 11.8 | 8.6 |
+| A100/H100 | >= 535.x | 12.4/12.6 | 9.1/9.5 |
+
+**检查驱动版本：**
+
+```bash
+# Linux/WSL2
+nvidia-smi
+
+# 输出示例：
+# NVIDIA-SMI 535.xxx    Driver Version: 535.xxx    CUDA Version: 12.2
+#                                         ↑ 驱动版本    ↑ 支持的最高 CUDA
+```
+
+**版本规则：**
+- 驱动向后兼容：新版驱动支持旧 CUDA
+- CUDA 向前兼容：CUDA 12.x 支持 12.x 全系列
+- PyTorch 严格匹配：必须用对应 CUDA 版本编译的 PyTorch
+
+### 3.2 PyTorch CUDA 要求
+
+**PyTorch 2.5+ (2025 最新)：**
+
+| 安装命令 | CUDA 版本 | 适用场景 |
+|---------|----------|---------|
+| `pip install torch` | CPU only | 无 GPU / 开发调试 |
+| `pip install torch --index-url https://download.pytorch.org/whl/cu121` | 12.1 | RTX 30/40 系列 |
+| `pip install torch --index-url https://download.pytorch.org/whl/cu124` | 12.4 | A100/H100 |
+
+**验证安装：**
+
+```python
+import torch
+
+print(f"PyTorch: {torch.__version__}")
+print(f"CUDA Available: {torch.cuda.is_available()}")
+print(f"CUDA Version: {torch.version.cuda}")
+print(f"cuDNN Version: {torch.backends.cudnn.version()}")
+print(f"GPU Count: {torch.cuda.device_count()}")
+if torch.cuda.is_available():
+    print(f"GPU Name: {torch.cuda.get_device_name(0)}")
+
+# 预期输出（GPU 环境）：
+# PyTorch: 2.5.0+cu121
+# CUDA Available: True
+# CUDA Version: 12.1
+# cuDNN Version: 90100
+# GPU Count: 1
+# GPU Name: NVIDIA GeForce RTX 4090
+
+# 预期输出（CPU 环境）：
+# PyTorch: 2.5.0+cpu
+# CUDA Available: False
+```
+
+### 3.3 兼容性检查工具
+
+**自动化检查脚本：**
+
+```bash
+#!/bin/bash
+# scripts/check_gpu_env.sh
+
+echo "=== GPU 环境检查 ==="
+
+# 检查 nvidia-smi
+if command -v nvidia-smi &> /dev/null; then
+    echo "✅ NVIDIA 驱动已安装"
+    nvidia-smi --query-gpu=driver_version,cuda_version --format=csv,noheader
+else
+    echo "❌ 未检测到 NVIDIA 驱动"
+    echo "   将使用 CPU 模式"
+fi
+
+# 检查 CUDA
+if command -v nvcc &> /dev/null; then
+    echo "✅ CUDA Toolkit 已安装"
+    nvcc --version | grep "release"
+else
+    echo "⚠️  未找到 nvcc（Docker 容器内正常）"
+fi
+
+# 检查 PyTorch
+python3 << EOF
+import torch
+if torch.cuda.is_available():
+    print(f"✅ PyTorch CUDA 可用")
+    print(f"   PyTorch: {torch.__version__}")
+    print(f"   CUDA: {torch.version.cuda}")
+    print(f"   GPU: {torch.cuda.get_device_name(0)}")
+else:
+    print("⚠️  PyTorch 将使用 CPU")
+    print(f"   PyTorch: {torch.__version__}")
+EOF
+```
+
+**使用方法：**
+
+```bash
+chmod +x scripts/check_gpu_env.sh
+./scripts/check_gpu_env.sh
+```
+
+---
+
+## 第四部分：解决方案架构
+
+### 4.1 整体设计思路
+
+**核心理念：**
+
+1. **Docker 优先**：容器化保证跨平台一致性
+2. **智能降级**：自动检测 GPU，无 GPU 降级到 CPU
+3. **一次构建**：镜像支持 amd64/arm64 多架构
+4. **简单部署**：一条命令启动开发环境
+
+**架构图：**
+
+```
+┌─────────────────────────────────────┐
+│         项目代码仓库                 │
+│  ├── docker/                        │
+│  │   ├── Dockerfile.cpu            │
+│  │   ├── Dockerfile.gpu            │
+│  │   └── docker-compose.yml        │
+│  ├── scripts/                       │
+│  │   └── detect_gpu.sh             │
+│  └── src/                           │
+└─────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────┐
+│      构建多架构镜像                  │
+│  (amd64, arm64)                    │
+└─────────────────────────────────────┘
+              ↓
+      ┌───────┴───────┐
+      ↓               ↓
+┌─────────┐     ┌─────────┐
+│ GPU 宿主 │     │ CPU 宿主 │
+│ (有驱动) │     │ (无驱动) │
+└─────────┘     └─────────┘
+      ↓               ↓
+  GPU 镜像         CPU 镜像
+ (自动检测)       (自动降级)
+```
+
+### 4.2 GPU 自动检测机制
+
+**检测时机：**
+
+1. **构建时**：根据宿主 GPU 情况决定构建镜像
+2. **运行时**：Python 代码运行时检测设备
+3. **组合策略**：Docker + Python 双重保障
+
+**检测方法对比：**
+
+| 方法 | 时机 | 优点 | 缺点 |
+|------|------|------|------|
+| Shell 脚本 | 容器启动前 | 准确，可控制镜像选择 | 需要额外脚本 |
+| nvidia-smi | 容器启动时 | 简单直接 | 容器内需要驱动 |
+| PyTorch | 运行时 | 灵活，可细粒度控制 | 无法改变镜像 |
+
+**推荐组合：** Shell 脚本 + PyTorch 运行时检测
+
+### 4.3 项目结构设计
+
+**完整项目结构：**
+
+```
+deep-learning-project/
+├── docker/
+│   ├── Dockerfile.base          # 基础镜像
+│   ├── Dockerfile.cpu           # CPU 版本
+│   ├── Dockerfile.gpu           # GPU 版本
+│   └── docker-compose.yml       # 编排配置
+├── scripts/
+│   ├── detect_gpu.sh            # GPU 检测
+│   ├── entrypoint.sh            # 容器入口
+│   ├── build.sh                 # 构建脚本
+│   └── run.sh                   # 运行脚本
+├── src/
+│   ├── models/                  # 模型定义
+│   ├── train.py                 # 训练脚本
+│   └── utils.py                 # 工具函数
+├── configs/
+│   └── config.yaml              # 配置文件
+├── environment.yml              # Conda 环境（备选）
+├── requirements.txt             # pip 依赖
+├── .dockerignore                # Docker 忽略文件
+└── README.md                    # 使用说明
+```
+
+---
+
+## 第五部分：Docker 方案实现（核心）
+
+### 5.1 基础镜像选择
+
+**2025 年推荐基础镜像：**
+
+**GPU 版本：**
+
+```dockerfile
+# docker/Dockerfile.gpu
+
+# 方案 1：NVIDIA 官方镜像（推荐）
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+
+# 方案 2：PyTorch 官方镜像（集成更好）
+FROM pytorch/pytorch:2.5.0-cuda12.1-cudnn8-runtime
+
+# 方案 3：NVIDIA 开发镜像（包含编译工具）
+FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
+```
+
+**CPU 版本：**
+
+```dockerfile
+# docker/Dockerfile.cpu
+
+# 轻量级 CPU 镜像
+FROM python:3.11-slim
+```
+
+**镜像大小对比：**
+
+| 镜像 | 大小 | 适用场景 |
+|------|------|---------|
+| `nvidia/cuda:xx-runtime` | ~4GB | 生产环境（仅运行） |
+| `nvidia/cuda:xx-devel` | ~6GB | 开发环境（需编译） |
+| `pytorch/pytorch:xx-cuda` | ~8GB | 快速开始 |
+| `python:slim` | ~150MB | CPU 环境 |
+
+### 5.2 完整 Dockerfile 实现
+
+**GPU 版本完整配置：**
+
+```dockerfile
+# docker/Dockerfile.gpu
+# 多阶段构建，优化镜像大小
+
+# 阶段 1：构建阶段
+FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04 AS builder
+
+# 避免交互式提示
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安装基础依赖
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3-pip \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# 升级 pip
+RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel
+
+# 复制依赖文件
+COPY requirements.txt /tmp/
+
+# 安装 Python 依赖
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+
+# 阶段 2：运行阶段（更小的镜像）
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安装运行时依赖
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# 从构建阶段复制 Python 包
+COPY --from=builder /usr/local/lib/python3.11/dist-packages /usr/local/lib/python3.11/dist-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# 设置工作目录
+WORKDIR /workspace
+
+# 复制项目代码
+COPY . /workspace/
+
+# 暴露端口（Jupyter, TensorBoard）
+EXPOSE 8888 6006
+
+# 设置环境变量
+ENV PYTHONPATH=/workspace
+ENV PYTHONUNBUFFERED=1
+
+# 入口脚本
+COPY scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python", "src/train.py"]
+```
+
+**CPU 版本配置：**
+
+```dockerfile
+# docker/Dockerfile.cpu
+
+FROM python:3.11-slim
+
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# 升级 pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# 设置工作目录
+WORKDIR /workspace
+
+# 复制依赖并安装
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 复制项目代码
+COPY . .
+
+# 环境变量
+ENV PYTHONPATH=/workspace
+ENV PYTHONUNBUFFERED=1
+
+# 默认命令
+CMD ["python", "src/train.py"]
+```
+
+**requirements.txt：**
+
+```txt
+# 深度学习框架
+torch==2.5.0
+torchvision==0.20.0
+torchaudio==2.5.0
+
+# 数据处理
+numpy==1.26.0
+pandas==2.2.0
+scikit-learn==1.5.0
+
+# 可视化
+matplotlib==3.9.0
+seaborn==0.13.0
+tensorboard==2.18.0
+
+# 工具
+tqdm==4.66.0
+pyyaml==6.0.0
+requests==2.32.0
+
+# Jupyter（开发环境）
+jupyter==1.1.0
+jupyterlab==4.2.0
+ipywidgets==8.1.0
+```
+
+### 5.3 多架构构建（amd64/arm64）
+
+**使用 buildx 构建多架构镜像：**
+
+```bash
+# docker/build.sh
+
+#!/bin/bash
+
+set -e
+
+# 镜像名称
+IMAGE_NAME="my-dl-project"
+IMAGE_TAG="latest"
+
+# 构建平台
+PLATFORMS="linux/amd64,linux/arm64"
+
+# GPU 版本
+echo "Building GPU image for ${PLATFORMS}..."
+docker buildx build \
+  --platform ${PLATFORMS} \
+  -f docker/Dockerfile.gpu \
+  -t ${IMAGE_NAME}:${IMAGE_TAG}-gpu \
+  --push \
+  .
+
+# CPU 版本
+echo "Building CPU image for ${PLATFORMS}..."
+docker buildx build \
+  --platform ${PLATFORMS} \
+  -f docker/Dockerfile.cpu \
+  -t ${IMAGE_NAME}:${IMAGE_TAG}-cpu \
+  --push \
+  .
+
+echo "Build complete!"
+echo "GPU image: ${IMAGE_NAME}:${IMAGE_TAG}-gpu"
+echo "CPU image: ${IMAGE_NAME}:${IMAGE_TAG}-cpu"
+```
+
+### 5.4 GPU 检测和自动切换脚本
+
+**智能启动脚本：**
+
+```bash
+#!/bin/bash
+# scripts/run.sh
+
+set -e
+
+# 镜像配置
+IMAGE_NAME="my-dl-project"
+IMAGE_TAG="latest"
+
+# 颜色输出
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo "=== 深度学习环境启动脚本 ==="
+
+# 检测 GPU
+check_gpu() {
+    if command -v nvidia-smi &> /dev/null; then
+        # 检查 nvidia-smi 是否正常工作
+        if nvidia-smi &> /dev/null; then
+            echo -e "${GREEN}✅ 检测到 NVIDIA GPU${NC}"
+            nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader
+            return 0
+        else
+            echo -e "${YELLOW}⚠️  nvidia-smi 存在但无法运行${NC}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}⚠️  未检测到 NVIDIA 驱动${NC}"
+        return 1
+    fi
+}
+
+# 选择镜像
+select_image() {
+    if check_gpu; then
+        IMAGE="${IMAGE_NAME}:${IMAGE_TAG}-gpu"
+        GPU_FLAG="--gpus all"
+        echo -e "${GREEN}使用 GPU 镜像: ${IMAGE}${NC}"
+    else
+        IMAGE="${IMAGE_NAME}:${IMAGE_TAG}-cpu"
+        GPU_FLAG=""
+        echo -e "${YELLOW}使用 CPU 镜像: ${IMAGE}${NC}"
+    fi
+}
+
+# 构建镜像（如果不存在）
+build_if_needed() {
+    if ! docker image inspect ${IMAGE} &> /dev/null; then
+        echo -e "${YELLOW}镜像不存在，开始构建...${NC}"
+        if check_gpu; then
+            docker build -f docker/Dockerfile.gpu -t ${IMAGE} .
+        else
+            docker build -f docker/Dockerfile.cpu -t ${IMAGE} .
+        fi
+    fi
+}
+
+# 运行容器
+run_container() {
+    echo "启动容器..."
+
+    # 卷挂载
+    VOLUME_FLAGS="-v $(pwd)/data:/workspace/data -v $(pwd)/outputs:/workspace/outputs"
+
+    # 端口映射
+    PORT_FLAGS="-p 8888:8888 -p 6006:6006"
+
+    # 环境变量
+    ENV_FLAGS="-e CUDA_VISIBLE_DEVICES=0"
+
+    # 运行
+    docker run --rm -it \
+        ${GPU_FLAG} \
+        ${VOLUME_FLAGS} \
+        ${PORT_FLAGS} \
+        ${ENV_FLAGS} \
+        ${IMAGE} \
+        "$@"
+}
+
+# 主流程
+select_image
+build_if_needed
+run_container "$@"
+```
+
+**使用方法：**
+
+```bash
+# 赋予执行权限
+chmod +x scripts/run.sh
+
+# 运行（自动检测 GPU）
+./scripts/run.sh
+
+# 运行特定命令
+./scripts/run.sh python src/train.py
+
+# 启动 Jupyter
+./scripts/run.sh jupyter lab --ip=0.0.0.0 --allow-root
+```
+
+### 5.5 Docker Compose 配置
+
+**docker-compose.yml：**
+
+```yaml
+version: '3.8'
+
+services:
+  # GPU 服务
+  gpu:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    image: my-dl-project:latest-gpu
+    container_name: dl-project-gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+      - ./models:/workspace/models
+    ports:
+      - "8888:8888"  # Jupyter
+      - "6006:6006"  # TensorBoard
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
+    command: python src/train.py
+    profiles:
+      - gpu
+
+  # CPU 服务
+  cpu:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cpu
+    image: my-dl-project:latest-cpu
+    container_name: dl-project-cpu
+    volumes:
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+      - ./models:/workspace/models
+    ports:
+      - "8888:8888"
+      - "6006:6006"
+    environment:
+      - PYTHONUNBUFFERED=1
+    stdin_open: true
+    tty: true
+    command: python src/train.py
+    profiles:
+      - cpu
+
+  # Jupyter Lab 服务
+  jupyter:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gpu
+    image: my-dl-project:latest-gpu
+    container_name: dl-project-jupyter
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ./data:/workspace/data
+      - ./outputs:/workspace/outputs
+      - ./models:/workspace/models
+      - ./notebooks:/workspace/notebooks
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
+    profiles:
+      - jupyter
+```
+
+**使用方法：**
+
+```bash
+# GPU 模式
+docker-compose --profile gpu up
+
+# CPU 模式
+docker-compose --profile cpu up
+
+# Jupyter Lab
+docker-compose --profile jupyter up
+
+# 后台运行
+docker-compose --profile gpu up -d
+
+# 停止
+docker-compose down
+```
+
+### 5.6 实战案例：PyTorch 训练脚本
+
+**智能设备选择：**
+
+```python
+# src/train.py
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+import argparse
+
+def get_device():
+    """智能选择设备"""
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print(f"✅ 使用 GPU: {torch.cuda.get_device_name(0)}")
+        print(f"   CUDA 版本: {torch.version.cuda}")
+        print(f"   显存: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+    elif torch.backends.mps.is_available():
+        # Apple Silicon
+        device = torch.device("mps")
+        print(f"✅ 使用 MPS (Apple Silicon)")
+    else:
+        device = torch.device("cpu")
+        print(f"⚠️  使用 CPU")
+    return device
+
+def train(model, device, train_loader, optimizer, epoch):
+    """训练函数"""
+    model.train()
+    for batch_idx, (data, target) in enumerate(train_loader):
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = nn.CrossEntropyLoss()(output, target)
+        loss.backward()
+        optimizer.step()
+
+        if batch_idx % 100 == 0:
+            print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} '
+                  f'({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}')
+
+def main():
+    parser = argparse.ArgumentParser(description='PyTorch 训练示例')
+    parser.add_argument('--batch-size', type=int, default=64, metavar='N',
+                        help='input batch size for training (default: 64)')
+    parser.add_argument('--epochs', type=int, default=10, metavar='N',
+                        help='number of epochs to train (default: 10)')
+    parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
+                        help='learning rate (default: 0.01)')
+    parser.add_argument('--no-cuda', action='store_true', default=False,
+                        help='disables CUDA training')
+    args = parser.parse_args()
+
+    # 获取设备
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    device = get_device()
+
+    # 创建模型
+    model = nn.Sequential(
+        nn.Flatten(),
+        nn.Linear(784, 256),
+        nn.ReLU(),
+        nn.Dropout(0.2),
+        nn.Linear(256, 128),
+        nn.ReLU(),
+        nn.Dropout(0.2),
+        nn.Linear(128, 10)
+    ).to(device)
+
+    # 优化器
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+
+    # 数据加载（这里用假数据示例）
+    # 实际应该从 torch.utils.data 加载真实数据
+    print(f"开始训练 {args.epochs} 个 epoch...")
+    print(f"批量大小: {args.batch_size}")
+    print(f"学习率: {args.lr}")
+
+    # TODO: 加载真实数据
+    # train_loader = DataLoader(...)
+
+    # for epoch in range(1, args.epochs + 1):
+    #     train(model, device, train_loader, optimizer, epoch)
+
+    print("训练完成！")
+
+    # 保存模型
+    if device.type == 'cuda':
+        model = model.cpu()  # 保存前移到 CPU
+
+    torch.save(model.state_dict(), 'outputs/model.pth')
+    print("模型已保存到 outputs/model.pth")
+
+if __name__ == '__main__':
+    main()
+```
+
+---
+
+## 第六部分：Conda 方案实现（备选）
+
+### 6.1 environment.yml 配置
+
+**跨平台环境配置：**
+
+```yaml
+# environment.yml
+
+name: dl-project
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip>=23.0
+
+  # PyTorch 和 CUDA（自动适配平台）
+  - pytorch>=2.5.0
+  - torchvision>=0.20.0
+  - torchaudio>=2.5.0
+  - pytorch-cuda=12.1  # Linux only，会被其他平台忽略
+
+  # 数据处理
+  - numpy>=1.26.0
+  - pandas>=2.2.0
+  - scikit-learn>=1.5.0
+
+  # 可视化
+  - matplotlib>=3.9.0
+  - seaborn>=0.13.0
+
+  # 工具
+  - jupyter>=1.1.0
+  - jupyterlab>=4.2.0
+  - ipywidgets>=8.1.0
+  - tqdm>=4.66.0
+  - pyyaml>=6.0.0
+
+  # pip 包（Conda 没有）
+  - pip:
+    - tensorboard>=2.18.0
+    - requests>=2.32.0
+```
+
+**创建环境：**
+
+```bash
+# 创建环境
+conda env create -f environment.yml
+
+# 更新环境
+conda env update -f environment.yml --prune
+
+# 激活环境
+conda activate dl-project
+```
+
+### 6.2 平台特定配置
+
+**分离 GPU/CPU 环境：**
+
+```yaml
+# environment-gpu.yml（Linux with NVIDIA GPU）
+name: dl-project-gpu
+channels:
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.11
+  - pytorch>=2.5.0
+  - torchvision>=0.20.0
+  - pytorch-cuda=12.1  # CUDA 支持
+```
+
+```yaml
+# environment-cpu.yml（macOS/无 GPU）
+name: dl-project-cpu
+channels:
+  - pytorch
+dependencies:
+  - python=3.11
+  - pytorch>=2.5.0
+  - torchvision>=0.20.0
+```
+
+### 6.3 Apple Silicon (M1/M2/M3) 配置
+
+**MPS 加速配置：**
+
+```yaml
+# environment-apple-silicon.yml
+name: dl-project-mac
+channels:
+  - pytorch
+dependencies:
+  - python=3.11
+  - pytorch>=2.5.0  # 自动包含 MPS 支持
+  - torchvision>=0.20.0
+```
+
+**Python 代码适配：**
+
+```python
+import torch
+
+def get_device():
+    """Apple Silicon 设备选择"""
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        # 检查 MPS 是否可用
+        try:
+            torch.zeros(1).to(torch.device("mps"))
+            return torch.device("mps")
+        except Exception:
+            return torch.device("cpu")
+    else:
+        return torch.device("cpu")
+
+device = get_device()
+print(f"使用设备: {device}")
+
+# 模型和数据移到设备
+model = model.to(device)
+data = data.to(device)
+```
+
+---
+
+## 第七部分：自动化脚本
+
+### 7.1 GPU 检测脚本
+
+**完整检测脚本：**
+
+```bash
+#!/bin/bash
+# scripts/detect_gpu.sh
+
+set -e
+
+# 颜色
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo "=== GPU 环境检测 ==="
+
+# 1. 检查 NVIDIA 驱动
+echo ""
+echo "1. 检查 NVIDIA 驱动..."
+if command -v nvidia-smi &> /dev/null; then
+    if nvidia-smi &> /dev/null; then
+        echo -e "${GREEN}✅ NVIDIA 驱动已安装${NC}"
+        nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader,nounits | \
+        awk -F', ' '{printf "   GPU: %s\n   驱动版本: %s\n   显存: %s MB\n", $1, $2, $3}'
+
+        # 获取支持的 CUDA 版本
+        CUDA_VERSION=$(nvidia-smi | grep "CUDA Version" | awk '{print $9}')
+        echo "   支持 CUDA: ${CUDA_VERSION}"
+    else
+        echo -e "${RED}❌ nvidia-smi 无法运行${NC}"
+        echo "   可能是驱动未正确安装"
+        exit 1
+    fi
+else
+    echo -e "${YELLOW}⚠️  未检测到 NVIDIA 驱动${NC}"
+    echo "   将使用 CPU 模式"
+fi
+
+# 2. 检查 CUDA Toolkit
+echo ""
+echo "2. 检查 CUDA Toolkit..."
+if command -v nvcc &> /dev/null; then
+    echo -e "${GREEN}✅ CUDA Toolkit 已安装${NC}"
+    nvcc --version | grep "release" | sed 's/.*release //' | sed 's/,.*//' | awk '{printf "   CUDA 版本: %s\n", $1}'
+else
+    echo -e "${YELLOW}⚠️  未找到 nvcc${NC}"
+    echo "   Docker 容器内这是正常的"
+fi
+
+# 3. 检查 PyTorch
+echo ""
+echo "3. 检查 PyTorch..."
+python3 << EOF
+import sys
+
+try:
+    import torch
+    print(f"✅ PyTorch {torch.__version__}")
+
+    if torch.cuda.is_available():
+        print(f"   CUDA 可用: Yes")
+        print(f"   CUDA 版本: {torch.version.cuda}")
+        print(f"   cuDNN 版本: {torch.backends.cudnn.version()}")
+        print(f"   GPU 数量: {torch.cuda.device_count()}")
+        for i in range(torch.cuda.device_count()):
+            print(f"   GPU {i}: {torch.cuda.get_device_name(i)}")
+            props = torch.cuda.get_device_properties(i)
+            print(f"          显存: {props.total_memory / 1024**3:.1f} GB")
+    else:
+        print("   ⚠️  CUDA 不可用")
+        if torch.backends.mps.is_available():
+            print("   ✅ MPS (Apple Silicon) 可用")
+        else:
+            print("   将使用 CPU")
+except ImportError:
+    print("❌ PyTorch 未安装")
+    sys.exit(1)
+EOF
+
+# 4. 推荐
+echo ""
+echo "=== 建议 ==="
+if command -v nvidia-smi &> /dev/null && nvidia-smi &> /dev/null; then
+    echo -e "${GREEN}✅ 环境配置良好，可以使用 GPU${NC}"
+    echo "   推荐运行：./scripts/run.sh python src/train.py"
+else
+    echo -e "${YELLOW}⚠️  未检测到 GPU${NC}"
+    echo "   将使用 CPU 模式（训练速度较慢）"
+    echo "   推荐运行：./scripts/run.sh python src/train.py"
+fi
+```
+
+### 7.2 环境安装脚本
+
+**一键安装脚本：**
+
+```bash
+#!/bin/bash
+# scripts/setup.sh
+
+set -e
+
+# 颜色
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo "=== 深度学习环境安装 ==="
+
+# 检测操作系统
+OS="$(uname -s)"
+echo "检测到操作系统: ${OS}"
+
+# 1. 安装 Docker
+echo ""
+echo "1. 检查 Docker..."
+if command -v docker &> /dev/null; then
+    echo -e "${GREEN}✅ Docker 已安装${NC}"
+    docker --version
+else
+    echo -e "${YELLOW}⚠️  Docker 未安装${NC}"
+    echo "请访问 https://docs.docker.com/get-docker/ 安装 Docker"
+    exit 1
+fi
+
+# 2. 安装 NVIDIA Container Toolkit（仅 Linux）
+if [[ "$OS" == "Linux" ]]; then
+    echo ""
+    echo "2. 检查 NVIDIA Container Toolkit..."
+    if docker run --rm --gpus all nvidia/cuda:12.1.0-base-ubuntu22.04 nvidia-smi &> /dev/null; then
+        echo -e "${GREEN}✅ NVIDIA Container Toolkit 已安装${NC}"
+    else
+        echo -e "${YELLOW}⚠️  NVIDIA Container Toolkit 未安装${NC}"
+        echo "请运行："
+        echo "  distribution=$(. /etc/os-release;echo $ID$VERSION_ID)"
+        echo "  curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -"
+        echo "  curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list"
+        echo "  sudo apt-get update"
+        echo "  sudo apt-get install -y nvidia-container-toolkit"
+        echo "  sudo systemctl restart docker"
+    fi
+fi
+
+# 3. 构建镜像
+echo ""
+echo "3. 构建 Docker 镜像..."
+./scripts/build.sh
+
+# 4. 测试
+echo ""
+echo "4. 测试环境..."
+./scripts/detect_gpu.sh
+
+echo ""
+echo -e "${GREEN}=== 安装完成！${NC}"
+echo "运行训练: ./scripts/run.sh python src/train.py"
+echo "启动 Jupyter: ./scripts/run.sh jupyter lab --ip=0.0.0.0"
+```
+
+### 7.3 一键启动脚本
+
+**统一启动脚本：**
+
+```bash
+#!/bin/bash
+# scripts/start.sh
+
+set -e
+
+# 显示帮助
+show_help() {
+    cat << EOF
+深度学习环境启动脚本
+
+用法:
+  ./scripts/start.sh [选项] [命令]
+
+选项:
+  -h, --help          显示此帮助信息
+  -g, --gpu           强制使用 GPU 模式
+  -c, --cpu           强制使用 CPU 模式
+  -j, --jupyter       启动 Jupyter Lab
+  -b, --build         重新构建镜像
+
+命令:
+  任意 Docker 容器内命令
+
+示例:
+  ./scripts/start.sh                    # 自动检测并启动
+  ./scripts/start.sh python train.py    # 运行训练脚本
+  ./scripts/start.sh --jupyter          # 启动 Jupyter
+  ./scripts/start.sh --gpu bash         # 强制 GPU 模式并进入容器
+EOF
+}
+
+# 默认值
+FORCE_GPU=""
+FORCE_CPU=""
+RUN_JUPYTER=""
+REBUILD=""
+
+# 解析参数
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -g|--gpu)
+            FORCE_GPU=1
+            shift
+            ;;
+        -c|--cpu)
+            FORCE_CPU=1
+            shift
+            ;;
+        -j|--jupyter)
+            RUN_JUPYTER=1
+            shift
+            ;;
+        -b|--build)
+            REBUILD=1
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# 导入运行脚本
+source scripts/run.sh
+
+# 重新构建
+if [[ -n "$REBUILD" ]]; then
+    echo "重新构建镜像..."
+    if [[ -n "$FORCE_GPU" ]] || ([[ -z "$FORCE_CPU" ]] && check_gpu); then
+        docker build -f docker/Dockerfile.gpu -t my-dl-project:latest-gpu .
+    else
+        docker build -f docker/Dockerfile.cpu -t my-dl-project:latest-cpu .
+    fi
+fi
+
+# Jupyter Lab
+if [[ -n "$RUN_JUPYTER" ]]; then
+    if check_gpu; then
+        docker-compose --profile jupyter up
+    else
+        echo "Jupyter 需要 GPU 支持"
+        exit 1
+    fi
+    exit 0
+fi
+
+# 运行命令
+if [[ $# -eq 0 ]]; then
+    # 无命令，启动交互式 shell
+    run_container bash
+else
+    # 有命令，执行命令
+    run_container "$@"
+fi
+```
+
+---
+
+## 第八部分：实战项目配置
+
+### 8.1 完整项目示例
+
+**项目结构：**
+
+```
+mnist-classifier/
+├── docker/
+│   ├── Dockerfile.gpu
+│   ├── Dockerfile.cpu
+│   └── docker-compose.yml
+├── scripts/
+│   ├── detect_gpu.sh
+│   ├── entrypoint.sh
+│   ├── build.sh
+│   ├── run.sh
+│   └── start.sh
+├── src/
+│   ├── models/
+│   │   └── cnn.py
+│   ├── data/
+│   │   └── dataset.py
+│   ├── train.py
+│   └── evaluate.py
+├── configs/
+│   └── config.yaml
+├── requirements.txt
+├── environment.yml
+└── README.md
+```
+
+**README.md：**
+
+````markdown
+# MNIST 分类器 - 跨平台深度学习项目示例
+
+## 快速开始
+
+### 方法 1：Docker（推荐）
+
+```bash
+# 克隆项目
+git clone https://github.com/yourname/mnist-classifier.git
+cd mnist-classifier
+
+# 一键启动
+./scripts/start.sh python src/train.py
+
+# 启动 Jupyter Lab
+./scripts/start.sh --jupyter
+```
+
+### 方法 2：Conda
+
+```bash
+# 创建环境
+conda env create -f environment.yml
+conda activate mnist-classifier
+
+# 训练
+python src/train.py
+```
+
+## 设备支持
+
+- ✅ NVIDIA GPU (CUDA 12.1)
+- ✅ CPU (自动降级)
+- ✅ Apple Silicon (MPS 加速)
+
+## 配置
+
+编辑 `configs/config.yaml` 修改训练参数。
+
+## 结果
+
+训练结果保存在 `outputs/` 目录。
+````
+````
+
+**配置文件：**
+
+```yaml
+# configs/config.yaml
+
+project:
+  name: "mnist-classifier"
+  version: "1.0.0"
+
+data:
+  dataset: "mnist"
+  batch_size: 64
+  num_workers: 4
+  data_dir: "data"
+
+model:
+  architecture: "cnn"
+  hidden_dims: [32, 64]
+  dropout: 0.2
+
+training:
+  epochs: 10
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "adam"
+  scheduler:
+    name: "step_lr"
+    step_size: 5
+    gamma: 0.5
+
+hardware:
+  device: "auto"  # auto, cuda, cpu, mps
+  mixed_precision: true
+  compile: false  # torch.compile (PyTorch 2.0+)
+
+logging:
+  tensorboard: true
+  wandb: false
+  log_interval: 100
+
+checkpoint:
+  save_dir: "outputs/checkpoints"
+  save_interval: 1
+  keep_last_n: 3
+```
+
+**加载配置：**
+
+```python
+# src/utils.py
+
+import yaml
+from pathlib import Path
+
+def load_config(config_path="configs/config.yaml"):
+    """加载配置文件"""
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    return config
+
+def get_device(config):
+    """获取设备"""
+    if config['hardware']['device'] == 'auto':
+        if torch.cuda.is_available():
+            return torch.device('cuda')
+        elif torch.backends.mps.is_available():
+            return torch.device('mps')
+        else:
+            return torch.device('cpu')
+    else:
+        return torch.device(config['hardware']['device'])
+```
+
+---
+
+## 第九部分：生产环境部署
+
+### 9.1 服务器配置
+
+**GPU 服务器初始化：**
+
+```bash
+#!/bin/bash
+# scripts/setup_server.sh
+
+# 1. 安装 NVIDIA 驱动
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+sudo apt-get -y install cuda-drivers
+
+# 2. 安装 Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# 3. 安装 NVIDIA Container Toolkit
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+sudo systemctl restart docker
+
+# 4. 验证
+docker run --rm --gpus all nvidia/cuda:12.1.0-base-ubuntu22.04 nvidia-smi
+```
+
+### 9.2 Docker 部署最佳实践
+
+**生产环境 docker-compose.yml：**
+
+```yaml
+version: '3.8'
+
+services:
+  training:
+    image: my-dl-project:latest-gpu
+    deploy:
+      resources:
+        limits:
+          memory: 32G
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ['0']
+              capabilities: [gpu, compute, utility]
+    volumes:
+      - ./data:/workspace/data:ro
+      - ./outputs:/workspace/outputs
+      - ./models:/workspace/models
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONUNBUFFERED=1
+      - OMP_NUM_THREADS=4
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+```
+
+**资源限制：**
+
+```bash
+# 限制显存使用
+docker run --gpus '"device=0;device=1;device=2;device=3"' \
+  --shm-size=16g \
+  --ulimit memlock=-1 \
+  my-dl-project:latest-gpu
+```
+
+### 9.3 监控和日志
+
+**GPU 监控：**
+
+```bash
+# 实时监控
+watch -n 1 nvidia-smi
+
+# 日志记录
+nvidia-smi --query-gpu=timestamp,name,utilization.gpu,memory.used,memory.total --format=csv -l 1 > gpu_usage.log
+```
+
+**容器监控：**
+
+```bash
+# 容器资源使用
+docker stats
+
+# 查看日志
+docker-compose logs -f
+```
+
+### 9.4 故障排查
+
+**常见问题：**
+
+**1. CUDA out of memory**
+
+```python
+# 解决方案 1：减小批量大小
+config['data']['batch_size'] = 32
+
+# 解决方案 2：梯度累积
+accumulation_steps = 4
+for i, batch in enumerate(dataloader):
+    loss = model(batch)
+    loss = loss / accumulation_steps
+    loss.backward()
+    if (i + 1) % accumulation_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()
+
+# 解决方案 3：混合精度训练
+from torch.cuda.amp import autocast, GradScaler
+scaler = GradScaler()
+
+for data, target in dataloader:
+    with autocast():
+        output = model(data)
+        loss = criterion(output, target)
+    scaler.scale(loss).backward()
+    scaler.step(optimizer)
+    scaler.update()
+```
+
+**2. 容器内找不到 GPU**
+
+```bash
+# 检查 NVIDIA Container Toolkit
+docker run --rm --gpus all nvidia/cuda:12.1.0-base-ubuntu22.04 nvidia-smi
+
+# 重新安装
+sudo apt-get install -y nvidia-container-toolkit
+sudo systemctl restart docker
+```
+
+**3. PyTorch CUDA 版本不匹配**
+
+```bash
+# 检查 CUDA 版本
+python -c "import torch; print(torch.version.cuda)"
+
+# 重新安装正确版本
+pip uninstall torch torchvision torchaudio
+pip install torch --index-url https://download.pytorch.org/whl/cu121
+```
+
+---
+
+## 第十部分：最佳实践和总结
+
+### 10.1 开发流程规范
+
+**推荐工作流：**
+
+```
+1. 本地开发（Docker CPU）
+   ↓ 快速迭代
+
+2. 单元测试（Docker GPU）
+   ↓ 验证功能
+
+3. 小规模训练（本地 GPU）
+   ↓ 调参优化
+
+4. 大规模训练（服务器 GPU）
+   ↓ 生产模型
+
+5. 模型部署（Docker）
+```
+
+### 10.2 版本管理策略
+
+**镜像版本管理：**
+
+```bash
+# 标签规范
+my-dl-project:1.0.0-gpu-cuda12.1
+my-dl-project:1.0.0-cpu
+my-dl-project:latest-gpu
+my-dl-project:dev-gpu
+```
+
+**依赖版本锁定：**
+
+```txt
+# requirements.txt
+torch==2.5.0
+torchvision==0.20.0
+numpy==1.26.0
+# 不使用 >= 或 ~=，保证完全一致
+```
+
+### 10.3 团队协作建议
+
+**统一规范：**
+
+1. **使用 Docker**：确保环境一致
+2. **共享镜像**：搭建私有镜像仓库
+3. **配置管理**：使用 YAML 配置文件
+4. **文档完善**：详细的 README 和 wiki
+5. **代码审查**：环境配置也需要 review
+
+**私有镜像仓库：**
+
+```bash
+# 搭建 Harbor
+docker-compose -f harbor.yml up -d
+
+# 推送镜像
+docker tag my-dl-project:latest-gpu harbor.company.com/dl/my-dl-project:latest-gpu
+docker push harbor.company.com/dl/my-dl-project:latest-gpu
+
+# 拉取镜像
+docker pull harbor.company.com/dl/my-dl-project:latest-gpu
+```
+
+### 10.4 常见陷阱
+
+**❌ 不要这样做：**
+
+1. **在 Dockerfile 中频繁 pip install**：构建慢，镜像大
+2. **不锁定版本**：导致不可复现
+3. **硬编码设备**：`torch.device("cuda:0")` 不灵活
+4. **忽略日志**：训练失败难以调试
+5. **不检查资源**：OOM、磁盘满才发现
+
+**✅ 应该这样做：**
+
+1. **使用多阶段构建**：减小镜像体积
+2. **锁定所有依赖版本**：保证复现性
+3. **动态选择设备**：`torch.cuda.is_available()`
+4. **完善日志记录**：使用 tensorboard/logging
+5. **监控资源使用**：GPU、内存、磁盘
+
+### 10.5 工具和资源推荐
+
+**开发工具：**
+
+- **VS Code**：Remote-SSH, Docker 插件
+- **PyCharm**：专业 Python IDE
+- **Jupyter Lab**：交互式开发
+- **Weights & Biases**：实验跟踪（可选）
+
+**部署平台：**
+
+- **Docker Hub**：公共镜像仓库
+- **Harbor**：企业私有仓库
+- **AWS/EKS**：云服务
+- **Kubernetes**：大规模编排
+
+**学习资源：**
+
+- [PyTorch 官方文档](https://pytorch.org/docs/stable/index.html)
+- [NVIDIA Docker 文档](https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html)
+- [Docker 官方文档](https://docs.docker.com/)
+
+---
+
+## 总结
+
+### 核心要点
+
+1. **Docker 是最佳选择**
+   - 跨平台一致性
+   - 环境隔离
+   - 快速部署
+
+2. **智能 GPU 检测**
+   - 自动检测并选择镜像
+   - 无 GPU 时优雅降级
+   - 支持多种硬件
+
+3. **版本管理是关键**
+   - 锁定所有依赖版本
+   - 理解 CUDA/cuDNN 兼容性
+   - 使用官方基础镜像
+
+4. **自动化脚本提升效率**
+   - 一键启动
+   - 自动检测
+   - 统一接口
+
+### 快速开始清单
+
+```bash
+# 1. 克隆项目
+git clone <your-project>
+cd <your-project>
+
+# 2. 一键启动
+./scripts/start.sh python src/train.py
+
+# 3. 启动 Jupyter（可选）
+./scripts/start.sh --jupyter
+
+# 4. 查看结果
+ls outputs/
+```
+
+### 最终建议
+
+**选择 Docker 方案如果：**
+- ✅ 需要跨平台部署
+- ✅ 团队协作开发
+- ✅ 生产环境部署
+- ✅ 快速切换项目
+
+**选择 Conda 方案如果：**
+- ✅ 个人开发
+- ✅ 需要频繁调试
+- ✅ 不需要部署
+
+**无论哪种方案：**
+- ✅ 锁定依赖版本
+- ✅ 使用配置文件
+- ✅ 完善文档
+- ✅ 版本控制
+
+---
+
+## 附录：完整示例仓库
+
+**仓库结构：**
+
+```
+deep-learning-template/
+├── docker/
+│   ├── Dockerfile.gpu
+│   ├── Dockerfile.cpu
+│   └── docker-compose.yml
+├── scripts/
+│   ├── detect_gpu.sh
+│   ├── entrypoint.sh
+│   ├── build.sh
+│   ├── run.sh
+│   ├── start.sh
+│   └── setup.sh
+├── src/
+│   ├── models/
+│   │   └── cnn.py
+│   ├── data/
+│   │   └── dataset.py
+│   ├── train.py
+│   ├── evaluate.py
+│   └── utils.py
+├── configs/
+│   └── config.yaml
+├── tests/
+│   └── test_gpu.py
+├── requirements.txt
+├── environment.yml
+├── .dockerignore
+└── README.md
+```
+
+**使用方法：**
+
+```bash
+# 克隆模板
+git clone https://github.com/yourname/deep-learning-template.git my-project
+cd my-project
+
+# 一键启动
+./scripts/start.sh
+```
+
+---
+
+**祝你的深度学习项目环境配置顺利！**
+
+无论你在 Windows、Linux 还是 macOS 上，无论你有 NVIDIA GPU 还是没有，Docker 方案都能让你专注于模型开发，而不是环境配置。
+
+**Sources:**
+- [NVIDIA cuDNN Support Matrix](https://docs.nvidia.com/deeplearning/cudnn/backend/latest/reference/support-matrix.html)
+- [CUDA Compatibility Package](https://docs.nvidia.com/deploy/pdf/CUDA_Compatibility.pdf)
+- [NVIDIA CUDA Docker Images](https://hub.docker.com/r/nvidia/cuda)
+- [Docker Desktop GPU Support](https://docs.docker.com/desktop/features/gpu/)
+- [PyTorch Installation Guide 2025](https://huggingface.co/blog/daya-shankar/pytorch-install-guide)
+- [Using GPU With Docker](https://www.devzero.io/blog/docker-gpu)
+- [Install CUDA and cuDNN](https://www.digitalocean.com/community/tutorials/install-cuda-cudnn-for-gpu)
+- [NVIDIA Deep Learning Containers](https://docs.nvidia.com/deeplearning/frameworks/user-guide/index.html)
+- [Docker Model Runner Tutorial](https://www.datacamp.com/tutorial/docker-model-runner)

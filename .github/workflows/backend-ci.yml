@@ -1,0 +1,81 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths: ['backend/**']
+  pull_request:
+    branches: [main, develop]
+    paths: ['backend/**']
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: blog_user
+          POSTGRES_PASSWORD: blog_password
+          POSTGRES_DB: blog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Run tests
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://blog_user:blog_password@localhost:5432/blog_test
+          REDIS_URL: redis://localhost:6379
+        run: cargo test --workspace
+
+  build:
+    name: Build Docker Image
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ghcr.io/${{ github.repository }}/blog-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Production
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy
+        run: |
+          echo "Deploying to production server..."
+          # Add your deployment commands here
+          # ssh user@server "docker pull ghcr.io/... && docker-compose up -d"

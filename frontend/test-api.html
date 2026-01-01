@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API连接测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>后端API连接测试</h1>
+    <div id="results"></div>
+
+    <script>
+        const backendBaseUrl = 'http://localhost:3000';
+        const results = document.getElementById('results');
+
+        async function testAPI() {
+            // 测试1: 健康检查
+            await testEndpoint(
+                '健康检查',
+                `${backendBaseUrl}/health`
+            );
+
+            // 测试2: 详细健康检查
+            await testEndpoint(
+                '详细健康检查',
+                `${backendBaseUrl}/health/detailed`
+            );
+
+            // 测试3: Prometheus指标
+            await testEndpoint(
+                'Prometheus指标',
+                `${backendBaseUrl}/metrics`
+            );
+        }
+
+        async function testEndpoint(name, url) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test';
+            results.appendChild(testDiv);
+
+            try {
+                const response = await fetch(url);
+                const data = await response.text();
+
+                if (response.ok) {
+                    testDiv.classList.add('success');
+                    testDiv.innerHTML = `
+                        <h3>✅ ${name}</h3>
+                        <p><strong>URL:</strong> ${url}</p>
+                        <p><strong>状态:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>响应头:</strong></p>
+                        <pre>${formatHeaders(response.headers)}</pre>
+                        <p><strong>响应数据:</strong></p>
+                        <pre>${data.substring(0, 500)}${data.length > 500 ? '...' : ''}</pre>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                testDiv.classList.add('error');
+                testDiv.innerHTML = `
+                    <h3>❌ ${name}</h3>
+                    <p><strong>URL:</strong> ${url}</p>
+                    <p><strong>错误:</strong> ${error.message}</p>
+                `;
+            }
+        }
+
+        function formatHeaders(headers) {
+            let result = '';
+            for (const [key, value] of headers.entries()) {
+                result += `${key}: ${value}\n`;
+            }
+            return result;
+        }
+
+        // 运行测试
+        testAPI();
+    </script>
+</body>
+</html>

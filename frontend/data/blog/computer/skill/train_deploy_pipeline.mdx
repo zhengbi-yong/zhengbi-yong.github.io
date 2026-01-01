@@ -1,0 +1,2301 @@
+---
+title: '机器学习训练与部署流水线完全指南：MLflow 实战'
+description: '深入探索机器学习生命周期管理，从框架对比到 MLflow 实战，涵盖实验跟踪、模型管理、自动化部署等核心概念，以及构建端到端 ML 流水线的最佳实践。'
+pubDate: 2025-12-31
+tags: ['MLOps', 'MLflow', 'Machine Learning', 'Deployment', 'CI/CD', 'Experiment Tracking']
+author: 'Sisyphus'
+showTOC: true
+---
+
+# 机器学习训练与部署流水线完全指南：MLflow 实战
+
+## 前言：为什么需要 MLOps 平台？
+
+在机器学习项目中，我们经常面临这些挑战：
+
+- **实验混乱**：哪个模型参数组合效果最好？
+- **不可复现**：三个月前的模型，现在的环境无法运行
+- **模型版本混乱**：生产环境运行的是哪个版本？
+- **部署困难**：从训练到部署，流程不统一
+- **协作困难**：团队成员如何共享实验结果？
+
+**MLOps 平台应运而生——它们承诺成为机器学习项目的"统一管理平台"，让整个 ML 生命周期变得可追踪、可复现、可管理。**
+
+但市场上 MLOps 工具众多：MLflow、Weights & Biases、ClearML、Neptune.ai、DVC……哪个才是最好的选择？
+
+本指南将带你：
+1. **全面对比主流 MLOps 框架**，帮你做出明智选择
+2. **深入学习 MLflow**（2025 年最佳选择）
+3. **构建端到端的训练与部署流水线**
+4. **掌握生产级最佳实践**
+
+---
+
+## 第一部分：MLOps 框架对比分析
+
+### 1.1 MLOps 平台的核心价值
+
+#### 传统 ML 开发的痛点
+
+让我们先看一个典型的场景：
+
+```python
+# 场景：团队正在训练多个模型
+# 问题 1：参数记在笔记本里，容易丢失
+model_lr = LogisticRegression(C=0.1, max_iter=100)
+model_rf = RandomForestClassifier(n_estimators=50, max_depth=5)
+# 哪个更好？一个月后没人记得
+
+# 问题 2：模型文件散落在各处
+# model_lr.pkl
+# model_rf_v2.pkl
+# model_rf_final.pkl
+# 哪个是生产版本？
+
+# 问题 3：依赖关系不清晰
+# 这个模型用了哪些库？什么版本？
+
+# 问题 4：如何部署？
+# 手动编写 API 服务？每次都重复造轮子？
+```
+
+#### MLOps 平台的解决方案
+
+一个完善的 MLOps 平台应该提供：
+
+1. **实验跟踪（Experiment Tracking）**
+   - 记录所有超参数、指标、artifacts
+   - 可视化对比不同实验
+   - 复现任何历史实验
+
+2. **模型管理（Model Management）**
+   - 版本控制
+   - 模型注册中心（Model Registry）
+   - 阶段管理（Staging → Production → Archived）
+
+3. **可复现性（Reproducibility）**
+   - 环境依赖管理
+   - 代码版本跟踪
+   - 数据版本管理
+
+4. **部署（Deployment）**
+   - 一键部署模型服务
+   - 批量推理
+   - A/B 测试支持
+
+5. **协作（Collaboration）**
+   - 团队共享实验
+   - 实验报告和可视化
+   - 权限管理
+
+### 1.2 主流框架全面对比
+
+让我们深入分析 2025 年最主流的 5 个 MLOps 平台。
+
+#### 1.2.1 MLflow
+
+**概述**：由 Databricks 创建的开源 MLOps 平台，2025 年市场占有率达 57%。
+
+**核心优势**：
+- ✅ **功能最全面**：Tracking + Models + Registry + Projects + Deployment + AI Gateway
+- ✅ **完全免费开源**：Apache 2.0 许可证，无供应商锁定
+- ✅ **市场领导者**：30M+ 月下载量，850+ 贡献者
+- ✅ **框架无关**：支持 PyTorch、TensorFlow、Scikit-learn、XGBoost 等
+- ✅ **部署选项丰富**：Docker、REST API、云平台（AWS、Azure、GCP）
+- ✅ **MLflow 3（2025）**：原生 GenAI/LLM 支持
+
+**核心组件**：
+
+| 组件 | 功能 |
+|------|------|
+| **MLflow Tracking** | 记录参数、指标、artifacts、代码版本 |
+| **MLflow Models** | 统一模型格式，支持多种 flavors |
+| **Model Registry** | 集中管理模型版本和生命周期 |
+| **MLflow Projects** | 标准化项目格式，确保可复现性 |
+| **MLflow Recipes** | 预定义模板和最佳实践 |
+| **MLflow AI Gateway** | 统一的 LLM API 接口 |
+
+**适合场景**：
+- 数据科学团队（2-50 人）
+- 需要自托管、数据隐私要求高
+- 需要完整的端到端解决方案
+- 预算有限（完全免费）
+
+**缺点**：
+- UI 不如 W&B 精美
+- 高级协作功能需要 Databricks
+- 大规模部署可能需要额外优化
+
+**市场数据（2025）**：
+- GitHub Stars：18,000+
+- 月下载量：30M+
+- 贡献者：850+
+- 企业采用：Databricks、Microsoft、Uber 等
+
+#### 1.2.2 Weights & Biases (W&B)
+
+**概述**：商业化的 MLOps 平台，以优秀的 UI 和用户体验著称。
+
+**核心优势**：
+- ✅ **最佳 UI/UX**：业界领先的可视化和实验对比
+- ✅ **极简上手**：5 行代码即可开始
+- ✅ **强大协作**：实时团队协作、报告分享
+- ✅ **自动记录**：广泛的框架自动日志支持
+- ✅ **Weave 平台**：LLM 应用开发和监控
+- ✅ **学术友好**：学术研究免费 Pro 许可
+
+**定价（2025）**：
+| 计划 | 价格 | 限制 |
+|------|------|------|
+| **Free** | $0 | 5 模型席位，5GB 存储，1GB/月 Weave 数据 |
+| **Pro** | $200-400/用户/月 | 10 模型席位，500 小时/月，100GB 存储 |
+| **Enterprise** | 定制 | HIPAA 合规、SSO、审计日志、专属支持 |
+| **Academic** | 免费 | 无限追踪时间，200GB 存储，100 席位 |
+
+**适合场景**：
+- 追求最佳用户体验
+- 团队协作是首要任务
+- GenAI 应用开发（Weave 平台）
+- 预算允许（$50-400/月/用户）
+- 学术研究（免费 Pro 许可）
+
+**缺点**：
+- ❌ 需要付费（Pro $200-400/月）
+- ❌ 供应商锁定（SaaS）
+- ❌ 自托管需要 Enterprise 计划
+- ❌ 部署功能相对有限
+
+**市场数据（2025）**：
+- GitHub Stars：7,000+
+- 企业客户：OpenAI、NVIDIA、Toyota 等
+- 社区：活跃，定期举办 Fully Connected 会议
+
+#### 1.2.3 ClearML
+
+**概述**： Allegro AI 开发的端到端 MLOps 平台，强调自动化和编排。
+
+**核心优势**：
+- ✅ **端到端平台**：Tracking + Orchestration + Serving + Data Management
+- ✅ **自动化强**：自动日志记录、自动数据版本管理
+- ✅ **模块化设计**：可单独使用各组件
+- ✅ **开源免费**：Apache 2.0 许可证
+- ✅ **GenAI 支持**：支持生成式 AI 工作负载
+
+**核心组件**：
+
+| 组件 | 功能 |
+|------|------|
+| **ClearML Experiment Tracking** | 自动记录代码、参数、指标、环境 |
+| **ClearML Orchestration** | 管道自动化、资源调度 |
+| **ClearML Serving** | 模型服务和推理优化 |
+| **ClearML Data Management** | 数据版本和管理 |
+
+**适合场景**：
+- 需要完整的 MLOps 自动化
+- 大规模数据管理需求
+- 需要管道编排（Orchestration）
+- 自托管需求
+
+**缺点**：
+- ❌ 社区小于 MLflow
+- ❌ 学习曲线较陡
+- ❌ 文档不如 MLflow 丰富
+- ❌ 企业功能可能需要付费
+
+**市场数据（2025）**：
+- GitHub Stars：4,500+
+- 企业：Samsung、西门子等
+- 社区：活跃但小于 MLflow
+
+#### 1.2.4 Neptune.ai
+
+**概述**：专注于元数据管理和实验跟踪的 MLOps 平台。
+
+**核心优势**：
+- ✅ **强大的元数据管理**：跟踪所有实验细节
+- ✅ **无追踪时间限制**：独特优势（W&B 有限制）
+- ✅ **30+ 工具集成**：生态丰富
+- ✅ **专注大模型**：为 foundation model 训练优化
+
+**定价（2025）**：
+| 计划 | 价格 | 特点 |
+|------|------|------|
+| **Free** | $0 | 小团队起步 |
+| **Team** | $50/用户/月 | 单团队开发 |
+| **Startup** | $150/用户/月 | 中等规模 foundation models |
+| **Lab** | $250/用户/月 | 大规模 foundation model 训练 |
+
+**独特优势**：
+- 🏆 **无限追踪时间**：与其他工具不同，无训练小时数限制
+- 🏆 **元数据搜索**：强大的实验搜索和过滤
+
+**适合场景**：
+- 训练超大模型（无时间限制）
+- 需要强大的元数据管理
+- 预算允许（$50-250/月/用户）
+
+**缺点**：
+- ❌ 价格较高（尤其是 Lab 计划）
+- ❌ 部署功能有限
+- ❌ 非开源
+- ❌ 社区较小
+
+#### 1.2.5 DVC (Data Version Control)
+
+**概述**：专注于数据版本控制和管道编排的开源工具。
+
+**核心优势**：
+- ✅ **数据版本管理**：Git-like 的数据版本控制
+- ✅ **管道编排**：dvc.yaml 定义 ML 管道
+- ✅ **实验管理**：内置 `dvc exp` 命令
+- ✅ **行业标准**：数据版本管理的标准
+- ✅ **完全免费**：开源
+
+**核心功能**：
+
+| 功能 | 说明 |
+|------|------|
+| **Data Versioning** | Git-like 的数据版本控制 |
+| **Pipeline Orchestration** | dvc.yaml 定义 ML 管道 |
+| **Experiment Tracking** | `dvc exp` 实验管理 |
+| **Model Registry** | DVC 3.0 新增 |
+| **Cloud Compute** | 云端实验运行 |
+
+**适合场景**：
+- 数据版本管理是核心需求
+- 需要 Git-like 的工作流
+- 数据集较大（GB 级别）
+- 管道可复现性
+
+**缺点**：
+- ❌ 学习曲线较陡（需要 Git 知识）
+- ❌ 实验跟踪 UI 不如专业工具
+- ❌ 部署功能有限
+- ❌ 配置相对复杂
+
+**市场数据（2025）**：
+- GitHub Stars：12,000+
+- 社区：活跃
+- 企业：广泛采用
+
+### 1.3 详细功能对比
+
+让我们从多个维度深入对比：
+
+#### 1.3.1 实验跟踪对比
+
+| 功能 | MLflow | W&B | ClearML | Neptune | DVC |
+|------|--------|-----|---------|---------|-----|
+| **参数记录** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **指标记录** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Artifacts** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **自动日志** | ⚠️ 部分 | ✅ 广泛 | ✅ | ✅ | ✅ |
+| **UI 对比** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
+| **查询搜索** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **代码版本** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **环境记录** | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+#### 1.3.2 模型管理对比
+
+| 功能 | MLflow | W&B | ClearML | Neptune | DVC |
+|------|--------|-----|---------|---------|-----|
+| **模型版本控制** | ✅ | ✅ | ✅ | ✅ | ✅ (DVC 3.0) |
+| **Model Registry** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **阶段管理** | ✅ | ✅ | ✅ | ✅ | ⚠️ |
+| **模型部署** | ✅ | ⚠️ | ✅ | ⚠️ | ❌ |
+| **Lineage 追踪** | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+#### 1.3.3 部署能力对比
+
+| 功能 | MLflow | W&B | ClearML | Neptune | DVC |
+|------|--------|-----|---------|---------|-----|
+| **本地部署** | ✅ | ⚠️ | ✅ | ❌ | ❌ |
+| **Docker 支持** | ✅ | ⚠️ | ✅ | ❌ | ❌ |
+| **REST API** | ✅ | ⚠️ | ✅ | ❌ | ❌ |
+| **云平台集成** | ✅ | ⚠️ | ✅ | ❌ | ❌ |
+| **批量推理** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **A/B 测试** | ⚠️ | ⚠️ | ⚠️ | ⚠️ | ❌ |
+
+#### 1.3.4 成本对比
+
+**开源免费方案**：
+- ✅ MLflow：完全免费，自托管
+- ✅ ClearML：免费 + 企业版
+- ✅ DVC：完全免费
+
+**商业化方案**：
+- 💰 W&B：$50-400/月/用户
+- 💰 Neptune：$50-250/月/用户
+
+**总拥有成本（TCO）分析（3年，5人团队）**：
+
+| 工具 | 软件 | 基础设施 | 维护 | 总计 |
+|------|------|---------|------|------|
+| **MLflow** | $0 | $500/年 | $2,000/年 | $7,500 |
+| **W&B Pro** | $36,000 | $0 | $0 | $36,000 |
+| **ClearML** | $0 | $500/年 | $2,500/年 | $9,000 |
+| **Neptune Team** | $9,000 | $0 | $0 | $9,000 |
+| **DVC** | $0 | $200/年 | $1,500/年 | $5,100 |
+
+*注：MLflow 和 ClearML 的维护成本包括 DevOps 时间*
+
+#### 1.3.5 学习曲线对比
+
+| 工具 | 安装难度 | API 复杂度 | 配置复杂度 | 总评 |
+|------|---------|-----------|-----------|------|
+| **MLflow** | ⭐ | ⭐⭐ | ⭐⭐ | **低** |
+| **W&B** | ⭐ | ⭐ | ⭐ | **极低** |
+| **ClearML** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | **中** |
+| **Neptune** | ⭐ | ⭐⭐ | ⭐⭐ | **低** |
+| **DVC** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | **中高** |
+
+### 1.4 为什么选择 MLflow？
+
+基于以上全面对比，**MLflow 在 2025 年仍是最佳选择**，原因如下：
+
+#### 1.4.1 综合评分
+
+| 维度 | MLflow | W&B | ClearML | Neptune | DVC |
+|------|--------|-----|---------|---------|-----|
+| **市场占有率** | 🏆 57% | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **功能完整性** | 🏆 5/5 | 4/5 | 4/5 | 3/5 | 3/5 |
+| **易用性** | 🏆 5/5 | 🏆 5/5 | 3/5 | 4/5 | 3/5 |
+| **成本** | 🏆 免费 | $50+ | 免费+企业 | $50+ | 免费 |
+| **部署能力** | 🏆 5/5 | 2/5 | 4/5 | 2/5 | 1/5 |
+| **社区活跃度** | 🏆 850+ | 活跃 | 活跃 | 活跃 | 活跃 |
+| **GenAI 支持** | 🏆 MLflow 3 | ✅ Weave | ✅ | ⚠️ | ❌ |
+| **总评** | **🏆 33/35** | 27/35 | 26/35 | 22/35 | 19/35 |
+
+#### 1.4.2 MLflow 的独特优势
+
+**1. 无与伦比的市场地位**
+- 57% 市场占有率（2025），远超其他工具
+- 30M+ 月下载量，850+ 贡献者
+- 业界标准，企业广泛采用
+
+**2. 最完整的功能集**
+- 唯一同时提供：Tracking + Models + Registry + Projects + Deployment + AI Gateway
+- 不需要组合多个工具
+- 端到端解决方案
+
+**3. 完全免费开源**
+- Apache 2.0 许可证
+- 无供应商锁定
+- 可自托管，数据完全掌控
+
+**4. 强大的部署能力**
+- 内置多种部署方式（Docker、REST API、云平台）
+- 其他工具大多需要额外集成
+
+**5. MLflow 3 的 GenAI 支持**
+- Prompt Registry
+- LLM 评估和监控
+- 与 OpenAI、Hugging Face、LangChain 集成
+
+**6. 低门槛，高上限**
+- 5 分钟上手
+- 可扩展到企业级规模
+- 活跃的社区和丰富的文档
+
+#### 1.4.3 选择决策树
+
+```
+是否需要自托管？
+├─ 是 → 是否需要完整 MLOps 功能？
+│       ├─ 是 → **MLflow** 🏆
+│       └─ 否（只要数据版本） → DVC
+│
+└─ 否（可以使用 SaaS） → 预算是否允许 $50+/月/用户？
+        ├─ 是 → 是否追求最佳 UI？
+        │       ├─ 是 → **Weights & Biases** 🎨
+        │       └─ 否（需要无限追踪时间） → Neptune ⏱️
+        │
+        └─ 否（预算有限） → **MLflow**（自托管）🏆
+```
+
+#### 1.4.4 实际案例
+
+**Netflix**：使用 MLflow 管理推荐系统实验
+- 10+ 个数据科学团队
+- 1000+ 模型版本
+- 每周 100+ 实验
+
+**Microsoft**：Azure ML 基于 MLflow 构建
+- 完全集成到 Azure 生态
+- 企业级部署
+
+**Uber**：大规模分布式训练
+- 多节点训练跟踪
+- 模型版本管理
+
+### 1.5 快速决策指南
+
+| 场景 | 推荐工具 | 理由 |
+|------|---------|------|
+| **通用 MLOps（推荐）** | 🏆 **MLflow** | 功能全、免费、生态强 |
+| **最佳用户体验** | **Weights & Biases** | UI 最精美 |
+| **LLM 应用开发** | **W&B (Weave) 或 MLflow 3** | LLM 原生支持 |
+| **大模型训练（无限时间）** | **Neptune** | 无追踪时间限制 |
+| **数据版本管理** | **DVC** | 行业标准 |
+| **端到端自动化** | **ClearML** | 编排能力强 |
+| **预算有限** | 🏆 **MLflow** | 完全免费 |
+| **学术研究** | **W&B（免费 Pro）** | 学术友好 |
+| **企业级部署** | 🏆 **MLflow** | 最成熟的部署能力 |
+
+**最终推荐**：**MLflow** 是大多数团队的最佳选择。
+
+---
+
+## 第二部分：MLflow 核心概念
+
+在深入实战之前，让我们全面理解 MLflow 的核心组件和设计哲学。
+
+### 2.1 MLflow Tracking（实验跟踪）
+
+Tracking 是 MLflow 的核心组件，负责记录和查询实验数据。
+
+#### 2.1.1 核心概念
+
+**层级结构**：
+
+```
+Experiment（实验）
+    └── Run（运行）× N
+        ├── Parameters（参数）
+        ├── Metrics（指标）
+        ├── Artifacts（产物）
+        ├── Tags（标签）
+        └── Metadata（元数据）
+```
+
+**概念详解**：
+
+1. **Experiment（实验）**
+   - 相关运行的集合
+   - 例如："客户流失预测"、"图像分类优化"
+
+2. **Run（运行）**
+   - 单次模型训练执行
+   - 包含该次运行的所有信息
+
+3. **Parameters（参数）**
+   - 模型超参数（如 learning_rate、batch_size）
+   - 输入配置
+
+4. **Metrics（指标）**
+   - 评估指标（如 accuracy、loss、F1）
+   - 可随时间变化（每个 epoch）
+
+5. **Artifacts（产物）**
+   - 输出文件（模型文件、图表、配置）
+   - 任意文件
+
+6. **Tags（标签）**
+   - 键值对元数据
+   - 用于组织和搜索
+
+#### 2.1.2 基础使用
+
+**安装**：
+
+```bash
+pip install mlflow
+```
+
+**第一个实验**：
+
+```python
+import mlflow
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# 加载数据
+X, y = load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# 开始实验
+with mlflow.start_run():
+    # 设置参数
+    n_estimators = 100
+    max_depth = 5
+
+    # 训练模型
+    model = RandomForestClassifier(
+        n_estimators=n_estimators,
+        max_depth=max_depth,
+        random_state=42
+    )
+    model.fit(X_train, y_train)
+
+    # 预测和评估
+    predictions = model.predict(X_test)
+    accuracy = accuracy_score(y_test, predictions)
+
+    # 记录到 MLflow
+    mlflow.log_param("n_estimators", n_estimators)
+    mlflow.log_param("max_depth", max_depth)
+    mlflow.log_metric("accuracy", accuracy)
+
+    # 记录模型
+    mlflow.sklearn.log_model(model, "model")
+
+    print(f"Accuracy: {accuracy}")
+```
+
+**高级日志记录**：
+
+```python
+with mlflow.start_run():
+    # 1. 批量记录参数
+    mlflow.log_params({
+        "learning_rate": 0.001,
+        "batch_size": 32,
+        "epochs": 100
+    })
+
+    # 2. 记录训练过程中的指标
+    for epoch in range(10):
+        loss = train_one_epoch()
+        mlflow.log_metric("train_loss", loss, step=epoch)
+
+    # 3. 记录多个指标
+    mlflow.log_metrics({
+        "accuracy": 0.95,
+        "precision": 0.93,
+        "recall": 0.91
+    })
+
+    # 4. 记录 artifacts
+    mlflow.log_artifact("config.yaml")
+    mlflow.log_artifact("plot.png")
+
+    # 5. 记录目录
+    mlflow.log_artifacts("outputs/")
+
+    # 6. 设置标签
+    mlflow.set_tag("model_type", "random_forest")
+    mlflow.set_tag("team", "data-science")
+```
+
+#### 2.1.3 查询和搜索
+
+```python
+from mlflow.tracking import MlflowClient
+
+client = MlflowClient()
+
+# 1. 获取所有实验
+experiments = client.search_experiments()
+for exp in experiments:
+    print(f"Experiment: {exp.name}")
+
+# 2. 查询运行（简单）
+runs = client.search_runs(experiment_ids=["0"])
+
+# 3. 查询运行（带过滤）
+runs = client.search_runs(
+    experiment_ids=["0"],
+    filter_string="params.n_estimators = '100'",
+    order_by=["metrics.accuracy DESC"]
+)
+
+# 4. 查询运行（复杂条件）
+runs = client.search_runs(
+    experiment_ids=["0"],
+    filter_string="metrics.accuracy > 0.9 and params.max_depth = '5'"
+)
+
+# 5. 访问运行数据
+for run in runs:
+    print(f"Run ID: {run.info.run_id}")
+    print(f"Accuracy: {run.data.metrics['accuracy']}")
+    print(f"Params: {run.data.params}")
+```
+
+#### 2.1.4 UI 界面
+
+**启动 UI**：
+
+```bash
+# 默认端口 5000
+mlflow ui
+
+# 指定端口
+mlflow ui --port 5001
+
+# 指定后端存储
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+**访问 UI**：
+- 打开浏览器访问 `http://localhost:5000`
+- 查看实验、运行、参数、指标
+- 对比不同运行
+- 可视化指标曲线
+
+### 2.2 MLflow Models（模型管理）
+
+Models 是 MLflow 的模型格式标准，支持多种框架的统一打包。
+
+#### 2.2.1 核心：Flavors
+
+**Flavor 概念**：
+- Flavor 是特定框架的模型实现
+- 一个模型可以有多个 flavors
+- PyFunc 是通用格式
+
+**支持的 Flavors**：
+
+| Framework | Flavor | 说明 |
+|-----------|--------|------|
+| **scikit-learn** | `sklearn` | sklearn 模型 |
+| **PyTorch** | `pytorch` | PyTorch 模型 |
+| **TensorFlow** | `tensorflow` | Keras/TF 模型 |
+| **XGBoost** | `xgboost` | XGBoost 模型 |
+| **LightGBM** | `lightgbm` | LightGBM 模型 |
+| **Spark ML** | `spark` | Spark ML 模型 |
+| **通用** | `python_function` | PyFunc 通用格式 |
+
+#### 2.2.2 保存和加载模型
+
+**Scikit-learn 示例**：
+
+```python
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestRegressor
+
+# 训练模型
+model = RandomForestRegressor(n_estimators=100)
+model.fit(X_train, y_train)
+
+# 保存模型
+mlflow.sklearn.log_model(model, "model")
+
+# 加载模型
+loaded_model = mlflow.sklearn.load_model("runs:/<run_id>/model")
+
+# 预测
+predictions = loaded_model.predict(X_test)
+```
+
+**PyTorch 示例**：
+
+```python
+import mlflow.pytorch
+import torch
+
+# 定义模型
+class SimpleNN(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = torch.nn.Linear(784, 128)
+        self.fc2 = torch.nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = x.view(-1, 784)
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+model = SimpleNN()
+
+# 保存模型
+mlflow.pytorch.log_model(model, "model")
+
+# 加载模型
+loaded_model = mlflow.pytorch.load_model("runs:/<run_id>/model")
+```
+
+#### 2.2.3 PyFunc 通用格式
+
+**PyFunc 是什么**：
+- Python Function 的缩写
+- 统一的模型接口
+- 所有 flavors 都可以转换为 PyFunc
+
+**使用 PyFunc**：
+
+```python
+import mlflow.pyfunc
+
+# 加载任何模型为 PyFunc
+model = mlflow.pyfunc.load_model("runs:/<run_id>/model")
+
+# 统一的预测接口
+predictions = model.predict(data)
+```
+
+**自定义 PyFunc 模型**：
+
+```python
+import mlflow.pyfunc
+import pandas as pd
+
+class MyCustomModel(mlflow.pyfunc.PythonModel):
+    def load_context(self, context):
+        """加载模型时调用"""
+        import joblib
+        self.model = joblib.load(context.artifacts["model_file"])
+
+    def predict(self, context, model_input):
+        """预测时调用"""
+        return self.model.predict(model_input)
+
+# 保存自定义模型
+mlflow.pyfunc.log_model(
+    "custom_model",
+    python_model=MyCustomModel(),
+    artifacts={"model_file": "model.pkl"}
+)
+```
+
+### 2.3 Model Registry（模型注册中心）
+
+Model Registry 提供集中管理模型版本和生命周期的能力。
+
+#### 2.3.1 核心概念
+
+**模型生命周期**：
+
+```
+Registered Model（注册模型）
+    ├── Version 1: Staging
+    ├── Version 2: Production ← 当前生产版本
+    └── Version 3: Staging
+```
+
+**阶段（Stages）**：
+- **None**：初始状态
+- **Staging**：预发布/测试
+- **Production**：生产环境
+- **Archived**：已归档
+
+#### 2.3.2 注册模型
+
+**方法 1：在训练时直接注册**
+
+```python
+with mlflow.start_run():
+    model = train_model()
+    mlflow.sklearn.log_model(
+        model,
+        "model",
+        registered_model_name="MyModel"
+    )
+```
+
+**方法 2：通过 API 注册**
+
+```python
+from mlflow.tracking import MlflowClient
+
+client = MlflowClient()
+
+# 注册模型
+model_uri = "runs:/<run_id>/model"
+model_version = client.create_model_version(
+    name="MyModel",
+    source=model_uri
+)
+```
+
+**方法 3：通过 UI 注册**
+
+1. 打开 MLflow UI
+2. 进入运行详情页
+3. 点击 "Register Model"
+4. 输入模型名称和描述
+
+#### 2.3.3 管理模型版本
+
+**阶段转换**：
+
+```python
+from mlflow.tracking import MlflowClient
+
+client = MlflowClient()
+
+# 过渡到 Staging
+client.transition_model_version_stage(
+    name="MyModel",
+    version=1,
+    stage="Staging"
+)
+
+# 过渡到 Production
+client.transition_model_version_stage(
+    name="MyModel",
+    version=2,
+    stage="Production"
+)
+
+# 归档
+client.transition_model_version_stage(
+    name="MyModel",
+    version=1,
+    stage="Archived"
+)
+```
+
+**加载生产模型**：
+
+```python
+import mlflow
+
+# 加载生产模型
+model = mlflow.sklearn.load_model("models:/MyModel/Production")
+
+# 加载特定版本
+model = mlflow.sklearn.load_model("models:/MyModel/2")
+
+# 加载最新版本
+model = mlflow.sklearn.load_model("models:/MyModel/latest")
+```
+
+### 2.4 MLflow Projects（项目打包）
+
+Projects 提供标准化的项目格式，确保可复现性。
+
+#### 2.4.1 项目结构
+
+```
+my_project/
+├── MLproject          # 项目配置文件
+├── conda.yaml         # Conda 环境配置
+├── train.py           # 训练脚本
+└── data/              # 数据目录
+```
+
+**MLproject 文件**：
+
+```yaml
+name: My ML Project
+
+# 环境配置
+conda_env: conda.yaml
+
+# 或使用 Python 环境
+# python_env: python_env.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_file: {type: string, default: "data.csv"}
+      regularization: {type: float, default: 0.1}
+      n_estimators: {type: int, default: 100}
+    command: "python train.py --data-file {data_file} --reg {regularization} --n-est {n_estimators}"
+```
+
+**conda.yaml**：
+
+```yaml
+name: mlflow-project
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+    - mlflow
+    - scikit-learn
+    - pandas
+    - numpy
+```
+
+#### 2.4.2 运行项目
+
+**命令行运行**：
+
+```bash
+# 使用默认参数
+mlflow run .
+
+# 指定参数
+mlflow run . -P alpha=0.6 -P l1_ratio=0.3
+
+# 运行远程项目
+mlflow run git://github.com/mlflow/mlflow-example.git -P alpha=0.5
+```
+
+**代码中运行**：
+
+```python
+import mlflow
+
+# 运行本地项目
+mlflow.run(".", parameters={"alpha": 0.6, "l1_ratio": 0.3})
+
+# 运行远程项目
+mlflow.run(
+    "git://github.com/mlflow/mlflow-example.git",
+    parameters={"alpha": 0.5}
+)
+```
+
+### 2.5 模型部署（Deployment）
+
+MLflow 提供多种部署选项。
+
+#### 2.5.1 本地部署
+
+**启动 REST API 服务**：
+
+```bash
+# 使用运行 ID
+mlflow models serve -m runs:/<run_id>/model -p 5002
+
+# 使用模型注册中心
+mlflow models serve -m models:/MyModel/Production -p 5002
+
+# 配置工作进程
+mlflow models serve -m models:/MyModel/Production -p 5002 -w 4
+```
+
+**调用 API**：
+
+```bash
+# 获取模型信息
+curl http://localhost:5002/invocations
+
+# 发送预测请求
+curl -X POST -H "Content-Type: application/json" \
+  --data '{"inputs": [[1, 2, 3, 4]]}' \
+  http://localhost:5002/invocations
+```
+
+**Python 调用**：
+
+```python
+import requests
+import json
+
+url = "http://localhost:5002/invocations"
+data = {"inputs": [[1, 2, 3, 4]]}
+
+response = requests.post(url, json=data)
+predictions = response.json()
+print(predictions)
+```
+
+#### 2.5.2 Docker 部署
+
+**构建 Docker 镜像**：
+
+```bash
+# 构建镜像
+mlflow models build-docker -m models:/MyModel/Production -n my-model:1.0
+
+# 运行容器
+docker run -p 5002:8080 my-model:1.0
+```
+
+**自定义 Dockerfile**：
+
+```dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+COPY model /app/model
+
+RUN pip install mlflow scikit-learn
+
+EXPOSE 5002
+
+CMD ["mlflow", "models", "serve", "-m", "model", "-p", "5002"]
+```
+
+#### 2.5.3 云平台部署
+
+**AWS SageMaker**：
+
+```python
+from mlflow.deployments import get_deploy_client
+
+client = get_deploy_client("sagemaker")
+
+# 部署
+deployment_uri = client.deploy_create(
+    name="my-model",
+    model_uri="models:/MyModel/Production",
+    config={
+        "instance_type": "ml.m5.large",
+        "instance_count": 1,
+    }
+)
+
+# 预测
+predictions = client.predict(
+    deployment_uri=deployment_uri,
+    inputs={"data": [[1, 2, 3, 4]]}
+)
+```
+
+**Azure ML**：
+
+```python
+client = get_deploy_client("azureml")
+
+deployment_uri = client.deploy_create(
+    name="my-model",
+    model_uri="models:/MyModel/Production",
+    config={
+        "compute_type": "aci",
+        "cpu_cores": 1,
+        "memory_gb": 4,
+    }
+)
+```
+
+---
+
+## 第三部分：快速开始
+
+让我们从零开始，构建一个完整的 MLflow 项目。
+
+### 3.1 环境设置
+
+#### 3.1.1 安装 MLflow
+
+```bash
+# 基础安装
+pip install mlflow
+
+# 完整安装（推荐）
+pip install mlflow[extras]
+
+# 特定框架支持
+pip install mlflow[sklearn]
+pip install mlflow[pytorch]
+pip install mlflow[tensorflow]
+```
+
+#### 3.1.2 验证安装
+
+```bash
+python -c "import mlflow; print(mlflow.__version__)"
+# 输出：2.18.0
+```
+
+#### 3.1.3 配置后端存储
+
+**使用文件系统（默认）**：
+
+```bash
+export MLFLOW_TRACKING_URI=./mlruns
+```
+
+**使用数据库**：
+
+```bash
+export MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+# 或 PostgreSQL
+export MLFLOW_TRACKING_URI=postgresql://user:password@localhost/mlflow
+```
+
+**使用远程服务器**：
+
+```bash
+export MLFLOW_TRACKING_URI=http://remote-server:5000
+```
+
+### 3.2 第一个完整项目
+
+#### 3.2.1 项目结构
+
+```
+first_mlflow_project/
+├── data/
+├── src/
+│   ├── __init__.py
+│   ├── train.py
+│   └── utils.py
+├── MLproject
+├── conda.yaml
+└── README.md
+```
+
+#### 3.2.2 训练脚本
+
+**src/train.py**：
+
+```python
+import mlflow
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+import argparse
+
+def main(n_estimators, max_depth, random_state):
+    # 加载数据
+    data = load_iris()
+    X, y = data.data, data.target
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=random_state
+    )
+
+    # 开始实验
+    with mlflow.start_run():
+        # 记录参数
+        mlflow.log_params({
+            "n_estimators": n_estimators,
+            "max_depth": max_depth,
+            "random_state": random_state,
+            "test_size": 0.2
+        })
+
+        # 训练模型
+        model = RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            random_state=random_state
+        )
+        model.fit(X_train, y_train)
+
+        # 预测
+        predictions = model.predict(X_test)
+        accuracy = accuracy_score(y_test, predictions)
+
+        # 记录指标
+        mlflow.log_metrics({
+            "accuracy": accuracy,
+            "train_samples": len(X_train),
+            "test_samples": len(X_test)
+        })
+
+        # 保存分类报告
+        report = classification_report(y_test, predictions)
+        with open("classification_report.txt", "w") as f:
+            f.write(report)
+        mlflow.log_artifact("classification_report.txt")
+
+        # 记录模型
+        mlflow.sklearn.log_model(
+            model,
+            "model",
+            registered_model_name="IrisClassifier"
+        )
+
+        print(f"Accuracy: {accuracy:.4f}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n-estimators", type=int, default=100)
+    parser.add_argument("--max-depth", type=int, default=5)
+    parser.add_argument("--random-state", type=int, default=42)
+    args = parser.parse_args()
+
+    main(args.n_estimators, args.max_depth, args.random_state)
+```
+
+#### 3.2.3 项目配置
+
+**MLproject**：
+
+```yaml
+name: Iris_Classifier
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      n_estimators: {type: int, default: 100}
+      max_depth: {type: int, default: 5}
+      random_state: {type: int, default: 42}
+    command: "python src/train.py --n-estimators {n_estimators} --max-depth {max_depth} --random-state {random_state}"
+```
+
+**conda.yaml**：
+
+```yaml
+name: iris-classifier
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+    - mlflow==2.18.0
+    - scikit-learn==1.5.0
+    - pandas
+    - numpy
+```
+
+#### 3.2.4 运行项目
+
+```bash
+# 本地运行
+mlflow run . -P n_estimators=200 -P max_depth=7
+
+# 查看结果
+mlflow ui
+```
+
+### 3.3 超参数优化
+
+#### 3.3.1 网格搜索
+
+```python
+import mlflow
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split, cross_val_score
+
+# 加载数据
+X, y = load_iris(return_X_y=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# 超参数网格
+param_grid = {
+    "n_estimators": [50, 100, 200],
+    "max_depth": [3, 5, 7, None],
+    "min_samples_split": [2, 5, 10]
+}
+
+# 网格搜索
+with mlflow.start_run():
+    for n_est in param_grid["n_estimators"]:
+        for max_depth in param_grid["max_depth"]:
+            for min_split in param_grid["min_samples_split"]:
+                # 嵌套运行
+                with mlflow.start_run(nested=True):
+                    # 记录参数
+                    mlflow.log_params({
+                        "n_estimators": n_est,
+                        "max_depth": max_depth,
+                        "min_samples_split": min_split
+                    })
+
+                    # 训练
+                    model = RandomForestClassifier(
+                        n_estimators=n_est,
+                        max_depth=max_depth,
+                        min_samples_split=min_split,
+                        random_state=42
+                    )
+
+                    # 交叉验证
+                    scores = cross_val_score(model, X_train, y_train, cv=5)
+
+                    # 记录指标
+                    mlflow.log_metrics({
+                        "cv_mean": scores.mean(),
+                        "cv_std": scores.std()
+                    })
+```
+
+#### 3.3.2 与 Optuna 集成
+
+```python
+import mlflow
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import cross_val_score
+import optuna
+
+# 加载数据
+X, y = load_breast_cancer(return_X_y=True)
+
+def objective(trial):
+    # 定义超参数搜索空间
+    n_estimators = trial.suggest_int('n_estimators', 50, 300)
+    max_depth = trial.suggest_int('max_depth', 3, 20)
+    min_samples_split = trial.suggest_int('min_samples_split', 2, 10)
+
+    with mlflow.start_run(nested=True):
+        # 记录参数
+        mlflow.log_params({
+            'n_estimators': n_estimators,
+            'max_depth': max_depth,
+            'min_samples_split': min_samples_split
+        })
+
+        # 训练模型
+        model = RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            random_state=42
+        )
+
+        # 交叉验证
+        scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+        mean_score = scores.mean()
+
+        # 记录指标
+        mlflow.log_metric('cv_accuracy', mean_score)
+        mlflow.log_metric('cv_std', scores.std())
+
+        return mean_score
+
+# 运行优化
+with mlflow.start_run():
+    study = optuna.create_study(direction='maximize')
+    study.optimize(objective, n_trials=50)
+
+    # 记录最佳参数
+    mlflow.log_params({
+        'best_n_estimators': study.best_params['n_estimators'],
+        'best_max_depth': study.best_params['max_depth'],
+        'best_min_samples_split': study.best_params['min_samples_split']
+    })
+    mlflow.log_metric('best_cv_accuracy', study.best_value)
+
+    print(f"Best trial: {study.best_trial.params}")
+    print(f"Best accuracy: {study.best_value:.4f}")
+```
+
+---
+
+## 第四部分：实战案例
+
+### 4.1 案例 1：传统机器学习项目
+
+**场景**：构建客户流失预测模型
+
+#### 4.1.1 完整代码
+
+```python
+import mlflow
+import mlflow.sklearn
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.pipeline import Pipeline
+
+# 1. 加载数据
+def load_data():
+    # 模拟数据
+    np.random.seed(42)
+    n_samples = 10000
+
+    data = pd.DataFrame({
+        'age': np.random.randint(18, 80, n_samples),
+        'tenure': np.random.randint(0, 120, n_samples),
+        'monthly_charges': np.random.uniform(20, 120, n_samples),
+        'total_charges': np.random.uniform(100, 10000, n_samples),
+    })
+
+    # 模拟目标变量（流失）
+    data['churn'] = (
+        (data['tenure'] < 12) &
+        (data['monthly_charges'] > 80) &
+        (np.random.random(n_samples) > 0.5)
+    ).astype(int)
+
+    return data
+
+# 2. 特征工程
+def preprocess_data(df):
+    df = df.copy()
+
+    # 创建新特征
+    df['charges_per_tenure'] = df['total_charges'] / (df['tenure'] + 1)
+    df['high_risk'] = ((df['tenure'] < 12) & (df['monthly_charges'] > 80)).astype(int)
+
+    # 特征和目标
+    X = df.drop('churn', axis=1)
+    y = df['churn']
+
+    return X, y
+
+# 3. 训练模型
+def train_model(model_type, X_train, y_train, X_test, y_test):
+    with mlflow.start_run(run_name=f"{model_type}"):
+        # 选择模型
+        if model_type == "random_forest":
+            model = RandomForestClassifier(
+                n_estimators=100,
+                max_depth=10,
+                min_samples_split=5,
+                random_state=42
+            )
+        elif model_type == "gradient_boosting":
+            model = GradientBoostingClassifier(
+                n_estimators=100,
+                learning_rate=0.1,
+                max_depth=5,
+                random_state=42
+            )
+        elif model_type == "logistic_regression":
+            model = LogisticRegression(
+                max_iter=1000,
+                random_state=42
+            )
+
+        # 创建 pipeline
+        pipeline = Pipeline([
+            ('scaler', StandardScaler()),
+            ('classifier', model)
+        ])
+
+        # 记录模型类型
+        mlflow.log_param("model_type", model_type)
+
+        # 训练
+        pipeline.fit(X_train, y_train)
+
+        # 预测
+        y_pred = pipeline.predict(X_test)
+        y_pred_proba = pipeline.predict_proba(X_test)[:, 1]
+
+        # 评估
+        metrics = {
+            "accuracy": accuracy_score(y_test, y_pred),
+            "precision": precision_score(y_test, y_pred),
+            "recall": recall_score(y_test, y_pred),
+            "f1": f1_score(y_test, y_pred),
+            "roc_auc": roc_auc_score(y_test, y_pred_proba)
+        }
+
+        # 记录指标
+        mlflow.log_metrics(metrics)
+
+        # 记录模型
+        mlflow.sklearn.log_model(
+            pipeline,
+            "model",
+            registered_model_name="CustomerChurnPredictor"
+        )
+
+        print(f"\n{model_type} Results:")
+        for metric, value in metrics.items():
+            print(f"{metric}: {value:.4f}")
+
+        return pipeline
+
+# 4. 主函数
+def main():
+    # 加载和预处理数据
+    data = load_data()
+    X, y = preprocess_data(data)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    # 训练多个模型
+    models = ["logistic_regression", "random_forest", "gradient_boosting"]
+    trained_models = {}
+
+    for model_type in models:
+        trained_models[model_type] = train_model(
+            model_type, X_train, y_train, X_test, y_test
+        )
+
+    print("\nTraining completed! Check MLflow UI for detailed results.")
+
+if __name__ == "__main__":
+    main()
+```
+
+#### 4.1.2 分析和对比
+
+```python
+# 运行脚本后，启动 UI
+# mlflow ui
+
+# 查看结果
+from mlflow.tracking import MlflowClient
+
+client = MlflowClient()
+runs = client.search_runs(
+    experiment_ids=["0"],
+    order_by=["metrics.roc_auc DESC"]
+)
+
+print("Top 3 Models by ROC AUC:")
+for i, run in enumerate(runs[:3], 1):
+    print(f"\n{i}. {run.data.params['model_type']}")
+    print(f"   ROC AUC: {run.data.metrics['roc_auc']:.4f}")
+    print(f"   F1: {run.data.metrics['f1']:.4f}")
+```
+
+### 4.2 案例 2：深度学习项目（PyTorch）
+
+**场景**：图像分类（MNIST）
+
+```python
+import mlflow
+import mlflow.pytorch
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+# 1. 定义模型
+class SimpleNN(nn.Module):
+    def __init__(self, hidden_size=128, dropout=0.2):
+        super().__init__()
+        self.fc1 = nn.Linear(784, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, 10)
+        self.dropout = nn.Dropout(dropout)
+        self.relu = nn.ReLU()
+
+    def forward(self, x):
+        x = x.view(-1, 784)
+        x = self.relu(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        return x
+
+# 2. 训练函数
+def train_epoch(model, loader, criterion, optimizer, device):
+    model.train()
+    total_loss = 0
+    correct = 0
+    total = 0
+
+    for data, target in loader:
+        data, target = data.to(device), target.to(device)
+        optimizer.zero_grad()
+        output = model(data)
+        loss = criterion(output, target)
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+        _, predicted = output.max(1)
+        total += target.size(0)
+        correct += predicted.eq(target).sum().item()
+
+    return total_loss / len(loader), 100. * correct / total
+
+# 3. 验证函数
+def validate(model, loader, criterion, device):
+    model.eval()
+    total_loss = 0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for data, target in loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            total_loss += criterion(output, target).item()
+            _, predicted = output.max(1)
+            total += target.size(0)
+            correct += predicted.eq(target).sum().item()
+
+    return total_loss / len(loader), 100. * correct / total
+
+# 4. 主训练函数
+def train_pytorch_model(hidden_size=128, dropout=0.2, learning_rate=0.001, epochs=10):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # 数据准备
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.1307,), (0.3081,))
+    ])
+
+    train_dataset = datasets.MNIST('./data', train=True, download=True, transform=transform)
+    test_dataset = datasets.MNIST('./data', train=False, transform=transform)
+
+    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
+
+    with mlflow.start_run():
+        # 记录参数
+        mlflow.log_params({
+            "hidden_size": hidden_size,
+            "dropout": dropout,
+            "learning_rate": learning_rate,
+            "epochs": epochs,
+            "batch_size": 64
+        })
+
+        # 模型
+        model = SimpleNN(hidden_size, dropout).to(device)
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+        # 训练
+        for epoch in range(epochs):
+            train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, device)
+            val_loss, val_acc = validate(model, test_loader, criterion, device)
+
+            # 记录指标
+            mlflow.log_metrics({
+                "train_loss": train_loss,
+                "train_accuracy": train_acc,
+                "val_loss": val_loss,
+                "val_accuracy": val_acc
+            }, step=epoch)
+
+            print(f"Epoch {epoch+1}/{epochs} - "
+                  f"Train Acc: {train_acc:.2f}% - "
+                  f"Val Acc: {val_acc:.2f}%")
+
+        # 记录模型
+        mlflow.pytorch.log_model(model, "model")
+
+        # 记录最终测试精度
+        final_test_acc = validate(model, test_loader, criterion, device)[1]
+        mlflow.log_metric("final_test_accuracy", final_test_acc)
+
+        print(f"\nFinal Test Accuracy: {final_test_acc:.2f}%")
+
+if __name__ == "__main__":
+    train_pytorch_model(hidden_size=256, dropout=0.3, learning_rate=0.001, epochs=10)
+```
+
+### 4.3 案例 3：完整的训练-评估-部署流水线
+
+**场景**：端到端的 ML 项目
+
+#### 4.3.1 项目结构
+
+```
+ml_pipeline/
+├── data/
+│   └── raw/
+├── models/
+├── notebooks/
+├── src/
+│   ├── __init__.py
+│   ├── data.py
+│   ├── features.py
+│   ├── train.py
+│   ├── evaluate.py
+│   └── predict.py
+├── tests/
+├── MLproject
+├── conda.yaml
+├── Dockerfile
+└── README.md
+```
+
+#### 4.3.2 模块化代码
+
+**src/data.py**：
+
+```python
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+def load_data(path):
+    """加载数据"""
+    return pd.read_csv(path)
+
+def split_data(df, test_size=0.2, random_state=42):
+    """分割数据"""
+    train, test = train_test_split(df, test_size=test_size, random_state=random_state)
+    return train, test
+```
+
+**src/features.py**：
+
+```python
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+def build_features(df):
+    """特征工程"""
+    df = df.copy()
+    # 添加特征工程逻辑
+    return df
+
+def scale_features(X_train, X_test):
+    """特征缩放"""
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    return X_train_scaled, X_test_scaled, scaler
+```
+
+**src/train.py**：
+
+```python
+import mlflow
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import argparse
+
+def train_model(X_train, y_train, X_test, y_test, params):
+    """训练模型"""
+    with mlflow.start_run():
+        # 记录参数
+        mlflow.log_params(params)
+
+        # 训练
+        model = RandomForestClassifier(**params)
+        model.fit(X_train, y_train)
+
+        # 预测
+        predictions = model.predict(X_test)
+        accuracy = accuracy_score(y_test, predictions)
+
+        # 记录指标
+        mlflow.log_metric("accuracy", accuracy)
+
+        # 记录模型
+        mlflow.sklearn.log_model(model, "model")
+
+        print(f"Model trained. Accuracy: {accuracy:.4f}")
+
+        return model
+```
+
+**src/evaluate.py**：
+
+```python
+import mlflow
+from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def evaluate_model(model, X_test, y_test):
+    """评估模型"""
+    predictions = model.predict(X_test)
+
+    # 分类报告
+    report = classification_report(y_test, predictions)
+    print(report)
+
+    # 混淆矩阵
+    cm = confusion_matrix(y_test, predictions)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d')
+    plt.title('Confusion Matrix')
+    plt.savefig('confusion_matrix.png')
+
+    # 记录到 MLflow
+    with mlflow.start_run():
+        mlflow.log_artifact("confusion_matrix.png")
+        mlflow.log_text(report, "classification_report.txt")
+```
+
+**src/predict.py**：
+
+```python
+import mlflow
+import pandas as pd
+
+def predict(model_uri, data):
+    """预测"""
+    # 加载模型
+    model = mlflow.sklearn.load_model(model_uri)
+
+    # 预测
+    predictions = model.predict(data)
+
+    return predictions
+```
+
+#### 4.3.3 CI/CD 集成
+
+**.github/workflows/ml-pipeline.yml**：
+
+```yaml
+name: ML Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install mlflow scikit-learn pandas numpy
+
+      - name: Run MLflow project
+        run: |
+          mlflow run . -P n_estimators=100 -P max_depth=5
+
+      - name: Upload MLflow artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: mlruns
+          path: mlruns/
+```
+
+---
+
+## 第五部分：生产环境最佳实践
+
+### 5.1 模型版本管理策略
+
+#### 5.1.1 语义化版本
+
+```python
+def get_model_version():
+    """获取模型版本"""
+    import os
+    from datetime import datetime
+
+    # 版本格式：v1.0.0
+    version = os.getenv("MODEL_VERSION", "v1.0.0")
+
+    # 或使用日期：v2025.12.31
+    date_version = f"v{datetime.now().strftime('%Y.%m.%d')}"
+
+    return version
+
+# 使用
+with mlflow.start_run():
+    mlflow.set_tag("version", get_model_version())
+    mlflow.set_tag("release_type", "stable")
+```
+
+#### 5.1.2 模型生命周期管理
+
+```python
+from mlflow.tracking import MlflowClient
+
+client = MlflowClient()
+
+def deploy_to_production(model_name, new_version):
+    """部署新模型到生产环境"""
+    # 获取当前生产模型
+    current_production = client.get_latest_versions(
+        model_name,
+        stages=["Production"]
+    )
+
+    # 归档旧模型
+    if current_production:
+        old_version = current_production[0].version
+        client.transition_model_version_stage(
+            name=model_name,
+            version=old_version,
+            stage="Archived"
+        )
+        print(f"Archived old production model: {old_version}")
+
+    # 部署新模型
+    client.transition_model_version_stage(
+        name=model_name,
+        version=new_version,
+        stage="Production"
+    )
+    print(f"Deployed new production model: {new_version}")
+
+# 使用
+deploy_to_production("CustomerChurnPredictor", 3)
+```
+
+### 5.2 监控和日志
+
+#### 5.2.1 模型性能监控
+
+```python
+import mlflow
+import time
+from datetime import datetime
+
+def log_model_performance(model_uri, X, y_true):
+    """记录模型性能"""
+    model = mlflow.sklearn.load_model(model_uri)
+
+    with mlflow.start_run():
+        # 预测
+        start_time = time.time()
+        y_pred = model.predict(X)
+        inference_time = time.time() - start_time
+
+        # 计算指标
+        accuracy = accuracy_score(y_true, y_pred)
+
+        # 记录
+        mlflow.log_metrics({
+            "accuracy": accuracy,
+            "inference_time": inference_time,
+            "timestamp": datetime.now().timestamp()
+        })
+
+        print(f"Accuracy: {accuracy:.4f}, Time: {inference_time:.4f}s")
+```
+
+#### 5.2.2 数据漂移检测
+
+```python
+def detect_data_drift(reference_data, current_data, threshold=0.1):
+    """检测数据漂移"""
+    from scipy.stats import ks_2samp
+
+    drift_detected = False
+
+    for column in reference_data.columns:
+        # Kolmogorov-Smirnov 检验
+        statistic, p_value = ks_2samp(
+            reference_data[column],
+            current_data[column]
+        )
+
+        if p_value < threshold:
+            print(f"Drift detected in {column}: p-value={p_value:.4f}")
+            drift_detected = True
+
+    return drift_detected
+```
+
+### 5.3 安全和权限
+
+#### 5.3.1 环境变量管理
+
+```python
+import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
+# 敏感配置
+DATABASE_URL = os.getenv("DATABASE_URL")
+API_KEY = os.getenv("API_KEY")
+
+# 不要记录敏感信息
+with mlflow.start_run():
+    # ❌ 错误
+    # mlflow.log_param("api_key", API_KEY)
+
+    # ✅ 正确
+    mlflow.log_param("database", "postgresql://localhost/db")  # 只记录主机名
+    mlflow.set_tag("environment", "production")
+```
+
+#### 5.3.2 访问控制
+
+```bash
+# 启动带认证的 MLflow UI
+export MLFLOW_TRACKING_USERNAME=admin
+export MLFLOW_TRACKING_PASSWORD=secure_password
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+### 5.4 Docker 化部署
+
+#### 5.4.1 Dockerfile
+
+```dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# 安装依赖
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 复制代码
+COPY . .
+
+# 暴露端口
+EXPOSE 5000
+
+# 启动 MLflow UI
+CMD ["mlflow", "ui", "--host", "0.0.0.0", "--port", "5000"]
+```
+
+#### 5.4.2 Docker Compose
+
+```yaml
+version: '3.8'
+
+services:
+  mlflow:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://user:password@db/mlflow
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=s3://mlflow-artifacts
+    depends_on:
+      - db
+      - minio
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=mlflow
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+    command: server /data
+    volumes:
+      - minio_data:/data
+
+volumes:
+  db_data:
+  minio_data:
+```
+
+---
+
+## 第六部分：高级功能
+
+### 6.1 MLflow 3：GenAI 支持
+
+#### 6.1.1 Prompt Registry
+
+```python
+import mlflow
+
+# 注册 prompt
+with mlflow.start_run():
+    prompt_template = """
+    You are a helpful assistant. Answer the following question:
+
+    Question: {question}
+
+    Answer:
+    """
+
+    mlflow.llm.log_prompt(
+        prompt=prompt_template,
+        model="gpt-4",
+        parameters={"temperature": 0.7}
+    )
+```
+
+#### 6.1.2 LLM 评估
+
+```python
+def evaluate_llm(model, test_cases):
+    """评估 LLM"""
+    with mlflow.start_run():
+        for i, (input_text, expected_output) in enumerate(test_cases):
+            # 生成响应
+            response = model.generate(input_text)
+
+            # 评估
+            similarity = calculate_similarity(response, expected_output)
+
+            # 记录
+            mlflow.log_metrics({
+                f"similarity_{i}": similarity
+            })
+```
+
+### 6.2 分布式训练支持
+
+#### 6.2.1 与 Ray 集成
+
+```python
+import ray
+from ray import train
+from ray.train import Checkpoint
+import mlflow
+
+@ray.remote
+def train_dist(rank):
+    with mlflow.start_run():
+        mlflow.log_param("rank", rank)
+
+        # 训练逻辑
+        for epoch in range(10):
+            loss = train_one_epoch()
+            mlflow.log_metric("loss", loss, step=epoch)
+
+        return ray.put("done")
+```
+
+### 6.3 性能优化
+
+#### 6.3.1 异步日志记录
+
+```python
+import mlflow
+from concurrent.futures import ThreadPoolExecutor
+
+def log_metrics_async(metrics):
+    """异步记录指标"""
+    with ThreadPoolExecutor() as executor:
+        executor.submit(mlflow.log_metrics, metrics)
+```
+
+#### 6.3.2 批量日志
+
+```python
+# ✅ 好：批量记录
+mlflow.log_metrics({
+    "loss": 0.123,
+    "accuracy": 0.956,
+    "f1": 0.943
+})
+
+# ❌ 差：逐个记录
+mlflow.log_metric("loss", 0.123)
+mlflow.log_metric("accuracy", 0.956)
+mlflow.log_metric("f1", 0.943)
+```
+
+---
+
+## 第七部分：总结
+
+### 7.1 核心要点回顾
+
+**为什么选择 MLflow**：
+
+1. ✅ **市场领导者**：57% 市场占有率，30M+ 月下载量
+2. ✅ **功能最全面**：Tracking + Models + Registry + Deployment + GenAI
+3. ✅ **完全免费**：开源，无供应商锁定
+4. ✅ **易于使用**：5 分钟上手，API 简洁
+5. ✅ **生态强大**：850+ 贡献者，活跃社区
+
+**关键组件**：
+
+| 组件 | 用途 | 核心功能 |
+|------|------|----------|
+| **Tracking** | 实验跟踪 | 参数、指标、artifacts 记录 |
+| **Models** | 模型管理 | 统一格式，多框架支持 |
+| **Registry** | 模型注册中心 | 版本管理，生命周期 |
+| **Projects** | 项目打包 | 可复现性，标准化 |
+| **Deployment** | 模型部署 | 多种部署选项 |
+
+### 7.2 学习路径
+
+#### 第一周：基础
+
+1. 安装 MLflow
+2. 运行第一个实验
+3. 启动 UI 查看结果
+4. 记录参数、指标、模型
+
+#### 第二周：进阶
+
+1. Model Registry 使用
+2. 模型版本管理
+3. 超参数优化
+4. PyFunc 自定义模型
+
+#### 第三周：生产
+
+1. Docker 部署
+2. CI/CD 集成
+3. 监控和日志
+4. 安全和权限
+
+#### 第四周：高级
+
+1. MLflow 3 GenAI 支持
+2. 分布式训练
+3. 性能优化
+4. 多框架集成
+
+### 7.3 参考资源
+
+#### 官方资源
+
+- [MLflow 官方网站](https://mlflow.org/)
+- [MLflow 官方文档](https://mlflow.org/docs/latest/index.html)
+- [MLflow GitHub](https://github.com/mlflow/mlflow)
+
+#### 教程和示例
+
+- [MLflow Examples](https://github.com/mlflow/mlflow/tree/master/examples)
+- [MLflow Tutorial](https://mlflow.org/docs/latest/tutorials-and-examples/index.html)
+- [Databricks MLflow Guide](https://docs.databricks.com/en/mlflow/index.html)
+
+#### 社区
+
+- [MLflow Discourse](https://discuss.mlflow.org/)
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/mlflow)
+- [Reddit r/MLOps](https://reddit.com/r/MLOps)
+
+---
+
+## 附录：快速参考
+
+### A. 常用命令
+
+```bash
+# 安装
+pip install mlflow
+
+# 启动 UI
+mlflow ui
+mlflow ui --port 5001
+
+# 运行项目
+mlflow run .
+mlflow run . -P param1=value1
+
+# 部署模型
+mlflow models serve -m models:/MyModel/Production
+mlflow models build-docker -m models:/MyModel/Production
+```
+
+### B. Python API 速查
+
+```python
+import mlflow
+
+# 记录
+mlflow.log_param("key", "value")
+mlflow.log_metric("key", 0.95)
+mlflow.log_artifact("file.txt")
+mlflow.set_tag("key", "value")
+
+# 模型
+mlflow.sklearn.log_model(model, "model")
+model = mlflow.sklearn.load_model("runs:/<run_id>/model")
+
+# 注册
+mlflow.sklearn.log_model(model, "model", registered_model_name="MyModel")
+model = mlflow.sklearn.load_model("models:/MyModel/Production")
+```
+
+### C. 框架对比速查
+
+| 需求 | 推荐工具 |
+|------|---------|
+| 通用 MLOps | **MLflow** 🏆 |
+| 最佳 UI | **W&B** |
+| 无限追踪时间 | **Neptune** |
+| 数据版本管理 | **DVC** |
+| 管道编排 | **ClearML** |
+| LLM 应用 | **W&B Weave** 或 **MLflow 3** |
+
+---
+
+**祝你使用 MLflow 构建机器学习流水线顺利！**
+
+---
+
+## Sources:
+
+- [MLflow Official Documentation](https://mlflow.org/docs/latest/index.html)
+- [MLOps Landscape in 2025: Top Tools and Platforms](https://neptune.ai/blog/mlops-tools-platforms-landscape)
+- [Weights & Biases Official Site](https://wandb.ai/site/)
+- [ClearML Documentation](https://clear.ml/docs/)
+- [Neptune.ai Documentation](https://neptune.ai/docs/)
+- [DVC Documentation](https://dvc.org/doc)
+- [The Best MLOps Tools of 2025](https://enhancedmlops.com/the-best-mlops-tools-of-2025-comparison-and-recommendations/)
+- [MLOps 2025: A Panoramic View](https://medium.com/@shine160700/mlops-2024-a-panoramic-view-d29f0ebd8776)
+- [MLflow vs Weights & Biases vs Neptune](https://www.index.dev/skill-vs-skill/ai-wandb-vs-mlflow-vs-neptune)
+- [Top 10 Must-Know MLOps Tools Dominating 2025](https://www.mlopscrew.com/blog/10-must-know-mlops-tools-dominating-2025)

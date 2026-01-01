@@ -7,6 +7,9 @@ use serde_json::json;
 use thiserror::Error;
 use uuid::Uuid;
 
+// 导入新的 API 响应格式
+use super::api_response::{ApiError, ApiResponse};
+
 #[derive(Error, Debug)]
 pub enum AppError {
     // 认证相关错误
@@ -107,68 +110,132 @@ pub enum AppError {
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let (status, error_message) = match self {
+        let (status, error_code, error_message): (StatusCode, &'static str, String) = match self {
             // 认证错误 - 401
-            AppError::InvalidCredentials
-            | AppError::InvalidToken
-            | AppError::TokenExpired
-            | AppError::MissingRefreshToken
-            | AppError::UserNotFound => {
-                (StatusCode::UNAUTHORIZED, self.to_string())
+            AppError::InvalidCredentials => {
+                (StatusCode::UNAUTHORIZED, "INVALID_CREDENTIALS", self.to_string())
+            }
+            AppError::InvalidToken => {
+                (StatusCode::UNAUTHORIZED, "INVALID_TOKEN", self.to_string())
+            }
+            AppError::TokenExpired => {
+                (StatusCode::UNAUTHORIZED, "TOKEN_EXPIRED", "登录已过期，请重新登录".to_string())
+            }
+            AppError::MissingRefreshToken => {
+                (StatusCode::UNAUTHORIZED, "MISSING_REFRESH_TOKEN", self.to_string())
+            }
+            AppError::UserNotFound => {
+                (StatusCode::UNAUTHORIZED, "USER_NOT_FOUND", "用户不存在".to_string())
             }
 
             // 权限错误 - 403
-            AppError::InvalidTokenType
-            | AppError::TokenCreationError
-            | AppError::Unauthorized => {
-                (StatusCode::FORBIDDEN, self.to_string())
+            AppError::InvalidTokenType => {
+                (StatusCode::FORBIDDEN, "INVALID_TOKEN_TYPE", self.to_string())
+            }
+            AppError::TokenCreationError => {
+                (StatusCode::FORBIDDEN, "TOKEN_CREATION_FAILED", self.to_string())
+            }
+            AppError::Unauthorized => {
+                (StatusCode::FORBIDDEN, "UNAUTHORIZED", self.to_string())
             }
 
             // 资源未找到 - 404
-            AppError::PostNotFound
-            | AppError::CommentNotFound
-            | AppError::NotFound(_) => {
-                (StatusCode::NOT_FOUND, self.to_string())
+            AppError::PostNotFound => {
+                (StatusCode::NOT_FOUND, "POST_NOT_FOUND", "文章不存在".to_string())
+            }
+            AppError::CommentNotFound => {
+                (StatusCode::NOT_FOUND, "COMMENT_NOT_FOUND", "评论不存在".to_string())
+            }
+            AppError::NotFound(msg) => {
+                (StatusCode::NOT_FOUND, "NOT_FOUND", msg)
             }
 
             // 请求错误 - 400
-            AppError::Conflict(_)
-            | AppError::BadRequest(_)
-            | AppError::EmailAlreadyExists
-            | AppError::UsernameAlreadyExists
-            | AppError::AlreadyLiked
-            | AppError::NotLiked
-            | AppError::EmptyComment
-            | AppError::CommentTooLong
-            | AppError::CommentTooDeep
-            | AppError::InvalidInput
-            | AppError::InvalidCursor
-            | AppError::Validation(_) => {
-                (StatusCode::BAD_REQUEST, self.to_string())
+            AppError::Conflict(msg) => {
+                (StatusCode::CONFLICT, "CONFLICT", msg)
+            }
+            AppError::BadRequest(msg) => {
+                (StatusCode::BAD_REQUEST, "BAD_REQUEST", msg)
+            }
+            AppError::EmailAlreadyExists => {
+                (StatusCode::CONFLICT, "EMAIL_EXISTS", "该邮箱已被注册".to_string())
+            }
+            AppError::UsernameAlreadyExists => {
+                (StatusCode::CONFLICT, "USERNAME_EXISTS", "该用户名已被使用".to_string())
+            }
+            AppError::AlreadyLiked => {
+                (StatusCode::BAD_REQUEST, "ALREADY_LIKED", "已经点赞过了".to_string())
+            }
+            AppError::NotLiked => {
+                (StatusCode::BAD_REQUEST, "NOT_LIKED", "还未点赞".to_string())
+            }
+            AppError::EmptyComment => {
+                (StatusCode::BAD_REQUEST, "EMPTY_COMMENT", "评论内容不能为空".to_string())
+            }
+            AppError::CommentTooLong => {
+                (StatusCode::BAD_REQUEST, "COMMENT_TOO_LONG", "评论内容过长".to_string())
+            }
+            AppError::CommentTooDeep => {
+                (StatusCode::BAD_REQUEST, "COMMENT_TOO_DEEP", "评论层级过深".to_string())
+            }
+            AppError::InvalidInput => {
+                (StatusCode::BAD_REQUEST, "INVALID_INPUT", "输入内容无效".to_string())
+            }
+            AppError::InvalidCursor => {
+                (StatusCode::BAD_REQUEST, "INVALID_CURSOR", "无效的游标".to_string())
+            }
+            AppError::Validation(msg) => {
+                (StatusCode::BAD_REQUEST, "VALIDATION_ERROR", msg)
             }
 
             // 请求过多 - 429
             AppError::Redis(_) => {
-                (StatusCode::TOO_MANY_REQUESTS, "Rate limit exceeded".to_string())
+                (StatusCode::TOO_MANY_REQUESTS, "RATE_LIMIT_EXCEEDED", "请求过于频繁，请稍后再试".to_string())
             }
 
             // 服务器错误 - 500
-            AppError::Database(_)
-            | AppError::PasswordHashError
-            | AppError::InvalidUserId
-            | AppError::Io(_)
-            | AppError::InternalError => {
-                tracing::error!("Internal error: {:?}", self);
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error".to_string())
+            AppError::Database(err) => {
+                tracing::error!("Database error: {:?}", err);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "DATABASE_ERROR",
+                    "数据库错误，请稍后重试".to_string(),
+                )
+            }
+            AppError::PasswordHashError => {
+                tracing::error!("Password hash error");
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "PASSWORD_HASH_ERROR",
+                    "密码处理失败".to_string(),
+                )
+            }
+            AppError::InvalidUserId => {
+                (StatusCode::INTERNAL_SERVER_ERROR, "INVALID_USER_ID", "用户ID无效".to_string())
+            }
+            AppError::Io(err) => {
+                tracing::error!("IO error: {:?}", err);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "IO_ERROR",
+                    "文件操作失败".to_string(),
+                )
+            }
+            AppError::InternalError => {
+                tracing::error!("Internal server error");
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "INTERNAL_ERROR",
+                    "服务器内部错误，请稍后重试".to_string(),
+                )
             }
         };
 
-        let body = Json(json!({
-            "code": status.as_u16(),
-            "message": error_message,
-        }));
+        // 使用新的统一错误格式
+        let api_error = ApiError::new(error_code, error_message, status);
+        let response = ApiResponse::<()>::error(api_error);
 
-        (status, body).into_response()
+        (status, Json(response)).into_response()
     }
 }
 
@@ -210,21 +277,27 @@ pub enum AuthError {
 
 impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
-        let (status, error_message) = match self {
-            AuthError::MissingToken
-            | AuthError::InvalidHeaderFormat
-            | AuthError::InvalidToken
-            | AuthError::TokenExpired
-            | AuthError::InvalidTokenType => {
-                (StatusCode::UNAUTHORIZED, self.to_string())
+        let (status, error_code, error_message): (StatusCode, &'static str, String) = match self {
+            AuthError::MissingToken => {
+                (StatusCode::UNAUTHORIZED, "MISSING_TOKEN", self.to_string())
+            }
+            AuthError::InvalidHeaderFormat => {
+                (StatusCode::UNAUTHORIZED, "INVALID_HEADER_FORMAT", self.to_string())
+            }
+            AuthError::InvalidToken => {
+                (StatusCode::UNAUTHORIZED, "INVALID_TOKEN", self.to_string())
+            }
+            AuthError::TokenExpired => {
+                (StatusCode::UNAUTHORIZED, "TOKEN_EXPIRED", self.to_string())
+            }
+            AuthError::InvalidTokenType => {
+                (StatusCode::UNAUTHORIZED, "INVALID_TOKEN_TYPE", self.to_string())
             }
         };
 
-        let body = Json(json!({
-            "code": status.as_u16(),
-            "message": error_message,
-        }));
+        let api_error = ApiError::new(error_code, error_message, status);
+        let response = ApiResponse::<()>::error(api_error);
 
-        (status, body).into_response()
+        (status, Json(response)).into_response()
     }
 }

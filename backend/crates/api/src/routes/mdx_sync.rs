@@ -242,13 +242,15 @@ async fn process_mdx_file(
 
             let post_id = uuid::Uuid::new_v4();
 
+            let status_str = if frontmatter.draft { "draft" } else { "published" };
+
             sqlx::query(
                 r#"
                 INSERT INTO posts (
                     id, slug, title, content, summary, status,
                     published_at, category_id, show_toc, reading_time,
                     view_count, like_count, comment_count, content_hash
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 0, 0, 0, $11)
+                ) VALUES ($1, $2, $3, $4, $5, $6::post_status, $7, $8, $9, $10, 0, 0, 0, $11)
                 "#
             )
             .bind(post_id)
@@ -256,7 +258,7 @@ async fn process_mdx_file(
             .bind(&frontmatter.title)
             .bind(&body)
             .bind(&frontmatter.summary)
-            .bind(if frontmatter.draft { "draft" } else { "published" })
+            .bind(status_str)
             .bind(published_at)
             .bind(category_id)
             .bind(frontmatter.show_toc)

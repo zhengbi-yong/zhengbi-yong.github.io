@@ -13,6 +13,7 @@ vi.mock('@refinedev/core', () => ({
   useList: vi.fn(),
   useUpdate: vi.fn(),
   useDelete: vi.fn(),
+  useInvalidate: vi.fn(),
 }))
 
 describe('CommentManagementPage', () => {
@@ -20,6 +21,7 @@ describe('CommentManagementPage', () => {
   const mockUseList = vi.mocked(refineCore.useList)
   const mockUseUpdate = vi.mocked(refineCore.useUpdate)
   const mockUseDelete = vi.mocked(refineCore.useDelete)
+  const mockUseInvalidate = vi.mocked(refineCore.useInvalidate)
 
   beforeEach(() => {
     queryClient = new QueryClient({
@@ -30,6 +32,9 @@ describe('CommentManagementPage', () => {
     })
 
     vi.clearAllMocks()
+
+    // Setup default mock implementations
+    mockUseInvalidate.mockReturnValue(vi.fn())
   })
 
   const renderWithProviders = (component: React.ReactElement) => {
@@ -59,9 +64,14 @@ describe('CommentManagementPage', () => {
 
   it('should render loading state', () => {
     mockUseList.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-      error: null,
+      query: {
+        isPending: true,
+        isError: false,
+      },
+      result: {
+        data: undefined,
+        total: 0,
+      },
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -86,12 +96,14 @@ describe('CommentManagementPage', () => {
 
   it('should render comments list', async () => {
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockComments,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -117,9 +129,15 @@ describe('CommentManagementPage', () => {
 
   it('should render error state', () => {
     mockUseList.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: new Error('Failed to load comments'),
+      query: {
+        isPending: false,
+        isError: true,
+        error: new Error('Failed to load comments'),
+      },
+      result: {
+        data: undefined,
+        total: 0,
+      },
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -141,12 +159,14 @@ describe('CommentManagementPage', () => {
 
   it('should handle status filter change', async () => {
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockComments,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -175,12 +195,14 @@ describe('CommentManagementPage', () => {
     const mockMutateAsync = vi.fn().mockResolvedValue({})
 
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockComments,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -223,12 +245,14 @@ describe('CommentManagementPage', () => {
     window.confirm = vi.fn(() => true)
 
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockComments,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -259,12 +283,14 @@ describe('CommentManagementPage', () => {
 
   it('should display status badges', async () => {
     mockUseList.mockReturnValue({
-      data: {
+      query: {
+        isPending: false,
+        isError: false,
+      },
+      result: {
         data: mockComments,
         total: 2,
       },
-      isLoading: false,
-      error: null,
     } as any)
 
     mockUseUpdate.mockReturnValue({
@@ -285,10 +311,9 @@ describe('CommentManagementPage', () => {
       // 使用 getAllByText 因为"待审核"在多个地方出现（筛选器和状态徽章）
       const pendingBadges = screen.getAllByText('待审核')
       expect(pendingBadges.length).toBeGreaterThan(0)
-      
+
       const approvedBadges = screen.getAllByText('已通过')
       expect(approvedBadges.length).toBeGreaterThan(0)
     })
   })
 })
-

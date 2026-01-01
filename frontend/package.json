@@ -24,7 +24,9 @@
     "generate-stories": "node scripts/generate-stories.mjs",
     "check-console": "node scripts/cleanup-console.mjs",
     "cleanup-console": "AUTO_FIX=true node scripts/cleanup-console.mjs",
-    "generate:api-types": "node scripts/generate-api-types.js"
+    "generate:types": "bash scripts/generate-api-types.sh",
+    "generate:api-types": "bash scripts/generate-api-types.sh",
+    "mock": "pnpm exec prism mock openapi.json -p 4010"
   },
   "dependencies": {
     "3dmol": "^2.1.0",
@@ -132,6 +134,7 @@
     "@eslint/js": "^9.39.1",
     "@next/bundle-analyzer": "16.0.7",
     "@playwright/test": "^1.49.1",
+    "@stoplight/prism-cli": "5.14.2",
     "@storybook/addon-links": "^10.1.9",
     "@storybook/blocks": "^8.6.14",
     "@storybook/nextjs-vite": "10.1.9",
@@ -163,6 +166,8 @@
     "isomorphic-dompurify": "^2.34.0",
     "jsdom": "^27.3.0",
     "lint-staged": "^16.2.7",
+    "msw": "^2.12.7",
+    "openapi-typescript": "~7.0.4",
     "openapi-typescript-codegen": "^0.30.0",
     "playwright": "^1.49.1",
     "prettier": "^3.7.4",

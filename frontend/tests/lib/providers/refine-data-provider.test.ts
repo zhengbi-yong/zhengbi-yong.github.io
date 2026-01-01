@@ -2,30 +2,45 @@
  * Refine Data Provider 测试
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { dataProvider } from '@/lib/providers/refine-data-provider'
-import { api } from '@/lib/api/apiClient'
 
-// Mock API client
-vi.mock('@/lib/api/apiClient', () => ({
-  api: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
-    patch: vi.fn(),
+// Mock axios - 因为 refine-data-provider 直接使用 axios
+vi.mock('axios', () => ({
+  default: {
+    create: vi.fn(),
   },
+  create: vi.fn(),
 }))
 
+import axios from 'axios'
+
 describe('Refine Data Provider', () => {
+  let mockAxiosInstance: any
+
   beforeEach(() => {
     vi.clearAllMocks()
-    // 设置默认环境变量
     process.env.NEXT_PUBLIC_BACKEND_URL = 'http://localhost:3000/v1'
-  })
+    // Mock localStorage to return null (no token)
+    if (global.localStorage) {
+      global.localStorage.getItem.mockReturnValue(null)
+    }
 
-  afterEach(() => {
-    vi.restoreAllMocks()
+    // Create a fresh mock instance for each test
+    mockAxiosInstance = {
+      get: vi.fn(),
+      post: vi.fn(),
+      put: vi.fn(),
+      delete: vi.fn(),
+      patch: vi.fn(),
+      interceptors: {
+        request: { use: vi.fn() },
+        response: { use: vi.fn() },
+      },
+    }
+
+    vi.mocked(axios.default).create.mockReturnValue(mockAxiosInstance)
+    vi.mocked(axios).create.mockReturnValue(mockAxiosInstance)
   })
 
   describe('getList', () => {
@@ -41,7 +56,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.get).mockResolvedValue(mockResponse)
+      mockAxiosInstance.get.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.getList({
         resource: 'admin/users',
@@ -50,9 +65,9 @@ describe('Refine Data Provider', () => {
 
       expect(result.data).toHaveLength(2)
       expect(result.total).toBe(2)
-      expect(api.get).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/admin/users?page=1&page_size=20',
-        { cache: false }
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        '/admin/users',
+        { params: { page: 1, page_size: 20 } }
       )
     })
 
@@ -68,7 +83,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.get).mockResolvedValue(mockResponse)
+      mockAxiosInstance.get.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.getList({
         resource: 'admin/comments',
@@ -77,9 +92,9 @@ describe('Refine Data Provider', () => {
       })
 
       expect(result.data).toHaveLength(2)
-      expect(api.get).toHaveBeenCalledWith(
-        expect.stringContaining('status=pending'),
-        { cache: false }
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        '/admin/comments',
+        { params: { page: 1, page_size: 10, status: 'pending' } }
       )
     })
 
@@ -94,7 +109,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.get).mockResolvedValue(mockResponse)
+      mockAxiosInstance.get.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.getList({
         resource: 'admin/stats',
@@ -103,7 +118,7 @@ describe('Refine Data Provider', () => {
 
       expect(result.data).toHaveLength(1)
       expect(result.data[0]).toEqual(mockResponse.data)
-      expect(api.get).toHaveBeenCalledWith('http://localhost:3000/v1/admin/stats', { cache: false })
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/admin/stats')
     })
 
     it('should handle empty list', async () => {
@@ -112,7 +127,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.get).mockResolvedValue(mockResponse)
+      mockAxiosInstance.get.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.getList({
         resource: 'admin/users',
@@ -125,7 +140,7 @@ describe('Refine Data Provider', () => {
 
     it('should handle errors', async () => {
       const error = new Error('Network error')
-      vi.mocked(api.get).mockRejectedValue(error)
+      mockAxiosInstance.get.mockRejectedValue(error)
 
       await expect(
         dataProvider.getList({
@@ -141,7 +156,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.get).mockResolvedValue(mockResponse)
+      mockAxiosInstance.get.mockResolvedValue(mockResponse)
 
       await dataProvider.getList({
         resource: 'admin/users',
@@ -149,9 +164,9 @@ describe('Refine Data Provider', () => {
         sorters: [{ field: 'username', order: 'asc' }],
       })
 
-      expect(api.get).toHaveBeenCalledWith(
-        expect.stringContaining('sort=username'),
-        { cache: false }
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        '/admin/users',
+        { params: { page: 1, page_size: 20, sort: 'username' } }
       )
     })
   })
@@ -163,7 +178,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.get).mockResolvedValue(mockResponse)
+      mockAxiosInstance.get.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.getOne({
         resource: 'admin/users',
@@ -171,15 +186,12 @@ describe('Refine Data Provider', () => {
       })
 
       expect(result.data).toEqual(mockResponse.data)
-      expect(api.get).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/admin/users/1',
-        { cache: false }
-      )
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/admin/users/1')
     })
 
     it('should handle errors', async () => {
       const error = new Error('User not found')
-      vi.mocked(api.get).mockRejectedValue(error)
+      mockAxiosInstance.get.mockRejectedValue(error)
 
       await expect(
         dataProvider.getOne({
@@ -198,7 +210,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.post).mockResolvedValue(mockResponse)
+      mockAxiosInstance.post.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.create({
         resource: 'admin/users',
@@ -206,10 +218,9 @@ describe('Refine Data Provider', () => {
       })
 
       expect(result.data).toEqual(mockResponse.data)
-      expect(api.post).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/admin/users',
-        newUser,
-        { cache: false }
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith(
+        '/admin/users',
+        newUser
       )
     })
   })
@@ -221,8 +232,8 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.put).mockResolvedValue({ data: {}, success: true })
-      vi.mocked(api.get).mockResolvedValue(mockRoleResponse)
+      mockAxiosInstance.put.mockResolvedValue({ data: {}, success: true })
+      mockAxiosInstance.get.mockResolvedValue(mockRoleResponse)
 
       const result = await dataProvider.update({
         resource: 'admin/users',
@@ -230,10 +241,9 @@ describe('Refine Data Provider', () => {
         variables: { role: 'admin' },
       })
 
-      expect(api.put).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/admin/users/1/role',
-        { role: 'admin' },
-        { cache: false }
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
+        '/admin/users/1/role',
+        { role: 'admin' }
       )
       expect(result.data).toEqual(mockRoleResponse.data)
     })
@@ -244,8 +254,8 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.put).mockResolvedValue({ data: {}, success: true })
-      vi.mocked(api.get).mockResolvedValue(mockStatusResponse)
+      mockAxiosInstance.put.mockResolvedValue({ data: {}, success: true })
+      mockAxiosInstance.get.mockResolvedValue(mockStatusResponse)
 
       const result = await dataProvider.update({
         resource: 'admin/comments',
@@ -253,10 +263,9 @@ describe('Refine Data Provider', () => {
         variables: { status: 'approved' },
       })
 
-      expect(api.put).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/admin/comments/1/status',
-        { status: 'approved' },
-        { cache: false }
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
+        '/admin/comments/1/status',
+        { status: 'approved' }
       )
       expect(result.data).toEqual(mockStatusResponse.data)
     })
@@ -268,7 +277,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.put).mockResolvedValue(mockResponse)
+      mockAxiosInstance.put.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.update({
         resource: 'admin/users',
@@ -277,17 +286,16 @@ describe('Refine Data Provider', () => {
       })
 
       expect(result.data).toEqual(mockResponse.data)
-      expect(api.put).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/admin/users/1',
-        updateData,
-        { cache: false }
+      expect(mockAxiosInstance.put).toHaveBeenCalledWith(
+        '/admin/users/1',
+        updateData
       )
     })
   })
 
   describe('deleteOne', () => {
     it('should delete a user', async () => {
-      vi.mocked(api.delete).mockResolvedValue({ data: {}, success: true })
+      mockAxiosInstance.delete.mockResolvedValue({ data: {}, success: true })
 
       const result = await dataProvider.deleteOne({
         resource: 'admin/users',
@@ -295,15 +303,12 @@ describe('Refine Data Provider', () => {
       })
 
       expect(result.data).toEqual({ id: '1' })
-      expect(api.delete).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/admin/users/1',
-        { cache: false }
-      )
+      expect(mockAxiosInstance.delete).toHaveBeenCalledWith('/admin/users/1')
     })
 
     it('should handle delete errors', async () => {
       const error = new Error('Delete failed')
-      vi.mocked(api.delete).mockRejectedValue(error)
+      mockAxiosInstance.delete.mockRejectedValue(error)
 
       await expect(
         dataProvider.deleteOne({
@@ -321,7 +326,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.get).mockResolvedValue(mockResponse)
+      mockAxiosInstance.get.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.custom({
         url: '/custom/endpoint',
@@ -330,9 +335,9 @@ describe('Refine Data Provider', () => {
       })
 
       expect(result.data).toEqual(mockResponse.data)
-      expect(api.get).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/custom/endpoint?param=value',
-        { cache: false, headers: {} }
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        '/custom/endpoint',
+        { headers: {} }
       )
     })
 
@@ -343,7 +348,7 @@ describe('Refine Data Provider', () => {
         success: true,
       }
 
-      vi.mocked(api.post).mockResolvedValue(mockResponse)
+      mockAxiosInstance.post.mockResolvedValue(mockResponse)
 
       const result = await dataProvider.custom({
         url: '/custom/action',
@@ -352,10 +357,10 @@ describe('Refine Data Provider', () => {
       })
 
       expect(result.data).toEqual(mockResponse.data)
-      expect(api.post).toHaveBeenCalledWith(
-        'http://localhost:3000/v1/custom/action',
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith(
+        '/custom/action',
         payload,
-        { cache: false, headers: {} }
+        { headers: {} }
       )
     })
   })
@@ -367,4 +372,3 @@ describe('Refine Data Provider', () => {
     })
   })
 })
-
