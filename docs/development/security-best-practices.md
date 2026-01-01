@@ -539,7 +539,7 @@ CMD ["/app/api"]
 ```
 
 ```yaml
-# docker-compose.yml
+# deployments/docker/compose-files/docker-compose.yml
 version: '3.8'
 
 services:

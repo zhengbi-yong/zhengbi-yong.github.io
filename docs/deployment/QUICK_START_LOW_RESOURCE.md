@@ -127,7 +127,7 @@ http://your-server-ip
 
 ## 📚 详细文档
 
-- **完整指南**: [LOW_RESOURCE_SERVER_DEPLOYMENT.md](LOW_RESOURCE_SERVER_DEPLOYMENT.md)
+- **完整指南**: [LOW_RESOURCE_SERVER_docs/deployment/QUICK_DEPLOYMENT.md](LOW_RESOURCE_SERVER_docs/deployment/QUICK_DEPLOYMENT.md)
 - **配置清单**: [CONFIG_CHECKLIST.md](CONFIG_CHECKLIST.md)
 - **故障排查**: [SERVER_DEPLOYMENT_GUIDE.md](SERVER_DEPLOYMENT_GUIDE.md#常见问题排查)
 

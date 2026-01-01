@@ -363,7 +363,7 @@ LIMIT 10;
 
 1. **生产环境密码**：生产环境中请修改默认密码
    ```bash
-   # 修改 docker-compose.yml 中的 POSTGRES_PASSWORD
+   # 修改 deployments/docker/compose-files/docker-compose.yml 中的 POSTGRES_PASSWORD
    ```
 
 2. **网络隔离**：生产环境中建议将数据库放在私有网络

@@ -28,7 +28,7 @@ blog-backend/
 │   ├── shared/     # Shared types and utilities
 │   └── worker/     # Background worker processes
 ├── migrations/     # SQLx database migrations
-├── docker-compose.yml
+├── deployments/docker/compose-files/docker-compose.yml
 ├── setup.sh       # Automated setup script
 ├── SETUP.md       # Detailed setup guide
 └── README.md

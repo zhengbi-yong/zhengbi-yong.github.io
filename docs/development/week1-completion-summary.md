@@ -36,7 +36,7 @@
 2. `monitoring/grafana/dashboards/business-metrics.json` - 业务监控仪表盘
 3. `monitoring/grafana/dashboards/system-metrics.json` - 系统监控仪表盘
 4. `monitoring/prometheus.yml` - Prometheus配置更新
-5. `docker-compose.yml` - 挂载告警规则目录
+5. `deployments/docker/compose-files/docker-compose.yml` - 挂载告警规则目录
 
 **功能**:
 - ✅ 12条Prometheus告警规则

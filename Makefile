@@ -109,27 +109,27 @@ restart: stop setup-db
 # 启动开发环境后端
 dev-backend:
 	@echo "🚀 启动开发环境后端..."
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d backend
+	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml up -d backend
 	@echo "✅ 开发后端已启动"
 	@echo "💡 使用 'make dev-shell' 进入容器"
 
 # 进入开发容器
 dev-shell:
 	@echo "🐚 进入开发容器..."
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend bash
+	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml exec backend bash
 
 # 运行迁移（开发环境）
 dev-migrate:
 	@echo "🗄️  运行数据库迁移（开发环境）..."
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend cargo run --bin api -- migrate
+	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml exec backend cargo run --bin api -- migrate
 
 # 创建管理员（开发环境）
 dev-create-admin:
 	@echo "👤 创建管理员账户（开发环境）..."
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend cargo run --bin create_admin
+	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml exec backend cargo run --bin create_admin
 
 # 停止开发环境
 dev-stop:
 	@echo "🛑 停止开发环境..."
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml down
 	@echo "✅ 开发环境已停止"

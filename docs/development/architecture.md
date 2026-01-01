@@ -757,7 +757,7 @@ import { CustomChart } from '@/components/MDXComponents'
 cd backend
 
 # 启动数据库
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 运行 API
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
@@ -1064,7 +1064,7 @@ pnpm dev
 cd backend
 
 # 启动数据库（Docker）
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 运行 API
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db

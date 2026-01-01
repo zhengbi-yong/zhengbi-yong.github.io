@@ -303,7 +303,7 @@ bash import-images.sh
 # 3. 返回项目目录
 cd ..
 
-# 4. 修改 docker-compose.yml 使用本地镜像
+# 4. 修改 deployments/docker/compose-files/docker-compose.yml 使用本地镜像
 # 将 backend 和 frontend 的 image 改为：
 #   backend:
 #     image: blog-backend:local

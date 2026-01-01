@@ -21,7 +21,7 @@
 ```bash
 # 1. 启动数据库
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 2. 启动后端 API
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
@@ -41,7 +41,7 @@ pnpm start
 ```bash
 # 使用 Docker Compose 一键部署
 cd backend
-./deploy.sh prod
+./scripts/deployment/deploy.sh prod
 ```
 
 详细步骤请查看 [单服务器部署](./single-server.md)。
@@ -351,8 +351,8 @@ psql -U blog_user blog_db < backup.sql
 
 ```bash
 cd backend
-./deploy.sh stop
-./deploy.sh prod
+./scripts/deployment/deploy.sh stop
+./scripts/deployment/deploy.sh prod
 ```
 
 ## 成本估算

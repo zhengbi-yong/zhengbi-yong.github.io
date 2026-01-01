@@ -21,7 +21,7 @@
 - `DEPLOYMENT_STRUCTURE.md` - 部署文件结构说明
 
 #### 4. 部署指南
-- `DEPLOYMENT.md` - 快速部署指南（项目根目录）
+- `docs/deployment/QUICK_DEPLOYMENT.md` - 快速部署指南（项目根目录）
 
 ### 更新的配置
 
@@ -56,7 +56,7 @@
 #### 现在的流程
 **一键部署**:
 ```bash
-./scripts/deploy-production.sh <server-ip> <user>
+./scripts/deployment/deploy-production.sh <server-ip> <user>
 ```
 
 自动完成：
@@ -124,7 +124,7 @@ sudo ufw allow 3001/tcp
 
 2. **执行部署**:
    ```bash
-   ./scripts/deploy-production.sh 152.136.43.194 ubuntu
+   ./scripts/deployment/deploy-production.sh 152.136.43.194 ubuntu
    ```
 
 3. **验证部署**:
@@ -143,7 +143,7 @@ npm run build
 npm run export
 
 # 2. 重新部署
-./scripts/deploy-production.sh 152.136.43.194 ubuntu
+./scripts/deployment/deploy-production.sh 152.136.43.194 ubuntu
 ```
 
 ### 安全建议
@@ -166,7 +166,7 @@ npm run export
 
 | 文档 | 用途 | 位置 |
 |------|------|------|
-| 快速部署指南 | 快速上手 | `DEPLOYMENT.md` |
+| 快速部署指南 | 快速上手 | `docs/deployment/QUICK_DEPLOYMENT.md` |
 | 完整部署指南 | 详细步骤 | `docs/SERVER_DEPLOYMENT_GUIDE.md` |
 | 配置文件说明 | 配置详解 | `server-setup/README.md` |
 | 文件结构说明 | 文件组织 | `docs/DEPLOYMENT_STRUCTURE.md` |

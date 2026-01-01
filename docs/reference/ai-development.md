@@ -52,7 +52,7 @@ node ./scripts/generate-search.mjs
 cd backend
 
 # Start development environment (PostgreSQL + Redis)
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # Build and run the API
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
@@ -60,13 +60,13 @@ export REDIS_URL=redis://localhost:6379
 cargo run --bin blog-api
 
 # Production deployment
-./deploy.sh prod
+./scripts/deployment/deploy.sh prod
 
 # Stop all services
-./deploy.sh stop
+./scripts/deployment/deploy.sh stop
 
 # Check service status
-./deploy.sh status
+./scripts/deployment/deploy.sh status
 
 # Run tests
 cargo test
@@ -436,13 +436,13 @@ EXPORT=1 BASE_PATH=/repo-name pnpm build
 cd backend
 
 # Development
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # Production
-./deploy.sh prod
+./scripts/deployment/deploy.sh prod
 
 # Stop
-./deploy.sh stop
+./scripts/deployment/deploy.sh stop
 ```
 
 ---
@@ -556,8 +556,8 @@ lsof -ti:3000 | xargs kill -9  # Backend
 **Database connection failed**:
 ```bash
 cd backend
-./deploy.sh stop
-./deploy.sh dev
+./scripts/deployment/deploy.sh stop
+./scripts/deployment/deploy.sh dev
 ```
 
 **Contentlayer build errors**:

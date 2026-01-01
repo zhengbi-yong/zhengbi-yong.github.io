@@ -201,11 +201,11 @@ return 301 https://$host$request_uri;
 
 ### 3. Docker Compose 配置
 
-**文件位置**: `/opt/blog/docker-compose.yml`
+**文件位置**: `/opt/blog/deployments/docker/compose-files/docker-compose.yml`
 
 **编辑命令**:
 ```bash
-nano docker-compose.yml
+nano deployments/docker/compose-files/docker-compose.yml
 ```
 
 #### ✅ 3.1 前端环境变量（第 107-108 行）
@@ -224,7 +224,7 @@ environment:
 
 **验证方法**:
 ```bash
-grep -A 2 "frontend:" docker-compose.yml | grep NEXT_PUBLIC_API_URL
+grep -A 2 "frontend:" deployments/docker/compose-files/docker-compose.yml | grep NEXT_PUBLIC_API_URL
 # 应该是 ${NEXT_PUBLIC_API_URL}
 ```
 
@@ -242,7 +242,7 @@ CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
 
 **验证方法**:
 ```bash
-grep CORS_ALLOWED_ORIGINS docker-compose.yml
+grep CORS_ALLOWED_ORIGINS deployments/docker/compose-files/docker-compose.yml
 # 应该是 ${CORS_ALLOWED_ORIGINS}
 ```
 
@@ -254,7 +254,7 @@ grep CORS_ALLOWED_ORIGINS docker-compose.yml
 
 #### ✅ 4.1 隐藏数据库端口
 
-**文件**: `docker-compose.yml`
+**文件**: `deployments/docker/compose-files/docker-compose.yml`
 
 ```yaml
 # 找到 postgres 服务:
@@ -277,7 +277,7 @@ docker compose ps postgres
 
 #### ✅ 4.2 隐藏 Redis 端口
 
-**文件**: `docker-compose.yml`
+**文件**: `deployments/docker/compose-files/docker-compose.yml`
 
 ```yaml
 # 找到 redis 服务:
@@ -388,7 +388,7 @@ SENTRY_DSN=your-sentry-dsn
 - [ ] ✅ 修改 NEXT_PUBLIC_SITE_URL
 - [ ] ✅ 修改 NEXT_PUBLIC_API_URL
 - [ ] ✅ 修改 Nginx 配置中的域名
-- [ ] ✅ 修改 docker-compose.yml 中的环境变量引用
+- [ ] ✅ 修改 deployments/docker/compose-files/docker-compose.yml 中的环境变量引用
 - [ ] ✅ 隐藏数据库端口（推荐）
 - [ ] ✅ 隐藏 Redis 端口（推荐）
 
@@ -522,7 +522,7 @@ netstat -tulpn | grep :3001
 # 停止占用端口的服务
 systemctl stop nginx  # 如果系统 nginx 在运行
 
-# 或修改 docker-compose.yml 中的端口映射
+# 或修改 deployments/docker/compose-files/docker-compose.yml 中的端口映射
 ```
 
 ---

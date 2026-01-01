@@ -641,13 +641,13 @@ pnpm lint
 
 ```bash
 # 开发环境
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 生产环境
-./deploy.sh prod
+./scripts/deployment/deploy.sh prod
 
 # 停止服务
-./deploy.sh stop
+./scripts/deployment/deploy.sh stop
 
 # 运行 API
 cargo run

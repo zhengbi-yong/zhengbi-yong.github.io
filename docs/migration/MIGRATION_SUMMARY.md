@@ -78,7 +78,7 @@ pnpm remove pliny @types/mdx gray-matter rehype-*
 - `monitoring/grafana/dashboards/dashboard.yml`
 
 #### 5. Docker Compose优化
-**文件**: `docker-compose.yml`
+**文件**: `deployments/docker/compose-files/docker-compose.yml`
 
 改进：
 - 统一配置文件，清晰分层（数据库层、应用层、监控层）

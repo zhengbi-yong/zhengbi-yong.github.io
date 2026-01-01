@@ -48,9 +48,9 @@ zhengbi-yong.github.io/
 
 **移动的文件**:
 ```
-CROSS_PLATFORM_DEPLOYMENT.md    → docs/deployment/
+CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md    → docs/deployment/
 CROSS_PLATFORM_SUMMARY.md       → docs/deployment/
-DEPLOYMENT.md                   → docs/deployment/
+docs/deployment/QUICK_DEPLOYMENT.md                   → docs/deployment/
 DOCKER_BUILD_SUMMARY.md         → docs/deployment/
 DOCKER_UPGRADE_SUMMARY.md       → docs/deployment/
 LOCAL_DEPLOYMENT_SUCCESS.md     → docs/deployment/
@@ -135,7 +135,7 @@ RESTART_BACKEND_COMPLETE.bat    → scripts/dev/
 - `.env.docker.example` - Docker 环境变量模板
 - `.env.local.example` - 本地环境变量模板
 - `config.yml` - 主配置文件
-- `docker-compose.yml` - 生产环境 Docker 编排
+- `deployments/docker/compose-files/docker-compose.yml` - 生产环境 Docker 编排
 - `docker-compose.local.yml` - 本地开发 Docker 编排
 - `package.json` - 项目元数据和脚本
 
@@ -176,8 +176,8 @@ bash deploy-server.sh        → bash scripts/deployment/deploy-server.sh
 
 **旧路径** → **新路径**:
 ```markdown
-[CROSS_PLATFORM_DEPLOYMENT.md] → [docs/deployment/CROSS_PLATFORM_DEPLOYMENT.md]
-[DEPLOYMENT.md]               → [docs/deployment/DEPLOYMENT.md]
+[CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md] → [docs/deployment/CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md]
+[docs/deployment/QUICK_DEPLOYMENT.md]               → [docs/deployment/docs/deployment/QUICK_DEPLOYMENT.md]
 ```
 
 ### 其他文档的路径引用
@@ -186,13 +186,13 @@ bash deploy-server.sh        → bash scripts/deployment/deploy-server.sh
 
 ```markdown
 <!-- 从根目录引用 -->
-[部署指南](docs/deployment/DEPLOYMENT.md)
+[部署指南](docs/deployment/docs/deployment/QUICK_DEPLOYMENT.md)
 
 <!-- 从 docs/ 引用 -->
 [构建脚本](../scripts/deployment/build-all.sh)
 
 <!-- 从 scripts/deployment/ 引用 -->
-[部署文档](../../docs/deployment/DEPLOYMENT.md)
+[部署文档](../../docs/deployment/docs/deployment/QUICK_DEPLOYMENT.md)
 ```
 
 ---
@@ -214,7 +214,7 @@ zhengbi-yong.github.io/
 ├── .env.docker.example                # Docker 环境模板
 ├── .env.local.example                 # 本地环境模板
 │
-├── docker-compose.yml                 # 生产 Docker 编排
+├── deployments/docker/compose-files/docker-compose.yml                 # 生产 Docker 编排
 ├── docker-compose.local.yml           # 本地 Docker 编排
 │
 ├── start.sh                           # 启动脚本
@@ -234,8 +234,8 @@ zhengbi-yong.github.io/
 │
 ├── docs/                              # 📖 项目文档
 │   ├── deployment/                    #    部署文档（已整理）
-│   │   ├── CROSS_PLATFORM_DEPLOYMENT.md
-│   │   ├── DEPLOYMENT.md
+│   │   ├── CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md
+│   │   ├── docs/deployment/QUICK_DEPLOYMENT.md
 │   │   ├── DOCKER_BUILD_SUMMARY.md
 │   │   ├── DOCKER_UPGRADE_SUMMARY.md
 │   │   ├── LOCAL_DEPLOYMENT_SUCCESS.md
@@ -341,8 +341,8 @@ bash scripts/dev/kill-port-3000.bat
 
 ```markdown
 # 部署文档
-docs/deployment/DEPLOYMENT.md
-docs/deployment/CROSS_PLATFORM_DEPLOYMENT.md
+docs/deployment/docs/deployment/QUICK_DEPLOYMENT.md
+docs/deployment/CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md
 
 # 脚本说明
 docs/deployment/scripts.md

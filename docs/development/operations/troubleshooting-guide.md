@@ -252,7 +252,7 @@ docker ps | grep postgres
 
 # 2. 如果没有运行，启动数据库
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 3. 检查连接字符串
 echo $DATABASE_URL
@@ -669,8 +669,8 @@ cat .env
 export DATABASE_URL="..."
 
 # 3. 重启服务
-./deploy.sh stop
-./deploy.sh dev
+./scripts/deployment/deploy.sh stop
+./scripts/deployment/deploy.sh dev
 ```
 
 #### 问题: 敏感信息泄露

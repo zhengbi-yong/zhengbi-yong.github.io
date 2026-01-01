@@ -117,7 +117,7 @@ bash deploy-server.sh registry.cn-hangzhou.aliyuncs.com/namespace v1.8.2
 cd docker-images-export
 bash import-images.sh
 
-# 2. 修改 docker-compose.yml 使用本地镜像
+# 2. 修改 deployments/docker/compose-files/docker-compose.yml 使用本地镜像
 
 # 3. 启动服务
 docker compose up -d
@@ -264,8 +264,8 @@ docker compose up -d
 
 | 文件 | 说明 |
 |------|------|
-| `CROSS_PLATFORM_DEPLOYMENT.md` | 跨平台完整指南 |
-| `DEPLOYMENT.md` | 部署详细说明 |
+| `CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md` | 跨平台完整指南 |
+| `docs/deployment/QUICK_DEPLOYMENT.md` | 部署详细说明 |
 | `DOCKER_UPGRADE_SUMMARY.md` | 镜像升级总结 |
 
 ---
@@ -292,4 +292,4 @@ docker compose up -d
 
 ---
 
-**提示**: 首次使用建议阅读 [跨平台部署指南](CROSS_PLATFORM_DEPLOYMENT.md) 获取详细说明。
+**提示**: 首次使用建议阅读 [跨平台部署指南](CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md) 获取详细说明。

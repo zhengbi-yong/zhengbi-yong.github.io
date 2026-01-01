@@ -16,10 +16,10 @@ pnpm dev
 
 ```bash
 # 自动构建、导出、上传并部署
-./scripts/deploy-production.sh <server-ip> <user>
+./scripts/deployment/deploy-production.sh <server-ip> <user>
 
 # 示例
-./scripts/deploy-production.sh 152.136.43.194 ubuntu
+./scripts/deployment/deploy-production.sh 152.136.43.194 ubuntu
 ```
 
 ### 方式 2: 手动部署
@@ -46,7 +46,7 @@ scp -r docker-images-export/ ubuntu@your-server:~/blog-deployment/
 scp server-setup/.env.production ubuntu@your-server:~/blog/.env
 scp server-setup/nginx.conf ubuntu@your-server:~/blog/nginx.conf
 scp server-setup/site.conf ubuntu@your-server:~/blog/site.conf
-scp docker-compose.server.yml ubuntu@your-server:~/blog/docker-compose.yml
+scp docker-compose.server.yml ubuntu@your-server:~/blog/deployments/docker/compose-files/docker-compose.yml
 ```
 
 #### 步骤 4: 服务器部署

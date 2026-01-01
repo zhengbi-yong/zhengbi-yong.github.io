@@ -26,19 +26,19 @@
 
 ```bash
 # 启动完整开发环境
-./start-dev.sh
+./scripts/operations/start-dev.sh
 
 # 仅启动数据库和后端
-./start-dev.sh --no-frontend
+./scripts/operations/start-dev.sh --no-frontend
 
 # 仅启动前端（数据库和后端已运行）
-./start-dev.sh --no-backend --no-db
+./scripts/operations/start-dev.sh --no-backend --no-db
 
 # 清理并重新构建
-./start-dev.sh --clean
+./scripts/operations/start-dev.sh --clean
 
 # 查看帮助
-./start-dev.sh --help
+./scripts/operations/start-dev.sh --help
 ```
 
 ### 启动的服务
@@ -74,40 +74,40 @@
 
 ```bash
 # 完整部署（构建 + 启动）
-./start-prod.sh deploy
+./scripts/operations/start-prod.sh deploy
 
 # 仅启动服务（镜像已存在）
-./start-prod.sh start
+./scripts/operations/start-prod.sh start
 
 # 重启服务
-./start-prod.sh restart
+./scripts/operations/start-prod.sh restart
 
 # 查看服务状态
-./start-prod.sh status
+./scripts/operations/start-prod.sh status
 
 # 查看日志
-./start-prod.sh logs backend      # 后端日志
-./start-prod.sh logs frontend     # 前端日志
-./start-prod.sh logs postgres     # 数据库日志
-./start-prod.sh logs redis        # Redis 日志
+./scripts/operations/start-prod.sh logs backend      # 后端日志
+./scripts/operations/start-prod.sh logs frontend     # 前端日志
+./scripts/operations/start-prod.sh logs postgres     # 数据库日志
+./scripts/operations/start-prod.sh logs redis        # Redis 日志
 
 # 停止服务
-./start-prod.sh stop
+./scripts/operations/start-prod.sh stop
 
 # 清理构建和容器
-./start-prod.sh clean
+./scripts/operations/start-prod.sh clean
 
 # 部署时强制重建
-./start-prod.sh deploy --force
+./scripts/operations/start-prod.sh deploy --force
 
 # 无缓存构建
-./start-prod.sh deploy --no-cache
+./scripts/operations/start-prod.sh deploy --no-cache
 
 # 仅构建不启动
-./start-prod.sh deploy --build-only
+./scripts/operations/start-prod.sh deploy --build-only
 
 # 查看帮助
-./start-prod.sh help
+./scripts/operations/start-prod.sh help
 ```
 
 ### 命令参考
@@ -180,7 +180,7 @@ NEXT_PUBLIC_SITE_URL=https://yourdomain.com
 
 ```bash
 # 构建所有镜像
-./start-prod.sh deploy
+./scripts/operations/start-prod.sh deploy
 
 # 或分别构建
 docker build -t blog-platform-backend:latest backend/
@@ -191,10 +191,10 @@ docker build -t blog-platform-frontend:latest frontend/
 
 ```bash
 # 启动服务
-./start-prod.sh start
+./scripts/operations/start-prod.sh start
 
 # 查看状态
-./start-prod.sh status
+./scripts/operations/start-prod.sh status
 ```
 
 ---
@@ -244,7 +244,7 @@ npm install -g pnpm
 
 ```bash
 # 1. 启动开发环境
-./start-dev.sh
+./scripts/operations/start-dev.sh
 
 # 2. 开发代码...
 # 修改 backend/ 或 frontend/ 中的代码
@@ -259,7 +259,7 @@ npm install -g pnpm
 
 ```bash
 # 启动后端和数据库
-./start-dev.sh --no-frontend
+./scripts/operations/start-dev.sh --no-frontend
 
 # 在另一个终端启动前端（可选）
 cd frontend && pnpm dev
@@ -273,16 +273,16 @@ cat backend/.env.production
 cat frontend/.env.production
 
 # 2. 部署
-./start-prod.sh deploy
+./scripts/operations/start-prod.sh deploy
 
 # 3. 检查状态
-./start-prod.sh status
+./scripts/operations/start-prod.sh status
 
 # 4. 查看日志
-./start-prod.sh logs backend
+./scripts/operations/start-prod.sh logs backend
 
 # 5. 如需重启
-./start-prod.sh restart
+./scripts/operations/start-prod.sh restart
 ```
 
 ---

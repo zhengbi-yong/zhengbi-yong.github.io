@@ -161,8 +161,8 @@ docker ps | grep postgres
 2. **重启数据库**:
 ```bash
 cd backend
-./deploy.sh stop
-./deploy.sh dev
+./scripts/deployment/deploy.sh stop
+./scripts/deployment/deploy.sh dev
 ```
 
 3. **检查数据库日志**:
@@ -189,7 +189,7 @@ Error: migration failed
 ```bash
 cd backend
 docker compose down -v
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 sqlx migrate run
 ```
 

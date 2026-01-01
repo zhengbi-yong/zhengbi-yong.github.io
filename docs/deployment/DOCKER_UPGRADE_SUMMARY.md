@@ -16,7 +16,7 @@
 
 ### 修改的文件
 
-1. **docker-compose.yml** - 更新基础镜像版本
+1. **deployments/docker/compose-files/docker-compose.yml** - 更新基础镜像版本
 2. **backend/Dockerfile** - 更新 Rust 基础镜像
 3. **.gitignore** - 添加 Docker 部署相关文件
 
@@ -96,7 +96,7 @@ bash import-images.sh
 
 # 5. 启动服务
 cd ..
-# 需要手动修改 docker-compose.yml 使用本地镜像
+# 需要手动修改 deployments/docker/compose-files/docker-compose.yml 使用本地镜像
 docker compose up -d
 ```
 
@@ -117,7 +117,7 @@ bash deploy-simple.sh
 
 | 文档 | 内容 |
 |------|------|
-| **DEPLOYMENT.md** | 完整的 Docker 部署指南 |
+| **docs/deployment/QUICK_DEPLOYMENT.md** | 完整的 Docker 部署指南 |
 | **VERSION** | 当前版本号 |
 | **.docker-registry** | 镜像仓库配置（自动生成） |
 
@@ -128,7 +128,7 @@ bash deploy-simple.sh
 ```
 .docker-registry          # 镜像仓库配置（敏感）
 docker-images-export/     # 导出的镜像
-docker-compose.yml.backup # 配置备份
+deployments/docker/compose-files/docker-compose.yml.backup # 配置备份
 *.backup                  # 所有备份文件
 ```
 

@@ -3,7 +3,7 @@
 ## ✅ 修复内容
 
 ### 1. 环境变量配置
-已在 `docker-compose.yml` 中正确配置：
+已在 `deployments/docker/compose-files/docker-compose.yml` 中正确配置：
 - `NEXT_PUBLIC_API_URL=http://localhost:3000/v1`
 - `NEXT_PUBLIC_BACKEND_URL=http://localhost:3000/v1`
 - `NEXT_PUBLIC_USE_API=true`

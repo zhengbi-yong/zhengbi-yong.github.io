@@ -32,9 +32,9 @@
 2. **.gitignore** - 添加了 Docker 相关忽略项
 
 #### 文档
-1. **CROSS_PLATFORM_DEPLOYMENT.md** - 跨平台完整指南（600+ 行）
+1. **CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md** - 跨平台完整指南（600+ 行）
 2. **PLATFORM_QUICK_REFERENCE.md** - 快速参考卡片
-3. **DEPLOYMENT.md** - 部署详细说明
+3. **docs/deployment/QUICK_DEPLOYMENT.md** - 部署详细说明
 4. **DOCKER_UPGRADE_SUMMARY.md** - 镜像升级总结
 5. **README.md** - 更新了部署部分
 
@@ -156,9 +156,9 @@ bash deploy-simple.sh
 
 ```
 项目根目录/
-├── CROSS_PLATFORM_DEPLOYMENT.md    # 跨平台完整指南 ⭐
+├── CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md    # 跨平台完整指南 ⭐
 ├── PLATFORM_QUICK_REFERENCE.md    # 快速参考卡片
-├── DEPLOYMENT.md                   # 部署详细说明
+├── docs/deployment/QUICK_DEPLOYMENT.md                   # 部署详细说明
 ├── DOCKER_UPGRADE_SUMMARY.md       # 镜像升级总结
 ├── README.md                       # 项目主文档（已更新）
 │
@@ -262,13 +262,13 @@ bash deploy-server.sh <registry> v1.8.2
 
 ### 文档
 
-- **[跨平台部署指南](CROSS_PLATFORM_DEPLOYMENT.md)** - 完整的部署说明
+- **[跨平台部署指南](CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md)** - 完整的部署说明
 - **[快速参考](PLATFORM_QUICK_REFERENCE.md)** - 命令速查表
-- **[部署指南](DEPLOYMENT.md)** - 详细部署流程
+- **[部署指南](docs/deployment/QUICK_DEPLOYMENT.md)** - 详细部署流程
 
 ### 故障排查
 
-1. 查看 [跨平台部署指南](CROSS_PLATFORM_DEPLOYMENT.md) 的故障排查章节
+1. 查看 [跨平台部署指南](CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md) 的故障排查章节
 2. 检查 Docker 是否运行：`docker ps`
 3. 查看日志：`docker compose logs -f`
 

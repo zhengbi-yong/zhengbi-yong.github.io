@@ -67,10 +67,10 @@ docker compose up -d
 
 ```bash
 # 一键部署脚本（自动构建、导出、上传、部署）
-./scripts/deploy-production.sh <server-ip> <user>
+./scripts/deployment/deploy-production.sh <server-ip> <user>
 
 # 示例
-./scripts/deploy-production.sh 152.136.43.194 ubuntu
+./scripts/deployment/deploy-production.sh 152.136.43.194 ubuntu
 ```
 
 **优势**：
@@ -81,7 +81,7 @@ docker compose up -d
 
 ### 详细部署文档
 
-- 📖 **[快速部署指南](DEPLOYMENT.md)** - 简洁的部署步骤 ⭐
+- 📖 **[快速部署指南](docs/deployment/QUICK_DEPLOYMENT.md)** - 简洁的部署步骤 ⭐
 - 📖 **[完整部署指南](docs/deployment/SERVER_DEPLOYMENT_GUIDE.md)** - 详细的服务器部署文档 ⭐⭐⭐
 - 📖 **[配置修改清单](docs/deployment/CONFIG_CHECKLIST.md)** - 部署前检查清单 ⭐⭐⭐
 - 📖 **[Docker 完整部署](docs/deployment/docker.md)** - Docker 部署详细指南
@@ -132,7 +132,7 @@ Access at: http://localhost:3001
 
 ```bash
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 运行 API / Run API
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
@@ -283,9 +283,9 @@ pnpm test             # 运行测试 / Run tests
 ### 后端 / Backend
 
 ```bash
-./deploy.sh dev       # 启动开发环境 / Start dev environment
-./deploy.sh prod      # 启动生产环境 / Start production
-./deploy.sh stop      # 停止所有服务 / Stop all services
+./scripts/deployment/deploy.sh dev       # 启动开发环境 / Start dev environment
+./scripts/deployment/deploy.sh prod      # 启动生产环境 / Start production
+./scripts/deployment/deploy.sh stop      # 停止所有服务 / Stop all services
 cargo run             # 运行 API 服务 / Run API service
 cargo test            # 运行测试 / Run tests
 ```
@@ -322,7 +322,7 @@ Output in `frontend/out/`
 
 ```bash
 cd backend
-./deploy.sh prod
+./scripts/deployment/deploy.sh prod
 ```
 
 ---

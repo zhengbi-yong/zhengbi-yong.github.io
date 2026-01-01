@@ -65,7 +65,7 @@ docker compose logs -f
 
 # 停止测试
 docker compose down
-mv docker-compose.yml.backup docker-compose.yml
+mv deployments/docker/compose-files/docker-compose.yml.backup deployments/docker/compose-files/docker-compose.yml
 ```
 
 ### 步骤 3：推送到镜像仓库
@@ -152,8 +152,8 @@ bash import-images.sh
 # 2. 返回项目目录
 cd ..
 
-# 3. 更新 docker-compose.yml 使用本地镜像
-# 编辑 docker-compose.yml，将 build 部分注释掉，添加：
+# 3. 更新 deployments/docker/compose-files/docker-compose.yml 使用本地镜像
+# 编辑 deployments/docker/compose-files/docker-compose.yml，将 build 部分注释掉，添加：
 # backend:
 #   image: blog-backend:local
 # frontend:
@@ -277,7 +277,7 @@ docker compose exec backend bash
 如果服务器内存较小（< 2GB），可以优化配置：
 
 ```yaml
-# 在 docker-compose.yml 中添加资源限制
+# 在 deployments/docker/compose-files/docker-compose.yml 中添加资源限制
 services:
   backend:
     deploy:

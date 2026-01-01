@@ -21,7 +21,7 @@ docker-compose up -d
 ```
 
 ### 2. Health Check路径错误
-**问题**: docker-compose.yml中health check路径是 `/health`，但实际端点是 `/healthz`
+**问题**: deployments/docker/compose-files/docker-compose.yml中health check路径是 `/health`，但实际端点是 `/healthz`
 
 **解决方案**:
 ```yaml

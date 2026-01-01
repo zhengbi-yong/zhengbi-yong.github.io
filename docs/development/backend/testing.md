@@ -396,8 +396,8 @@ docker ps | grep postgres
 
 # 重启数据库
 cd backend
-./deploy.sh stop
-./deploy.sh dev
+./scripts/deployment/deploy.sh stop
+./scripts/deployment/deploy.sh dev
 ```
 
 #### 2. 测试超时

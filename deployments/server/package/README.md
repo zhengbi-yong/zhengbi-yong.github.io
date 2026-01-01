@@ -4,7 +4,7 @@
 
 ## 文件说明
 
-- docker-compose.yml - Docker Compose 配置文件
+- deployments/docker/compose-files/docker-compose.yml - Docker Compose 配置文件
 - .env.example - 环境变量模板
 - deploy.sh - 部署脚本
 - nginx/ - Nginx 配置目录

@@ -280,7 +280,7 @@ crontab -e
 #### 1. 数据库优化
 
 ```bash
-# 编辑 docker-compose.yml
+# 编辑 deployments/docker/compose-files/docker-compose.yml
 # 添加PostgreSQL优化配置
 services:
   postgres:
@@ -298,7 +298,7 @@ services:
 
 ```bash
 # Redis默认开启AOF持久化
-# 如需调整持久化策略，编辑docker-compose.yml
+# 如需调整持久化策略，编辑deployments/docker/compose-files/docker-compose.yml
 services:
   redis:
     command: redis-server --appendonly yes --appendfsync everysec
@@ -342,7 +342,7 @@ sudo useradd -m -s /bin/bash dockeradmin
 sudo usermod -aG docker dockeradmin
 
 # 限制容器资源
-# 编辑 docker-compose.yml，添加：
+# 编辑 deployments/docker/compose-files/docker-compose.yml，添加：
 services:
   backend:
     deploy:
@@ -548,7 +548,7 @@ sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
 # 限制容器内存
-# 编辑docker-compose.yml，添加资源限制
+# 编辑deployments/docker/compose-files/docker-compose.yml，添加资源限制
 ```
 
 ### 日志位置
@@ -634,14 +634,14 @@ docker compose -p blog-old down
 
 ```
 zhengbi-yong.github.io/
-├── docker-compose.yml          # 主编排文件
+├── deployments/docker/compose-files/docker-compose.yml          # 主编排文件
 ├── .env.docker.example         # 环境变量模板
 ├── frontend/
 │   ├── Dockerfile             # 前端Docker镜像
 │   └── ...
 ├── backend/
 │   ├── Dockerfile             # 后端Docker镜像
-│   ├── docker-compose.yml     # 后端独立编排（可选）
+│   ├── deployments/docker/compose-files/docker-compose.yml     # 后端独立编排（可选）
 │   └── ...
 ├── nginx/
 │   ├── nginx.conf             # Nginx主配置

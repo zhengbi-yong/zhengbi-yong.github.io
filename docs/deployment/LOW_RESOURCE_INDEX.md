@@ -14,7 +14,7 @@
    - 三步完成部署
    - 5 分钟阅读
 
-2. **[LOW_RESOURCE_SERVER_DEPLOYMENT.md](LOW_RESOURCE_SERVER_DEPLOYMENT.md)** ⭐⭐⭐
+2. **[LOW_RESOURCE_SERVER_docs/deployment/QUICK_DEPLOYMENT.md](LOW_RESOURCE_SERVER_docs/deployment/QUICK_DEPLOYMENT.md)** ⭐⭐⭐
    - 完整部署指南
    - 详细步骤说明
    - 常见问题解答
@@ -351,7 +351,7 @@ swapon /swapfile
 
 ## 📞 获取帮助
 
-- **完整文档**: [LOW_RESOURCE_SERVER_DEPLOYMENT.md](LOW_RESOURCE_SERVER_DEPLOYMENT.md)
+- **完整文档**: [LOW_RESOURCE_SERVER_docs/deployment/QUICK_DEPLOYMENT.md](LOW_RESOURCE_SERVER_docs/deployment/QUICK_DEPLOYMENT.md)
 - **快速开始**: [QUICK_START_LOW_RESOURCE.md](QUICK_START_LOW_RESOURCE.md)
 - **配置清单**: [CONFIG_CHECKLIST.md](CONFIG_CHECKLIST.md)
 - **GitHub Issues**: https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues

@@ -51,7 +51,7 @@ chmod +x scripts/test-admin.sh
 **终端 1 - 启动数据库**：
 ```bash
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 ```
 
 **终端 2 - 启动后端 API**：

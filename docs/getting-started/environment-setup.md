@@ -37,7 +37,7 @@ cp .env.example .env
 **后端**：
 ```bash
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 ```
 
 这将自动创建 `.env` 文件和开发环境配置。
@@ -373,7 +373,7 @@ source ~/.bashrc
 
 ### Docker Compose
 
-在 `docker-compose.yml` 中配置：
+在 `deployments/docker/compose-files/docker-compose.yml` 中配置：
 
 ```yaml
 services:

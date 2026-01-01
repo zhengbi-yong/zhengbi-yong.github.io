@@ -109,7 +109,7 @@
 - 配置告警评估间隔：15s
 
 #### 6. Docker Compose配置更新 ✅
-**文件**: `docker-compose.yml`
+**文件**: `deployments/docker/compose-files/docker-compose.yml`
 
 **更新内容**:
 - Prometheus挂载告警规则目录：`./monitoring/alerts:/etc/prometheus/alerts:ro`

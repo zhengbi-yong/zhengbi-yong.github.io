@@ -35,7 +35,7 @@ zhengbi-yong.github.io/
 │   └── DEPLOYMENT_STRUCTURE.md   # 本文档
 │
 ├── docker-compose.server.yml     # 服务器部署用 compose 文件
-├── DEPLOYMENT.md                 # 快速部署指南 ⭐
+├── docs/deployment/QUICK_DEPLOYMENT.md                 # 快速部署指南 ⭐
 └── package.json                  # 包含部署命令
 ```
 
@@ -53,13 +53,13 @@ zhengbi-yong.github.io/
 2. **一键部署**
    ```bash
    # 在项目根目录执行
-   ./scripts/deploy-production.sh 152.136.43.194 ubuntu
+   ./scripts/deployment/deploy-production.sh 152.136.43.194 ubuntu
    ```
 
 ### 手动部署步骤
 
 详细步骤请参考：
-- **快速指南**: [DEPLOYMENT.md](../DEPLOYMENT.md)
+- **快速指南**: [docs/deployment/QUICK_DEPLOYMENT.md](../docs/deployment/QUICK_DEPLOYMENT.md)
 - **完整指南**: [docs/SERVER_DEPLOYMENT_GUIDE.md](./SERVER_DEPLOYMENT_GUIDE.md)
 
 ## 命令说明
@@ -77,7 +77,7 @@ npm run package        # 打包部署文件
 
 | 脚本 | 用途 | 使用方法 |
 |------|------|----------|
-| `deploy-production.sh` | 一键部署 | `./scripts/deploy-production.sh <ip> <user>` |
+| `deploy-production.sh` | 一键部署 | `./scripts/deployment/deploy-production.sh <ip> <user>` |
 | `build.js` | 构建镜像 | `npm run build` |
 | `export.js` | 导出镜像 | `npm run export` |
 | `upload-rsync.js` | 上传镜像 | `npm run upload:rsync <server>` |
@@ -134,7 +134,7 @@ npm run export
 
 ```bash
 # 使用一键部署脚本（推荐）
-./scripts/deploy-production.sh <ip> <user>
+./scripts/deployment/deploy-production.sh <ip> <user>
 
 # 或手动上传
 scp -r docker-images-export/ <user>@<ip>:~/blog-deployment/
@@ -231,7 +231,7 @@ docker network inspect blog_blog-network
 
 ## 相关文档
 
-- [快速部署指南](../DEPLOYMENT.md)
+- [快速部署指南](../docs/deployment/QUICK_DEPLOYMENT.md)
 - [完整部署指南](./SERVER_DEPLOYMENT_GUIDE.md)
 - [服务器配置说明](../server-setup/README.md)
 - [项目主 README](../README.md)

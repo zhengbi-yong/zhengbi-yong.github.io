@@ -267,7 +267,7 @@ docker compose down -v
 ```bash
 # 启动 PostgreSQL 和 Redis
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 ```
 
 #### 2. 启动后端
@@ -733,7 +733,7 @@ pnpm format
 cd backend
 
 # 启动开发数据库
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 运行 API 服务
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db

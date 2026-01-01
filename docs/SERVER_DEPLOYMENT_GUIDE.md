@@ -39,7 +39,7 @@ scp -r docker-images-export/ ubuntu@your-server-ip:~/blog-deployment/
 # 上传项目配置文件
 cd server-setup
 scp .env.production ubuntu@your-server-ip:~/blog/.env
-scp docker-compose.server.yml ubuntu@your-server-ip:~/blog/docker-compose.yml
+scp docker-compose.server.yml ubuntu@your-server-ip:~/blog/deployments/docker/compose-files/docker-compose.yml
 scp nginx.conf ubuntu@your-server-ip:~/blog/nginx.conf
 scp site.conf ubuntu@your-server-ip:~/blog/site.conf
 ```
@@ -188,7 +188,7 @@ docker compose up -d
 - `NEXT_PUBLIC_API_URL`: 前端访问后端的 URL
 - `NEXT_PUBLIC_SITE_URL`: 站点 URL
 
-### docker-compose.yml
+### deployments/docker/compose-files/docker-compose.yml
 
 使用本地构建的镜像，包含以下服务：
 - PostgreSQL 17

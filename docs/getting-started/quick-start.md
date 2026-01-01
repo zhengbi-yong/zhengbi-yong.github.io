@@ -123,7 +123,7 @@ pnpm dev
 
 ```bash
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 # 等待数据库启动完成
 
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
@@ -249,10 +249,10 @@ pnpm test             # 运行测试
 
 ```bash
 cd backend
-./deploy.sh dev       # 启动开发数据库
-./deploy.sh prod      # 启动生产环境
-./deploy.sh stop      # 停止所有服务
-./deploy.sh status    # 查看服务状态
+./scripts/deployment/deploy.sh dev       # 启动开发数据库
+./scripts/deployment/deploy.sh prod      # 启动生产环境
+./scripts/deployment/deploy.sh stop      # 停止所有服务
+./scripts/deployment/deploy.sh status    # 查看服务状态
 cargo run             # 运行 API 服务
 cargo test            # 运行测试
 ```

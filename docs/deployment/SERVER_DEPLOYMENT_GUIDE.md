@@ -230,7 +230,7 @@ tar czf blog.tar.gz \
     backend/ \
     frontend/ \
     nginx/ \
-    docker-compose.yml \
+    deployments/docker/compose-files/docker-compose.yml \
     docker-compose.local.yml \
     .env.docker.example \
     VERSION
@@ -388,11 +388,11 @@ location / {
 
 **第 121 行** - localhost 配置（开发环境，保持默认）
 
-#### 6.4 修改 docker-compose.yml（如果需要）
+#### 6.4 修改 deployments/docker/compose-files/docker-compose.yml（如果需要）
 
 ```bash
-# 编辑 docker-compose.yml
-nano docker-compose.yml
+# 编辑 deployments/docker/compose-files/docker-compose.yml
+nano deployments/docker/compose-files/docker-compose.yml
 ```
 
 **检查第 107-108 行**:
@@ -919,7 +919,7 @@ docker compose logs frontend
 netstat -tulpn | grep :3000
 netstat -tulpn | grep :3001
 
-# 解决: 修改 docker-compose.yml 中的端口映射
+# 解决: 修改 deployments/docker/compose-files/docker-compose.yml 中的端口映射
 
 # 2. 内存不足
 free -h

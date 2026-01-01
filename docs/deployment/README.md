@@ -336,7 +336,7 @@ docker compose exec -T postgres psql -U blog_user blog_db < backup.sql
 - [ ] 已修改 `CORS_ALLOWED_ORIGINS`
 - [ ] 已修改 `NEXT_PUBLIC_SITE_URL` 和 `NEXT_PUBLIC_API_URL`
 - [ ] 已修改 Nginx 配置中的域名
-- [ ] 已修改 docker-compose.yml 中的环境变量引用
+- [ ] 已修改 deployments/docker/compose-files/docker-compose.yml 中的环境变量引用
 
 ### 部署后验证
 

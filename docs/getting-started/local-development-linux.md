@@ -380,7 +380,7 @@ blog-nginx          nginx:1.27-alpine          Up
 
 ```bash
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 ```
 
 **启动后端**:
@@ -956,7 +956,7 @@ pnpm format
 cd backend
 
 # 启动开发数据库
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 运行 API 服务
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db

@@ -74,7 +74,7 @@ volumes:
 
 ### 1. Docker Compose 配置 ✅
 
-#### docker-compose.yml（生产环境）
+#### deployments/docker/compose-files/docker-compose.yml（生产环境）
 - ✅ 所有服务使用官方或自定义镜像
 - ✅ 服务间通过 Docker 网络通信
 - ✅ 健康检查配置完整
@@ -211,7 +211,7 @@ server {
 
 #### 当前配置
 
-**文件**: `docker-compose.yml:69`
+**文件**: `deployments/docker/compose-files/docker-compose.yml:69`
 
 ```yaml
 CORS_ALLOWED_ORIGINS: http://localhost:3001,https://zhengbi-yong.top
@@ -234,7 +234,7 @@ NEXT_PUBLIC_API_URL=https://your-domain.com
 
 #### 问题：localhost 硬编码
 
-**文件**: `docker-compose.yml:107`
+**文件**: `deployments/docker/compose-files/docker-compose.yml:107`
 
 ```yaml
 frontend:
@@ -247,7 +247,7 @@ frontend:
 **方案 1: 使用内部网络**（推荐）
 
 ```yaml
-# docker-compose.yml（生产环境）
+# deployments/docker/compose-files/docker-compose.yml（生产环境）
 frontend:
   environment:
     NEXT_PUBLIC_API_URL: https://your-domain.com
@@ -263,7 +263,7 @@ frontend:
 **方案 2: 直接访问后端**
 
 ```yaml
-# docker-compose.yml
+# deployments/docker/compose-files/docker-compose.yml
 frontend:
   environment:
     NEXT_PUBLIC_API_URL: http://backend:3000  # Docker 内部网络
@@ -298,7 +298,7 @@ git clone https://github.com/zhengbi-yong/zhengbi-yong.github.io.git
 ```bash
 # 在本地打包
 tar czf blog.tar.gz \
-    docker-compose.yml \
+    deployments/docker/compose-files/docker-compose.yml \
     docker-compose.local.yml \
     backend/ \
     frontend/ \
@@ -456,7 +456,7 @@ sudo ufw enable
 ### 3. 数据库
 
 ```yaml
-# docker-compose.yml
+# deployments/docker/compose-files/docker-compose.yml
 postgres:
   # 不要暴露到公网
   ports: []  # 移除端口映射
@@ -559,7 +559,7 @@ docker-compose -f docker-compose.local.yml up -d
 
 ## 📝 相关文档
 
-- **[跨平台部署指南](deployment/CROSS_PLATFORM_DEPLOYMENT.md)** - 完整的部署流程
+- **[跨平台部署指南](deployment/CROSS_PLATFORM_docs/deployment/QUICK_DEPLOYMENT.md)** - 完整的部署流程
 - **[Docker 构建总结](deployment/DOCKER_BUILD_SUMMARY.md)** - 镜像构建说明
 - **[化学可视化本地化](CHEMISTRY_VISUALIZATION_SETUP.md)** - 离线化学库配置
 - **[文件整理说明](FILE_REORGANIZATION.md)** - 项目结构说明

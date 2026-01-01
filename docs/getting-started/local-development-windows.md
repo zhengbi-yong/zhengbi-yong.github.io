@@ -209,7 +209,7 @@ pnpm dev
 ```bash
 # 在新终端窗口
 cd ~/zhengbi-yong.github.io/backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 
 # 等待数据库启动完成后
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db

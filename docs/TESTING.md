@@ -303,7 +303,7 @@ docker compose logs backend | grep "Database migrations completed"
 
 ```bash
 # 启动开发环境后端
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d backend
+docker compose -f deployments/docker/compose-files/docker-compose.yml -f docker-compose.dev.yml up -d backend
 
 # 进入容器
 docker compose exec backend bash
@@ -345,7 +345,7 @@ docker compose exec backend /usr/local/bin/create_admin
 make dev-create-admin
 
 # 或手动执行
-docker compose -f docker-compose.yml -f docker-compose.dev.yml exec backend cargo run --bin create_admin
+docker compose -f deployments/docker/compose-files/docker-compose.yml -f docker-compose.dev.yml exec backend cargo run --bin create_admin
 ```
 
 ---
@@ -1117,7 +1117,7 @@ docker compose down
 项目根目录/
 ├── .env                           # Docker 环境变量
 ├── .env.docker.example            # 环境变量模板
-├── docker-compose.yml             # Docker 编排配置
+├── deployments/docker/compose-files/docker-compose.yml             # Docker 编排配置
 ├── Makefile                       # 根目录 Makefile
 ├── backend/
 │   ├── .env                       # 后端本地环境变量

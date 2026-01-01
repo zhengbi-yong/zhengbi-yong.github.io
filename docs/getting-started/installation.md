@@ -164,7 +164,7 @@ docker compose version
 
 ```bash
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 ```
 
 这将启动：

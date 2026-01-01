@@ -42,7 +42,7 @@ server_name 152.136.43.194;  # 改为你的服务器 IP 或域名
 
 ```bash
 cd ..
-./scripts/deploy-production.sh 152.136.43.194 ubuntu
+./scripts/deployment/deploy-production.sh 152.136.43.194 ubuntu
 ```
 
 ### 手动部署

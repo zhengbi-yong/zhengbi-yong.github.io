@@ -26,7 +26,7 @@ pnpm dev
 
 # 后端
 cd backend
-./deploy.sh dev
+./scripts/deployment/deploy.sh dev
 ```
 
 ### Q: 需要安装哪些软件？

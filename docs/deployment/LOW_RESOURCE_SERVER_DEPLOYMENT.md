@@ -274,7 +274,7 @@ scp exports/blog-backend-local.tar.gz user@server:/opt/blog/
 scp exports/blog-frontend-local.tar.gz user@server:/opt/blog/
 
 # 上传其他必要文件
-scp docker-compose.local.yml user@server:/opt/blog/docker-compose.yml
+scp docker-compose.local.yml user@server:/opt/blog/deployments/docker/compose-files/docker-compose.yml
 scp .env.docker.example user@server:/opt/blog/.env.example
 scp -r nginx user@server:/opt/blog/
 ```
@@ -729,7 +729,7 @@ echo '/swapfile none swap sw 0 0' >> /etc/fstab
 
 2. **限制容器内存**:
 ```yaml
-# docker-compose.yml
+# deployments/docker/compose-files/docker-compose.yml
 services:
   backend:
     deploy:

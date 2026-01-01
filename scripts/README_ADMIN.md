@@ -171,7 +171,7 @@ kill $(cat /tmp/backend.pid)
 kill $(cat /tmp/frontend.pid)
 
 # 停止数据库
-cd backend && ./deploy.sh stop
+cd backend && ./scripts/deployment/deploy.sh stop
 ```
 
 ## 💡 使用技巧
