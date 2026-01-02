@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bug, X, ChevronDown, ChevronUp } from 'lucide-react'
-import { Button } from '../ui/ButtonSimple'
+import { Button } from '@/components/shadcn/ui/button'
 import { cn } from '@/lib/utils'
 
 interface DebugInfo {

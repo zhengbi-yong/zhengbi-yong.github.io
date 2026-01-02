@@ -3,7 +3,7 @@
 import React from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from './ui/ButtonSimple'
+import { Button } from '@/components/shadcn/ui/button'
 import { AppError, ErrorType, ErrorSeverity } from '@/lib/error-handler'
 import { logger } from '@/lib/utils/logger'
 

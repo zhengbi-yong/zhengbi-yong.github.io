@@ -70,7 +70,7 @@ export async function serializeMDX(content: string) {
  */
 export type MDXRuntimeProps = {
   content: string
-} & Omit<MDXRemoteProps, 'source'>
+} & Partial<Omit<MDXRemoteProps, 'source'>>
 
 /**
  * MDX运行时渲染器组件

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { Menu, X } from 'lucide-react'
-import { Button } from '../ui/ButtonSimple'
+import { Button } from '@/components/shadcn/ui/button'
 import { cn } from '@/lib/utils'
 
 interface HeaderNavigationProps {

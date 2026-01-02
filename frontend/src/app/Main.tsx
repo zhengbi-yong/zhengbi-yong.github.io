@@ -56,8 +56,8 @@ export default function Home({ posts }: HomeProps) {
             <div className="mt-4 sm:mt-6">
               <Button
                 url={siteMetadata.x || siteMetadata.github || '#'}
-                type="fill"
-                size="md"
+                variant="default"
+                size="default"
                 className="m-auto sm:m-0"
               >
                 Follow me on 𝕏

@@ -25,23 +25,57 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/components/features/*": ["./src/components/features/*"],
-      "@/components/ui/*": ["./src/components/ui/*"],
-      "@/components/layouts/*": ["./src/components/layouts/*"],
-      "@/components/shared/*": ["./src/components/shared/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/lib/hooks/*": ["./src/lib/hooks/*"],
-      "@/lib/store/*": ["./src/lib/store/*"],
-      "@/lib/utils/*": ["./src/lib/utils/*"],
-      "@/lib/types/*": ["./src/lib/types/*"],
-      "@/data/*": ["./data/*"],
-      "@/styles/*": ["./src/styles/*"],
-      "@/config/*": ["./src/config/*"],
-      "contentlayer/generated": ["./.contentlayer/generated"],
-      "pliny/*": ["node_modules/pliny/*"],
-      "three/examples/jsm/*": ["node_modules/three/examples/jsm/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/components/features/*": [
+        "./src/components/features/*"
+      ],
+      "@/components/ui/*": [
+        "./src/components/ui/*"
+      ],
+      "@/components/layouts/*": [
+        "./src/components/layouts/*"
+      ],
+      "@/components/shared/*": [
+        "./src/components/shared/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ],
+      "@/lib/hooks/*": [
+        "./src/lib/hooks/*"
+      ],
+      "@/lib/store/*": [
+        "./src/lib/store/*"
+      ],
+      "@/lib/utils/*": [
+        "./src/lib/utils/*"
+      ],
+      "@/lib/types/*": [
+        "./src/lib/types/*"
+      ],
+      "@/data/*": [
+        "./data/*"
+      ],
+      "@/styles/*": [
+        "./src/styles/*"
+      ],
+      "@/config/*": [
+        "./src/config/*"
+      ],
+      "contentlayer/generated": [
+        "./.contentlayer/generated"
+      ],
+      "pliny/*": [
+        "node_modules/pliny/*"
+      ],
+      "three/examples/jsm/*": [
+        "node_modules/three/examples/jsm/*"
+      ]
     },
     "plugins": [
       {

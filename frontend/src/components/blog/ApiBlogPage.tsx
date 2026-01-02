@@ -55,8 +55,14 @@ export default function ApiBlogPage() {
     ...post,
     path: post.slug, // For now, use slug directly
     date: post.published_at || post.created_at,
+    // Add missing required fields for CoreContent<Blog>
+    type: 'blog' as const,
+    tags: [] as string[],
+    categories: post.category_name ? [post.category_name] : [],
+    structuredData: post.title,
+    lastmod: post.updated_at,
     // Add any other fields needed by BookShelfLayout
-  }))
+  })) as any
 
   return (
     <div className="relative min-h-screen">

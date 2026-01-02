@@ -32,7 +32,6 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   // 压缩配置 - 使用 SWC 压缩（比 Terser 快）
   compress: true,
-  swcMinify: true,
   // 实验性功能
   experimental: {
     // 优化 CSS 处理

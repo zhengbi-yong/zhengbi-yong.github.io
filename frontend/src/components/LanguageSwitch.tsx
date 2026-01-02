@@ -3,7 +3,7 @@
 import { ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button } from './ui/ButtonSimple'
+import { Button } from '@/components/shadcn/ui/button'
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Sun, Moon, Search, FileText } from 'lucide-react'
-import { Button } from '../ui/ButtonSimple'
+import { Button } from '@/components/shadcn/ui/button'
 import LanguageSwitch from '../LanguageSwitch'
 import { useTheme } from 'next-themes'
 import { cn } from '@/lib/utils'
