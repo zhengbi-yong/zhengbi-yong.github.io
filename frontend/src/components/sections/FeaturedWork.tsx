@@ -3,7 +3,7 @@
 import projectsData from '@/data/projectsData'
 import WorkCard from './WorkCard'
 import SectionHeader from './SectionHeader'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/shadcn/ui/button'
 import { cn } from '@/components/lib/utils'
 
 interface Project {

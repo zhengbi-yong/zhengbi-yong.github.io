@@ -3470,4 +3470,284 @@ for target in full_trajectory:
    ```
 
 通过这些实战案例和调优技巧，可以充分发挥moteus的性能潜力，构建高效、稳定的机器人系统。
+
+## 第八部分：与其他控制器对比
+
+本部分客观对比moteus与主流电机控制器（ODrive、VESC），帮助读者根据应用场景选择最合适的方案。
+
+### 8.1 详细对比表格
+
+#### 8.1.1 核心性能对比
+
+| 特性类别 | moteus | ODrive (v3.6) | VESC (mk6) |
+|----------|--------|---------------|------------|
+| **主要应用场景** | 机器人关节、四足/机械臂 | 通用精密控制、机器人 | 电动车辆、滑板、无人机 |
+| **控制频率** | 30kHz | 8kHz | 8-16kHz |
+| **通信协议** | CAN-FD (5Mbps) | CAN 2.0 (1Mbps) | CAN 2.0 (1Mbps) |
+| **最大电流** | 36A (r4.11) / 100A (x1) | 75A (连续) | 150A (峰值) |
+| **电压范围** | 10-44V (r4.11) / 10-54V (n1/c1/x1) | 24-48V | 12-72V |
+| **FOC算法** | ✓ 完整实现 | ✓ 完整实现 | ✓ 完整实现 |
+| **编码器支持** | SPI/ABI/霍尔/增量 | ABI/霍尔/增量 | ABI/霍尔/增量/SPI(部分) |
+| **多轴协调** | ✓✓ 优秀（pi3hat，16轴） | ✓ 中等（2-4轴） | ✓ 有限（2-3轴） |
+| **QDD优化** | ✓✓ 专为设计 | ✓ 通用设计 | ✗ 无专门优化 |
+| **尺寸** | 50x50mm (r4.11) | 95x85mm | 100x50mm |
+| **重量** | 40g (r4.11) / 25g (n1) | 120g | 80g |
+| **开源程度** | 固件开源 | 新一代固件闭源 | 完全开源（硬件+固件） |
+| **价格（USD）** | $150-250 | $200-300 | $100-200 |
+
+#### 8.1.2 机器人应用特性对比
+
+| 机器人特性 | moteus | ODrive | VESC |
+|-----------|--------|--------|------|
+| **QDD优化** | ✓✓ 低减速比优化（6:1-10:1） | ✓ 高减速比（需外部减速箱） | ✗ 无 |
+| **关节控制** | ✓✓ 位置/扭矩/阻抗控制 | ✓ 位置/速度/扭矩 | ✓ 速度/位置 |
+| **四足支持** | ✓✓ 12轴同步控制 | ✓ 4-8轴（需额外硬件） | ✗ 不适合 |
+| **机械臂支持** | ✓✓ 多轴协调 + 轨迹插值 | ✓ 单轴控制良好 | ✗ 有限 |
+| **云台支持** | ✓✓ 双轴稳定控制 | ✓ 基础控制 | ✓ 速度控制 |
+| **力矩控制模式** | ✓✓ 高精度（0.01Nm） | ✓ 中等精度 | ✗ 有限 |
+| **阻抗控制** | ✓✓ 虚拟弹簧-阻尼 | ✓ 基础实现 | ✗ 无 |
+
+#### 8.1.3 软件生态对比
+
+| 软件特性 | moteus | ODrive | VESC |
+|----------|--------|--------|------|
+| **Python API** | ✓✓ 原生asyncio支持 | ✓ 同步API | ✓✓ 异步支持 |
+| **C++库** | ✓ 基础支持 | ✓✓ 完整SDK | ✓✓ libvesc |
+| **ROS/ROS2** | ✓ moteus_ros2包 | ✓ odrive_ros | ✓ vesc_ros |
+| **GUI工具** | ✓ tview（Web界面） | ✓ odrivetool | ✓ VESC Tool |
+| **实时控制** | ✓✓ 1kHz+（多轴） | ✓ 500Hz（单轴） | ✓ 1kHz（单轴） |
+| **配置管理** | ✓✓ YAML + tview | ✓ JSON | ✓ XML |
+| **调试工具** | ✓✓ moteus_tool + tview | ✓ odrivetool | ✓ VESC Tool |
+| **社区活跃度** | ✓ 高（Discord/论坛） | ✓✓ 非常高 | ✓✓ 极高 |
+
+#### 8.1.4 硬件设计对比
+
+| 硬件特性 | moteus | ODrive | VESC |
+|----------|--------|--------|------|
+| **主控芯片** | STM32G4 (170MHz) | STM32F4 (168MHz) | STM32F4 (72-168MHz) |
+| **栅极驱动** | DRV8323 | DRV8323 | DRV8302/8323 |
+| **电流采样** | 3相采样 | 3相采样 | 2/3相采样 |
+| **电源管理** | 集成DC-DC | 集成DC-DC | 可选DC-DC |
+| **散热设计** | 小尺寸（需外部散热） | 大散热片 | 中等散热 |
+| **连接器** | JST-SM | 螺丝端子 | XT60/螺丝端子 |
+| **硬件保护** | ✓ 过流/过温/欠压 | ✓ 过流/过温/欠压 | ✓ 过流/过温/欠压 |
+| **EMI设计** | ✓✓ 优秀（机器人优化） | ✓ 良好 | ✓ 良好 |
+
+### 8.2 选择决策树
+
+#### 8.2.1 应用场景决策图
+
 ```
+开始选择电机控制器
+    ↓
+是否需要机器人关节控制？
+    ├─ 是 → 是否需要QDD（准直驱）？
+    │       ├─ 是 → **moteus** ✓✓ 推荐
+    │       └─ 否 → 是否多轴协调（>4轴）？
+    │               ├─ 是 → **moteus** ✓✓ 推荐
+    │               └─ 否 → **ODrive** ✓ 可选
+    │
+    └─ 否 → 是否电动车辆/高速应用？
+            ├─ 是 → 是否需要高电压（>48V）？
+            │       ├─ 是 → **VESC** ✓✓ 推荐（支持72V）
+            │       └─ 否 → **VESC** ✓ 推荐
+            │
+            └─ 否 → 是否通用精密控制？
+                    ├─ 是 → **ODrive** ✓✓ 推荐
+                    └─ 否 → 根据预算和社区选择
+```
+
+#### 8.2.2 详细选型建议
+
+**选择moteus的场景**：
+
+1. ✓✓ **四足机器人**
+   - 需要控制12+关节
+   - 要求高频同步（1kHz+）
+   - 需要QDD高反驱性
+   - 案例：Quad A1, MIT Mini Cheetah
+
+2. ✓✓ **机械臂**
+   - 6-7自由度协作机械臂
+   - 需要阻抗控制/力矩控制
+   - 多轴轨迹规划
+   - 案例：mjbots机械臂, DexWrist
+
+3. ✓✓ **灵巧手/云台**
+   - 多指灵巧手（12+关节）
+   - 双轴/三轴云台稳定
+   - 空间受限（小型n1控制器）
+   - 案例：多指灵巧手, 云台稳定系统
+
+4. ✓ **高性能轮式机器人**
+   - 需要精确扭矩控制
+   - CAN-FD多轴协调
+   - 高动态响应
+
+**选择ODrive的场景**：
+
+1. ✓✓ **通用机器人项目**
+   - 双驱AGV
+   - 差速驱动平台
+   - 简单机械臂（2-4轴）
+
+2. ✓✓ **学术研究**
+   - 需要大量文档和教程
+   - 社区支持重要
+   - 开源生态优先
+
+3. ✓ **高扭矩应用**
+   - 需要外部减速箱（高减速比）
+   - 大扭矩低速应用
+   - 48V系统
+
+**选择VESC的场景**：
+
+1. ✓✓ **电动车辆**
+   - 滑板/独轮车/电动自行车
+   - 需要高电压（>48V）
+   - 大功率输出（>2kW）
+
+2. ✓✓ **无人机/RC应用**
+   - 高速电机（>10000rpm）
+   - 简单速度控制
+   - 成本敏感
+
+3. ✓✓ **DIY项目**
+   - 学习FOC算法
+   - 完全开源（硬件+固件）
+   - 大量教程和示例
+
+### 8.3 迁移指南
+
+#### 8.3.1 从ODrive迁移到moteus
+
+**概念映射**：
+
+| ODrive概念 | moteus等效 |
+|-----------|-----------|
+| `odrive0.axis0.controller.pos_setpoint` | `await c.set_position(position=...)` |
+| `odrive0.axis0.controller.vel_setpoint` | `await c.set_velocity(velocity=...)` |
+| `odrive0.axis0.controller.torque_setpoint` | `await c.set_position(feedforward_torque=...)` |
+| `odrive0.axis0.requested_state` | `await c.set_stop()` |
+| `odrive0.axis0.encoder.pos_estimate` | `result.values[0].position` |
+| `odrive0.axis0.motor.current_control.Iq_measured` | `result.values[0].torque` |
+
+**代码迁移示例**：
+
+```python
+# ODrive代码（旧）
+import odrive
+odrv = odrive.find_any()
+odrv.axis0.controller.input_pos = 1.0
+odrv.axis0.controller.input_vel = 0.0
+odrv.axis0.requested_state = odrive.enums.CONTROL_MODE_CLOSED_LOOP_POS_CONTROL
+
+# moteus代码（新）
+import moteus
+c = moteus.Controller(id=1)
+await c.set_position(
+    position=1.0,
+    velocity=0.0,
+    kp=50,
+    kd=1.0,
+    maximum_torque=10.0,
+    query=True
+)
+```
+
+**关键差异**：
+
+1. **异步API**：moteus使用asyncio，ODrive使用同步调用
+2. **CAN-FD**：moteus需要配置CAN-FD，ODrive使用CAN 2.0
+3. **配置方式**：moteus用tview，ODrive用odrivetool
+4. **PID参数**：moteus的kp/kd与ODrive的`pos_gain`/`vel_gain`不同
+
+#### 8.3.2 从VESC迁移到moteus
+
+**概念映射**：
+
+| VESC概念 | moteus等效 |
+|----------|-----------|
+| `rpm` (速度控制) | `set_velocity(velocity=...)` |
+| `current` (扭矩控制) | `set_position(feedforward_torque=...)` |
+| `pos` (位置控制) | `set_position(position=...)` |
+| ` Duty cycle` | 直接控制（不建议） |
+| `PID` | kp/kd参数 |
+
+**代码迁移示例**：
+
+```python
+# VESC代码（旧，使用pyvesc）
+from pyvesc import VESC
+vesc = VESC(serial_port='/dev/ttyACM0')
+vesc.set_rpm(1000)
+
+# moteus代码（新）
+import moteus
+c = moteus.Controller(id=1)
+# VESC的RPM需转换为moteus的rad/s
+velocity_rad_s = 1000 * 2 * math.pi / 60  # RPM to rad/s
+await c.set_velocity(
+    velocity=velocity_rad_s,
+    maximum_torque=5.0,
+    query=True
+)
+```
+
+**关键差异**：
+
+1. **单位**：VESC使用RPM，moteus使用rad/s
+2. **控制模式**：VESC主要速度控制，moteus支持完整位置/速度/扭矩控制
+3. **通信**：VESC支持串口/CAN，moteus专注于CAN-FD
+
+#### 8.3.3 混合使用策略
+
+在某些系统中，可以混合使用不同控制器：
+
+```python
+# 示例：四足机器人（moteus关节）+ 轮子（VESC驱动）
+import moteus
+from pyvesc import VESC
+
+# moteus：12个关节控制器
+joint_transport = moteus.Pi3Hat(cpu=1)
+joints = [moteus.Controller(id=i, transport=joint_transport) for i in range(1, 13)]
+
+# VESC：4个轮子驱动
+wheels = [VESC(serial_port=f'/dev/ttyACM{i}') for i in range(4)]
+
+async def hybrid_control():
+    while True:
+        # 同步控制关节和轮子
+        # 1. 更新关节位置
+        joint_commands = [moteus.Command(position=target[i], kp=50, kd=1.0) for i in range(12)]
+        await joint_transport.cycle(joint_commands)
+
+        # 2. 更新轮子速度
+        for wheel in wheels:
+            wheel.set_rpm(wheel_speed)
+
+        await asyncio.sleep(0.01)
+```
+
+### 8.4 对比总结
+
+| 评估维度 | moteus优势 | ODrive优势 | VESC优势 |
+|----------|-----------|------------|----------|
+| **性能** | 控制频率最高 | 中等性能 | 高速应用优秀 |
+| **多轴协调** | 最佳（16轴同步） | 有限（2-4轴） | 不适合 |
+| **机器人应用** | ✓✓ 专为设计 | ✓ 通用设计 | ✗ 不适合 |
+| **易用性** | Python async API | 同步API易上手 | GUI工具强大 |
+| **成本** | 中等 | 中等 | 较低 |
+| **社区** | 专业（机器人） | 大（通用） | 极大（RC/车辆） |
+| **开源** | 固件开源 | 新版本闭源 | 完全开源 |
+| **文档** | 专业文档 | 大量教程 | 海量资源 |
+
+**最终建议**：
+
+- **机器人关节/四足/机械臂**：选择moteus
+- **通用精密控制/学术研究**：选择ODrive
+- **电动车辆/无人机/DIY**：选择VESC
+
+三种控制器各有优势，选择关键在于匹配应用场景。对于专门的机器人项目，moteus提供了最优的性能和功能组合。

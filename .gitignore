@@ -43,6 +43,8 @@ frontend/public/search.json
 
 # debug
 *.log
+*.tsbuildinfo
+.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -51,6 +53,15 @@ pnpm-debug.log*
 # Backend specific logs
 backend/api.log
 backend/*.log
+
+# Temporary directories
+.analysis/
+.archive/
+.reorg/
+
+# Test artifacts
+playwright-report/
+frontend/playwright-report/
 
 # local env files
 .env.local

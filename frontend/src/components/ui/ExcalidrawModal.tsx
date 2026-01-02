@@ -1,6 +1,6 @@
 'use client'
 
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/shadcn/ui/button'
 import { ExcalidrawViewer } from '@/components/Excalidraw/ExcalidrawViewer'
 
 interface ExcalidrawModalProps {

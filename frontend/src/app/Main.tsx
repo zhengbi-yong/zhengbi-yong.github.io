@@ -1,6 +1,6 @@
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/shadcn/ui/button'
 import AnimatedText from '@/components/home/AnimatedText'
 import HeroCard from '@/components/home/HeroCard'
 import SocialCard from '@/components/home/SocialCard'

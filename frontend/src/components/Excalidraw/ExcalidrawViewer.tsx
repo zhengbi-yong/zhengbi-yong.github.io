@@ -7,7 +7,7 @@
  * 参考: https://github.com/excalidraw/excalidraw
  */
 
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/shadcn/ui/button'
 import { Loader } from '@/components/ui/Loader'
 import { ArrowLeft } from 'lucide-react'
 import dynamic from 'next/dynamic'

@@ -4,7 +4,7 @@ import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import BlogCard from './BlogCard'
 import SectionHeader from './SectionHeader'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/shadcn/ui/button'
 import AnimatedText from '@/components/home/AnimatedText'
 import { cn } from '@/components/lib/utils'
 
