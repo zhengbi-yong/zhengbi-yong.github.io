@@ -1,6 +1,6 @@
 # 配置管理指南
 
-本文档详细说明如何使用 `config.yml` 统一管理博客系统的所有配置项。
+本文档详细说明如何使用 `config/config.yml` 统一管理博客系统的所有配置项。
 
 ## 📋 目录
 
@@ -14,9 +14,9 @@
 
 ## 配置文件概述
 
-### config.yml 结构
+### config/config.yml 结构
 
-`config.yml` 是整个系统的**唯一配置源**，所有服务的配置都集中在这个文件中管理。
+`config/config.yml` 是整个系统的**唯一配置源**，所有服务的配置都集中在这个文件中管理。
 
 ```yaml
 system:          # 系统级配置
@@ -37,7 +37,7 @@ development:     # 开发环境配置
 
 ### 配置优先级
 
-1. **config.yml** - 主配置文件（版本控制）
+1. **config/config.yml** - 主配置文件（版本控制）
 2. **.env** - 自动生成，不提交到版本控制
 3. **环境变量** - 运行时覆盖（仅特殊情况下使用）
 
@@ -301,7 +301,7 @@ python3 scripts/config-manager.py <命令>
 python3 scripts/config-manager.py validate
 ```
 
-验证 `config.yml` 的正确性：
+验证 `config/config.yml` 的正确性：
 - 语法检查
 - 端口范围检查
 - 端口冲突检查
@@ -338,7 +338,7 @@ python3 scripts/config-manager.py generate auto-cleanup
 ```
 
 生成 `.env` 文件：
-- 读取 `config.yml`
+- 读取 `config/config.yml`
 - 自动生成密钥
 - 检查端口冲突
 - 备份旧配置
@@ -351,7 +351,7 @@ python3 scripts/config-manager.py generate auto-cleanup
 
 ```bash
 # 1. 编辑配置文件
-nano config.yml
+nano config/config.yml
 
 # 2. 生成.env文件
 python3 scripts/config-manager.py generate auto-cleanup
@@ -367,7 +367,7 @@ cat .env
 
 ```bash
 # 1. 编辑config.yml
-nano config.yml
+nano config/config.yml
 # 修改:
 # domain.main: your-new-domain.com
 
@@ -390,7 +390,7 @@ sudo cp /etc/letsencrypt/live/your-domain.com/privkey.pem nginx/ssl/
 sudo cp /etc/letsencrypt/live/your-domain.com/chain.pem nginx/ssl/
 
 # 3. 更新config.yml
-nano config.yml
+nano config/config.yml
 # 设置:
 # ssl.enabled: true
 # domain.force_https: true
@@ -407,7 +407,7 @@ python3 scripts/config-manager.py generate
 docker stats
 
 # 2. 编辑config.yml调整资源限制
-nano config.yml
+nano config/config.yml
 
 # 3. 重新生成并部署
 python3 scripts/config-manager.py generate
@@ -418,7 +418,7 @@ python3 scripts/config-manager.py generate
 
 ```bash
 # 1. 编辑config.yml
-nano config.yml
+nano config/config.yml
 # 设置:
 # email.enabled: true
 # email.smtp_username: your-email@gmail.com
@@ -506,41 +506,41 @@ docker compose up -d
 ### 1. 版本控制
 
 **提交到Git：**
-- ✅ `config.yml` - 配置模板
+- ✅ `config/config.yml` - 配置模板
 - ✅ `config.yml.example` - 示例配置
 
 **不提交到Git：**
 - ❌ `.env` - 包含敏感信息
-- ❌ `config.yml` - 如果包含真实密钥
+- ❌ `config/config.yml` - 如果包含真实密钥
 
 **推荐做法：**
 ```bash
 # 创建config.yml.example
-cp config.yml config.yml.example
+cp config/config.yml config/config.yml.example
 
 # 编辑config.yml.example，将敏感信息替换为占位符
 # jwt_secret: "CHANGE_ME"
 
 # 提交示例文件
-git add config.yml.example
+git add config/config.yml.example
 git commit -m "Add config example"
 
 # 本地使用config.yml（不提交）
-git update-index --assume-unchanged config.yml
+git update-index --assume-unchanged config/config.yml
 ```
 
 ### 2. 环境分离
 
 **开发环境：**
 ```bash
-cp config.yml config.dev.yml
+cp config/config.yml config.dev.yml
 # 修改 environment: development
 python3 scripts/config-manager.py --config config.dev.yml generate
 ```
 
 **生产环境：**
 ```bash
-cp config.yml config.prod.yml
+cp config/config.yml config.prod.yml
 # 修改 environment: production
 python3 scripts/config-manager.py --config config.prod.yml generate
 ```

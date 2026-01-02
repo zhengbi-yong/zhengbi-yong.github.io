@@ -12,7 +12,7 @@ NC='\033[0m'
 
 # 项目根目录
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONFIG_FILE="$PROJECT_ROOT/config.yml"
+CONFIG_FILE="$PROJECT_ROOT/config/config.yml"
 ENV_FILE="$PROJECT_ROOT/.env"
 BACKUP_DIR="$PROJECT_ROOT/backups/config"
 

@@ -6,7 +6,7 @@
 
 ## 📚 核心文档
 
-### 1. [快速参考指南](./quick-reference.md) ⭐ 快速入门
+### 1. [快速参考指南](guides/quick-reference.md) ⭐ 快速入门
 
 **适合人群**：所有开发者
 
@@ -23,7 +23,7 @@
 
 ---
 
-### 2. [前后端开发与测试完整指南](./frontend-backend-guide.md) 📖 核心文档
+### 2. [前后端开发与测试完整指南](guides/frontend-backend-guide.md) 📖 核心文档
 
 **适合人群**：新加入团队成员、需要全面了解项目的开发者
 
@@ -44,7 +44,7 @@
 
 ---
 
-### 3. [前后端解耦完成报告](./decoupling-complete.md) ✅ 实施成果
+### 3. [前后端解耦完成报告](archive/migration/decoupling-complete.md) ✅ 实施成果
 
 **适合人群**：项目经理、技术负责人、审查人员
 
@@ -65,7 +65,7 @@
 
 ---
 
-### 4. [文件组织原则指南](./docs/development/FILE_ORGANIZATION_GUIDE.md) 🏗️ 架构规范
+### 4. [文件组织原则指南](development/best-practices/file-organization.md) 🏗️ 架构规范
 
 **适合人群**：所有开发者、贡献者、维护者
 
@@ -92,7 +92,7 @@
 
 ---
 
-### 5. [命名规范最佳实践指南](./docs/development/NAMING_CONVENTIONS.md) 📝 命名标准
+### 5. [命名规范最佳实践指南](development/best-practices/naming-conventions.md) 📝 命名标准
 
 **适合人群**：所有开发者、代码审查人员
 
@@ -121,7 +121,7 @@
 
 ---
 
-### 6. [前后端解耦进度报告](./decoupling-progress.md) 📊 实施记录
+### 6. [前后端解耦进度报告](archive/migration/decoupling-progress.md) 📊 实施记录
 
 **适合人群**：技术负责人、开发人员
 
@@ -144,39 +144,39 @@
 ### 新加入开发者
 
 **阅读顺序**：
-1. [文件组织原则指南](./docs/development/FILE_ORGANIZATION_GUIDE.md) ⭐ **必读** - 了解代码库组织规范
-2. [命名规范最佳实践指南](./docs/development/NAMING_CONVENTIONS.md) ⭐ **必读** - 学习命名规范
-3. [快速参考指南](./quick-reference.md) - 快速了解项目
-4. [前后端开发与测试完整指南](./frontend-backend-guide.md) - 深入学习
-5. [前后端解耦完成报告](./decoupling-complete.md) - 了解项目成果
+1. [文件组织原则指南](development/best-practices/file-organization.md) ⭐ **必读** - 了解代码库组织规范
+2. [命名规范最佳实践指南](development/best-practices/naming-conventions.md) ⭐ **必读** - 学习命名规范
+3. [快速参考指南](guides/quick-reference.md) - 快速了解项目
+4. [前后端开发与测试完整指南](guides/frontend-backend-guide.md) - 深入学习
+5. [前后端解耦完成报告](archive/migration/decoupling-complete.md) - 了解项目成果
 
 ### 前端开发者
 
 **重点文档**：
-1. [快速参考指南 - 前端部分](./quick-reference.md#-前端开发)
-2. [完整指南 - 前端开发流程](./frontend-backend-guide.md#前端开发流程)
-3. [完整指南 - 前端测试](./frontend-backend-guide.md#前端测试-1)
+1. [快速参考指南 - 前端部分](guides/quick-reference.md#-前端开发)
+2. [完整指南 - 前端开发流程](guides/frontend-backend-guide.md#前端开发流程)
+3. [完整指南 - 前端测试](guides/frontend-backend-guide.md#前端测试-1)
 
 ### 后端开发者
 
 **重点文档**：
-1. [快速参考指南 - 后端部分](./quick-reference.md#-后端开发)
-2. [完整指南 - 后端开发流程](./frontend-backend-guide.md#后端开发流程)
-3. [完整指南 - 后端测试](./frontend-backend-guide.md#后端测试)
+1. [快速参考指南 - 后端部分](guides/quick-reference.md#-后端开发)
+2. [完整指南 - 后端开发流程](guides/frontend-backend-guide.md#后端开发流程)
+3. [完整指南 - 后端测试](guides/frontend-backend-guide.md#后端测试)
 
 ### 测试工程师
 
 **重点文档**：
-1. [完整指南 - 测试指南](./frontend-backend-guide.md#测试指南)
-2. [完整指南 - 契约测试](./frontend-backend-guide.md#契约测试api-contract-testing)
-3. [前后端解耦完成报告 - 测试验证](./decoupling-complete.md#-4-契约测试-)
+1. [完整指南 - 测试指南](guides/frontend-backend-guide.md#测试指南)
+2. [完整指南 - 契约测试](guides/frontend-backend-guide.md#契约测试api-contract-testing)
+3. [前后端解耦完成报告 - 测试验证](archive/migration/decoupling-complete.md#-4-契约测试-)
 
 ### DevOps 工程师
 
 **重点文档**：
-1. [完整指南 - CI/CD 流程](./frontend-backend-guide.md#cicd-流程)
-2. [完整指南 - 部署](./frontend-backend-guide.md#部署)
-3. [前后端解耦完成报告 - CI/CD](./decoupling-complete.md#-第三阶段独立-cicd-)
+1. [完整指南 - CI/CD 流程](guides/frontend-backend-guide.md#cicd-流程)
+2. [完整指南 - 部署](guides/frontend-backend-guide.md#部署)
+3. [前后端解耦完成报告 - CI/CD](archive/migration/decoupling-complete.md#-第三阶段独立-cicd-)
 
 ---
 
@@ -184,29 +184,29 @@
 
 ### 添加新的 API 端点
 
-1. [快速参考 - 后端：添加新 API 端点](./quick-reference.md#-添加新-api-端点3-步)
-2. [完整指南 - 创建新的 API 端点](./frontend-backend-guide.md#1-创建新的-api-端点)
+1. [快速参考 - 后端：添加新 API 端点](guides/quick-reference.md#-添加新-api-端点3-步)
+2. [完整指南 - 创建新的 API 端点](guides/frontend-backend-guide.md#1-创建新的-api-端点)
 
 ### 前端开发使用 Mock
 
-1. [快速参考 - 前端：开发新功能](./quick-reference.md#-开发新功能使用-mock)
-2. [完整指南 - 使用 Mock Server 开发](./frontend-backend-guide.md#1-使用-mock-server-开发)
+1. [快速参考 - 前端：开发新功能](guides/quick-reference.md#-开发新功能使用-mock)
+2. [完整指南 - 使用 Mock Server 开发](guides/frontend-backend-guide.md#1-使用-mock-server-开发)
 
 ### 运行测试
 
-1. [快速参考 - 后端测试](./quick-reference.md#测试-1)
-2. [快速参考 - 前端测试](./quick-reference.md#测试-1)
-3. [完整指南 - 测试指南](./frontend-backend-guide.md#测试指南)
+1. [快速参考 - 后端测试](guides/quick-reference.md#测试-1)
+2. [快速参考 - 前端测试](guides/quick-reference.md#测试-1)
+3. [完整指南 - 测试指南](guides/frontend-backend-guide.md#测试指南)
 
 ### API 接口变更
 
-1. [快速参考 - 更新 API 接口](./quick-reference.md#-更新-api-接口)
-2. [完整指南 - 更新 OpenAPI 规范](./frontend-backend-guide.md#2-更新-openapi-规范)
+1. [快速参考 - 更新 API 接口](guides/quick-reference.md#-更新-api-接口)
+2. [完整指南 - 更新 OpenAPI 规范](guides/frontend-backend-guide.md#2-更新-openapi-规范)
 
 ### 部署应用
 
-1. [快速参考 - 构建和部署](./quick-reference.md#-构建和部署)
-2. [完整指南 - 部署](./frontend-backend-guide.md#部署)
+1. [快速参考 - 构建和部署](guides/quick-reference.md#-构建和部署)
+2. [完整指南 - 部署](guides/frontend-backend-guide.md#部署)
 
 ---
 
@@ -214,14 +214,14 @@
 
 ### 日常开发
 
-**推荐**：使用 [快速参考指南](./quick-reference.md)
+**推荐**：使用 [快速参考指南](guides/quick-reference.md)
 - 快速查找命令
 - 复制粘贴代码片段
 - 快速解决问题
 
 ### 学习项目
 
-**推荐**：使用 [完整开发指南](./frontend-backend-guide.md)
+**推荐**：使用 [完整开发指南](guides/frontend-backend-guide.md)
 - 系统学习项目架构
 - 理解设计决策
 - 掌握最佳实践
@@ -229,32 +229,32 @@
 ### 代码审查
 
 **推荐**：结合使用
-1. [快速参考](./quick-reference.md) - 查看标准做法
-2. [完整指南](./frontend-backend-guide.md) - 理解背后的原理
-3. [解耦完成报告](./decoupling-complete.md) - 了解已实现的功能
+1. [快速参考](guides/quick-reference.md) - 查看标准做法
+2. [完整指南](guides/frontend-backend-guide.md) - 理解背后的原理
+3. [解耦完成报告](archive/migration/decoupling-complete.md) - 了解已实现的功能
 
 ### 问题排查
 
 **推荐**：
-1. [快速参考 - 常见问题](./quick-reference.md#-常见任务)
-2. [完整指南 - 常见问题](./frontend-backend-guide.md#常见问题)
-3. 查看 [测试报告](./decoupling-complete.md) 中的测试结果
+1. [快速参考 - 常见问题](guides/quick-reference.md#-常见任务)
+2. [完整指南 - 常见问题](guides/frontend-backend-guide.md#常见问题)
+3. 查看 [测试报告](archive/migration/decoupling-complete.md) 中的测试结果
 
 ---
 
 ## 🔄 文档更新记录
 
 ### 2026-01-01
-- ✅ 创建 [命名规范最佳实践指南](./docs/development/NAMING_CONVENTIONS.md) - 对标世界顶级项目
-- ✅ 创建 [前后端开发与测试完整指南](./frontend-backend-guide.md)
-- ✅ 创建 [快速参考指南](./quick-reference.md)
-- ✅ 创建 [文档索引](./DOCUMENTATION_INDEX.md)
-- ✅ 更新 [前后端解耦完成报告](./decoupling-complete.md)
+- ✅ 创建 [命名规范最佳实践指南](development/best-practices/naming-conventions.md) - 对标世界顶级项目
+- ✅ 创建 [前后端开发与测试完整指南](guides/frontend-backend-guide.md)
+- ✅ 创建 [快速参考指南](guides/quick-reference.md)
+- ✅ 创建 [文档索引](INDEX.md)
+- ✅ 更新 [前后端解耦完成报告](archive/migration/decoupling-complete.md)
 - ✅ 完成 100% 核心功能测试验证
 
 ### 前期文档
-- [前后端解耦进度报告](./decoupling-progress.md) - 实施过程记录
-- [前后端解耦完成报告](./decoupling-complete.md) - 初始版本
+- [前后端解耦进度报告](archive/migration/decoupling-progress.md) - 实施过程记录
+- [前后端解耦完成报告](archive/migration/decoupling-complete.md) - 初始版本
 
 ---
 

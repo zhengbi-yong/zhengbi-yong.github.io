@@ -123,10 +123,10 @@
 ├── README.md                    # 主文档
 ├── LICENSE                      # 许可证
 ├── VERSION                      # 版本号
-├── INDEX.md                     # 文档索引
+├── docs/INDEX.md                     # 文档索引
 ├── .gitignore                   # Git忽略配置
 ├── Makefile                     # 构建配置
-├── config.yml                   # 中央配置
+├── config/config.yml                   # 中央配置
 ├── .env.example                 # 主环境模板
 │
 ├── backend/                     # Rust后端（保持不变）
