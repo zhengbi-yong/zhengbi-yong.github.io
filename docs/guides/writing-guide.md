@@ -550,6 +550,188 @@ import Image from 'next/image'
 4. **不要**忘记代码语言标识
 5. **不要**忽略可访问性（alt 文本等）
 
+## 博客写作工作流程 / Blog Writing Workflow
+
+本章节介绍如何在博客系统中撰写、管理和备份文章。
+
+### 📝 写作方式 / Writing Methods
+
+#### 方式一：使用管理后台（推荐） / Using Admin Panel (Recommended)
+
+访问：`http://localhost:3001/admin` 或 `http://your-domain.com/admin`
+
+**功能 / Features：**
+- ✅ 创建新文章（Markdown/MDX格式） / Create new posts
+- ✅ 编辑已有文章 / Edit existing posts
+- ✅ 上传图片和管理媒体文件 / Upload images and media
+- ✅ 设置分类和标签 / Set categories and tags
+- ✅ 定时发布 / Schedule publishing
+- ✅ 查看文章统计 / View post statistics
+
+**步骤 / Steps：**
+1. 登录管理后台 / Login to admin panel
+2. 点击 "Posts" 或 "文章管理" / Click "Posts"
+3. 点击 "New Post" 或 "新建文章" / Click "New Post"
+4. 填写标题、内容、标签等 / Fill in title, content, tags
+5. 点击 "Save" 保存草稿 / Click "Save" for draft
+6. 点击 "Publish" 发布文章 / Click "Publish" to publish
+
+#### 方式二：本地编辑 + API 上传 / Local Editor + API Upload
+
+如果你喜欢用本地编辑器写文章 / If you prefer local editors:
+
+1. **本地编写MDX文件**（使用VS Code等） / Write MDX locally
+2. **通过API上传到数据库** / Upload via API
+
+```bash
+# 示例：使用curl创建文章 / Example: Create post via curl
+curl -X POST http://localhost:3000/v1/admin/posts \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "我的新文章",
+    "content": "# 欢迎阅读\n\n这是文章内容...",
+    "summary": "文章简介",
+    "status": "draft",
+    "tags": ["技术", "教程"]
+  }'
+```
+
+#### 方式三：导出→编辑→导入（高级用户） / Export → Edit → Import (Advanced)
+
+**工作流程 / Workflow:**
+
+```bash
+# 1. 导出所有文章为MDX文件 / Export all posts as MDX
+./scripts/export/export-all-posts.py
+
+# 2. 用你喜欢的编辑器编辑MDX文件 / Edit with your favorite editor
+code ./exported-posts-mdx/
+
+# 3. 编辑完成后，通过管理后台或API导入 / Import via admin panel or API
+```
+
+### 💾 备份策略 / Backup Strategy
+
+#### 自动备份 / Automatic Backup
+
+系统已经配置了自动备份，每天凌晨2点执行 / Auto-backup runs daily at 2 AM:
+
+```bash
+# 查看自动备份状态 / Check auto-backup status
+crontab -l
+
+# 查看备份日志 / View backup logs
+tail -f scripts/logs/backup.log
+```
+
+**备份位置 / Backup Location：** `./backups/`
+- `db_YYYYMMDD_HHMMSS.sql.gz` - 数据库备份（压缩）
+- `redis_YYYYMMDD_HHMMSS.rdb` - Redis缓存备份
+- 自动保留最近7天的备份 / Keeps last 7 days
+
+#### 手动备份 / Manual Backup
+
+**方法1: 使用备份脚本 / Method 1: Backup Script**
+```bash
+# 执行完整备份 / Execute full backup
+./scripts/backup/backup-all.sh
+```
+
+**方法2: 导出为可读格式 / Method 2: Export to Readable Format**
+```bash
+# 导出为多种格式 / Export to multiple formats
+./scripts/export/export-posts-to-mdx.sh ./my-backup
+```
+
+**生成的文件 / Generated Files:**
+```
+./my-backup/
+├── posts_20251230.sql          # 完整数据库备份 / Full DB backup
+├── posts_20251230.csv          # CSV格式（可用Excel打开） / CSV format
+├── posts_20251230.json         # JSON格式 / JSON format
+└── example-post.mdx            # MDX示例文件 / MDX example
+```
+
+**方法3: 导出所有文章为MDX / Method 3: Export All as MDX**
+```bash
+# 需要先安装Python依赖 / Requires Python dependencies
+pip install psycopg2-binary
+
+# 导出所有文章为独立MDX文件 / Export all posts as separate MDX files
+./scripts/export/export-all-posts.py ./exported-posts-mdx
+```
+
+### 📋 备份策略建议 / Backup Strategy Recommendations
+
+#### 日常使用 / Daily Usage
+✅ **依赖自动备份**（每天凌晨2点） / Rely on auto-backup
+✅ **定期查看备份目录** / Regularly check backup directory
+✅ **重要修改后手动备份** / Manual backup after important changes
+
+#### 重要里程碑 / Important Milestones
+🎯 发布重大文章前 / Before major posts
+🎯 网站改版前 / Before site redesign
+🎯 更换服务器前 / Before server migration
+
+**执行 / Execute:**
+```bash
+# 完整备份 / Full backup
+./scripts/backup/backup-all.sh
+
+# 导出为MDX（便于版本控制） / Export as MDX for version control
+./scripts/export/export-all-posts.py ./mdx-backup
+
+# 提交到Git（可选） / Commit to Git (optional)
+git add ./mdx-backup
+git commit -m "backup: 文章快照 $(date)"
+```
+
+### 🔄 灾难恢复 / Disaster Recovery
+
+#### 如果数据库损坏 / If Database is Corrupted
+
+```bash
+# 1. 停止服务 / Stop services
+docker-compose down
+
+# 2. 恢复最近的备份 / Restore latest backup
+gunzip -c backups/db_20251230_020000.sql.gz | \
+  docker exec -i blog-postgres psql -U blog_user blog_db
+
+# 3. 重启服务 / Restart services
+docker-compose up -d
+```
+
+#### 如果需要查看旧版本 / If Need to View Old Version
+
+```bash
+# 导出指定日期的文章 / Export posts from specific date
+docker exec blog-postgres pg_dump -U blog_user blog_db > backup.sql
+```
+
+### 💡 常见问题 / FAQ
+
+#### Q: 文章只能在数据库里吗？ / Are posts only in database?
+**A:** 不是的！你可以：/ No! You can:
+- 随时导出为MDX文件 / Export to MDX anytime
+- 用文本编辑器查看和编辑 / View and edit with text editor
+- 导出为CSV/JSON等多种格式 / Export to CSV/JSON etc.
+
+#### Q: 我习惯了用本地编辑器写文章 / I prefer local editors
+**A:** 你可以：/ You can:
+1. 继续用本地编辑器写MDX / Keep writing MDX locally
+2. 写完后复制到管理后台 / Copy to admin panel when done
+3. 或者使用导出/导入脚本 / Or use export/import scripts
+
+#### Q: 备份文件占用空间大吗？ / Do backups take much space?
+**A:**
+- 压缩后的SQL备份通常只有几MB / Compressed SQL is usually only a few MB
+- MDX文件体积更小 / MDX files are even smaller
+- 自动清理7天前的备份 / Auto-cleanup after 7 days
+
+---
+
 ## 快捷键提示
 
 ### VS Code

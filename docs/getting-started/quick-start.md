@@ -1,277 +1,147 @@
-# 快速开始
+# 快速开始 / Quick Start
 
-本指南将帮助你在 5 分钟内启动博客平台。
+**⚠️ 重要更新 / Important Update**: 快速开始指南已更新并移至根目录。
 
----
-
-## 🚀 方式选择
-
-根据你的需求和开发环境选择合适的启动方式：
-
-| 启动方式 | 适用场景 | 难度 | 时间 |
-|---------|---------|------|------|
-| **Docker 一键启动** | 跨平台、快速开始、完整环境 | ⭐ | 5 分钟 |
-| **传统开发模式** | 前后端分离、自定义开发 | ⭐⭐ | 10 分钟 |
+The quick start guide has been updated and moved to the root directory.
 
 ---
 
-## 方式 A: Docker 一键启动（推荐）
+## 🚀 快速启动 / Quick Start
 
-这是最简单、最可靠的方式，适合所有平台（Windows, macOS, Linux）。
+**推荐阅读 / Recommended**: **[快速开始指南 (5分钟启动)](../quick-start.md)**
 
-### 前置要求
-
-- **Docker** 和 **Docker Compose**
-
-### 三步启动
-
-#### 1️⃣ 克隆项目
-
-```bash
-git clone https://github.com/zhengbi-yong/zhengbi-yong.github.io.git
-cd zhengbi-yong.github.io
-```
-
-#### 2️⃣ 配置环境变量
-
-```bash
-# 复制环境变量模板
-cp .env.docker.example .env
-
-# 开发环境可以使用默认配置
-# 生产环境请参考部署文档修改安全配置
-```
-
-#### 3️⃣ 启动所有服务
-
-```bash
-docker compose up -d
-```
-
-**首次启动需要 5-10 分钟构建镜像**
-
-### 访问应用
-
-打开浏览器访问：
-
-- **前端**: http://localhost:3001
-- **后端 API**: http://localhost:3000
-- **通过 Nginx**: http://localhost
-
-### 常用命令
-
-```bash
-# 查看服务状态
-docker compose ps
-
-# 查看日志
-docker compose logs -f
-
-# 停止服务
-docker compose down
-
-# 重启服务
-docker compose restart
-```
-
-### 详细指南
-
-📖 **[Docker 跨平台快速启动](docker-quick-start.md)** - 详细的 Docker 部署指南
+This comprehensive guide covers:
+- 3-step Docker setup / 3步Docker设置
+- Common commands / 常用命令
+- Troubleshooting / 故障排查
+- Next steps / 下一步
 
 ---
 
-## 方式 B: 传统开发模式
+## 📖 其他启动方式 / Other Start Methods
 
-如果你更喜欢分别启动前端和后端，或者需要自定义开发环境。
+### Docker 详细指南 / Docker Detailed Guide
 
-### 平台特定文档
+如果需要详细的Docker部署说明 / If you need detailed Docker deployment instructions:
 
-根据你的操作系统选择对应的详细指南：
+**[→ Docker 跨平台快速启动](docker-quick-start.md)**
 
-- 📖 **[Windows 本地开发](local-development-windows.md)** - WSL2 和原生 Windows
-- 📖 **[macOS 本地开发](local-development-macos.md)** - Apple Silicon 和 Intel
-- 📖 **[Linux 本地开发](local-development-linux.md)** - Ubuntu, Debian, Fedora, Arch
+包含 / Includes:
+- Docker 安装 / Docker installation
+- 平台特定配置 / Platform-specific configuration
+- 高级选项 / Advanced options
 
-### 前置要求
+### 传统开发模式 / Traditional Development
 
-- **Node.js** 20+ 和 **pnpm** (前端开发)
-- **Rust** 1.70+ 和 **Cargo** (后端开发)
-- **Docker** 和 **Docker Compose** (数据库)
+如果你更喜欢分别启动前端和后端 / If you prefer to start frontend and backend separately:
 
-### 三步启动
+#### Windows / Windows
 
-#### 1️⃣ 克隆项目
+**[→ Windows 本地开发](local-development-windows.md)**
 
-```bash
-git clone https://github.com/zhengbi-yong/zhengbi-yong.github.io.git
-cd zhengbi-yong.github.io
-```
+- WSL2 配置 / WSL2 setup
+- 原生 Windows 开发 / Native Windows development
 
-#### 2️⃣ 启动前端
+#### macOS / macOS
 
-```bash
-cd frontend
-pnpm install
-pnpm dev
-```
+**[→ macOS 本地开发](local-development-macos.md)**
 
-前端将在 **http://localhost:3001** 启动
+- Apple Silicon (M1/M2/M3) 配置 / Apple Silicon setup
+- Intel 配置 / Intel setup
 
-#### 3️⃣ 启动后端（可选）
+#### Linux / Linux
 
-如果需要完整的后端功能（用户认证、评论管理等）：
+**[→ Linux 本地开发](local-development-linux.md)**
 
-```bash
-cd backend
-./scripts/deployment/deploy.sh dev
-# 等待数据库启动完成
-
-export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
-export REDIS_URL=redis://localhost:6379
-cargo run --bin blog-api
-```
-
-后端 API 将在 **http://localhost:3000** 启动
-
-### 访问应用
-
-- **前端**: http://localhost:3001
-- **API 文档** (如已启动后端): http://localhost:3000/swagger-ui/
-- **健康检查**: http://localhost:3000/health
+- Ubuntu, Debian, Fedora, Arch 配置 / Ubuntu, Debian, Fedora, Arch setup
 
 ---
 
-## 默认配置
+## 🔍 选择合适的方式 / Choose the Right Method
 
-### 开发环境端口
-
-- 前端: `3001`
-- 后端 API: `3000`
-- PostgreSQL: `5432`
-- Redis: `6379`
-
-### 数据库默认账号
-
-- **用户**: `blog_user`
-- **密码**: `blog_password`
-- **数据库**: `blog_db`
+| 方式 / Method | 适用场景 / Use Case | 难度 / Difficulty | 时间 / Time |
+|--------------|-------------------|------------------|------------|
+| **[Docker 快速开始](../quick-start.md)** | 跨平台、快速开始 / Cross-platform, quick start | ⭐ Easy | 5 min |
+| **[Docker 详细](docker-quick-start.md)** | 需要详细配置 / Need detailed config | ⭐ Easy | 10-15 min |
+| **[本地开发](local-development-*.md)** | 前后端分离开发 / Separate frontend/backend | ⭐⭐ Medium | 10-20 min |
 
 ---
 
-## 下一步
+## 📚 完整文档导航 / Full Documentation Navigation
 
-安装完成后，建议你：
+### 安装和配置 / Installation and Configuration
 
-1. 📖 阅读 [环境配置](environment-setup.md) 了解详细配置
-2. ✍️ 查看 [内容管理](../guides/content-management.md) 学习如何创建文章
-3. 🎨 探索 [写作指南](../guides/writing-guide.md) 了解 MDX 组件使用
-4. 🚀 参考 [服务器部署](../deployment/SERVER_DEPLOYMENT_GUIDE.md) 准备生产环境
+- 📖 **[安装指南](installation.md)** - 详细的安装步骤 / Detailed installation steps
+- 🔧 **[环境配置](environment-setup.md)** - 环境变量详解 / Environment variables
+- 🔍 **[故障排查](troubleshooting.md)** - 常见问题解决 / Common issues
 
----
+### 平台特定文档 / Platform-Specific Guides
 
-## 常见问题
+- 💻 **[Windows 开发](local-development-windows.md)** - Windows 完整指南
+- 💻 **[macOS 开发](local-development-macos.md)** - macOS 完整指南
+- 💻 **[Linux 开发](local-development-linux.md)** - Linux 完整指南
 
-### 端口被占用
+### 用户指南 / User Guides
 
-如果端口已被使用，可以修改：
+- ✍️ **[写作指南](../guides/writing-guide.md)** - Markdown 和 MDX 语法
+- 📝 **[内容管理](../guides/content-management.md)** - 创建和管理文章
+- 🔐 **[管理后台](../guides/admin-panel.md)** - 用户和评论管理
 
-**前端**:
-```bash
-cd frontend
-PORT=3002 pnpm dev
-```
+### 开发文档 / Development Documentation
 
-**后端** (修改 `.env`):
-```bash
-BACKEND_PORT=3002
-```
+- 🏗️ **[系统架构](../development/architecture.md)** - 架构概览
+- 💻 **[前端开发](../development/frontend/)** - Next.js 和 React
+- ⚙️ **[后端开发](../development/backend/)** - Rust 和 API
 
-**Docker 方式**:
-编辑 `.env` 文件：
-```bash
-FRONTEND_PORT=3002
-BACKEND_PORT=3002
-```
+### 部署文档 / Deployment Documentation
 
-### Docker 相关问题
-
-**Docker 服务未启动**:
-- Windows/macOS: 打开 Docker Desktop
-- Linux: `sudo systemctl start docker`
-
-**权限错误** (Linux):
-```bash
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
-### 依赖安装失败
-
-**前端**:
-```bash
-cd frontend
-rm -rf node_modules
-pnpm install
-```
-
-**后端**:
-```bash
-cd backend
-cargo clean
-cargo build
-```
+- 🚀 **[部署首页](../deployment/)** - 部署选项概览
+- 🖥️ **[服务器部署](../deployment/guides/server/)** - 生产服务器配置
+- 🔒 **[安全最佳实践](../deployment/best-practices/security.md)** - 安全加固
 
 ---
 
-## 快速命令参考
+## 💡 推荐学习路径 / Recommended Learning Path
 
-### Docker 方式
+### 新手用户 / Beginner Users
 
-```bash
-docker compose up -d          # 启动所有服务
-docker compose ps             # 查看服务状态
-docker compose logs -f        # 查看日志
-docker compose down           # 停止服务
-docker compose restart        # 重启服务
-```
+1. **[快速开始](../quick-start.md)** - 5分钟启动系统
+2. **[写作指南](../guides/writing-guide.md)** - 学习如何写文章
+3. **[内容管理](../guides/content-management.md)** - 管理你的内容
 
-### 前端
+### 开发者 / Developers
 
-```bash
-cd frontend
-pnpm dev              # 启动开发服务器
-pnpm build            # 构建生产版本
-pnpm lint             # 运行代码检查
-pnpm test             # 运行测试
-```
+1. **[快速开始](../quick-start.md)** - 快速启动
+2. **[系统架构](../development/architecture.md)** - 理解架构
+3. **[前端开发](../development/frontend/)** 或 **[后端开发](../development/backend/)** - 选择你的方向
 
-### 后端
+### 运维工程师 / DevOps Engineers
 
-```bash
-cd backend
-./scripts/deployment/deploy.sh dev       # 启动开发数据库
-./scripts/deployment/deploy.sh prod      # 启动生产环境
-./scripts/deployment/deploy.sh stop      # 停止所有服务
-./scripts/deployment/deploy.sh status    # 查看服务状态
-cargo run             # 运行 API 服务
-cargo test            # 运行测试
-```
+1. **[快速开始](../quick-start.md)** - 了解系统
+2. **[部署指南](../deployment/)** - 部署选项
+3. **[生产服务器](../deployment/guides/server/production-server.md)** - 生产配置
 
 ---
 
-## 获取帮助
+## 🆘 获取帮助 / Get Help
 
-如果遇到问题：
+### 文档 / Documentation
 
-1. 查看 [故障排查](troubleshooting.md)
-2. 查看平台特定文档（Windows/macOS/Linux）
-3. 搜索 [GitHub Issues](https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues)
-4. 创建新 Issue 寻求帮助
+- 📖 **[FAQ](../appendix/faq.md)** - 常见问题
+- 🔍 **[故障排查](troubleshooting.md)** - 详细问题解决
+
+### 社区 / Community
+
+- 📝 **GitHub Issues**: [提交问题](https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues)
+- 💬 **GitHub Discussions**: [参与讨论](https://github.com/zhengbi-yong/zhengbi-yong.github.io/discussions)
 
 ---
 
-**相关文档**:
-- [Docker 快速启动](docker-quick-start.md) - Docker 部署详细指南
-- [安装指南](installation.md) - 详细的安装步骤
-- [环境配置](environment-setup.md) - 环境变量配置
-- [故障排查](troubleshooting.md) - 常见问题解决
+**下一步 / Next Step**: → **[开始使用](../quick-start.md)** / **[Get Started Now](../quick-start.md)**
+
+---
+
+**最后更新 / Last Updated**: 2026-01-02
+**维护者 / Maintained By**: Documentation Team
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
