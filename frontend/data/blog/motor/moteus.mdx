@@ -1,0 +1,3473 @@
+---
+title: 'moteus 高性能机器人关节控制器：从原理到实践（2024-2025全面版）'
+date: '2026-01-02'
+tags: ['Engineering', 'Motor', 'Robotics', 'moteus', 'FOC', 'CAN-FD', 'Quadruped', 'QDD']
+draft: false
+summary: 深入探索 mjbots moteus 专为机器人关节优化的高性能电机控制器，涵盖 MIT Mini Cheetah 同款控制技术、CAN-FD 多轴协调、QDD 准直驱设计、四足机器人实战案例、完整软件生态及与 ODrive/VESC 对比分析。
+showTOC: true
+---
+
+## 引言
+
+在现代机器人技术领域，关节驱动器是实现动态运动和精确控制的核心组件。传统的电机控制器虽然能够满足基本的运动控制需求，但在面对四足机器人、人形机器人、机械臂等复杂应用时，往往暴露出多轴协调困难、控制频率不足、通信带宽受限等问题。moteus 正是在这样的背景下诞生的——一款由 mjbots（Machine Jelly Robots）开发的开源高性能电机控制器，专为机器人关节应用而优化。
+
+moteus 的起源可以追溯到著名的 MIT Mini Cheetah 四足机器人项目。作为 MIT Mini Cheetah 项目中成功验证的关节控制器方案，moteus 继承了该项目在高动态运动控制方面的技术积累，并通过开源方式将其推广到更广泛的机器人应用中。与 ODrive 和 VESC 等通用电机控制器不同，moteus 从设计之初就专注于解决机器人关节控制的特定挑战：准直驱（QDD）优化、多轴高速协调、低延迟通信等。这种专业化定位使得 moteus 在机器人应用领域，特别是四足机器人和高动态机械臂领域，展现出独特的优势。
+
+**核心技术优势**
+
+moteus 在多个技术维度上实现了突破：
+
+1. **超高频控制**：30kHz 的电流环控制频率，远超 ODrive 的 8kHz 和 VESC 的 8-16kHz，确保更高的控制带宽和更快的动态响应。
+
+2. **CAN-FD 高速通信**：支持高达 5Mbps 的 CAN-FD 通信协议（传统 CAN 2.0 仅为 1Mbps），64 字节数据帧，使得多轴同步控制成为可能。配合 pi3hat 硬件，单个树莓派可以轻松协调 16 个 moteus 控制器。
+
+3. **QDD 优化设计**：针对准直驱（Quasi-Direct Drive）架构进行专门优化，在低减速比（6:1到10:1）条件下仍能实现高扭矩密度和优异的力控制精度。
+
+4. **完整的开源生态**：固件完全开源（Apache 2.0），提供丰富的软件工具链，包括 Python API、moteus-arduino 库、tview 实时监控工具等。
+
+5. **实战验证**：在 MIT Mini Cheetah、Quad A1 四足机器人、DexWrist 机械腕等多个实际项目中得到验证，证明了其可靠性和实用性。
+
+**应用领域**
+
+moteus 的应用场景主要集中在需要高动态性能和多轴协调的机器人系统：
+
+- **四足机器人**：MIT Mini Cheetah、Quad A1 等项目的核心控制器，每个腿的髋关节和膝关节各使用一个 moteus，通过 CAN-FD 总线实现 12 轴的协调控制。
+
+- **机械臂与灵巧手**：从 6 自由度机械臂到多指灵巧手，moteus 的高精度位置控制和扭矩控制能力使其成为关节驱动的理想选择。
+
+- **云台与稳定平台**：利用其快速响应特性，实现高性能的姿态稳定和目标跟踪。
+
+- **研究与教育**：开源特性使得研究者可以深入理解控制算法的实现细节，并根据需求进行定制和实验。
+
+**与其他控制器的定位差异**
+
+在开源电机控制器生态中，moteus、ODrive 和 VESC 各有其独特的定位：
+
+- **moteus**：机器人关节专家，专注于多轴协调、QDD 优化和四足机器人应用。
+
+- **ODrive**：通用高性能电机控制器，支持双电机控制，适用于广泛的精密运动控制应用，但新一代产品已转向闭源。
+
+- **VESC**：电动车辆领域的标杆，以强大的电流能力和成熟的生态系统著称，但在机器人多轴协调方面相对薄弱。
+
+本文将全面深入地探索 moteus 的方方面面，从硬件架构到 FOC 控制算法，从 CAN-FD 通信协议到 QDD 技术原理，从快速入门到高级应用，从四足机器人实战到故障排查。无论您是正在构建四足机器人的研究人员、开发机械臂的工程师，还是对先进电机控制技术感兴趣的爱好者，都能从本文中获得宝贵的知识和实践指导。
+
+**文档阅读路线图**
+
+为了帮助不同背景的读者快速找到所需内容，我们提供了以下阅读路线：
+
+- **快速入门者**：如果您急于上手，建议直接阅读「第四部分：快速入门与配置」，了解硬件连接、软件安装和基础配置，然后参考「第七部分：应用案例与最佳实践」中的实际项目示例。
+
+- **算法研究者**：如果您对控制算法感兴趣，推荐阅读「第二部分：核心技术深度解析」，其中详细介绍了 FOC 算法实现、CAN-FD 协议和编码器系统。
+
+- **机器人应用开发者**：四足机器人开发者应重点关注「第三部分：QDD 技术与机器人关节应用」和「第六部分：多轴协调与系统集成」，其中包含 MIT Mini Cheetah 和 Quad A1 的实战经验。
+
+- **系统架构师**：如果您正在评估技术选型，「第八部分：与其他控制器对比」将帮助您理解 moteus 相对于 ODrive 和 VESC 的优势和局限。
+
+- **故障排查者**：遇到问题时，「第七部分：应用案例与最佳实践」中的调试与故障排查章节提供了常见问题的诊断表和解决方案。
+
+现在，让我们开始深入探索 moteus 的技术世界。
+
+## 第一部分：moteus 项目全景
+
+### 1.1 项目背景与发展历程
+
+**起源：MIT Mini Cheetah 的技术传承**
+
+moteus 的故事始于著名的 MIT Mini Cheetah 四足机器人项目。MIT Mini Cheetah 是 MIT 生物仿生实验室开发的突破性四足机器人，以其高动态运动能力和开源设计而闻名。该项目需要一个能够支持高频控制、多轴协调且高度可靠的关节控制器，而当时的商业产品难以满足这些需求。
+
+正是在这样的背景下，mjbots 的创始人开始开发专为机器人关节优化的电机控制器。moteus 的早期设计直接继承了 MIT Mini Cheetah 项目的技术理念：高控制频率、低延迟通信和准直驱优化。经过多次迭代和优化，moteus 从一个研究项目逐渐演变为成熟的产品，并通过开源方式向更广泛的机器人社区推广。
+
+**发展时间线**
+
+moteus 的发展可以分为几个关键阶段：
+
+**2019-2020年：原型探索期**
+- r4.3 和 r4.5 版本：早期原型设计，验证核心概念
+- 确立 FOC 控制架构和 CAN-FD 通信方案
+- 在 MIT Mini Cheetah 项目中初步验证
+
+**2021-2022年：产品化时期**
+- r4.8 版本：改进硬件设计，提升可靠性
+- 建立完整的软件工具链（moteus_tool、Python API）
+- 开始在四足机器人社区获得关注
+
+**2023-2024年：生态扩展期**
+- r4.11 版本：当前标准版本，性能和稳定性达到新高度
+- 推出多样化产品线（n1 迷你版、c1 紧凑型、x1 旗舰版）
+- pi3hat 多轴协调板的成熟应用
+- Quad A1 四足机器人产品发布
+
+**2024-2025年：技术深化期**
+- CAN-FD 协议优化，支持更多轴的同步控制
+- 固件性能持续优化（2024年10月最新更新）
+- 社区生态持续壮大，Discord 活跃用户超过数千人
+- 在机械臂、灵巧手等新领域获得应用
+
+**mjbots 公司定位**
+
+mjbots（Machine Jelly Robots）是一家专注于开源机器人硬件的公司，其核心理念是通过开源方式推动机器人技术的普及。与传统的商业公司不同，mjbots 采用"开源硬件 + 商业支持"的混合模式：
+
+- **开源承诺**：固件完全开源（Apache 2.0），硬件设计部分公开
+- **商业产品**：提供组装好的控制器和相关配件，降低用户使用门槛
+- **社区驱动**：通过 Discord、GitHub、博客等渠道与用户保持密切互动
+- **持续创新**：投入研发资源，不断优化产品和扩展功能
+
+这种模式使得 mjbots 能够在保持开源精神的同时，实现可持续的商业运营，为用户提供高质量的产品和技术支持。
+
+**社区与商业生态**
+
+moteus 已经形成了一个繁荣的生态体系：
+
+- **学术研究**：多所大学和研究中心将 moteus 用于四足机器人、人形机器人等研究项目
+- **商业应用**：从教育机器人到工业自动化，moteus 在多个商业项目中得到应用
+- **DIY 社区**：众多业余爱好者使用 moteus 构建自己的机器人项目
+- **竞赛应用**：在 RoboCup 等机器人竞赛中，moteus 成为热门选择
+
+### 1.2 核心硬件产品线
+
+moteus 提供了多个硬件版本，以满足不同应用场景的需求。每个版本都保持了 moteus 的核心技术优势，同时在功率、尺寸、接口等方面有所侧重。
+
+**产品对比总览**
+
+| 特性 | r4.11 | n1 | c1 | x1 |
+|------|-------|----|----|-----|
+| **定位** | 标准款 | 迷你版 | 紧凑型 | 旗舰版 |
+| **电压范围** | 10-44V | 10-54V | 10-51V | 10-54V |
+| **峰值功率** | 900W @ 30V | 200W @ 36V | 250W @ 28V | 2000W @ 36V |
+| **连续相电流** | 12A | 5A | 5A | 25A |
+| **冷却相电流** | 32A | 14A | 14A | 62A |
+| **峰值相电流** | 100A | 20A | 20A | 120A |
+| **质量** | 14.2g | 8.9g | 14.6g | 23.8g |
+| **控制速率** | 15-30kHz | 15-30kHz | 15-30kHz | 15-30kHz |
+| **PWM 开关频率** | 15-60kHz | 15-60kHz | 15-60kHz | 15-60kHz |
+| **通信接口** | CAN-FD 5Mbps | CAN-FD 5Mbps | CAN-FD 5Mbps | CAN-FD 5Mbps |
+| **尺寸** | 46×53mm | 38×38×9mm | 46×46×8mm | 56×56×10mm |
+| **推荐应用** | 标准四足关节 | 小型机器人 | 高功率关节 | 工业机械臂 |
+
+**moteus r4.11：标准款，MIT Cheetah 同款**
+
+r4.11 是 moteus 的经典版本，也是 MIT Mini Cheetah 使用的控制器。它在性能、尺寸和成本之间取得了良好的平衡，是大多数四足机器人项目的首选。
+
+**核心特性**：
+- **电压范围**：10-44V，适配 6S-10S LiPo 电池
+- **功率能力**：900W 峰值功率 @ 30V，足以驱动大多数中型四足机器人关节
+- **控制性能**：15-30kHz 可调控制频率，默认 30kHz
+- **编码器支持**：板载 AS5047P 14 位磁编码器，同时支持外部编码器
+- **散热设计**：金属芯 PCB，优异的散热性能
+
+**适用场景**：
+- MIT Mini Cheetah 风格的四足机器人
+- 标准尺寸的机械臂关节
+- 需要平衡性能和成本的应用
+
+**moteus n1：迷你版，小型机器人理想选择**
+
+n1 是 moteus 的迷你版本，专为空间受限的应用设计。尽管尺寸小巧，但仍保留了 moteus 的核心功能。
+
+**核心特性**：
+- **超小尺寸**：38×38×9mm，重量仅 8.9g
+- **功率能力**：200W 峰值功率，适合小型关节
+- **电压范围**：10-54V，更宽的电压适应范围
+- **紧凑设计**：优化的布局，便于集成到紧凑空间
+
+**适用场景**：
+- 多指灵巧手关节
+- 小型四足机器人（如 Mini Cheetah 缩小版）
+- 空间受限的云台系统
+
+**moteus c1：紧凑型，平衡性能与尺寸**
+
+c1 在 r4.11 和 n1 之间提供了折中方案，适中的尺寸和功率能力。
+
+**核心特性**：
+- **尺寸适中**：46×46×8mm
+- **功率能力**：250W @ 28V
+- **宽电压范围**：10-51V
+
+**适用场景**：
+- 中型机械臂
+- 需要比 r4.11 更紧凑但功率接近的应用
+
+**moteus x1：旗舰版，工业级应用**
+
+x1 是 moteus 的旗舰版本，为高功率、高可靠性的工业应用而设计。
+
+**核心特性**：
+- **高功率**：2000W @ 36V，62A 连续相电流，120A 峰值
+- **工业级设计**：增强的散热和保护电路
+- **宽电压范围**：10-54V
+
+**适用场景**：
+- 大型四足机器人
+- 工业机械臂
+- 高扭矩密度的应用
+
+**硬件架构核心**
+
+所有 moteus 型号都基于相似的硬件架构，主要体现在以下几个方面：
+
+**微控制器平台**：
+- **主控芯片**：STM32G474RET6（ARM Cortex-M4，170MHz）
+- **浮点单元**：硬件 FPU，加速 FOC 算法计算
+- **存储器**：1MB Flash，128KB RAM
+- **外设**：12 位 ADC，高级定时器，CAN-FD 控制器
+
+**栅极驱动器**：
+- **芯片型号**：DRV8323 智能功率级栅极驱动器
+- **特性**：集成三个半桥驱动器、 buck 转换器、运放
+- **保护功能**：过流保护、过温保护、欠压锁定
+
+**电流检测**：
+- **方案**：分流器 + 运放
+- **精度**：12 位 ADC，高精度采样
+- **带宽**：支持 30kHz 控制频率
+
+**编码器接口**：
+- **板载编码器**：AS5047P（14 位磁编码器，SPI 接口）
+- **外部编码器支持**：
+  - SPI：AS5047x, MA732, CUI AMT22x
+  - RS422：CUI AMT21x
+  - ABI：增量编码器
+  - 模拟：正余弦编码器
+
+**通信接口**：
+- **CAN-FD**：5Mbps 数据速率，64 字节数据帧
+- **辅助接口**：UART、SPI、I2C（用于编码器和传感器）
+
+### 1.3 开源生态与软件工具链
+
+**开源程度**
+
+moteus 的开源策略体现了 mjbots 对开源理念的承诺：
+
+- **固件**：完全开源（Apache 2.0），源代码在 GitHub 公开
+- **硬件设计**：PCB 设计文件部分公开，原理图可获取
+- **文档**：详细的参考文档和技术博客
+- **软件工具**：所有软件工具开源，提供完整的源代码
+
+这种开源策略使得用户可以：
+- 深入理解控制算法的实现细节
+- 根据特定需求进行定制和修改
+- 学习先进的电机控制技术
+- 参与社区贡献，推动项目发展
+
+**软件工具链**
+
+moteus 提供了完整的软件工具链，覆盖从配置到控制的各个环节：
+
+**1. moteus_tool：命令行配置工具**
+
+moteus_tool 是 moteus 的主要命令行工具，用于：
+
+- **交互式配置**：通过命令行界面修改参数
+- **固件更新**：刷新固件到最新版本
+- **诊断**：读取状态、故障码和性能数据
+- **校准**：执行编码器偏移校准和电机参数识别
+
+```bash
+# 连接到控制器
+moteus-tool --target 1
+
+# 读取配置
+moteus-tool --target 1 --read
+
+# 写入配置
+moteus-tool --target 1 --write
+
+# 校准
+moteus-tool --target 1 --calibrate
+```
+
+**2. tview：实时数据可视化**
+
+tview 是基于 curses 的终端 GUI 工具，提供：
+
+- **实时监控**：位置、速度、扭矩、温度等参数的实时显示
+- **Python REPL**：集成的 Python 控制台，可直接发送命令
+- **数据记录**：保存数据到文件，用于后期分析
+- **多轴监控**：同时监控多个 moteus 控制器
+
+**3. Python API**
+
+moteus 提供了完整的 Python 库，支持：
+
+- **异步控制**：基于 asyncio 的异步 API
+- **多轴协调**：轻松控制多个控制器
+- **高级功能**：轨迹规划、阻抗控制等
+
+```python
+import asyncio
+import moteus
+
+async def main():
+    # 创建控制器实例
+    c = moteus.Controller(id=1)
+
+    # 位置控制
+    await c.set_position(
+        position=1.0,
+        velocity=0.0,
+        maximum_torque=10.0,
+        kp=50,
+        kd=1.0
+    )
+
+    await asyncio.sleep(1.0)
+
+asyncio.run(main())
+```
+
+**4. moteus-arduino：Arduino 库**
+
+对于使用 Arduino 平台的用户，moteus 提供了简化的 C++ 库：
+
+- **CAN-FD 支持**：支持 ACAN2517FD 等 CAN-FD 收发器
+- **简化 API**：易于使用的控制接口
+- **示例代码**：丰富的示例和教程
+
+**5. pi3hat：树莓派多轴协调板**
+
+pi3hat 是专为树莓派设计的扩展板，是多轴协调的关键硬件：
+
+- **4 路 CAN-FD 接口**：支持最多 16 个 moteus 控制器
+- **时间同步**：硬件级同步，确保多轴控制的时间一致性
+- **集成传感器**：9 轴 IMU（MPU-6500）和 ABSOLUTE 参考系统
+- **高速 SPI**：与树莓派的高速通信
+
+```python
+from mjbots.pi3hat import Pi3Hat
+import moteus
+
+# 创建 pi3hat 实例
+transport = Pi3Hat(
+    cpu = 1,
+    spi_speed = 3000000,
+)
+
+# 创建多个控制器
+controllers = [
+    moteus.Controller(id=i, transport=transport)
+    for i in range(1, 5)
+]
+
+# 同步控制
+commands = [
+    moteus.Command(position=i*0.5, kp=50, kd=1.0)
+    for i in range(4)
+]
+
+results = await transport.cycle(commands)
+```
+
+**社区资源**
+
+moteus 拥有活跃的社区支持：
+
+- **Discord 服务器**：最活跃的社区，数千用户，开发者直接参与
+- **GitHub 仓库**：源代码、问题追踪、功能请求
+- **官方博客**：技术文章、更新公告、开发日志
+- **RCGroups 论坛**：传统的论坛讨论，历史问题查询
+- **YouTube 频道**：视频教程、项目演示
+
+## 第二部分：核心技术深度解析
+
+### 2.1 FOC 控制算法实现
+
+FOC（Field Oriented Control，磁场定向控制）是现代电机控制的核心技术。moteus 通过高频率的 FOC 实现了卓越的动态性能和控制精度。本节将深入解析 moteus 的 FOC 算法实现，从数学原理到代码架构。
+
+**FOC 基础理论**
+
+FOC 的核心思想是通过坐标变换，将三相交流电机的控制问题转化为类似直流电机的控制问题。主要步骤包括：
+
+1. **Clarke 变换**：三相静止坐标系（a,b,c）→ 两相静止坐标系（α,β）
+2. **Park 变换**：两相静止坐标系（α,β）→ 两相旋转坐标系（d,q）
+3. **PI 控制**：在 d-q 坐标系中独立控制磁场（d 轴）和转矩（q 轴）
+4. **反 Park 变换**：d,q → α,β
+5. **SVPWM 调制**：生成三相 PWM 信号
+
+**数学变换详解**
+
+**Clarke 变换（3→2）**：
+
+将三相电流（Ia, Ib, Ic）变换为两相静止坐标系（Iα, Iβ）：
+
+```
+Iα = (2/3) * (Ia - 0.5 * Ib - 0.5 * Ic)
+Iβ = (2/3) * (0.866 * Ib - 0.866 * Ic)
+```
+
+在平衡三相系统中（Ia + Ib + Ic = 0），可以简化为：
+
+```
+Iα = Ia
+Iβ = (1/√3) * (Ia + 2 * Ib)
+```
+
+**Park 变换（静止→旋转）**：
+
+将静止坐标系（Iα, Iβ）变换为旋转坐标系（Id, Iq）：
+
+```
+Id = Iα * cos(θ) + Iβ * sin(θ)
+Iq = -Iα * sin(θ) + Iβ * cos(θ)
+```
+
+其中 θ 是转子电角度。
+
+**SVPWM 调制策略**
+
+空间矢量脉宽调制（SVPWM）是 FOC 的最后环节，其作用是将 d-q 坐标系中的电压指令转换为三相 PWM 信号。moteus 采用连续调制策略，通过计算电压矢量的作用时间，生成最优的 PWM 波形。
+
+**moteus 特有优化**
+
+**超高频控制频率**
+
+moteus 的电流环控制频率可达 30kHz，远超 ODrive 的 8kHz 和 VESC 的 8-16kHz。这意味着：
+
+- **更快的动态响应**：从命令到输出的延迟降低到几十微秒
+- **更高的控制带宽**：能够响应更快的扰动和指令变化
+- **更小的转矩脉动**：高频率 PWM 减少低频噪声
+
+**硬件加速**
+
+moteus 充分利用 STM32G4 的硬件特性：
+
+- **Cordic 硬件加速**：快速计算三角函数（sin/cos）
+- **硬件 FPU**：浮点运算加速
+- **DMA 传输**：减少 CPU 干预，降低延迟
+- **高级定时器**：纳秒级 PWM 精度
+
+**代码结构解析**
+
+moteus 的固件采用分层架构，从高层到底层依次为：
+
+```
+应用层：moteus.cc
+    ↓
+控制层：moteus_controller.cc
+    ↓
+伺服层：bldc_servo.cc  ← 核心控制逻辑（约2000行）
+    ↓
+FOC层：foc.cc
+    ↓
+驱动层：motor_driver.h
+    ↓
+硬件层：stm32g4_*.cc
+```
+
+**bldc_servo.cc：伺服控制核心**
+
+这是 moteus 固件的核心文件，包含了完整的 FOC 控制逻辑。主要功能模块包括：
+
+```cpp
+// 电流控制中断服务程序（简化示例）
+void BldcServo::ISR_DoCurrent(
+    const SinCos& sin_cos,
+    float i_d_A_in, float i_q_A_in,
+    float feedforward_velocity_rotor,
+    bool ignore_position_bounds) {
+
+  // 1. D轴电流控制（磁场控制）
+  const float denorm_d_V = pid_d_.Apply(
+      status_.d_A, i_d_A_in, rate_hz);
+
+  // 2. Q轴电流控制（转矩控制）
+  const float denorm_q_V = pid_q_.Apply(
+      status_.q_A, i_q_A_in, rate_hz);
+
+  // 3. 电压限制和解耦
+  const auto result = SVM(denorm_d_V, denorm_q_V, sin_cos);
+
+  // 4. 输出 PWM
+  ISR_DoVoltageDQ(sin_cos, d_V, q_V);
+}
+```
+
+**级联控制结构**
+
+moteus 采用经典的三环级联控制：
+
+1. **位置环（最外层）**：目标位置 → 速度指令
+2. **速度环（中间层）**：目标速度 → 转矩指令
+3. **电流环（最内层）**：目标转矩 → 电压输出
+
+```
+位置误差 → PID → 速度指令
+    ↓
+速度误差 → PID → 转矩指令
+    ↓
+Iq误差 → PID → 电压输出
+```
+
+**实时性能保证**
+
+**中断优先级管理**：
+
+- **最高优先级**：电流环中断（30kHz）
+- **中优先级**：编码器读取、ADC 采样
+- **低优先级**：CAN 通信、配置更新
+
+**时序优化**：
+
+- **ADC 触发**：硬件触发，精确对齐 PWM 中心
+- **采样窗口**：1μs 精确采样窗口
+- **计算时间**：<30μs 完整控制周期
+
+### 2.2 CAN-FD 通信协议
+
+CAN-FD（Controller Area Network Flexible Data Rate）是 moteus 多轴协调的关键技术。相比传统 CAN 2.0，CAN-FD 提供了更高的数据速率和更大的数据帧，使得多电机同步控制成为可能。
+
+**CAN 2.0 vs CAN-FD 对比**
+
+| 特性 | CAN 2.0 | CAN-FD | 优势 |
+|------|---------|--------|------|
+| **数据段速率** | 最高 1Mbps | 最高 5Mbps | 5倍提升 |
+| **数据长度** | 最多 8 字节 | 最多 64 字节 | 8倍提升 |
+| **带宽利用率** | ~50% | ~80% | 更高效 |
+| **时间确定性** | 好 | 优秀 | 更精确 |
+
+**数据帧结构**
+
+**CAN 2.0 帧**：
+```
+[SOF][ID][DLC][Data 0-8B][CRC][ACK][EOF]
+```
+
+**CAN-FD 帧**：
+```
+[SOF][ID][DLC][EDL][BRS][Data 0-64B][CRC][ACK][EOF]
+```
+
+其中：
+- **EDL（Extended Data Length）**：标识为 CAN-FD 帧
+- **BRS（Bit Rate Switch）**：数据段切换到高速率
+
+**moteus CAN-FD 协议详解**
+
+moteus 使用自定义的 CAN-FD 协议，针对电机控制优化。主要命令类型包括：
+
+**命令类型表**：
+
+| 命令类型 | CAN ID | 数据长度 | 功能描述 |
+|---------|--------|---------|----------|
+| **正扭矩命令** | 0x00 | 8 字节 | 设置正扭矩值 |
+| **负扭矩命令** | 0x01 | 8 字节 | 设置负扭矩值（再生制动）|
+| **位置命令** | 0x02 | 8 字节 | 目标位置+速度+前馈扭矩 |
+| **查询状态** | 0x03 | 0 字节 | 请求状态反馈 |
+| **状态反馈** | 0x04 | 64 字节 | 完整状态（位置、速度、扭矩、温度）|
+| **故障诊断** | 0x05 | 变长 | 错误码和诊断信息 |
+| **停止命令** | 0x06 | 0 字节 | 紧急停止 |
+| **重置命令** | 0x07 | 0 字节 | 控制器软复位 |
+
+**位置命令详解**
+
+位置命令是 moteus 最常用的命令类型，包含以下字段：
+
+```python
+# 位置命令数据结构（简化）
+class PositionCommand:
+    position: float        # 目标位置（转）
+    velocity: float        # 速度前馈（转/秒）
+    maximum_torque: float  # 最大扭矩限制（Nm）
+    kp_scale: float        # 位置增益缩放
+    kd_scale: float        # 阻尼增益缩放
+    feedforward_torque: float  # 前馈扭矩（Nm）
+    query: bool            # 是否请求状态反馈
+```
+
+**Python API 使用示例**：
+
+```python
+import asyncio
+import moteus
+
+async def main():
+    # 创建单个控制器
+    c = moteus.Controller(id=1)
+
+    # 位置控制
+    await c.set_position(
+        position=1.0,          # 目标：1转
+        velocity=2.0,          # 速度前馈：2转/秒
+        maximum_torque=10.0,   # 最大扭矩：10Nm
+        kp=50,                 # 位置增益
+        kd=1.0,                # 阻尼增益
+        feedforward_torque=0.5,# 前馈扭矩
+        query=True             # 请求状态反馈
+    )
+
+    # 读取结果
+    result = await c.set_position(query=True)
+    print(f"位置: {result.values[moteus.Register.POSITION]}")
+    print(f"速度: {result.values[moteus.Register.VELOCITY]}")
+    print(f"扭矩: {result.values[moteus.Register.TORQUE]}")
+
+asyncio.run(main())
+```
+
+**多轴协调技术**
+
+**时间同步挑战**
+
+在多电机系统中，确保所有电机同时接收命令是实现协调控制的关键。传统 CAN 2.0 由于带宽限制，难以实现高频同步。
+
+**pi3hat 的解决方案**
+
+pi3hat 通过以下机制实现精确同步：
+
+1. **硬件级时间戳**：每个 CAN 帧都带有硬件时间戳
+2. **广播命令**：同时向所有电机发送命令
+3. **调度算法**：精确计算每个帧的发送时间
+4. **优先级管理**：确保关键帧优先发送
+
+**代码示例**：
+
+```python
+from mjbots.pi3hat import Pi3Hat
+import moteus
+import asyncio
+
+async def multi_axis_control():
+    # 创建 pi3hat 传输层
+    transport = Pi3Hat(
+        cpu = 1,               # 绑定到 CPU 核心 1
+        spi_speed = 3000000,   # SPI 速率 3Mbps
+    )
+
+    # 创建多个控制器
+    controllers = [
+        moteus.Controller(id=i, transport=transport)
+        for i in range(1, 5)
+    ]
+
+    # 准备同步命令
+    commands = [
+        moteus.Command(
+            position=i * 0.5,  # 每个电机不同位置
+            kp=50,
+            kd=1.0,
+            maximum_torque=10.0,
+            query=True
+        )
+        for i in range(4)
+    ]
+
+    # 发送同步命令
+    results = await transport.cycle(commands)
+
+    # 处理结果
+    for i, result in enumerate(results):
+        print(f"电机 {i+1}: 位置={result.values[moteus.Register.POSITION]:.3f}")
+
+asyncio.run(multi_axis_control())
+```
+
+**性能优化**
+
+**通信频率优化**
+
+```
+1kHz 控制回路：
+- CAN-FD 周期：1ms
+- 数据帧：64 字节状态反馈
+- 总线负载：约 60% @ 4 轴
+```
+
+**位时序配置**
+
+```python
+# 推荐的 CAN-FD 位时序配置
+CAN_FD_TIMING = {
+    'base_clock': 20MHz,          # 或 40MHz（取决于硬件）
+    'arbitration_bitrate': 1000,  # 仲裁段：1Mbps
+    'data_bitrate': 5000,         # 数据段：5Mbps
+    'sample_point': 0.666,        # 采样点：66.6%
+    'sjw': 2,                     # 同步跳转宽度
+    'dsjw': 2,                    # 数据同步跳转宽度
+}
+```
+
+**总线拓扑**
+
+```
+推荐拓扑：
+树莓派4 → pi3hat
+    ├─ CAN1: moteus 1, 2, 3, 4（腿1）
+    ├─ CAN2: moteus 5, 6, 7, 8（腿2）
+    ├─ CAN3: moteus 9, 10, 11, 12（腿3）
+    └─ CAN4: 预留扩展
+
+终端电阻：120Ω × 2（总线两端）
+线缆：屏蔽双绞线
+```
+
+### 2.3 编码器系统
+
+高精度的位置反馈是实现高性能控制的前提。moteus 支持多种编码器类型，并提供了灵活的配置选项。
+
+**支持的编码器类型**
+
+| 编码器类型 | 型号示例 | 接口 | 分辨率 | 特点 | 成本 |
+|-----------|---------|------|--------|------|------|
+| **SPI 绝对编码器** | AS5047P, MA732 | SPI | 14-bit | 高精度、绝对位置 | 中 |
+| **增量编码器** | CUI AMT21x | ABI | 可变 | 成本低、需校准 | 低 |
+| **I2C 编码器** | AS5048B, AS5600 | I2C | 12-bit | 简单接线 | 低-中 |
+| **RS422 编码器** | CUI AMT21x | RS422 | 12-14-bit | 抗干扰能力强 | 中 |
+| **正余弦编码器** | - | 模拟 | 可变 | 高分辨率、抗干扰 | 中-高 |
+| **霍尔传感器** | 板载 3 霍尔 | GPIO | 60°电角度 | 启动辅助、低成本 | 低 |
+
+**板载 AS5047P 编码器**
+
+moteus r4.11 板载了 AS5047P 14 位磁编码器，提供：
+
+- **分辨率**：14 位（16384 点/圈）
+- **精度**：±0.02°
+- **接口**：SPI（最高 10Mbps）
+- **带宽**：采样率可达 50kHz+
+
+**安装要求**：
+
+1. **磁体选择**：直径 6mm 或 8mm 的径向磁化磁体
+2. **气隙**：磁体与编码器芯片之间约 2mm
+3. **对准**：磁体必须与编码器中心对准
+4. **固定**：使用高强度胶水或机械固定
+
+**外部编码器配置**
+
+**MA732 磁编码器（SPI）**
+
+```python
+# 配置示例（moteus_tool）
+moteus-tool --target 1
+> conf set servo.encoder_source 1  # 选择外部编码器
+> conf set servo.spi_encoder_mode 1  # MA732 模式
+> conf set servo.spi_encoder_gpio 0x3  # SPI GPIO 配置
+> write
+> reindex
+```
+
+**CUI AMT21x（RS422）**
+
+CUI AMT21x 是可配置的编码器，通过 DIP 开关或软件设置分辨率：
+
+- **分辨率选项**：10-14 位可调
+- **接口**：RS422 差分信号
+- **供电**：5V
+- **带宽**：最高 500kHz
+
+```python
+# 接线示例（5V 供电）
+VCC  → 5V
+GND  → GND
+A    → GPIO_A
+B    → GPIO_B
+N    → GPIO_N
+```
+
+**双编码器配置**
+
+在一些高端应用中，可能需要使用两个编码器：
+
+- **负载侧编码器**：测量输出端实际位置
+- **电机侧编码器**：测量电机转子位置
+
+**应用场景**：
+
+1. **柔性关节**：测量关节变形，实现力控制
+2. **齿隙补偿**：通过双编码器估算齿隙
+3. **刚度估算**：实时估算关节刚度
+
+```python
+# 双编码器配置
+moteus-tool --target 1
+> conf set servo.encoder_source 0  # 板载编码器（电机侧）
+> conf set servo.aux_encoder_source 2  # 外部编码器（负载侧）
+> conf set servo.aux_offset 0.0  # 辅助编码器零位偏移
+> write
+```
+
+**编码器校准流程**
+
+**电角度校准**：
+
+电角度校准是确保 FOC 正确工作的关键步骤。moteus 提供自动校准功能：
+
+```bash
+# 自动校准
+moteus-tool --target 1 --calibrate
+
+# 强制 Kv 值校准（如果已知）
+moteus-tool --target 1 --calibrate --cal-force-kv 100
+```
+
+**校准步骤**：
+
+1. 电机旋转一周，记录编码器值
+2. 计算编码器零位偏移
+3. 识别电感、电阻等电机参数
+4. 保存配置到 Flash
+
+**零位标定**：
+
+```python
+import asyncio
+import moteus
+
+async def calibrate_zero():
+    c = moteus.Controller(id=1)
+
+    # 进入校准模式
+    await c.set_mode(moteus.Mode.CALIBRATION)
+
+    # 等待校准完成
+    await asyncio.sleep(5.0)
+
+    # 保存结果
+    await c.set_reindex()
+
+asyncio.run(calibrate_zero())
+```
+
+**编码器故障检测**
+
+moteus 实现了多种编码器故障检测机制：
+
+1. **信号丢失检测**：编码器无响应
+2. **范围检测**：位置超出合理范围
+3. **速度异常**：速度变化率超出物理限制
+4. **校验和错误**：SPI/I2C 通信错误
+
+**故障处理策略**：
+
+- **自动降级**：如果主编码器故障，切换到辅助编码器
+- **安全停机**：严重故障时进入安全状态
+- **故障报告**：通过 CAN-FD 发送故障码
+
+## 第三部分：QDD 技术与机器人关节应用
+
+### 3.1 QDD（准直驱）技术详解
+
+QDD（Quasi-Direct Drive，准直驱）是 moteus 的核心技术优势之一，也是其在机器人关节应用中脱颖而出的关键。与传统的高减速比方案不同，QDD 采用低减速比设计，在保持足够扭矩的同时，实现了优异的力控制性能和反向驱动性。
+
+**传统减速电机 vs QDD**
+
+**传统减速电机**：
+```
+电机 → 高减速比（100:1） → 输出
+特点：高扭矩、低速度、高惯性、低反向驱动性
+应用：CNC 机床、精密定位
+```
+
+**QDD 方案**：
+```
+电机 → 低减速比（6:1 到 10:1） → 输出
+特点：适中扭矩、高速度、低惯性、高反向驱动性
+应用：四足机器人、机械臂、人机交互
+```
+
+**数学模型**
+
+**有效惯性计算**：
+
+对于带减速器的系统，反射到电机侧的有效惯性为：
+
+```
+J_eff = J_motor + J_load / N²
+```
+
+其中：
+- `J_eff`：系统总有效惯性
+- `J_motor`：电机转子惯性
+- `J_load`：负载惯性
+- `N`：减速比
+
+**QDD 的优势**：
+
+在 QDD 设计中，减速比 N 较小（6:1 到 10:1），因此：
+
+1. **低有效惯性**：`J_load / N²` 项较小，系统响应更快
+2. **高透明度**：负载可以更容易地反向驱动电机
+3. **高力控制精度**：减少了摩擦和齿隙的影响
+
+**扭矩密度分析**
+
+传统观念认为高减速比可以提供更高的扭矩密度，但实际情况更为复杂：
+
+**输出扭矩**：
+```
+T_out = T_motor × N × efficiency
+```
+
+其中 `efficiency` 是齿轮箱效率（通常为 0.7-0.9）。
+
+**QDD 的优化策略**：
+
+moteus 通过以下方式优化 QDD 系统的扭矩输出：
+
+1. **高转速电机**：选择高 Kv 值的电机（如 100-200 Kv）
+2. **高电流能力**：30kHz 控制频率支持峰值电流达 100A
+3. **低损耗减速器**：使用高效行星齿轮或谐波减速器
+4. **热管理**：金属芯 PCB 提供优异的散热
+
+**反向驱动性**
+
+**反向驱动性**（Back-drivability）是 QDD 最显著的特性，指的是负载可以轻松地驱动电机转动。
+
+**优势**：
+
+1. **人机交互安全性**：当人与机器人碰撞时，关节会"退让"，减少冲击力
+2. **力控制精度**：可以直接通过扭矩控制实现力控，无需额外的力传感器
+3. **能量效率**：在重力补偿等场景下，电机可以反向发电，回收能量
+
+**vs 传统方案对比表**：
+
+| 特性 | QDD + moteus | 传统减速电机 + ODrive |
+|------|-------------|---------------------|
+| **反向驱动性** | 优秀（可手动驱动） | 差（几乎不可驱动） |
+| **力控制精度** | 高（直接力反馈） | 中（受摩擦影响） |
+| **冲击安全性** | 优秀（柔性吸收） | 差（刚性传递） |
+| **透明度** | 高 | 低 |
+| **峰值扭矩** | 中等 | 高 |
+| **速度范围** | 宽 | 窄 |
+| **控制带宽** | 高（>100Hz） | 中（~10-50Hz） |
+| **摩擦影响** | 小 | 大 |
+| **齿隙影响** | 小 | 大 |
+| **适用场景** | 交互机器人、四足 | CNC、精密定位 |
+
+**能量效率分析**
+
+QDD 在能量效率方面也有优势：
+
+1. **高转速效率**：电机在高速区效率更高
+2. **低齿轮损耗**：低减速比意味着齿轮传递损耗小
+3. **再生制动**：优异的再生制动能力，可以回收能量
+
+**典型 QDD 配置**
+
+```yaml
+# 推荐的 QDD 电机配置
+电机: AK80-9（QDD 电机）
+  - Kv: 100 Kv
+  - 最大扭矩: 9 Nm
+  - 峰值扭矩: 18 Nm
+  - 额定电流: 10A
+  - 峰值电流: 20A
+
+减速器: 行星齿轮 8:1
+  - 效率: >0.9
+  - 背隙: <1°
+
+编码器: 14-bit 磁编码器
+  - 分辨率: 16384 点/圈
+  - 精度: ±0.02°
+
+控制器: moteus r4.11
+  - 控制频率: 30kHz
+  - 峰值电流: 100A
+```
+
+### 3.2 四足机器人应用
+
+四足机器人是 moteus 最主要的应用领域，MIT Mini Cheetah 和 Quad A1 等项目充分验证了 moteus 在高动态多轴协调方面的优势。
+
+**MIT Mini Cheetah 案例**
+
+**硬件配置**：
+
+MIT Mini Cheetah 使用了 12 个 moteus 控制器（每条腿 3 个关节）：
+
+```
+前左腿：
+  - 髋关节外展/内收：moteus #1
+  - 髋关节屈/伸：moteus #2
+  - 膝关节屈/伸：moteus #3
+
+前右腿：moteus #4, #5, #6
+后左腿：moteus #7, #8, #9
+后右腿：moteus #10, #11, #12
+```
+
+**性能指标**：
+
+- **步态频率**：3-5 Hz（ trot 步态）
+- **跳跃高度**：0.5m（垂直跳跃）
+- **奔跑速度**：3.5 m/s（最大速度）
+- **扭矩控制带宽**：>100Hz
+- **控制频率**：
+  - 上位机：1 kHz（轨迹规划）
+  - moteus：30 kHz（电流环）
+
+**CAN-FD 总线拓扑**：
+
+```
+树莓派4
+    ↓ SPI
+pi3hat
+    ├─ CAN1: 腿1的3个moteus
+    ├─ CAN2: 腿2的3个moteus
+    ├─ CAN3: 腿3的3个moteus
+    └─ CAN4: 腿4的3个moteus
+```
+
+每个 CAN 总线连接 3 个控制器，总负载约 45%，满足实时性要求。
+
+**控制架构**
+
+**分层控制结构**：
+
+```
+高层控制（树莓派）：
+  - 步态规划：trot, bound, walk 等
+  - 轨迹生成：摆腿轨迹
+  - 虚拟模型控制（VMC）
+  - 频率：1 kHz
+
+中层控制（pi3hat）：
+  - CAN-FD 调度
+  - 时间同步
+  - 数据聚合
+  - 频率：1 kHz
+
+底层控制（moteus）：
+  - 位置/速度/扭矩控制
+  - FOC 电流环
+  - 频率：30 kHz
+```
+
+**Quad A1 完整介绍**
+
+Quad A1 是 mjbots 自家的四足机器人产品，完全开源，是学习和研究四足机器人的理想平台。
+
+**硬件规格**：
+
+- **尺寸**：约 50cm × 30cm × 40cm
+- **重量**：约 2.5kg
+- **电池**：8S LiPo（29.6V）
+- **控制器**：12× moteus n1 或 r4.11
+- **主控**：树莓派4 + pi3hat
+- **IMU**：MPU-6500（集成在 pi3hat）
+
+**开源资源**：
+
+- **硬件设计**：CAD 文件、PCB 设计完全开源
+- **固件**：基于 MIT Mini Cheetah 的控制算法
+- **软件**：Python 控制代码，完整的步态实现
+- **文档**：详细的组装和调试指南
+
+**实战配置指南**
+
+**典型四足关节配置**：
+
+```yaml
+# 四足机器人关节配置（YAML 格式）
+joint_config:
+  motor:
+    type: AK80-9
+    kv: 100
+    max_continuous_current: 10A
+    max_peak_current: 20A
+
+  reducer:
+    type: planetary
+    ratio: 8:1
+    efficiency: 0.9
+
+  encoder:
+    type: AS5047P
+    resolution: 14-bit
+    interface: SPI
+
+  controller:
+    model: moteus r4.11
+    control_frequency: 30kHz
+    can_fd_rate: 5Mbps
+
+  limits:
+    position_min: -100°
+    position_max: 100°
+    velocity_max: 20 rad/s
+    torque_max: 10 Nm
+
+  control:
+    kp: 50
+    kd: 1.0
+    ki: 0.0
+    max_torque: 10.0
+```
+
+**电池选择**：
+
+```
+推荐电池：8S 或 10S LiPo
+- 8S (29.6V 标称, 33.6V 峰值)：平衡功率和重量
+- 10S (37V 标称, 42V 峰值)：更高功率，适合大型机器人
+
+容量计算（12 轴系统）：
+- 平均电流：约 20A（所有轴）
+- 续航时间：20-30 分钟（使用 5000mAh 电池）
+- 推荐容量：≥5000mAh，≥50C 放电
+```
+
+**四足控制关键点**
+
+**1. 虚拟模型控制（VMC）**
+
+VMC 是四足机器人的核心控制算法，将复杂的动力学问题简化为虚拟模型：
+
+```python
+# 简化的 VMC 示例
+class VirtualModelControl:
+    def __init__(self):
+        self.mass = 2.5  # 机器人质量
+        self.gravity = 9.81
+        self.kp_body = 1000  # 身体位置增益
+        self.kd_body = 50    # 身体阻尼
+
+    def compute_foot_forces(self, body_state, foot_positions):
+        """计算每只脚的期望力"""
+        # 计算重力补偿
+        f_gravity = self.mass * self.gravity / 4
+
+        # 计算身体控制力
+        f_body = self.kp_body * (target_height - actual_height)
+
+        # 分配到每只脚
+        foot_forces = f_gravity + f_body
+
+        return foot_forces
+```
+
+**2. 摆腿轨迹规划**
+
+摆腿轨迹决定了足端运动的平滑性和稳定性：
+
+```python
+def swing_trajectory(t, T, start, end, height=0.05):
+    """
+    摆腿轨迹（三次样条）
+
+    参数:
+        t: 当前时间（0 到 T）
+        T: 摆腿周期
+        start: 起始位置
+        end: 目标位置
+        height: 抬腿高度
+    """
+    # 归一化时间
+    tau = t / T
+
+    # 水平运动（三次样条）
+    x = start[0] + (end[0] - start[0]) * (3*tau**2 - 2*tau**3)
+    y = start[1] + (end[1] - start[1]) * (3*tau**2 - 2*tau**3)
+
+    # 垂直运动（正弦波）
+    z = height * math.sin(math.pi * tau)
+
+    return [x, y, z]
+```
+
+**3. 地面接触检测**
+
+准确的接触检测是实现稳定步态的关键：
+
+```python
+def detect_contact(leg_id, motor_data):
+    """通过电流和位置估计接触状态"""
+    # 方法1：基于电流
+    if motor_data.torque > threshold:
+        contact = True
+
+    # 方法2：基于位置误差
+    position_error = target_pos - actual_pos
+    if abs(position_error) < tolerance:
+        contact = True
+
+    # 方法3：基于加速度（需要 IMU）
+    if leg_acceleration < 0:
+        contact = True
+
+    return contact
+```
+
+**4. 状态机设计**
+
+四足机器人的步态状态机：
+
+```
+[站立] → [行走] → [trot] → [跳跃] → [站立]
+   ↓        ↓        ↓        ↓
+  急停    急停     急停      急停
+```
+
+```python
+class GaitStateMachine:
+    def __init__(self):
+        self.state = "STAND"
+
+    def transition(self, command):
+        if self.state == "STAND" and command == "WALK":
+            self.state = "WALK"
+
+        elif self.state == "WALK" and command == "TROT":
+            self.state = "TROT"
+
+        elif command == "STOP":
+            self.state = "STAND"
+
+        return self.state
+```
+
+### 3.3 机械臂与灵巧手
+
+除了四足机器人，moteus 在机械臂和灵巧手等应用中也表现出色。
+
+**DexWrist 机械腕**
+
+**项目概述**：
+
+DexWrist 是一个 3 自由度机械腕，专为受限和动态环境中的操作而设计。
+
+**硬件配置**：
+
+- **关节数**：3 个自由度
+- **控制器**：3× moteus-n1（紧凑型）
+- **减速比**：每个关节 8:1
+- **控制模式**：位置控制 + 力矩控制混合
+
+**控制策略**：
+
+```python
+# 导纳控制（Admittance Control）
+class AdmittanceControl:
+    def __init__(self):
+        self.K_spring = 100  # 虚拟刚度
+        self.B_damper = 10   # 虚拟阻尼
+
+    def compute(self, target_pos, actual_pos, external_force):
+        """计算期望位置"""
+        # 虚拟弹簧-阻尼系统
+        delta = target_pos - actual_pos
+        virtual_force = self.K_spring * delta
+
+        # 考虑外力
+        total_force = virtual_force - external_force
+
+        # 转换为位置调整
+        pos_adjustment = total_force / self.K_spring
+
+        return target_pos + pos_adjustment
+```
+
+**多指灵巧手**
+
+**moteus-n1 的优势**：
+
+moteus-n1 的超小尺寸（38×38×9mm）使其成为多指灵巧手的理想选择：
+
+- **每指 3 个关节**：使用 3 个 moteus-n1
+- **总关节数**：12 个（4 指）或 15 个（5 指）
+- **控制策略**：分层力控 + 位置控制
+
+**典型配置**：
+
+```yaml
+finger:
+  joints: 3
+  controller: moteus n1
+  reduction: 6:1
+
+  control:
+    proximal:  # 近端关节
+      mode: position
+      kp: 80
+      kd: 2.0
+
+    middle:   # 中间关节
+      mode: position
+      kp: 60
+      kd: 1.5
+
+    distal:   # 远端关节
+      mode: torque  # 力控抓取
+      max_torque: 1.0 Nm
+```
+
+**工业机械臂集成**
+
+**6 自由度机械臂**：
+
+使用 moteus x1 的高功率版本，适合工业应用：
+
+- **负载能力**：5-10kg
+- **工作半径**：0.5-1m
+- **重复定位精度**：±0.1mm
+- **控制器**：6× moteus x1
+
+**运动学集成**：
+
+```python
+# 逆运动学求解
+def inverse_kinematics(target_pose):
+    """
+    计算关节角度以达到目标位姿
+
+    参数:
+        target_pose: [x, y, z, roll, pitch, yaw]
+
+    返回:
+        joint_angles: [j1, j2, j3, j4, j5, j6]
+    """
+    # 使用解析解或数值优化
+    # ...
+
+    return joint_angles
+
+# 发送命令到 moteus
+async def move_to_pose(target_pose):
+    joint_angles = inverse_kinematics(target_pose)
+
+    commands = [
+        moteus.Command(position=angle, kp=100, kd=2.0)
+        for angle in joint_angles
+    ]
+
+    results = await transport.cycle(commands)
+```
+
+**ROS2 集成**：
+
+```xml
+<!-- URDF 片段 -->
+<joint name="joint1">
+  <hardware interface="moteus_ros2/MoteusHardwareInterface"/>
+  <command_interface name="position"/>
+  <command_interface name="velocity"/>
+  <command_interface name="effort"/>
+  <state_interface name="position"/>
+  <state_interface name="velocity"/>
+  <state_interface name="effort"/>
+</joint>
+```
+
+**应用场景总结**
+
+| 应用 | 推荐 moteus 型号 | 关键特性 | 典型配置 |
+|------|----------------|---------|---------|
+| **四足机器人** | r4.11 | 高频控制、多轴协调 | 12 轴 + pi3hat |
+| **机械臂** | x1 | 高功率、高精度 | 6 轴 + ROS2 |
+| **灵巧手** | n1 | 超小尺寸 | 12-15 轴 |
+| **云台** | c1 | 紧凑、响应快 | 2 轴 |
+| **AGV** | r4.11 | 可靠性 | 4 轮驱动 |
+
+## 第四部分：快速入门与配置
+
+本部分将引导您从零开始快速上手 moteus，涵盖硬件连接、软件安装、基础配置和首次运行的完整流程。
+
+### 4.1 硬件连接指南
+
+**电源连接配置**
+
+电源是 moteus 正常工作的基础，正确的电源配置至关重要。
+
+**推荐电源规格**：
+
+```yaml
+电源要求:
+  电压: 24-48V DC
+    - 最小: 10V（低于此电压可能无法启动）
+    - 标称: 24V 或 36V
+    - 最大: 44V（r4.11）/ 54V（n1, x1）
+
+  电流能力:
+    连续: ≥控制器连续电流 × 轴数
+    峰值: ≥控制器峰值电流 × 0.5
+
+  保护:
+    过压保护: 推荐
+    过流保护: 必需
+    反极性保护: 推荐（或使用正确连接器）
+```
+
+**实际电源配置示例**：
+
+```
+单 moteus r4.11：
+- 24V 5A 电源适配器（实验室测试）
+- 6S LiPo 电池（22.2V 标称，5000mAh，50C+）（移动应用）
+
+12 轴四足机器人：
+- 8S LiPo 电池（29.6V 标称，10000mAh，50C+）
+- 总电流能力：≥200A（峰值）
+
+工业应用：
+- 48V 20A 开关电源
+- 大容量电容（≥470μF）就近安装
+```
+
+**电源连接注意事项**：
+
+1. **母线电容**：在控制器附近添加母线电容，减少电压尖峰
+   ```
+   推荐：470μF - 1000μF，耐压 ≥1.5× 工作电压
+   安装：距离控制器 <10cm
+   ```
+
+2. **保险丝**：添加保险丝保护电路
+   ```
+   容量：1.5 × 最大连续电流
+   类型：快速熔断
+   ```
+
+3. **线缆选择**：
+   ```
+   <20A：18 AWG
+   20-40A：16 AWG
+   >40A：14 AWG 或更粗
+   ```
+
+4. **热插拔**：moteus 不支持热插拔
+   ```
+   禁止：在通电状态下插拔 XT30 连接器
+   建议：使用 XT90-S 反火花连接器或预充电电路
+   ```
+
+**电机连接**
+
+**三相电机接线**：
+
+moteus 驱动三相无刷直流电机（BLDC）或永磁同步电机（PMSM）：
+
+```
+电机侧        moteus 侧
+Phase A  ────  A
+Phase B  ────  B
+Phase C  ────  C
+```
+
+**相序自检方法**：
+
+如果电机旋转方向错误或抖动，需要交换两相：
+
+```python
+# 方法1：通过软件交换
+moteus-tool --target 1
+> conf set servo.ph0_swap 1  # 交换 A 和 B 相
+> write
+> reindex
+
+# 方法2：交换硬件接线
+# 交换任意两相（如 A 和 B）
+```
+
+**电机选择指南**：
+
+| 参数 | 推荐范围 | 说明 |
+|------|---------|------|
+| **Kv 值** | 100-200 Kv | QDD 应用推荐 |
+| **最大扭矩** | ≥8 Nm | 根据负载选择 |
+| **额定电压** | 24-36V | 与电源匹配 |
+| **编码器** | 支持 SPI/ABI | 与 moteus 兼容 |
+
+**推荐电机型号**：
+
+- **AK80-9**：QDD 电机，9Nm 连续扭矩，100 Kv
+- **AK60-6**：小型 QDD 电机，6Nm 连续扭矩，130 Kv
+- **AK10-9**：微型电机，灵巧手应用
+
+**编码器接线**
+
+**板载 AS5047P（SPI）**：
+
+moteus r4.11 板载了 AS5047P 编码器，无需额外接线。但需要正确安装磁体：
+
+```
+磁体安装：
+1. 磁体直径：6mm 或 8mm（径向磁化）
+2. 气隙：约 2mm（磁体表面到编码器芯片）
+3. 对准：磁体中心必须对准编码器中心
+4. 固定：使用高强度胶水（如 Loctite）或机械固定
+```
+
+**外部 SPI 编码器（MA732）**：
+
+```python
+# 接线示例
+MA732          moteus
+VDD    ──────  3.3V
+GND    ──────  GND
+SCK    ──────  SPI_SCK
+SDO    ──────  SPI_MISO
+SDI    ──────  SPI_MOSI
+CS     ──────  SPI_CS
+```
+
+**CUI AMT21x（RS422）**：
+
+```python
+# 接线示例（5V 供电）
+CUI AMT21x     moteus
+VCC       ──────  5V
+GND       ──────  GND
+A         ──────  GPIO_A
+B         ──────  GPIO_B
+N         ──────  GPIO_N
+```
+
+**CAN-FD 总线拓扑**
+
+**基本连接**：
+
+```
+上位机（树莓派4）
+    ↓ SPI
+pi3hat
+    ├─ CAN_H ──┬─ moteus 1 ── moteus 2 ── ... ── 120Ω ──┐
+    └─ CAN_L ──┴──────────────────────────────────┘
+```
+
+**终端电阻**：
+
+- **位置**：总线两端各一个 120Ω 电阻
+- **计算**：`R_total = 120Ω || 120Ω = 60Ω`（匹配 CAN 特性阻抗）
+
+**线缆选择**：
+
+- **推荐**：屏蔽双绞线
+- **规格**：24 AWG 或 22 AWG
+- **长度**：每段 <1m，总线总长 <10m
+
+**菊花链 vs 星型拓扑**：
+
+```
+菊花链（推荐）：
+树莓派 → moteus1 → moteus2 → moteus3 → 120Ω
+
+星型拓扑（长距离）：
+          moteus2
+           ↗
+树莓派 → moteus1
+           ↘
+          moteus3
+```
+
+### 4.2 软件安装
+
+**方法 1：pip 安装（推荐）**
+
+这是最简单、最推荐的安装方式：
+
+```bash
+# 安装 moteus Python 库
+pip install moteus
+
+# 如果树莓派，还需要安装 pi3hat
+pip install mjbots.pi3hat
+
+# 验证安装
+python3 -c "import moteus; print('moteus installed successfully')"
+```
+
+**系统要求**：
+- Python 3.7+
+- Linux（推荐 Ubuntu 20.04+ 或 Raspberry Pi OS）
+- Windows/Mac 也支持，但可能需要额外配置
+
+**方法 2：从源码安装**
+
+如果需要最新功能或想修改代码：
+
+```bash
+# 克隆仓库
+git clone https://github.com/mjbots/moteus.git
+cd moteus
+
+# 安装依赖
+pip install -r requirements.txt
+
+# 安装
+python3 setup.py install
+```
+
+**pi3hat 驱动安装**（树莓派）
+
+pi3hat 需要额外的硬件驱动配置：
+
+```bash
+# 1. 启用 SPI 和 UART
+sudo raspi-config
+# 选择：Interface Options → SPI → Enable
+# 选择：Interface Options → Serial → Enable（但禁用 serial console）
+
+# 2. 安装 Python 依赖
+sudo apt update
+sudo apt install python3-dev python3-setuptools python3-pip
+
+# 3. 安装 pi3hat
+pip install mjbots.pi3hat
+
+# 4. 验证
+python3 -c "from mjbots.pi3hat import Pi3Hat; print('pi3hat ready')"
+```
+
+**moteus_tool 安装**
+
+moteus_tool 是命令行配置工具，与 Python 库分开安装：
+
+```bash
+# 安装
+pip install moteus-tool
+
+# 或从源码
+cd moteus/utils/moteus_tool
+pip install -r requirements.txt
+python3 setup.py install
+```
+
+**固件更新**
+
+检查当前固件版本并更新到最新：
+
+```bash
+# 查询当前固件版本
+moteus-tool --target 1 --query
+
+# 更新固件（如果有 .bin 文件）
+moteus-tool --target 1 --flash /path/to/firmware.bin
+
+# 或使用 Python API
+import moteus
+c = moteus.Controller(id=1)
+await c.flash_firmware('/path/to/firmware.bin')
+```
+
+### 4.3 基础配置
+
+**使用 moteus_tool 交互式配置**
+
+moteus_tool 提供了交互式命令行界面：
+
+```bash
+# 连接到控制器（CAN ID = 1）
+moteus-tool --target 1
+
+# 进入交互式 shell
+> help                    # 显示帮助
+> read                    # 读取当前配置
+> conf set servopos.position_min 0  # 设置参数
+> conf set servopos.position_max 100
+> write                   # 保存配置到 Flash
+> reindex                 # 重启控制器
+> exit                    # 退出
+```
+
+**关键配置参数**
+
+以下是 moteus 的关键配置参数及其推荐值：
+
+| 参数 | 默认值 | 推荐范围 | 说明 |
+|------|--------|---------|------|
+| `servo.current_max` | 10A | 5-40A | 峰值电流限制 |
+| `servopos.position_min` | - | 根据机械限位 | 软限位下限 |
+| `servopos.position_max` | - | 根据机械限位 | 软限位上限 |
+| `servo.velocity_max` | 50 rad/s | 10-100 | 最大速度限制 |
+| `servo.kp` | 50 | 10-200 | 位置增益 |
+| `servo.kd` | 1.0 | 0.1-5.0 | 阻尼增益 |
+| `servo.ki` | 0.0 | 0.0-1.0 | 积分增益 |
+| `servo.feedforward_torque` | 0.0 | ±扭矩 | 前馈扭矩 |
+| `servo.max_voltage` | 电源电压 | 0.8-1.0×电源电压 | 最大电压限制 |
+| `can.rate` | 1000000 | 1000000-5000000 | CAN 波特率（bps） |
+
+**配置示例**：
+
+```bash
+# 设置电流限制
+moteus-tool --target 1
+> conf set servo.current_max 20.0
+> conf set servo.max_voltage 40.0
+
+# 设置位置限制（单位：转）
+> conf set servopos.position_min -3.14159  # -180°
+> conf set servopos.position_max 3.14159   # +180°
+
+# 设置 PID 增益
+> conf set servo.kp 80.0
+> conf set servo.kd 1.5
+
+# 保存并重启
+> write
+> reindex
+```
+
+**Python API 基础控制**
+
+**1. 创建控制器实例**：
+
+```python
+import asyncio
+import moteus
+
+async def main():
+    # 创建单个控制器（默认 USB 连接）
+    c = moteus.Controller(id=1)
+
+    # 或指定传输层（CAN-FD）
+    from mjbots.pi3hat import Pi3Hat
+    transport = Pi3Hat(
+        cpu = 1,
+        spi_speed = 3000000,
+    )
+    c = moteus.Controller(id=1, transport=transport)
+
+asyncio.run(main())
+```
+
+**2. 位置控制**：
+
+```python
+async def position_control_example():
+    c = moteus.Controller(id=1)
+
+    # 移动到位置 1.0（1转）
+    await c.set_position(
+        position=1.0,           # 目标位置（转）
+        velocity=0.0,            # 速度前馈
+        maximum_torque=10.0,     # 最大扭矩限制
+        kp=50,                   # 位置增益
+        kd=1.0,                  # 阻尼增益
+        feedforward_torque=0.0,  # 前馈扭矩
+        query=True               # 请求状态反馈
+    )
+
+    # 等待完成
+    await asyncio.sleep(1.0)
+
+asyncio.run(position_control_example())
+```
+
+**3. 速度控制**：
+
+```python
+async def velocity_control_example():
+    c = moteus.Controller(id=1)
+
+    # 速度控制：position=math.nan 表示速度模式
+    await c.set_position(
+        position=float('nan'),  # NaN 表示忽略位置
+        velocity=2.0,            # 目标速度：2转/秒
+        maximum_torque=10.0,
+        kp=0.0,                  # 禁用位置环
+        kd=1.0,
+        feedforward_torque=0.0,
+        query=True
+    )
+
+    # 持续时间
+    await asyncio.sleep(2.0)
+
+    # 停止
+    await c.set_stop()
+
+asyncio.run(velocity_control_example())
+```
+
+**4. 扭矩控制**：
+
+```python
+async def torque_control_example():
+    c = moteus.Controller(id=1)
+
+    # 扭矩控制：禁用位置和速度环
+    await c.set_position(
+        position=float('nan'),  # 忽略位置
+        velocity=0.0,            # 忽略速度
+        kp=0.0,                  # 禁用位置环
+        kd=0.0,                  # 禁用阻尼
+        feedforward_torque=1.0,  # 直接扭矩
+        query=True
+    )
+
+    # 持续时间
+    await asyncio.sleep(1.0)
+
+    # 停止
+    await c.set_stop()
+
+asyncio.run(torque_control_example())
+```
+
+**校准流程**
+
+**自动校准**：
+
+首次使用或更换电机后，需要进行校准：
+
+```bash
+# 方法1：使用 moteus_tool
+moteus-tool --target 1 --calibrate
+
+# 方法2：使用 Python API
+import asyncio
+import moteus
+
+async def calibrate():
+    c = moteus.Controller(id=1)
+
+    # 进入校准模式
+    await c.set_mode(moteus.Mode.CALIBRATION)
+
+    # 等待校准完成（约10秒）
+    await asyncio.sleep(12.0)
+
+    # 保存校准结果
+    await c.set_reindex()
+
+    print("校准完成！")
+
+asyncio.run(calibrate())
+```
+
+**校准过程**：
+
+1. 电机旋转一周，记录编码器值
+2. 计算编码器零位偏移
+3. 识别电感、电阻等电机参数
+4. 保存配置到 Flash
+
+**校准选项**：
+
+```bash
+# 基本校准
+moteus-tool --target 1 --calibrate
+
+# 强制 Kv 值（如果已知）
+moteus-tool --target 1 --calibrate --cal-force-kv 100
+
+# 调整校准功率
+moteus-tool --target 1 --calibrate --cal-motor-power 5.0
+
+# 调整电流环带宽
+moteus-tool --target 1 --calibrate --cal-bw-hz 400
+```
+
+**PID 调优指南**
+
+PID 调优是获得理想控制性能的关键步骤：
+
+**调优步骤**：
+
+1. **初始设置**：
+   ```bash
+   > conf set servo.kp 10.0
+   > conf set servo.kd 0.5
+   > conf set servo.ki 0.0
+   > write
+   > reindex
+   ```
+
+2. **调 kp（位置增益）**：
+   - 从小值开始（10）
+   - 每次增加 50%，直到出现轻微振荡
+   - 回退到上一个稳定值
+
+3. **调 kd（阻尼增益）**：
+   - 初始设为 kp 的 1/100
+   - 逐步增加，直到振荡消失
+   - 推荐范围：kp/100 到 kp/50
+
+4. **调 ki（积分增益）**：
+   - 仅在需要消除稳态误差时使用
+   - 从小值开始（0.1）
+   - 缓慢增加
+   - 注意：积分项可能引入振荡
+
+**常见问题诊断**：
+
+| 现象 | 可能原因 | 解决方案 |
+|------|---------|---------|
+| 电机不转 | 电流限制过低 | 增大 `current_max` |
+| 震动/振荡 | kp/kd 不当 | 降低 kp 或增大 kd |
+| 位置漂移 | 编码器噪声 | 检查接线或启用滤波 |
+| 响应慢 | kp 过小 | 增大 kp |
+| 跟踪误差大 | ki 过小 | 增加ki或使用前馈 |
+| 过热保护 | 散热不良 | 增加散热片或降低电流 |
+
+## 第五部分：高级功能与控制模式
+
+本部分深入探讨 moteus 的高级控制模式和特性，这些功能是实现高性能机器人应用的关键。
+
+### 5.1 控制模式详解
+
+moteus 提供了多种控制模式，可以满足不同应用场景的需求。理解这些模式的特性和适用场景是优化系统性能的前提。
+
+**1. 位置控制模式**
+
+位置控制是最常用的控制模式，适用于精确定位应用。
+
+**基本原理**：
+
+位置控制采用级联 PID 控制：
+
+```
+位置误差 → PID → 速度指令
+    ↓
+速度误差 → PID → 转矩指令
+    ↓
+Iq误差 → PID → 电压输出
+```
+
+**代码示例**：
+
+```python
+async def position_control_demo():
+    c = moteus.Controller(id=1)
+
+    # 精确位置控制
+    await c.set_position(
+        position=1.0,              # 目标位置：1转
+        velocity=0.0,               # 速度前馈：0
+        maximum_torque=10.0,        # 最大扭矩限制：10Nm
+        kp=100,                    # 位置增益：决定刚度
+        kd=2.0,                    # 阻尼增益：决定阻尼
+        feedforward_torque=0.0,    # 前馈扭矩：0
+        query=True                 # 请求状态反馈
+    )
+
+    # 等待到达
+    await asyncio.sleep(1.0)
+
+    # 读取结果
+    result = await c.set_position(query=True)
+    actual_pos = result.values[moteus.Register.POSITION]
+    print(f"实际位置: {actual_pos:.3f}")
+
+asyncio.run(position_control_demo())
+```
+
+**参数调优建议**：
+
+- **kp（位置增益）**：
+  - 小值（10-30）：软关节，适用于人机交互
+  - 中值（50-100）：一般应用
+  - 大值（100-200）：刚性关节，高精度定位
+
+- **kd（阻尼增益）**：
+  - 推荐值：kp/100 到 kp/50
+  - 增大 kd 可减少超调和振荡
+
+**2. 速度控制模式**
+
+速度控制适用于需要恒速运行的应用，如传送带、风扇等。
+
+**实现方式**：
+
+通过设置 `position=float('nan')` 来禁用位置环：
+
+```python
+async def velocity_control_demo():
+    c = moteus.Controller(id=1)
+
+    # 速度控制：2转/秒
+    await c.set_position(
+        position=float('nan'),   # NaN 忽略位置控制
+        velocity=2.0,            # 目标速度
+        maximum_torque=10.0,
+        kp=0.0,                  # 禁用位置环
+        kd=1.0,                  # 速度环阻尼
+        feedforward_torque=0.0,
+        query=True
+    )
+
+    # 持续时间
+    await asyncio.sleep(3.0)
+
+    # 停止
+    await c.set_stop()
+
+asyncio.run(velocity_control_demo())
+```
+
+**应用场景**：
+- 传送带恒速运行
+- 风扇或泵类负载
+- 速度轨迹跟踪
+
+**3. 扭矩控制模式**
+
+扭矩控制（力控制）是实现力控应用的基础，如力控抓取、阻抗控制等。
+
+**实现方式**：
+
+禁用位置环和速度环，直接输出扭矩：
+
+```python
+async def torque_control_demo():
+    c = moteus.Controller(id=1)
+
+    # 扭矩控制：1Nm 恒扭矩
+    await c.set_position(
+        position=float('nan'),   # 忽略位置
+        velocity=0.0,             # 忽略速度
+        kp=0.0,                  # 禁用位置环
+        kd=0.0,                  # 禁用速度环
+        feedforward_torque=1.0,  # 直接扭矩：1Nm
+        query=True
+    )
+
+    # 持续时间
+    await asyncio.sleep(2.0)
+
+    # 停止
+    await c.set_stop()
+
+asyncio.run(torque_control_demo())
+```
+
+**应用场景**：
+- 力控抓取
+- 关节力矩限制
+- 重力补偿
+- 力反馈控制
+
+**4. 混合控制模式（PD + 前馈）**
+
+混合控制模式结合了位置控制和前馈扭矩的优点。
+
+**代码示例**：
+
+```python
+async def hybrid_control_demo():
+    c = moteus.Controller(id=1)
+
+    # 位置控制 + 扭矩前馈
+    await c.set_position(
+        position=1.0,              # 目标位置
+        velocity=0.5,              # 速度前馈
+        maximum_torque=10.0,
+        kp=50,                    # 位置控制
+        kd=1.0,
+        feedforward_torque=0.5,   # 前馈扭矩补偿重力等
+        query=True
+    )
+
+    await asyncio.sleep(1.0)
+
+asyncio.run(hybrid_control_demo())
+```
+
+**应用场景**：
+- 重力补偿下的位置控制
+- 轨迹跟踪（使用速度前馈）
+- 预期扰动补偿
+
+### 5.2 轨迹规划与插值
+
+轨迹规划是机器人实现复杂运动的关键技术。moteus 支持多种轨迹规划方法。
+
+**梯形速度轨迹**
+
+梯形速度轨迹是最简单、最常用的轨迹规划方法。
+
+**参数定义**：
+
+```python
+def trapezoidal_trajectory(start, end, max_vel, accel):
+    """
+    计算梯形速度轨迹
+
+    参数:
+        start: 起始位置
+        end: 目标位置
+        max_vel: 最大速度
+        accel: 加速度
+
+    返回:
+        [(time, position), ...] 离散轨迹点
+    """
+    distance = abs(end - start)
+
+    # 计算加速时间
+    t_accel = max_vel / accel
+    dist_accel = 0.5 * accel * t_accel**2
+
+    # 判断是否达到最大速度
+    if distance < 2 * dist_accel:
+        # 三角轨迹（未达到最大速度）
+        t_total = 2 * math.sqrt(distance / accel)
+        t_accel = t_total / 2
+    else:
+        # 梯形轨迹（有匀速段）
+        dist_cruise = distance - 2 * dist_accel
+        t_cruise = dist_cruise / max_vel
+        t_total = 2 * t_accel + t_cruise
+
+    # 生成轨迹点
+    trajectory = []
+    dt = 0.01  # 10ms 采样
+    for i in range(int(t_total / dt)):
+        t = i * dt
+
+        if t < t_accel:
+            # 加速段
+            pos = 0.5 * accel * t**2
+        elif t < t_accel + t_cruise:
+            # 匀速段
+            pos = dist_accel + max_vel * (t - t_accel)
+        else:
+            # 减速段
+            t_dec = t - t_accel - t_cruise
+            pos = distance - 0.5 * accel * (t_total - t)**2
+
+        trajectory.append((t, pos))
+
+    return trajectory
+```
+
+**使用示例**：
+
+```python
+async def follow_trajectory():
+    c = moteus.Controller(id=1)
+
+    # 生成轨迹
+    trajectory = trapezoidal_trajectory(
+        start=0.0,
+        end=10.0,
+        max_vel=5.0,
+        accel=10.0
+    )
+
+    # 执行轨迹
+    for t, pos in trajectory:
+        await c.set_position(
+            position=pos,
+            kp=50,
+            kd=1.0,
+            maximum_torque=10.0,
+            query=True
+        )
+
+        # 控制采样时间
+        await asyncio.sleep(0.01)
+
+asyncio.run(follow_trajectory())
+```
+
+**样条插值**
+
+样条插值提供更平滑的轨迹，适合复杂运动。
+
+```python
+from scipy import interpolate
+
+def spline_trajectory(waypoints, duration):
+    """
+    三次样条轨迹
+
+    参数:
+        waypoints: 关键点列表 [(t0, pos0), (t1, pos1), ...]
+        duration: 总时间
+
+    返回:
+        样条插值函数
+    """
+    t = [p[0] for p in waypoints]
+    pos = [p[1] for p in waypoints]
+
+    # 三次样条插值
+    spline = interpolate.CubicSpline(t, pos, bc_type='clamped')
+
+    return spline
+
+# 使用示例
+waypoints = [
+    (0.0, 0.0),
+    (1.0, 1.0),
+    (2.0, 0.5),
+    (3.0, 0.0),
+]
+
+spline = spline_trajectory(waypoints, 3.0)
+
+# 执行
+for i in range(300):
+    t = i * 0.01
+    pos = spline(t)[0]
+
+    await c.set_position(
+        position=pos,
+        kp=50,
+        kd=1.0,
+        query=True
+    )
+
+    await asyncio.sleep(0.01)
+```
+
+**多段轨迹连续性**
+
+对于复杂的运动，需要保证轨迹的连续性：
+
+- **位置连续**：C0 连续
+- **速度连续**：C1 连续（一阶导数连续）
+- **加速度连续**：C2 连续（二阶导数连续）
+
+moteus 的内置轨迹生成器保证了速度和加速度的连续性。
+
+### 5.3 高级特性
+
+**1. 阻抗控制（虚拟弹簧-阻尼）**
+
+阻抗控制是实现柔性交互的关键技术。
+
+**原理**：
+
+将关节建模为虚拟的弹簧-阻尼系统：
+
+```
+F = K * (target_pos - actual_pos) + B * (target_vel - actual_vel)
+```
+
+其中：
+- `K`：虚拟刚度
+- `B`：虚拟阻尼
+
+**代码实现**：
+
+```python
+class ImpedanceControl:
+    def __init__(self, controller, K=100, B=10):
+        self.controller = controller
+        self.K = K  # 刚度
+        self.B = B  # 阻尼
+
+    async def control(self, target_pos, actual_pos, target_vel, actual_vel):
+        """
+        阻抗控制
+
+        参数:
+            target_pos: 目标位置
+            actual_pos: 实际位置（从反馈获取）
+            target_vel: 目标速度
+            actual_vel: 实际速度（从反馈获取）
+        """
+        # 计算虚拟力
+        pos_error = target_pos - actual_pos
+        vel_error = target_vel - actual_vel
+
+        virtual_force = self.K * pos_error + self.B * vel_error
+
+        # 转换为扭矩命令
+        await self.controller.set_position(
+            position=float('nan'),
+            velocity=0.0,
+            kp=0.0,
+            kd=0.0,
+            feedforward_torque=virtual_force,
+            query=True
+        )
+
+# 使用示例
+impedance = ImpedanceControl(c, K=100, B=10)
+
+while True:
+    result = await c.set_position(query=True)
+    actual_pos = result.values[moteus.Register.POSITION]
+    actual_vel = result.values[moteus.Register.VELOCITY]
+
+    await impedance.control(
+        target_pos=1.0,
+        actual_pos=actual_pos,
+        target_vel=0.0,
+        actual_vel=actual_vel
+    )
+
+    await asyncio.sleep(0.01)
+```
+
+**应用场景**：
+- 人机交互安全
+- 柔性抓取
+- 力控装配
+
+**2. 力矩传感器融合**
+
+moteus 支持外部扭矩传感器，实现更精确的力控制。
+
+**配置双编码器**：
+
+```python
+# 主编码器：电机侧（用于 FOC）
+# 辅助编码器：负载侧（用于力估计）
+
+moteus-tool --target 1
+> conf set servo.encoder_source 0      # 板载编码器
+> conf set servo.aux_encoder_source 2  # 外部编码器
+> conf set servo.aux_offset 0.0        # 辅助编码器零位偏移
+> write
+> reindex
+```
+
+**力矩估计**：
+
+```python
+def estimate_torque(motor_data):
+    """
+    通过双编码器估计关节扭矩
+
+    扭矩 = K * (theta_load - theta_motor)
+    """
+    K_joint = 1000  # 关节刚度（Nm/rad）
+
+    theta_motor = motor_data.motor_position
+    theta_load = motor_data.aux_position
+
+    torque = K_joint * (theta_load - theta_motor)
+
+    return torque
+```
+
+**3. 故障检测与恢复**
+
+moteus 实现了完善的故障检测机制。
+
+**故障类型**：
+
+| 故障码 | 描述 | 触发条件 | 恢复方法 |
+|--------|------|---------|---------|
+| `FAULT_OVER_CURRENT` | 过流 | 电流 > `current_max` | 自动 |
+| `FAULT_OVER_VOLTAGE` | 过压 | 电压 > `max_voltage` | 自动 |
+| `FAULT_UNDER_VOLTAGE` | 欠压 | 电压 < 最小值 | 自动 |
+| `FAULT_ENCODER` | 编码器故障 | 编码器信号丢失 | 检查接线 |
+| `FAULT_OVER_TEMP` | 过温 | FET 温度过高 | 冷却后自动 |
+| `FAULT_POSITION` | 位置超限 | 超出软限位 | 手动移回 |
+
+**故障处理策略**：
+
+```python
+async def safe_fault_handler(controller):
+    """
+    安全故障处理
+    """
+    while True:
+        result = await controller.set_position(query=True)
+
+        # 检查故障
+        fault = result.values[moteus.Register.FAULT]
+
+        if fault != 0:
+            print(f"故障检测: {fault:#x}")
+
+            # 根据故障类型处理
+            if fault & 0x01:  # 过流
+                await controller.set_stop()
+                await asyncio.sleep(1.0)
+
+            elif fault & 0x10:  # 过温
+                print("温度过高，等待冷却...")
+                await asyncio.sleep(5.0)
+
+            elif fault & 0x20:  # 编码器故障
+                print("编码器故障，停止运动")
+                await controller.set_stop()
+                break  # 需要人工检查
+
+        await asyncio.sleep(0.01)
+
+asyncio.run(safe_fault_handler(c))
+```
+
+**4. 温度管理**
+
+温度管理是保证长期可靠性的关键。
+
+**温度监控**：
+
+```python
+async def temperature_monitor(controller):
+    """
+    实时温度监控
+    """
+    while True:
+        result = await controller.set_position(query=True)
+
+        # 读取温度
+        fet_temp = result.values[moteus.Register.FET_TEMPERATURE]
+        motor_temp = result.values[moteus.Register.MOTOR_TEMPERATURE]
+
+        print(f"FET温度: {fet_temp:.1f}°C")
+        print(f"电机温度: {motor_temp:.1f}°C")
+
+        # 温度过高时的降额策略
+        if fet_temp > 80:
+            # 降低电流限制
+            await controller.set_max_torque(5.0)
+            print("温度过高，降低功率")
+
+        await asyncio.sleep(1.0)
+
+asyncio.run(temperature_monitor(c))
+```
+
+**热管理策略**：
+
+1. **被动散热**：金属芯 PCB，良好的热传导
+2. **主动散热**：添加风扇或散热片
+3. **降额运行**：温度过高时自动降低电流
+4. **热模型预测**：基于热模型预测温度，提前预防
+
+## 第六部分：多轴协调与系统集成
+
+多轴协调是四足机器人、机械臂等复杂系统的核心能力。本部分详细介绍如何实现精确的多电机同步控制。
+
+### 6.1 pi3hat 多轴协调
+
+pi3hat 是实现多轴协调的关键硬件，它提供了硬件级的时间同步和高带宽通信。
+
+**pi3hat 硬件规格**
+
+| 特性 | 规格 |
+|------|------|
+| **微控制器** | STM32G4 |
+| **CAN-FD 通道** | 4路 |
+| **最大电机数** | 每通道4个，总共16个 |
+| **SPI 接口** | 与树莓派高速通信 |
+| **IMU** | MPU-6500（9轴） |
+| **尺寸** | 树莓派 HAT 标准 |
+
+**多轴同步控制示例**
+
+**基本多轴控制**：
+
+```python
+from mjbots.pi3hat import Pi3Hat
+import moteus
+import asyncio
+
+async def multi_axis_sync_control():
+    # 创建 pi3hat 传输层
+    transport = Pi3Hat(
+        cpu = 1,               # 绑定到 CPU 核心1
+        spi_speed = 3000000,  # SPI 速率 3Mbps
+    )
+
+    # 创建多个控制器
+    controllers = [
+        moteus.Controller(id=i, transport=transport)
+        for i in range(1, 5)
+    ]
+
+    # 发送停止命令
+    await transport.cycle([
+        moteus.Command(moteus.Stop())
+        for _ in range(4)
+    ])
+
+    # 同步位置控制
+    commands = [
+        moteus.Command(
+            position=i * 0.5,  # 每个电机不同位置
+            kp=50,
+            kd=1.0,
+            maximum_torque=10.0,
+            query=True
+        )
+        for i in range(4)
+    ]
+
+    # 发送同步命令
+    results = await transport.cycle(commands)
+
+    # 打印结果
+    for i, result in enumerate(results):
+        pos = result.values[moteus.Register.POSITION]
+        vel = result.values[moteus.Register.VELOCITY]
+        print(f"电机 {i+1}: 位置={pos:.3f}, 速度={vel:.3f}")
+
+asyncio.run(multi_axis_sync_control())
+```
+
+**四足机器人步态实现**：
+
+**Trot 步态（对角小跑）**：
+
+```python
+class TrotGait:
+    def __init__(self, transport):
+        self.transport = transport
+        self.controllers = [
+            moteus.Controller(id=i, transport=transport)
+            for i in range(1, 13)  # 12个电机
+        ]
+
+    async def step(self, t):
+        """
+        执行 trot 步态
+
+        步态周期：
+        0.0-0.5s：前左+后右腿摆动
+        0.5-1.0s：前右+后左腿摆动
+        """
+        # 定义腿部索引
+        FL = [1, 2, 3]   # 前左腿
+        FR = [4, 5, 6]   # 前右腿
+        BL = [7, 8, 9]   # 后左腿
+        BR = [10, 11, 12] # 后右腿
+
+        if (t % 1.0) < 0.5:
+            # 前左 + 后右摆动
+            swing_legs = FL + BR
+            stance_legs = FR + BL
+        else:
+            # 前右 + 后左摆动
+            swing_legs = FR + BL
+            stance_legs = BR + FL
+
+        # 准备命令
+        commands = []
+
+        for i in range(1, 13):
+            if i in swing_legs:
+                # 摆动腿：抬起并向前
+                commands.append(moteus.Command(
+                    position=0.5,  # 抬起
+                    kp=50,
+                    kd=1.0,
+                    maximum_torque=10.0,
+                    query=False
+                ))
+            else:
+                # 支撑腿：接地支撑
+                commands.append(moteus.Command(
+                    position=0.0,  # 接地
+                    kp=100,       # 高刚度
+                    kd=2.0,
+                    maximum_torque=10.0,
+                    query=False
+                ))
+
+        # 发送同步命令
+        await self.transport.cycle(commands)
+
+# 使用示例
+async def trot_demo():
+    transport = Pi3Hat(cpu=1, spi_speed=3000000)
+    gait = TrotGait(transport)
+
+    # 运行10步
+    for step in range(10):
+        await gait.step(step * 0.1)
+        await asyncio.sleep(0.1)
+
+asyncio.run(trot_demo())
+```
+
+**性能优化**：
+
+**CPU 亲和性设置**：
+
+```python
+import os
+
+# 绑定到特定CPU核心，避免上下文切换
+os.sched_setaffinity(0, {2})  # 绑定到CPU核心2
+```
+
+**实时性能监控**：
+
+```python
+async def monitor_performance(transport):
+    """
+    监控循环延迟
+    """
+    while True:
+        start = time.time()
+
+        # 发送命令
+        commands = [moteus.Command(query=True) for _ in range(4)]
+        results = await transport.cycle(commands)
+
+        # 计算延迟
+        latency = (time.time() - start) * 1e6  # 微秒
+
+        print(f"循环延迟: {latency:.2f} μs")
+
+        await asyncio.sleep(0.01)
+
+asyncio.run(monitor_performance(transport))
+```
+
+### 6.2 ROS2 集成
+
+ROS2（Robot Operating System 2）是机器人应用的主流软件框架。moteus 提供了完整的 ROS2 集成支持。
+
+**moteus_ros2 包安装**
+
+```bash
+# 克隆仓库
+git clone https://github.com/mjbots/moteus_ros2.git
+cd moteus_ros2
+
+# 安装依赖
+sudo apt install python3-colcon-common-extensions
+pip install -r requirements.txt
+
+# 编译
+colcon build --packages-select moteus_ros2
+
+# 激活环境
+source install/setup.bash
+```
+
+**URDF 配置示例**
+
+```xml
+<?xml version="1.0"?>
+<robot name="moteus_robot">
+  <!-- 杆件定义 -->
+  <link name="base_link"/>
+  <link name="link1"/>
+
+  <!-- 关节1 -->
+  <joint name="joint1" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="link1"/>
+
+    <!-- 硬件接口 -->
+    <hardware interface="moteus_ros2/MoteusHardwareInterface">
+      <param name="can_id" value="1"/>
+      <param name="transport" value="pi3hat"/>
+    </hardware>
+
+    <!-- 命令接口 -->
+    <command_interface name="position"/>
+    <command_interface name="velocity"/>
+    <command_interface name="effort"/>
+
+    <!-- 状态接口 -->
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+    <state_interface name="effort"/>
+    <state_interface name="temperature"/>
+  </joint>
+
+  <!-- 更多关节... -->
+</robot>
+```
+
+**控制器配置**
+
+```yaml
+# controllers.yaml
+controllers:
+  joint_trajectory_controller:
+    type: joint_trajectory_controller/JointTrajectoryController
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+
+    state_publish_rate: 50.0  # Hz
+    action_state_rate: 50.0    # Hz
+
+    # PID 增益（在 moteus 中实现，这里只作为前馈）
+    gains:
+      joint1:
+        p: 100.0
+        i: 0.0
+        d: 1.0
+```
+
+**启动节点**
+
+```bash
+# 启动 moteus_ros2 节点
+ros2 launch moteus_ros2 moteus_ros2.launch.py
+
+# 启动轨迹控制器
+ros2 run joint_trajectory_controller joint_trajectory_controller \
+  --ros-args \
+  --params-file $(ros2 pkg prefix moteus_ros2)/config/controllers.yaml
+```
+
+**发送轨迹命令**
+
+```python
+import rclpy
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+
+class TrajectoryPublisher:
+    def __init__(self):
+        rclpy.init()
+        self.publisher = rclpy.create_publisher(
+            JointTrajectory,
+            '/joint_trajectory_controller/joint_trajectory',
+            10
+        )
+
+    def publish_trajectory(self):
+        msg = JointTrajectory()
+        msg.joint_names = ['joint1', 'joint2', 'joint3', 'joint4']
+
+        # 添加轨迹点
+        point = JointTrajectoryPoint()
+        point.positions = [1.0, 0.5, 0.0, -0.5]
+        point.time_from_start.sec = 1
+
+        msg.points.append(point)
+
+        self.publisher.publish(msg)
+
+def main():
+    publisher = TrajectoryPublisher()
+    publisher.publish_trajectory()
+
+if __name__ == '__main__':
+    main()
+```
+
+### 6.3 实时性能优化
+
+**通信频率优化**
+
+**目标**：实现 1kHz 控制回路
+
+**优化策略**：
+
+1. **使用 CAN-FD**：5Mbps 数据速率
+2. **减少查询频率**：非必要时不请求状态反馈
+3. **批量命令**：使用 `transport.cycle()` 批量发送
+4. **CPU 亲和性**：绑定到特定 CPU 核心
+
+**代码示例**：
+
+```python
+async def optimized_control_loop():
+    transport = Pi3Hat(
+        cpu = 1,
+        spi_speed = 3000000,
+    )
+
+    controllers = [
+        moteus.Controller(id=i, transport=transport)
+        for i in range(1, 13)
+    ]
+
+    while True:
+        start = time.time()
+
+        # 准备命令（仅在必要时查询）
+        commands = [
+            moteus.Command(
+                position=target_pos[i],
+                kp=50,
+                kd=1.0,
+                maximum_torque=10.0,
+                query=(i % 10 == 0)  # 每10次查询一次
+            )
+            for i in range(12)
+        ]
+
+        # 发送同步命令
+        results = await transport.cycle(commands)
+
+        # 计算实际频率
+        elapsed = time.time() - start
+        actual_hz = 1.0 / elapsed
+
+        print(f"控制频率: {actual_hz:.1f} Hz")
+
+        # 等待下一个周期（1kHz）
+        await asyncio.sleep(max(0, 0.001 - elapsed))
+
+asyncio.run(optimized_control_loop())
+```
+
+**延迟测量与优化**
+
+```python
+import statistics
+
+async def measure_latency():
+    """
+    测量循环延迟
+    """
+    latencies = []
+
+    for _ in range(1000):
+        start = time.perf_counter()
+
+        commands = [
+            moteus.Command(query=True)
+            for _ in range(4)
+        ]
+        await transport.cycle(commands)
+
+        end = time.perf_counter()
+        latencies.append((end - start) * 1e6)  # 微秒
+
+    # 统计
+    print(f"平均延迟: {statistics.mean(latencies):.2f} μs")
+    print(f"最大延迟: {max(latencies):.2f} μs")
+    print(f"最小延迟: {min(latencies):.2f} μs")
+    print(f"标准差: {statistics.stdev(latencies):.2f} μs")
+
+asyncio.run(measure_latency())
+```
+
+**内存优化**：
+
+对于多轴系统，避免频繁的对象创建：
+
+```python
+# 不好的做法（每次创建新对象）
+async def control_loop():
+    while True:
+        commands = [
+            moteus.Command(
+                position=target[i],
+                kp=50,
+                kd=1.0,
+                maximum_torque=10.0,
+                query=True
+            )
+            for i in range(12)
+        ]
+        await transport.cycle(commands)
+        await asyncio.sleep(0.001)
+
+# 好的做法（重用对象）
+async def control_loop():
+    # 预创建命令对象
+    commands = [
+        moteus.Command(
+            position=0.0,
+            kp=50,
+            kd=1.0,
+            maximum_torque=10.0,
+            query=True
+        )
+        for _ in range(12)
+    ]
+
+    while True:
+        # 仅更新必要的字段
+        for i, cmd in enumerate(commands):
+            cmd.position = target[i]
+
+        await transport.cycle(commands)
+        await asyncio.sleep(0.001)
+```
+
+通过这些优化技术，可以将多轴系统的控制频率稳定在1kHz以上，满足四足机器人等高动态应用的实时性要求。
+
+## 第七部分：应用案例与最佳实践
+
+本部分通过真实项目案例，展示moteus在实际机器人系统中的应用，并总结调试技巧和最佳实践。
+
+### 7.1 实战项目案例
+
+#### 7.1.1 Quad A1四足机器人
+
+Quad A1是mjbots的开源四足机器人平台，完全基于moteus控制器构建。它是一个完整的参考设计，展示了moteus在复杂机器人系统中的实际应用。
+
+**系统架构**：
+
+```
+Quad A1 系统组成
+├── 计算平台
+│   ├── Raspberry Pi 4 (主控)
+│   └── pi3hat (CAN-FD扩展板)
+├── 执行系统
+│   ├── 12x moteus r4.11 (每腿3个关节)
+│   └── 12x AK60-6 QDD电机 (6:1减速比)
+├── 传感系统
+│   ├── IMU (姿态感知)
+│   └── 足端力传感器 (可选)
+└── 电源系统
+    ├── 4S-6S锂电池 (22.2-25.2V)
+    └── 电源管理模块
+```
+
+**步态控制示例**：
+
+Quad A1使用 trot（小跑）步态，关键代码：
+
+```python
+import asyncio
+import moteus
+import math
+
+class QuadrupedController:
+    def __init__(self):
+        self.transport = moteus.Pi3Hat(
+            cpu=1,
+            spi_speed=3000000
+        )
+
+        # 12个关节控制器（ID 1-12）
+        self.controllers = [
+            moteus.Controller(id=i, transport=self.transport)
+            for i in range(1, 13)
+        ]
+
+        # 腿部运动学参数
+        self.leg_config = {
+            'l1': 0.08,  # 上腿长度 (m)
+            'l2': 0.12,  # 下腿长度 (m)
+        }
+
+    async def trot_gait(self, forward_speed=0.1, step_height=0.05):
+        """Trot步态生成器"""
+        t = 0
+        dt = 0.01  # 100Hz控制频率
+        period = 0.5  # 步态周期 (s)
+
+        while True:
+            t += dt
+            phase = (t % period) / period
+
+            # 四条腿的相位偏移
+            leg_phases = [0, 0.5, 0.5, 0]  # FL, FR, RL, RR
+
+            # 计算每条腿的足端位置
+            foot_positions = []
+            for i, leg_phase in enumerate(leg_phases):
+                effective_phase = (phase + leg_phase) % 1.0
+
+                # 轨迹生成（摆线轨迹）
+                if effective_phase < 0.5:
+                    # 支撑相：向后移动
+                    x = forward_speed * (effective_phase - 0.25) * period
+                    y = 0
+                    z = 0
+                else:
+                    # 摆动相：抬起向前
+                    swing_phase = (effective_phase - 0.5) * 2
+                    x = forward_speed * (swing_phase - 0.5) * period * 0.5
+                    y = 0
+                    z = step_height * math.sin(swing_phase * math.pi)
+
+                foot_positions.append((x, y, z))
+
+            # 逆运动学求解关节角度
+            joint_commands = self.ik_solve(foot_positions)
+
+            # 发送命令到所有关节
+            await self.transport.cycle(joint_commands)
+
+            await asyncio.sleep(dt)
+
+    def ik_solve(self, foot_positions):
+        """逆运动学求解（简化版）"""
+        commands = []
+
+        for leg_id, (x, y, z) in enumerate(foot_positions):
+            # 简化的2DOF逆运动学（仅示例）
+            # 实际Quad A1使用3DOF腿部
+
+            hip_angle = math.atan2(y, x)
+            knee_angle = math.acos(
+                (x**2 + y**2 + z**2 - self.leg_config['l1']**2 - self.leg_config['l2']**2) /
+                (2 * self.leg_config['l1'] * self.leg_config['l2'])
+            )
+
+            # 每条腿3个关节，ID偏移
+            base_id = leg_id * 3 + 1
+            commands.extend([
+                moteus.Command(position=hip_angle, kp=50, kd=1.0, maximum_torque=5.0, query=True),
+                moteus.Command(position=knee_angle, kp=50, kd=1.0, maximum_torque=5.0, query=True),
+                moteus.Command(position=0.0, kp=50, kd=1.0, maximum_torque=5.0, query=True),
+            ])
+
+        return commands
+
+# 使用示例
+async def main():
+    robot = QuadrupedController()
+    await robot.trot_gait(forward_speed=0.15, step_height=0.04)
+
+asyncio.run(main())
+```
+
+**配置文件 (tview)**：
+
+Quad A1使用YAML配置文件管理所有电机参数：
+
+```yaml
+# quad_a1_config.yaml
+controllers:
+  - id: 1
+    bus: 1
+    position_offset: 0.0
+    direction: 1
+
+  - id: 2
+    bus: 1
+    position_offset: 3.14159
+    direction: -1
+
+  # ... (共12个控制器)
+
+kinematics:
+  leg:
+    coxa_length: 0.055  # m
+    femur_length: 0.080  # m
+    tibia_length: 0.125  # m
+
+gait:
+  trot:
+    stance_duration: 0.25  # s
+    swing_duration: 0.25  # s
+    step_height: 0.04  # m
+
+control:
+  frequency: 100  # Hz
+  kp_default: 50
+  kd_default: 1.0
+  max_torque: 5.0  # Nm
+```
+
+**性能指标**：
+
+- **运动速度**：最大0.5 m/s
+- **步态频率**：1-2 Hz（可调）
+- **续航时间**：1-1.5小时（4S 5000mAh电池）
+- **负载能力**：约2kg（含自重4kg）
+
+Quad A1的完整源代码和设计文件可在 [mjbots/quad-a1](https://github.com/mjbots/quad-a1) 仓库找到。
+
+#### 7.1.2 6自由度机械臂
+
+使用6个moteus控制器构建6自由度机械臂的案例：
+
+```python
+import asyncio
+import moteus
+import numpy as np
+
+class RobotArm:
+    def __init__(self):
+        self.transport = moteus.Pi3Hat(cpu=1)
+        self.controllers = [
+            moteus.Controller(id=i, transport=self.transport)
+            for i in range(1, 7)  # 6个关节
+        ]
+
+        # DH参数（示例）
+        self.dh_params = [
+            [0, 0, 0.1, 0],
+            [0, 0, 0.2, 0],
+            [0, 0, 0.15, 0],
+            [0, 0, 0.1, 0],
+            [0, 0, 0.08, 0],
+            [0, 0, 0.05, 0],
+        ]
+
+    async def move_to_pose(self, target_pose, duration=2.0):
+        """移动到目标位姿（6D笛卡尔空间）"""
+        # 逆运动学求解（简化示例，实际需用数值解法）
+        joint_angles = self.ik(target_pose)
+
+        # 轨迹插值
+        steps = int(duration * 100)  # 100Hz
+        for step in range(steps):
+            alpha = step / steps
+            current_angles = [
+                start[i] * (1 - alpha) + joint_angles[i] * alpha
+                for i in range(6)
+            ]
+
+            commands = [
+                moteus.Command(
+                    position=angle,
+                    kp=80,
+                    kd=2.0,
+                    maximum_torque=8.0,
+                    query=True
+                )
+                for angle in current_angles
+            ]
+
+            await self.transport.cycle(commands)
+            await asyncio.sleep(0.01)
+
+    async def follow_trajectory(self, waypoints):
+        """跟随笛卡尔空间轨迹"""
+        for pose in waypoints:
+            await self.move_to_pose(pose, duration=1.0)
+
+    def ik(self, pose):
+        """逆运动学（使用数值解法）"""
+        # 实际实现应使用IKFast或类似库
+        # 这里返回示例关节角度
+        return [0.5, 0.3, 0.8, -0.5, 0.2, 0.1]
+```
+
+#### 7.1.3 云台稳定系统
+
+使用双轴moteus云台实现摄像头稳定：
+
+```python
+import asyncio
+import moteus
+import math
+
+class GimbalStabilizer:
+    def __init__(self):
+        # 俯仰和偏航轴
+        self.pitch = moteus.Controller(id=1)
+        self.yaw = moteus.Controller(id=2)
+
+        self.target_pitch = 0.0
+        self.target_yaw = 0.0
+
+    async def stabilize(self, imu_data):
+        """基于IMU数据稳定云台"""
+        roll, pitch, yaw = imu_data
+
+        # 补偿机身旋转
+        pitch_command = -pitch  # 俯仰补偿
+        yaw_command = -yaw      # 偏航补偿
+
+        # 发送补偿命令
+        await asyncio.gather(
+            self.pitch.set_position(
+                position=pitch_command,
+                kp=100,
+                kd=5.0,
+                maximum_torque=2.0,
+                query=True
+            ),
+            self.yaw.set_position(
+                position=yaw_command,
+                kp=100,
+                kd=5.0,
+                maximum_torque=2.0,
+                query=True
+            )
+        )
+
+    async def manual_control(self, pitch_delta, yaw_delta):
+        """手动控制模式"""
+        self.target_pitch += pitch_delta
+        self.target_yaw += yaw_delta
+
+        # 限制角度范围
+        self.target_pitch = max(-math.pi/2, min(math.pi/2, self.target_pitch))
+        self.target_yaw = max(-math.pi, min(math.pi, self.target_yaw))
+
+        await asyncio.gather(
+            self.pitch.set_position(
+                position=self.target_pitch,
+                kp=80,
+                kd=3.0,
+                maximum_torque=1.5,
+                query=True
+            ),
+            self.yaw.set_position(
+                position=self.target_yaw,
+                kp=80,
+                kd=3.0,
+                maximum_torque=1.5,
+                query=True
+            )
+        )
+```
+
+### 7.2 调试与故障排查
+
+#### 7.2.1 常见问题诊断表
+
+| 现象 | 可能原因 | 诊断步骤 | 解决方案 |
+|------|----------|----------|----------|
+| **电机震动/噪音** | 1. 相序错误<br>2. 编码器未校准<br>3. kp/kd参数过大 | 1. 检查电机接线<br>2. 运行校准命令<br>3. 降低控制增益 | 1. 交换任意两相<br>2. `moteus_tool --calibrate`<br>3. kp减半再逐步增加 |
+| **位置漂移** | 1. 编码器干扰<br>2. 供电电压不稳定<br>3. 位置偏移未配置 | 1. 检查编码器屏蔽<br>2. 测量电源电压<br>3. 查看`config.position_offset` | 1. 使用屏蔽线<br>2. 增加电容滤波<br>3. 重新配置偏移 |
+| **CAN通信失败** | 1. 终端电阻缺失<br>2. 波特率不匹配<br>3. ID冲突 | 1. 测量总线电阻（应为60Ω）<br>2. 检查`can.config.bitrate`<br>3. `moteus_tool --scan` | 1. 总线两端加120Ω电阻<br>2. 设置正确波特率<br>3. 修改控制器ID |
+| **过流保护触发** | 1. 电机堵转<br>2. 负载过大<br>3. 电流限制过低 | 1. 检查机械限制<br>2. 测量负载扭矩<br>3. 查看`config.max_current` | 1. 清除障碍物<br>2. 减小负载或升级电机<br>3. 适当提高电流限制 |
+| **温度过高** | 1. 长时间大扭矩运行<br>2. 散热不足<br>3. 环境温度高 | 1. 检查`temp`寄存器<br>2. 验证散热设计<br>3. 测量环境温度 | 1. 降低扭矩或间歇工作<br>2. 增加散热片/风扇<br>3. 改善通风 |
+| **控制响应慢** | 1. CAN-FD未启用<br>2. 通信频率低<br>3. Python开销 | 1. 检查`can.config.mode`<br>2. 测量控制周期<br>3. Profile代码 | 1. 启用CAN-FD<br>2. 提高频率至1kHz<br>3. 优化控制循环 |
+
+#### 7.2.2 诊断工具使用
+
+**moteus_tool诊断命令**：
+
+```bash
+# 1. 扫描总线上的所有控制器
+$ moteus_tool --scan
+Found controllers:
+  ID 1: r4.11 fw v2024.05.00
+  ID 2: r4.11 fw v2024.05.00
+
+# 2. 读取控制器状态
+$ moteus_tool --target 1 --query
+Position: 1.234 rad
+Velocity: 0.567 rad/s
+Torque: 0.123 Nm
+Temperature: 42.5 C
+Voltage: 24.1 V
+Fault: None
+
+# 3. 实时监控
+$ moteus_tool --target 1 --stream --frequency 100
+time,position,velocity,torque,temp
+0.000,1.234,0.567,0.123,42.5
+0.010,1.235,0.568,0.124,42.6
+...
+
+# 4. 读取完整配置
+$ moteus_tool --target 1 --dump-config > controller1.conf
+
+# 5. 恢复出厂设置
+$ moteus_tool --target 1 --restore-defaults
+
+# 6. 固件更新
+$ moteus_tool --target 1 --update-firmware moteus_r4_11_2024_05_00.bin
+```
+
+**tview实时数据可视化**：
+
+```bash
+# 启动tview服务器
+$ tview
+
+# 在另一个终端启动数据流
+$ moteus_tool --target 1 --stream --format csv | tview
+
+# tview Web界面：http://localhost:8080
+# 提供实时曲线图、数据表、控制面板
+```
+
+**Python诊断脚本**：
+
+```python
+import asyncio
+import moteus
+import statistics
+
+async def diagnostic_check(controller_id):
+    """综合诊断检查"""
+    c = moteus.Controller(id=controller_id)
+
+    print(f"=== 诊断控制器 {controller_id} ===\n")
+
+    # 1. 基本状态
+    print("1. 基本状态:")
+    result = await c.set_position(query=True)
+    state = result.values[0]
+    print(f"   位置: {state.position:.4f} rad")
+    print(f"   速度: {state.velocity:.4f} rad/s")
+    print(f"   扭矩: {state.torque:.4f} Nm")
+    print(f"   温度: {state.temperature:.1f} °C")
+    print(f"   电压: {state.voltage:.2f} V")
+    print(f"   故障: {state.fault}\n")
+
+    # 2. 通信延迟测试
+    print("2. 通信延迟:")
+    latencies = []
+    for _ in range(100):
+        start = time.perf_counter()
+        await c.set_position(query=True)
+        end = time.perf_counter()
+        latencies.append((end - start) * 1e6)
+
+    print(f"   平均延迟: {statistics.mean(latencies):.1f} μs")
+    print(f"   最大延迟: {max(latencies):.1f} μs")
+    print(f"   抖动: {statistics.stdev(latencies):.1f} μs\n")
+
+    # 3. 控制响应测试
+    print("3. 控制响应:")
+    test_positions = [0, 0.5, 1.0, 0.5, 0]
+    for target in test_positions:
+        await c.set_position(
+            position=target,
+            kp=50,
+            kd=1.0,
+            maximum_torque=5.0,
+            query=True
+        )
+        await asyncio.sleep(0.5)
+
+        result = await c.set_position(query=True)
+        actual = result.values[0].position
+        error = abs(actual - target)
+        print(f"   目标: {target:.2f} rad, 实际: {actual:.2f} rad, 误差: {error:.4f} rad")
+
+    print("\n=== 诊断完成 ===")
+
+asyncio.run(diagnostic_check(1))
+```
+
+### 7.3 性能调优指南
+
+#### 7.3.1 PID参数调优
+
+**系统化调优流程**：
+
+1. **确定控制模式需求**：
+   - 位置精度优先：提高kp
+   - 快速响应：提高kd
+   - 柔顺控制：降低kp和kd
+
+2. **基础调优步骤**：
+   ```python
+   # Step 1: 从保守参数开始
+   kp = 10
+   kd = 0.1
+   ki = 0  # 通常不需要积分项
+
+   # Step 2: 逐步增加kp，直到出现轻微震荡
+   # 例如: 10 -> 20 -> 40 -> 80 (震荡)
+   # 最终选择: kp = 60
+
+   # Step 3: 增加kd以抑制震荡
+   # 例如: 0.1 -> 0.5 -> 1.0 -> 2.0 (稳定)
+   # 最终选择: kd = 1.5
+
+   # Step 4: 微调平衡位置误差和响应速度
+   # 最终参数: kp=60, kd=1.5
+   ```
+
+3. **Ziegler-Nichols法（适用于困难系统）**：
+   ```python
+   # 1. 设kd=0, ki=0，逐步增加kp直到持续震荡
+   #    记录临界kp_krit和震荡周期T_krit
+
+   kp_krit = 120  # 临界增益
+   T_krit = 0.5   # 震荡周期 (s)
+
+   # 2. 根据公式计算初始参数
+   kp = 0.6 * kp_krit      # = 72
+   kd = 0.075 * kp_krit * T_krit  # = 4.5
+   ki = 1.2 * kp_krit / T_krit    # = 288
+
+   # 3. 微调优化
+   ```
+
+4. **负载自适应调优**：
+   ```python
+   # 不同负载范围使用不同参数
+   def adaptive_pid(load_mass):
+       if load_mass < 0.5:
+           return {'kp': 80, 'kd': 2.0}  # 轻负载
+       elif load_mass < 1.5:
+           return {'kp': 50, 'kd': 1.0}  # 中等负载
+       else:
+           return {'kp': 30, 'kd': 0.5}  # 重负载
+   ```
+
+#### 7.3.2 轨迹优化
+
+**平滑轨迹生成**：
+
+```python
+import numpy as np
+import math
+
+def minimum_jerk_trajectory(start, end, duration, dt=0.01):
+    """最小加速度轨迹（5次多项式）"""
+    t = np.arange(0, duration, dt)
+
+    # 最小jerk轨迹系数
+    T = duration
+    a0 = start
+    a1 = 0
+    a2 = 0
+    a3 = 10 / T**3
+    a4 = -15 / T**4
+    a5 = 6 / T**5
+
+    trajectory = (a0 +
+                  a1 * t +
+                  a2 * t**2 +
+                  a3 * (end - start) * t**3 +
+                  a4 * (end - start) * t**4 +
+                  a5 * (end - start) * t**5)
+
+    return list(trajectory)
+
+# 使用示例
+waypoints = [0.0, 1.0, 0.5, 1.5, 0.0]
+full_trajectory = []
+
+for i in range(len(waypoints) - 1):
+    segment = minimum_jerk_trajectory(
+        waypoints[i],
+        waypoints[i+1],
+        duration=1.0,
+        dt=0.01
+    )
+    full_trajectory.extend(segment)
+
+# 发送到moteus
+for target in full_trajectory:
+    await controller.set_position(
+        position=target,
+        kp=50,
+        kd=1.0,
+        maximum_torque=5.0,
+        query=True
+    )
+    await asyncio.sleep(0.01)
+```
+
+#### 7.3.3 能耗优化
+
+**节能策略**：
+
+1. **零扭矩保持**（利用制动）：
+   ```python
+   # 到达目标后，降低增益减少功耗
+   await controller.set_position(
+       position=target,
+       kp=50,   # 正常位置保持
+       kd=1.0,
+       maximum_torque=5.0
+   )
+
+   # 等待稳定后
+   await asyncio.sleep(0.5)
+
+   # 切换到零扭矩模式（制动保持位置）
+   await controller.set_stop()
+   ```
+
+2. **动态扭矩限制**：
+   ```python
+   # 根据速度动态调整扭矩限制
+   def dynamic_torque_limit(velocity):
+       base_limit = 5.0
+       # 高速时降低扭矩以节能
+       if abs(velocity) > 5.0:
+           return base_limit * 0.7
+       else:
+           return base_limit
+
+   await controller.set_position(
+       position=target,
+       kp=50,
+       kd=1.0,
+       maximum_torque=dynamic_torque_limit(current_vel),
+       query=True
+   )
+   ```
+
+3. **电源管理**：
+   ```python
+   # 低功耗模式（降低控制频率）
+   while True:
+       # 正常模式：1kHz
+       for _ in range(100):
+           await controller.set_position(query=True)
+           await asyncio.sleep(0.001)
+
+       # 检测空闲，切换到低功耗模式：100Hz
+       if is_idle():
+           for _ in range(10):
+               await controller.set_position(query=True)
+               await asyncio.sleep(0.01)
+   ```
+
+通过这些实战案例和调优技巧，可以充分发挥moteus的性能潜力，构建高效、稳定的机器人系统。
+```

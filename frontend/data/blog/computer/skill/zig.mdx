@@ -1,9 +1,9 @@
 ---
 title: 'Zig 编程语言完全指南：现代系统编程的新选择'
 description: '深入探索 Zig 编程语言，从基础语法到高级特性，涵盖内存管理、错误处理、编译时执行等核心概念，以及实际应用案例和最佳实践。'
-pubDate: 2025-01-01
 tags: ['Zig', 'Systems Programming', 'Memory Management', 'Compiler', 'C Alternative']
 author: 'Your Name'
+date: 2024-01-01
 ---
 
 # Zig 编程语言完全指南：现代系统编程的新选择
@@ -62,7 +62,7 @@ const file = try std.fs.cwd().openFile("data.txt", .{});
 |------|-----|---|-----|------|
 | **学习曲线** | 中等 | 低 | 高 | 很高 |
 | **内存管理** | 手动 + 安全检查 | 手动 | 手动/RAII | 所有权系统 |
-| **错误处理** | Error Unions | 返回码 | 异常 | Result<T,E> |
+| **错误处理** | Error Unions | 返回码 | 异常 | Result{'<'}T,E{'>'} |
 | **泛型** | comptime + anytype | 宏 | 模板 | Traits |
 | **编译速度** | 快 | 快 | 慢 | 中等 |
 | **运行时** | 无 | 无 | 无 | 无 |

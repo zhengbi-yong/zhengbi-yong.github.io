@@ -25,7 +25,7 @@ import rehypePresetMinify from 'rehype-preset-minify'
 import siteMetadata from './data/siteMetadata'
 import { allCoreContent, sortPosts } from 'pliny/utils/contentlayer.js'
 import prettier from 'prettier'
-import rehypeMhchem from './lib/rehype-mhchem'
+import rehypeMhchem from './src/lib/rehype-mhchem'
 
 const root = process.cwd()
 const isProduction = process.env.NODE_ENV === 'production'
@@ -70,7 +70,7 @@ async function createTagCount(allBlogs: Array<{ tags?: string[]; draft?: boolean
       file.tags.forEach((tag: string) => {
         const formattedTag = slug(tag)
         if (formattedTag in tagCount) {
-          tagCount[formattedTag] += 1
+          tagCount[formattedTag] = (tagCount[formattedTag] || 0) + 1
         } else {
           tagCount[formattedTag] = 1
         }
@@ -78,7 +78,7 @@ async function createTagCount(allBlogs: Array<{ tags?: string[]; draft?: boolean
     }
   })
   const formatted = await prettier.format(JSON.stringify(tagCount, null, 2), { parser: 'json' })
-  writeFileSync('./app/tag-data.json', formatted)
+  writeFileSync('./src/app/tag-data.json', formatted)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
