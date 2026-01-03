@@ -4,11 +4,95 @@
 **Path**: `frontend/src/app/admin/monitoring/metrics/page.tsx`
 **Layer**: 3 (Leaf Component)
 **Type**: Client Component - Real-time Metrics Dashboard
+**Depth**: 5 (admin → monitoring → metrics)
 
 Admin dashboard for visualizing Prometheus metrics with real-time updates. Displays HTTP request statistics, database connection pool status, Redis metrics, and session tracking.
 
 ## Purpose
 Provides administrators with comprehensive system performance insights through parsed Prometheus metrics, enabling capacity planning and performance optimization.
+
+## Multi-Layer Architecture
+
+### Layer 1: Application Layer (Top)
+- **Route**: `/admin/monitoring/metrics`
+- **Context**: Admin monitoring & observability
+- **Responsibility**: Performance metrics visualization
+
+### Layer 2: Feature Layer
+- **Feature**: System performance monitoring & analytics
+- **Domain**: DevOps & SRE
+- **Related Features**:
+  - Health check (`/admin/monitoring/health`)
+  - Analytics overview (`/admin/analytics`)
+  - Alert management (future)
+  - Performance profiling (future)
+
+### Layer 3: Module Layer (Current)
+- **Module**: Prometheus metrics dashboard
+- **Scope**: Real-time metrics display & parsing
+- **Interface**: Client component with custom parser
+
+### Layer 4: Integration Layer
+- **Query Client**: TanStack Query (`@tanstack/react-query`)
+- **Parser**: Custom Prometheus text format parser
+- **Utilities**: Metric aggregation & statistics
+- **State Management**: React hooks (`useState`)
+
+### Layer 5: Foundation Layer (Bottom)
+- **Data Source**: Prometheus metrics endpoint (`/metrics`)
+- **Format**: Prometheus exposition format (plain text)
+- **Metrics Backend**:
+  - prometheus-client (Node.js library)
+  - Histogram/Counter/Gauge collectors
+  - Registry & middleware
+- **Infrastructure**: Application server metrics collection
+
+## Cross-Layer Dependencies
+
+### Upward Dependencies (Consumes)
+```
+Layer 5 (Foundation)
+  ├─ Backend /metrics endpoint (Prometheus format)
+  ├─ Application metrics (HTTP, DB, Redis, sessions)
+  ├─ prometheus-client library (backend)
+  └─ Metric collection middleware
+
+Layer 4 (Integration)
+  ├─ TanStack Query (fetching & caching)
+  ├─ Prometheus parser utility (text → JSON)
+  ├─ React state management
+  └─ TypeScript interfaces
+
+Layer 3 (Module)
+  ├─ Lucide React icons (UI)
+  ├─ Tailwind CSS (styling)
+  └─ Statistic calculation functions
+
+Layer 2 (Feature)
+  ├─ Monitoring architecture
+  ├─ Performance standards
+  └─ Alerting conventions
+
+Layer 1 (Application)
+  ├─ Admin routing structure
+  ├─ Authentication/authorization
+  └─ Admin layout wrapper
+```
+
+### Downward Dependencies (Provides To)
+```
+Layer 3 (Current Module)
+  ├─ Provides: Visualized metrics
+  ├─ Provides: Performance insights
+  ├─ Provides: Capacity planning data
+  └─ Provides: Real-time system telemetry
+
+Consumed By:
+  ├─ SRE team (performance monitoring)
+  ├─ Capacity planning (resource allocation)
+  ├─ Alerting systems (threshold-based)
+  └─ Analytics dashboards (trends)
+```
 
 ## Core Responsibilities
 

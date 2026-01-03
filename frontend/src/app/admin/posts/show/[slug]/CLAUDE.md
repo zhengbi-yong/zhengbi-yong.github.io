@@ -4,11 +4,80 @@
 **Path**: `frontend/src/app/admin/posts/show/[slug]/page.tsx`
 **Layer**: 3 (Leaf Component)
 **Type**: Dynamic Route Page Component
+**Depth**: 5 (nested route structure)
 
 Displays detailed statistics and comments for a specific blog post in the admin interface. Provides real-time engagement metrics and comment moderation capabilities.
 
 ## Purpose
 Admin dashboard page for viewing individual post performance metrics and user engagement data. Enables content administrators to analyze post reach and moderate comments.
+
+## Multi-Layer Architecture
+
+### Layer 1: Application Layer (Top)
+- **Route**: `/admin/posts/show/[slug]`
+- **Context**: Admin dashboard section
+- **Responsibility**: Admin-only content management interface
+
+### Layer 2: Feature Layer
+- **Feature**: Post analytics and comment moderation
+- **Domain**: Content administration
+- **Related Features**:
+  - Posts list (`/admin/posts`)
+  - Comments management (`/admin/comments`)
+  - User management (`/admin/users`)
+
+### Layer 3: Module Layer (Current)
+- **Module**: Post detail view component
+- **Scope**: Single post analytics display
+- **Interface**: Client-side React component
+
+### Layer 4: Integration Layer
+- **Data Provider**: Refine (`@refinedev/core`)
+- **Router**: Next.js App Router
+- **State Management**: React hooks (`useList` from Refine)
+- **API Integration**: Custom data provider wrapper
+
+### Layer 5: Foundation Layer (Bottom)
+- **HTTP Client**: Axios (via custom data provider)
+- **Authentication**: JWT bearer token
+- **Backend API**: REST endpoints (`/posts/:slug/stats`, `/posts/:slug/comments`)
+- **Database**: PostgreSQL (via backend)
+
+## Cross-Layer Dependencies
+
+### Upward Dependencies (Consumes)
+```
+Layer 5 (Foundation)
+  ├─ Axios HTTP client (via customAxios in dataProvider)
+  ├─ JWT authentication (Bearer token from localStorage)
+  └─ Backend API endpoints
+
+Layer 4 (Integration)
+  ├─ Refine dataProvider (lib/providers/refine-data-provider.ts)
+  ├─ Next.js router (next/navigation)
+  └─ React hooks
+
+Layer 3 (Module)
+  ├─ PostService API (lib/api/backend.ts)
+  ├─ CommentService API (lib/api/backend.ts)
+  └─ UI components (lucide-react icons)
+
+Layer 2 (Feature)
+  └─ Admin layout structure
+
+Layer 1 (Application)
+  └─ Route configuration
+```
+
+### Downward Dependencies (Provides To)
+```
+Layer 3 (Current Module)
+  ├─ Provides: Post stats visualization
+  ├─ Provides: Comment list display
+  └─ Provides: Navigation to related admin pages
+
+No downstream dependencies - this is a leaf component
+```
 
 ## Core Responsibilities
 

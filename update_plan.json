@@ -1,0 +1,1391 @@
+{
+  "summary": {
+    "total_modules": 211,
+    "layer3": 166,
+    "layer2": 44,
+    "layer1": 1,
+    "total_batches": 54
+  },
+  "batches": {
+    "1": [
+      [
+        {
+          "path": ".",
+          "depth": 0,
+          "files": 14,
+          "has_claude": false
+        }
+      ]
+    ],
+    "2": [
+      [
+        {
+          "path": "./.github/workflows",
+          "depth": 2,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/.cargo",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/.sqlx",
+          "depth": 2,
+          "files": 59,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/migrations",
+          "depth": 2,
+          "files": 9,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./backend/openapi",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/scripts",
+          "depth": 2,
+          "files": 10,
+          "has_claude": false
+        },
+        {
+          "path": "./config/environments",
+          "depth": 2,
+          "files": 7,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/config",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./deployments/nginx",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/scripts",
+          "depth": 2,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/appendix",
+          "depth": 2,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/archive",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/configuration",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/deployment",
+          "depth": 2,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/development",
+          "depth": 2,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/getting-started",
+          "depth": 2,
+          "files": 9,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/guides",
+          "depth": 2,
+          "files": 6,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/migration",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/operations",
+          "depth": 2,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/reference",
+          "depth": 2,
+          "files": 4,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/testing",
+          "depth": 2,
+          "files": 8,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/.husky",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/data",
+          "depth": 2,
+          "files": 9,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/e2e",
+          "depth": 2,
+          "files": 4,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/scripts",
+          "depth": 2,
+          "files": 8,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src",
+          "depth": 2,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests",
+          "depth": 2,
+          "files": 8,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/types",
+          "depth": 2,
+          "files": 7,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./scripts/archive",
+          "depth": 2,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts/backup",
+          "depth": 2,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts/data",
+          "depth": 2,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts/deployment",
+          "depth": 2,
+          "files": 20,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./scripts/dev",
+          "depth": 2,
+          "files": 6,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts/export",
+          "depth": 2,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts/operations",
+          "depth": 2,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts/testing",
+          "depth": 2,
+          "files": 3,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./scripts/utils",
+          "depth": 2,
+          "files": 9,
+          "has_claude": false
+        },
+        {
+          "path": "./.github",
+          "depth": 1,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./.husky",
+          "depth": 1,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./backend",
+          "depth": 1,
+          "files": 12,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./config",
+          "depth": 1,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./docs",
+          "depth": 1,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend",
+          "depth": 1,
+          "files": 23,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts",
+          "depth": 1,
+          "files": 9,
+          "has_claude": false
+        }
+      ]
+    ],
+    "3": [
+      [
+        {
+          "path": "./frontend/src/app/admin/posts/show/[slug]",
+          "depth": 7,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/tags/[tag]/page/[page]",
+          "depth": 7,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/monitoring/health",
+          "depth": 6,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/monitoring/metrics",
+          "depth": 6,
+          "files": 2,
+          "has_claude": true
+        }
+      ],
+      [
+        {
+          "path": "./backend/crates/api/src/metrics",
+          "depth": 5,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/api/src/middleware",
+          "depth": 5,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/api/src/routes",
+          "depth": 5,
+          "files": 15,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/api/src/utils",
+          "depth": 5,
+          "files": 2,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./backend/crates/api/tests/e2e",
+          "depth": 5,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/api/tests/helpers",
+          "depth": 5,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/api/tests/security",
+          "depth": 5,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/api/tests/unit",
+          "depth": 5,
+          "files": 6,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./backend/crates/db/src/models",
+          "depth": 5,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/shared/src/middleware",
+          "depth": 5,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/server/monitoring/grafana/dashboards",
+          "depth": 5,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/server/monitoring/grafana/datasources",
+          "depth": 5,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/app/admin/analytics",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/comments",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/monitoring",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/posts",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/app/admin/posts-refine",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/posts-simple",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/settings",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/test",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/app/admin/users",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/admin/users-refine",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/api/newsletter",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/api/visitor",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/app/api/visitors",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/music/[name]",
+          "depth": 5,
+          "files": 3,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/app/tags/[tag]",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/components/media/Image",
+          "depth": 5,
+          "files": 2,
+          "has_claude": true
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/components/navigation/TableOfContents",
+          "depth": 5,
+          "files": 6,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/shadcn/ui",
+          "depth": 5,
+          "files": 14,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/ui/Skeleton",
+          "depth": 5,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/ui/Toast",
+          "depth": 5,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/lib/store/core",
+          "depth": 5,
+          "files": 4,
+          "has_claude": true
+        },
+        {
+          "path": "./backend/crates/api/src",
+          "depth": 4,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/api/tests",
+          "depth": 4,
+          "files": 10,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/core/src",
+          "depth": 4,
+          "files": 3,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./backend/crates/db/src",
+          "depth": 4,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/shared/src",
+          "depth": 4,
+          "files": 6,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/worker/src",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/docker/compose-files/backend",
+          "depth": 4,
+          "files": 4,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./deployments/docker/images/export",
+          "depth": 4,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/server/monitoring/alerts",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/deployment/guides/docker",
+          "depth": 4,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/deployment/guides/low-resource",
+          "depth": 4,
+          "files": 4,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/deployment/guides/scripts",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/deployment/guides/server",
+          "depth": 4,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/development/guides/backend-development",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/development/guides/frontend-development",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/development/guides/testing",
+          "depth": 4,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/slidev/hardware/components",
+          "depth": 4,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/slidev/hardware/images",
+          "depth": 4,
+          "files": 17,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/slidev/hardware/pages",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/slidev/hardware/snippets",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/slidev/hardware/videos",
+          "depth": 4,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app/about",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app/admin",
+          "depth": 4,
+          "files": 2,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/app/analytics",
+          "depth": 4,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app/excalidraw",
+          "depth": 4,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app/experiment",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app/music",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/app/offline",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app/projects",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app/simple-test",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app/tags",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/app/visitors",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/admin",
+          "depth": 4,
+          "files": 6,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/animations",
+          "depth": 4,
+          "files": 18,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/audio",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/components/auth",
+          "depth": 4,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/book",
+          "depth": 4,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/charts",
+          "depth": 4,
+          "files": 7,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/chemistry",
+          "depth": 4,
+          "files": 7,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/components/debug",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/Excalidraw",
+          "depth": 4,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/header",
+          "depth": 4,
+          "files": 6,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/home",
+          "depth": 4,
+          "files": 4,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/components/hooks",
+          "depth": 4,
+          "files": 10,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/layouts",
+          "depth": 4,
+          "files": 10,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/components/lib",
+          "depth": 4,
+          "files": 2,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/components/loaders",
+          "depth": 4,
+          "files": 11,
+          "has_claude": true
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/components/magazine",
+          "depth": 4,
+          "files": 9,
+          "has_claude": true
+        },
+        {
+          "path": "./frontend/src/components/maps",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/MDXComponents",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/post",
+          "depth": 4,
+          "files": 6,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/components/search",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/sections",
+          "depth": 4,
+          "files": 11,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/seo",
+          "depth": 4,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/social-icons",
+          "depth": 4,
+          "files": 2,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/components/three",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components/ui",
+          "depth": 4,
+          "files": 7,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/lib/api",
+          "depth": 4,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/lib/cache",
+          "depth": 4,
+          "files": 3,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/lib/db",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/lib/hooks",
+          "depth": 4,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/lib/providers",
+          "depth": 4,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/lib/security",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/lib/store",
+          "depth": 4,
+          "files": 7,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/lib/types",
+          "depth": 4,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/lib/ui",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/lib/utils",
+          "depth": 4,
+          "files": 22,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/locales/en",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/locales/zh-CN",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/payload/collections",
+          "depth": 4,
+          "files": 6,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests/app/admin",
+          "depth": 4,
+          "files": 4,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/tests/lib/providers",
+          "depth": 4,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests/lib/security",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests/lib/utils",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests/routes/test-3dmol",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/tests/routes/test-api",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests/routes/test-chemistry",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests/routes/test-chemistry-debug",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests/routes/test-health-page",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/tests/routes/test-molecule-id",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/tests/routes/test-rkit-mol",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts/archive/migrate_mdx_crate/src",
+          "depth": 4,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/.github/workflows",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./backend/crates/api",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/core",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/db",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/crates/shared",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./backend/crates/worker",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/scripts/data",
+          "depth": 3,
+          "files": 7,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/scripts/database",
+          "depth": 3,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/scripts/deployment",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./backend/scripts/development",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/scripts/openapi",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./backend/scripts/testing",
+          "depth": 3,
+          "files": 7,
+          "has_claude": false
+        },
+        {
+          "path": "./config/environments/backend",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./deployments/docker/compose-files",
+          "depth": 3,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/nginx/backend-specific",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/nginx/conf.d",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/server/monitoring",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./deployments/server/package",
+          "depth": 3,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./deployments/server/setup",
+          "depth": 3,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/archive/migration",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/archive/operations",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/deployment/archive",
+          "depth": 3,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/deployment/best-practices",
+          "depth": 3,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/deployment/concepts",
+          "depth": 3,
+          "files": 4,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/deployment/getting-started",
+          "depth": 3,
+          "files": 4,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/deployment/guides",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/deployment/reference",
+          "depth": 3,
+          "files": 6,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/development/archive",
+          "depth": 3,
+          "files": 7,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/development/best-practices",
+          "depth": 3,
+          "files": 5,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/development/concepts",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/development/getting-started",
+          "depth": 3,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/development/operations",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./docs/development/reference",
+          "depth": 3,
+          "files": 2,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./docs/guides/technical",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/data/authors",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/scripts/dev",
+          "depth": 3,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/scripts/generate",
+          "depth": 3,
+          "files": 4,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/scripts/test",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/slidev/hardware",
+          "depth": 3,
+          "files": 5,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/app",
+          "depth": 3,
+          "files": 11,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/components",
+          "depth": 3,
+          "files": 73,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./frontend/src/lib",
+          "depth": 3,
+          "files": 16,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/mocks",
+          "depth": 3,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/src/styles",
+          "depth": 3,
+          "files": 2,
+          "has_claude": false
+        },
+        {
+          "path": "./frontend/styles/tokens",
+          "depth": 3,
+          "files": 3,
+          "has_claude": false
+        }
+      ],
+      [
+        {
+          "path": "./scripts/archive/migrate_mdx_crate",
+          "depth": 3,
+          "files": 1,
+          "has_claude": false
+        },
+        {
+          "path": "./scripts/data/sync",
+          "depth": 3,
+          "files": 4,
+          "has_claude": false
+        }
+      ]
+    ]
+  }
+}

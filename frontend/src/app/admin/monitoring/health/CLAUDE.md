@@ -4,11 +4,95 @@
 **Path**: `frontend/src/app/admin/monitoring/health/page.tsx`
 **Layer**: 3 (Leaf Component)
 **Type**: Client Component - Real-time Monitoring Dashboard
+**Depth**: 5 (admin → monitoring → health)
 
 Admin dashboard page for real-time system health monitoring. Displays service status, response times, and connectivity checks with auto-refresh capability.
 
 ## Purpose
 Provides administrators with instant visibility into system health across all critical services (database, Redis, JWT, email). Enables proactive issue detection and troubleshooting.
+
+## Multi-Layer Architecture
+
+### Layer 1: Application Layer (Top)
+- **Route**: `/admin/monitoring/health`
+- **Context**: Admin monitoring dashboard
+- **Responsibility**: Service health observability
+
+### Layer 2: Feature Layer
+- **Feature**: System health monitoring & alerting
+- **Domain**: Operations & DevOps
+- **Related Features**:
+  - Metrics dashboard (`/admin/monitoring/metrics`)
+  - Analytics overview (`/admin/analytics`)
+  - System logs (future)
+  - Alert configuration (future)
+
+### Layer 3: Module Layer (Current)
+- **Module**: Detailed health check display
+- **Scope**: Individual service status visualization
+- **Interface**: Client component with real-time updates
+
+### Layer 4: Integration Layer
+- **Query Client**: TanStack Query (`@tanstack/react-query`)
+- **Data Fetching**: Native `fetch` API
+- **State Management**: React hooks (`useState`)
+- **Type Safety**: TypeScript interfaces
+
+### Layer 5: Foundation Layer (Bottom)
+- **HTTP Transport**: Fetch API / Browser network stack
+- **Backend API**: Health check endpoints (`/healthz/detailed`)
+- **Service Dependencies**:
+  - PostgreSQL (database connectivity)
+  - Redis (cache connectivity)
+  - JWT service (auth validation)
+  - SMTP server (email delivery)
+- **Infrastructure**: Network, load balancers, containers
+
+## Cross-Layer Dependencies
+
+### Upward Dependencies (Consumes)
+```
+Layer 5 (Foundation)
+  ├─ Backend health endpoints (/healthz/detailed)
+  ├─ Service connectivity (database, Redis, SMTP)
+  ├─ Network infrastructure
+  └─ Container orchestration (if containerized)
+
+Layer 4 (Integration)
+  ├─ TanStack Query (data fetching & caching)
+  ├─ React state management
+  ├─ TypeScript types (backend definitions)
+  └─ Fetch API (HTTP client)
+
+Layer 3 (Module)
+  ├─ Lucide React icons (UI elements)
+  ├─ Tailwind CSS (styling)
+  └─ React lifecycle hooks
+
+Layer 2 (Feature)
+  ├─ Monitoring system architecture
+  ├─ Health check conventions
+  └─ Alert patterns
+
+Layer 1 (Application)
+  ├─ Admin routing structure
+  ├─ Authentication/authorization
+  └─ Admin layout wrapper
+```
+
+### Downward Dependencies (Provides To)
+```
+Layer 3 (Current Module)
+  ├─ Provides: Visual health status
+  ├─ Provides: Service response time metrics
+  ├─ Provides: Auto-refresh control
+  └─ Provides: Error diagnostics
+
+Consumed By:
+  ├─ Administrators (monitoring console)
+  ├─ Alerting systems (future integration)
+  └─ Analytics dashboards (health trends)
+```
 
 ## Core Responsibilities
 

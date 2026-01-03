@@ -4,11 +4,90 @@
 **Path**: `frontend/src/app/tags/[tag]/page/[page]/page.tsx`
 **Layer**: 3 (Leaf Component)
 **Type**: Server Component - Dynamic Route with Static Generation
+**Depth**: 5 (nested route structure with pagination)
 
 Implements paginated tag-based blog listing with static generation for optimal performance. Handles URL encoding/decoding and validates pagination parameters.
 
 ## Purpose
 Server-rendered page that displays blog posts filtered by tag with pagination support. Generates static pages for all tag/page combinations at build time.
+
+## Multi-Layer Architecture
+
+### Layer 1: Application Layer (Top)
+- **Route**: `/tags/[tag]/page/[page]`
+- **Context**: Public blog content discovery
+- **Responsibility**: Tag-based content navigation with pagination
+
+### Layer 2: Feature Layer
+- **Feature**: Content organization and discovery
+- **Domain**: Blog content management
+- **Related Features**:
+  - Blog listing (`/`)
+  - Category filtering (`/categories/[slug]`)
+  - Search functionality
+  - RSS feeds
+
+### Layer 3: Module Layer (Current)
+- **Module**: Paginated tag listing component
+- **Scope**: Single tag, single page display
+- **Interface**: Server component with static generation
+
+### Layer 4: Data Layer
+- **Content Source**: Contentlayer (MDX → JSON)
+- **Build Processing**: Static generation via `generateStaticParams`
+- **Data Transformation**: Filter → Sort → Paginate pipeline
+- **Tag Management**: `github-slugger` for consistent slugs
+
+### Layer 5: Foundation Layer (Bottom)
+- **File System**: MDX blog posts (content source)
+- **Build Tools**: Contentlayer, Next.js build process
+- **Routing**: Next.js App Router with dynamic segments
+- **Deployment**: Static HTML pre-rendering
+
+## Cross-Layer Dependencies
+
+### Upward Dependencies (Consumes)
+```
+Layer 5 (Foundation)
+  ├─ MDX files (blog posts source)
+  ├─ Next.js build system
+  ├─ File system access
+  └─ Static site generation
+
+Layer 4 (Data)
+  ├─ Contentlayer (allBlogs from contentlayer/generated)
+  ├─ tag-data.json (pre-computed tag counts)
+  ├─ Pliny utilities (allCoreContent, sortPosts)
+  └─ github-slugger (slug generation)
+
+Layer 3 (Module)
+  ├─ ListLayout component (UI rendering)
+  ├─ notFound() (error handling)
+  └─ Route params extraction
+
+Layer 2 (Feature)
+  ├─ Tag system conventions
+  ├─ Content metadata standards
+  └─ SEO optimization patterns
+
+Layer 1 (Application)
+  ├─ Route structure
+  └─ Site navigation hierarchy
+```
+
+### Downward Dependencies (Provides To)
+```
+Layer 3 (Current Module)
+  ├─ Provides: Filtered post list
+  ├─ Provides: Pagination metadata
+  ├─ Provides: SEO-optimized HTML
+  └─ Provides: Static page generation
+
+Consumed By:
+  ├─ ListLayout (receives filtered posts)
+  ├─ Search engines (receives static HTML)
+  └─ Navigation (receives pagination links)
+```
 
 ## Core Responsibilities
 
