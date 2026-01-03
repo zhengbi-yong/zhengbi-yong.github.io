@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from '@/components/shadcn/ui/dialog'
 import { Button } from '@/components/shadcn/ui/button'
+import { Input } from '@/components/shadcn/ui/input'
+import { Label } from '@/components/shadcn/ui/label'
 import { X } from 'lucide-react'
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator'
 import { isPasswordValid } from '@/lib/utils/password'
@@ -107,50 +109,41 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
           )}
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              邮箱
-            </label>
-            <input
+            <Label htmlFor="email">邮箱</Label>
+            <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="your@email.com"
             />
           </div>
 
           {mode === 'register' && (
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium">
-                用户名
-              </label>
-              <input
+              <Label htmlFor="username">用户名</Label>
+              <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 minLength={3}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="用户名"
               />
             </div>
           )}
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              密码
-            </label>
-            <input
+            <Label htmlFor="password">密码</Label>
+            <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={12}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               placeholder="••••••••"
             />
             {mode === 'register' && password && (

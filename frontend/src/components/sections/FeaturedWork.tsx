@@ -4,6 +4,7 @@ import projectsData from '@/data/projectsData'
 import WorkCard from './WorkCard'
 import SectionHeader from './SectionHeader'
 import { Button } from '@/components/shadcn/ui/button'
+import Link from 'next/link'
 import { cn } from '@/components/lib/utils'
 
 interface Project {
@@ -119,9 +120,11 @@ export default function FeaturedWork({
         {/* See More 按钮 (可选) */}
         {shouldShowViewAll && (
           <div className="flex items-center justify-center pt-4">
-            <Button url="/works" className="w-full max-w-60">
-              See All Works
-            </Button>
+            <Link href="/works" className="w-full max-w-60">
+              <Button className="w-full">
+                See All Works
+              </Button>
+            </Link>
           </div>
         )}
       </div>

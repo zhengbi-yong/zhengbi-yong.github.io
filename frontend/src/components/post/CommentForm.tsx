@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useCommentStore, useAuthStore, usePostStore } from '@/lib/store'
 import { Button } from '@/components/shadcn/ui/button'
+import { Textarea } from '@/components/shadcn/ui/textarea'
 import { MessageCircle, Send, LogIn } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 import { AuthModal } from '@/components/auth/AuthModal'
@@ -75,13 +76,13 @@ export function CommentForm({ slug, className }: CommentFormProps) {
           ) : null}
 
           <form onSubmit={handleSubmitComment} className="space-y-2">
-            <textarea
+            <Textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="写下你的评论..."
               rows={4}
               disabled={!isAuthenticated || isSubmitting}
-              className="flex min-h-[100px] w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 resize-y text-gray-900 dark:text-white"
+              className="min-h-[100px] resize-y"
             />
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-500 dark:text-gray-400">

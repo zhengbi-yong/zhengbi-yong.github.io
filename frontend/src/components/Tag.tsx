@@ -1,18 +1,17 @@
 import Link from 'next/link'
 import { slug } from 'github-slugger'
-interface Props {
+import { Badge } from '@/components/shadcn/ui/badge'
+
+interface TagProps {
   text: string
 }
 
-const Tag = ({ text }: Props) => {
+export default function Tag({ text }: TagProps) {
   return (
-    <Link
-      href={`/tags/${slug(text)}`}
-      className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 mr-3 text-sm font-medium uppercase"
-    >
-      {text.split(' ').join('-')}
+    <Link href={`/tags/${slug(text)}`}>
+      <Badge variant="secondary" className="mr-3 cursor-pointer hover:bg-primary/80 uppercase">
+        {text.split(' ').join('-')}
+      </Badge>
     </Link>
   )
 }
-
-export default Tag

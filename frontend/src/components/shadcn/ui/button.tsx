@@ -1,5 +1,4 @@
 import * as React from 'react'
-import Link from 'next/link'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 
@@ -37,10 +36,6 @@ export interface ButtonProps
   extends React.ComponentProps<'button'>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
-  url?: string
-  loading?: boolean
-  icon?: React.ReactNode
-  iconPosition?: 'left' | 'right'
 }
 
 function Button({
@@ -48,52 +43,16 @@ function Button({
   variant,
   size,
   asChild = false,
-  url,
-  loading = false,
-  icon,
-  iconPosition = 'left',
-  disabled,
-  children,
   ...props
 }: ButtonProps) {
   const Comp = asChild ? Slot : 'button'
 
-  const content = (
-    <>
-      {loading && (
-        <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      )}
-      {icon && iconPosition === 'left' && <span className="mr-2">{icon}</span>}
-      {children}
-      {icon && iconPosition === 'right' && <span className="ml-2">{icon}</span>}
-    </>
-  )
-
-  // If url is provided, render as Link
-  if (url) {
-    return (
-      <Link
-        href={disabled ? '#' : url}
-        className={cn(buttonVariants({ variant, size, className }))}
-        aria-disabled={disabled || loading}
-        onClick={disabled || loading ? (e) => e.preventDefault() : undefined}
-        {...(props as React.ComponentProps<'a'>)}
-      >
-        {content}
-      </Link>
-    )
-  }
-
-  // Otherwise, render as button
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      disabled={disabled || loading}
       {...props}
-    >
-      {content}
-    </Comp>
+    />
   )
 }
 

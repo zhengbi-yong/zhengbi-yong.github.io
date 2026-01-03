@@ -1,5 +1,7 @@
 import projectsData from '@/data/projectsData'
-import Card from '@/components/Card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shadcn/ui/card'
+import Image from 'next/image'
+import Link from 'next/link'
 import { genPageMetadata } from '@/app/seo'
 
 export const metadata = genPageMetadata({ title: 'Projects' })
@@ -26,13 +28,41 @@ export default function Projects() {
             <div className="container mx-auto px-4">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
                 {projectsData.map((d) => (
-                  <Card
-                    key={d.title}
-                    title={d.title}
-                    description={d.description}
-                    imgSrc={d.imgSrc}
-                    href={d.href}
-                  />
+                  <Link href={d.href} key={d.title} className="group h-full">
+                    <Card className="h-full hover:shadow-lg transition-all hover:-translate-y-1">
+                      {d.imgSrc && (
+                        <div className="relative overflow-hidden rounded-t-2xl h-48 md:h-56 lg:h-64">
+                          <Image
+                            alt={d.title}
+                            src={d.imgSrc}
+                            className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                            width={544}
+                            height={306}
+                          />
+                        </div>
+                      )}
+                      <CardContent className="p-6">
+                        <CardHeader className="p-0 mb-4">
+                          <CardTitle className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                            {d.title}
+                          </CardTitle>
+                          <CardDescription>{d.description}</CardDescription>
+                        </CardHeader>
+                        <Link
+                          href={d.href}
+                          className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 group/link inline-flex items-center gap-2 text-base leading-6 font-medium transition-all duration-200"
+                        >
+                          <span className="relative">
+                            了解更多
+                            <span className="bg-primary-500 dark:bg-primary-400 absolute bottom-0 left-0 h-[1px] w-0 transition-all duration-300 group-hover/link:w-full"></span>
+                          </span>
+                          <span className="transition-transform duration-300 group-hover/link:translate-x-1">
+                            →
+                          </span>
+                        </Link>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             </div>

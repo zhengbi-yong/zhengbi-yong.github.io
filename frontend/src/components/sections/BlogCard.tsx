@@ -1,8 +1,12 @@
 'use client'
 
-import Link from '@/components/Link'
-import Image from '@/components/Image'
+import Link from 'next/link'
+import Image from 'next/image'
 import { cn } from '@/components/lib/utils'
+import { Card, CardContent } from '@/components/shadcn/ui/card'
+import { Badge } from '@/components/shadcn/ui/badge'
+import { Button } from '@/components/shadcn/ui/button'
+import { ArrowRight, Calendar } from 'lucide-react'
 
 interface BlogCardProps {
   content: {
@@ -21,8 +25,7 @@ interface BlogCardProps {
 
 /**
  * BlogCard - 博客卡片组件
- * 参考 Astro 项目的 BlogCard 组件，适配项目现有风格
- * 支持垂直和水平两种布局，包含图片、标题、描述、日期、标签等信息
+ * 使用shadcn组件重构，保留原有功能
  */
 export default function BlogCard({ content, layout = 'vertical', className = '' }: BlogCardProps) {
   const { title, description, publishDate, tags = [], img, img_alt, slug, link } = content
@@ -37,137 +40,92 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
   const isHorizontal = layout === 'horizontal'
 
   return (
-    <article
+    <Card
       className={cn(
-        'group relative overflow-hidden rounded-2xl border border-border bg-card p-4 transition-all duration-500',
+        'group relative overflow-hidden transition-all duration-500 border-2 hover:shadow-lg',
         isHorizontal && 'md:flex md:items-center',
         className
       )}
     >
-      {/* Image container */}
-      <div
-        className={cn(
-          'relative overflow-hidden rounded-2xl border-4 border-white dark:border-neutral-800/60',
-          isHorizontal ? 'md:w-1/2' : 'aspect-[3/2]'
-        )}
-      >
-        {/* Image */}
-        <Image
-          src={img || '/assets/blog/cover-dreamcore.jpg'}
-          alt={img_alt || (img ? `Related to ${title}` : `Default blog image for ${title}`)}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          loading="lazy"
-        />
+      <Link href={postLink} className="absolute inset-0 z-10">
+        <span className="sr-only">Read More About {title}</span>
+      </Link>
 
-        {/* Overlay and button shown on hover */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-all duration-500 group-hover:opacity-100">
-          <span className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white opacity-0 shadow-lg transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110 dark:bg-gray-800">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-primary"
-            >
-              <path d="M7 7h10v10"></path>
-              <path d="M7 17 17 7"></path>
-            </svg>
-          </span>
-        </div>
-
-        {/* Article link */}
-        <Link href={postLink} className="absolute inset-0 z-10">
-          <span className="sr-only">Read More About {title}</span>
-        </Link>
-      </div>
-
-      {/* Content area */}
-      <div className={cn('flex flex-col p-6 px-2 md:p-6', isHorizontal && 'md:w-1/2')}>
-        {/* Date and tags */}
-        <div className="mb-4 flex items-center gap-2 text-sm">
-          <time className="inline-flex items-center text-xs text-neutral-500 dark:text-neutral-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-1.5 opacity-60"
-            >
-              <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-              <line x1="16" x2="16" y1="2" y2="6"></line>
-              <line x1="8" x2="8" y1="2" y2="6"></line>
-              <line x1="3" x2="21" y1="10" y2="10"></line>
-            </svg>
-            {formattedDate}
-          </time>
-          {tags && tags.length > 0 && (
-            <>
-              <span className="text-neutral-400 dark:text-neutral-500">·</span>
-              <span className="inline-flex items-center rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-light text-muted-foreground">
-                {tags[0]}
-              </span>
-            </>
+      <div className={cn(isHorizontal ? 'md:flex' : '')}>
+        {/* Image container */}
+        <div
+          className={cn(
+            'relative overflow-hidden',
+            isHorizontal ? 'md:w-1/2' : 'aspect-[3/2]'
           )}
-        </div>
+        >
+          <Image
+            src={img || '/assets/blog/cover-dreamcore.jpg'}
+            alt={img_alt || (img ? `Related to ${title}` : `Default blog image for ${title}`)}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
 
-        {/* Title */}
-        <Link href={postLink}>
-          <h2
-            className={cn(
-              'group-hover:text-primary mb-3 line-clamp-2 leading-tight font-bold text-foreground transition-colors duration-300',
-              isHorizontal ? 'text-3xl' : 'text-2xl'
-            )}
-          >
-            {title}
-          </h2>
-        </Link>
-
-        {/* Description */}
-        {description && (
-          <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-            {description}
-          </p>
-        )}
-
-        {/* Read More button */}
-        <div className="mt-auto pt-4">
-          <Link
-            href={postLink}
-            className="text-primary group/link inline-flex items-center gap-2 text-sm font-semibold transition-all duration-300"
-          >
-            <span className="relative">
-              Read More
-              <span className="bg-primary absolute bottom-0 left-0 h-[1px] w-0 transition-all duration-300 group-hover/link:w-full"></span>
+          {/* Overlay effect on hover */}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-all duration-500 group-hover:opacity-100">
+            <span className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white opacity-0 shadow-lg transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110 dark:bg-gray-800">
+              <ArrowRight className="h-6 w-6 text-primary" />
             </span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-transform duration-300 group-hover/link:translate-x-1"
-            >
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </Link>
+          </div>
         </div>
+
+        {/* Content area */}
+        <CardContent className={cn('flex flex-col p-6', isHorizontal && 'md:w-1/2')}>
+          {/* Date and tags */}
+          <div className="mb-4 flex items-center gap-2 text-sm">
+            <time className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5" />
+              {formattedDate}
+            </time>
+            {tags && tags.length > 0 && (
+              <>
+                <span className="text-muted-foreground/50">·</span>
+                <Badge variant="secondary" className="text-[11px]">
+                  {tags[0]}
+                </Badge>
+              </>
+            )}
+          </div>
+
+          {/* Title */}
+          <Link href={postLink} className="relative z-20">
+            <h2
+              className={cn(
+                'group-hover:text-primary mb-3 line-clamp-2 leading-tight font-bold text-foreground transition-colors duration-300',
+                isHorizontal ? 'text-3xl' : 'text-2xl'
+              )}
+            >
+              {title}
+            </h2>
+          </Link>
+
+          {/* Description */}
+          {description && (
+            <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+              {description}
+            </p>
+          )}
+
+          {/* Read More button */}
+          <div className="mt-auto pt-4">
+            <Button variant="ghost" asChild className="group/link p-0 h-auto">
+              <Link href={postLink} className="inline-flex items-center gap-2 text-sm font-semibold">
+                <span className="relative">
+                  Read More
+                  <span className="bg-primary absolute bottom-0 left-0 h-[1px] w-0 transition-all duration-300 group-hover/link:w-full"></span>
+                </span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover/link:translate-x-1" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
       </div>
-    </article>
+    </Card>
   )
 }

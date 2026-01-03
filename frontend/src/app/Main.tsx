@@ -1,6 +1,7 @@
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import { Button } from '@/components/shadcn/ui/button'
+import Link from 'next/link'
 import AnimatedText from '@/components/home/AnimatedText'
 import HeroCard from '@/components/home/HeroCard'
 import SocialCard from '@/components/home/SocialCard'
@@ -54,14 +55,15 @@ export default function Home({ posts }: HomeProps) {
             </div>
             {/* Button */}
             <div className="mt-4 sm:mt-6">
-              <Button
-                url={siteMetadata.x || siteMetadata.github || '#'}
-                variant="default"
-                size="default"
-                className="m-auto sm:m-0"
-              >
-                Follow me on 𝕏
-              </Button>
+              <Link href={siteMetadata.x || siteMetadata.github || '#'} className="m-auto sm:m-0">
+                <Button
+                  variant="default"
+                  size="default"
+                  className="w-full sm:w-auto"
+                >
+                  Follow me on 𝕏
+                </Button>
+              </Link>
             </div>
             {/* Social Cards */}
             <div className="mt-8 mb-8">

@@ -19,7 +19,7 @@ import I18nProvider from '@/components/I18nProvider'
 import { Metadata } from 'next'
 import Script from 'next/script'
 import { AuthInitializer } from '@/components/auth/AuthInitializer'
-import { Toaster } from '@/components/ui/Toaster'
+import { Toaster } from '@/components/shadcn/ui/sonner'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteMetadata.siteUrl),

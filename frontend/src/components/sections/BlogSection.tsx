@@ -5,6 +5,7 @@ import type { Blog } from 'contentlayer/generated'
 import BlogCard from './BlogCard'
 import SectionHeader from './SectionHeader'
 import { Button } from '@/components/shadcn/ui/button'
+import Link from 'next/link'
 import AnimatedText from '@/components/home/AnimatedText'
 import { cn } from '@/components/lib/utils'
 
@@ -155,9 +156,11 @@ export default function BlogSection({
         {/* "View All Articles" 按钮 - 仅在非列表页且启用时显示 */}
         {!listPage && showViewAllButton && (
           <div className="mt-12 mb-12 flex justify-center">
-            <Button url="/blog" className="w-full max-w-60">
-              View All Articles
-            </Button>
+            <Link href="/blog" className="w-full max-w-60">
+              <Button className="w-full">
+                View All Articles
+              </Button>
+            </Link>
           </div>
         )}
       </section>

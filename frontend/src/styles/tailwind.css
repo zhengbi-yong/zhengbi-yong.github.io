@@ -13,19 +13,32 @@
     'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
 
-  /* Colors - 红绿配色方案：米白+红色 / 藏蓝+绿色 */
-  /* Primary color - 深红色 (Dark Red) #7c1823 - 白天模式强调色 */
-  --color-primary-50: oklch(0.95 0.03 15);
-  --color-primary-100: oklch(0.88 0.05 15);
-  --color-primary-200: oklch(0.78 0.08 15);
-  --color-primary-300: oklch(0.65 0.12 15);
-  --color-primary-400: oklch(0.50 0.15 15);
-  --color-primary-500: oklch(0.40 0.15 15); /* #7c1823 - 深红色 */
-  --color-primary-600: oklch(0.35 0.15 15); /* #63000f */
-  --color-primary-700: oklch(0.28 0.14 15); /* #4a0000 */
-  --color-primary-800: oklch(0.22 0.12 15); /* #320000 */
-  --color-primary-900: oklch(0.16 0.10 15); /* #200000 */
-  --color-primary-950: oklch(0.10 0.08 15); /* #100000 */
+  /* Colors - 靛蓝紫配色方案：米白+靛蓝 / 深紫+紫色 */
+  /* Primary color - 靛蓝色 (Indigo) #6366f1 - 白天模式强调色 */
+  --color-primary-50: oklch(0.95 0.02 264);
+  --color-primary-100: oklch(0.90 0.04 264);
+  --color-primary-200: oklch(0.82 0.08 264);
+  --color-primary-300: oklch(0.72 0.12 264);
+  --color-primary-400: oklch(0.62 0.18 264);
+  --color-primary-500: oklch(0.55 0.22 264); /* #6366f1 - 靛蓝色 */
+  --color-primary-600: oklch(0.50 0.24 264); /* #4f46e5 */
+  --color-primary-700: oklch(0.43 0.22 264); /* #4338ca */
+  --color-primary-800: oklch(0.37 0.18 264); /* #3730a3 */
+  --color-primary-900: oklch(0.31 0.16 264); /* #312e81 */
+  --color-primary-950: oklch(0.25 0.12 264); /* 深靛蓝 */
+
+  /* Accent color - 紫色 (Purple) #a855f7 - 辅助强调色 */
+  --color-accent-50: oklch(0.97 0.02 300);
+  --color-accent-100: oklch(0.93 0.05 300);
+  --color-accent-200: oklch(0.87 0.10 300);
+  --color-accent-300: oklch(0.80 0.15 300);
+  --color-accent-400: oklch(0.72 0.20 300);
+  --color-accent-500: oklch(0.65 0.25 300); /* #a855f7 - 紫色 */
+  --color-accent-600: oklch(0.58 0.28 300); /* #9333ea */
+  --color-accent-700: oklch(0.50 0.30 300); /* #7e22ce */
+  --color-accent-800: oklch(0.42 0.28 300); /* #6b21a8 */
+  --color-accent-900: oklch(0.35 0.25 300); /* #581c87 */
+  --color-accent-950: oklch(0.28 0.20 300); /* 深紫 */
 
   --color-gray-50: oklch(0.985 0.002 247.839);
   --color-gray-100: oklch(0.967 0.003 264.542);
@@ -39,20 +52,20 @@
   --color-gray-900: oklch(0.21 0.034 264.665);
   --color-gray-950: oklch(0.13 0.028 261.692);
 
-  /* TOC (Table of Contents) Colors - 统一使用 primary 颜色系列（红色/绿色） */
+  /* TOC (Table of Contents) Colors - 统一使用 primary/accent 颜色系列（靛蓝/紫色） */
   --color-toc-active-text-light: var(--color-primary-600);
-  --color-toc-active-text-dark: oklch(0.75 0.08 150); /* 深绿色 #74b09b */
-  --color-toc-active-bg-light: oklch(0.98 0.01 15); /* 极浅红色背景 */
-  --color-toc-active-bg-dark: oklch(0.20 0.02 240); /* 藏蓝背景 */
+  --color-toc-active-text-dark: var(--color-accent-400); /* 紫色 */
+  --color-toc-active-bg-light: oklch(0.98 0.01 264); /* 极浅靛蓝背景 */
+  --color-toc-active-bg-dark: oklch(0.20 0.02 240); /* 深紫背景 */
   --color-toc-active-indicator-light: var(--color-primary-600);
-  --color-toc-active-indicator-dark: oklch(0.75 0.08 150); /* 深绿色 */
+  --color-toc-active-indicator-dark: var(--color-accent-400); /* 紫色 */
   --color-toc-hover-light: var(--color-primary-600);
-  --color-toc-hover-dark: oklch(0.75 0.08 150); /* 深绿色 */
+  --color-toc-hover-dark: var(--color-accent-400); /* 紫色 */
   /* 阴影颜色 */
   --color-toc-shadow-light: rgba(45, 41, 38, 0.06);
   --color-toc-shadow-dark: rgba(0, 0, 0, 0.3);
-  --color-toc-indicator-shadow-light: rgba(124, 24, 35, 0.2); /* 红色阴影 */
-  --color-toc-indicator-shadow-dark: rgba(116, 176, 155, 0.3); /* 绿色阴影 */
+  --color-toc-indicator-shadow-light: rgba(99, 102, 241, 0.2); /* 靛蓝阴影 */
+  --color-toc-indicator-shadow-dark: rgba(168, 85, 247, 0.3); /* 紫色阴影 */
 
   /* Line heights */
   --line-height-11: 2.75rem;
@@ -399,36 +412,36 @@ input:-webkit-autofill:focus {
 }
 
 :root {
-  /* 红绿配色方案 - 白天模式：米白色 + 深红色 */
-  /* 背景主色：米白色 #F5F3F0 - 温暖的高级纸张质感 */
-  --site-bg: #F5F3F0;
-  --card-bg: #FFFFFF;
-  --text-primary: #2D2926; /* 深咖啡色，与米白背景形成优雅对比 */
-  --text-secondary: #5A5652; /* 中咖啡色 */
-  --brand-color: #7c1823; /* 深红色 - 主要强调色 */
-  --accent-color: #922e34; /* 稍浅的红色，用于次要强调 */
+  /* 靛蓝紫配色方案 - 白天模式：纯白 + 靛蓝 */
+  /* 背景主色：纯白色 #FFFFFF - 简洁现代 */
+  --site-bg: #FFFFFF;
+  --card-bg: #FAFAFA;
+  --text-primary: #1A1A2E; /* 深蓝灰，科技感 */
+  --text-secondary: #4A4A68; /* 中蓝灰 */
+  --brand-color: #6366f1; /* 靛蓝色 - 主要强调色 */
+  --accent-color: #a855f7; /* 紫色，用于次要强调 */
   --transition-speed: 0.3s;
 
   /* 兼容现有变量系统 */
-  --background: #F5F3F0; /* 米白色背景 */
-  --foreground: #2D2926; /* 深咖啡色文字 */
-  --card: #FFFFFF; /* 纯白卡片 */
-  --card-foreground: #2D2926;
+  --background: #FFFFFF; /* 纯白背景 */
+  --foreground: #1A1A2E; /* 深蓝灰文字 */
+  --card: #FAFAFA; /* 浅灰卡片 */
+  --card-foreground: #1A1A2E;
   --popover: #FFFFFF;
-  --popover-foreground: #2D2926;
-  --primary: #7c1823; /* 深红色 */
+  --popover-foreground: #1A1A2E;
+  --primary: #6366f1; /* 靛蓝色 */
   --primary-foreground: #FFFFFF; /* 白色 */
-  --secondary: oklch(0.98 0.01 15); /* 极浅红色背景 */
-  --secondary-foreground: #2D2926;
-  --muted: oklch(0.98 0.01 15);
-  --muted-foreground: #5A5652;
-  --accent: #7c1823;
+  --secondary: oklch(0.97 0.01 264); /* 极浅靛蓝背景 */
+  --secondary-foreground: #1A1A2E;
+  --muted: oklch(0.96 0.01 264);
+  --muted-foreground: #4A4A68;
+  --accent: #a855f7; /* 紫色 */
   --accent-foreground: #FFFFFF;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: #E8E5E0; /* 浅米色边框 */
-  --input: #FFFFFF; /* 纯白输入框 */
-  --ring: #7c1823; /* 深红色焦点环 */
+  --border: #E5E7EB; /* 浅灰边框 */
+  --input: #FAFAFA; /* 浅灰输入框 */
+  --ring: #6366f1; /* 靛蓝色焦点环 */
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -436,13 +449,13 @@ input:-webkit-autofill:focus {
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.75rem;
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #2D2926;
-  --sidebar-primary: #7c1823;
+  --sidebar-foreground: #1A1A2E;
+  --sidebar-primary: #6366f1;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: oklch(0.98 0.01 15);
-  --sidebar-accent-foreground: #2D2926;
-  --sidebar-border: #E8E5E0;
-  --sidebar-ring: #7c1823;
+  --sidebar-accent: oklch(0.97 0.01 264);
+  --sidebar-accent-foreground: #1A1A2E;
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: #6366f1;
 
   /* TOC Colors - 浅色模式 */
   --toc-active-text: var(--color-toc-active-text-light);
@@ -452,70 +465,70 @@ input:-webkit-autofill:focus {
   --toc-shadow: var(--color-toc-shadow-light);
   --toc-indicator-shadow: var(--color-toc-indicator-shadow-light);
 
-  /* 精致多层阴影 - 使用红色调阴影 */
-  --shadow-tinted: rgba(45, 41, 38, 0.05);
-  --shadow-tinted-md: rgba(45, 41, 38, 0.08);
-  --shadow-tinted-lg: rgba(45, 41, 38, 0.12);
-  --shadow-tinted-xl: rgba(45, 41, 38, 0.16);
+  /* 精致多层阴影 - 使用靛蓝调阴影 */
+  --shadow-tinted: rgba(26, 26, 46, 0.05);
+  --shadow-tinted-md: rgba(26, 26, 46, 0.08);
+  --shadow-tinted-lg: rgba(26, 26, 46, 0.12);
+  --shadow-tinted-xl: rgba(26, 26, 46, 0.16);
 }
 
 .dark {
-  /* 红绿配色方案 - 黑夜模式：藏蓝色 + 深绿色 */
-  /* 背景主色：藏蓝色 #1E3A5F - 深邃优雅的蓝色 */
-  --site-bg: #1E3A5F;
-  --card-bg: #2A4A6F; /* 稍亮的藏蓝色卡片 */
-  --text-primary: #E8E8E8; /* 亮银色文字 */
-  --text-secondary: #B8C5D1; /* 中亮银色 */
-  --brand-color: #74b09b; /* 深绿色 - 主要强调色 */
-  --accent-color: #B2F0D9; /* 稍浅的绿色，用于次要强调 */
+  /* 靛蓝紫配色方案 - 黑夜模式：深靛蓝 + 紫色 */
+  /* 背景主色：深靛蓝 #0F0F23 - 深邃科技感 */
+  --site-bg: #0F0F23;
+  --card-bg: #1A1A3E; /* 深靛蓝卡片 */
+  --text-primary: #E8E8FF; /* 亮银白色文字 */
+  --text-secondary: #A8A8C8; /* 中亮银紫 */
+  --brand-color: #818cf8; /* 亮靛蓝 - 主要强调色 */
+  --accent-color: #c084fc; /* 亮紫色，用于次要强调 */
   --transition-speed: 0.3s;
 
-  /* 覆盖 primary 色系为绿色系 */
-  --color-primary-50: oklch(0.95 0.02 150);
-  --color-primary-100: oklch(0.92 0.03 150);
-  --color-primary-200: oklch(0.88 0.04 150);
-  --color-primary-300: oklch(0.82 0.05 150);
-  --color-primary-400: oklch(0.78 0.06 150);
-  --color-primary-500: oklch(0.75 0.08 150); /* #74b09b - 深绿色 */
-  --color-primary-600: oklch(0.70 0.08 150); /* #397561 */
-  --color-primary-700: oklch(0.60 0.07 150); /* #003e2d */
-  --color-primary-800: oklch(0.45 0.06 150); /* #00180b */
-  --color-primary-900: oklch(0.30 0.05 150);
-  --color-primary-950: oklch(0.15 0.04 150);
+  /* 保持 primary 为靛蓝色 */
+  --color-primary-50: oklch(0.97 0.02 264);
+  --color-primary-100: oklch(0.94 0.04 264);
+  --color-primary-200: oklch(0.90 0.06 264);
+  --color-primary-300: oklch(0.84 0.10 264);
+  --color-primary-400: oklch(0.78 0.14 264);
+  --color-primary-500: oklch(0.70 0.18 264); /* 亮靛蓝 */
+  --color-primary-600: oklch(0.65 0.20 264);
+  --color-primary-700: oklch(0.58 0.22 264);
+  --color-primary-800: oklch(0.50 0.20 264);
+  --color-primary-900: oklch(0.42 0.18 264);
+  --color-primary-950: oklch(0.35 0.15 264);
 
   /* 兼容现有变量系统 */
-  --background: #1E3A5F; /* 藏蓝色背景 */
-  --foreground: #E8E8E8; /* 亮银色文字 */
-  --card: #2A4A6F; /* 藏蓝色卡片 */
-  --card-foreground: #E8E8E8;
-  --popover: #2A4A6F;
-  --popover-foreground: #E8E8E8;
-  --primary: #74b09b; /* 深绿色 */
-  --primary-foreground: #1E3A5F;
-  --secondary: oklch(0.25 0.02 240); /* 深藏蓝 */
-  --secondary-foreground: #E8E8E8;
-  --muted: oklch(0.25 0.02 240);
-  --muted-foreground: #B8C5D1;
-  --accent: #74b09b;
-  --accent-foreground: #1E3A5F;
+  --background: #0F0F23; /* 深靛蓝背景 */
+  --foreground: #E8E8FF; /* 亮银白文字 */
+  --card: #1A1A3E; /* 深靛蓝卡片 */
+  --card-foreground: #E8E8FF;
+  --popover: #1A1A3E;
+  --popover-foreground: #E8E8FF;
+  --primary: #818cf8; /* 亮靛蓝 */
+  --primary-foreground: #0F0F23;
+  --secondary: oklch(0.30 0.02 264); /* 深靛蓝 */
+  --secondary-foreground: #E8E8FF;
+  --muted: oklch(0.30 0.02 264);
+  --muted-foreground: #A8A8C8;
+  --accent: #c084fc; /* 亮紫色 */
+  --accent-foreground: #0F0F23;
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: #3A5A7F; /* 藏蓝色边框，比背景稍亮 */
-  --input: #2A4A6F;
-  --ring: #74b09b; /* 深绿色焦点环 */
+  --border: #2A2A5E; /* 靛蓝边框 */
+  --input: #1A1A3E;
+  --ring: #818cf8; /* 亮靛蓝焦点环 */
   --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-2: oklch(0.696 0.17 300.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #2A4A6F;
-  --sidebar-foreground: #E8E8E8;
-  --sidebar-primary: #74b09b;
-  --sidebar-primary-foreground: #1E3A5F;
-  --sidebar-accent: oklch(0.25 0.02 240);
-  --sidebar-accent-foreground: #E8E8E8;
-  --sidebar-border: #3A5A7F;
-  --sidebar-ring: #74b09b;
+  --sidebar: #1A1A3E;
+  --sidebar-foreground: #E8E8FF;
+  --sidebar-primary: #818cf8;
+  --sidebar-primary-foreground: #0F0F23;
+  --sidebar-accent: oklch(0.30 0.02 264);
+  --sidebar-accent-foreground: #E8E8FF;
+  --sidebar-border: #2A2A5E;
+  --sidebar-ring: #818cf8;
 
   /* TOC Colors - 深色模式 */
   --toc-active-text: var(--color-toc-active-text-dark);
@@ -844,7 +857,7 @@ html.cursor-hidden .case-go {
   border-color: var(--accent-gold);
 }
 
-/* 品牌色按钮 - 红绿配色按钮设计 */
+/* 品牌色按钮 - 靛蓝紫配色按钮设计 */
 .btn-brand {
   background-color: var(--brand-color);
   color: var(--primary-foreground);
@@ -852,27 +865,27 @@ html.cursor-hidden .case-go {
   padding: 0.625rem 1.25rem;
   font-weight: 500;
   transition: all var(--transition-speed, 0.3s) cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px 0 rgba(124, 24, 35, 0.2);
+  box-shadow: 0 1px 3px 0 rgba(99, 102, 241, 0.2);
 }
 
 .btn-brand:hover {
   background-color: var(--color-primary-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(124, 24, 35, 0.3);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .btn-brand:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px 0 rgba(124, 24, 35, 0.2);
+  box-shadow: 0 1px 3px 0 rgba(99, 102, 241, 0.2);
 }
 
 .dark .btn-brand {
   background-color: var(--brand-color);
   color: var(--site-bg);
-  box-shadow: 0 1px 3px 0 rgba(116, 176, 155, 0.2);
+  box-shadow: 0 1px 3px 0 rgba(129, 140, 248, 0.2);
 }
 
 .dark .btn-brand:hover {
-  background-color: #B2F0D9;
-  box-shadow: 0 4px 12px rgba(116, 176, 155, 0.3);
+  background-color: var(--accent-color);
+  box-shadow: 0 4px 12px rgba(192, 132, 252, 0.3);
 }
