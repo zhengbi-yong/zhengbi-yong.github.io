@@ -1,0 +1,139 @@
+{
+  "project_structure": "Next.js 15 frontend with App Router, component-based architecture organized by domain (auth, blog, magazine, admin). Uses shadcn/ui (Radix UI primitives + Tailwind CSS) as the design system foundation. Three main layering: Layer 1 (App Router pages), Layer 2 (Reusable components), Layer 3 (UI primitives and utilities). Recent magazine-style layout implementation added advanced masonry grid, smart recommendations, and 3D hover effects. Styling centered on Tailwind CSS with custom theme tokens, OKLCH color system for indigo-purple palette, and comprehensive dark mode support.",
+  "relevant_files": [
+    {
+      "path": "frontend/src/components/shadcn/ui/",
+      "relevance": 1.0,
+      "rationale": "Core design system components - all UI improvements start here. Contains 13 shadcn/ui components (button, dialog, dropdown-menu, input, label, tabs, etc.) built on Radix UI with Tailwind styling. Critical for consistency and accessibility foundation."
+    },
+    {
+      "path": "frontend/src/styles/tailwind.css",
+      "relevance": 1.0,
+      "rationale": "Global theme configuration with OKLCH color system, CSS variables for theming, focus styles, animation keyframes, and responsive utilities. Contains indigo-purple color scheme (白天: #6366f1/#a855f7, 黑夜: #818cf8/#c084fc) and dark mode token mappings."
+    },
+    {
+      "path": "frontend/src/components/layouts/MagazineLayout.tsx",
+      "relevance": 0.95,
+      "rationale": "Recently implemented magazine-style layout with Hero section, masonry grid, filter bar, and recommendations. Represents most advanced UI/UX work to date. Critical for understanding current design patterns and identifying what elevates to world-class."
+    },
+    {
+      "path": "frontend/src/components/magazine/",
+      "relevance": 0.95,
+      "rationale": "Magazine-specific components (HeroSection, MasonryGrid, BookCard, ArticleCard, FilterBar, RecommendedSection) implementing 3D hover effects, lazy loading, infinite scroll, smart card sizing. High-value reference for modern interaction patterns."
+    },
+    {
+      "path": "frontend/src/components/layouts/",
+      "relevance": 0.9,
+      "rationale": "Layout components (ListLayout, PostLayout, MagazineLayout) defining content structure and responsive behavior. Key for consistent responsive patterns across blog, admin, and magazine views."
+    },
+    {
+      "path": "frontend/src/components/navigation/TableOfContents/",
+      "relevance": 0.85,
+      "rationale": "TOC component with sticky positioning, scroll spy, active state highlighting, and mobile optimization. Good reference for navigation patterns and responsive sidebar behavior."
+    },
+    {
+      "path": "frontend/src/lib/utils/device.ts",
+      "relevance": 0.8,
+      "rationale": "Device detection utilities (isMobileDevice, getMobileOptimizedAnimationParams) for responsive behavior and animation optimization. Critical for performance-aware UI/UX decisions."
+    },
+    {
+      "path": "frontend/src/lib/focus-manager.ts",
+      "relevance": 0.85,
+      "rationale": "Focus management system with focus-visible polyfill, trap focus, restore focus patterns. Essential for accessibility and keyboard navigation - core requirement for world-class UI/UX."
+    },
+    {
+      "path": "frontend/src/components/loaders/",
+      "relevance": 0.75,
+      "rationale": "Loading states (Skeleton, Spinner, ImageSkeleton) for perceived performance. Important for UX but needs expansion for more patterns (shimmer, skeleton screens for complex layouts)."
+    },
+    {
+      "path": "frontend/src/lib/feature-flags.ts",
+      "relevance": 0.7,
+      "rationale": "Feature flag system enabling progressive rollout (magazineLayout, masonryGrid, recommendations, hover3D, gestures, virtualScroll, lazyImages). Critical for testing and gradual UI/UX improvements."
+    },
+    {
+      "path": "frontend/package.json",
+      "relevance": 0.65,
+      "rationale": "Dependencies list confirms: Tailwind CSS 4.1.18, Framer Motion 12.23.26, Radix UI primitives, shadcn/ui, Lucide icons. Foundation libraries are world-class - usage patterns need audit."
+    },
+    {
+      "path": "frontend/tailwind.config.js",
+      "relevance": 0.6,
+      "rationale": "Tailwind configuration not examined in detail but likely contains theme extensions. Should audit for design token completeness (spacing scale, typography scale, breakpoints)."
+    },
+    {
+      "path": "frontend/src/app/layout.tsx",
+      "relevance": 0.7,
+      "rationale": "Root layout defining global structure, theme provider, font loading. Foundation for consistent UI/UX across all routes."
+    },
+    {
+      "path": "frontend/src/components/header/",
+      "relevance": 0.75,
+      "rationale": "Header components (HeaderNavigation, HeaderActions, DarkModeToggle, MobileMenuButton) implementing responsive navigation and theme switching. Key for consistent top-level UX."
+    },
+    {
+      "path": "frontend/src/components/animations/",
+      "relevance": 0.8,
+      "rationale": "Animation components (SlideIn, FadeIn, BounceIn, AdvancedScrollAnimation) using Framer Motion and GSAP. Good foundation but needs comprehensive micro-interaction strategy."
+    }
+  ],
+  "patterns": "Design System: shadcn/ui copy-paste pattern (not npm) with Radix UI primitives + Tailwind CSS. Component variants managed via class-variance-authority (CVA) for type-safe props. Theme tokens via CSS variables (--primary, --foreground, --background, --muted, --accent, --ring, --radius). Dark mode with .dark class prefix. Responsive: mobile-first breakpoints (sm: 640px, md: 768px, lg: 1024px, xl: 1280px). Device detection for animation optimization (isMobileDevice, getGSAPMobileOptimizedParams). Layout patterns: compound components (Tabs, Dialog, DropdownMenu), portal rendering for overlays, forwardRef pattern for ref forwarding. Accessibility: Radix UI handles most ARIA, focus-visible styles in tailwind.css, focus manager utility for trap/restore. State management: Zustand stores (auth, ui, post, user), feature flags for gradual rollout. Performance: lazy loading, Intersection Observer infinite scroll, requestIdleCallback preloading, Framer Motion animations with GPU acceleration. Color: OKLCH color space (better perceptual uniformity than HSL), indigo-purple primary scheme, 50-950 scale for each color.",
+  "dependencies": "External: Next.js 15.1.1, React 19.2.3, Tailwind CSS 4.1.18, Framer Motion 12.23.26, Radix UI (@radix-ui/react-accordion, dialog, dropdown-menu, label, progress, separator, slot, tabs), shadcn/ui (local copy-paste components), Lucide React 0.562.0, Sonner 2.0.7 (toast). Internal: Zustand 5.0.9 (state management), class-variance-authority 0.7.1 (CVA), tailwind-merge 3.4.0 (cn utility), GSAP 3.14.2 (advanced animations), @tanstack/react-query 5.90.16 (server state). Build: TypeScript 5.9.3, ESLint 9.39.2, Prettier 3.7.4. Testing: Vitest 4.0.16, Playwright 1.57.0, Testing Library. Content: MDX, next-mdx-remote, rehype/remark plugins.",
+  "integration_points": "Theming Integration: tailwind.css CSS variables consumed by all components via theme tokens (--primary, etc.). shadcn/ui components reference tailwind.config.js theme extensions. Radix UI primitives integrated into shadcn/ui compound components. State Management: Zustand stores (auth-store, ui-store, post-store, user-store) accessed via hooks. Feature flags (feature-flags.ts) gate new UI components (magazineLayout, masonryGrid, recommendations). Routing: Next.js App Router, layouts at src/app/layout.tsx and per-route layouts. Page components import layout components (ListLayout, PostLayout, MagazineLayout). Component Composition: MagazineLayout integrates HeroSection, FilterBar, MasonryGrid, RecommendedSection. MasonryGrid uses SmartCard which auto-renders BookCard/ArticleCard/ChapterCard. Animations: Framer Motion (SlideIn, FadeIn) used in layouts, GSAP for advanced scroll animations (AdvancedScrollAnimation). Device detection utilities optimize animations for mobile. Accessibility: focus-manager.ts provides trapFocus, restoreFocus utilities. Focus-visible styles in tailwind.css. Radix UI components handle keyboard navigation and ARIA. Responsive: Tailwind breakpoints used throughout (sm:, md:, lg:, xl:). Device detection in AnimatedSection.tsx, Book.tsx for conditional behavior. Mobile menu toggle in admin layouts.",
+  "constraints": "Client-Side Only: All shadcn/ui components require 'use client' directive (Radix UI context, event handlers, portal rendering). Cannot use directly in Next.js server components - must wrap in client components. CSS Variables: Components depend on CSS variable setup (--primary, --foreground, etc.). Won't render correctly without proper theme token initialization in tailwind.css. Tailwind Dependency: Components use Tailwind utility classes exclusively - not compatible with CSS-in-JS or styled-components approaches. Manual Updates: shadcn/ui components are copy-paste (not npm packages) - updates require manual code review and merge from https://ui.shadcn.com/. Bundle Size: Framer Motion and GSAP add weight. Should lazy load heavy components. Mobile Performance: 3D hover effects disabled on mobile (device detection in BookCard.tsx). Animation durations reduced on mobile (getMobileOptimizedAnimationParams). Browser Support: OKLCH color space requires modern browsers (Chrome 111+, Firefox 113+, Safari 15.2+). Fallback needed for older browsers. TypeScript: Strict typing enforced - all component props validated at compile time.",
+  "clarification_needs": [
+    {
+      "question": "Should we prioritize accessibility compliance (WCAG 2.1 AA) or advanced visual effects (animations, 3D hover) for the initial world-class UI/UX improvements?",
+      "context": "Current implementation has basic accessibility (Radix UI ARIA, focus-visible styles, focus manager) but lacks comprehensive audit and remediation. Magazine layout has advanced effects (3D hover, Framer Motion) but these can impact accessibility if not carefully implemented. World-class apps like Linear/Vercel excel at both but require significant investment.",
+      "options": [
+        "Accessibility-first - Conduct full WCAG 2.1 AA audit, fix contrast, keyboard navigation, screen reader support, then add visual polish",
+        "Visuals-first - Enhance animations, micro-interactions, and visual design, then audit and fix accessibility issues",
+        "Balanced approach - Tackle high-impact accessibility issues while incrementally adding visual effects in feature-flagged rollout",
+        "Parallel tracks - Separate accessibility remediation work from visual enhancement work, run both streams independently"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "What is the target breakpoint strategy for responsive design improvements?",
+      "context": "Current implementation uses standard Tailwind breakpoints (sm: 640px, md: 768px, lg: 1024px, xl: 1280px). Mobile-first with device detection for animation optimization. Magazine layout has 4-column grid (1/2/3/4 responsive). World-class apps often use custom breakpoints and device-specific optimizations.",
+      "options": [
+        "Standard Tailwind breakpoints (current) - Keep sm/md/lg/xl, optimize component behavior at each breakpoint",
+        "Extended breakpoint system - Add xs (480px) and 2xl (1536px) for finer control, optimize for ultrawide monitors",
+        "Device-first breakpoints - Design specifically for mobile (320-768px), tablet (768-1024px), desktop (1024px+) with distinct layouts",
+        "Fluid typography and spacing - Use clamp() and container queries instead of fixed breakpoints for truly fluid design"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "Should we establish a comprehensive design system documentation (Storybook, zeroheight) or focus on code-level patterns first?",
+      "context": "Current state: component-level CLAUDE.md files exist, but no centralized design system documentation. shadcn/ui components are copy-paste with custom theming. Magazine components have advanced patterns but no documented design tokens. World-class teams typically have both code patterns AND visual documentation.",
+      "options": [
+        "Code patterns first - Establish clear TypeScript interfaces, CVA variants, Tailwind patterns before investing in documentation tools",
+        "Documentation first - Set up Storybook with all shadcn/ui + magazine components, document variants and usage examples",
+        "Parallel approach - Build Storybook incrementally while improving code patterns, start with most-used components",
+        "Skip Storybook - Use component CLAUDE.md files + inline documentation, rely on code comments and type definitions"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "How should we handle animation strategy for world-class UI/UX?",
+      "context": "Current state: Framer Motion for basic animations (SlideIn, FadeIn, BounceIn), GSAP for advanced scroll animations, device detection for mobile optimization. Magazine layout has 3D hover effects (Framer Motion perspective transforms). However, no comprehensive micro-interaction strategy, no animation consistency guidelines.",
+      "options": [
+        "Standardize on Framer Motion - Migrate GSAP animations to Framer Motion for consistency, use spring physics for natural feel",
+        "Hybrid approach - Keep GSAP for complex scroll-linked animations, Framer Motion for component transitions, establish clear boundaries",
+        "CSS-first animations - Use Tailwind animate-* and custom CSS keyframes for simple transitions, JS only for complex interactions",
+        "Animation system - Build comprehensive animation primitives (stagger, cascade, morph) with consistent easing and duration tokens"
+      ],
+      "recommended": 1
+    }
+  ],
+  "_metadata": {
+    "timestamp": "2026-01-03T07:41:49Z",
+    "task_description": "UI/UX improvements to match world-class applications",
+    "source": "cli-explore-agent",
+    "exploration_angle": "ui-ux",
+    "exploration_index": 1,
+    "total_explorations": 4,
+    "duration_seconds": 180
+  }
+}

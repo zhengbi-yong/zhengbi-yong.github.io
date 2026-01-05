@@ -42,7 +42,7 @@ test.describe('文章列表', () => {
     await page.goto('/blog')
 
     // 等待文章列表加载
-    const articles = page.locator('article, [data-testid="post-item"], .post-item')
+    const articles = page.locator('[data-testid="masonry-cell-"]')
     await expect(articles.first()).toBeVisible({ timeout: 10000 })
 
     // 验证文章标题可见
@@ -74,7 +74,7 @@ test.describe('文章列表', () => {
     await page.goto('/blog')
 
     // 查找分类筛选器
-    const categoryFilter = page.locator('select[name="category"], .category-filter a').first()
+    const categoryFilter = page.locator('[data-testid="filter-categories"] button').first()
 
     if (await categoryFilter.isVisible({ timeout: 5000 })) {
       if (categoryFilter.tagName() === 'SELECT') {
@@ -132,7 +132,7 @@ test.describe('文章详情', () => {
     await page.waitForLoadState('networkidle')
 
     // 验证阅读进度条存在
-    const progressBar = page.locator('.reading-progress, [data-testid="reading-progress"]').first()
+    const progressBar = page.locator('[data-testid="reading-progress-bar"]').first()
     await expect(progressBar).toBeVisible({ timeout: 5000 })
   })
 
@@ -184,7 +184,7 @@ test.describe('文章详情', () => {
     await page.waitForTimeout(2000)
 
     // 查找相关文章
-    const relatedPosts = page.locator('[data-testid="related-posts"], .related-posts').first()
+    const relatedPosts = page.locator('[data-testid="magazine-recommended-section"]').first()
 
     if (await relatedPosts.isVisible({ timeout: 5000 })) {
       const relatedLinks = relatedPosts.locator('a').count()
@@ -251,7 +251,7 @@ test.describe('文章评论', () => {
       await page.waitForTimeout(1000)
 
       // 填写评论表单
-      const commentTextarea = page.locator('textarea[name="comment"], #comment-text').first()
+      const commentTextarea = page.locator('[data-testid="comment-form-textarea"]').first()
 
       if (await commentTextarea.isVisible()) {
         await commentTextarea.fill(testData.comment)
@@ -310,7 +310,7 @@ test.describe('分类和标签', () => {
   test('应该显示所有分类', async ({ page }) => {
     await page.goto('/blog/categories')
 
-    const categoryList = page.locator('.category-list, [data-testid="categories"]').first()
+    const categoryList = page.locator('[data-testid="filter-categories"]').first()
 
     if (await categoryList.isVisible({ timeout: 5000 })) {
       const categories = categoryList.locator('a, .category-item').count()
@@ -321,7 +321,7 @@ test.describe('分类和标签', () => {
   test('应该显示所有标签', async ({ page }) => {
     await page.goto('/blog/tags')
 
-    const tagList = page.locator('.tag-list, [data-testid="tags"]').first()
+    const tagList = page.locator('[data-testid="filter-categories"]').first()
 
     if (await tagList.isVisible({ timeout: 5000 })) {
       const tags = tagList.locator('a, .tag').count()
@@ -332,7 +332,7 @@ test.describe('分类和标签', () => {
   test('应该支持按标签筛选文章', async ({ page }) => {
     await page.goto('/blog/tags')
 
-    const tagList = page.locator('.tag-list, [data-testid="tags"]').first()
+    const tagList = page.locator('[data-testid="filter-categories"]').first()
 
     if (await tagList.isVisible({ timeout: 5000 })) {
       const firstTag = tagList.locator('a, .tag').first()

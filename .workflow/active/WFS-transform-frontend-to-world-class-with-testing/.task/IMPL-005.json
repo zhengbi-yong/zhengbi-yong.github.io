@@ -1,0 +1,45 @@
+{
+  "task_id": "IMPL-005",
+  "title": "认证组件测试",
+  "phase": 2,
+  "priority": "critical",
+  "status": "pending",
+  "estimated_hours": 40,
+  "description": "为认证组件和状态管理创建全面的单元测试和集成测试",
+  "implementation_approach": [
+    {
+      "step": 1,
+      "action": "测试AuthButton组件",
+      "details": "测试登录/登出操作、状态显示、loading状态",
+      "files": ["frontend/src/components/auth/AuthButton.test.tsx"]
+    },
+    {
+      "step": 2,
+      "action": "测试AuthModal组件",
+      "details": "测试登录表单、注册表单、验证、错误处理",
+      "files": ["frontend/src/components/auth/AuthModal.test.tsx"]
+    },
+    {
+      "step": 3,
+      "action": "测试auth-store",
+      "details": "测试状态更新、token管理、持久化、actions",
+      "files": ["frontend/src/lib/store/auth-store.test.ts"]
+    },
+    {
+      "step": 4,
+      "action": "集成测试",
+      "details": "测试完整认证流程（登录 → 存储 → 使用 → 登出）",
+      "files": ["frontend/tests/integration/auth-flow.test.ts"]
+    }
+  ],
+  "dependencies": ["IMPL-001", "IMPL-002", "IMPL-003", "IMPL-004"],
+  "context_package_path": ".workflow/active/WFS-transform-frontend-to-world-class-with-testing/.process/context-package.json",
+  "acceptance_criteria": [
+    "AuthButton测试覆盖率 > 80%",
+    "AuthModal测试覆盖率 > 80%",
+    "auth-store测试覆盖率 > 90%",
+    "集成测试覆盖所有认证流程",
+    "所有边界情况测试（网络错误、验证失败等）"
+  ],
+  "verification": "运行pnpm test:coverage验证认证模块覆盖率达标"
+}

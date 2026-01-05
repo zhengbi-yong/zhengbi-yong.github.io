@@ -79,12 +79,12 @@ export default function FilterBar({ categories, onFilterChange, className = '' }
   }
 
   return (
-    <div className={className}>
+    <div className={className} data-testid="filter-bar">
       <div className="sticky top-16 z-40 border-b bg-white/80 backdrop-blur-md transition-all dark:border-gray-700 dark:bg-gray-900/80">
         <div className="container mx-auto px-4 py-3">
           <div className="flex flex-wrap items-center gap-3 md:gap-4">
             {/* 分类按钮组 */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" data-testid="filter-categories">
               <AnimatePresence>
                 {categories.map((category) => (
                   <motion.div
@@ -98,6 +98,7 @@ export default function FilterBar({ categories, onFilterChange, className = '' }
                       variant={activeCategory === category ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => handleCategoryChange(category)}
+                      data-testid={`filter-category-${category}`}
                       className={
                         activeCategory === category
                           ? 'shadow-md'
@@ -117,7 +118,7 @@ export default function FilterBar({ categories, onFilterChange, className = '' }
             {/* 排序下拉菜单 */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="gap-2" data-testid="filter-sort-dropdown">
                   <ArrowUpDown className="h-4 w-4" />
                   <span className="hidden sm:inline">排序: {sortByLabels[sortBy]}</span>
                   <span className="sm:hidden">排序</span>
@@ -167,6 +168,7 @@ export default function FilterBar({ categories, onFilterChange, className = '' }
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               className="mt-3 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+              data-testid="filter-active-indicator"
             >
               <span>当前过滤:</span>
               {activeCategory !== '全部' && (

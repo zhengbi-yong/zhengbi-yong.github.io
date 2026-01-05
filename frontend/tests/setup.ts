@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
-import { beforeAll, afterEach, vi, expect } from 'vitest'
+import { beforeAll, afterEach, afterAll, vi, expect } from 'vitest'
+import { server } from '../src/mocks/server'
 
 // 模拟 Next.js 路由
 const mockRouter = {
@@ -39,9 +40,22 @@ beforeAll(() => {
   vi.setConfig({ testTimeout: 10000 })
 })
 
-// 清理所有模拟
+// 启动 MSW server for all tests
+beforeAll(() => {
+  server.listen({
+    onUnhandledRequest: 'error',
+  })
+})
+
+// 每个测试后重置 handlers
 afterEach(() => {
   vi.clearAllMocks()
+  server.resetHandlers()
+})
+
+// 所有测试后关闭 MSW server
+afterAll(() => {
+  server.close()
 })
 
 // 全局测试工具

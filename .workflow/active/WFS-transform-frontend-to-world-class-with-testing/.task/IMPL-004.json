@@ -1,0 +1,38 @@
+{
+  "task_id": "IMPL-004",
+  "title": "测试文档化 - 最佳实践和模式",
+  "phase": 1,
+  "priority": "high",
+  "status": "pending",
+  "estimated_hours": 12,
+  "description": "记录测试模式和最佳实践，创建测试模板和示例，建立测试编写指南",
+  "implementation_approach": [
+    {
+      "step": 1,
+      "action": "创建测试编写指南",
+      "details": "编写TESTING.md文档，包含测试原则、模式、示例",
+      "files": ["frontend/TESTING.md"]
+    },
+    {
+      "step": 2,
+      "action": "创建测试模板",
+      "details": "为组件、hooks、stores创建测试模板",
+      "files": ["frontend/tests/templates/"]
+    },
+    {
+      "step": 3,
+      "action": "文档化测试工具使用",
+      "details": "为test helpers, factories, fixtures创建使用文档",
+      "files": ["frontend/tests/lib/README.md"]
+    }
+  ],
+  "dependencies": ["IMPL-001"],
+  "context_package_path": ".workflow/active/WFS-transform-frontend-to-world-class-with-testing/.process/context-package.json",
+  "acceptance_criteria": [
+    "测试编写指南完整（至少10个模式）",
+    "测试模板覆盖3种类型（组件、hook、store）",
+    "测试工具文档完整",
+    "新开发者能根据文档快速上手"
+  ],
+  "verification": "团队review文档并提供反馈"
+}

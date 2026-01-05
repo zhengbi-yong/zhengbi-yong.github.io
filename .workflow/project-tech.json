@@ -1,0 +1,402 @@
+{
+  "project_metadata": {
+    "name": "zhengbi-yong.github.io",
+    "root_path": "D:/YZB/zhengbi-yong.github.io",
+    "description": "Full-stack personal blog platform with modern frontend and Rust backend",
+    "initialized_at": "2026-01-03T07:34:32Z",
+    "updated_at": "2026-01-03T07:34:32Z"
+  },
+  "technology_analysis": {
+    "description": "Full-stack blog platform featuring Next.js 15 frontend with React 19, TypeScript, and Tailwind CSS, backed by Rust/Axum API with PostgreSQL and Redis. Implements JWT authentication, MDX content rendering, magazine-style layouts, admin panel, and comprehensive testing infrastructure.",
+    "languages": [
+      {
+        "name": "TypeScript",
+        "version": "5.9.3",
+        "file_count": 89,
+        "primary": true,
+        "usage": "Frontend application logic, React components, API routes"
+      },
+      {
+        "name": "Rust",
+        "version": "2021",
+        "file_count": 5615,
+        "primary": true,
+        "usage": "Backend API, database models, business logic"
+      },
+      {
+        "name": "JavaScript",
+        "version": "ES2022",
+        "file_count": 354,
+        "primary": false,
+        "usage": "Build scripts, utilities, legacy components"
+      },
+      {
+        "name": "SQL",
+        "version": "PostgreSQL 17",
+        "file_count": 10,
+        "primary": false,
+        "usage": "Database migrations, schema definitions"
+      },
+      {
+        "name": "Markdown/MDX",
+        "version": "N/A",
+        "file_count": 195824,
+        "primary": false,
+        "usage": "Content management, blog posts, documentation"
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "Next.js",
+        "version": "16.1.1",
+        "type": "frontend",
+        "purpose": "React framework with App Router for frontend application"
+      },
+      {
+        "name": "React",
+        "version": "19.2.3",
+        "type": "frontend",
+        "purpose": "UI component library"
+      },
+      {
+        "name": "Axum",
+        "version": "0.8",
+        "type": "backend",
+        "purpose": "Async web framework for Rust API"
+      },
+      {
+        "name": "Payload CMS",
+        "version": "3.69.0",
+        "type": "frontend",
+        "purpose": "Headless CMS integration for content management"
+      },
+      {
+        "name": "TanStack Query",
+        "version": "5.90.16",
+        "type": "frontend",
+        "purpose": "Server state management and data fetching"
+      },
+      {
+        "name": "Zustand",
+        "version": "5.0.9",
+        "type": "frontend",
+        "purpose": "Client state management"
+      }
+    ],
+    "build_tools": [
+      {
+        "name": "pnpm",
+        "version": "10.24.0",
+        "purpose": "Fast, disk space efficient package manager for frontend"
+      },
+      {
+        "name": "Cargo",
+        "version": "N/A",
+        "purpose": "Rust package manager and build system"
+      },
+      {
+        "name": "Webpack",
+        "version": "Next.js bundled",
+        "purpose": "Module bundling for Next.js"
+      },
+      {
+        "name": "Vite",
+        "version": "7.3.0",
+        "purpose": "Fast build tool for Storybook and utilities"
+      },
+      {
+        "name": "esbuild",
+        "version": "0.27.2",
+        "purpose": "JavaScript/TypeScript minification and bundling"
+      },
+      {
+        "name": "Tailwind CSS",
+        "version": "4.1.18",
+        "purpose": "Utility-first CSS framework"
+      }
+    ],
+    "test_frameworks": [
+      {
+        "name": "Vitest",
+        "version": "4.0.16",
+        "usage": "Unit and integration testing for frontend",
+        "config_file": "frontend/vitest.config.ts"
+      },
+      {
+        "name": "Playwright",
+        "version": "1.57.0",
+        "usage": "End-to-end testing for frontend",
+        "config_file": "frontend/playwright.config.ts"
+      },
+      {
+        "name": "Cargo Test",
+        "version": "Built-in",
+        "usage": "Unit and integration testing for Rust backend",
+        "config_file": "backend/*/tests/"
+      },
+      {
+        "name": "Testing Library",
+        "version": "16.3.1",
+        "usage": "React component testing utilities"
+      },
+      {
+        "name": "MSW",
+        "version": "2.12.7",
+        "usage": "API mocking for frontend tests"
+      }
+    ],
+    "architecture": {
+      "style": "Layered Architecture with Frontend-Backend Separation",
+      "description": "Three-tier architecture with clear separation between presentation (Next.js frontend), business logic (Rust services), and data access (PostgreSQL + Redis). Frontend follows component-based architecture with routing, state management, and API integration layers.",
+      "layers": [
+        {
+          "name": "Presentation Layer",
+          "technology": "Next.js 15 + React 19 + TypeScript",
+          "responsibilities": [
+            "UI rendering and user interaction",
+            "Client-side routing",
+            "State management (Zustand)",
+            "API communication (TanStack Query)"
+          ],
+          "components": [
+            "frontend/src/app/ - Next.js App Router pages",
+            "frontend/src/components/ - React components",
+            "frontend/src/lib/store/ - State management"
+          ]
+        },
+        {
+          "name": "Business Logic Layer",
+          "technology": "Rust + Axum",
+          "responsibilities": [
+            "Request handling and routing",
+            "Authentication and authorization",
+            "Domain services (auth, email, posts)",
+            "Validation and business rules"
+          ],
+          "components": [
+            "backend/crates/api/src/ - HTTP handlers and routes",
+            "backend/crates/core/src/ - Business services",
+            "backend/crates/shared/src/ - Shared utilities and middleware"
+          ]
+        },
+        {
+          "name": "Data Access Layer",
+          "technology": "SQLx + PostgreSQL + Redis",
+          "responsibilities": [
+            "Database operations",
+            "Caching",
+            "Migration management",
+            "Connection pooling"
+          ],
+          "components": [
+            "backend/crates/db/src/ - Database models and queries",
+            "backend/migrations/ - SQL schema migrations",
+            "Redis caching layer"
+          ]
+        }
+      ],
+      "patterns": [
+        {
+          "name": "Repository Pattern",
+          "location": "backend/crates/db/src/",
+          "description": "Database operations abstracted through repository structs"
+        },
+        {
+          "name": "Service Layer Pattern",
+          "location": "backend/crates/core/src/",
+          "description": "Business logic encapsulated in service modules (auth, email)"
+        },
+        {
+          "name": "Middleware Pattern",
+          "location": "backend/crates/shared/src/middleware/ and frontend/src/lib/middleware/",
+          "description": "Request/response processing pipeline (auth, CORS, logging)"
+        },
+        {
+          "name": "Factory Pattern",
+          "location": "backend/crates/api/tests/helpers/fixtures.rs",
+          "description": "Test data factories for deterministic test generation"
+        },
+        {
+          "name": "Component Composition",
+          "location": "frontend/src/components/",
+          "description": "Reusable React components with composition patterns"
+        },
+        {
+          "name": "Custom Hooks Pattern",
+          "location": "frontend/src/lib/hooks/",
+          "description": "Reusable stateful logic through React hooks"
+        },
+        {
+          "name": "BFF Pattern (Backend for Frontend)",
+          "location": "frontend/src/app/api/",
+          "description": "API routes that aggregate and transform backend data for frontend"
+        }
+      ],
+      "key_components": [
+        {
+          "name": "Frontend App Router",
+          "path": "frontend/src/app/",
+          "description": "Next.js 15 App Router with file-based routing, route groups, and API routes",
+          "importance": "critical",
+          "technologies": ["Next.js", "React", "TypeScript"]
+        },
+        {
+          "name": "Rust API Server",
+          "path": "backend/crates/api/src/",
+          "description": "Axum-based HTTP server with RESTful endpoints, middleware, and OpenAPI documentation",
+          "importance": "critical",
+          "technologies": ["Axum", "Tokio", "SQLx"]
+        },
+        {
+          "name": "Authentication System",
+          "path": "backend/crates/core/src/auth.rs and frontend/src/components/auth/",
+          "description": "JWT-based authentication with refresh tokens, password hashing (Argon2), and React auth components",
+          "importance": "critical",
+          "technologies": ["JWT", "Argon2", "Zustand"]
+        },
+        {
+          "name": "Database Layer",
+          "path": "backend/crates/db/src/",
+          "description": "SQLx-based database models with compile-time checked queries, migrations, and connection pooling",
+          "importance": "critical",
+          "technologies": ["SQLx", "PostgreSQL", "Redis"]
+        },
+        {
+          "name": "MDX Content System",
+          "path": "frontend/src/lib/ and frontend/src/components/post/",
+          "description": "Remote MDX rendering with KaTeX math, syntax highlighting, and custom components",
+          "importance": "high",
+          "technologies": ["next-mdx-remote", "rehype", "remark"]
+        },
+        {
+          "name": "Admin Panel",
+          "path": "frontend/src/app/admin/",
+          "description": "Comprehensive admin interface for content management, analytics, monitoring, and user management",
+          "importance": "high",
+          "technologies": ["Next.js", "React", "shadcn/ui"]
+        },
+        {
+          "name": "Magazine Layout System",
+          "path": "frontend/src/components/magazine/",
+          "description": "Masonry grid layout with filtering, recommendations, and hero sections",
+          "importance": "medium",
+          "technologies": ["React", "Framer Motion", "Tailwind CSS"]
+        },
+        {
+          "name": "State Management",
+          "path": "frontend/src/lib/store/",
+          "description": "Zustand stores for auth, UI, posts, and user preferences",
+          "importance": "high",
+          "technologies": ["Zustand", "React Context"]
+        },
+        {
+          "name": "Testing Infrastructure",
+          "path": "frontend/tests/ and backend/crates/api/tests/",
+          "description": "Comprehensive testing with Vitest, Playwright, and Cargo test with test helpers and fixtures",
+          "importance": "medium",
+          "technologies": ["Vitest", "Playwright", "Cargo Test"]
+        },
+        {
+          "name": "Shared Utilities",
+          "path": "backend/crates/shared/src/",
+          "description": "Common error types, API responses, configuration, validation, and middleware",
+          "importance": "high",
+          "technologies": ["Rust", "Axum", "Serde"]
+        }
+      ]
+    },
+    "dependencies": {
+      "frontend_production": [
+        "next@16.1.1",
+        "react@19.2.3",
+        "react-dom@19.2.3",
+        "typescript@5.9.3",
+        "tailwindcss@4.1.18",
+        "@tanstack/react-query@5.90.16",
+        "zustand@5.0.9",
+        "payload@3.69.0",
+        "axios@1.13.2",
+        "framer-motion@12.23.26",
+        "next-mdx-remote@5.0.0",
+        "contentlayer2@0.5.8"
+      ],
+      "frontend_dev": [
+        "@types/react@19.2.7",
+        "@types/react-dom@19.2.3",
+        "eslint@9.39.2",
+        "prettier@3.7.4",
+        "vitest@4.0.16",
+        "playwright@1.57.0",
+        "storybook@10.1.11",
+        "vite@7.3.0",
+        "cross-env@10.1.0",
+        "husky@9.1.7"
+      ],
+      "backend": [
+        "axum@0.8",
+        "tokio@1.48",
+        "sqlx@0.8",
+        "redis@0.32",
+        "serde@1.0",
+        "jsonwebtoken@9.3",
+        "argon2@0.5",
+        "lettre@0.11",
+        "utoipa@5.4",
+        "tracing@0.1",
+        "anyhow@1.0",
+        "thiserror@2.0",
+        "uuid@1.11",
+        "chrono@0.4"
+      ]
+    }
+  },
+  "development_status": {
+    "completed_features": [
+      "JWT-based authentication with refresh tokens",
+      "MDX blog content rendering with math and syntax highlighting",
+      "Next.js 15 frontend with App Router",
+      "Rust/Axum backend API with PostgreSQL",
+      "Admin panel with content management",
+      "Magazine-style layout system",
+      "State management with Zustand",
+      "Testing infrastructure (Vitest, Playwright, Cargo test)",
+      "Docker containerization",
+      "CI/CD pipelines with GitHub Actions",
+      "Payload CMS integration",
+      "OpenAPI documentation (Swagger UI)"
+    ],
+    "development_index": {
+      "feature": [],
+      "enhancement": [],
+      "bugfix": [],
+      "refactor": [],
+      "docs": []
+    },
+    "statistics": {
+      "total_features": 12,
+      "total_sessions": 0,
+      "last_updated": "2026-01-03T07:34:32Z"
+    }
+  },
+  "_metadata": {
+    "initialized_by": "cli-explore-agent",
+    "analysis_timestamp": "2026-01-03T07:34:32Z",
+    "analysis_mode": "deep-scan",
+    "schema_version": "1.0.0",
+    "analysis_sources": [
+      "bash-discovered: Project structure and file counts via get_modules_by_depth",
+      "bash-discovered: package.json and Cargo.toml dependency analysis",
+      "bash-discovered: Configuration file discovery",
+      "bash-discovered: Test framework identification",
+      "gemini-failed: Semantic analysis (better-sqlite3 binding error, proceeding with structural analysis only)"
+    ],
+    "confidence_level": "high",
+    "notes": [
+      "Gemini CLI semantic analysis failed due to better-sqlite3 native binding error",
+      "Analysis completed using bash structural scan and configuration file parsing",
+      "Architecture patterns identified from code structure and CLAUDE.md documentation",
+      "Backend crate structure: api, core, db, shared, worker",
+      "Frontend structure: 354 TypeScript files in organized module hierarchy"
+    ]
+  }
+}

@@ -81,7 +81,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" data-testid="auth-modal">
         <button
           onClick={handleClose}
           className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
@@ -101,9 +101,9 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4" data-testid="auth-form">
           {error && (
-            <div className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm p-3 rounded-md border border-red-200 dark:border-red-800">
+            <div className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm p-3 rounded-md border border-red-200 dark:border-red-800" data-testid="auth-error-message">
               {error}
             </div>
           )}
@@ -112,6 +112,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
             <Label htmlFor="email">邮箱</Label>
             <Input
               id="email"
+              data-testid="auth-email-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -125,6 +126,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
               <Label htmlFor="username">用户名</Label>
               <Input
                 id="username"
+                data-testid="auth-username-input"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -139,6 +141,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
             <Label htmlFor="password">密码</Label>
             <Input
               id="password"
+              data-testid="auth-password-input"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -151,7 +154,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full" disabled={isLoading} data-testid="auth-submit-button">
             {isLoading ? '处理中...' : mode === 'login' ? '登录' : '注册'}
           </Button>
 
@@ -162,6 +165,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
                 <button
                   type="button"
                   onClick={switchMode}
+                  data-testid="auth-switch-mode-button"
                   className="text-primary hover:underline"
                 >
                   注册
@@ -173,6 +177,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
                 <button
                   type="button"
                   onClick={switchMode}
+                  data-testid="auth-switch-mode-button"
                   className="text-primary hover:underline"
                 >
                   登录

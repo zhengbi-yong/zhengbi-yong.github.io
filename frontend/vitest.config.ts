@@ -39,6 +39,8 @@ export default defineConfig({
       '@/data': resolve(__dirname, './data'),
       '@/layouts': resolve(__dirname, './layouts'),
       '@/app': resolve(__dirname, './app'),
+      '@/src': resolve(__dirname, './src'),
+      '@/mocks': resolve(__dirname, './src/mocks'),
     },
   },
 })

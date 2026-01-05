@@ -1,0 +1,45 @@
+{
+  "task_id": "IMPL-003",
+  "title": "MSW集成 - API Mocking",
+  "phase": 1,
+  "priority": "critical",
+  "status": "pending",
+  "estimated_hours": 20,
+  "description": "设置MSW (Mock Service Worker)用于API mocking，为现有provider tests创建mocks",
+  "implementation_approach": [
+    {
+      "step": 1,
+      "action": "配置MSW",
+      "details": "设置MSW handlers和browser环境配置",
+      "files": ["frontend/src/mocks/handlers.ts", "frontend/src/mocks/browser.ts", "frontend/vitest.config.ts"]
+    },
+    {
+      "step": 2,
+      "action": "为认证API创建handlers",
+      "details": "Mock login, register, logout endpoints",
+      "files": ["frontend/src/mocks/handlers/auth.ts"]
+    },
+    {
+      "step": 3,
+      "action": "为博客API创建handlers",
+      "details": "Mock posts, comments, tags endpoints",
+      "files": ["frontend/src/mocks/handlers/blog.ts"]
+    },
+    {
+      "step": 4,
+      "action": "更新provider tests使用MSW",
+      "details": "修改现有provider测试使用MSW mocks",
+      "files": ["frontend/tests/lib/providers/*.test.ts"]
+    }
+  ],
+  "dependencies": [],
+  "context_package_path": ".workflow/active/WFS-transform-frontend-to-world-class-with-testing/.process/context-package.json",
+  "acceptance_criteria": [
+    "MSW配置完成并集成到Vitest",
+    "认证API handlers创建并测试",
+    "博客API handlers创建并测试",
+    "现有provider tests更新使用MSW",
+    "测试速度提升30%"
+  ],
+  "verification": "运行pnpm test验证MSW正常工作且测试通过"
+}

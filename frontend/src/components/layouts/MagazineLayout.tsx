@@ -108,7 +108,7 @@ export default function MagazineLayout({
   }, [allItems, filter])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950" data-testid="magazine-layout">
       {/* Hero Section */}
       {featuredArticle && isFeatureEnabled('magazineLayout') && (
         <HeroSection
@@ -120,13 +120,14 @@ export default function MagazineLayout({
       {/* Filter Bar */}
       {isFeatureEnabled('magazineLayout') && (
         <FilterBar
+          data-testid="magazine-filter-bar"
           categories={categories}
           onFilterChange={setFilter}
         />
       )}
 
       {/* Masonry Grid */}
-      <section className="py-12">
+      <section className="py-12" data-testid="magazine-masonry-section">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {isFeatureEnabled('masonryGrid') ? (
             <MasonryGrid
@@ -161,6 +162,7 @@ export default function MagazineLayout({
       {/* Recommended Section */}
       {isFeatureEnabled('recommendations') && readHistory.length > 0 && (
         <RecommendedSection
+          data-testid="magazine-recommended-section"
           readHistory={readHistory}
           allItems={allItems}
         />

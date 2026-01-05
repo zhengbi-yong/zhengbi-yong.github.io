@@ -30,12 +30,12 @@ test.describe('用户注册', () => {
     await page.goto('/register')
 
     // 填写注册表单
-    await page.fill('input[name="email"]', testData.email)
-    await page.fill('input[name="username"]', testData.username)
-    await page.fill('input[name="password"]', testData.password)
+    await page.fill('[data-testid="auth-email-input"]', testData.email)
+    await page.fill('[data-testid="auth-username-input"]', testData.username)
+    await page.fill('[data-testid="auth-password-input"]', testData.password)
 
     // 提交表单
-    await page.click('button[type="submit"]')
+    await page.click('[data-testid="auth-submit-button"]')
 
     // 等待导航到首页或个人中心
     await expect(page).toHaveURL(/\/(blog|profile)?$/, { timeout: 10000 })
@@ -57,11 +57,11 @@ test.describe('用户注册', () => {
 
     await page.goto('/register')
 
-    await page.fill('input[name="email"]', testData.email)
-    await page.fill('input[name="username"]', testData.username)
-    await page.fill('input[name="password"]', testData.weakPassword)
+    await page.fill('[data-testid="auth-email-input"]', testData.email)
+    await page.fill('[data-testid="auth-username-input"]', testData.username)
+    await page.fill('[data-testid="auth-password-input"]', testData.weakPassword)
 
-    await page.click('button[type="submit"]')
+    await page.click('[data-testid="auth-submit-button"]')
 
     // 应该显示密码强度不足的错误提示
     const errorMessage = page.locator('text=/密码.*至少.*字符/i')
@@ -74,10 +74,10 @@ test.describe('用户注册', () => {
     await page.goto('/register')
 
     await page.fill('input[name="email"]', 'invalid-email')
-    await page.fill('input[name="username"]', testData.username)
-    await page.fill('input[name="password"]', testData.password)
+    await page.fill('[data-testid="auth-username-input"]', testData.username)
+    await page.fill('[data-testid="auth-password-input"]', testData.password)
 
-    await page.click('button[type="submit"]')
+    await page.click('[data-testid="auth-submit-button"]')
 
     // 应该显示邮箱格式错误
     const errorMessage = page.locator('text=/邮箱.*格式/i')
@@ -94,7 +94,7 @@ test.describe('用户注册', () => {
     await page.fill('input[name="username"]', `newuser_${Date.now()}`)
     await page.fill('input[name="password"]', generateTestData().password)
 
-    await page.click('button[type="submit"]')
+    await page.click('[data-testid="auth-submit-button"]')
 
     // 应该显示邮箱已被注册的错误
     const errorMessage = page.locator('text=/邮箱.*已.*注册/i')
@@ -113,10 +113,10 @@ test.describe('用户登录', () => {
 
     // 先注册用户
     await page.goto('/register')
-    await page.fill('input[name="email"]', testData.email)
-    await page.fill('input[name="username"]', testData.username)
-    await page.fill('input[name="password"]', testData.password)
-    await page.click('button[type="submit"]')
+    await page.fill('[data-testid="auth-email-input"]', testData.email)
+    await page.fill('[data-testid="auth-username-input"]', testData.username)
+    await page.fill('[data-testid="auth-password-input"]', testData.password)
+    await page.click('[data-testid="auth-submit-button"]')
     await page.waitForURL(/\/(blog|profile)?$/)
 
     // 然后登出
@@ -126,9 +126,9 @@ test.describe('用户登录', () => {
 
     // 重新登录
     await page.goto('/login')
-    await page.fill('input[name="email"]', testData.email)
-    await page.fill('input[name="password"]', testData.password)
-    await page.click('button[type="submit"]')
+    await page.fill('[data-testid="auth-email-input"]', testData.email)
+    await page.fill('[data-testid="auth-password-input"]', testData.password)
+    await page.click('[data-testid="auth-submit-button"]')
 
     // 验证登录成功
     await expect(page).toHaveURL(/\/(blog|profile)?$/, { timeout: 10000 })
@@ -142,10 +142,10 @@ test.describe('用户登录', () => {
   test('应该拒绝错误的密码', async ({ page }) => {
     const testData = generateTestData()
 
-    await page.fill('input[name="email"]', testData.email)
-    await page.fill('input[name="password"]', 'WrongPassword123!')
+    await page.fill('[data-testid="auth-email-input"]', testData.email)
+    await page.fill('[data-testid="auth-password-input"]', 'WrongPassword123!')
 
-    await page.click('button[type="submit"]')
+    await page.click('[data-testid="auth-submit-button"]')
 
     // 应该显示登录失败错误
     const errorMessage = page.locator('text=/邮箱或密码错误/i')
@@ -154,9 +154,9 @@ test.describe('用户登录', () => {
 
   test('应该拒绝不存在的用户', async ({ page }) => {
     await page.fill('input[name="email"]', 'nonexistent@example.com')
-    await page.fill('input[name="password"]', 'SomePassword123!')
+    await page.fill('[data-testid="auth-password-input"]', 'SomePassword123!')
 
-    await page.click('button[type="submit"]')
+    await page.click('[data-testid="auth-submit-button"]')
 
     // 应该显示登录失败错误
     const errorMessage = page.locator('text=/邮箱或密码错误/i')
@@ -166,7 +166,7 @@ test.describe('用户登录', () => {
   test('应该显示密码强度指示器', async ({ page }) => {
     await page.fill('input[name="email"]', generateTestData().email)
 
-    const passwordInput = page.locator('input[name="password"]')
+    const passwordInput = page.locator('[data-testid="auth-password-input"]')
 
     // 输入弱密码
     await passwordInput.fill('weak')
@@ -191,10 +191,10 @@ test.describe('用户登出', () => {
 
     // 注册并登录
     await page.goto('/register')
-    await page.fill('input[name="email"]', testData.email)
-    await page.fill('input[name="username"]', testData.username)
-    await page.fill('input[name="password"]', testData.password)
-    await page.click('button[type="submit"]')
+    await page.fill('[data-testid="auth-email-input"]', testData.email)
+    await page.fill('[data-testid="auth-username-input"]', testData.username)
+    await page.fill('[data-testid="auth-password-input"]', testData.password)
+    await page.click('[data-testid="auth-submit-button"]')
     await page.waitForURL(/\/(blog|profile)?$/)
 
     // 验证已登录
@@ -204,7 +204,7 @@ test.describe('用户登出', () => {
     expect(accessToken).toBeTruthy()
 
     // 登出（假设有一个登出按钮）
-    const logoutButton = page.locator('button:has-text("登出"), a:has-text("登出")').first()
+    const logoutButton = page.locator('[data-testid="auth-logout-button"]').first()
     if (await logoutButton.isVisible()) {
       await logoutButton.click()
     } else {
@@ -229,10 +229,10 @@ test.describe('Token刷新', () => {
 
     // 注册用户
     await page.goto('/register')
-    await page.fill('input[name="email"]', testData.email)
-    await page.fill('input[name="username"]', testData.username)
-    await page.fill('input[name="password"]', testData.password)
-    await page.click('button[type="submit"]')
+    await page.fill('[data-testid="auth-email-input"]', testData.email)
+    await page.fill('[data-testid="auth-username-input"]', testData.username)
+    await page.fill('[data-testid="auth-password-input"]', testData.password)
+    await page.click('[data-testid="auth-submit-button"]')
     await page.waitForURL(/\/(blog|profile)?$/)
 
     // 模拟access token过期（设置一个过期的token）
@@ -270,10 +270,10 @@ test.describe('受保护路由', () => {
 
     // 注册并登录
     await page.goto('/register')
-    await page.fill('input[name="email"]', testData.email)
-    await page.fill('input[name="username"]', testData.username)
-    await page.fill('input[name="password"]', testData.password)
-    await page.click('button[type="submit"]')
+    await page.fill('[data-testid="auth-email-input"]', testData.email)
+    await page.fill('[data-testid="auth-username-input"]', testData.username)
+    await page.fill('[data-testid="auth-password-input"]', testData.password)
+    await page.click('[data-testid="auth-submit-button"]')
     await page.waitForURL(/\/(blog|profile)?$/)
 
     // 访问受保护页面

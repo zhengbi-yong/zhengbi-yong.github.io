@@ -230,7 +230,7 @@ export default function MasonryGrid({
   }, [page, items])
 
   return (
-    <div className="w-full">
+    <div className="w-full" data-testid="masonry-grid-container">
       {/* 网格容器 */}
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {visibleItems.map((item, index) => (
@@ -246,7 +246,7 @@ export default function MasonryGrid({
 
       {/* 加载更多指示器 */}
       {visibleItems.length < items.length && (
-        <div ref={loadMoreRef} className="py-8 text-center">
+        <div ref={loadMoreRef} className="py-8 text-center" data-testid="masonry-load-more">
           <div className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-600 border-t-transparent" />
             <span>加载更多内容...</span>

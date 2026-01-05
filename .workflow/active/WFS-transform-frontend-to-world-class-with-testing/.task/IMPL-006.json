@@ -1,0 +1,53 @@
+{
+  "task_id": "IMPL-006",
+  "title": "杂志布局组件测试",
+  "phase": 2,
+  "priority": "critical",
+  "status": "pending",
+  "estimated_hours": 60,
+  "description": "为杂志布局组件创建全面的单元测试和集成测试",
+  "implementation_approach": [
+    {
+      "step": 1,
+      "action": "测试MagazineLayout",
+      "details": "测试布局编排、子组件集成、props传递",
+      "files": ["frontend/src/components/layouts/MagazineLayout.test.tsx"]
+    },
+    {
+      "step": 2,
+      "action": "测试MasonryGrid",
+      "details": "测试网格布局、无限滚动、卡片分布、响应式",
+      "files": ["frontend/src/components/magazine/MasonryGrid.test.tsx"]
+    },
+    {
+      "step": 3,
+      "action": "测试FilterBar",
+      "details": "测试筛选、排序、搜索功能",
+      "files": ["frontend/src/components/magazine/FilterBar.test.tsx"]
+    },
+    {
+      "step": 4,
+      "action": "测试RecommendedSection",
+      "details": "测试推荐算法、历史记录集成",
+      "files": ["frontend/src/components/magazine/RecommendedSection.test.tsx", "frontend/src/lib/utils/recommendation-algorithm.test.ts"]
+    },
+    {
+      "step": 5,
+      "action": "测试layout算法",
+      "details": "测试瀑布流定位算法",
+      "files": ["frontend/src/lib/utils/layout-algorithms.test.ts"]
+    }
+  ],
+  "dependencies": ["IMPL-001", "IMPL-002", "IMPL-003", "IMPL-004"],
+  "context_package_path": ".workflow/active/WFS-transform-frontend-to-world-class-with-testing/.process/context-package.json",
+  "acceptance_criteria": [
+    "MagazineLayout测试覆盖率 > 75%",
+    "MasonryGrid测试覆盖率 > 80%",
+    "FilterBar测试覆盖率 > 80%",
+    "RecommendedSection测试覆盖率 > 75%",
+    "layout算法测试覆盖率 > 90%",
+    "响应式布局测试（3种屏幕尺寸）",
+    "无限滚动测试（Intersection Observer mocking）"
+  ],
+  "verification": "运行pnpm test:coverage验证杂志模块覆盖率达标"
+}

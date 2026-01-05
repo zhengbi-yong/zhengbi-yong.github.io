@@ -1,0 +1,55 @@
+{
+  "task_id": "IMPL-002",
+  "title": "E2E选择器优化 - 添加data-testid",
+  "phase": 1,
+  "priority": "critical",
+  "status": "completed",
+  "estimated_hours": 12,
+  "description": "为关键组件添加data-testid属性，更新E2E测试使用data-testid选择器",
+  "implementation_approach": [
+    {
+      "step": 1,
+      "action": "添加data-testid到认证组件",
+      "details": "为AuthButton, AuthModal添加data-testid属性",
+      "files": [
+        "frontend/src/components/auth/AuthButton.tsx",
+        "frontend/src/components/auth/AuthModal.tsx"
+      ]
+    },
+    {
+      "step": 2,
+      "action": "添加data-testid到杂志布局组件",
+      "details": "为MagazineLayout, MasonryGrid, FilterBar添加data-testid",
+      "files": [
+        "frontend/src/components/layouts/MagazineLayout.tsx",
+        "frontend/src/components/magazine/*.tsx"
+      ]
+    },
+    {
+      "step": 3,
+      "action": "更新E2E测试使用data-testid",
+      "details": "修改现有E2E测试使用data-testid选择器代替CSS类",
+      "files": [
+        "frontend/e2e/*.spec.ts"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "context_package_path": ".workflow/active/WFS-transform-frontend-to-world-class-with-testing/.process/context-package.json",
+  "acceptance_criteria": [
+    "所有认证组件有data-testid",
+    "所有杂志布局组件有data-testid",
+    "现有E2E测试更新使用data-testid",
+    "E2E测试不稳定性减少50%"
+  ],
+  "verification": "运行pnpm test:e2e验证所有测试通过且更稳定",
+  "completed_at": "2026-01-03T08:30:00Z",
+  "actual_hours": 8,
+  "summary_path": ".workflow/active/WFS-transform-frontend-to-world-class-with-testing/.summaries/IMPL-002-summary.md",
+  "results": {
+    "components_updated": 5,
+    "test_ids_added": 24,
+    "e2e_tests_updated": 2,
+    "files_modified": 7
+  }
+}

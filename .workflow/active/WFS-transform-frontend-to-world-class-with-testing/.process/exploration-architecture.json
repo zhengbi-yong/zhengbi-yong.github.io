@@ -1,0 +1,237 @@
+{
+  "project_structure": "Next.js 15 + React 19 frontend with App Router architecture. Component-based structure organized by feature (auth, blog, admin, magazine). State management via Zustand stores (auth, blog, comment, post, UI) with TanStack Query for server state. Multi-provider pattern for admin (Refine), authentication, and data fetching. Advanced code splitting with webpack optimization for React, UI libraries, visualization, animation, and WASM modules (RDKit). Testing infrastructure with Vitest (unit/integration) and Playwright (E2E), though coverage gaps exist. Magazine layout system with masonry grids, smart recommendations, and filtering. Contentlayer for MDX processing with KaTeX math, mhchem equations, and syntax highlighting. Performance optimizations include aggressive code splitting, lazy loading, image optimization, and blog content caching via Zustand. Security hardened with CSP headers, Sentry integration, and auth token management. Deployment supports both standalone (Docker) and static export modes.",
+  "relevant_files": [
+    {
+      "path": "frontend/src/app/layout.tsx",
+      "relevance": 0.95,
+      "rationale": "Root layout defining global providers, error boundaries, SEO metadata, and authentication initialization. Critical entry point."
+    },
+    {
+      "path": "frontend/src/app/Main.tsx",
+      "relevance": 0.9,
+      "rationale": "Homepage component integrating hero section, featured work, blog section with animation patterns and section composition."
+    },
+    {
+      "path": "frontend/src/lib/store/core/index.ts",
+      "relevance": 0.95,
+      "rationale": "Store core infrastructure providing unified state management patterns, base types, and async action wrappers for all Zustand stores."
+    },
+    {
+      "path": "frontend/src/lib/store/auth-store.ts",
+      "relevance": 0.95,
+      "rationale": "Authentication state management with login/register/logout flows, token handling, and user session persistence."
+    },
+    {
+      "path": "frontend/src/lib/store/blog-store.ts",
+      "relevance": 0.9,
+      "rationale": "Blog content caching and search state management with cache invalidation and search query persistence."
+    },
+    {
+      "path": "frontend/src/lib/store/comment-store.ts",
+      "relevance": 0.85,
+      "rationale": "Comment state management with pagination, optimistic updates, and like tracking for blog interactions."
+    },
+    {
+      "path": "frontend/src/lib/store/post-store.ts",
+      "relevance": 0.85,
+      "rationale": "Post statistics tracking (views, likes, comments) and interaction state management."
+    },
+    {
+      "path": "frontend/src/lib/store/ui-store.ts",
+      "relevance": 0.8,
+      "rationale": "UI state management (theme, modals, sidebar) for client-side UI interactions."
+    },
+    {
+      "path": "frontend/src/lib/providers/refine-provider.tsx",
+      "relevance": 0.9,
+      "rationale": "Refine admin framework integration with TanStack Query, data provider, auth provider, and resource definitions."
+    },
+    {
+      "path": "frontend/src/components/layouts/MagazineLayout.tsx",
+      "relevance": 0.9,
+      "rationale": "Magazine-style layout orchestrating HeroSection, FilterBar, MasonryGrid, and RecommendedSection with filtering and recommendation algorithms."
+    },
+    {
+      "path": "frontend/src/components/magazine/MasonryGrid.tsx",
+      "relevance": 0.85,
+      "rationale": "Masonry grid layout algorithm with dynamic item placement and responsive columns."
+    },
+    {
+      "path": "frontend/src/components/magazine/RecommendedSection.tsx",
+      "relevance": 0.85,
+      "rationale": "Smart recommendation engine using reading history and content similarity algorithms."
+    },
+    {
+      "path": "frontend/src/components/layouts/ListLayout.tsx",
+      "relevance": 0.9,
+      "rationale": "Blog listing layout with infinite scroll, search, caching, and aggressive preloading optimization."
+    },
+    {
+      "path": "frontend/src/components/layouts/PostLayout.tsx",
+      "relevance": 0.9,
+      "rationale": "Article layout with TOC, comments, analytics, structured data, and three-column responsive design."
+    },
+    {
+      "path": "frontend/src/lib/hooks/useBlogData.ts",
+      "relevance": 0.85,
+      "rationale": "Custom hook integrating TanStack Query for blog data fetching with caching and invalidation strategies."
+    },
+    {
+      "path": "frontend/src/lib/hooks/use-admin.ts",
+      "relevance": 0.8,
+      "rationale": "Admin-specific hooks using TanStack Query mutations and queries for CRUD operations."
+    },
+    {
+      "path": "frontend/src/components/auth/AuthButton.tsx",
+      "relevance": 0.85,
+      "rationale": "Authentication button component integrating auth store with login/logout actions and user state display."
+    },
+    {
+      "path": "frontend/src/components/auth/AuthModal.tsx",
+      "relevance": 0.85,
+      "rationale": "Authentication modal with login/register forms, validation, and auth store integration."
+    },
+    {
+      "path": "frontend/next.config.js",
+      "relevance": 0.95,
+      "rationale": "Next.js configuration with advanced webpack code splitting (React, Radix, visualization, RDKit, animation, utils), image optimization, CSP headers, and performance optimizations."
+    },
+    {
+      "path": "frontend/package.json",
+      "relevance": 0.95,
+      "rationale": "Dependencies including Next.js 15, React 19, Payload CMS, TanStack Query, Zustand, Refine, Vitest, Playwright, and extensive visualization libraries."
+    },
+    {
+      "path": "frontend/vitest.config.ts",
+      "relevance": 0.8,
+      "rationale": "Vitest configuration for unit/integration testing with coverage thresholds (70% statements, 65% branches)."
+    },
+    {
+      "path": "frontend/playwright.config.ts",
+      "relevance": 0.8,
+      "rationale": "Playwright E2E test configuration with test directory, timeouts, retries, and base URL setup."
+    },
+    {
+      "path": "frontend/e2e/auth.spec.ts",
+      "relevance": 0.85,
+      "rationale": "E2E authentication flow tests covering registration, login, logout, password validation, and token handling."
+    },
+    {
+      "path": "frontend/e2e/blog.spec.ts",
+      "relevance": 0.85,
+      "rationale": "E2E blog functionality tests covering MDX rendering, math formulas, chemical equations, comments, and search."
+    },
+    {
+      "path": "frontend/e2e/admin.spec.ts",
+      "relevance": 0.8,
+      "rationale": "E2E admin panel tests covering post management, user management, and role-based access control."
+    },
+    {
+      "path": "frontend/src/lib/feature-flags.ts",
+      "relevance": 0.75,
+      "rationale": "Feature flag system enabling safe rollout of magazine layout, masonry grid, recommendations, and lazy images."
+    },
+    {
+      "path": "frontend/src/lib/utils/recommendation-algorithm.ts",
+      "relevance": 0.8,
+      "rationale": "Recommendation algorithm for personalized content suggestions based on reading history and content similarity."
+    },
+    {
+      "path": "frontend/src/lib/utils/layout-algorithms.ts",
+      "relevance": 0.8,
+      "rationale": "Layout algorithms for masonry grid positioning and dynamic content arrangement."
+    }
+  ],
+  "patterns": "Component organization follows feature-based structure (auth, blog, admin, magazine). State management split between Zustand (client state: auth, UI, caches) and TanStack Query (server state: API calls). All Zustand stores follow similar patterns: state interface, async actions with loading/error handling, persistence middleware for auth tokens, and selector-based subscriptions. Layout components use composition pattern (HeroSection + FilterBar + MasonryGrid + RecommendedSection). App Router with route groups (auth), (main) for organization. Async components use loading.tsx and error.tsx boundaries. API integration via custom hooks (useBlogData, use-admin) wrapping TanStack Query. Code splitting via webpack cacheGroups (react, radix-ui, visualization, rdkit, animation, utils). Magazine layout uses filtering (category, search, sort) + recommendation engine. E2E tests use Playwright with dynamic data generation and cleanup strategies. Consistent use of TypeScript strict mode with interface-based props. Styling via Tailwind CSS with dark mode support. SEO optimization via structured data (JSON-LD) in PostLayout. Performance patterns: blog caching, aggressive preloading, image lazy loading, intersection observer for infinite scroll.",
+  "dependencies": "Next.js 15 (App Router, Turbopack), React 19, TypeScript 5.7, Payload CMS 3.69, TanStack Query 5 (server state), Zustand 5 (client state), Refine (admin framework), Tailwind CSS 4, Radix UI (unstyled components), Framer Motion (animations), GSAP (advanced animations), Contentlayer2 (MDX), Vitest (unit/integration tests), Playwright (E2E tests), Sentry (error tracking), i18next (internationalization). Visualization: ECharts, Nivo, Three.js, Tresjs, Leaflet, RDKit WASM. Chemistry: mhchemparser, KaTeX. Admin: @refinedev/core, @refinedev/nextjs-router, @refinedev/react-hook-form. Development: ESLint, Prettier, Husky, lint-staged. Package manager: pnpm 10. Testing libraries: @testing-library/react, @testing-library/user-event, msw (API mocking).",
+  "integration_points": "Authentication: AuthInitializer component (src/app/layout.tsx:112) initializes auth store on app mount, AuthModal integrates auth-store login/register actions, auth button displays user state from useAuthStore hook. Admin Panel: RefineProvider (src/lib/providers/refine-provider.tsx:22) wraps TanStack QueryProvider, Refine data provider maps CRUD operations to backend API (users, posts, comments), auth provider bridges Refine with backend auth endpoints. Blog System: useBlogData hook uses TanStack Query for fetching, ListLayout persists posts to useBlogStore for caching, PostLayout integrates article analytics and comment system, MDX rendering via next-mdx-remote with KaTeX and mhchem. Magazine Layout: MagazineLayout orchestrates HeroSection, FilterBar, MasonryGrid, RecommendedSection; recommendation algorithm uses readHistory from props; masonry grid uses layout-algorithms for positioning; filtering state managed via useState. State Management: Zustand stores (auth, blog, comment, post, UI) persist to localStorage, TanStack Query caches API responses with staleTime (30s), stores communicate via actions (comment updates trigger post stats refresh). API Layer: apiClient and backend modules in src/lib/api provide typed Axios client with auth token injection, admin Refine data provider uses backend client, BFF routes in app/api handle newsletter and visitor tracking. Testing: Vitest configured with jsdom environment and coverage thresholds, Playwright tests validate full user flows (auth, blog, admin), tests directory structure mirrors app structure for co-location.",
+  "constraints": "Next.js 15 App Router requires client components for hooks ('use client' directive), static export mode disables Next.js Image optimization, WebAssembly (RDKit) requires 'wasm-unsafe-eval' in CSP, large visualization libraries (ECharts, Three.js, RDKit) increase bundle size requiring aggressive code splitting, Payload CMS 3.69 integration limits backend flexibility to Payload's architecture, Refine admin framework requires specific data provider patterns, Zustand persistence excluded from SSR (client-side only), TanStack Query cache needs manual invalidation for real-time updates, MDX processing at build time with Contentlayer, dynamic MDX (next-mdx-remote) has performance overhead, magazine layout masonry algorithm requires client-side rendering, internationalization via i18next requires language detection and translation file management, Sentry error tracking configured with CSP allowlist, testing coverage thresholds set at 70%/65% (statements/branches) may be ambitious for legacy code, E2E tests require running backend API and frontend dev server, playwright browser installation adds CI complexity.",
+  "clarification_needs": [
+    {
+      "question": "测试策略优先级：单元测试、集成测试还是 E2E 测试应作为主要重点？",
+      "context": "当前测试基础设施已配置 Vitest (单元/集成) 和 Playwright (E2E)，但测试覆盖率未知。单元测试适合纯函数和组件逻辑，集成测试验证模块间交互，E2E 测试覆盖完整用户流程但运行较慢。世界级项目通常采用测试金字塔：70% 单元、20% 集成、10% E2E。",
+      "options": [
+        "单元测试优先 (Vitest) - 快速反馈，适合组件、hooks、工具函数",
+        "集成测试优先 - 验证模块交互，API 集成，状态管理",
+        "E2E 测试优先 (Playwright) - 覆盖关键用户旅程",
+        "平衡策略 - 60% 单元、30% 集成、10% E2E"
+      ],
+      "recommended": 3
+    },
+    {
+      "question": "性能优化重点应放在哪个领域？",
+      "context": "当前已有代码分割 (React, Radix, 可视化库)、图片懒加载、博客缓存。潜在瓶颈：大型可视化库 (RDKit WASM, Three.js, ECharts)、MDX 动态渲染、杂志布局瀑布流算法、未优化的重渲染。性能分析工具可识别实际瓶颈。",
+      "options": [
+        "Bundle 优化 - 进一步代码分割、tree-shaking、减小可视化库体积",
+        "运行时性能 - 减少重渲染、优化瀑布流算法、虚拟化长列表",
+        "加载性能 - 预加载关键资源、优化 CLS/FID/INP 指标",
+        "监控驱动 - 先建立性能监控，再基于数据优化"
+      ],
+      "recommended": 3
+    },
+    {
+      "question": "状态管理重构：是否应统一 Zustand 和 TanStack Query 的使用边界？",
+      "context": "当前混合使用 Zustand (客户端状态) 和 TanStack Query (服务端状态)，但边界不清晰 (例如 blog-store 既缓存又搜索)。世界级实践：Zustand 仅用于 UI 状态 (theme, modal, sidebar)，TanStack Query 管理所有服务端数据 (auth, blog, comments)。",
+      "options": [
+        "保持现状 - 迁移成本高，当前模式工作正常",
+        "渐进迁移 - 新功能用 TanStack Query，旧代码逐步重构",
+        "全面重构 - 统一用 TanStack Query，移除 Zustand 数据缓存",
+        "混合优化 - 明确边界文档，添加类型约束防止滥用"
+      ],
+      "recommended": 1
+    },
+    {
+      "question": "组件架构：是否应引入设计系统和组件库标准化？",
+      "context": "当前使用 shadcn/ui (基于 Radix UI) 提供基础组件，但业务组件 (magazine, blog, admin) 缺乏统一设计 token (间距、颜色、排版)。世界级项目通常有 Storybook 文档、Figma 设计系统、组件使用指南。",
+      "options": [
+        "引入 Storybook - 可视化组件文档，支持设计评审",
+        "建立设计系统 - 统一颜色、间距、动画 tokens",
+        "两者并行 - 先建立 tokens，再用 Storybook 文档化",
+        "暂不需要 - 当前 shadcn/ui 已足够"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "架构现代化：是否采用 Server Components 和 Server Actions？",
+      "context": "Next.js 15 支持 React Server Components (RSC) 减少客户端 JS，当前所有页面组件都是客户端组件 (layout.tsx 用 'use client')。迁移 RSC 可显著减少 bundle 大小，但需要重构状态管理 (Zustand 不适用)、表单处理 (改用 Server Actions)。",
+      "options": [
+        "全面迁移 RSC - 最大性能收益，但需大规模重构",
+        "渐进式迁移 - 新页面用 RSC，旧页面保持客户端",
+        "混合策略 - 静态内容用 RSC，交互部分保持客户端",
+        "保持现状 - 客户端组件满足需求，迁移成本高"
+      ],
+      "recommended": 2
+    },
+    {
+      "question": "可访问性 (a11y) 优先级：是否需要系统化改进？",
+      "context": "当前使用语义 HTML 和 Tailwind a11y 插件，但缺少键盘导航测试、屏幕阅读器验证、ARIA 标签审计。世界级项目通过 axe-core 自动检测、手动 a11y 测试、WCAG 2.1 AA 合规。",
+      "options": [
+        "高优先级 - 添加 axe-core 测试、手动审计、修复所有问题",
+        "中优先级 - 覆盖关键路径 (blog, admin)、渐进改进",
+        "低优先级 - 仅在重构时顺便修复",
+        "暂不需要 - 当前 a11y 已满足基本需求"
+      ],
+      "recommended": 1
+    },
+    {
+      "question": "监控和可观测性：是否需要增强错误跟踪和性能监控？",
+      "context": "当前已集成 Sentry (错误跟踪) 和 Umami (分析)，但缺少性能指标 (CLS, FID, INP)、API 延迟监控、用户行为记录。世界级项目使用 Real User Monitoring (RUM)、分布式追踪、性能预算警报。",
+      "options": [
+        "增强 Sentry - 添加性能监控、Release 关联、面包屑",
+        "引入 RUM - Web Vitals 跟踪、用户体验评分",
+        "API 监控 - 后端延迟、错误率、慢查询分析",
+        "组合方案 - 性能 + API + 用户行为全覆盖"
+      ],
+      "recommended": 3
+    }
+  ],
+  "_metadata": {
+    "timestamp": "2026-01-03T00:00:00.000Z",
+    "task_description": "GOAL: Transform frontend into world-class leading project with comprehensive feature testing\nSCOPE: Complete frontend modernization, performance optimization, advanced features, UI/UX improvements, comprehensive testing\nCONTEXT: Next.js 15 + React 19 frontend with existing blog, admin, auth, magazine layouts",
+    "source": "cli-explore-agent",
+    "exploration_angle": "architecture",
+    "exploration_index": 1,
+    "total_explorations": 1,
+    "duration_seconds": 180
+  }
+}
