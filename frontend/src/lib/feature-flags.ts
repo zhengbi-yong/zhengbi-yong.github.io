@@ -7,25 +7,25 @@
 
 export const features = {
   // 杂志风格布局
-  magazineLayout: process.env.NEXT_PUBLIC_ENABLE_MAGAZINE_LAYOUT === 'true' ?? true,
+  magazineLayout: (process.env.NEXT_PUBLIC_ENABLE_MAGAZINE_LAYOUT ?? 'true') === 'true',
 
   // 瀑布流网格
-  masonryGrid: process.env.NEXT_PUBLIC_ENABLE_MASONRY === 'true' ?? true,
+  masonryGrid: (process.env.NEXT_PUBLIC_ENABLE_MASONRY ?? 'true') === 'true',
 
   // 推荐系统
-  recommendations: process.env.NEXT_PUBLIC_ENABLE_RECOMMENDATIONS === 'true' ?? true,
+  recommendations: (process.env.NEXT_PUBLIC_ENABLE_RECOMMENDATIONS ?? 'true') === 'true',
 
   // 3D悬停效果
-  hover3D: process.env.NEXT_PUBLIC_ENABLE_3D_HOVER === 'true' ?? true,
+  hover3D: (process.env.NEXT_PUBLIC_ENABLE_3D_HOVER ?? 'true') === 'true',
 
   // 手势支持
-  gestures: process.env.NEXT_PUBLIC_ENABLE_GESTURES === 'true' ?? false, // 默认关闭，需要额外依赖
+  gestures: (process.env.NEXT_PUBLIC_ENABLE_GESTURES ?? 'false') === 'true', // 默认关闭，需要额外依赖
 
   // 虚拟滚动
-  virtualScroll: process.env.NEXT_PUBLIC_ENABLE_VIRTUAL_SCROLL === 'true' ?? true,
+  virtualScroll: (process.env.NEXT_PUBLIC_ENABLE_VIRTUAL_SCROLL ?? 'true') === 'true',
 
   // 图片懒加载
-  lazyImages: process.env.NEXT_PUBLIC_ENABLE_LAZY_IMAGES === 'true' ?? true,
+  lazyImages: (process.env.NEXT_PUBLIC_ENABLE_LAZY_IMAGES ?? 'true') === 'true',
 } as const
 
 /**

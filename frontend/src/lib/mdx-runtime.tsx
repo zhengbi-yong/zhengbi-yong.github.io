@@ -83,7 +83,7 @@ export type MDXRuntimeProps = {
  * ```
  */
 export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
-  const [mdxSource, setMdxSource] = useState<MDXRemoteProps['source'] | null>(null)
+  const [mdxSource, setMdxSource] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 

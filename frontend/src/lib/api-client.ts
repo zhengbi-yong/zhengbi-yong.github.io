@@ -1,9 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
-import { OpenAPI } from './types/api-generated';
+// import { OpenAPI } from './types/api-generated';
 
 // Configure OpenAPI base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
-OpenAPI.BASE = API_URL;
+// OpenAPI.BASE = API_URL;
 
 // Create axios instance
 export const apiClient: AxiosInstance = axios.create({

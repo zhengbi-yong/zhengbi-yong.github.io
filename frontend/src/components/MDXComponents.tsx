@@ -1,9 +1,9 @@
 import dynamic from 'next/dynamic'
+import type { ComponentType, ReactNode } from 'react'
 import { Suspense } from 'react'
 import TOCInline from 'pliny/ui/TOCInline'
 import Pre from 'pliny/ui/Pre'
 import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm'
-import type { MDXComponents } from 'mdx/types'
 import Image from './Image'
 import CustomLink from './Link'
 import TableWrapper from './TableWrapper'
@@ -268,7 +268,8 @@ const WrappedAntVChart = (props: any) => (
   </AnimationErrorBoundary>
 )
 
-export const components: MDXComponents = {
+// MDX 组件映射，用于自定义 MDX 渲染
+export const components = {
   Image,
   TOCInline,
   a: CustomLink,
