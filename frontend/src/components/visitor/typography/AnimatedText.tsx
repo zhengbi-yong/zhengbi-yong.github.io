@@ -115,10 +115,11 @@ export function AnimatedHeading({
   className = '',
   level = 1,
 }: AnimatedHeadingProps) {
-  const Tag = `h${level}` as const
+  // 创建动态 motion 组件
+  const MotionTag = motion[`h${level}` as keyof typeof motion]
 
   return (
-    <motion(Tag
+    <MotionTag
       className={className}
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
@@ -129,6 +130,6 @@ export function AnimatedHeading({
       }}
     >
       {children}
-    </motion(Tag>
+    </MotionTag>
   )
 }
