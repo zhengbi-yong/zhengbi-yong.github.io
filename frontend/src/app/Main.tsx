@@ -2,7 +2,6 @@ import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import { Button } from '@/components/shadcn/ui/button'
 import Link from 'next/link'
-import AnimatedText from '@/components/home/AnimatedText'
 import HeroCard from '@/components/home/HeroCard'
 import SocialCard from '@/components/home/SocialCard'
 import Explore from '@/components/sections/Explore'
@@ -10,6 +9,11 @@ import FeaturedWork from '@/components/sections/FeaturedWork'
 import BlogSection from '@/components/sections/BlogSection'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import siteMetadata from '@/data/siteMetadata'
+import { AnimatedHeading, AnimatedParagraph } from '@/components/visitor'
+import { ElegantButton } from '@/components/visitor/micro-interactions'
+
+// 导入游客界面主题样式
+import '@/styles/visitor-theme.css'
 
 interface HomeProps {
   posts: CoreContent<Blog>[]
@@ -18,87 +22,77 @@ interface HomeProps {
 export default function Home({ posts }: HomeProps) {
   return (
     <div className="relative min-h-screen">
-      {/* 主页内容 */}
-      <div className="relative z-10 mx-auto mt-16 w-full px-4 md:mt-18 lg:mt-20 xl:px-8">
-        {/* Hero 区域 */}
-        <div className="relative mx-auto mb-16 flex w-full max-w-6xl flex-col items-center justify-between px-4 md:flex-row">
-          {/* 左侧：标题和描述 */}
-          <div className="relative w-full text-center sm:-mt-8 sm:text-left md:w-1/2 md:max-w-[400px]">
-            {/* Title - AnimatedText animation */}
-            <h1 className="mb-4">
-              <AnimatedText
-                content="Hi, I'm Zhengbi Yong"
-                delay={0.1}
-                duration={0.5}
-                stagger={0.08}
-                className="text-primary text-5xl leading-tight font-bold md:text-4xl lg:text-6xl"
-              />
-            </h1>
-            {/* First description - AnimatedText animation */}
-            <div className="mb-2">
-              <AnimatedText
-                content="I'm a Master student at Beijing Institute of Technology, School of Automation. My research interests include Robotics and Multimodal Perception. And I recieve my Bachelor's degree from Tsinghua University, Department of Automation."
-                delay={0.3}
-                duration={0.5}
-                stagger={0.015}
-                className="text-base text-neutral-700 dark:text-neutral-300"
-              />
-            </div>
-            {/* Second description - AnimatedText animation */}
-            <div className="mb-4">
-              <AnimatedText
-                content="I believe Dynamics, Intelligence and Energy are the foundation of the future."
-                delay={0.5}
-                duration={0.5}
-                stagger={0.015}
-                className="text-base text-neutral-700 dark:text-neutral-300"
-              />
-            </div>
-            {/* Button */}
-            <div className="mt-4 sm:mt-6">
-              <Link href={siteMetadata.x || siteMetadata.github || '#'} className="m-auto sm:m-0">
-                <Button
-                  variant="default"
-                  size="default"
-                  className="w-full sm:w-auto"
-                >
-                  Follow me on 𝕏
-                </Button>
-              </Link>
-            </div>
-            {/* Social Cards */}
-            <div className="mt-8 mb-8">
-              <SocialCard displaySocialIds={[1, 2, 3, 4, 5, 6, 7]} />
+      {/* 主页内容 - 艺术感和宽松布局 */}
+      <div className="visitor-content">
+        {/* Hero 区域 - 极简主义设计 */}
+        <section className="min-h-[80vh] flex flex-col justify-center py-visitor-xl">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Title - 衬线字体，优雅动画 */}
+            <AnimatedHeading level={1} delay={0} className="font-visitor-serif text-6xl md:text-7xl lg:text-8xl mb-8">
+              Zhengbi's Blog
+            </AnimatedHeading>
+
+            {/* Subtitle - 优雅的副标题 */}
+            <AnimatedParagraph delay={0.3} className="text-visitor-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12">
+              探索技术、设计与艺术的交汇点
+            </AnimatedParagraph>
+
+            {/* Call to Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <ElegantButton
+                variant="primary"
+                size="lg"
+                onClick={() => window.location.href = siteMetadata.github || '#'}
+              >
+                View GitHub
+              </ElegantButton>
+              <ElegantButton
+                variant="secondary"
+                size="lg"
+                onClick={() => window.location.href = '/blog'}
+              >
+                Read Blog
+              </ElegantButton>
             </div>
           </div>
-          {/* 右侧：HeroCard */}
-          <div className="relative mt-16 w-full justify-end md:mt-0 md:flex md:w-1/2 md:translate-y-4 md:pl-4 xl:translate-y-0">
+        </section>
+
+        {/* Social Cards - 优雅的社交链接展示 */}
+        <section className="py-visitor-md">
+          <div className="max-w-md mx-auto">
+            <SocialCard displaySocialIds={[1, 2, 3, 4, 5, 6, 7]} />
+          </div>
+        </section>
+
+        {/* Hero Card - 精致的卡片展示 */}
+        <section className="py-visitor-lg">
+          <div className="max-w-2xl mx-auto">
             <HeroCard
               imageUrl="/avatar.png"
-              title="Robotics Projects"
+              title="Robotics & Multimodal Perception"
               link="/blog"
             />
           </div>
-        </div>
+        </section>
 
         {/* Explore 部分 */}
-        <section className="mt-26 mb-12">
-          <Explore title="Explore ↓" />
+        <section className="visitor-section">
+          <Explore title="Explore" />
         </section>
 
         {/* Featured Work 部分 */}
-        <section className="mt-26 mb-12">
+        <section className="visitor-section">
           <FeaturedWork
-            title="Featured Work ↓"
+            title="Featured Work"
             description="I create innovative and purposeful designs that not only capture attention but also drive meaningful results."
             limit={5}
           />
         </section>
 
         {/* Blog Section 部分 */}
-        <section className="mt-26 mb-12">
+        <section className="visitor-section">
           <BlogSection
-            title="Latest Articles ↓"
+            title="Latest Articles"
             description="These are my notes and articles on design, development and life thinking."
             posts={posts}
             showViewAllButton={true}
@@ -106,9 +100,9 @@ export default function Home({ posts }: HomeProps) {
           />
         </section>
 
-        {/* Newsletter 部分 */}
-        <section className="mb-12 flex justify-center">
-          <div className="w-full max-w-2xl">
+        {/* Newsletter 部分 - 优雅的订阅区域 */}
+        <section className="visitor-section pb-visitor-xl">
+          <div className="max-w-2xl mx-auto">
             <NewsletterSignup />
           </div>
         </section>

@@ -28,6 +28,37 @@ module.exports = {
         'admin-sm': ['0.813rem', { lineHeight: '1.25rem' }], // 13px
         'admin-base': ['0.875rem', { lineHeight: '1.25rem' }], // 14px
         'admin-lg': ['1rem', { lineHeight: '1.5rem' }],     // 16px
+        // 游客界面专用字体大小系统（更大更易读）
+        'visitor-base': ['1.125rem', { lineHeight: '1.8' }],  // 18px
+        'visitor-lg': ['1.25rem', { lineHeight: '1.75' }],    // 20px
+        'visitor-xl': ['1.5rem', { lineHeight: '1.6' }],      // 24px
+      },
+      // 游客界面专用字体家族
+      fontFamily: {
+        'visitor-serif': ['Playfair Display', 'Georgia', 'Times New Roman', 'serif'],
+        'visitor-sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        'visitor-mono': ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+      },
+      // 游客界面专用缓动函数
+      transitionTimingFunction: {
+        'visitor': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'visitor-out': 'cubic-bezier(0.33, 1, 0.68, 1)',
+        'visitor-in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',
+      },
+      // 游客界面专用阴影
+      boxShadow: {
+        'visitor-soft': '0 20px 40px rgba(26, 26, 46, 0.08)',
+        'visitor-medium': '0 25px 50px rgba(26, 26, 46, 0.12)',
+        'visitor-strong': '0 30px 60px rgba(26, 26, 46, 0.16)',
+        'visitor-glow': '0 0 40px rgba(99, 102, 241, 0.15)',
+        'visitor-glow-strong': '0 0 60px rgba(99, 102, 241, 0.25)',
+      },
+      // 游客界面专用圆角
+      borderRadius: {
+        'visitor-sm': '0.75rem',
+        'visitor-md': '1rem',
+        'visitor-lg': '1.5rem',
+        'visitor-xl': '2rem',
       },
       typography: ({ theme }) => ({
         DEFAULT: {

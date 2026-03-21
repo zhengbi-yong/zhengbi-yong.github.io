@@ -16,6 +16,9 @@ import { CommentForm } from '@/components/post/CommentForm'
 import { CommentListSimple } from '@/components/post/CommentListSimple'
 import { BackendComments } from '@/components/post/BackendComments'
 
+// 导入游客界面主题样式
+import '@/styles/visitor-theme.css'
+
 
 const postDateTemplate: Intl.DateTimeFormatOptions = {
   weekday: 'long',
@@ -116,10 +119,10 @@ export default function PostLayout({
 
       {/* 文章分析组件 - 使用 slug 作为文章ID */}
       <ArticleAnalytics articleId={slug || path} showDetails={false} compact={true} />
-      <article>
+      <article className="visitor-article">
         <div className="xl:divide-y xl:divide-gray-200 xl:dark:divide-gray-700">
-          <header className="pt-6 xl:pb-8">
-            <div className="space-y-4 text-center">
+          <header className="pt-visitor-md pb-visitor-sm xl:pb-visitor-md">
+            <div className="space-y-6 text-center">
               <dl>
                 <div>
                   <dt className="sr-only">Published on</dt>
@@ -131,11 +134,11 @@ export default function PostLayout({
                 </div>
               </dl>
               <div>
-                <PageTitle>{title}</PageTitle>
+                <PageTitle className="font-visitor-serif">{title}</PageTitle>
               </div>
             </div>
           </header>
-          <div className="divide-y divide-gray-200 pb-8 md:grid md:grid-cols-[3fr_1fr] xl:grid-cols-[191fr_618fr_191fr] md:gap-x-4 xl:gap-x-8 md:divide-y-0 dark:divide-gray-700">
+          <div className="divide-y divide-gray-200 pb-visitor-lg md:grid md:grid-cols-[3fr_1fr] xl:grid-cols-[191fr_618fr_191fr] md:gap-x-4 xl:gap-x-8 md:divide-y-0 dark:divide-gray-700">
             {/* 左侧：目录 (TOC) - 在xl以下屏幕隐藏 */}
             <div className="hidden xl:flex xl:col-span-1 flex-shrink-0 flex-col">
               <div className="sticky top-20 flex flex-col h-full w-full" style={{ height: 'calc(100vh - 5rem)', maxHeight: 'calc(100vh - 5rem)' }}>
@@ -143,11 +146,11 @@ export default function PostLayout({
               </div>
             </div>
 
-            {/* 中间：文章内容 */}
+            {/* 中间：文章内容 - 沉浸式阅读体验 */}
             <div className="md:col-span-1 xl:col-span-1 dark:divide-gray-700 xl:px-4">
               <FadeIn delay={0.2} duration={0.6} whileInView={true}>
                 <PostBackendIntegration slug={slug || path}>
-                  <div className="prose dark:prose-invert prose-headings:mt-8 prose-headings:mb-4 prose-p:my-4 prose-p:leading-7 prose-a:text-primary-600 dark:prose-a:text-primary-400 prose-a:no-underline hover:prose-a:underline mx-auto w-full max-w-full min-w-0 pt-10 pb-8 sm:max-w-2xl md:max-w-none">
+                  <div className="prose prose-lg dark:prose-invert visitor-article prose-headings:font-visitor-serif prose-headings:font-semibold prose-p:text-visitor-base prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-visitor-lg prose-img:shadow-visitor-soft mx-auto w-full max-w-full min-w-0 pt-visitor-md pb-visitor-md sm:max-w-2xl md:max-w-none">
                     {children}
                   </div>
                 </PostBackendIntegration>
@@ -177,7 +180,7 @@ export default function PostLayout({
           </div>
 
           {/* 文章底部的完整评论区 - 包含评论表单和评论列表 */}
-          <div id="comments-section" className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <div id="comments-section" className="mt-visitor-xl pt-visitor-lg border-t border-gray-200 dark:border-gray-700">
             <BackendComments slug={slug || path} />
           </div>
           {/* 移动端浮动 ToC - 在布局外部渲染，只渲染移动端组件 */}
