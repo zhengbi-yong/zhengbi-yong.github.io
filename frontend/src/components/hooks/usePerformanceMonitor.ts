@@ -39,7 +39,7 @@ export function usePerformanceMonitor(options: UsePerformanceMonitorOptions = {}
   useEffect(() => {
     // 检查是否支持 Performance API
     if (typeof window === 'undefined' || !window.performance) {
-      return
+      return undefined
     }
 
     // 监听 Web Vitals

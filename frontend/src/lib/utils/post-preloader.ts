@@ -9,6 +9,9 @@ import blogDB from '@/lib/db/blog-db'
 import type { Blog } from 'contentlayer/generated'
 import { logger } from './logger'
 
+// Re-export Blog type for consumers
+export type { Blog }
+
 type Priority = 'high' | 'medium' | 'low'
 
 interface PreloadTask {

@@ -7,7 +7,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./tests/setup.ts'],
     exclude: ['**/e2e/**', '**/node_modules/**', '**/dist/**', '**/.next/**'],
     coverage: {
       provider: 'v8',
@@ -21,6 +20,7 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'tests/',
+        'src/mocks/',
         '**/*.config.*',
         '**/*.d.ts',
         '.contentlayer/',

@@ -1,7 +1,12 @@
-//! 模糊测试（Fuzzing Tests）
-//! 
+//! 模糊测试
+//!
+//! **运行前准备**：
+//! 1. 启动数据库：`docker compose -f docker-compose.dev.yml up -d`
+//! 2. 启动后端：`./start-backend.sh` 或 `cd backend && cargo run`
+//! 3. 运行测试：`cargo test --test fuzzing_tests -- --ignored`
+//!
 //! 使用随机输入和边界值测试系统的健壮性
-//! 
+//!
 //! 测试包括：
 //! - 随机字符串输入
 //! - 边界值测试
@@ -45,6 +50,7 @@ fn generate_random_unicode_string(length: usize) -> String {
 /// 测试1: 随机邮箱格式测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_random_email_formats() {
     let client = Client::new();
     const TEST_COUNT: usize = 100;
@@ -208,6 +214,7 @@ async fn test_special_characters() {
 /// 测试4: Unicode字符测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_unicode_characters() {
     let client = Client::new();
     const TEST_COUNT: usize = 50;

@@ -2,8 +2,6 @@
 
 import { useRef, ReactNode } from 'react'
 import { useGSAP } from '@/components/hooks/useGSAP'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 interface PinElementProps {
   children: ReactNode

@@ -27,7 +27,7 @@ export const EChartsComponent: React.FC<EChartsComponentProps> = ({
   const chartInstance = useRef<echarts.ECharts | null>(null)
 
   useEffect(() => {
-    if (!chartRef.current) return
+    if (!chartRef.current) return undefined
 
     // 初始化图表
     chartInstance.current = echarts.init(chartRef.current, theme)

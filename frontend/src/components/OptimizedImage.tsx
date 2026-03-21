@@ -17,7 +17,7 @@ interface OptimizedImageProps extends Omit<ImageProps, 'src' | 'alt'> {
 export default function OptimizedImage({
   src,
   alt,
-  fallbackSrc = '/static/images/placeholder.png',
+  fallbackSrc = '/placeholder.png',
   blurDataURL,
   lazy = true,
   priority = false,
@@ -67,7 +67,7 @@ export default function OptimizedImage({
 
   // 使用 Intersection Observer 实现懒加载
   useEffect(() => {
-    if (!lazy || priority) return
+  if (!lazy || priority) { return null; }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -90,21 +90,7 @@ export default function OptimizedImage({
     return () => observer.disconnect()
   }, [lazy, priority])
 
-  // 生成响应式 srcSet
-  const generateSrcSet = (baseSrc: string) => {
-    const widths = [640, 750, 828, 1080, 1200, 1920, 2048, 3840]
-    return widths
-      .map((width) => {
-        // 如果是外部 URL，使用图片参数
-        if (baseSrc.startsWith('http')) {
-          return `${baseSrc}?w=${width} ${width}w`
-        }
-        // 本地图片由 Next.js 处理
-        return null
-      })
-      .filter(Boolean)
-      .join(', ')
-  }
+// generateSrcSet removed: unused helper
 
   return (
     <div ref={imgRef} className={`relative overflow-hidden ${className}`}>

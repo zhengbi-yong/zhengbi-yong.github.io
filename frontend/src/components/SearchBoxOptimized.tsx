@@ -14,7 +14,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api/apiClient'
-import { Search, X, Clock, TrendingUp } from 'lucide-react'
+import { Search, X, TrendingUp } from 'lucide-react'
 
 interface SearchSuggestion {
   title: string

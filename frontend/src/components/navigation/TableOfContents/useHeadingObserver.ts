@@ -9,7 +9,7 @@ interface UseHeadingObserverOptions {
   isMobileExpanded: boolean
   setActiveHeadingId: (id: string | null) => void
   tocMobileContentRef: React.RefObject<HTMLElement>
-  tocContentRef: React.RefObject<HTMLElement>
+  _tocContentRef: React.RefObject<HTMLElement>
 }
 
 /**
@@ -23,10 +23,13 @@ export function useHeadingObserver({
   isMobileExpanded,
   setActiveHeadingId,
   tocMobileContentRef,
-  tocContentRef,
+  _tocContentRef,
 }: UseHeadingObserverOptions) {
+  void _tocContentRef
   const activeHeadingIdRef = useRef<string | null>(null)
 
+  // 同步 ref
+  // 同步 ref
   // 同步 ref
   useEffect(() => {
     activeHeadingIdRef.current = activeHeadingId
@@ -54,11 +57,11 @@ export function useHeadingObserver({
 
   // IntersectionObserver 监听标题
   useEffect(() => {
-    if (!toc || toc.length === 0) return
+    if (!toc || toc.length === 0) return undefined
 
     const initObserver = () => {
       const idToLinkMap = buildIdToLinkMap()
-      if (idToLinkMap.size === 0) return
+      if (idToLinkMap.size === 0) return undefined
 
       // 尝试多种选择器
       const selectors = [
@@ -84,7 +87,7 @@ export function useHeadingObserver({
         })
       }
 
-      if (headingElements.length === 0) return
+      if (headingElements.length === 0) return undefined
 
       const observerOptions = {
         rootMargin: '-120px 0px -70% 0px',

@@ -2,6 +2,12 @@
  * 化学组件相关的TypeScript类型定义
  */
 
+declare global {
+  interface Window {
+    $3Dmol: any
+  }
+}
+
 export type ChemicalFileFormat = 'pdb' | 'sdf' | 'xyz' | 'mol' | 'cif'
 
 export type ChemicalStyle = 'stick' | 'cartoon' | 'sphere' | 'surface' | 'line'

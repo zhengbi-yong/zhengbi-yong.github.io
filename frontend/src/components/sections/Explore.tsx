@@ -24,7 +24,7 @@ export default function Explore({ title, description }: ExploreProps) {
   // 视频自动播放逻辑
   useEffect(() => {
     const video = videoRef.current
-    if (!video || !(video instanceof HTMLVideoElement)) return
+    if (!video || !(video instanceof HTMLVideoElement)) return undefined
 
     let isPlaying = false
     let observer: IntersectionObserver | null = null

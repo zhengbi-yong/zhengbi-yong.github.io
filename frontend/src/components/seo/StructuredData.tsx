@@ -1,6 +1,5 @@
 'use client'
 
-import Head from 'next/head'
 
 interface StructuredDataProps {
   type: 'Article' | 'BlogPosting' | 'Organization' | 'Person' | 'WebSite' | 'BreadcrumbList'

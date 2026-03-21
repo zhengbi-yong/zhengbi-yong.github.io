@@ -38,6 +38,7 @@ impl Default for PerformanceBenchmark {
 /// 测试1: 健康检查性能基准
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_health_check_performance() {
     let client = Client::new();
     const REQUESTS: usize = 1000;
@@ -121,6 +122,7 @@ async fn test_health_check_performance() {
 /// 测试2: 认证端点性能基准
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_auth_endpoint_performance() {
     let client = Client::new();
     const REQUESTS: usize = 500;
@@ -216,6 +218,7 @@ async fn test_auth_endpoint_performance() {
 /// 测试3: 并发性能测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_concurrent_performance() {
     let client = Client::new();
     const CONCURRENT_REQUESTS: usize = 200;
@@ -283,6 +286,7 @@ async fn test_concurrent_performance() {
 /// 测试4: 延迟分布测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_latency_distribution() {
     let client = Client::new();
     const REQUESTS: usize = 1000;
@@ -308,12 +312,12 @@ async fn test_latency_distribution() {
     response_times.sort();
 
     // 计算百分位数
-    let percentiles = vec![50, 75, 90, 95, 99, 99.9];
+    let percentiles = vec![50.0_f64, 75.0, 90.0, 95.0, 99.0, 99.9];
     let mut latency_distribution = HashMap::new();
 
     for p in &percentiles {
         let index = ((response_times.len() as f64 * p / 100.0) as usize).min(response_times.len() - 1);
-        latency_distribution.insert(*p, response_times[index]);
+        latency_distribution.insert(*p as i32, response_times[index]);
     }
 
     println!("延迟分布测试:");
@@ -322,7 +326,7 @@ async fn test_latency_distribution() {
     }
 
     // 严格断言：P50必须 < 50ms
-    if let Some(p50) = latency_distribution.get(&50.0) {
+    if let Some(p50) = latency_distribution.get(&50) {
         assert!(
             *p50 < Duration::from_millis(50),
             "P50延迟必须 < 50ms，实际: {:?}",
@@ -331,7 +335,7 @@ async fn test_latency_distribution() {
     }
 
     // 严格断言：P99必须 < 500ms
-    if let Some(p99) = latency_distribution.get(&99.0) {
+    if let Some(p99) = latency_distribution.get(&99) {
         assert!(
             *p99 < Duration::from_millis(500),
             "P99延迟必须 < 500ms，实际: {:?}",
@@ -343,6 +347,7 @@ async fn test_latency_distribution() {
 /// 测试5: 持续负载性能测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 #[ignore] // 长时间运行，默认忽略
 async fn test_sustained_load_performance() {
     let client = Client::new();
@@ -375,12 +380,10 @@ async fn test_sustained_load_performance() {
 
         // 等待这批请求完成
         for handle in handles {
-            if let Ok((response, duration)) = handle.await.unwrap() {
-                if let Ok(resp) = response {
-                    if resp.status().is_success() {
-                        successful_requests += 1;
-                        response_times.push(duration);
-                    }
+            if let (Ok(response), duration) = handle.await.unwrap() {
+                if response.status().is_success() {
+                    successful_requests += 1;
+                    response_times.push(duration);
                 }
             }
         }

@@ -1,6 +1,5 @@
 'use client'
 
-import { useTranslation } from 'react-i18next'
 import { useReadingProgress } from './hooks/useReadingProgress'
 
 interface ReadingProgressProps {
@@ -14,7 +13,7 @@ export default function ReadingProgress({
   showPercentage = true,
   showTime = false,
 }: ReadingProgressProps) {
-  const { t } = useTranslation()
+// t removed: not used in render
   const { progress, isReading, readingTime, totalTime } = useReadingProgress()
 
   const formatTime = (seconds: number): string => {

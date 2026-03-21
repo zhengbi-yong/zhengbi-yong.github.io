@@ -111,7 +111,7 @@ const SparklesAnimation = memo(function SparklesAnimation({
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) return undefined
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect()

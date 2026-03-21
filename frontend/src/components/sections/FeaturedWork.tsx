@@ -5,7 +5,6 @@ import WorkCard from './WorkCard'
 import SectionHeader from './SectionHeader'
 import { Button } from '@/components/shadcn/ui/button'
 import Link from 'next/link'
-import { cn } from '@/components/lib/utils'
 
 interface Project {
   name: string

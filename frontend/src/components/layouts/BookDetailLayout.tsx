@@ -17,6 +17,7 @@ interface BookDetailLayoutProps {
 
 export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
   const colorScheme = getCategoryColorScheme(book.name)
+  void colorScheme
   const bookIcon = getBookIcon(book.name)
   const categoryColor = getCategoryColorForCard(book.name)
 
@@ -131,7 +132,7 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
                     <Chapter
                       key={chapter.path}
                       chapter={chapter}
-                      bookName={book.name}
+                      
                       isExpanded={chapterIndex === 0}
                       categoryColor={categoryColor}
                     />

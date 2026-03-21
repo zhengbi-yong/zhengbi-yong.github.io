@@ -40,7 +40,7 @@ export function InteractiveMap({
   }, [])
 
   useEffect(() => {
-    if (!isClient || !mapRef.current) return
+    if (!isClient || !mapRef.current) return undefined
 
     // Initialize map
     const leafletMap = L.map(mapRef.current).setView(center, zoom)

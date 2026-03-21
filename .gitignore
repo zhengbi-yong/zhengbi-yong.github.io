@@ -103,3 +103,29 @@ frontend/diagnose-*.js
 # Backend environment
 backend/.env
 backend/.env.local
+
+# SQLx query cache
+backend/.sqlx/
+*.sqlx/
+
+# Garbage/corrupted filenames
+-*
+=*
+{n}
+{n}#
+{n}
+startup.logn
+backup.sqln
+deploy_keyn
+posts.jsonn
+schema.sqln
+users_export.csvn
+
+# Temporary and garbage files
+*.pid
+*.tmp
+*.bak
+*.swp
+*~
+backend/*.log
+frontend/*.log

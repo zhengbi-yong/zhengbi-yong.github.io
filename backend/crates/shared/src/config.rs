@@ -225,6 +225,7 @@ mod tests {
         env::set_var("DATABASE_URL", "postgresql://test@localhost/test");
         env::set_var("REDIS_URL", "redis://localhost");
         env::set_var("JWT_SECRET", "test-secret-key-32-characters-long");
+        env::set_var("PASSWORD_PEPPER", "test-pepper-32-characters-long-!!");
         env::set_var("SMTP_USERNAME", "test@example.com");
         env::set_var("SMTP_PASSWORD", "test-password");
         env::set_var("SMTP_FROM", "test@example.com");

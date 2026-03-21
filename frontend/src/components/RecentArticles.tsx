@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { allBlogs } from 'contentlayer/generated'
-import { CoreContent } from 'pliny/utils/contentlayer'
 import { sortPosts, allCoreContent } from 'pliny/utils/contentlayer'
 import { Clock, FileText } from 'lucide-react'
 import Link from './Link'
-import { useTranslation } from 'react-i18next'
+ 
 
 interface RecentArticlesProps {
   limit?: number
@@ -14,7 +13,6 @@ interface RecentArticlesProps {
 }
 
 export function RecentArticles({ limit = 5, currentSlug }: RecentArticlesProps) {
-  const { t } = useTranslation()
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -26,7 +24,6 @@ export function RecentArticles({ limit = 5, currentSlug }: RecentArticlesProps) 
     .filter((post) => !post.draft && post.slug !== currentSlug)
     .slice(0, limit)
 
-  const displayText = (key: string) => (isMounted ? t(key) : key)
 
   if (recentArticles.length === 0) {
     return null
@@ -82,4 +79,3 @@ export function RecentArticles({ limit = 5, currentSlug }: RecentArticlesProps) 
     </div>
   )
 }
-

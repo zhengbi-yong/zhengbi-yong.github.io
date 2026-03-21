@@ -28,7 +28,7 @@ export default function LazyComponent({
   useEffect(() => {
     const element = elementRef.current
     if (!element || hasLoaded) {
-      return
+      return undefined
     }
 
     // 检查浏览器是否支持 Intersection Observer
@@ -36,7 +36,7 @@ export default function LazyComponent({
       // 不支持时立即加载
       setIsVisible(true)
       setHasLoaded(true)
-      return
+      return undefined
     }
 
     const observer = new IntersectionObserver(

@@ -22,7 +22,7 @@ export const AntVChart: React.FC<AntVChartProps> = ({
   const chartRef = useRef<Chart | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current) return undefined
 
     // 清理之前的图表
     if (chartRef.current) {

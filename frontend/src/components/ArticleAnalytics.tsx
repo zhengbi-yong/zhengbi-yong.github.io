@@ -6,7 +6,6 @@ import { allBlogs } from 'contentlayer/generated'
 import { CoreContent } from 'pliny/utils/contentlayer'
 import {
   useArticleAnalytics,
-  getAllAnalytics,
   getPopularArticles,
 } from './hooks/useArticleAnalytics'
 import { Eye, Clock, BarChart3, TrendingUp, Award } from 'lucide-react'

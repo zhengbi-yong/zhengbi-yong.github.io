@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { usePostStore } from '@/lib/store'
 import { PostStats } from '@/components/post/PostStats'
 import { LikeButton } from '@/components/post/LikeButton'
-import { BackendComments } from '@/components/post/BackendComments'
 
 interface PostBackendIntegrationProps {
   slug: string
@@ -20,6 +19,7 @@ interface PostBackendIntegrationProps {
  */
 export function PostBackendIntegration({ slug, children }: PostBackendIntegrationProps) {
   const { recordView, fetchStats } = usePostStore()
+  void fetchStats
   const [viewRecorded, setViewRecorded] = useState(false)
 
   // Record view when component mounts

@@ -6,6 +6,7 @@ import { logger } from './utils/logger'
 
 const SW_URL = '/sw.js'
 const SW_VERSION = 'v1.0.1'
+void SW_VERSION
 
 /**
  * 检查浏览器是否支持 Service Worker

@@ -8,14 +8,12 @@ import { shouldDisableComplexAnimations } from '@/lib/utils/performance-optimize
 
 interface ChapterProps {
   chapter: ChapterType
-  bookName: string
   isExpanded?: boolean
   categoryColor?: string // 分类颜色，传递给 ArticleCard
 }
 
 export default function Chapter({
   chapter,
-  bookName,
   isExpanded = false,
   categoryColor,
 }: ChapterProps) {
@@ -71,7 +69,7 @@ export default function Chapter({
                   : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
             }`}
           >
-            {chapter.articles.map((article, index) => (
+            {chapter.articles.map((article, _index) => (
               <ArticleCard
                 key={article.path}
                 article={article}
@@ -94,11 +92,11 @@ export default function Chapter({
                   : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
             }`}
           >
-            {chapter.articles.map((article, index) => (
+            {chapter.articles.map((article, _index) => (
               <ArticleCard
                 key={article.path}
                 article={article}
-                index={index}
+                index={_index}
                 categoryColor={categoryColor}
               />
             ))}

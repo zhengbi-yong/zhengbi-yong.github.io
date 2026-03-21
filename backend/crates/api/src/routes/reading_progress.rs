@@ -6,7 +6,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use utoipa::ToSchema;
 
 use blog_shared::{AppError, AuthUser};

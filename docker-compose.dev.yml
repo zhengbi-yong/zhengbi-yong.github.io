@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: blog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: blog_user
+      POSTGRES_PASSWORD: blog_password
+      POSTGRES_DB: blog_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog_user -d blog_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blog-network
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: blog-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - blog-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  blog-network:
+    driver: bridge

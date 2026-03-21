@@ -5,7 +5,6 @@ import { useCommentStore, useAuthStore } from '@/lib/store'
 import { Button } from '@/components/shadcn/ui/button'
 import { ThumbsUp, MessageCircle } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
-import { AuthModal } from '@/components/auth/AuthModal'
 
 interface CommentListSimpleProps {
   slug: string
@@ -42,10 +41,11 @@ export function CommentListSimple({ slug, className }: CommentListSimpleProps) {
     }
   }
 
-  const handleLoadMore = () => {
+  const _handleLoadMore = () => {
     const cursor = comments.length > 0 ? comments[comments.length - 1].id : undefined
     fetchComments(slug, cursor)
   }
+  void _handleLoadMore
 
   return (
     <>

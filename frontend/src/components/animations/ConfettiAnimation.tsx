@@ -23,7 +23,7 @@ const ConfettiAnimation = memo(function ConfettiAnimation({
   const isVisibleRef = useRef(true)
 
   useEffect(() => {
-    if (!autoPlay || !canvasRef.current) return
+    if (!autoPlay || !canvasRef.current) return undefined
 
     const canvas = canvasRef.current
 
@@ -58,8 +58,8 @@ const ConfettiAnimation = memo(function ConfettiAnimation({
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
-    const triggerConfetti = () => {
-      if (!canvas || !isVisibleRef.current) return
+  const triggerConfetti = () => {
+      if (!canvas || !isVisibleRef.current) return undefined
 
       const rect = canvas.getBoundingClientRect()
       const x = rect.left + rect.width / 2

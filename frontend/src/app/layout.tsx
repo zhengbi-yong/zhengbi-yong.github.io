@@ -2,6 +2,7 @@ import '@/styles/tailwind.css'
 import 'pliny/search/algolia.css'
 import 'remark-github-blockquote-alert/alert.css'
 import 'leaflet/dist/leaflet.css'
+import 'katex/dist/katex.min.css' // KaTeX 数学公式样式
 
 import { SearchProvider, SearchConfig } from 'pliny/search'
 import type { AnalyticsConfig } from 'pliny/analytics'
@@ -20,6 +21,7 @@ import { Metadata } from 'next'
 import Script from 'next/script'
 import { AuthInitializer } from '@/components/auth/AuthInitializer'
 import { Toaster } from '@/components/shadcn/ui/sonner'
+import { QueryProvider } from '@/lib/providers/query-provider'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteMetadata.siteUrl),
@@ -108,28 +110,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="load-env-variables" strategy="beforeInteractive">
           {`window["EXCALIDRAW_ASSET_PATH"] = "/";`}
         </Script>
-        <I18nProvider>
-          <AuthInitializer />
-          <SkipLink />
-          <ServiceWorkerRegister />
-          <VisitorTracker />
-          <ThemeProviders>
-            <ErrorBoundary>
-              {/* 延迟加载的组件（Analytics、KeyboardNavigation、FocusManager） */}
-              <LazyLoadedComponents analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-              <SectionContainer>
-                <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
-                  <Header />
-                  <main id="main-content" tabIndex={-1} className="mb-auto focus:outline-none">
-                    {children}
-                  </main>
-                </SearchProvider>
-                <Footer />
-              </SectionContainer>
-            </ErrorBoundary>
-          </ThemeProviders>
-        </I18nProvider>
-        <Toaster />
+        <QueryProvider>
+          <I18nProvider>
+            <AuthInitializer />
+            <SkipLink />
+            <ServiceWorkerRegister />
+            <VisitorTracker />
+            <ThemeProviders>
+              <ErrorBoundary>
+                {/* 延迟加载的组件（Analytics、KeyboardNavigation、FocusManager） */}
+                <LazyLoadedComponents analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+                <SectionContainer>
+                  <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+                    <Header />
+                    <main id="main-content" tabIndex={-1} className="mb-auto focus:outline-none">
+                      {children}
+                    </main>
+                  </SearchProvider>
+                  <Footer />
+                </SectionContainer>
+              </ErrorBoundary>
+            </ThemeProviders>
+          </I18nProvider>
+          <Toaster />
+        </QueryProvider>
       </body>
     </html>
   )

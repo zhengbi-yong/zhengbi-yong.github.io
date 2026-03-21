@@ -199,7 +199,7 @@ export function useArticleAnalytics({
 
   // 监听滚动事件
   useEffect(() => {
-    if (!trackScrollDepth) return
+    if (!trackScrollDepth) return undefined
 
     const handleScroll = () => {
       trackScrollDepthCallback()

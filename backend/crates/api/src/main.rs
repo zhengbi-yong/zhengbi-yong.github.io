@@ -1,18 +1,16 @@
 #![recursion_limit = "1024"]
 #![type_length_limit = "10000000"]
 
-use axum::{Router, middleware};
+use axum::Router;
 use tower_http::{
     trace::TraceLayer,
     compression::CompressionLayer,
     cors::CorsLayer,
 };
-use tower::util::BoxService;
 use tracing_subscriber::prelude::*;
 use blog_api::state::AppState;
 
 // 导入所有路由模块（仅导入需要使用的模块）
-use blog_api::routes;
 use blog_api::middleware::auth::auth_middleware;
 
 #[tokio::main]
@@ -126,13 +124,14 @@ async fn run_server() -> anyhow::Result<()> {
     let app = Router::new()
         // 健康检查（无状态）
         .route("/health", axum::routing::get(blog_api::metrics::health))
+        .route("/healthz", axum::routing::get(blog_api::metrics::health))  // Kubernetes标准健康检查端点
         .route("/health/detailed", axum::routing::get(blog_api::metrics::health_detailed))
         .route("/ready", axum::routing::get(blog_api::metrics::readyz))
         .route("/metrics", axum::routing::get(blog_api::metrics::metrics_endpoint))
         // OpenAPI 文档 - TEMPORARILY DISABLED TO TEST STACK OVERFLOW
         // .merge(blog_api::routes::openapi::swagger_ui())
-        // API v1 路由（分组）
-        .nest("/v1", v1_routes(state.clone()))
+        // API v1 路由（分组）- 添加 /api 前缀
+        .nest("/api/v1", v1_routes(state.clone()))
         // 中间件（只在最外层应用）
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
@@ -206,9 +205,10 @@ fn auth_routes() -> Router<AppState> {
 
 // 文章路由
 fn post_routes() -> Router<AppState> {
-    use axum::routing::{get, post, delete, patch};
+    use axum::routing::{get, post, delete};
     Router::new()
         .route("/posts", get(blog_api::routes::posts::list_posts))
+        .route("/posts/id/{id}", get(blog_api::routes::posts::get_post_by_id))
         .route("/posts/{slug}", get(blog_api::routes::posts::get_post))
         .route("/posts/{slug}/stats", get(blog_api::routes::posts::get_stats))
         .route("/posts/{slug}/view", post(blog_api::routes::posts::view))
@@ -266,7 +266,7 @@ fn search_routes() -> Router<AppState> {
 
 // 评论路由
 fn comment_routes() -> Router<AppState> {
-    use axum::routing::{get, post, delete, put};
+    use axum::routing::post;
     Router::new()
         .route("/comments/{id}/like", post(blog_api::routes::comments::like_comment))
         .route("/comments/{id}/unlike", post(blog_api::routes::comments::unlike_comment))

@@ -10,12 +10,11 @@
     "skipLibCheck": true,
     "strict": false,
     "noUncheckedIndexedAccess": false,
-    "noImplicitReturns": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": false,
-    "noImplicitOverride": false,
-    "noEmit": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,
@@ -81,7 +80,8 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "noEmit": true
   },
   "include": [
     "next-env.d.ts",
@@ -98,6 +98,11 @@
   ],
   "exclude": [
     "node_modules",
-    "public/chemistry"
+    "public/chemistry",
+    "src/payload",
+    "**/tests/**",
+    "**/vitest.config.ts",
+    "eslint.config.mjs",
+    "e2e/**/*"
   ]
 }

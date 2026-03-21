@@ -51,7 +51,7 @@ interface UIState {
 
 export const useUIStore = create<UIState>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       // 全局加载状态
       globalLoading: {
         isLoading: false,
@@ -132,9 +132,7 @@ export const useUIStore = create<UIState>()(
       colorMode: 'system',
       setColorMode: (mode) => set({ colorMode: mode }),
     }),
-    {
-      name: 'ui-store',
-    }
+    { name: 'ui-store' }
   )
 )
 

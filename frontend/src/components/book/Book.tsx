@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import type { BookCategory } from '@/lib/utils/book-categorizer'
-import { getCategoryColorScheme } from '@/lib/utils/book-categorizer'
 import { getBookIcon } from './BookIcons'
 import {
   getOptimizedAnimationParams,
@@ -44,7 +43,6 @@ export default function Book({ book, index }: BookProps) {
 
   // 获取性能优化的动画参数
   const { delay, duration } = getOptimizedAnimationParams(0.5, index * 0.1)
-  const colorScheme = getCategoryColorScheme(book.name)
   const bookIcon = getBookIcon(book.name)
   const categoryUrl = `/blog/category/${encodeURIComponent(book.name)}`
 

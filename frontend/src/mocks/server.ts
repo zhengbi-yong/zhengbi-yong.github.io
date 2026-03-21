@@ -6,21 +6,29 @@ import { handlers } from './handlers'
 export const server = setupServer(...handlers)
 
 // Vitest setup hooks
-export const setupMSW = () => {
-  // 在所有测试前启动 server
-  beforeAll(() => {
-    server.listen({
-      onUnhandledRequest: 'error',
+export const setupMSWServer = () => {
+  // Import vitest test hooks only during test execution
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'test') {
+    const { beforeAll, afterEach, afterAll } = require('vitest')
+
+    // Start server for tests
+    beforeAll(() => {
+      server.listen({
+        onUnhandledRequest: 'error',
+      })
     })
-  })
 
-  // 每个测试后重置 handlers
-  afterEach(() => {
-    server.resetHandlers()
-  })
+    // 每个测试后重置 handlers
+    afterEach(() => {
+      server.resetHandlers()
+    })
 
-  // 所有测试后关闭 server
-  afterAll(() => {
-    server.close()
-  })
+    // 所有测试后关闭 server
+    afterAll(() => {
+      server.close()
+    })
+  }
 }
+
+export const resetHandlers = () => server.resetHandlers()
+

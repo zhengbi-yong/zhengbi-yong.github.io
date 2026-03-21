@@ -14,12 +14,13 @@ interface ThreeViewerProps {
 }
 
 export function ThreeViewer({
-  modelUrl,
+  modelUrl: _modelUrl,
   className = '',
   autoRotate = true,
   width = 800,
   height = 600,
 }: ThreeViewerProps) {
+  void _modelUrl
   const mountRef = useRef<HTMLDivElement>(null)
   const [isClient, setIsClient] = useState(false)
 
@@ -28,7 +29,7 @@ export function ThreeViewer({
   }, [])
 
   useEffect(() => {
-    if (!isClient || !mountRef.current) return
+    if (!isClient || !mountRef.current) return undefined
 
     // Scene setup
     const scene = new THREE.Scene()

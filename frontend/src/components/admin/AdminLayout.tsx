@@ -1,6 +1,11 @@
 /**
- * Admin Layout - 增强的管理后台布局组件
- * 参考顶级后台管理系统的设计，提供侧边栏导航和顶部栏
+ * Admin Layout - 增强的管理后台布局组件（紧凑模式）
+ *
+ * 优化目标：
+ * - 侧边栏宽度：200px（原 256px）
+ * - 减少 30% 间距
+ * - 提升信息密度
+ * - 保持可读性（字体 ≥ 12px）
  */
 
 'use client'
@@ -26,6 +31,10 @@ import {
   FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+// 导入管理界面紧凑样式
+import '@/styles/admin-compact.css'
+import '@/styles/admin-theme.css'
 
 interface NavItem {
   id: string
@@ -171,7 +180,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="admin-compact min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -180,21 +189,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - 紧凑模式：200px 宽度 */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0',
+          'admin-sidebar fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+          {/* Logo - 紧凑间距 */}
+          <div className="flex items-center justify-between h-14 px-admin-md border-b border-gray-200 dark:border-gray-700">
             <Link href="/admin" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <LayoutDashboard className="w-5 h-5 text-white" />
+              <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center">
+                <LayoutDashboard className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+              <span className="text-lg font-bold text-gray-900 dark:text-white">
                 管理后台
               </span>
             </Link>
@@ -202,12 +211,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          {/* Navigation - 紧凑间距 */}
+          <nav className="flex-1 px-admin-sm py-admin-md space-y-0.5 overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -218,80 +227,78 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    'flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    'admin-sidebar-item group',
+                    isActive && 'active'
                   )}
                 >
-                  <div className="flex items-center space-x-3">
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </div>
+                  <Icon className="w-4 h-4" />
+                  <span className="text-admin-sm font-medium">{item.label}</span>
                   {item.badge && (
-                    <span className="px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded-full">
+                    <span className="px-1.5 py-0.5 text-admin-xs font-semibold text-white bg-red-500 rounded">
                       {item.badge}
                     </span>
                   )}
-                  {isActive && <ChevronRight className="w-4 h-4" />}
+                  {isActive && <ChevronRight className="w-3.5 h-3.5" />}
                 </Link>
               )
             })}
           </nav>
 
-          {/* User section */}
-          <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-sm font-semibold text-white">
+          {/* User section - 紧凑间距 */}
+          <div className="px-admin-sm py-admin-md border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-2 mb-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-admin-xs font-semibold text-white">
                   {user?.username?.[0]?.toUpperCase() || 'A'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                <p className="text-admin-sm font-medium text-gray-900 dark:text-white truncate">
                   {user?.username || '管理员'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-admin-xs text-gray-500 dark:text-gray-400 truncate">
                   {user?.email || ''}
                 </p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="w-full flex items-center space-x-2 px-admin-sm py-2 text-admin-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
               <span>退出登录</span>
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Top bar */}
+      {/* Main content - 侧边栏宽度偏移 */}
+      <div className="lg:pl-[200px]">
+        {/* Top bar - 紧凑间距 */}
         <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 px-admin-sm sm:px-admin-md lg:px-admin-lg">
             <div className="flex items-center flex-1">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden mr-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                className="lg:hidden mr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5" />
               </button>
               <div className="flex-1">
                 <BreadcrumbNav />
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <ThemeToggle />
               {/* 可以在这里添加通知中心等其他功能 */}
             </div>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+        {/* Page content - 紧凑间距 */}
+        <main className="p-admin-sm sm:p-admin-md lg:p-admin-lg admin-compact">
+          {children}
+        </main>
       </div>
     </div>
   )

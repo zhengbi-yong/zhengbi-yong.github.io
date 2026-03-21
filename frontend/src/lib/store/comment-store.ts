@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { commentService } from '../api/backend'
-import type { CommentResponse, CommentListResponse, CreateCommentRequest } from '../types/backend'
+import type { CommentResponse, CreateCommentRequest } from '../types/backend'
 import { logger } from '../utils/logger'
 
 interface CommentsState {
@@ -88,7 +88,7 @@ export const useCommentStore = create<CommentsState>()(
         errors: { ...state.errors, [slug]: null },
       }))
       try {
-        const comment = await commentService.createComment(slug, data)
+        await commentService.createComment(slug, data)
         // Note: Comments are created with status 'pending' and won't appear in list until approved
         // But we show success to the user
         set((state) => ({

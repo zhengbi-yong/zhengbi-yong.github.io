@@ -4,7 +4,6 @@ import { useRef } from 'react'
 import { useGSAP } from '@/components/hooks/useGSAP'
 import { getGSAPMobileOptimizedParams } from '@/lib/utils/gsap'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 interface SVGShapeMorphProps {
   paths: string[] // 多个 SVG path 数据
@@ -32,7 +31,7 @@ export default function SVGShapeMorph({
   const { duration: optimizedDuration } = getGSAPMobileOptimizedParams(duration)
 
   useGSAP(() => {
-    if (!pathRef.current || paths.length === 0) return
+    if (!pathRef.current || paths.length === 0) return undefined
 
     const pathElement = pathRef.current
     const container = containerRef.current
@@ -41,7 +40,7 @@ export default function SVGShapeMorph({
     pathElement.setAttribute('d', paths[0])
 
     // 如果只有一个路径，不需要变形动画
-    if (paths.length === 1) return
+    if (paths.length === 1) return undefined
 
     // 创建时间线
     const tl = gsap.timeline({

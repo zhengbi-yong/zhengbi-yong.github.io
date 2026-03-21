@@ -1,7 +1,12 @@
 //! 混沌工程测试
-//! 
+//!
 //! 模拟各种故障场景，测试系统的容错性和恢复能力
-//! 
+//!
+//! **运行前准备**：
+//! 1. 启动数据库：`docker compose -f docker-compose.dev.yml up -d`
+//! 2. 启动后端：`./start-backend.sh` 或 `cd backend && cargo run`
+//! 3. 运行测试：`cargo test --test chaos_engineering_tests -- --ignored`
+//!
 //! 测试包括：
 //! - 数据库连接中断恢复
 //! - Redis连接中断恢复
@@ -72,6 +77,7 @@ async fn test_service_recovery() {
 /// 测试2: 超时处理测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_timeout_handling() {
     let client = Client::builder()
         .timeout(Duration::from_millis(100)) // 非常短的超时
@@ -104,6 +110,7 @@ async fn test_timeout_handling() {
 /// 测试3: 部分功能故障测试（模拟Redis故障）
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_partial_service_failure() {
     let client = Client::new();
     
@@ -159,6 +166,7 @@ async fn test_partial_service_failure() {
 /// 测试4: 数据损坏恢复测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_data_corruption_recovery() {
     let client = Client::new();
     
@@ -242,6 +250,7 @@ async fn test_data_corruption_recovery() {
 /// 测试5: 高负载下的错误处理
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_error_handling_under_load() {
     let client = Client::new();
     const REQUESTS: usize = 500;
@@ -318,6 +327,7 @@ async fn test_error_handling_under_load() {
 /// 测试6: 连接池耗尽恢复测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_connection_pool_exhaustion() {
     let client = Client::new();
     const CONCURRENT_CONNECTIONS: usize = 200;

@@ -1,4 +1,4 @@
-import type { AsyncAction, ErrorHandler, BaseStoreState } from './types'
+import type { ErrorHandler, BaseStoreState } from './types'
 import { defaultErrorHandler } from './types'
 
 /**
@@ -31,8 +31,7 @@ interface WrapAsyncActionOptions {
  * })
  * ```
  */
-export function wrapAsyncAction<T>(
-  state: BaseStoreState,
+export function wrapAsyncAction<T>(_state: BaseStoreState,
   setState: (partial: Partial<BaseStoreState & Record<string, any>>) => void,
   asyncAction: () => Promise<T>,
   options: WrapAsyncActionOptions = {}
@@ -86,7 +85,7 @@ export function wrapAsyncAction<T>(
  * 批量处理 loading、error 状态
  */
 export function wrapBatchAsyncAction<T extends any[]>(
-  state: BaseStoreState,
+  _state: BaseStoreState,
   setState: (partial: Partial<BaseStoreState & Record<string, any>>) => void,
   asyncActions: Array<() => Promise<any>>,
   options: Omit<WrapAsyncActionOptions, 'clearPreviousError'> = {}

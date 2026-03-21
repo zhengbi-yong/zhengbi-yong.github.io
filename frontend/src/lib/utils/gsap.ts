@@ -35,6 +35,7 @@ export function getGSAPMobileOptimizedParams(
   }
 
   const isMobile = isMobileDevice()
+  void isMobile
 
   // 检测是否为低性能设备
   const hardwareConcurrency = navigator.hardwareConcurrency || 2
@@ -63,7 +64,8 @@ export interface ScrollTriggerConfig {
 }
 
 export function createScrollTriggerConfig(options: ScrollTriggerConfig = {}): ScrollTriggerConfig {
-  const isMobile = isMobileDevice()
+  const _isMobile = isMobileDevice()
+  void _isMobile
 
   return {
     trigger: options.trigger,

@@ -6,20 +6,16 @@ interface ReadingProgressOptions {
   debounceMs?: number
 }
 
-interface ReadingProgressData {
-  progress: number
-  isReading: boolean
-  readingTime: number
-  totalTime: number
-  hasScrolledToBottom: boolean
-}
+// ReadingProgressData type removed: not used outside this hook
 
 export function useReadingProgress(options: ReadingProgressOptions = {}) {
   const {
     root = null,
-    threshold = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+    threshold: _threshold = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
     debounceMs = 100,
   } = options
+  // threshold is unused in logic; keep underscore-named alias
+  void _threshold
 
   const [progress, setProgress] = useState(0)
   const [isReading, setIsReading] = useState(false)

@@ -1,11 +1,10 @@
 import { writeFileSync, mkdirSync } from 'fs'
 import path from 'path'
 import { slug } from 'github-slugger'
-// eslint-disable-next-line no-redeclare
 import { escape } from 'pliny/utils/htmlEscaper.js'
-import siteMetadata from '../data/siteMetadata.data.js'
-import tagData from '../app/tag-data.json' with { type: 'json' }
-import { allBlogs } from '../.contentlayer/generated/index.mjs'
+import siteMetadata from '../../data/siteMetadata.data.js'
+import tagData from '../../src/app/tag-data.json' with { type: 'json' }
+import { allBlogs } from '../../.contentlayer/generated/index.mjs'
 import { sortPosts } from 'pliny/utils/contentlayer.js'
 
 const outputFolder = process.env.EXPORT ? 'out' : 'public'

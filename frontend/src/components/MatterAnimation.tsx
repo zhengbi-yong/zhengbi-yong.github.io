@@ -41,7 +41,7 @@ export default function MatterAnimation({
   } | null>(null)
 
   useEffect(() => {
-    if (!viewRef.current || isInitialized) return
+    if (!viewRef.current || isInitialized) { return undefined; }
 
     const observer = new IntersectionObserver(
       (entries, obs) => {
@@ -80,7 +80,7 @@ export default function MatterAnimation({
         error
       )
       setIsInitialized(true) // 标记为已初始化，避免重复尝试
-      return
+      return undefined
     }
 
     const container = containerRef.current
@@ -96,9 +96,9 @@ export default function MatterAnimation({
 
     // 如果图标 URL 为空，使用默认的技术栈图标
     const defaultIconUrls = [
-      '/static/images/logo.png',
-      '/static/images/github-traffic.png',
-      '/static/images/google.svg',
+      '/logo.png',
+      '/github-traffic.png',
+      '/google.png', // 修复：使用实际存在的图片
     ]
 
     const finalIconUrls = iconUrls.length > 0 ? iconUrls : defaultIconUrls

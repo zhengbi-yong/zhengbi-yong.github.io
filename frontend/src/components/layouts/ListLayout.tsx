@@ -26,8 +26,7 @@ interface ListLayoutProps {
 
 function Pagination({ totalPages, currentPage }: PaginationProps) {
   const pathname = usePathname()
-  const segments = pathname.split('/')
-  const lastSegment = segments[segments.length - 1]
+  // removed: unused segments variable
   const basePath = pathname
     .replace(/^\//, '') // Remove leading slash
     .replace(/\/page\/\d+$/, '') // Remove any trailing /page
@@ -201,7 +200,7 @@ export default function ListLayout({
 
   // 使用 Intersection Observer + 滚动事件监听，确保滚动时持续加载
   useEffect(() => {
-    if (visibleCount >= displayPosts.length || searchValue) return
+    if (visibleCount >= displayPosts.length || searchValue) return undefined
 
     let observer: IntersectionObserver | null = null
     let scrollTimeout: NodeJS.Timeout | null = null

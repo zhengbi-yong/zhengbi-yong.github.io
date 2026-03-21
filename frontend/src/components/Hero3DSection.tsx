@@ -1,11 +1,18 @@
 'use client'
 
 import { Suspense, useEffect, useMemo, useState } from 'react'
+// Lightweight Spinner for loading states (accepts size prop)
+type SpinnerProps = { size?: string }
+const Spinner = ({ size = 'md' }: SpinnerProps) => {
+  const sizeClass = size === 'lg' ? 'h-8 w-8' : size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      <div className={`${sizeClass} border-4 border-white border-t-transparent rounded-full animate-spin`} />
+    </div>
+  )
+}
 import dynamic from 'next/dynamic'
-import Image from 'next/image'
-import siteMetadata from '@/data/siteMetadata'
 import { Button } from '@/components/shadcn/ui/button'
-import { Spinner } from '@/components/loaders'
 import { getPerformanceOptimizedParams } from '@/components/hooks/useGSAPPerformance'
 import {
   getHeroVisualMode,
@@ -41,7 +48,7 @@ export default function Hero3DSection() {
     return getPerformanceOptimizedParams(durationScale, distance)
   }, [visualMode])
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
     const handleChange = (event: MediaQueryListEvent) => {
       setPrefersReducedMotion(event.matches)
@@ -106,14 +113,15 @@ export default function Hero3DSection() {
   const heroClasses =
     'relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-900/70 to-gray-800 p-8 text-white shadow-2xl'
 
-  const handleModeToggle = () => {
-    // 移除 minimal 模式切换，改为在 enhanced 和 standard 之间切换
-    if (visualMode === 'enhanced') {
-      setManualOverride('standard')
-    } else {
-      setManualOverride('enhanced')
-    }
+const handleModeToggle = () => {
+  // 移除 minimal 模式切换，改为在 enhanced 和 standard 之间切换
+  if (visualMode === 'enhanced') {
+    setManualOverride('standard')
+  } else {
+    setManualOverride('enhanced')
   }
+  return
+}
 
   // 使用 state 存储 loadingStrategy，避免 SSR/CSR 不匹配
   // 初始值必须与服务端渲染一致

@@ -24,8 +24,6 @@ interface ListLayoutProps {
 
 function Pagination({ totalPages, currentPage }: PaginationProps) {
   const pathname = usePathname()
-  const segments = pathname.split('/')
-  const lastSegment = segments[segments.length - 1]
   const basePath = pathname
     .replace(/^\//, '') // Remove leading slash
     .replace(/\/page\/\d+$/, '') // Remove any trailing /page
@@ -97,7 +95,7 @@ export default function ListLayoutWithTags({
   // 分批加载更多文章
   const loadMore = useCallback(() => {
     // 防止重复加载：如果正在加载或已达到上限，则返回
-    if (isLoadingRef.current || visibleCount >= displayPosts.length) return
+    if (isLoadingRef.current || visibleCount >= displayPosts.length) return undefined
 
     // 节流：距离上次加载至少100ms
     const now = Date.now()
@@ -118,7 +116,7 @@ export default function ListLayoutWithTags({
 
   // 使用 Intersection Observer + 滚动事件监听，确保滚动时持续加载
   useEffect(() => {
-    if (visibleCount >= displayPosts.length) return
+    if (visibleCount >= displayPosts.length) return undefined
 
     let observer: IntersectionObserver | null = null
     let scrollTimeout: NodeJS.Timeout | null = null

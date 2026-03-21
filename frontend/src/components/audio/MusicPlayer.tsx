@@ -29,7 +29,7 @@ export function MusicPlayer({ tracks, autoPlay = false, className = '' }: MusicP
 
   useEffect(() => {
     const audio = audioRef.current
-    if (!audio) return
+    if (!audio) return undefined
 
     const setAudioData = () => {
       setDuration(audio.duration)

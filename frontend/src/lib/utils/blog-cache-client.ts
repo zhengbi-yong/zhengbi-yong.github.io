@@ -13,6 +13,7 @@ import blogDB from '@/lib/db/blog-db'
 import { useBlogStore } from '@/lib/store/blog-store'
 
 const CACHE_EXPIRY = 24 * 60 * 60 * 1000 // 24小时
+void CACHE_EXPIRY
 
 /**
  * 使用缓存的博客列表 Hook

@@ -30,7 +30,7 @@ const ConfettiOnView = memo(function ConfettiOnView({
 
   useEffect(() => {
     const element = ref.current
-    if (!element) return
+    if (!element) return undefined
 
     // 使用 Intersection Observer 检测元素是否进入视口
     const observer = new IntersectionObserver(
@@ -60,7 +60,7 @@ const ConfettiOnView = memo(function ConfettiOnView({
   }, [once])
 
   useEffect(() => {
-    if (!isInView || (once && hasTriggeredRef.current)) return
+    if (!isInView || (once && hasTriggeredRef.current)) return undefined
 
     hasTriggeredRef.current = true
 

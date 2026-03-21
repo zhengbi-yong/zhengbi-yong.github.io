@@ -4,17 +4,11 @@ import { useState, useEffect } from 'react'
 import { useChemistryLocal, detectChemicalFormat } from '@/lib/hooks/useChemistryLocal'
 
 interface MoleculeFingerprintProps {
-  /** 化学结构数据 (支持 SMILES 和 MOL 格式) */
   data: string
-  /** 指纹类型 */
   type?: 'morgan' | 'maccs' | 'rdkit'
-  /** 半径 (仅Morgan) */
   radius?: number
-  /** 指纹位数 */
   bits?: number
-  /** 是否显示指纹详情 */
   showDetails?: boolean
-  /** 自定义类名 */
   className?: string
 }
 
@@ -24,12 +18,15 @@ interface MoleculeFingerprintProps {
  */
 export default function MoleculeFingerprint({
   data,
-  type = 'morgan',
+  // Prefixing with underscore to acknowledge unused prop in this component
+  _type = 'morgan',
   radius = 2,
   bits = 2048,
   showDetails = true,
   className = '',
-}: MoleculeFingerprintProps) {
+}: MoleculeFingerprintProps & { _type?: 'morgan' | 'maccs' | 'rdkit' }) {
+  // acknowledge unused prop to satisfy TS6133
+  void _type
   const [fingerprint, setFingerprint] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)

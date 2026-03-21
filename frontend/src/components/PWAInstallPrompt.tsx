@@ -10,7 +10,9 @@
  */
 
 import { useState, useEffect } from 'react'
-import { X, Download, Chrome, Globe } from 'lucide-react'
+// iOS detection for installation prompts
+const _isIOS = typeof window !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent)
+import { X, Download, Globe } from 'lucide-react'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -25,8 +27,7 @@ export function PWAInstallPrompt() {
 
   // 检测PWA是否已安装
   useEffect(() => {
-    // iOS Safari 检测
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  // iOS Safari 检测
     const isInStandaloneMode = (window as any).navigator.standalone === true
 
     // 其他浏览器检测
@@ -124,10 +125,9 @@ export function PWAInstallPrompt() {
     return null
   }
 
-  // iOS Safari 需要手动添加到主屏幕的提示
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+// iOS Safari 需要手动添加到主屏幕的提示
 
-  if (isIOS) {
+  if (_isIOS) {
     return <IOSInstallPrompt onDismiss={handleDismiss} />
   }
 

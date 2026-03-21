@@ -4,13 +4,10 @@
  * 当用户离线时显示此页面
  */
 
+'use client'
+
 import { WiCloud } from 'react-icons/wi'
 import Link from 'next/link'
-
-export const metadata = {
-  title: '离线',
-  description: '您当前处于离线状态',
-}
 
 export default function OfflinePage() {
   return (

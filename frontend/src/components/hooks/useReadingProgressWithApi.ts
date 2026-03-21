@@ -10,18 +10,7 @@ interface ReadingProgressOptions {
   enabled?: boolean
 }
 
-interface ReadingProgressData {
-  progress: number
-  scrollPercentage: number
-  isReading: boolean
-  readingTime: number
-  totalTime: number
-  hasScrolledToBottom: boolean
-  isLoading: boolean
-  isSaving: boolean
-  lastReadPosition: number
-  error?: string
-}
+// ReadingProgressData type removed: not used outside this hook
 
 interface BackendReadingProgress {
   id: string
@@ -56,6 +45,8 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
     autoSaveMs = 2000, // 每2秒自动保存一次
     enabled = true,
   } = options
+  // Use threshold to silence TS6133 for unused option
+  void threshold
 
   const [progress, setProgress] = useState(0)
   const [scrollPercentage, setScrollPercentage] = useState(0)
@@ -198,7 +189,7 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
 
   // 监听滚动事件
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) return undefined
 
     const debouncedHandleScroll = debounce(handleScroll, debounceMs)
 
@@ -211,7 +202,7 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
 
   // 自动保存进度
   useEffect(() => {
-    if (!enabled || !isAuthenticated) return
+    if (!enabled || !isAuthenticated) return undefined
 
     // 清除之前的定时器
     if (autoSaveTimerRef.current) {

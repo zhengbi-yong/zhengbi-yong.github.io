@@ -6,12 +6,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { backendApi } from '@/lib/api/backend'
 import type {
-  PostListItem,
-  PostDetail,
-  Category,
-  Tag,
   PostListParams,
-  SearchResponse,
 } from '@/lib/types/backend'
 
 // ==================== Posts ====================
@@ -38,6 +33,19 @@ export function usePost(slug: string) {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     enabled: !!slug, // Only fetch if slug is provided
+  })
+}
+
+/**
+ * Fetch single post by ID (UUID)
+ */
+export function usePostById(id: string) {
+  return useQuery({
+    queryKey: ['post', 'id', id],
+    queryFn: () => backendApi.post.getPostById(id),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!id, // Only fetch if id is provided
   })
 }
 

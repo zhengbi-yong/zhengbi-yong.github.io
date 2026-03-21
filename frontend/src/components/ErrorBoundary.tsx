@@ -40,7 +40,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // 记录错误到 Sentry
     const eventId = Sentry.captureException(error, {
       contexts: {
@@ -82,7 +82,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     })
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       // 如果提供了自定义 fallback，使用它
       if (this.props.fallback) {

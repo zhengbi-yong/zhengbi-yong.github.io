@@ -3,93 +3,34 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/utils/logger'
+import { useRDKitInit } from '@/lib/hooks/useRDKitInit'
 
 interface UseChemistryLocalOptions {
-  /** RDKit WASM 文件URL */
-  rdkitWasmUrl?: string
 }
 
 interface UseChemistryLocalReturn {
-  /** RDKit 是否已加载 */
   isLoaded: boolean
-  /** 加载错误 */
   error: string | null
-  /** RDKit 实例 */
   RDKit: any
-  /** 将 SMILES 转换为 2D SVG */
   smilesToSVG: (smiles: string) => Promise<string>
-  /** 将 MOL 块转换为 2D SVG */
   molToSVG: (mol: string) => Promise<string>
-  /** 获取分子指纹 */
   getMorganFingerprint: (smiles: string, radius?: number, bits?: number) => Promise<string>
 }
 
-/**
- * Chemistry Hook - 化学结构处理工具
- * 使用本地RDKit.js文件
- */
 export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseChemistryLocalReturn {
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [RDKit, setRDKit] = useState<any>(null)
   const rdkitRef = useRef<any>(null)
 
+  const { isLoaded: rdKitLoaded, error: rdKitError, RDKit: rdKitInstance } = useRDKitInit()
+
   useEffect(() => {
-    const loadRDKit = async () => {
-      try {
-        if (typeof window === 'undefined') {
-          return
-        }
-
-        // 如果已经加载，直接返回
-        if (rdkitRef.current) {
-          setRDKit(rdkitRef.current)
-          setIsLoaded(true)
-          setError(null)
-          return
-        }
-
-        // 等待 initRDKitModule 函数变得可用（最多等待10秒）
-        const maxWaitTime = 10000 // 10 seconds
-        const checkInterval = 100 // 100ms
-        let waitedTime = 0
-
-        const waitForRDKit = (): Promise<any> => {
-          return new Promise((resolve, reject) => {
-            const checkRDKit = () => {
-              if ((window as any).initRDKitModule) {
-                logger.log('initRDKitModule found, initializing...')
-                resolve((window as any).initRDKitModule())
-              } else if (waitedTime >= maxWaitTime) {
-                reject(new Error('RDKit script did not load within 10 seconds'))
-              } else {
-                waitedTime += checkInterval
-                setTimeout(checkRDKit, checkInterval)
-              }
-            }
-            checkRDKit()
-          })
-        }
-
-        const RDKitModule = await waitForRDKit()
-        rdkitRef.current = RDKitModule
-        setRDKit(RDKitModule)
-        setIsLoaded(true)
-        setError(null)
-        logger.log('RDKit loaded successfully')
-      } catch (err) {
-        logger.error('Failed to load RDKit:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load RDKit')
-        setIsLoaded(false)
-      }
-    }
-
-    loadRDKit()
-
-    return () => {
-      // 不清理，因为其他组件可能仍在使用
-    }
-  }, [])
+    setRDKit(rdKitInstance)
+    setIsLoaded(rdKitLoaded)
+    setError(rdKitError)
+    rdkitRef.current = rdKitInstance
+  }, [rdKitLoaded, rdKitError, rdKitInstance])
 
   const smilesToSVG = async (smiles: string): Promise<string> => {
     if (!RDKit) {

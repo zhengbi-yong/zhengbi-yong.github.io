@@ -24,13 +24,13 @@ export function Example1() {
 }
 
 // 示例 2: 自定义图标列表
-export function Example2() {
-  const techStackIcons = [
-    '/static/images/logo.png',
-    '/assets/avatar.png',
-    '/assets/social/social-github.jpg',
-    // 添加更多图标路径
-  ]
+  export function Example2() {
+    const techStackIcons = [
+      '/logo.png',
+      '/avatar.png',
+      '/github-traffic.png',
+      // 添加更多图标路径
+    ]
 
   return (
     <div className="h-[600px] w-full">
@@ -40,14 +40,14 @@ export function Example2() {
 }
 
 // 示例 3: 在首页中使用
-export function HomePageExample() {
-  return (
-    <section className="my-12">
-      <h2 className="mb-8 text-3xl font-bold">技术栈</h2>
-      <div className="h-[500px] w-full overflow-hidden rounded-xl">
-        <MatterAnimation
-          iconUrls={['/static/images/logo.png', '/assets/avatar.png']}
-          count={12}
+  export function HomePageExample() {
+    return (
+      <section className="my-12">
+        <h2 className="mb-8 text-3xl font-bold">技术栈</h2>
+        <div className="h-[500px] w-full overflow-hidden rounded-xl">
+          <MatterAnimation
+            iconUrls={['/logo.png', '/avatar.png']}
+            count={12}
           containerClassName="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
         />
       </div>

@@ -85,6 +85,9 @@ tokio-test = "0.4"
 # UUID for test data generation
 uuid = { workspace = true, features = ["v4"] }
 
+# Test coverage
+cargo-tarpaulin = "0.31"
+
 # 严格测试所需依赖
 criterion = { version = "0.5", features = ["html_reports"] }
 proptest = "1.5"

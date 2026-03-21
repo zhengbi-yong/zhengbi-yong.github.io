@@ -43,23 +43,23 @@ BEGIN
         p.title,
         p.summary,
         -- 高亮标题中的匹配词
-        ts_headline('simple', p.title,
-            plainto_tsquery('simple', search_query),
+        ts_headline('simple'::regconfig, p.title,
+            plainto_tsquery('simple'::regconfig, search_query::text),
             'StartSel=<mark>, StopSel=</mark>, MaxWords=35, MinWords=15'
         ) as title_highlight,
         -- 高亮摘要中的匹配词
-        ts_headline('simple', p.summary,
-            plainto_tsquery('simple', search_query),
+        ts_headline('simple'::regconfig, p.summary,
+            plainto_tsquery('simple'::regconfig, search_query::text),
             'StartSel=<mark>, StopSel=</mark>, MaxWords=35, MinWords=15'
         ) as summary_highlight,
         -- 内容预览（前200字符）
         SUBSTRING(p.content FROM 1 FOR 200) as content_preview,
         -- 相关性排序
-        ts_rank(p.search_vector, plainto_tsquery('simple', search_query)) as rank
+        ts_rank(p.search_vector, plainto_tsquery('simple'::regconfig, search_query::text)) as rank
     FROM posts p
     WHERE
         -- 全文搜索
-        p.search_vector @@ plainto_tsquery('simple', search_query)
+        p.search_vector @@ plainto_tsquery('simple'::regconfig, search_query::text)
         -- 只显示已发布的文章
         AND p.status = 'published'
     ORDER BY rank DESC, p.published_at DESC
@@ -83,10 +83,11 @@ BEGIN
     SELECT
         p.slug,
         p.title,
-        p.category,
+        c.name as category,
         -- 使用word_similarity来评估相似度
         word_similarity(p.title, search_query) as similarity_score
     FROM posts p
+    LEFT JOIN categories c ON p.category_id = c.id
     WHERE
         -- 标题模糊匹配
         p.title % search_query

@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic'
-import type { ComponentType, ReactNode } from 'react'
+// ReactNode type import removed; JSX runtime handles typing in this file
 import { Suspense } from 'react'
 import TOCInline from 'pliny/ui/TOCInline'
 import Pre from 'pliny/ui/Pre'

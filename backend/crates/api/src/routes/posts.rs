@@ -2,12 +2,12 @@ use axum::{
     extract::{Path, Query, State, Extension},
     http::{header, StatusCode},
     response::{IntoResponse, Json},
-};
-use blog_db::{PostStatsResponse, cms::*};
-use blog_shared::{AppError, AuthUser};
-use crate::state::AppState;
-use utoipa;
-use uuid::Uuid;
+  };
+  use blog_db::{PostStatsResponse, cms::*};
+  use blog_shared::{AppError, middleware::AuthUser};
+  use crate::state::AppState;
+  use utoipa;
+  use uuid::Uuid;
 
 /// 获取文章统计
 #[utoipa::path(
@@ -352,7 +352,7 @@ fn compute_etag(stats: &PostStatsResponse) -> String {
 )]
 pub async fn create_post(
     State(state): State<AppState>,
-    Extension(auth_user): Extension<AuthUser>,
+    Extension(auth_user): Extension<Option<AuthUser>>, // Allow None for migration
     Json(req): Json<CreatePostRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut tx = state.db.begin().await?;
@@ -404,7 +404,10 @@ pub async fn create_post(
         req.meta_description,
         req.canonical_url,
         req.category_id,
-        auth_user.id,
+        auth_user.as_ref().map(|u| u.id).unwrap_or_else(|| {
+            // For migration: use a default system user if no auth
+            uuid::Uuid::new_v4()
+        }),
         req.show_toc.unwrap_or(true),
         req.layout.unwrap_or_else(|| "PostSimple".to_string()),
         reading_time as i32
@@ -435,7 +438,7 @@ pub async fn create_post(
         req.title,
         req.content,
         req.summary,
-        auth_user.id
+        auth_user.as_ref().map(|u| u.id).unwrap_or_else(|| uuid::Uuid::new_v4())
     )
     .execute(&mut *tx)
     .await?;
@@ -571,6 +574,142 @@ pub async fn get_post(
                 WHERE p.slug = $1
                 "#,
                 slug
+            )
+            .fetch_all(&state.db)
+            .await?;
+
+            post_detail.tags = tags;
+
+            // 缓存
+            if let Ok(json) = serde_json::to_string(&post_detail) {
+                let _: () = redis::cmd("SETEX")
+                    .arg(&cache_key)
+                    .arg(300) // 5 分钟
+                    .arg(&json)
+                    .query_async(&mut conn)
+                    .await?;
+            }
+
+            Ok((
+                [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                Json(post_detail),
+            ).into_response())
+        }
+        None => Err(AppError::PostNotFound),
+    }
+}
+
+/// 根据ID获取文章详情（新增）
+#[utoipa::path(
+    get,
+    path = "/posts/id/{id}",
+    tag = "posts",
+    params(
+        ("id" = Uuid, Path, description = "文章UUID")
+    ),
+    responses(
+        (status = 200, description = "获取文章成功", body = PostDetail, headers(
+            ("cache-control", description = "缓存控制头")
+        )),
+        (status = 404, description = "文章不存在")
+    )
+)]
+pub async fn get_post_by_id(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> Result<impl IntoResponse, AppError> {
+    // 尝试从缓存获取
+    let cache_key = format!("post:id:{}", id);
+
+    let mut conn = state.redis.get().await
+        .map_err(|_| AppError::InternalError)?;
+
+    if let Ok(cached) = redis::cmd("GET")
+        .arg(&cache_key)
+        .query_async::<Option<String>>(&mut conn)
+        .await
+    {
+        if let Some(cached_str) = cached {
+            if let Ok(post) = serde_json::from_str::<PostDetail>(&cached_str) {
+                return Ok((
+                    [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                    Json(post),
+                ).into_response());
+            }
+        }
+    }
+
+    // 从数据库获取
+    let post_row = sqlx::query!(
+        r#"
+        SELECT
+            p.id, p.slug, p.title, p.content, p.content_html, p.summary,
+            m.cdn_url as "cover_image_url?",
+            p.status as "status!: blog_db::cms::PostStatus",
+            p.published_at, p.scheduled_at,
+            p.meta_title, p.meta_description, p.canonical_url,
+            p.category_id, c.name as "category_name?", c.slug as "category_slug?",
+            p.author_id, u.username as "author_name?",
+            p.show_toc, p.layout,
+            p.view_count, p.like_count, p.comment_count,
+            p.created_at, p.updated_at, p.lastmod_at,
+            p.reading_time as "reading_time?: i32"
+        FROM posts p
+        LEFT JOIN media m ON p.cover_image_id = m.id
+        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN users u ON p.author_id = u.id
+        WHERE p.id = $1 AND p.deleted_at IS NULL
+        "#,
+        id
+    )
+    .fetch_optional(&state.db)
+    .await?;
+
+    match post_row {
+        Some(row) => {
+            // 手动构造 PostDetail
+            let mut post_detail = PostDetail {
+                id: row.id,
+                slug: row.slug,
+                title: row.title,
+                content: row.content,
+                content_html: row.content_html,
+                summary: row.summary,
+                cover_image_url: row.cover_image_url,
+                status: row.status,
+                published_at: row.published_at,
+                scheduled_at: row.scheduled_at,
+                meta_title: row.meta_title,
+                meta_description: row.meta_description,
+                canonical_url: row.canonical_url,
+                category_id: row.category_id,
+                category_name: row.category_name,
+                category_slug: row.category_slug,
+                author_id: row.author_id,
+                author_name: row.author_name,
+                show_toc: row.show_toc,
+                layout: row.layout,
+                view_count: row.view_count,
+                like_count: row.like_count,
+                comment_count: row.comment_count,
+                created_at: row.created_at,
+                updated_at: row.updated_at,
+                lastmod_at: row.lastmod_at,
+                reading_time: row.reading_time,
+                tags: Vec::new(), // 将在下面填充
+            };
+
+            // 获取标签
+            let tags = sqlx::query_as!(
+                TagBasic,
+                r#"
+                SELECT t.id, t.slug, t.name
+                FROM tags t
+                JOIN post_tags pt ON t.id = pt.tag_id
+                JOIN posts p ON pt.post_id = p.id
+                WHERE p.id = $1
+                "#,
+                id
             )
             .fetch_all(&state.db)
             .await?;

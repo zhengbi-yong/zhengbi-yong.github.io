@@ -36,7 +36,7 @@ export default function ProgressiveImage({
     if (priority) {
       setImageState('loading')
       preloadImage(src)
-      return
+      return undefined
     }
 
     const observer = new IntersectionObserver(

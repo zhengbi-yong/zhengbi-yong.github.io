@@ -42,6 +42,7 @@ export interface CategoryColorScheme {
  * 统一使用主题色，不再使用彩色渐变
  */
 export function getCategoryColorScheme(name: string): CategoryColorScheme {
+  void name
   return {
     gradient: 'bg-primary-500',
     gradientDark: 'bg-primary-500',
@@ -55,6 +56,7 @@ export function getCategoryColorScheme(name: string): CategoryColorScheme {
  * 统一使用主题色
  */
 export function getCategoryColorForCard(name: string): string {
+  void name
   return 'bg-primary-500'
 }
 

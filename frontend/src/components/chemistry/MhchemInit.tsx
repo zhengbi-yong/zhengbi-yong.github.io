@@ -9,11 +9,11 @@ import { useEffect } from 'react'
  */
 export default function MhchemInit() {
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return undefined
 
     // 检查是否已经加载了mhchem
     if ((window as any).katex?.__defineMacro) {
-      return
+      return undefined
     }
 
     // 首先确保KaTeX已加载，然后再加载mhchem

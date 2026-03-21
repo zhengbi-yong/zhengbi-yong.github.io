@@ -1,7 +1,8 @@
 /**
  * 动态文章渲染器组件
  *
- * 用于渲染从API获取的MDX内容
+ * 用于渲染从API动态获取的文章内容
+ * 当文章不在静态生成中时使用此组件
  * 支持所有MDX功能：数学公式、化学公式、代码高亮等
  */
 
@@ -9,7 +10,6 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { MDXRuntime } from '@/lib/mdx-runtime'
-import Script from 'next/script'
 
 interface DynamicPostRendererProps {
   content: string
@@ -23,7 +23,7 @@ interface DynamicPostRendererProps {
  *
  * @param props - 包含content（MDX源代码）和可选的slug
  */
-export function DynamicPostRenderer({ content, slug }: DynamicPostRendererProps) {
+export function DynamicPostRenderer({ content }: DynamicPostRendererProps) {
   return (
     <Suspense fallback={<PostContentSkeleton />}>
       <MDXContent content={content} />
@@ -37,7 +37,6 @@ export function DynamicPostRenderer({ content, slug }: DynamicPostRendererProps)
 function MDXContent({ content }: { content: string }) {
   const [isClient, setIsClient] = useState(false)
 
-  // 确保只在客户端渲染（避免SSR/SSG问题）
   useEffect(() => {
     setIsClient(true)
   }, [])
@@ -48,17 +47,6 @@ function MDXContent({ content }: { content: string }) {
 
   return (
     <>
-      {/* RDKit加载（如果需要化学可视化） */}
-      <Script
-        id="rdkit-loader"
-        src="/chemistry/rdkit/RDKit_minimal.js"
-        strategy="beforeInteractive"
-        onError={(e) => {
-          console.warn('Failed to load RDKit:', e)
-        }}
-      />
-
-      {/* MDX渲染 */}
       <MDXRuntime content={content} />
     </>
   )
@@ -70,22 +58,16 @@ function MDXContent({ content }: { content: string }) {
 function PostContentSkeleton() {
   return (
     <div className="animate-pulse">
-      {/* 标题骨架 */}
       <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-6"></div>
 
-      {/* 段落骨架 */}
       <div className="space-y-3">
         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
       </div>
 
-      {/* 代码块骨架 */}
       <div className="mt-6 h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
 
-      {/* 更多段落 */}
       <div className="space-y-3 mt-6">
         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
         <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>

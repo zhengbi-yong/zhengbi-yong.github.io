@@ -27,7 +27,7 @@ export function useGSAP(
 
   useEffect(() => {
     // 只在客户端执行
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return undefined
 
     // 更新 callback 引用
     callbackRef.current = callback

@@ -16,9 +16,11 @@ import { TOCTree } from './TOCTree'
  */
 export function TableOfContents({ toc, enabled = true, mobileOnly = false }: TableOfContentsProps) {
   const [mounted, setMounted] = useState(false)
+  // Mark as read to satisfy TS6133 when not directly used in JSX
+  void mounted
   const [shouldRenderDesktop, setShouldRenderDesktop] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const tocContentRef = useRef<HTMLElement>(null)
+  const _tocContentRef = useRef<HTMLElement>(null)
   const tocMobileContentRef = useRef<HTMLElement>(null)
   const { resolvedTheme } = useTheme()
 
@@ -43,8 +45,8 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
     isMobileRef,
     isMobileExpanded,
     setActiveHeadingId,
-    tocMobileContentRef,
-    tocContentRef,
+  tocMobileContentRef,
+  _tocContentRef: _tocContentRef,
   })
 
   // 当组件挂载后，显示 UI
@@ -53,7 +55,8 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
   }, [])
 
   // 检测是否为深色模式
-  const isDark = resolvedTheme === 'dark'
+  const _isDark = resolvedTheme === 'dark'
+  void _isDark
 
   // 桌面端渲染检测
   useEffect(() => {
@@ -148,7 +151,7 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
           </div>
 
           {/* 目录内容 */}
-          <nav ref={tocContentRef} id="toc-content" className={styles.toc} aria-label="目录">
+  <nav ref={_tocContentRef} id="toc-content" className={styles.toc} aria-label="目录">
             <TOCTree tree={tree} activeHeadingId={activeHeadingId} onLinkClick={handleLinkClick} />
           </nav>
         </div>

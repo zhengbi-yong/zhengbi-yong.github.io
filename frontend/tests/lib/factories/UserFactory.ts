@@ -70,6 +70,7 @@ export function createUserFactory(options: UserFactoryOptions = {}): TestUser {
     role: options.role || 'user',
     created_at: createdAt.toISOString(),
     updated_at: faker.date.between({ from: createdAt, to: new Date() }).toISOString(),
+    profile: { avatar: null } as any,
   }
 
   // Add profile if requested or randomly (30% chance)

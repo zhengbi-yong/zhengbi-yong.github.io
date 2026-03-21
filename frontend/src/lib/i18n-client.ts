@@ -1,107 +1,466 @@
+/**
+ * i18next Configuration
+ * 国际化配置
+ */
+
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
-import { logger } from './utils/logger'
+import Backend from 'i18next-http-backend'
 
-// 初始化状态标志，防止重复初始化（特别是在 HMR 更新时）
-let isInitialized = false
-let initPromise: Promise<void> | null = null
+// 导入翻译文件
+const resources = {
+  zh: {
+    translation: {
+      // 通用
+      'loading': '加载中...',
+      'error': '错误',
+      'success': '成功',
+      'cancel': '取消',
+      'confirm': '确认',
+      'save': '保存',
+      'delete': '删除',
+      'edit': '编辑',
+      'create': '创建',
+      'search': '搜索',
+      'filter': '筛选',
+      'sort': '排序',
+      'back': '返回',
+      'next': '下一步',
+      'previous': '上一步',
+      'submit': '提交',
+      'reset': '重置',
 
-/**
- * 初始化 i18next
- * 只在客户端执行，并防止重复初始化
- * 使用动态导入 JSON 文件以避免 HMR 更新时的模块评估问题
- */
-export function initI18n() {
-  // 只在客户端执行
-  if (typeof window === 'undefined') {
-    return Promise.resolve()
+      // 导航
+      'nav.home': '首页',
+      'nav.blog': '博客',
+      'nav.projects': '项目',
+      'nav.about': '关于',
+      'nav.music': '音乐',
+      'nav.admin': '管理',
+
+      // 博客
+      'blog.readMore': '阅读更多',
+      'blog.views': '浏览',
+      'blog.likes': '点赞',
+      'blog.comments': '评论',
+      'blog.tags': '标签',
+      'blog.category': '分类',
+      'blog.related': '相关文章',
+      'blog.toc': '目录',
+
+      // 认证
+      'auth.login': '登录',
+      'auth.logout': '退出',
+      'auth.register': '注册',
+      'auth.email': '邮箱',
+      'auth.password': '密码',
+      'auth.username': '用户名',
+      'auth.remember': '记住我',
+      'auth.forgotPassword': '忘记密码？',
+
+      // 评论
+      'comment.write': '写下你的评论...',
+      'comment.submit': '发表评论',
+      'comment.reply': '回复',
+      'comment.like': '点赞',
+      'comment.unlike': '取消点赞',
+      'comment.pending': '待审核',
+      'comment.approved': '已通过',
+
+      // 错误信息
+      'error.network': '网络错误，请检查您的连接',
+      'error.unauthorized': '未授权，请先登录',
+      'error.notFound': '页面未找到',
+      'error.server': '服务器错误，请稍后重试',
+      'error.validation': '输入验证失败',
+
+      // 管理面板
+      'admin.dashboard': '仪表板',
+      'admin.posts': '文章管理',
+      'admin.comments': '评论管理',
+      'admin.users': '用户管理',
+      'admin.media': '媒体管理',
+      'admin.settings': '设置',
+      'admin.analytics': '分析',
+
+      // 通知
+      'notification.success': '操作成功',
+      'notification.error': '操作失败',
+      'notification.warning': '警告',
+      'notification.info': '提示',
+
+      // 邮件订阅
+      'newsletter.title': '订阅我们的通讯',
+      'newsletter.description': '获取最新的文章、技术见解和独家内容，直接发送到您的收件箱。',
+      'newsletter.emailLabel': '邮箱地址',
+      'newsletter.placeholder': 'your@email.com',
+      'newsletter.subscribe': '立即订阅',
+      'newsletter.subscribing': '订阅中...',
+      'newsletter.subscribed': '已订阅',
+      'newsletter.success': '订阅成功！请检查您的邮箱确认订阅。',
+      'newsletter.error': '订阅失败，请稍后重试',
+      'newsletter.invalidEmail': '请输入有效的邮箱地址',
+      'newsletter.networkError': '网络错误，请检查您的连接',
+      'newsletter.privacy': '我们尊重您的隐私。随时可以取消订阅。无垃圾邮件。',
+
+      // 书签
+      'bookmark.save': '稍后阅读',
+      'bookmark.saved': '已收藏',
+      'bookmark.add': '收藏',
+      'bookmark.remove': '取消收藏',
+      'bookmark.read': '阅读',
+      'bookmark.note': '笔记',
+      'bookmark.addNote': '添加笔记',
+      'bookmark.editNote': '编辑笔记',
+      'bookmark.saveNoteFailed': '保存笔记失败',
+      'bookmark.confirmRemove': '确定要取消收藏吗？',
+      'bookmark.removeFailed': '取消收藏失败',
+      'bookmark.loginRequired': '请先登录',
+      'bookmark.loginToViewList': '登录后即可查看您的阅读列表',
+      'bookmark.readingList': '阅读列表',
+      'bookmark.readingListDesc': '您收藏的文章，随时可以继续阅读',
+      'bookmark.savedOn': '收藏于',
+      'bookmark.updatedOn': '更新于',
+      'bookmark.searchPlaceholder': '搜索收藏的文章...',
+      'bookmark.noBookmarks': '暂无收藏',
+      'bookmark.noSearchResults': '没有找到匹配的文章',
+      'bookmark.tryDifferentSearch': '试试其他关键词',
+      'bookmark.startSaving': '开始收藏您喜欢的文章',
+      'bookmark.error': '操作失败，请稍后重试',
+
+      // 用户个人资料
+      'profile.title': '个人资料',
+      'profile.subtitle': '管理您的个人信息和偏好设置',
+      'profile.basicInfo': '基本信息',
+      'profile.changePassword': '修改密码',
+      'profile.readingStats': '阅读统计',
+      'profile.loginRequired': '请先登录',
+      'profile.loginToViewProfile': '登录后即可查看和编辑个人资料',
+      'profile.username': '用户名',
+      'profile.email': '邮箱',
+      'profile.bio': '个人简介',
+      'profile.bioPlaceholder': '介绍一下自己...',
+      'profile.location': '位置',
+      'profile.locationPlaceholder': '城市, 国家',
+      'profile.website': '网站',
+      'profile.role': '角色',
+      'profile.admin': '管理员',
+      'profile.user': '用户',
+      'profile.readingHistory': '阅读历史',
+      'profile.readingList': '阅读列表',
+      'profile.save': '保存',
+      'profile.saving': '保存中...',
+      'profile.saveSuccess': '保存成功',
+      'profile.saveError': '保存失败',
+      'profile.currentPassword': '当前密码',
+      'profile.newPassword': '新密码',
+      'profile.confirmPassword': '确认新密码',
+      'profile.change': '修改',
+      'profile.changing': '修改中...',
+      'profile.passwordMismatch': '两次输入的密码不一致',
+      'profile.passwordChangeSuccess': '密码修改成功',
+      'profile.passwordChangeError': '密码修改失败，请检查当前密码是否正确',
+      'profile.avatarTooLarge': '头像大小不能超过2MB',
+      'profile.invalidAvatar': '只能上传图片文件',
+      'profile.avatarUploadSuccess': '头像上传成功',
+      'profile.avatarUploadError': '头像上传失败',
+      'profile.postsRead': '已读文章',
+      'profile.postsCompleted': '已完成',
+      'profile.readingStreak': '连续阅读天数',
+      'profile.totalReadingTime': '总阅读时长',
+      'profile.thisWeek': '本周',
+      'profile.thisMonth': '本月',
+      'profile.favoriteTags': '喜欢的标签',
+
+      // 评论通知
+      'notification.title': '通知设置',
+      'notification.subtitle': '管理您的评论通知和订阅',
+      'notification.loginRequired': '请先登录',
+      'notification.loginToManage': '登录后即可管理您的通知设置',
+      'notification.subscribe': '订阅',
+      'notification.unsubscribe': '取消订阅',
+      'notification.subscribed': '已订阅',
+      'notification.subscribeComments': '订阅评论',
+      'notification.confirmUnsubscribe': '确定要取消订阅吗？',
+      'notification.unsubscribeError': '取消订阅失败',
+      'notification.mySubscriptions': '我的订阅',
+      'notification.preferences': '通知偏好',
+      'notification.noSubscriptions': '暂无订阅',
+      'notification.startSubscribing': '订阅文章的评论通知，不错过任何回复',
+      'notification.subscribedOn': '订阅于',
+      'notification.emailNotifications': '邮件通知',
+      'notification.emailNotificationsDesc': '接收评论通知的邮件',
+      'notification.replyNotifications': '回复通知',
+      'notification.replyNotificationsDesc': '当有人回复您的评论时通知',
+      'notification.mentionNotifications': '@提及通知',
+      'notification.mentionNotificationsDesc': '当有人在评论中提及您时通知',
+      'notification.digestFrequency': '摘要频率',
+      'notification.digestFrequencyDesc': '选择接收通知摘要的频率',
+      'notification.immediate': '立即',
+      'notification.hourly': '每小时',
+      'notification.daily': '每天',
+      'notification.weekly': '每周',
+      'notification.save': '保存',
+      'notification.saving': '保存中...',
+      'notification.preferencesSaved': '设置已保存',
+      'notification.saveError': '保存失败',
+      'notification.toggleError': '操作失败，请稍后重试',
+      'notification.pushTab': '推送通知',
+      'notification.pushSettings': 'PWA 推送通知',
+      'notification.pushSettingsDesc': '启用推送通知，即使浏览器关闭也能收到新文章和重要更新的提醒',
+      'notification.tipsTitle': '关于推送通知',
+      'notification.tip1': '推送通知需要在支持的浏览器中使用（Chrome、Firefox、Edge等）',
+      'notification.tip2': '您可以在浏览器设置中随时更改通知权限',
+      'notification.tip3': '订阅后，您将收到新文章和重要更新的通知',
+      'notification.tip4': '推送通知不会影响您的设备性能，可以随时关闭',
+      'notification.enabled': '通知已启用',
+      'notification.enableNotifications': '启用通知',
+      'notification.notSupported': '您的浏览器不支持推送通知',
+      'notification.pushNotifications': '推送通知',
+      'notification.pushNotificationsDesc': '接收新文章和评论的推送通知',
+      'notification.denied': '您已拒绝通知权限。请在浏览器设置中允许通知。',
+      'notification.error': '操作失败',
+    }
+  },
+  en: {
+    translation: {
+      // Common
+      'loading': 'Loading...',
+      'error': 'Error',
+      'success': 'Success',
+      'cancel': 'Cancel',
+      'confirm': 'Confirm',
+      'save': 'Save',
+      'delete': 'Delete',
+      'edit': 'Edit',
+      'create': 'Create',
+      'search': 'Search',
+      'filter': 'Filter',
+      'sort': 'Sort',
+      'back': 'Back',
+      'next': 'Next',
+      'previous': 'Previous',
+      'submit': 'Submit',
+      'reset': 'Reset',
+
+      // Navigation
+      'nav.home': 'Home',
+      'nav.blog': 'Blog',
+      'nav.projects': 'Projects',
+      'nav.about': 'About',
+      'nav.music': 'Music',
+      'nav.admin': 'Admin',
+
+      // Blog
+      'blog.readMore': 'Read More',
+      'blog.views': 'Views',
+      'blog.likes': 'Likes',
+      'blog.comments': 'Comments',
+      'blog.tags': 'Tags',
+      'blog.category': 'Category',
+      'blog.related': 'Related Posts',
+      'blog.toc': 'Table of Contents',
+
+      // Auth
+      'auth.login': 'Login',
+      'auth.logout': 'Logout',
+      'auth.register': 'Register',
+      'auth.email': 'Email',
+      'auth.password': 'Password',
+      'auth.username': 'Username',
+      'auth.remember': 'Remember Me',
+      'auth.forgotPassword': 'Forgot Password?',
+
+      // Comments
+      'comment.write': 'Write your comment...',
+      'comment.submit': 'Submit Comment',
+      'comment.reply': 'Reply',
+      'comment.like': 'Like',
+      'comment.unlike': 'Unlike',
+      'comment.pending': 'Pending',
+      'comment.approved': 'Approved',
+
+      // Errors
+      'error.network': 'Network error, please check your connection',
+      'error.unauthorized': 'Unauthorized, please login first',
+      'error.notFound': 'Page not found',
+      'error.server': 'Server error, please try again later',
+      'error.validation': 'Validation failed',
+
+      // Admin
+      'admin.dashboard': 'Dashboard',
+      'admin.posts': 'Posts',
+      'admin.comments': 'Comments',
+      'admin.users': 'Users',
+      'admin.media': 'Media',
+      'admin.settings': 'Settings',
+      'admin.analytics': 'Analytics',
+
+      // Notifications
+      'notification.success': 'Success',
+      'notification.error': 'Error',
+      'notification.warning': 'Warning',
+      'notification.info': 'Info',
+
+      // Newsletter
+      'newsletter.title': 'Subscribe to Our Newsletter',
+      'newsletter.description': 'Get the latest articles, insights, and exclusive content delivered to your inbox.',
+      'newsletter.emailLabel': 'Email Address',
+      'newsletter.placeholder': 'your@email.com',
+      'newsletter.subscribe': 'Subscribe Now',
+      'newsletter.subscribing': 'Subscribing...',
+      'newsletter.subscribed': 'Subscribed',
+      'newsletter.success': 'Success! Please check your email to confirm your subscription.',
+      'newsletter.error': 'Subscription failed. Please try again.',
+      'newsletter.invalidEmail': 'Please enter a valid email address',
+      'newsletter.networkError': 'Network error. Please check your connection',
+      'newsletter.privacy': 'We respect your privacy. Unsubscribe at any time. No spam.',
+
+      // Bookmark
+      'bookmark.save': 'Save for Later',
+      'bookmark.saved': 'Saved',
+      'bookmark.add': 'Bookmark',
+      'bookmark.remove': 'Remove Bookmark',
+      'bookmark.read': 'Read',
+      'bookmark.note': 'Note',
+      'bookmark.addNote': 'Add Note',
+      'bookmark.editNote': 'Edit Note',
+      'bookmark.saveNoteFailed': 'Failed to save note',
+      'bookmark.confirmRemove': 'Are you sure you want to remove this bookmark?',
+      'bookmark.removeFailed': 'Failed to remove bookmark',
+      'bookmark.loginRequired': 'Please Login',
+      'bookmark.loginToViewList': 'Login to view your reading list',
+      'bookmark.readingList': 'Reading List',
+      'bookmark.readingListDesc': 'Your bookmarked articles, ready to read anytime',
+      'bookmark.savedOn': 'Saved on',
+      'bookmark.updatedOn': 'Updated on',
+      'bookmark.searchPlaceholder': 'Search bookmarks...',
+      'bookmark.noBookmarks': 'No bookmarks yet',
+      'bookmark.noSearchResults': 'No matching articles found',
+      'bookmark.tryDifferentSearch': 'Try different keywords',
+      'bookmark.startSaving': 'Start bookmarking articles you love',
+      'bookmark.error': 'Operation failed, please try again',
+
+      // User Profile
+      'profile.title': 'Profile',
+      'profile.subtitle': 'Manage your personal information and preferences',
+      'profile.basicInfo': 'Basic Information',
+      'profile.changePassword': 'Change Password',
+      'profile.readingStats': 'Reading Statistics',
+      'profile.loginRequired': 'Please Login',
+      'profile.loginToViewProfile': 'Login to view and edit your profile',
+      'profile.username': 'Username',
+      'profile.email': 'Email',
+      'profile.bio': 'Bio',
+      'profile.bioPlaceholder': 'Tell us about yourself...',
+      'profile.location': 'Location',
+      'profile.locationPlaceholder': 'City, Country',
+      'profile.website': 'Website',
+      'profile.role': 'Role',
+      'profile.admin': 'Admin',
+      'profile.user': 'User',
+      'profile.readingHistory': 'Reading History',
+      'profile.readingList': 'Reading List',
+      'profile.save': 'Save',
+      'profile.saving': 'Saving...',
+      'profile.saveSuccess': 'Saved successfully',
+      'profile.saveError': 'Failed to save',
+      'profile.currentPassword': 'Current Password',
+      'profile.newPassword': 'New Password',
+      'profile.confirmPassword': 'Confirm New Password',
+      'profile.change': 'Change',
+      'profile.changing': 'Changing...',
+      'profile.passwordMismatch': 'Passwords do not match',
+      'profile.passwordChangeSuccess': 'Password changed successfully',
+      'profile.passwordChangeError': 'Failed to change password, please check your current password',
+      'profile.avatarTooLarge': 'Avatar size must not exceed 2MB',
+      'profile.invalidAvatar': 'Only image files are allowed',
+      'profile.avatarUploadSuccess': 'Avatar uploaded successfully',
+      'profile.avatarUploadError': 'Failed to upload avatar',
+      'profile.postsRead': 'Posts Read',
+      'profile.postsCompleted': 'Completed',
+      'profile.readingStreak': 'Reading Streak',
+      'profile.totalReadingTime': 'Total Reading Time',
+      'profile.thisWeek': 'This Week',
+      'profile.thisMonth': 'This Month',
+      'profile.favoriteTags': 'Favorite Tags',
+
+      // Comment Notifications
+      'notification.title': 'Notification Settings',
+      'notification.subtitle': 'Manage your comment notifications and subscriptions',
+      'notification.loginRequired': 'Please Login',
+      'notification.loginToManage': 'Login to manage your notification settings',
+      'notification.subscribe': 'Subscribe',
+      'notification.unsubscribe': 'Unsubscribe',
+      'notification.subscribed': 'Subscribed',
+      'notification.subscribeComments': 'Subscribe to Comments',
+      'notification.confirmUnsubscribe': 'Are you sure you want to unsubscribe?',
+      'notification.unsubscribeError': 'Failed to unsubscribe',
+      'notification.mySubscriptions': 'My Subscriptions',
+      'notification.preferences': 'Preferences',
+      'notification.noSubscriptions': 'No subscriptions yet',
+      'notification.startSubscribing': 'Subscribe to comment notifications and never miss a reply',
+      'notification.subscribedOn': 'Subscribed on',
+      'notification.emailNotifications': 'Email Notifications',
+      'notification.emailNotificationsDesc': 'Receive email notifications for comments',
+      'notification.replyNotifications': 'Reply Notifications',
+      'notification.replyNotificationsDesc': 'Get notified when someone replies to your comment',
+      'notification.mentionNotifications': '@Mention Notifications',
+      'notification.mentionNotificationsDesc': 'Get notified when someone mentions you in a comment',
+      'notification.digestFrequency': 'Digest Frequency',
+      'notification.digestFrequencyDesc': 'Choose how often to receive notification digest',
+      'notification.immediate': 'Immediate',
+      'notification.hourly': 'Hourly',
+      'notification.daily': 'Daily',
+      'notification.weekly': 'Weekly',
+      'notification.save': 'Save',
+      'notification.saving': 'Saving...',
+      'notification.preferencesSaved': 'Settings saved',
+      'notification.saveError': 'Failed to save',
+      'notification.toggleError': 'Operation failed, please try again',
+      'notification.pushTab': 'Push Notifications',
+      'notification.pushSettings': 'PWA Push Notifications',
+      'notification.pushSettingsDesc': 'Enable push notifications to receive alerts for new articles and important updates, even when your browser is closed',
+      'notification.tipsTitle': 'About Push Notifications',
+      'notification.tip1': 'Push notifications require a supported browser (Chrome, Firefox, Edge, etc.)',
+      'notification.tip2': 'You can change notification permissions in your browser settings at any time',
+      'notification.tip3': 'After subscribing, you will receive notifications for new articles and important updates',
+      'notification.tip4': 'Push notifications will not affect your device performance and can be disabled at any time',
+      'notification.enabled': 'Notifications enabled',
+      'notification.enableNotifications': 'Enable Notifications',
+      'notification.notSupported': 'Your browser does not support push notifications',
+      'notification.pushNotifications': 'Push Notifications',
+      'notification.pushNotificationsDesc': 'Receive push notifications for new articles and comments',
+      'notification.denied': 'You have denied notification permission. Please allow notifications in your browser settings.',
+      'notification.error': 'Operation failed',
+    }
   }
-
-  // 如果已经初始化，跳过（防止 HMR 更新时重复初始化）
-  if (isInitialized) {
-    return Promise.resolve()
-  }
-
-  // 如果 i18n 已经初始化，也跳过
-  if (i18n.isInitialized) {
-    isInitialized = true
-    return Promise.resolve()
-  }
-
-  // 如果正在初始化，返回现有的 Promise
-  if (initPromise) {
-    return initPromise
-  }
-
-  // 使用动态导入加载 JSON 资源，避免模块顶层的副作用
-  initPromise = Promise.all([
-    import('@/locales/en/common.json'),
-    import('@/locales/zh-CN/common.json'),
-  ])
-    .then(([enModule, zhCNModule]) => {
-      const enCommon = enModule.default
-      const zhCNCommon = zhCNModule.default
-
-      return (
-        i18n
-          // 检测用户语言
-          .use(LanguageDetector)
-          // 传递给 react-i18next
-          .use(initReactI18next)
-          // 初始化 i18next
-          .init({
-            // 支持的语言
-            supportedLngs: ['en', 'zh-CN'],
-            // 默认语言
-            fallbackLng: 'en',
-            // 默认命名空间
-            defaultNS: 'common',
-            // 资源内联，直接导入翻译文件
-            resources: {
-              en: {
-                common: enCommon,
-              },
-              'zh-CN': {
-                common: zhCNCommon,
-              },
-            },
-            // 语言检测配置
-            detection: {
-              // 按优先级顺序检测语言
-              order: ['localStorage', 'cookie', 'navigator', 'htmlTag'],
-              // 从 cookie 中检测语言的键名
-              lookupCookie: 'i18next',
-              // 从 localStorage 中检测语言的键名
-              lookupLocalStorage: 'i18nextLng',
-              // 缓存检测
-              caches: ['localStorage', 'cookie'],
-            },
-            // 调试模式（开发环境）
-            debug: process.env.NODE_ENV === 'development',
-            // 预加载所有命名空间
-            ns: ['common'],
-            // 如果命名空间不存在，使用默认命名空间
-            fallbackNS: 'common',
-            // 插值配置
-            interpolation: {
-              escapeValue: false, // React 已经转义了
-            },
-          })
-      )
-    })
-    .then(() => {
-      isInitialized = true
-      initPromise = null
-    })
-    .catch((error) => {
-      logger.error('i18n initialization error:', error)
-      initPromise = null
-      throw error
-    })
-
-  return initPromise
 }
 
-// 导出 i18n 实例
+i18n
+  .use(Backend)
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'zh',
+    lng: 'zh',
+
+    debug: process.env.NODE_ENV === 'development',
+
+    interpolation: {
+      escapeValue: false, // React 已经做了 XSS 防护
+    },
+
+    detection: {
+      order: ['localStorage', 'navigator'],
+      caches: ['localStorage'],
+    },
+
+    react: {
+      useSuspense: false,
+    },
+  })
+
 export default i18n

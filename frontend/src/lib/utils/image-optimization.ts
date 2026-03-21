@@ -30,6 +30,7 @@ export function getSupportedImageFormat(): 'avif' | 'webp' | 'jpeg' {
  * @returns 响应式尺寸数组（从小到大排序）
  */
 export function generateResponsiveSizes(baseWidth: number, aspectRatio: number = 16 / 9): number[] {
+  void aspectRatio
   const sizes = [baseWidth]
   let current = baseWidth
 

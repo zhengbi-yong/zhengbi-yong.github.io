@@ -13,7 +13,7 @@ interface BackendCommentsProps {
 }
 
 export function BackendComments({ slug, className }: BackendCommentsProps) {
-  const { isAuthenticated, user } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
   const {
     fetchComments,
     createComment,

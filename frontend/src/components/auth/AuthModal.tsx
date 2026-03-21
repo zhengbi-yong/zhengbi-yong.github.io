@@ -14,7 +14,6 @@ import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
 import { X } from 'lucide-react'
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator'
-import { isPasswordValid } from '@/lib/utils/password'
 
 interface AuthModalProps {
   isOpen: boolean

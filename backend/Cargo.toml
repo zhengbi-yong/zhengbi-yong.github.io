@@ -92,3 +92,18 @@ reqwest = { version = "0.12", features = ["json"] }
 
 # 环境变量加载
 dotenv = "0.15"
+
+[workspace.metadata.tarpaulin]
+out = ["Html", "Xml"]
+output-dir = "./coverage"
+exclude-files = ["*/tests/*", "*/benches/*"]
+default-includes = ["**/*.rs"]
+default-excludes = ["*/tests/*", "*/benches/*"]
+targets = ["x86_64-unknown-linux-gnu"]
+skip-clean = false
+fail-under = 70
+timeout = 300
+features = "default"
+no-default-features = false
+all-features = true
+workspace = true

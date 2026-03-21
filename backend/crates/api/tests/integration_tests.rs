@@ -1,4 +1,9 @@
 //! API 集成测试
+//!
+//! **运行前准备**：
+//! 1. 启动数据库：`docker compose -f docker-compose.dev.yml up -d`
+//! 2. 启动后端：`./start-backend.sh` 或 `cd backend && cargo run`
+//! 3. 运行测试：`cargo test --test integration_tests -- --ignored`
 
 use reqwest::Client;
 use serde_json::{json, Value};
@@ -281,6 +286,7 @@ impl TestClient {
 /// 认证流程集成测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_authentication_flow() -> anyhow::Result<()> {
     // 等待避免速率限制
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
@@ -318,6 +324,7 @@ async fn test_authentication_flow() -> anyhow::Result<()> {
 /// 文章相关功能集成测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_post_functionality() -> anyhow::Result<()> {
     // 等待避免速率限制
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
@@ -358,6 +365,7 @@ async fn test_post_functionality() -> anyhow::Result<()> {
 /// 评论功能集成测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_comment_functionality() -> anyhow::Result<()> {
     // 等待避免速率限制
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
@@ -407,6 +415,7 @@ async fn test_comment_functionality() -> anyhow::Result<()> {
 /// API 错误处理测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_error_handling() -> anyhow::Result<()> {
     // 等待更长时间避免速率限制（因为前面可能有其他测试）
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
@@ -482,6 +491,7 @@ async fn test_error_handling() -> anyhow::Result<()> {
 /// 健康检查端点测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_health_endpoints() -> anyhow::Result<()> {
     let client = reqwest::Client::new();
 
@@ -539,6 +549,7 @@ async fn test_health_endpoints() -> anyhow::Result<()> {
 /// API 速率限制测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_rate_limiting() -> anyhow::Result<()> {
     let client = reqwest::Client::new();
 
@@ -580,6 +591,7 @@ async fn test_rate_limiting() -> anyhow::Result<()> {
 /// 并发请求测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_concurrent_requests() -> anyhow::Result<()> {
     // 等待避免速率限制（这是最后一个测试，需要更多等待）
     tokio::time::sleep(std::time::Duration::from_secs(4)).await;

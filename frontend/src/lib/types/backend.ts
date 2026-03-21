@@ -7,7 +7,7 @@ export interface PostListItem {
   title: string
   summary: string | null
   cover_image_url: string | null
-  status: 'draft' | 'published' | 'archived'
+  status: 'Draft' | 'Published' | 'Archived'
   published_at: string | null
   category_name: string | null
   category_slug: string | null
@@ -28,7 +28,7 @@ export interface PostDetail {
   content_html: string | null
   summary: string | null
   cover_image_url: string | null
-  status: 'draft' | 'published' | 'archived'
+  status: 'Draft' | 'Published' | 'Archived'
   published_at: string | null
   scheduled_at: string | null
   meta_title: string | null
@@ -113,7 +113,7 @@ export interface SearchResponse {
 export interface PostListParams {
   page?: number
   limit?: number
-  status?: 'published' | 'draft' | 'archived'
+  status?: 'Published' | 'Draft' | 'Archived'
   category_slug?: string
   tag_slug?: string
   sort_by?: 'published_at' | 'created_at' | 'view_count' | 'like_count'
@@ -141,8 +141,9 @@ export interface UserInfo {
   id: string
   email: string
   username: string
-  profile: Record<string, any> | null
+  profile: Record<string, unknown> | null
   email_verified: boolean
+  role?: 'user' | 'admin' | 'moderator'
 }
 
 // ==================== Post Types ====================
@@ -412,32 +413,191 @@ export interface PerformanceSettings {
   log_level: 'debug' | 'info' | 'warn' | 'error'
 }
 
-// ==================== Post Management Types ====================
-export interface PostListItem {
-  slug: string
+// ==================== Reading Progress Types ====================
+export interface ReadingProgress {
+  user_id: string
+  post_id: string
+  post_slug: string
+  post_title: string
+  progress: number  // 0-100
+  last_read_at: string
+  completed_at?: string
+}
+
+export interface ReadingHistoryResponse {
+  history: ReadingProgress[]
+  total: number
+  page: number
+  per_page: number
+  total_pages: number
+}
+
+// ==================== Version Control Types ====================
+export interface PostVersion {
+  id: string
+  post_id: string
+  version_number: number
   title: string
-  status: 'published' | 'draft' | 'archived'
-  view_count: number
-  like_count: number
-  comment_count: number
+  content: string
+  summary?: string
+  created_at: string
+  created_by: string
+  created_by_username?: string
+  comment?: string
+}
+
+export interface PostVersionsResponse {
+  versions: PostVersion[]
+  total: number
+}
+
+export interface VersionComparison {
+  version1: PostVersion
+  version2: PostVersion
+  changes: {
+    title: { old: string; new: string } | null
+    content: { old: string; new: string } | null
+    summary: { old: string; new: string } | null
+  }
+}
+
+// ==================== Media Types ====================
+export interface MediaItem {
+  id: string
+  filename: string
+  url: string
+  mime_type: string
+  size: number
+  width?: number
+  height?: number
+  alt_text?: string
+  uploaded_at: string
+  uploaded_by: string
+  unused?: boolean
+  usage_count?: number
+}
+
+export interface MediaListResponse {
+  media: MediaItem[]
+  total: number
+  page: number
+  per_page: number
+  total_pages: number
+}
+
+// ==================== Bookmark Types ====================
+
+export interface Bookmark {
+  id: string
+  user_id: string
+  post_id: string
+  post_slug: string
+  post_title: string
+  post_excerpt?: string
+  post_image?: string
+  note?: string
   created_at: string
   updated_at: string
 }
 
-export interface PostListResponse {
-  posts: PostListItem[]
+export interface BookmarkListResponse {
+  bookmarks: Bookmark[]
   total: number
   page: number
-  page_size: number
+  per_page: number
+  total_pages: number
 }
 
-export interface PostDetail extends PostListItem {
-  content: string
-  excerpt?: string
-  author: {
-    id: string
-    username: string
-  }
-  tags?: string[]
-  category?: string
+export interface CreateBookmarkRequest {
+  post_id: string
+  post_slug: string
+  post_title: string
+  note?: string
 }
+
+export interface UpdateBookmarkRequest {
+  note?: string
+}
+
+// ==================== User Profile Types ====================
+
+export interface UpdateProfileRequest {
+  username?: string
+  email?: string
+  bio?: string
+  location?: string
+  website?: string
+  twitter?: string
+  github?: string
+  avatar_url?: string
+}
+
+export interface ChangePasswordRequest {
+  old_password: string
+  new_password: string
+}
+
+export interface UserReadingStats {
+  total_posts_read: number
+  total_reading_time: number  // in minutes
+  posts_completed: number
+  posts_in_progress: number
+  favorite_tags: string[]
+  reading_streak: number  // days
+  this_week_posts: number
+  this_month_posts: number
+}
+
+export interface UserProfile extends UserInfo {
+  bio?: string
+  location?: string
+  website?: string
+  twitter?: string
+  github?: string
+  avatar_url?: string
+  reading_stats?: UserReadingStats
+}
+
+// ==================== Comment Notification Types ====================
+
+export interface CommentNotificationSubscription {
+  id: string
+  user_id: string
+  post_id: string
+  post_title: string
+  post_slug: string
+  subscribed_at: string
+}
+
+export interface CommentNotificationPreferences {
+  email_notifications: boolean
+  reply_notifications: boolean
+  mention_notifications: boolean
+  digest_frequency: 'immediate' | 'hourly' | 'daily' | 'weekly'
+  unsubscribe_from_all: boolean
+}
+
+export interface CommentNotification {
+  id: string
+  user_id: string
+  post_id: string
+  post_title: string
+  post_slug: string
+  comment_id: string
+  commenter_username: string
+  comment_content: string
+  notification_type: 'reply' | 'mention' | 'new_comment'
+  is_read: boolean
+  created_at: string
+}
+
+export interface NotificationListResponse {
+  notifications: CommentNotification[]
+  total: number
+  unread_count: number
+  page: number
+  per_page: number
+  total_pages: number
+}
+
+

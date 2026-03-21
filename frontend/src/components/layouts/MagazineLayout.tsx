@@ -93,8 +93,8 @@ export default function MagazineLayout({
       }
       if (filter.sortBy === 'popular') {
         // 假设有readCount字段，如果没有则使用日期
-        const countA = (a as any).readCount || 0
-        const countB = (b as any).readCount || 0
+        const countA = a.readCount || 0
+        const countB = b.readCount || 0
         return countB - countA
       }
       // relevant - 使用featured标记作为相关性指标

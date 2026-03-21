@@ -29,7 +29,7 @@ export function SwipeContainer({
 
   useEffect(() => {
     const container = containerRef.current
-    if (!container) return
+    if (!container) return undefined
 
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0]

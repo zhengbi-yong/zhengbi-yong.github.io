@@ -15,6 +15,6 @@ pub use api_response::{
 };
 pub use config::Settings;
 pub use error::AppError;
-pub use middleware::{AuthUser, AuthError};
+pub use middleware::AuthUser;
 pub use query_params::{PaginatedQuery, ResourceQuery, SearchQuery};
 pub use validators::PasswordValidator;

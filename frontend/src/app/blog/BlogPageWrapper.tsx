@@ -5,9 +5,10 @@
  * Client component that chooses between API and static content
  */
 
-import { useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import BookShelfLayout from '@/components/layouts/BookShelfLayout'
+import NewsletterSignup from '@/components/NewsletterSignup'
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 
@@ -32,11 +33,27 @@ const ApiBlogPage = dynamic(
 )
 
 export default function BlogPageWrapper({ fallbackPosts }: BlogPageWrapperProps) {
-  // 检测是否应该使用API（通过环境变量）
-  const useApi = useMemo(() => {
-    if (typeof window === 'undefined') return false
-    return process.env.NEXT_PUBLIC_USE_API === 'true'
+  const [useApi, setUseApi] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+    // 客户端挂载后，检测是否应该使用API
+    setUseApi(process.env.NEXT_PUBLIC_USE_API === 'true')
   }, [])
+
+  // 在客户端挂载前，始终显示静态内容（避免hydration不匹配）
+  if (!isClient) {
+    return (
+      <div className="relative min-h-screen">
+        <BookShelfLayout posts={fallbackPosts} title="博客书架" />
+        {/* 邮件订阅部分 */}
+        <div className="mx-auto mt-8 max-w-4xl px-4 pb-8">
+          <NewsletterSignup compact={true} />
+        </div>
+      </div>
+    )
+  }
 
   if (useApi) {
     return <ApiBlogPage />
@@ -46,6 +63,10 @@ export default function BlogPageWrapper({ fallbackPosts }: BlogPageWrapperProps)
   return (
     <div className="relative min-h-screen">
       <BookShelfLayout posts={fallbackPosts} title="博客书架" />
+      {/* 邮件订阅部分 */}
+      <div className="mx-auto mt-8 max-w-4xl px-4 pb-8">
+        <NewsletterSignup compact={true} />
+      </div>
     </div>
   )
 }

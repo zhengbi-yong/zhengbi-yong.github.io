@@ -1,18 +1,13 @@
 import { ReactNode } from 'react'
+import siteMetadata from '@/data/siteMetadata'
 import { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog, Authors } from 'contentlayer/generated'
-import Comments from '@/components/Comments'
-import Link from '@/components/Link'
 import PageTitle from '@/components/PageTitle'
 import SectionContainer from '@/components/SectionContainer'
-import Image from '@/components/Image'
-import Tag from '@/components/Tag'
-import siteMetadata from '@/data/siteMetadata'
 import FadeIn from '@/components/animations/FadeIn'
 import FloatingTOC from '@/components/FloatingTOC'
 import JsonLd from '@/components/seo/JsonLd'
 import type { TOC } from '@/lib/types/toc'
-import ReadingProgress from '@/components/ReadingProgress'
 import { ReadingProgressWithApi } from '@/components/ReadingProgressWithApi'
 import ArticleAnalytics from '@/components/ArticleAnalytics'
 import { RecentArticles } from '@/components/RecentArticles'
@@ -21,9 +16,6 @@ import { CommentForm } from '@/components/post/CommentForm'
 import { CommentListSimple } from '@/components/post/CommentListSimple'
 import { BackendComments } from '@/components/post/BackendComments'
 
-const editUrl = (path: string) => `${siteMetadata.siteRepo}/blob/main/data/${path}`
-const discussUrl = (path: string) =>
-  `https://mobile.twitter.com/search?q=${encodeURIComponent(`${siteMetadata.siteUrl}/${path}`)}`
 
 const postDateTemplate: Intl.DateTimeFormatOptions = {
   weekday: 'long',
@@ -35,8 +27,6 @@ const postDateTemplate: Intl.DateTimeFormatOptions = {
 interface LayoutProps {
   content: CoreContent<Blog>
   authorDetails: CoreContent<Authors>[]
-  next?: { path: string; title: string }
-  prev?: { path: string; title: string }
   children: ReactNode
   toc?: TOC
   showTOC?: boolean
@@ -45,13 +35,11 @@ interface LayoutProps {
 export default function PostLayout({
   content,
   authorDetails,
-  next,
-  prev,
   children,
   toc,
   showTOC,
 }: LayoutProps) {
-  const { filePath, path, slug, date, title, tags, summary, images } = content
+  const { path, slug, date, title, tags, summary, images } = content
   const basePath = path.split('/')[0]
 
   // 生成文章的 Schema.org 结构化数据

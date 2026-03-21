@@ -290,20 +290,6 @@ class ErrorHandler {
   }
 
   // 获取 Toast 状态
-  private getToastStatus(severity: ErrorSeverity): 'success' | 'error' | 'warning' | 'info' {
-    switch (severity) {
-      case ErrorSeverity.LOW:
-        return 'info'
-      case ErrorSeverity.MEDIUM:
-        return 'warning'
-      case ErrorSeverity.HIGH:
-      case ErrorSeverity.CRITICAL:
-        return 'error'
-      default:
-        return 'error'
-    }
-  }
-
   // 异步错误处理
   public async handleAsync<T>(
     asyncFn: () => Promise<T>,

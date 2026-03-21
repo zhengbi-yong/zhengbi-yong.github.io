@@ -1,5 +1,10 @@
 //! 数据一致性严格测试
-//! 
+//!
+//! **运行前准备**：
+//! 1. 启动数据库：`docker compose -f docker-compose.dev.yml up -d`
+//! 2. 启动后端：`./start-backend.sh` 或 `cd backend && cargo run`
+//! 3. 运行测试：`cargo test --test data_consistency_tests -- --ignored`
+//!
 //! 测试包括：
 //! - 事务隔离级别测试
 //! - 并发写入数据完整性
@@ -19,6 +24,7 @@ const TEST_PASSWORD: &str = "test_password_123_STRICT";
 /// 测试1: 并发点赞数据一致性（确保点赞数准确）
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_concurrent_like_consistency() {
     let client = Client::new();
     
@@ -116,6 +122,7 @@ async fn test_concurrent_like_consistency() {
 /// 测试2: 并发取消点赞数据一致性
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_concurrent_unlike_consistency() {
     let client = Client::new();
     
@@ -221,6 +228,7 @@ async fn test_concurrent_unlike_consistency() {
 /// 测试3: 并发浏览计数准确性
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_concurrent_view_count_accuracy() {
     let client = Client::new();
     
@@ -330,6 +338,7 @@ async fn test_concurrent_view_count_accuracy() {
 /// 测试4: 并发评论创建数据一致性
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_concurrent_comment_consistency() {
     let client = Client::new();
     
@@ -451,6 +460,7 @@ async fn test_concurrent_comment_consistency() {
 /// 测试5: 读写竞态条件测试
 #[tokio::test]
 #[serial_test::serial]
+#[ignore] // 需要运行中的后端服务
 async fn test_read_write_race_condition() {
     let client = Client::new();
     

@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Query, State, Path},
+    extract::{Query, State},
     http::{header},
     response::{IntoResponse, Json},
 };
@@ -105,9 +105,7 @@ pub async fn search_posts_optimized(
         SELECT * FROM search_posts_with_highlights(
             $1::text,
             $2::integer,
-            $3::integer,
-            $4::text,
-            $5::text[]
+            $3::integer
         )
         "#
     );
@@ -305,7 +303,7 @@ pub async fn get_trending_keywords_optimized(
 async fn record_search_keyword(
     state: &AppState,
     keyword: &str,
-    results_count: i32,
+    _results_count: i32,
 ) -> Result<(), AppError> {
     let escaped_keyword = keyword.replace('\'', "''");
 

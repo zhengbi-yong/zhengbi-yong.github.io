@@ -42,7 +42,7 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
     }
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // 更新状态
     this.setState({
       error,
@@ -69,7 +69,7 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
     errorHandler.handle(appError)
   }
 
-  componentWillUnmount() {
+  override componentWillUnmount() {
     // 清理重试超时
     if (this.retryTimeoutId) {
       clearTimeout(this.retryTimeoutId)
@@ -146,7 +146,7 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
     return retryCount === 0
   }
 
-  render() {
+  override render() {
     const { hasError, error, errorInfo, retryCount } = this.state
     const { children, fallback, isolate = false } = this.props
 

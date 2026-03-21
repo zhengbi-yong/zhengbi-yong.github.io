@@ -62,28 +62,6 @@ pub enum AppError {
     #[error("Bad request: {0}")]
     BadRequest(String),
 
-    // 业务逻辑错误
-    #[error("Email already exists")]
-    EmailAlreadyExists,
-
-    #[error("Username already exists")]
-    UsernameAlreadyExists,
-
-    #[error("Already liked")]
-    AlreadyLiked,
-
-    #[error("Not liked")]
-    NotLiked,
-
-    #[error("Empty comment")]
-    EmptyComment,
-
-    #[error("Comment too long")]
-    CommentTooLong,
-
-    #[error("Comment too deep")]
-    CommentTooDeep,
-
     // 输入验证错误
     #[error("Invalid input")]
     InvalidInput,
@@ -106,7 +84,33 @@ pub enum AppError {
     // 内部错误
     #[error("Internal server error")]
     InternalError,
+
+    // 用户相关错误
+    #[error("Email already exists")]
+    EmailAlreadyExists,
+
+    #[error("Username already exists")]
+    UsernameAlreadyExists,
+
+    // 点赞相关错误
+    #[error("Already liked")]
+    AlreadyLiked,
+
+    #[error("Not liked")]
+    NotLiked,
+
+    // 评论相关错误
+    #[error("Empty comment")]
+    EmptyComment,
+
+    #[error("Comment too long")]
+    CommentTooLong,
+
+    #[error("Comment too deep")]
+    CommentTooDeep,
 }
+
+
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
@@ -246,58 +250,4 @@ pub enum RequestIdError {
     GenerationFailed,
 }
 
-// 认证中间件使用的用户信息
-#[derive(Debug, Clone)]
-pub struct AuthUser {
-    pub id: Uuid,
-    pub email: String,
-    pub username: String,
-    pub profile: serde_json::Value,
-    pub email_verified: bool,
-}
 
-// 认证中间件错误
-#[derive(Error, Debug)]
-pub enum AuthError {
-    #[error("Missing Authorization header")]
-    MissingToken,
-
-    #[error("Invalid Authorization header format")]
-    InvalidHeaderFormat,
-
-    #[error("Invalid token")]
-    InvalidToken,
-
-    #[error("Token expired")]
-    TokenExpired,
-
-    #[error("Invalid token type")]
-    InvalidTokenType,
-}
-
-impl IntoResponse for AuthError {
-    fn into_response(self) -> Response {
-        let (status, error_code, error_message): (StatusCode, &'static str, String) = match self {
-            AuthError::MissingToken => {
-                (StatusCode::UNAUTHORIZED, "MISSING_TOKEN", self.to_string())
-            }
-            AuthError::InvalidHeaderFormat => {
-                (StatusCode::UNAUTHORIZED, "INVALID_HEADER_FORMAT", self.to_string())
-            }
-            AuthError::InvalidToken => {
-                (StatusCode::UNAUTHORIZED, "INVALID_TOKEN", self.to_string())
-            }
-            AuthError::TokenExpired => {
-                (StatusCode::UNAUTHORIZED, "TOKEN_EXPIRED", self.to_string())
-            }
-            AuthError::InvalidTokenType => {
-                (StatusCode::UNAUTHORIZED, "INVALID_TOKEN_TYPE", self.to_string())
-            }
-        };
-
-        let api_error = ApiError::new(error_code, error_message, status);
-        let response = ApiResponse::<()>::error(api_error);
-
-        (status, Json(response)).into_response()
-    }
-}

@@ -30,7 +30,6 @@ export function ReadingProgressWithApi({
   position = 'bottom',
 }: ReadingProgressWithApiProps) {
   const {
-    progress,
     scrollPercentage,
     isLoading,
     isSaving,

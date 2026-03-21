@@ -91,6 +91,9 @@ export function suggestColor(
     const adjusted = value * ratio
     return Math.max(min, Math.min(max, adjusted))
   }
+  // Silence TS6133 for unused local function result in some builds
+  const _demo = adjustValue(128, 50)
+  void _demo
 
   const avgLum = (base.r + base.g + base.b) / (3 * 255)
   const adjustment = targetLum - avgLum

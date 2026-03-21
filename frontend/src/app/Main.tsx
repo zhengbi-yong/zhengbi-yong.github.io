@@ -8,6 +8,7 @@ import SocialCard from '@/components/home/SocialCard'
 import Explore from '@/components/sections/Explore'
 import FeaturedWork from '@/components/sections/FeaturedWork'
 import BlogSection from '@/components/sections/BlogSection'
+import NewsletterSignup from '@/components/NewsletterSignup'
 import siteMetadata from '@/data/siteMetadata'
 
 interface HomeProps {
@@ -73,7 +74,7 @@ export default function Home({ posts }: HomeProps) {
           {/* 右侧：HeroCard */}
           <div className="relative mt-16 w-full justify-end md:mt-0 md:flex md:w-1/2 md:translate-y-4 md:pl-4 xl:translate-y-0">
             <HeroCard
-              imageUrl="/static/images/avatar.png"
+              imageUrl="/avatar.png"
               title="Robotics Projects"
               link="/blog"
             />
@@ -103,6 +104,13 @@ export default function Home({ posts }: HomeProps) {
             showViewAllButton={true}
             limit={3}
           />
+        </section>
+
+        {/* Newsletter 部分 */}
+        <section className="mb-12 flex justify-center">
+          <div className="w-full max-w-2xl">
+            <NewsletterSignup />
+          </div>
         </section>
       </div>
     </div>

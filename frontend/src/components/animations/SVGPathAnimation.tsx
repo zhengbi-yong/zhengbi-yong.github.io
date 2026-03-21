@@ -1,10 +1,9 @@
 'use client'
 
-import { useRef, ReactNode } from 'react'
+import { useRef } from 'react'
 import { useGSAP } from '@/components/hooks/useGSAP'
 import { getGSAPMobileOptimizedParams } from '@/lib/utils/gsap'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 interface SVGPathAnimationProps {
   path: string // SVG path 数据
@@ -32,7 +31,7 @@ export default function SVGPathAnimation({
   const { duration: optimizedDuration } = getGSAPMobileOptimizedParams(duration)
 
   useGSAP(() => {
-    if (!svgRef.current) return
+    if (!svgRef.current) return undefined
 
     const pathElement = svgRef.current
     const container = containerRef.current

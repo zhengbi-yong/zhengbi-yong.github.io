@@ -10,64 +10,122 @@
 import { useState, useEffect } from 'react'
 import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
-import { remarkAlert } from 'remark-github-blockquote-alert'
-import rehypeSlug from 'rehype-slug'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypeKatex from 'rehype-katex'
-import rehypeKatexNoTranslate from 'rehype-katex-notranslate'
-import rehypePrismPlus from 'rehype-prism-plus'
-import rehypeMhchem from '@/lib/rehype-mhchem'
-import { components } from '@/components/MDXComponents'
+import { components as mdxComponents } from '@/components/MDXComponents'
+import Script from 'next/script'
+import dynamic from 'next/dynamic'
+import { Suspense } from 'react'
+import { AnimationSkeleton } from '@/components/loaders/AnimationSkeleton'
+import { AnimationErrorBoundary } from '@/components/AnimationErrorBoundary'
 
-/**
- * 序列化MDX内容
- * 将MDX字符串编译为可在客户端渲染的格式
- *
- * @param content - MDX源代码字符串
- * @returns 序列化后的MDX source
- */
+// Import chemistry components directly for MDXRemote usage
+// Dynamic imports from MDXComponents don't work properly with MDXRemote
+// We need to import them here to ensure they're available at runtime
+const ChemicalStructure = dynamic(
+  () => import('@/components/chemistry/ChemicalStructure').then((mod) => mod.default),
+  {
+    loading: () => (
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col items-center gap-3">
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载3D结构查看器...</p>
+        </div>
+      </div>
+    ),
+  }
+)
+
+const SimpleChemicalStructure = dynamic(
+  () => import('@/components/chemistry/SimpleChemicalStructure').then((mod) => mod.default),
+  {
+    loading: () => (
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col items-center gap-3">
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载3D结构查看器...</p>
+        </div>
+      </div>
+    ),
+  }
+)
+
+const RDKitStructure = dynamic(
+  () => import('@/components/chemistry/RDKitStructure').then((mod) => mod.default),
+  {
+    loading: () => (
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col items-center gap-3">
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载2D结构查看器...</p>
+        </div>
+      </div>
+    ),
+  }
+)
+
+const MoleculeFingerprint = dynamic(
+  () => import('@/components/chemistry/MoleculeFingerprint').then((mod) => mod.default),
+  {
+    loading: () => (
+      <div className="my-6 items-center justify-center rounded-lg border border-dashed border-gray-200 p-4 dark:border-gray-700">
+        <div className="flex flex-col items-center gap-3">
+          <div className="border-t-primary-500 h-6 w-6 animate-spin rounded-full border-4 border-gray-300" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载分子指纹...</p>
+        </div>
+      </div>
+    ),
+  }
+)
+
+// Wrap chemistry components with error boundary and suspense
+const WrappedChemicalStructure = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={<AnimationSkeleton />}>
+      <ChemicalStructure {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
+const WrappedSimpleChemicalStructure = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={<AnimationSkeleton />}>
+      <SimpleChemicalStructure {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
+const WrappedRDKitStructure = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={<AnimationSkeleton />}>
+      <RDKitStructure {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
+const WrappedMoleculeFingerprint = (props: any) => (
+  <AnimationErrorBoundary>
+    <Suspense fallback={<AnimationSkeleton />}>
+      <MoleculeFingerprint {...props} />
+    </Suspense>
+  </AnimationErrorBoundary>
+)
+
+// Create runtime components object with chemistry components
+const components = {
+  ...mdxComponents,
+  // Override chemistry components with wrapped versions for MDXRemote
+  ChemicalStructure: WrappedChemicalStructure,
+  SimpleChemicalStructure: WrappedSimpleChemicalStructure,
+  RDKitStructure: WrappedRDKitStructure,
+  MoleculeFingerprint: WrappedMoleculeFingerprint,
+}
+
 export async function serializeMDX(content: string) {
   return await serialize(content, {
     mdxOptions: {
-      // Remark plugins - Markdown处理
-      remarkPlugins: [
-        remarkGfm, // GitHub风格Markdown
-        remarkMath, // 数学公式支持
-        remarkAlert, // GitHub风格警告块
-      ],
-      // Rehype plugins - HTML处理
-      rehypePlugins: [
-        rehypeSlug, // 为标题生成slug
-        [
-          rehypeAutolinkHeadings,
-          {
-            behavior: 'prepend',
-            headingProperties: {
-              className: ['content-header'],
-            },
-          },
-        ],
-        rehypeMhchem, // 化学公式支持（自定义插件）
-        rehypeKatex, // KaTeX数学公式渲染
-        rehypeKatexNoTranslate, // KaTeX无翻译
-        [
-          rehypePrismPlus,
-          {
-            defaultLanguage: 'javascript',
-            ignoreMissing: true,
-          },
-        ], // 代码高亮
-      ],
       format: 'mdx',
     },
   })
 }
-
-/**
- * MDX运行时渲染器Props类型
- */
 export type MDXRuntimeProps = {
   content: string
 } & Partial<Omit<MDXRemoteProps, 'source'>>
@@ -94,7 +152,7 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
       try {
         setIsLoading(true)
         setError(null)
-        const source = await serializeMDX(content)
+        const source = await serialize(content)
         if (!cancelled) {
           setMdxSource(source)
         }
@@ -130,6 +188,11 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
 
   return (
     <>
+      {/* RDKit初始化脚本 - 确保化学组件在动态渲染时可用 */}
+      <Script
+        src="/chemistry/rdkit-init.js"
+        strategy="beforeInteractive"
+      />
       {/* 化学公式初始化 */}
       <MhchemInit />
       {/* MDX渲染 */}

@@ -158,6 +158,8 @@ export function convertMOLToSMILES(molData: string): string | null {
   // to handle ring closures, branches, stereochemistry, etc.
 
   const { atoms, bonds, isAromatic } = parseResult
+  // Mark as used to satisfy TS6133 when not all code paths rely on isAromatic
+  void isAromatic
 
   // For simple molecules without rings, we can try a linear approach
   if (bonds.length === 0 && atoms.length === 1) {

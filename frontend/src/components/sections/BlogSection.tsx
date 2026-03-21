@@ -9,10 +9,15 @@ import Link from 'next/link'
 import AnimatedText from '@/components/home/AnimatedText'
 import { cn } from '@/components/lib/utils'
 
+// Extended blog type with optional featured field
+interface BlogWithFeatured extends CoreContent<Blog> {
+  featured?: boolean
+}
+
 interface BlogSectionProps {
   title?: string
   description?: string
-  posts: CoreContent<Blog>[]
+  posts: BlogWithFeatured[]
   limit?: number
   listPage?: boolean
   showViewAllButton?: boolean
@@ -22,7 +27,6 @@ interface BlogSectionProps {
   }
   postsPerPage?: number
 }
-
 /**
  * BlogSection - 博客部分组件
  * 基于提供的 Astro BlogSection 组件转换而来
@@ -47,11 +51,11 @@ export default function BlogSection({
   )
 
   // 查找特色文章（假设有 featured 字段，如果没有则跳过）
-  const featuredPost = sortedPosts.find((post) => (post as any).featured)
+  const featuredPost = sortedPosts.find((post) => post.featured)
 
   // 如果存在特色文章且在列表页，从主列表中移除
   if (featuredPost && listPage) {
-    sortedPosts = sortedPosts.filter((post) => !(post as any).featured)
+    sortedPosts = sortedPosts.filter((post) => !post.featured)
   }
 
   // 计算总页数
@@ -125,7 +129,7 @@ export default function BlogSection({
           )}
 
           <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
-            {postsWithLinks.map((post, index) => (
+          {postsWithLinks.map((post, _index) => (
               <BlogCard
                 key={post.slug}
                 content={{

@@ -25,7 +25,7 @@ const AnimatedSection = memo(function AnimatedSection({
 
   useEffect(() => {
     const element = ref.current
-    if (!element) return
+    if (!element) { return undefined; }
 
     // 检测是否为移动设备（只检测一次）
     const isMobile = isMobileDevice()
@@ -34,7 +34,7 @@ const AnimatedSection = memo(function AnimatedSection({
     if (isMobile) {
       element.style.opacity = '1'
       element.style.transform = 'translateY(0) translateX(0)'
-      return
+      return undefined;
     }
 
     // 根据方向设置初始 translate 值（使用内联样式，避免 Tailwind 动态类名问题）
@@ -152,7 +152,7 @@ const AnimatedSection = memo(function AnimatedSection({
   }, [delay, direction])
 
   return (
-    <div ref={ref} className={className}>
+  <div ref={ref} className={className} data-visible={isVisible}>
       {children}
     </div>
   )

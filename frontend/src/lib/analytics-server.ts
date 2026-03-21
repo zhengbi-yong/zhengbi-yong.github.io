@@ -15,6 +15,7 @@ export function getPopularArticlesServer(limit = 5): Array<{
   articleId: string
   analytics: ArticleAnalytics
 }> {
+  void limit;
   // 在服务端环境，我们无法访问 localStorage
   // 返回空数组，实际数据将在客户端加载
   return []

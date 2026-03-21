@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Bug, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/shadcn/ui/button'
-import { cn } from '@/lib/utils'
 
 interface DebugInfo {
   performance: {
@@ -53,7 +52,7 @@ export function DebugPanel() {
   useEffect(() => {
     // 只在开发环境执行
     if (process.env.NODE_ENV === 'production') {
-      return
+      return undefined
     }
     const updateDebugInfo = () => {
       setDebugInfo((prev) => ({

@@ -23,7 +23,7 @@ const FireworksAnimation = memo(function FireworksAnimation({
   const isVisibleRef = useRef(true)
 
   useEffect(() => {
-    if (!autoPlay || !canvasRef.current) return
+    if (!autoPlay || !canvasRef.current) return undefined
 
     const canvas = canvasRef.current
 

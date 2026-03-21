@@ -3,7 +3,7 @@
  * 解析Prometheus文本格式的指标数据
  */
 
-import type { PrometheusMetrics, Metric, HistogramMetric, GaugeMetric } from '@/lib/types/backend'
+import type { PrometheusMetrics, Metric } from '@/lib/types/backend'
 import { logger } from './logger'
 
 export interface ParsedMetric {

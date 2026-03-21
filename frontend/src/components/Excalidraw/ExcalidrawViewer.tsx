@@ -103,11 +103,11 @@ export function ExcalidrawViewer({
 
   // 在客户端动态加载 CSS
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') { return undefined; }
 
     // 检查是否已经加载
     const existingLink = document.getElementById('excalidraw-css-link')
-    if (existingLink) return
+    if (existingLink) { return undefined; }
 
     // 检查是否已经有 Excalidraw 相关的样式
     const hasExcalidrawStyles = Array.from(document.styleSheets).some((sheet) => {
@@ -124,7 +124,7 @@ export function ExcalidrawViewer({
     })
 
     if (hasExcalidrawStyles) {
-      return // 样式已存在
+      return undefined; // 样式已存在
     }
 
     // 尝试多个 CDN 源
@@ -133,11 +133,11 @@ export function ExcalidrawViewer({
       'https://unpkg.com/@excalidraw/excalidraw@0.18.0/dist/prod/index.css',
     ]
 
-    const currentIndex = 0
+    // currentIndex removed unused
 
     const tryLoadCSS = (index: number) => {
       if (index >= cdnSources.length) {
-        return
+  return undefined
       }
 
       const link = document.createElement('link')
@@ -187,6 +187,7 @@ export function ExcalidrawViewer({
 
       return () => observer.disconnect()
     }
+    return undefined
   }, [theme])
 
   // 处理变化
@@ -511,9 +512,9 @@ export function ExcalidrawViewer({
 
   // 添加键盘快捷键支持
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') { return undefined; }
 
-    const handleKeyDown = (event: KeyboardEvent) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
       // 检查是否按下了 Ctrl 或 Cmd
       const isCtrlOrCmd = event.ctrlKey || event.metaKey
 
@@ -531,7 +532,8 @@ export function ExcalidrawViewer({
         event.preventDefault()
         handleSave()
         return
-      }
+    return null
+  }
 
       // Ctrl/Cmd + Shift + E: 导出 PNG
       if (isCtrlOrCmd && event.shiftKey && event.key === 'E') {
@@ -605,18 +607,21 @@ export function ExcalidrawViewer({
 
   return (
     <div
-      className={`${className} h-screen w-full`}
+      className={`${className} w-full`}
       style={{
         position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        display: 'flex',
+      height: height ?? '100vh',
+      display: 'flex',
         flexDirection: 'column',
         backgroundColor: '#fff',
-        zIndex: 9999,
+      zIndex: 9999,
       }}
+      data-elements={elements?.length ?? 0}
+      data-appstate={JSON.stringify(appState || {})}
     >
       {/* 顶部工具栏 */}
       {(showToolbar || showBackButton) && (

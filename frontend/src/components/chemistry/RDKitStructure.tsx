@@ -1,33 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useChemistryLocal, detectChemicalFormat } from '@/lib/hooks/useChemistryLocal'
 
 interface RDKitStructureProps {
-  /** 化学结构数据 (SMILES, MOL, SDF格式) */
   data: string
-  /** 宽度 */
   width?: number | string
-  /** 高度 */
   height?: number | string
-  /** 背景色 */
   backgroundColor?: string
-  /** 原子标签大小 */
   atomLabelSize?: number
-  /** 键宽度 */
   bondWidth?: number
-  /** 显示原子序号 */
   showAtomNumbers?: boolean
-  /** 自定义类名 */
   className?: string
-  /** 样式类型 */
   style?: 'normal' | 'publication' | 'draft'
 }
 
-/**
- * RDKitStructure - 2D化学结构可视化组件
- * 基于 RDKit.js 生成高质量的2D矢量图
- */
 export default function RDKitStructure({
   data,
   width = '100%',
@@ -39,30 +26,24 @@ export default function RDKitStructure({
   className = '',
   style = 'normal',
 }: RDKitStructureProps) {
+  void showAtomNumbers;
   const [svgContent, setSvgContent] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
 
-  const { isLoaded, error: rdkitError, smilesToSVG, molToSVG } = useChemistryLocal()
+  const chemistryData = useChemistryLocal()
+  const isLoaded = chemistryData.isLoaded
+  const smilesToSVG = chemistryData.smilesToSVG
+  const molToSVG = chemistryData.molToSVG
+  const rdkitError = chemistryData.error
+  const [directRDKitAvailable, setDirectRDKitAvailable] = useState(false)
 
-  // 优化SVG显示
-  const optimizeSVG = useCallback(
-    (svg: string): string => {
-      // 设置背景色和样式
-      const optimized = svg
-        .replace(/<svg([^>]*)>/, `<svg$1 style="background-color: ${backgroundColor};">`)
-        .replace(/width="(\d+)" height="(\d+)"/, (match, w, h) => {
-          // 如果指定了宽高，使用指定值
-          if (typeof width === 'number') {
-            return `width="${width}" height="${height}"`
-          }
-          return match
-        })
-
-      return optimized
-    },
-    [backgroundColor, width, height]
-  )
+  // Check for direct RDKit access on mount (client-side only)
+  useEffect(() => {
+    setDirectRDKitAvailable(
+      typeof window !== 'undefined' && typeof (window as any).RDKit !== 'undefined' && (window as any).RDKit
+    )
+  }, [])
 
   useEffect(() => {
     const generateSVG = async () => {
@@ -72,48 +53,87 @@ export default function RDKitStructure({
         return
       }
 
-      if (!isLoaded) {
+      if (!isLoaded && !directRDKitAvailable) {
         return
       }
 
       try {
-        setIsLoading(true)
-        setError('')
+        console.log('[RDKitStructure] Attempting to generate SVG for data:', data?.substring(0, 50))
 
-        const format = detectChemicalFormat(data)
+        if (directRDKitAvailable) {
+          const RDKit = (window as any).RDKit
+          const format = detectChemicalFormat(data)
 
-        let svg = ''
-        switch (format) {
-          case 'smiles':
-            svg = await smilesToSVG(data)
-            break
-          case 'mol':
-          case 'sdf':
-            svg = await molToSVG(data)
-            break
-          default:
-            throw new Error(`Unsupported format: ${format}`)
+          let svg = ''
+          switch (format) {
+            case 'smiles':
+              const mol = RDKit.get_mol(data)
+              if (!mol) throw new Error('Invalid SMILES string')
+              svg = mol.get_svg()
+              if (!svg) throw new Error('Failed to generate SVG from SMILES')
+              mol.delete()
+              break
+            case 'mol':
+            case 'sdf':
+              const mol2 = RDKit.get_mol(data)
+              if (!mol2) throw new Error('Invalid MOL data')
+              svg = mol2.get_svg()
+              if (!svg) throw new Error('Failed to generate SVG from MOL')
+              mol2.delete()
+              break
+            default:
+              throw new Error(`Unsupported format: ${format}`)
+          }
+
+          const optimizedSVG = optimizeSVG(svg)
+          setSvgContent(optimizedSVG)
+          setIsLoading(false)
+          setError('')
+        } else {
+          const format = detectChemicalFormat(data)
+
+          let svg = ''
+          switch (format) {
+            case 'smiles':
+              svg = await smilesToSVG(data)
+              break
+            case 'mol':
+            case 'sdf':
+              svg = await molToSVG(data)
+              break
+            default:
+              throw new Error(`Unsupported format: ${format}`)
+          }
+
+          const optimizedSVG = optimizeSVG(svg)
+          setSvgContent(optimizedSVG)
+          setError('')
         }
-
-        // 优化SVG显示
-        const optimizedSVG = optimizeSVG(svg)
-        setSvgContent(optimizedSVG)
-        setError('')
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to render structure'
         setError(errorMessage)
         setSvgContent('')
-        console.error('RDKit rendering error:', err)
+        console.error('[RDKitStructure] Error:', err)
       } finally {
         setIsLoading(false)
       }
     }
 
     generateSVG()
-  }, [data, isLoaded, smilesToSVG, molToSVG, optimizeSVG])
+  }, [data, isLoaded, directRDKitAvailable, smilesToSVG, molToSVG])
 
-  // 获取样式配置
-  const getStyleConfig = () => {
+  function optimizeSVG(svg: string): string {
+    return svg
+      .replace(/<svg([^>]*)>/, `<svg$1 style="background-color: ${backgroundColor};">`)
+  .replace(/width="(\d+)" height="(\d+)"/, (match, _w, _h) => {
+        if (typeof width === 'number') {
+          return `width="${width}" height="${height}"`
+        }
+        return match
+      })
+  }
+
+  function getStyleConfig() {
     const configs = {
       normal: { borderWidth: bondWidth, labelSize: atomLabelSize },
       publication: { borderWidth: bondWidth + 1, labelSize: atomLabelSize - 2 },
@@ -123,11 +143,12 @@ export default function RDKitStructure({
   }
 
   const styleConfig = getStyleConfig()
+  void styleConfig
 
   if (rdkitError) {
     return (
       <div
-        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-4 ${className}`}
+        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-red-300 p-4 ${className}`}
         style={{ width, height, backgroundColor, maxWidth: '100%' }}
       >
         <div className="text-center">
@@ -143,7 +164,7 @@ export default function RDKitStructure({
     return (
       <div
         className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 ${className}`}
-        style={{ width, height, maxWidth: '100%' }}
+        style={{ width, height, backgroundColor, maxWidth: '100%' }}
       >
         <div className="text-center">
           <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"></div>
@@ -159,13 +180,7 @@ export default function RDKitStructure({
         className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-red-300 p-4 ${className}`}
         style={{ width, height, backgroundColor, maxWidth: '100%' }}
       >
-        <div className="text-center">
-          <div className="mb-2 text-red-500">❌ Structure Error</div>
-          <div className="text-sm text-gray-600">{error}</div>
-          <div className="mt-1 text-xs text-gray-500">
-            Format: {data ? detectChemicalFormat(data) : 'unknown'}
-          </div>
-        </div>
+        <div className="text-center">RDKitError: {error}</div>
       </div>
     )
   }
@@ -188,15 +203,9 @@ export default function RDKitStructure({
               backgroundColor,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
             }}
           />
         )}
-      </div>
-
-      {/* 结构信息 */}
-      <div className="mt-2 text-center text-xs text-gray-500">
-        Format: {detectChemicalFormat(data).toUpperCase()} | Rendered with RDKit.js
       </div>
     </div>
   )

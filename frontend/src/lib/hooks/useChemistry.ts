@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface UseChemistryOptions {
   /** RDKit WASM 文件URL */
@@ -19,7 +19,7 @@ interface UseChemistryReturn {
   /** 将 MOL 块转换为 2D SVG */
   molToSVG: (mol: string) => Promise<string>
   /** 获取分子指纹 */
-  getMorganFingerprint: (smiles: string, radius?: number, bits?: number) => Promise<string>
+  getMorganFingerprint: (smiles: string, _radius?: number, bits?: number) => Promise<string>
 }
 
 /**
@@ -28,6 +28,8 @@ interface UseChemistryReturn {
  * 后续可以替换为实际的RDKit集成
  */
 export function useChemistry(options: UseChemistryOptions = {}): UseChemistryReturn {
+  // Consume options to silence TS6133 when not all options are used
+  void options
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [RDKit, setRDKit] = useState<any>(null)
@@ -80,7 +82,7 @@ export function useChemistry(options: UseChemistryOptions = {}): UseChemistryRet
                 </text>
               </svg>`
             },
-            get_morgan_fingerprint: (radius: number, bits: number) => ({
+            get_morgan_fingerprint: (_radius: number, bits: number) => ({
               to_bitstring: () => {
                 // 生成模拟的分子指纹
                 // 使用输入数据的哈希来生成一致的指纹

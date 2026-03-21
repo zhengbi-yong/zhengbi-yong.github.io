@@ -7,7 +7,7 @@ export function useReducedMotion() {
   const [prefersReduced, setPrefersReduced] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return undefined
 
     // Check for saved preference or system preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')

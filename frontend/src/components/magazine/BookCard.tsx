@@ -71,8 +71,10 @@ export default function BookCard({
   className = '',
 }: BookCardProps) {
   const [isMobile, setIsMobile] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-  const [showChapters, setShowChapters] = useState(false)
+  const [isHovered, _setIsHovered] = useState(false)
+  const [showChapters, _setShowChapters] = useState(false)
+  // Suppress TS6133 for unused showChapters
+  void showChapters
 
   // 3D悬停效果
   const mouseX = useMotionValue(0)

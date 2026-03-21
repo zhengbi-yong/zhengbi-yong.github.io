@@ -18,7 +18,9 @@ use crate::state::AppState;
 /// Axum 提取器：从请求中提取真实客户端 IP 地址
 ///
 /// # 使用示例
-/// ```rust
+/// ```rust,no_run
+/// use blog_api::utils::ip_extractor::RealIp;
+///
 /// pub async fn handler(
 ///     RealIp(client_ip): RealIp,
 /// ) -> String {

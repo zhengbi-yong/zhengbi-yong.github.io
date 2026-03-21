@@ -27,13 +27,13 @@ const TimelineAnimation = memo(
     const timelineRef = useRef<gsap.core.Timeline | null>(null)
     const { duration: optimizedDuration } = getGSAPMobileOptimizedParams(duration)
 
-    useGSAP(() => {
-      if (!containerRef.current) return
+  useGSAP(() => {
+      if (!containerRef.current) return undefined
 
       const container = containerRef.current
       const children = container.children
 
-      if (children.length === 0) return
+      if (children.length === 0) return undefined
 
       // 为每个子元素设置初始状态
       Array.from(children).forEach((child) => {
@@ -75,7 +75,7 @@ const TimelineAnimation = memo(
 
     // 使用额外的 useEffect 确保时间线在 DOM 完全渲染后播放
     useEffect(() => {
-      if (!autoPlay || !timelineRef.current) return
+      if (!autoPlay || !timelineRef.current) return undefined
 
       // 等待 DOM 完全渲染
       const timer = setTimeout(() => {

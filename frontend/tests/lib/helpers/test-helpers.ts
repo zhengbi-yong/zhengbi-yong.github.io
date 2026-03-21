@@ -7,7 +7,7 @@
 
 import { ReactElement } from 'react'
 import { render, RenderOptions, waitFor, waitForElementToBeRemoved } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { userEvent } from '@testing-library/user-event'
 
 /**
  * Custom render options with providers
@@ -79,15 +79,7 @@ export function renderWithProviders(
     forward: vi.fn(),
     refresh: vi.fn(),
   }
-
-  // Create wrapper with providers
-  const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
-    // Add theme provider wrapper if needed
-    // Add router context wrapper if needed
-    // Add auth provider wrapper if needed
-    return <>{children}</>
-  }
-
+  
   return {
     ...render(ui, {
       wrapper: AllTheProviders,

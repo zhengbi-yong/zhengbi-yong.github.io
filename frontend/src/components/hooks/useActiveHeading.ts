@@ -49,7 +49,7 @@ export function useActiveHeading(headingIds: string[]) {
   }, [headingIds])
 
   useEffect(() => {
-    if (headingIds.length === 0) return
+    if (headingIds.length === 0) return undefined
 
     // 存储所有标题元素
     headingElementsRef.current.clear()

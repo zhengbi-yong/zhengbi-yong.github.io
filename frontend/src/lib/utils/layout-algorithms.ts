@@ -100,7 +100,7 @@ export function assignCardSizes(items: ContentItem[]): CardSize[] {
 
   let distribution = { ...targetDistribution }
 
-  for (const { item, score } of scored) {
+  for (const { score } of scored) {
     let size: CardSize
 
     if (score >= 4 && distribution.large > 0) {

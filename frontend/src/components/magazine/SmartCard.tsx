@@ -32,6 +32,8 @@ export default function SmartCard({
   onClick,
   className = '',
 }: SmartCardProps) {
+  // Consume index to avoid TS6133 when not strictly needed
+  void index
   // 使用 useMemo 缓存卡片类型判断
   const cardType = useMemo(() => {
     if (content.type === 'book') return 'book'

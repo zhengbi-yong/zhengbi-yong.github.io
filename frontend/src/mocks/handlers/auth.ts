@@ -14,12 +14,6 @@ let mockUsers = [
   }),
   createUserFactory({
     id: '2',
-    username: 'author',
-    email: 'author@example.com',
-    role: 'author',
-  }),
-  createUserFactory({
-    id: '3',
     username: 'user',
     email: 'user@example.com',
     role: 'user',
@@ -74,10 +68,10 @@ export const authHandlers = [
 
   // POST /v1/auth/register - Register
   http.post(`${API_BASE}/v1/auth/register`, async ({ request }) => {
-    const { username, email, password } = await request.json() as { username: string; email: string; password: string }
+    const { username, email, password: _password } = await request.json() as { username: string; email: string; password: string }
+    void _password
 
     // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 100))
 
     // Check if user already exists
     const existingUser = mockUsers.find(u => u.email === email || u.username === username)
@@ -205,7 +199,8 @@ export const authHandlers = [
 
     await new Promise(resolve => setTimeout(resolve, 100))
 
-    const user = mockUsers.find(u => u.email === email)
+    const _user = mockUsers.find(u => u.email === email)
+    void _user
 
     // Always return success for security reasons
     return HttpResponse.json({
@@ -257,12 +252,6 @@ export const resetMockUsers = () => {
     }),
     createUserFactory({
       id: '2',
-      username: 'author',
-      email: 'author@example.com',
-      role: 'author',
-    }),
-    createUserFactory({
-      id: '3',
       username: 'user',
       email: 'user@example.com',
       role: 'user',

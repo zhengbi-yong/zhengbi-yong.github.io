@@ -4,7 +4,6 @@ import { useRef, ReactNode } from 'react'
 import { useGSAP } from '@/components/hooks/useGSAP'
 import { getGSAPMobileOptimizedParams } from '@/lib/utils/gsap'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 interface ScrollRevealProps {
   children: ReactNode
@@ -33,7 +32,7 @@ export default function ScrollReveal({
   const { duration: optimizedDuration } = getGSAPMobileOptimizedParams(duration)
 
   useGSAP(() => {
-    if (!ref.current) return
+    if (!ref.current) return undefined
 
     const element = ref.current
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768

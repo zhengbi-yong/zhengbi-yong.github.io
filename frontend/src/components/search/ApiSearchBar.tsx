@@ -5,7 +5,7 @@
  * Uses React Query for search with debouncing and autocomplete
  */
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearch, useSearchSuggestions } from '@/lib/hooks/useBlogData'
 import { useRouter } from 'next/navigation'
 

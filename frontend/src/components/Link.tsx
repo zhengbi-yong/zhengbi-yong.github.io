@@ -4,7 +4,6 @@
 import Link from 'next/link'
 import type { LinkProps } from 'next/link'
 import { AnchorHTMLAttributes, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import prefetchManager from '@/lib/utils/prefetch-manager'
 import postPreloader from '@/lib/utils/post-preloader'
 
@@ -13,7 +12,7 @@ interface CustomLinkProps
   extends LinkProps, Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onMouseEnter'> {
   prefetch?: boolean
   prefetchOnHover?: boolean
-  onMouseEnter?: (e: React.MouseEvent<HTMLAnchorElement>) => void
+  onMouseEnter?: (_e: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
 // 将 href 转换为字符串的辅助函数
@@ -22,7 +21,6 @@ function hrefToString(href: LinkProps['href']): string {
     return href
   }
   if (typeof href === 'object' && href !== null) {
-    // UrlObject 类型：包含 pathname, query, hash 等
     const urlObject = href as { pathname?: string; query?: Record<string, any>; hash?: string }
     let result = urlObject.pathname || ''
     if (urlObject.query) {
@@ -39,70 +37,63 @@ function hrefToString(href: LinkProps['href']): string {
   return ''
 }
 
+// 悬停预取处理函数
+function handleMouseEnter(
+  _e: React.MouseEvent<HTMLAnchorElement>,
+  hrefString: string,
+  isInternalLink: boolean,
+  prefetchOnHover: boolean,
+  prefetchedRef: React.MutableRefObject<boolean>
+): void {
+  if (prefetchOnHover && isInternalLink && hrefString) {
+    const isPostLink = hrefString.startsWith('/blog/') && hrefString !== '/blog'
+    if (isPostLink) {
+      const slug = hrefString.replace('/blog/', '')
+      postPreloader.preloadPost(slug, 'high')
+    }
+    
+    if (!prefetchManager.hasPrefetched(hrefString) && !prefetchedRef.current) {
+      prefetchManager.prefetch(hrefString, 'medium')
+      prefetchedRef.current = true
+    }
+  }
+}
+
 const CustomLink = ({
   href,
   prefetch = true,
   prefetchOnHover = true,
   ...rest
 }: CustomLinkProps) => {
-  const router = useRouter()
   const prefetchedRef = useRef(false)
   const hrefString = hrefToString(href)
-  const isInternalLink = hrefString && hrefString.startsWith('/')
-  const isAnchorLink = hrefString && hrefString.startsWith('#')
+  const isInternalLink = typeof href === 'string' && href.startsWith('/')
 
-  // 悬停预取处理（使用 PrefetchManager 和 PostPreloader 管理）
-  const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (prefetchOnHover && isInternalLink && hrefString) {
-      // 检查是否是文章链接
-      const isPostLink = hrefString.startsWith('/blog/') && hrefString !== '/blog'
-      if (isPostLink) {
-        // 提取 slug
-        const slug = hrefString.replace('/blog/', '')
-        // 立即预加载文章（最高优先级）
-        postPreloader.preloadPost(slug, 'high')
-        // 立即处理队列（高优先级任务）
-        // 注意：preloadPost 内部会自动处理高优先级任务，这里不需要手动调用
-      }
-
-      // 检查是否已预取
-      if (!prefetchManager.hasPrefetched(hrefString) && !prefetchedRef.current) {
-        // 使用 PrefetchManager 进行预取（自动管理队列和并发）
-        prefetchManager.prefetch(hrefString, 'medium')
-        prefetchedRef.current = true
-      }
-    }
-    // 调用原有的 onMouseEnter（如果存在）
+  const handleMouseEnterFn = (_e: React.MouseEvent<HTMLAnchorElement>) => {
+    handleMouseEnter(_e, hrefString, isInternalLink, prefetchOnHover, prefetchedRef)
     if (rest.onMouseEnter) {
-      rest.onMouseEnter(e)
+      rest.onMouseEnter(_e)
     }
   }
 
+  // 内部链接使用 Next.js Link 组件（避免 hydration 错误）
   if (isInternalLink) {
     return (
       <Link
         className="break-words"
         href={href}
         prefetch={prefetch}
-        onMouseEnter={handleMouseEnter}
+        onMouseEnter={handleMouseEnterFn}
         {...rest}
       />
     )
   }
 
-  if (isAnchorLink) {
+  // 外部链接使用原生 a 标签（避免嵌套 Link 导致 hydration 错误）
+  if (!isInternalLink) {
     return <a className="break-words" href={hrefString} {...rest} />
   }
-
-  return (
-    <a
-      className="break-words"
-      target="_blank"
-      rel="noopener noreferrer"
-      href={hrefString}
-      {...rest}
-    />
-  )
+  return null
 }
 
 export default CustomLink

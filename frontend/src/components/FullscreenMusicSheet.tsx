@@ -2,10 +2,34 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Spinner } from '@/components/loaders'
-import { logger } from '@/lib/utils/logger'
-import type { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
 import JSZip from 'jszip'
+
+// Simple logger for development
+const logger = {
+  log: (...args: unknown[]) => console.log(...args),
+  error: (...args: unknown[]) => console.error(...args),
+  warn: (...args: unknown[]) => console.warn(...args),
+  debug: (...args: unknown[]) => console.debug(...args),
+}
+
+// Type for OpenSheetMusicDisplay (loaded dynamically)
+interface OpenSheetMusicDisplay {
+  load: (score: string) => Promise<void>
+  render: () => void
+  zoom: number
+  clear: () => void
+}
+
+// Simple spinner component (accepts optional size prop)
+type SpinnerProps = { size?: string }
+const Spinner = ({ size = 'md' }: SpinnerProps) => {
+  const sizeClass = size === 'lg' ? 'h-8 w-8' : size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      <div className={`${sizeClass} border-4 border-white border-t-transparent rounded-full animate-spin`} />
+    </div>
+  )
+}
 
 interface FullscreenMusicSheetProps {
   /** MusicXML 文件路径，相对于 public/musicxml/ 目录，支持 .xml 和 .mxl 格式 */
@@ -246,7 +270,7 @@ export default function FullscreenMusicSheet({
 
   // 初始化 OSMD
   useEffect(() => {
-    if (!mounted || !containerRef.current) return
+    if (!mounted || !containerRef.current) return undefined
 
     const initializeOSMD = async () => {
       try {

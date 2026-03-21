@@ -7,14 +7,14 @@ export function useFocusTrap(isActive: boolean) {
   const containerRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (!isActive || !containerRef.current) return
+    if (!isActive || !containerRef.current) return undefined
 
     const container = containerRef.current
     const focusableElements = container.querySelectorAll(
       'a[href], button, textarea, input[type="text"], input[type="radio"], input[type="checkbox"], select'
     )
 
-    if (focusableElements.length === 0) return
+    if (focusableElements.length === 0) return undefined
 
     const firstElement = focusableElements[0] as HTMLElement
     const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement

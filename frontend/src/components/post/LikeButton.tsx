@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePostStore, useAuthStore } from '@/lib/store'
 import { Button } from '@/components/shadcn/ui/button'
-import { ThumbsUp, ThumbsUpIcon } from 'lucide-react'
+import { ThumbsUp } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 
 interface LikeButtonProps {

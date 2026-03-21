@@ -16,6 +16,7 @@ export interface ContentItem {
   image?: string
   slug: string
   featured?: boolean
+  readCount?: number
 }
 
 /**
@@ -184,7 +185,7 @@ function MasonryCell({ item, size, index, onClick }: MasonryCellProps) {
  */
 export default function MasonryGrid({
   items,
-  columnCount = 3,
+  columnCount: _columnCount = 3,
   onItemClick,
 }: MasonryGridProps) {
   const [visibleItems, setVisibleItems] = useState<ContentItem[]>([])
@@ -192,7 +193,7 @@ export default function MasonryGrid({
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
   // 计算每个项目的尺寸
-  const itemsWithSizes = items.map((item, index) => ({
+  const _itemsWithSizes = items.map((item, index) => ({
     item,
     size: calculateCardSize(item, index),
   }))
@@ -237,7 +238,7 @@ export default function MasonryGrid({
           <MasonryCell
             key={item.id}
             item={item}
-            size={calculateCardSize(item, index)}
+            size={_itemsWithSizes[index]?.size ?? calculateCardSize(item, index)}
             index={index}
             onClick={onItemClick}
           />

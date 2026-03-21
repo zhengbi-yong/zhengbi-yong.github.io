@@ -541,7 +541,7 @@ fn build_category_tree(categories: &[Category]) -> Vec<CategoryTreeNode> {
     let mut roots = Vec::new();
 
     for category in categories {
-        if let Some(mut node) = category_map.remove(&category.id) {
+        if let Some(node) = category_map.remove(&category.id) {
             if let Some(parent_id) = category.parent_id {
                 // 找到父节点并添加当前节点
                 if let Some(parent) = category_map.get_mut(&parent_id) {

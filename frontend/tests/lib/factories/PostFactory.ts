@@ -13,6 +13,7 @@ export interface TestPost {
   id: string
   slug: string
   title: string
+  summary?: string | null
   excerpt?: string | null
   content: string
   author: {
@@ -138,7 +139,7 @@ export function createPostFactory(options: PostFactoryOptions = {}): TestPost {
 
   // Generate tags
   const tagCount = faker.number.int({ min: 1, max: 5 })
-  const tags = options.tags || faker.helpers.arrayElements(COMMON_TAGS, { count: tagCount })
+  const tags = options.tags || faker.helpers.arrayElements(COMMON_TAGS, tagCount)
 
   // Generate excerpt if not provided
   const excerpt = options.excerpt !== undefined

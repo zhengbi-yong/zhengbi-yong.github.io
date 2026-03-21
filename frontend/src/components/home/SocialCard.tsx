@@ -29,8 +29,7 @@ export default function SocialCard({ displaySocialIds = [] }: SocialCardProps) {
     })
   }, [displaySocialIds])
 
-  // 计算总行数
-  const totalRows = Math.ceil(filteredSocial.length / itemsPerRow)
+  
 
   return (
     <div className="relative w-full">
@@ -139,12 +138,12 @@ function SocialCardItem({ item, index, total, itemsPerRow }: SocialCardItemProps
       rel="noopener noreferrer"
       className="social-item relative h-[72px] w-[72px] cursor-pointer overflow-hidden rounded-xl transition-all duration-300 hover:shadow-[0_15px_32px_rgba(0,0,0,0.15),0_5px_12px_rgba(0,0,0,0.1)] active:scale-95 md:active:scale-100"
       style={{
-        ['--index' as any]: index,
-        ['--total' as any]: total,
-        ['--row' as any]: row,
-        ['--col' as any]: col,
-        ['--items-per-row' as any]: itemsPerRow,
-      }}
+        '--index': index,
+        '--total': total,
+        '--row': row,
+        '--col': col,
+        '--items-per-row': itemsPerRow,
+      } as React.CSSProperties}
     >
       <Image
         src={item.image}

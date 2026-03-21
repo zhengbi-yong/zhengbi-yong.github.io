@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { TOC, TOCItem } from '@/lib/types/toc'
+import type { TOC } from '@/lib/types/toc'
 
 /**
  * TOC 导航逻辑 Hook

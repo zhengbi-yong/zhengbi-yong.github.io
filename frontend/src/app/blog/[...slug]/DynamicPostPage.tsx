@@ -18,10 +18,11 @@ import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Authors, Blog } from 'contentlayer/generated'
 import type { ReactNode } from 'react'
 import type { TOC } from '@/lib/types/toc'
-import Script from 'next/script'
+import type { PostDetail } from '@/lib/types/backend'
+import { RDKitLoader } from '@/components/RDKitLoader'
 
 interface LayoutProps {
-  content: CoreContent<Blog> | any // Accept both static and dynamic post types
+  content: CoreContent<Blog> | PostDetail // Accept both static and dynamic post types
   authorDetails: CoreContent<Authors>[]
   next?: { path: string; title: string }
   prev?: { path: string; title: string }
@@ -34,7 +35,7 @@ const layouts = {
   PostSimple,
   PostLayout,
   PostBanner,
-} satisfies Record<string, React.ComponentType<LayoutProps>>
+} as unknown as Record<string, React.ComponentType<LayoutProps>>
 
 const defaultLayout: keyof typeof layouts = 'PostLayout'
 
@@ -46,16 +47,16 @@ interface DynamicPostPageProps {
   slug: string
 }
 
-export function DynamicPostPage({ slug }: DynamicPostPageProps) {
+  export function DynamicPostPage({ slug }: DynamicPostPageProps) {
   const { data: post, isLoading, error } = usePost(slug)
 
   useEffect(() => {
-    // 记录文章浏览
-    if (post) {
-      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'}/v1/posts/${slug}/view`, {
-        method: 'POST',
-      }).catch((err) => console.error('Failed to record view:', err))
-    }
+    // 注释掉view记录功能 - 后端缺少此端点
+    // if (post) {
+    //   fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'}/api/v1/posts/${slug}/view`, {
+    //     method: 'POST',
+    //   }).catch((err) => console.error('Failed to record view:', err))
+    // }
   }, [post, slug])
 
   if (isLoading) {
@@ -81,11 +82,13 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
   const layoutKey = post.layout && isLayoutKey(post.layout) ? post.layout : defaultLayout
   const Layout = layouts[layoutKey]
 
-  // 确定是否显示TOC
-  const showTOC = post.show_toc !== undefined ? post.show_toc : true
+  const showTOC = post.show_toc === true
 
   return (
     <>
+      {/* RDKit initialization script */}
+      <RDKitLoader />
+
       {/* 结构化数据 */}
       <script
         type="application/ld+json"
@@ -97,22 +100,15 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
             datePublished: post.published_at,
             dateModified: post.updated_at,
             description: post.summary || '',
-            url: `${window.location.origin}/blog/${post.slug}`,
+            url: typeof window !== 'undefined' ? `${window.location.origin}/blog/${post.slug}` : '',
           }),
         }}
       />
 
-      {/* Load RDKit for chemistry visualization */}
-      <Script
-        src="/chemistry/rdkit/RDKit_minimal.js"
-        strategy="beforeInteractive"
-      />
-
       {/* 布局组件 */}
       <Layout
-        content={post as any}
+        content={post}
         authorDetails={[]}
-        toc={(post as any).toc}
         showTOC={showTOC}
       >
         <DynamicPostRenderer content={post.content} slug={slug} />

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ContentItem } from './MasonryGrid'
 import { generateRecommendations } from '@/lib/utils/recommendation-algorithm'
-import SmartCard from './SmartCard'
 
 /**
  * RecommendedSection 组件属性

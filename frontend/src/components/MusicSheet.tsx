@@ -1,10 +1,27 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Spinner } from '@/components/loaders'
+// Lightweight Spinner for loading states (accepts size prop)
+type SpinnerProps = { size?: string }
+const Spinner = ({ size = 'md' }: SpinnerProps) => {
+  const sizeClass = size === 'lg' ? 'h-8 w-8' : size === 'sm' ? 'h-4 w-4' : 'h-6 w-6'
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      <div className={`${sizeClass} border-4 border-white border-t-transparent rounded-full animate-spin`} />
+    </div>
+  )
+}
 import type { OpenSheetMusicDisplay } from 'opensheetmusicdisplay'
+
+// Simple logger for development
+const logger = {
+  log: (...args: unknown[]) => console.log(...args),
+  error: (...args: unknown[]) => console.error(...args),
+  warn: (...args: unknown[]) => console.warn(...args),
+  debug: (...args: unknown[]) => console.debug(...args),
+}
+
 import JSZip from 'jszip'
-import { logger } from '@/lib/utils/logger'
 
 interface MusicSheetProps {
   /** MusicXML 文件路径，相对于 public/musicxml/ 目录，支持 .xml 和 .mxl 格式 */
@@ -198,7 +215,7 @@ export default function MusicSheet({
         }
       } catch (urlError) {
         // 如果 URL 加载失败，尝试使用 XML 字符串
-        logger.warn('URL 加载失败，尝试使用 XML 字符串:', urlError)
+        console.warn('URL 加载失败，尝试使用 XML 字符串:', urlError)
         await osmdInstanceRef.current.load(xmlContent)
       }
 
@@ -209,8 +226,8 @@ export default function MusicSheet({
       osmdInstanceRef.current.render()
 
       setIsLoading(false)
-    } catch (err) {
-      logger.error('加载乐谱错误:', err)
+      } catch (err) {
+      console.error('加载乐谱错误:', err)
       setError(`加载乐谱失败: ${err instanceof Error ? err.message : '未知错误'}`)
       setIsLoading(false)
     }
@@ -218,7 +235,7 @@ export default function MusicSheet({
 
   // 初始化 OSMD
   useEffect(() => {
-    if (!mounted || !containerRef.current) return
+    if (!mounted || !containerRef.current) { return undefined; }
 
     const initializeOSMD = async () => {
       try {

@@ -7,7 +7,6 @@ import { formatDate } from 'pliny/utils/formatDate'
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
 import Link from '@/components/Link'
-import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
 import { shouldDisableComplexAnimations } from '@/lib/utils/performance-optimized'
 

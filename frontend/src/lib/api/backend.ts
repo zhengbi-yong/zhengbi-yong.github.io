@@ -12,10 +12,8 @@ import type {
   CommentListResponse,
   CreateCommentRequest,
   AdminStats,
-  UserListItem,
   UserListResponse,
   UpdateUserRoleRequest,
-  CommentAdminItem,
   CommentAdminListResponse,
   UpdateCommentStatusRequest,
   PostDetail,
@@ -24,8 +22,13 @@ import type {
   Category,
   Tag,
   SearchResponse,
-  TagBasic,
-  CategoryBasic,
+  ReadingProgress,
+  ReadingHistoryResponse,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
+  UserReadingStats,
+  CommentNotificationSubscription,
+  CommentNotificationPreferences,
 } from '../types/backend'
 
 // Backend API base URL - adjust based on your environment
@@ -174,6 +177,53 @@ export const authService = {
     const newToken = await refreshAccessToken()
     return { access_token: newToken }
   },
+
+  /**
+   * Update user profile
+   */
+  async updateProfile(data: UpdateProfileRequest): Promise<UserInfo> {
+    const response = await api.put<UserInfo>(`${BACKEND_API_URL}/auth/profile`, data, { cache: false })
+    // Update localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user_info', JSON.stringify(response.data))
+    }
+    return response.data
+  },
+
+  /**
+   * Change password
+   */
+  async changePassword(data: ChangePasswordRequest): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/auth/change-password`, data, { cache: false })
+  },
+
+  /**
+   * Upload avatar
+   */
+  async uploadAvatar(file: File): Promise<{ avatar_url: string }> {
+    const formData = new FormData()
+    formData.append('avatar', file)
+
+    const response = await api.post<{ avatar_url: string }>(
+      `${BACKEND_API_URL}/auth/avatar`,
+      formData,
+      {
+        cache: false,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    )
+    return response.data
+  },
+
+  /**
+   * Get user reading statistics
+   */
+  async getReadingStats(): Promise<UserReadingStats> {
+    const response = await api.get<UserReadingStats>(`${BACKEND_API_URL}/auth/reading-stats`, { cache: 60 * 1000 })
+    return response.data
+  },
 }
 
 // ==================== Post Service ====================
@@ -202,6 +252,16 @@ export const postService = {
    */
   async getPost(slug: string): Promise<PostDetail> {
     const response = await api.get<PostDetail>(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}`, {
+      cache: 5 * 60 * 1000, // 5 minute cache
+    })
+    return response.data
+  },
+
+  /**
+   * Get post detail by ID (UUID)
+   */
+  async getPostById(id: string): Promise<PostDetail> {
+    const response = await api.get<PostDetail>(`${BACKEND_API_URL}/posts/id/${id}`, {
       cache: 5 * 60 * 1000, // 5 minute cache
     })
     return response.data
@@ -446,6 +506,213 @@ export const adminService = {
   async deleteComment(commentId: string): Promise<void> {
     await api.delete(`${BACKEND_API_URL}/admin/comments/${commentId}`, { cache: false })
   },
+
+  /**
+   * Delete post
+   */
+  async deletePost(slug: string): Promise<void> {
+    await api.delete(`${BACKEND_API_URL}/admin/posts/${slug}`, { cache: false })
+  },
+
+  /**
+   * Get post versions
+   */
+  async getPostVersions(postId: string): Promise<any> {
+    const response = await api.get(`${BACKEND_API_URL}/admin/posts/${postId}/versions`)
+    return response.data
+  },
+
+  /**
+   * Restore post version
+   */
+  async restorePostVersion(postId: string, versionNumber: string): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/admin/posts/${postId}/versions/${versionNumber}/restore`, undefined)
+  },
+
+  /**
+   * Compare post versions
+   */
+  async comparePostVersions(postId: string, version1: string, version2: string): Promise<any> {
+    const response = await api.get(`${BACKEND_API_URL}/admin/posts/${postId}/versions/compare?v1=${version1}&v2=${version2}`)
+    return response.data
+  },
+
+  /**
+   * Get all media
+   */
+  async getMedia(page = 1, pageSize = 20): Promise<any> {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('page_size', pageSize.toString())
+
+    const response = await api.get(`${BACKEND_API_URL}/admin/media?${params.toString()}`)
+    return response.data
+  },
+
+  /**
+   * Get unused media
+   */
+  async getUnusedMedia(): Promise<any> {
+    const response = await api.get(`${BACKEND_API_URL}/admin/media/unused`)
+    return response.data
+  },
+
+  /**
+   * Delete media
+   */
+  async deleteMedia(mediaId: string): Promise<void> {
+    await api.delete(`${BACKEND_API_URL}/admin/media/${mediaId}`)
+  },
+}
+
+// ==================== Reading Progress Service ====================
+export const readingProgressService = {
+  /**
+   * Get reading progress for a post
+   */
+  async getProgress(slug: string): Promise<ReadingProgress> {
+    const response = await api.get<ReadingProgress>(`${BACKEND_API_URL}/posts/${slug}/reading-progress`)
+    return response.data
+  },
+
+  /**
+   * Update reading progress
+   */
+  async updateProgress(slug: string, progress: number, completed = false): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/posts/${slug}/reading-progress`, {
+      progress,
+      completed,
+    })
+  },
+
+  /**
+   * Reset reading progress
+   */
+  async resetProgress(slug: string): Promise<void> {
+    await api.delete(`${BACKEND_API_URL}/posts/${slug}/reading-progress`)
+  },
+
+  /**
+   * Get reading history
+   */
+  async getHistory(page = 1, pageSize = 20): Promise<ReadingHistoryResponse> {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('page_size', pageSize.toString())
+
+    const response = await api.get<ReadingHistoryResponse>(`${BACKEND_API_URL}/reading-progress/history?${params.toString()}`)
+    return response.data
+  },
+}
+
+// ==================== Bookmark Service ====================
+export const bookmarkService = {
+  /**
+   * Add bookmark
+   */
+  async addBookmark(postId: string, postSlug: string, postTitle: string): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/bookmarks`, {
+      post_id: postId,
+      post_slug: postSlug,
+      post_title: postTitle,
+    })
+  },
+
+  /**
+   * Remove bookmark
+   */
+  async removeBookmark(postId: string): Promise<void> {
+    await api.delete(`${BACKEND_API_URL}/bookmarks/${postId}`)
+  },
+
+  /**
+   * Check if post is bookmarked
+   */
+  async isBookmarked(postId: string): Promise<boolean> {
+    try {
+      const response = await api.get<{ bookmarked: boolean }>(`${BACKEND_API_URL}/bookmarks/${postId}/check`)
+      return response.data.bookmarked
+    } catch (error) {
+      return false
+    }
+  },
+
+  /**
+   * Get all bookmarks
+   */
+  async getBookmarks(page = 1, pageSize = 20): Promise<any> {
+    const params = new URLSearchParams()
+    params.append('page', page.toString())
+    params.append('page_size', pageSize.toString())
+
+    const response = await api.get(`${BACKEND_API_URL}/bookmarks?${params.toString()}`)
+    return response.data
+  },
+
+  /**
+   * Update bookmark note
+   */
+  async updateBookmarkNote(postId: string, note: string): Promise<void> {
+    await api.put(`${BACKEND_API_URL}/bookmarks/${postId}`, { note })
+  },
+}
+
+// ==================== Comment Notification Service ====================
+export const commentNotificationService = {
+  /**
+   * Subscribe to comment notifications for a post
+   */
+  async subscribeToPost(postId: string): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/notifications/comments/subscribe`, { post_id: postId })
+  },
+
+  /**
+   * Unsubscribe from comment notifications for a post
+   */
+  async unsubscribeFromPost(postId: string): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/notifications/comments/unsubscribe`, { post_id: postId })
+  },
+
+  /**
+   * Check if subscribed to post comments
+   */
+  async isSubscribedToPost(postId: string): Promise<boolean> {
+    try {
+      const response = await api.get<{ subscribed: boolean }>(
+        `${BACKEND_API_URL}/notifications/comments/check?post_id=${postId}`
+      )
+      return response.data.subscribed
+    } catch {
+      return false
+    }
+  },
+
+  /**
+   * Get all notification subscriptions
+   */
+  async getSubscriptions(): Promise<CommentNotificationSubscription[]> {
+    const response = await api.get<{ subscriptions: CommentNotificationSubscription[] }>(
+      `${BACKEND_API_URL}/notifications/comments/subscriptions`
+    )
+    return response.data.subscriptions
+  },
+
+  /**
+   * Update notification preferences
+   */
+  async updatePreferences(preferences: CommentNotificationPreferences): Promise<void> {
+    await api.put(`${BACKEND_API_URL}/notifications/comments/preferences`, preferences)
+  },
+
+  /**
+   * Get notification preferences
+   */
+  async getPreferences(): Promise<CommentNotificationPreferences> {
+    const response = await api.get<CommentNotificationPreferences>(
+      `${BACKEND_API_URL}/notifications/comments/preferences`
+    )
+    return response.data
+  },
 }
 
 // Export all services
@@ -457,4 +724,7 @@ export const backendApi = {
   category: categoryService,
   tag: tagService,
   search: searchService,
+  readingProgress: readingProgressService,
+  bookmark: bookmarkService,
+  commentNotification: commentNotificationService,
 }

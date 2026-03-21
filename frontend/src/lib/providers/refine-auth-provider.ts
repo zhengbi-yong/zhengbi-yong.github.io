@@ -10,7 +10,7 @@ import type { UserInfo } from '@/lib/types/backend'
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
     try {
-      const response = await authService.login({ email, password })
+      await authService.login({ email, password })
       
       // 用户信息已存储在 localStorage 中（由 authService 处理）
       return {
@@ -70,7 +70,7 @@ export const authProvider: AuthProvider = {
 
       // 尝试获取当前用户信息
       try {
-        const user = await authService.getCurrentUser()
+        await authService.getCurrentUser()
         return {
           authenticated: true,
         }
@@ -128,7 +128,7 @@ export const authProvider: AuthProvider = {
           name: userInfo.username,
           email: userInfo.email,
           avatar: userInfo.profile?.avatar || undefined,
-          role: (userInfo as any).role || 'user',
+          role: userInfo.role || 'user',
         }
       }
 
@@ -139,7 +139,7 @@ export const authProvider: AuthProvider = {
         name: user.username,
         email: user.email,
         avatar: user.profile?.avatar || undefined,
-        role: (user as any).role || 'user',
+        role: user.role || 'user',
       }
     } catch (error) {
       return null
@@ -148,7 +148,7 @@ export const authProvider: AuthProvider = {
 
   register: async ({ email, username, password }) => {
     try {
-      const response = await authService.register({ email, username, password })
+      await authService.register({ email, username, password })
       return {
         success: true,
         redirectTo: '/admin',
@@ -165,6 +165,8 @@ export const authProvider: AuthProvider = {
   },
 
   forgotPassword: async ({ email }) => {
+    // Consume email to satisfy TS6133 when not implemented yet
+    void email
     // TODO: 实现忘记密码功能
     return {
       success: false,
@@ -175,8 +177,9 @@ export const authProvider: AuthProvider = {
     }
   },
 
-  updatePassword: async ({ password, newPassword }) => {
+  updatePassword: async (_params) => {
     // TODO: 实现更新密码功能
+    void _params
     return {
       success: false,
       error: {
@@ -186,4 +189,3 @@ export const authProvider: AuthProvider = {
     }
   },
 }
-

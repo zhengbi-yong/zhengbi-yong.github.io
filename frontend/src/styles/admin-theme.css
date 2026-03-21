@@ -1,0 +1,382 @@
+/**
+ * 管理界面主题配色
+ *
+ * 设计原则：
+ * - 高对比度（保证可读性）
+ * - 低饱和度（专业工具感）
+ * - 扁平化（减少阴影，使用边框）
+ * - 小圆角（紧凑布局）
+ */
+
+:root {
+  /* ===== 背景色系统 ===== */
+
+  /* 主背景 - 浅灰色 */
+  --admin-bg-primary: #f8fafc;
+  /* 次要背景 - 白色（卡片、表格行） */
+  --admin-bg-secondary: #ffffff;
+  /* 第三背景 - 浅灰（悬停、选中） */
+  --admin-bg-tertiary: #f1f5f9;
+  /* 危险背景 - 浅红 */
+  --admin-bg-danger: #fef2f2;
+  /* 成功背景 - 浅绿 */
+  --admin-bg-success: #f0fdf4;
+  /* 警告背景 - 浅黄 */
+  --admin-bg-warning: #fefce8;
+
+  /* ===== 文字色系统 ===== */
+
+  /* 主要文字 - 深蓝灰 */
+  --admin-text-primary: #0f172a;
+  /* 次要文字 - 中灰 */
+  --admin-text-secondary: #475569;
+  /* 弱化文字 - 浅灰 */
+  --admin-text-muted: #94a3b8;
+  /* 反色文字（深色背景用） */
+  --admin-text-on-dark: #ffffff;
+  /* 链接文字 */
+  --admin-text-link: #3b82f6;
+  /* 链接悬停 */
+  --admin-text-link-hover: #2563eb;
+
+  /* ===== 边框色系统 ===== */
+
+  /* 浅色边框 */
+  --admin-border-light: #e2e8f0;
+  /* 中等边框 */
+  --admin-border-medium: #cbd5e1;
+  /* 深色边框 */
+  --admin-border-dark: #94a3b8;
+  /* 焦点边框 */
+  --admin-border-focus: #3b82f6;
+
+  /* ===== 强调色系统 ===== */
+
+  /* 蓝色 - 主要操作、链接 */
+  --admin-accent-blue: #3b82f6;
+  --admin-accent-blue-hover: #2563eb;
+  --admin-accent-blue-light: #dbeafe;
+  --admin-accent-blue-dark: #1e40af;
+
+  /* 绿色 - 成功、已发布 */
+  --admin-accent-green: #10b981;
+  --admin-accent-green-hover: #059669;
+  --admin-accent-green-light: #d1fae5;
+  --admin-accent-green-dark: #065f46;
+
+  /* 红色 - 危险、删除 */
+  --admin-accent-red: #ef4444;
+  --admin-accent-red-hover: #dc2626;
+  --admin-accent-red-light: #fee2e2;
+  --admin-accent-red-dark: #991b1b;
+
+  /* 黄色 - 警告、待审核 */
+  --admin-accent-yellow: #f59e0b;
+  --admin-accent-yellow-hover: #d97706;
+  --admin-accent-yellow-light: #fef3c7;
+  --admin-accent-yellow-dark: #92400e;
+
+  /* 紫色 - 特殊标记 */
+  --admin-accent-purple: #8b5cf6;
+  --admin-accent-purple-hover: #7c3aed;
+  --admin-accent-purple-light: #ede9fe;
+  --admin-accent-purple-dark: #5b21b6;
+
+  /* 灰色 - 禁用、未激活 */
+  --admin-accent-gray: #6b7280;
+  --admin-accent-gray-hover: #4b5563;
+  --admin-accent-gray-light: #f3f4f6;
+  --admin-accent-gray-dark: #374151;
+
+  /* ===== 阴影系统 ===== */
+
+  /* 扁平化设计：几乎不用阴影，改用边框 */
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+  /* 仅用于模态框、下拉菜单等浮动元素 */
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  /* ===== 圆角系统 ===== */
+
+  /* 小圆角 - 紧凑布局 */
+  --radius-xs: 0.125rem;  /* 2px */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.375rem;  /* 6px */
+  --radius-lg: 0.5rem;    /* 8px */
+  --radius-xl: 0.75rem;   /* 12px */
+
+  /* ===== 间距系统（补充） ===== */
+
+  --spacing-admin-xs: 0.25rem;   /* 4px */
+  --spacing-admin-sm: 0.5rem;    /* 8px */
+  --spacing-admin-md: 0.75rem;   /* 12px */
+  --spacing-admin-lg: 1rem;      /* 16px */
+
+  /* ===== Z-index 系统 ===== */
+
+  --z-admin-dropdown: 1000;
+  --z-admin-sticky: 1020;
+  --z-admin-fixed: 1030;
+  --z-admin-modal-backdrop: 1040;
+  --z-admin-modal: 1050;
+  --z-admin-popover: 1060;
+  --z-admin-tooltip: 1070;
+}
+
+/* ===== 暗色模式 ===== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 背景色系统 - 暗色 */
+    --admin-bg-primary: #0f172a;      /* 深蓝灰 */
+    --admin-bg-secondary: #1e293b;    /* 次深色 */
+    --admin-bg-tertiary: #334155;     /* 中深色 */
+    --admin-bg-danger: #450a0a;
+    --admin-bg-success: #052e16;
+    --admin-bg-warning: #422006;
+
+    /* 文字色系统 - 暗色 */
+    --admin-text-primary: #f8fafc;
+    --admin-text-secondary: #cbd5e1;
+    --admin-text-muted: #64748b;
+    --admin-text-on-dark: #f8fafc;
+    --admin-text-link: #60a5fa;
+    --admin-text-link-hover: #93c5fd;
+
+    /* 边框色系统 - 暗色 */
+    --admin-border-light: #334155;
+    --admin-border-medium: #475569;
+    --admin-border-dark: #64748b;
+    --admin-border-focus: #60a5fa;
+
+    /* 强调色系统 - 暗色模式下调亮 */
+    --admin-accent-blue: #3b82f6;
+    --admin-accent-blue-hover: #60a5fa;
+    --admin-accent-blue-light: #1e3a8a;
+    --admin-accent-blue-dark: #60a5fa;
+
+    --admin-accent-green: #10b981;
+    --admin-accent-green-hover: #34d399;
+    --admin-accent-green-light: #064e3b;
+    --admin-accent-green-dark: #34d399;
+
+    --admin-accent-red: #ef4444;
+    --admin-accent-red-hover: #f87171;
+    --admin-accent-red-light: #7f1d1d;
+    --admin-accent-red-dark: #f87171;
+
+    --admin-accent-yellow: #f59e0b;
+    --admin-accent-yellow-hover: #fbbf24;
+    --admin-accent-yellow-light: #78350f;
+    --admin-accent-yellow-dark: #fbbf24;
+  }
+}
+
+/* ===== 状态色语义类 ===== */
+
+/* 成功状态 */
+.admin-status-success {
+  color: var(--admin-accent-green);
+  background-color: var(--admin-accent-green-light);
+}
+
+.admin-status-success-dot {
+  background-color: var(--admin-accent-green);
+}
+
+/* 警告状态 */
+.admin-status-warning {
+  color: var(--admin-accent-yellow);
+  background-color: var(--admin-accent-yellow-light);
+}
+
+.admin-status-warning-dot {
+  background-color: var(--admin-accent-yellow);
+}
+
+/* 危险状态 */
+.admin-status-danger {
+  color: var(--admin-accent-red);
+  background-color: var(--admin-accent-red-light);
+}
+
+.admin-status-danger-dot {
+  background-color: var(--admin-accent-red);
+}
+
+/* 信息状态 */
+.admin-status-info {
+  color: var(--admin-accent-blue);
+  background-color: var(--admin-accent-blue-light);
+}
+
+.admin-status-info-dot {
+  background-color: var(--admin-accent-blue);
+}
+
+/* 禁用状态 */
+.admin-status-disabled {
+  color: var(--admin-accent-gray);
+  background-color: var(--admin-accent-gray-light);
+}
+
+.admin-status-disabled-dot {
+  background-color: var(--admin-accent-gray);
+}
+
+/* ===== 文字颜色语义类 ===== */
+
+.admin-text-primary {
+  color: var(--admin-text-primary);
+}
+
+.admin-text-secondary {
+  color: var(--admin-text-secondary);
+}
+
+.admin-text-muted {
+  color: var(--admin-text-muted);
+}
+
+.admin-text-link {
+  color: var(--admin-text-link);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.admin-text-link:hover {
+  color: var(--admin-text-link-hover);
+}
+
+/* ===== 背景颜色语义类 ===== */
+
+.admin-bg-primary {
+  background-color: var(--admin-bg-primary);
+}
+
+.admin-bg-secondary {
+  background-color: var(--admin-bg-secondary);
+}
+
+.admin-bg-tertiary {
+  background-color: var(--admin-bg-tertiary);
+}
+
+/* ===== 边框颜色语义类 ===== */
+
+.admin-border-light {
+  border-color: var(--admin-border-light);
+}
+
+.admin-border-medium {
+  border-color: var(--admin-border-medium);
+}
+
+.admin-border-dark {
+  border-color: var(--admin-border-dark);
+}
+
+/* ===== 实用工具类 ===== */
+
+/* 禁用选择（用于不可编辑内容）}
+.admin-no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* 等宽字体（数据显示） */
+.admin-font-mono {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.813rem;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+}
+
+/* 禁用文本换行 */
+.admin-nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 滚动条优化 */
+.admin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background-color: var(--admin-bg-primary);
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--admin-border-medium);
+  border-radius: var(--radius-sm);
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--admin-border-dark);
+}
+
+/* ===== 过渡动画 ===== */
+
+.admin-transition-fast {
+  transition: all 0.15s ease;
+}
+
+.admin-transition-base {
+  transition: all 0.2s ease;
+}
+
+.admin-transition-slow {
+  transition: all 0.3s ease;
+}
+
+/* ===== 焦点样式（无障碍） ===== */
+
+.admin-focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--admin-border-focus);
+}
+
+.admin-focus-ring-visible:focus-visible {
+  outline: 2px solid var(--admin-accent-blue);
+  outline-offset: 2px;
+}
+
+/* ===== 打印样式 ===== */
+
+@media print {
+  .admin-no-print {
+    display: none !important;
+  }
+
+  .admin-print-only {
+    display: block !important;
+  }
+}
+
+/* ===== 减少动画（可访问性） ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-transition-fast,
+  .admin-transition-base,
+  .admin-transition-slow {
+    transition: none !important;
+  }
+}
+
+/* ===== 高对比度模式（可访问性） ===== */
+
+@media (prefers-contrast: high) {
+  :root {
+    --admin-border-light: #000000;
+    --admin-border-medium: #000000;
+    --admin-text-secondary: #000000;
+    --admin-text-muted: #000000;
+  }
+}

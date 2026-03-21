@@ -1,5 +1,4 @@
 import { memo, useCallback } from 'react'
-import { cn } from '@/components/lib/utils'
 import styles from '../../FloatingTOC.module.css'
 import type { HeadingNode } from './types'
 import { TOCItem } from './TOCItem'

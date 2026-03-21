@@ -4,7 +4,6 @@ import { useRef, ReactNode } from 'react'
 import { useGSAP } from '@/components/hooks/useGSAP'
 import { getGSAPMobileOptimizedParams } from '@/lib/utils/gsap'
 import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 interface AnimationConfig {
   property: string
@@ -38,7 +37,7 @@ export default function AdvancedScrollAnimation({
   const { duration: optimizedDuration } = getGSAPMobileOptimizedParams(1)
 
   useGSAP(() => {
-    if (!ref.current) return
+    if (!ref.current) return undefined
 
     const element = ref.current
     const triggerElement = trigger || element

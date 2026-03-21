@@ -9,8 +9,6 @@ const CRITICAL_CACHE = [
   '/about',
   '/projects',
   '/music',
-  '/static/css/main.css',
-  '/static/js/main.js',
 ]
 
 // 需要缓存的资源类型

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from '@/components/Image'
-import Link from '@/components/Link'
 import { cn } from '@/components/lib/utils'
 
 interface HeroCardProps {
@@ -46,12 +45,12 @@ export default function HeroCard({
     setIsMounted(true)
 
     // 检测是否为移动设备
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') return undefined
     const isMobileDevice = window.innerWidth < 768
 
     // 如果是移动设备，不启用视差和自定义光标
     if (isMobileDevice) {
-      return
+      return undefined
     }
 
     // 全局鼠标移动监听 - 视差效果

@@ -8,6 +8,27 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // 间距系统 - 整合管理和游客界面
+      spacing: {
+        // 管理界面专用（紧凑型）
+        'admin-xs': '0.25rem',   // 4px
+        'admin-sm': '0.5rem',    // 8px
+        'admin-md': '0.75rem',   // 12px
+        'admin-lg': '1rem',      // 16px
+        'admin-xl': '1.25rem',   // 20px
+        // 游客界面专用（宽松型）
+        'visitor-sm': '2rem',      // 32px
+        'visitor-md': '3rem',      // 48px
+        'visitor-lg': '5rem',      // 80px
+        'visitor-xl': '8rem',      // 128px
+      },
+      // 管理界面专用字体大小系统
+      fontSize: {
+        'admin-xs': ['0.75rem', { lineHeight: '1rem' }],     // 12px
+        'admin-sm': ['0.813rem', { lineHeight: '1.25rem' }], // 13px
+        'admin-base': ['0.875rem', { lineHeight: '1.25rem' }], // 14px
+        'admin-lg': ['1rem', { lineHeight: '1.5rem' }],     // 16px
+      },
       typography: ({ theme }) => ({
         DEFAULT: {
           css: {
