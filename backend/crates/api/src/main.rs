@@ -2,7 +2,7 @@
 #![type_length_limit = "10000000"]
 
 use axum::Router;
-use blog_api::middleware::{request_id_middleware, REQUEST_ID_HEADER};
+use blog_api::middleware::{rate_limit_middleware, request_id_middleware, REQUEST_ID_HEADER};
 use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
 use blog_api::state::AppState;
 use opentelemetry::trace::TracerProvider as _;
@@ -80,9 +80,9 @@ async fn run_server() -> anyhow::Result<()> {
     let db = sqlx::PgPool::connect(&settings.database_url).await?;
     tracing::info!("Database connection established");
 
-    // 运行迁移
-    sqlx::migrate!("../../migrations").run(&db).await?;
-    tracing::info!("Database migrations completed");
+    // 检查迁移是否已应用（不自动运行，由单独的 migrate job 执行）
+    check_migrations(&db).await?;
+    tracing::info!("Database migrations verified");
 
     // 初始化 Redis
     let redis = deadpool_redis::Config::from_url(&settings.redis_url)
@@ -198,6 +198,11 @@ async fn run_server() -> anyhow::Result<()> {
         )
         // 1. Request ID 中间件（最后执行，但最先进入请求处理）
         .layer(axum::middleware::from_fn(request_id_middleware))
+        // 限流中间件（需要 state）
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            rate_limit_middleware,
+        ))
         // 添加状态
         .with_state(state);
 
@@ -548,4 +553,28 @@ fn create_cors_layer(allowed_origins: Vec<String>) -> CorsLayer {
             }
         }
     }
+}
+
+/// 检查数据库迁移是否已应用
+/// API 启动时只检查，不自动运行迁移
+async fn check_migrations(db: &sqlx::PgPool) -> anyhow::Result<()> {
+    // 检查 _sqlx_migrations 表是否存在且有记录
+    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM _sqlx_migrations")
+        .fetch_one(db)
+        .await
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "无法验证迁移状态。请确保已运行 'cargo run --bin migrate': {}",
+                e
+            )
+        })?;
+
+    if count == 0 {
+        return Err(anyhow::anyhow!(
+            "数据库迁移未应用。请先运行: cargo run --bin migrate"
+        ));
+    }
+
+    tracing::info!("Database migrations verified: {} migrations applied", count);
+    Ok(())
 }

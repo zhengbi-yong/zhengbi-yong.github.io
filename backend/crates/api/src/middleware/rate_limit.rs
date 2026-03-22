@@ -41,11 +41,12 @@ pub async fn rate_limit_middleware(
     let key = format!("r:{}:{}:{}", ip, route_hash, minute_bucket);
 
     // 根据路由设置不同的限流策略
+    // 注意：这里的 route 已经通过 extract_route 标准化，移除了 /api/v1 前缀
     let (limit, window) = match route.as_str() {
-        "/v1/auth/login" | "/v1/auth/register" => (5, 60), // 5次/分钟
-        "/v1/posts/*/view" => (100, 60),                   // 100次/分钟
-        "/v1/posts/*/comments" if request.method().as_str() == "POST" => (10, 60), // 10次/分钟
-        _ => (1000, 60),                                   // 默认
+        "/auth/login" | "/auth/register" => (5, 60), // 5次/分钟
+        "/posts/*/view" => (100, 60),                // 100次/分钟
+        "/posts/*/comments" if request.method().as_str() == "POST" => (10, 60), // 10次/分钟
+        _ => (1000, 60),                             // 默认
     };
 
     // 执行 Redis 脚本
@@ -84,13 +85,17 @@ fn compress_route(route: &str) -> String {
 }
 
 fn extract_route(request: &Request) -> String {
-    // 使用 MatchedPath 获取路由模式
+    // 使用 MatchedPath 获取路由模式，并标准化（移除 /api/v1 前缀）
     request
         .extensions()
         .get::<axum::extract::MatchedPath>()
         .map(|m| {
+            let path = m.as_str();
+            // 移除 /api/v1 前缀以标准化路由
+            let normalized = path.strip_prefix("/api/v1").unwrap_or(path);
+
             // 将动态路径段替换为通配符
-            m.as_str()
+            normalized
                 .split('/')
                 .map(|segment| {
                     if segment
