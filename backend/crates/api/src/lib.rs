@@ -11,6 +11,7 @@ pub mod outbox;
 pub mod routes;
 pub mod search_index;
 pub mod state;
+pub mod storage;
 pub mod utils;
 
 // 重新导出常用类型
