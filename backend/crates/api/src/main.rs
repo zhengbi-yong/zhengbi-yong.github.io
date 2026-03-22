@@ -76,18 +76,35 @@ async fn run_server() -> anyhow::Result<()> {
     })?;
     tracing::info!("Configuration loaded successfully");
 
-    // 初始化数据库连接池
-    let db = sqlx::PgPool::connect(&settings.database_url).await?;
-    tracing::info!("Database connection established");
+    // 初始化数据库连接池（带显式连接池配置）
+    let db = sqlx::pool::PoolOptions::<sqlx::Postgres>::new()
+        .max_connections(20)
+        .min_connections(5)
+        .acquire_timeout(std::time::Duration::from_secs(10))
+        .max_lifetime(std::time::Duration::from_secs(1800))
+        .idle_timeout(std::time::Duration::from_secs(600))
+        .connect(&settings.database_url)
+        .await?;
+    tracing::info!("Database connection pool established (max: 20, min: 5)");
 
     // 检查迁移是否已应用（不自动运行，由单独的 migrate job 执行）
     check_migrations(&db).await?;
     tracing::info!("Database migrations verified");
 
-    // 初始化 Redis
+    // 初始化 Redis 连接池（带显式连接池配置）
     let redis = deadpool_redis::Config::from_url(&settings.redis_url)
-        .create_pool(Some(deadpool_redis::Runtime::Tokio1))?;
-    tracing::info!("Redis connection established");
+        .builder()
+        .expect("Failed to create Redis pool builder")
+        .max_size(10)
+        .timeouts(deadpool_redis::Timeouts {
+            wait: Some(std::time::Duration::from_secs(5)),
+            create: Some(std::time::Duration::from_secs(5)),
+            recycle: Some(std::time::Duration::from_secs(5)),
+        })
+        .runtime(deadpool_redis::Runtime::Tokio1)
+        .build()
+        .expect("Failed to build Redis pool");
+    tracing::info!("Redis connection pool established (max: 10)");
 
     // 初始化服务
     let jwt = blog_core::JwtService::new(&settings.jwt_secret)
@@ -210,8 +227,24 @@ async fn run_server() -> anyhow::Result<()> {
     let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!("Server listening on {:?}", listener.local_addr());
 
-    axum::serve(listener, app).await?;
+    // 优雅关闭处理
+    let shutdown_signal = async {
+        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("Failed to create SIGTERM handler");
+        let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+            .expect("Failed to create SIGINT handler");
 
+        tokio::select! {
+            _ = sigterm.recv() => tracing::info!("Received SIGTERM, starting graceful shutdown..."),
+            _ = sigint.recv() => tracing::info!("Received SIGINT, starting graceful shutdown..."),
+        }
+    };
+
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal)
+        .await?;
+
+    tracing::info!("Server shutdown complete");
     Ok(())
 }
 
