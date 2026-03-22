@@ -11,27 +11,18 @@ use utoipa::OpenApi;
         crate::routes::auth::logout,
         crate::routes::auth::me,
 
-        // 文章相关
+        // 公开文章接口
+        crate::routes::posts::list_posts,
+        crate::routes::posts::get_post,
         crate::routes::posts::get_stats,
         crate::routes::posts::view,
         crate::routes::posts::like,
         crate::routes::posts::unlike,
 
-        // 评论相关
-        crate::routes::comments::list_comments,
-        crate::routes::comments::create_comment,
-        crate::routes::comments::like_comment,
-
-        // 管理员相关
-        crate::routes::admin::list_users,
-        crate::routes::admin::update_user_role,
-        crate::routes::admin::delete_user,
-        crate::routes::admin::list_comments_admin,
-        crate::routes::admin::update_comment_status,
-        crate::routes::admin::delete_comment_admin,
-        crate::routes::admin::get_admin_stats,
-        crate::routes::admin::list_posts_admin,
-        crate::routes::admin::get_user_growth,
+        // 搜索相关
+        crate::routes::search::search_posts,
+        crate::routes::search::search_suggest,
+        crate::routes::search::get_trending_keywords,
 
         // 监控相关
         crate::metrics::health,
@@ -46,9 +37,8 @@ use utoipa::OpenApi;
     ),
     tags(
         (name = "auth", description = "Authentication & Authorization - User registration, login, token management"),
-        (name = "posts", description = "Blog Posts Management - CRUD operations, statistics, likes"),
-        (name = "comments", description = "Comments System - Create, list, and manage comments"),
-        (name = "admin", description = "Admin Panel APIs - User and content management (requires admin role)"),
+        (name = "posts", description = "Public post APIs - listing, detail, statistics, and reader actions"),
+        (name = "search", description = "Search & discovery - full text search, suggestions, and trending keywords"),
         (name = "monitoring", description = "Health Checks & Metrics - System monitoring and observability"),
     ),
     info(

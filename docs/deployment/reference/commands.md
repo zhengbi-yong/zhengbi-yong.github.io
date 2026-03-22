@@ -56,11 +56,20 @@ bash scripts/deployment/rollback-system-nginx.sh \
 # Validate and start the local production Compose stack
 bash scripts/deployment/deploy-compose-stack.sh --env-file .env.production --pull
 
+# Generate a CI-safe production env for smoke tests
+make generate-ci-prod-env OUTPUT_FILE=.env.production.ci
+
+# Build and smoke-test the canonical production Compose runtime
+make smoke-prod-compose ENV_FILE=.env.production.ci
+
 # Render versioned release assets
 make render-release-assets VERSION=1.8.2
 
 # Validate Kubernetes apply on a disposable local cluster
 make validate-k8s-apply RELEASE_VERSION=1.8.2
+
+# Regenerate and verify OpenAPI + frontend API types stay in sync
+make verify-api-contract
 ```
 
 ---

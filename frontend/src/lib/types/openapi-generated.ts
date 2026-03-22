@@ -4,6 +4,140 @@
  */
 
 export interface paths {
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 用户登录 */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 用户登出 */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取当前用户信息 */
+        get: operations["me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 刷新访问令牌 */
+        post: operations["refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 用户注册 */
+        post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/health/detailed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["health_detailed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Prometheus指标导出端点 */
+        get: operations["metrics_endpoint"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/posts": {
         parameters: {
             query?: never;
@@ -11,8 +145,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List posts */
-        get: operations["listPosts"];
+        /** 获取文章列表 */
+        get: operations["list_posts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -28,8 +162,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get post by slug */
-        get: operations["getPost"];
+        /** 获取文章详情 */
+        get: operations["get_post"];
         put?: never;
         post?: never;
         delete?: never;
@@ -38,7 +172,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/login": {
+    "/posts/{slug}/like": {
         parameters: {
             query?: never;
             header?: never;
@@ -47,8 +181,110 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** User login */
-        post: operations["login"];
+        /** 点赞文章 */
+        post: operations["like"];
+        /** 取消点赞文章 */
+        delete: operations["unlike"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/posts/{slug}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 获取文章统计 */
+        get: operations["get_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/posts/{slug}/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 记录文章浏览 */
+        post: operations["view"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readyz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["readyz"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 全文搜索文章 */
+        get: operations["search_posts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search/suggest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 搜索建议（自动补全） */
+        get: operations["search_suggest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/search/trending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 热门搜索关键词 */
+        get: operations["get_trending_keywords"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -59,64 +295,215 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        ApiResponse_PostDetail_: {
-            success: boolean;
-            data: components["schemas"]["PostDetail"];
-            message?: string;
+        AuthResponse: {
+            access_token: string;
+            user: components["schemas"]["UserInfo"];
         };
-        ApiResponse_PaginatedResponse_PostListItem_: {
-            success: boolean;
-            data: components["schemas"]["PaginatedResponse_PostListItem_"];
-            message?: string;
+        DatabasePoolStatus: {
+            /** Format: int32 */
+            active: number;
+            /** Format: int32 */
+            idle: number;
+            /** Format: int32 */
+            size: number;
         };
-        PaginatedResponse_PostListItem_: {
-            items: components["schemas"]["PostListItem"][];
-            meta: components["schemas"]["PaginationMeta"];
+        DetailedHealth: {
+            environment: string;
+            metrics: components["schemas"]["SystemMetrics"];
+            services: {
+                [key: string]: components["schemas"]["ServiceStatus"];
+            };
+            status: string;
+            /** Format: date-time */
+            timestamp: string;
+            /** Format: int64 */
+            uptime_seconds: number;
+            version: string;
         };
-        PaginationMeta: {
-            page: number;
-            limit: number;
-            total: number;
-            total_pages: number;
-            has_next: boolean;
-            has_prev: boolean;
+        HealthStatus: {
+            services: {
+                [key: string]: components["schemas"]["ServiceStatus"];
+            };
+            status: string;
+            /** Format: date-time */
+            timestamp: string;
+            /** Format: int64 */
+            uptime_seconds: number;
+            version: string;
+        };
+        LoginRequest: {
+            email: string;
+            password: string;
+        };
+        MemoryUsage: {
+            /** Format: double */
+            percentage: number;
+            /** Format: int64 */
+            total_mb: number;
+            /** Format: int64 */
+            used_mb: number;
+        };
+        OutboxQueueMetrics: {
+            /** Format: int64 */
+            dead_letter_events: number;
+            /** Format: int64 */
+            oldest_pending_age_seconds?: number | null;
+            /** Format: int64 */
+            pending_events: number;
+            /** Format: int64 */
+            stale_locked_events: number;
         };
         PostDetail: {
-            id: string;
-            slug: string;
-            title: string;
+            /** Format: uuid */
+            author_id?: string | null;
+            author_name?: string | null;
+            canonical_url?: string | null;
+            /** Format: uuid */
+            category_id?: string | null;
+            category_name?: string | null;
+            category_slug?: string | null;
+            /** Format: int32 */
+            comment_count: number;
             content: string;
-            excerpt?: string;
+            content_html?: string | null;
+            cover_image_url?: string | null;
             /** Format: date-time */
             created_at: string;
+            /** Format: uuid */
+            id: string;
             /** Format: date-time */
-            updated_at?: string;
+            lastmod_at?: string | null;
+            layout: string;
+            /** Format: int32 */
+            like_count: number;
+            meta_description?: string | null;
+            meta_title?: string | null;
+            /** Format: date-time */
+            published_at?: string | null;
+            /** Format: int32 */
+            reading_time?: number | null;
+            /** Format: date-time */
+            scheduled_at?: string | null;
+            show_toc: boolean;
+            slug: string;
+            status: components["schemas"]["PostStatus"];
+            summary?: string | null;
+            tags?: components["schemas"]["TagBasic"][];
+            title: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: int64 */
+            view_count: number;
         };
         PostListItem: {
-            id: string;
-            slug: string;
-            title: string;
-            excerpt?: string;
+            author_name?: string | null;
+            category_name?: string | null;
+            category_slug?: string | null;
+            /** Format: int64 */
+            comment_count: number;
+            cover_image_url?: string | null;
             /** Format: date-time */
             created_at: string;
-        };
-        User: {
+            /** Format: uuid */
             id: string;
-            /** Format: email */
-            email: string;
-            username?: string;
+            /** Format: int64 */
+            like_count: number;
+            /** Format: date-time */
+            published_at?: string | null;
+            /** Format: int32 */
+            reading_time?: number | null;
+            slug: string;
+            status: components["schemas"]["PostStatus"];
+            summary?: string | null;
+            /** Format: int64 */
+            tag_count: number;
+            title: string;
+            /** Format: int64 */
+            view_count: number;
         };
-        ApiError: {
-            /** @example false */
-            success: boolean;
-            error: {
-                /** @example POST_NOT_FOUND */
-                code: string;
-                /** @example 文章不存在 */
-                message: string;
-                /** @example 404 */
-                type: string;
-            };
+        PostListResponse: {
+            /** Format: int32 */
+            limit: number;
+            /** Format: int32 */
+            page: number;
+            posts: components["schemas"]["PostListItem"][];
+            /** Format: int64 */
+            total: number;
+            /** Format: int32 */
+            total_pages: number;
+        };
+        PostStatsResponse: {
+            /** Format: int32 */
+            comment_count: number;
+            /** Format: int32 */
+            like_count: number;
+            slug: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** Format: int64 */
+            view_count: number;
+        };
+        /** @enum {string} */
+        PostStatus: "Draft" | "Published" | "Archived" | "Scheduled";
+        RegisterRequest: {
+            email: string;
+            password: string;
+            username: string;
+        };
+        SearchResponse: {
+            query: string;
+            results: components["schemas"]["SearchResult"][];
+            /** Format: int64 */
+            total: number;
+        };
+        SearchResult: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            published_at?: string | null;
+            /** Format: float */
+            rank: number;
+            slug: string;
+            summary?: string | null;
+            title: string;
+        };
+        ServiceStatus: {
+            /** Format: date-time */
+            last_check?: string | null;
+            message?: string | null;
+            /** Format: int64 */
+            response_time_ms?: number | null;
+            status: string;
+        };
+        SystemMetrics: {
+            /** Format: int64 */
+            active_connections: number;
+            /** Format: double */
+            cpu_usage?: number | null;
+            database_pool: components["schemas"]["DatabasePoolStatus"];
+            memory_usage: components["schemas"]["MemoryUsage"];
+            outbox: components["schemas"]["OutboxQueueMetrics"];
+            redis_status: components["schemas"]["ServiceStatus"];
+        };
+        TagBasic: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+        };
+        TrendingKeyword: {
+            /** Format: int64 */
+            count: number;
+            keyword: string;
+        };
+        UserInfo: {
+            email: string;
+            email_verified: boolean;
+            /** Format: uuid */
+            id: string;
+            profile: unknown;
+            role: string;
+            username: string;
         };
     };
     responses: never;
@@ -127,60 +514,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    listPosts: {
-        parameters: {
-            query?: {
-                page?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_PaginatedResponse_PostListItem_"];
-                };
-            };
-        };
-    };
-    getPost: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                slug: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiResponse_PostDetail_"];
-                };
-            };
-            /** @description Post not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-        };
-    };
     login: {
         parameters: {
             query?: never;
@@ -190,38 +523,575 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
-                    /** Format: email */
-                    email: string;
-                    password: string;
-                };
+                "application/json": components["schemas"]["LoginRequest"];
             };
         };
         responses: {
-            /** @description Login successful */
+            /** @description 登录成功 */
+            200: {
+                headers: {
+                    /** @description HTTP-only refresh token cookie */
+                    "set-cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description 邮箱或密码错误 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 登出成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 获取用户信息成功 */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @example true */
-                        success: boolean;
-                        data: {
-                            access_token: string;
-                            refresh_token: string;
-                            user: components["schemas"]["User"];
-                        };
-                    };
+                    "application/json": components["schemas"]["UserInfo"];
                 };
             };
-            /** @description Invalid credentials */
+            /** @description 未认证 */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
+                content?: never;
+            };
+        };
+    };
+    refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Token刷新成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content: {
-                    "application/json": components["schemas"]["ApiError"];
+                    /**
+                     * @example {
+                     *       "access_token": "new_access_token"
+                     *     }
+                     */
+                    "application/json": unknown;
+                };
+            };
+            /** @description 缺少refresh token cookie */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 无效或过期的refresh token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description 注册成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description 输入无效 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 邮箱或用户名已存在 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    health: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 服务健康 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthStatus"];
+                };
+            };
+            /** @description 服务不健康 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    health_detailed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 服务健康 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DetailedHealth"];
+                };
+            };
+            /** @description 服务不健康 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    metrics_endpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Prometheus指标 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain; version=0.0.4": unknown;
+                };
+            };
+            /** @description 指标导出失败 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_posts: {
+        parameters: {
+            query?: {
+                /** @description 页码（从1开始） */
+                page?: number;
+                /** @description 每页数量（默认20） */
+                limit?: number;
+                /** @description 文章状态 */
+                status?: components["schemas"]["PostStatus"];
+                /** @description 分类ID */
+                category_id?: string;
+                /** @description 标签ID */
+                tag_id?: string;
+                /** @description 作者ID */
+                author_id?: string;
+                /** @description 搜索关键词 */
+                search?: string;
+                /** @description 排序字段：published_at, created_at, view_count, like_count */
+                sort_by?: string;
+                /** @description 排序方向：asc, desc */
+                sort_order?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 获取成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostListResponse"];
+                };
+            };
+        };
+    };
+    get_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 文章slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 获取成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostDetail"];
+                };
+            };
+            /** @description 文章不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    like: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 文章slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 点赞成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 文章不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 已经点赞过 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    unlike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 文章slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 取消点赞成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 文章不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未点赞过 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 文章slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 获取文章统计成功 */
+            200: {
+                headers: {
+                    /** @description 缓存控制头 */
+                    "cache-control"?: string;
+                    /** @description ETag用于缓存验证 */
+                    etag?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostStatsResponse"];
+                };
+            };
+            /** @description 文章不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    view: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 文章slug */
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 浏览记录成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 文章不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 限流 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    readyz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 服务就绪 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 服务未就绪 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    search_posts: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词 */
+                q: string;
+                /** @description 分类slug筛选 */
+                category_slug?: string;
+                /** @description 标签slug筛选 */
+                tag_slug?: string;
+                /** @description 作者ID筛选 */
+                author_id?: string;
+                /** @description 返回数量（默认10，最大50） */
+                limit?: number;
+                /** @description 偏移量（分页用） */
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 搜索成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SearchResponse"];
+                };
+            };
+            /** @description 请求参数错误 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    search_suggest: {
+        parameters: {
+            query: {
+                /** @description 搜索关键词 */
+                q: string;
+                /** @description 返回数量（默认5，最大10） */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 获取成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+            /** @description 请求参数错误 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_trending_keywords: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 获取成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendingKeyword"][];
                 };
             };
         };

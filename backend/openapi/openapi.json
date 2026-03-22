@@ -2,52 +2,360 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Blog Platform API",
-    "version": "1.0.0",
-    "description": "Blog Platform RESTful API with unified response format"
+    "description": "\n# Blog Platform RESTful API\n\nWelcome to the Blog Platform API documentation. This API provides access to all blog platform features with world-class design standards.\n\n## Features\n\n- **JWT-based Authentication**: Secure token-based authentication with refresh token support\n- **RESTful Resource Management**: Standard HTTP methods for CRUD operations\n- **Advanced Querying**: Support for pagination, sorting, filtering, and field selection\n- **HATEOAS Links**: Hypermedia links for resource navigation\n- **Rate Limiting**: Configurable rate limits per endpoint\n- **Caching**: Redis-based caching for improved performance\n\n## Authentication\n\nMost endpoints require authentication. Include your JWT token in the Authorization header:\n\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\n## Error Handling\n\nAll errors follow a consistent format:\n\n```json\n{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Human-readable error message\",\n    \"type\": \"400\"\n  }\n}\n```\n\n## Pagination\n\nList endpoints support pagination:\n\n- `page`: Page number (default: 1)\n- `limit`: Items per page (default: 20, max: 100)\n\nResponse includes pagination metadata:\n\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"items\": [...],\n    \"meta\": {\n      \"page\": 1,\n      \"limit\": 20,\n      \"total\": 100,\n      \"total_pages\": 5,\n      \"has_next\": true,\n      \"has_prev\": false\n    }\n  }\n}\n```\n\n## Rate Limiting\n\n- **Anonymous**: 100 requests/minute\n- **Authenticated**: 1000 requests/minute\n\nRate limit headers are included in every response.\n\n## SDK & Libraries\n\nOfficial SDKs:\n- JavaScript/TypeScript: Coming soon\n- Python: Coming soon\n- Rust: See this repository\n\n## Support\n\n- Documentation: https://docs.yourdomain.com\n- GitHub: https://github.com/your-org/blog-api\n- Issues: https://github.com/your-org/blog-api/issues\n        ",
+    "contact": {
+      "name": "API Support",
+      "email": "api@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://localhost:3000/v1",
-      "description": "Development server"
-    },
-    {
       "url": "https://api.example.com/v1",
       "description": "Production server"
+    },
+    {
+      "url": "https://staging-api.example.com/v1",
+      "description": "Staging server"
+    },
+    {
+      "url": "http://localhost:3000/v1",
+      "description": "Development server"
     }
   ],
   "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "用户登录",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "headers": {
+              "set-cookie": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "HTTP-only refresh token cookie"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "邮箱或密码错误"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "用户登出",
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "description": "登出成功"
+          },
+          "401": {
+            "description": "未认证"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "获取当前用户信息",
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "description": "获取用户信息成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "刷新访问令牌",
+        "operationId": "refresh",
+        "responses": {
+          "200": {
+            "description": "Token刷新成功",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "example": {
+                  "access_token": "new_access_token"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "缺少refresh token cookie"
+          },
+          "401": {
+            "description": "无效或过期的refresh token"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "用户注册",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "注册成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "输入无效"
+          },
+          "409": {
+            "description": "邮箱或用户名已存在"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "服务健康",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务不健康"
+          }
+        }
+      }
+    },
+    "/health/detailed": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "operationId": "health_detailed",
+        "responses": {
+          "200": {
+            "description": "服务健康",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedHealth"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "服务不健康"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "summary": "Prometheus指标导出端点",
+        "operationId": "metrics_endpoint",
+        "responses": {
+          "200": {
+            "description": "Prometheus指标",
+            "content": {
+              "text/plain; version=0.0.4": {}
+            }
+          },
+          "500": {
+            "description": "指标导出失败"
+          }
+        }
+      }
+    },
     "/posts": {
       "get": {
-        "summary": "List posts",
-        "operationId": "listPosts",
-        "tags": ["posts"],
-        "security": [],
+        "tags": [
+          "posts"
+        ],
+        "summary": "获取文章列表",
+        "operationId": "list_posts",
         "parameters": [
           {
             "name": "page",
             "in": "query",
+            "description": "页码（从1开始）",
+            "required": false,
             "schema": {
               "type": "integer",
-              "default": 1
+              "format": "int32",
+              "minimum": 0
             }
           },
           {
             "name": "limit",
             "in": "query",
+            "description": "每页数量（默认20）",
+            "required": false,
             "schema": {
               "type": "integer",
-              "default": 20,
-              "maximum": 100
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "文章状态",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PostStatus"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "description": "分类ID",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "tag_id",
+            "in": "query",
+            "description": "标签ID",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "author_id",
+            "in": "query",
+            "description": "作者ID",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "搜索关键词",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "排序字段：published_at, created_at, view_count, like_count",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description": "排序方向：asc, desc",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful response",
+            "description": "获取成功",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_PaginatedResponse_PostListItem_"
+                  "$ref": "#/components/schemas/PostListResponse"
                 }
               }
             }
@@ -57,14 +365,16 @@
     },
     "/posts/{slug}": {
       "get": {
-        "summary": "Get post by slug",
-        "operationId": "getPost",
-        "tags": ["posts"],
-        "security": [],
+        "tags": [
+          "posts"
+        ],
+        "summary": "获取文章详情",
+        "operationId": "get_post",
         "parameters": [
           {
             "name": "slug",
             "in": "path",
+            "description": "文章slug",
             "required": true,
             "schema": {
               "type": "string"
@@ -73,94 +383,343 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful response",
+            "description": "获取成功",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_PostDetail_"
+                  "$ref": "#/components/schemas/PostDetail"
                 }
               }
             }
           },
           "404": {
-            "description": "Post not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
+            "description": "文章不存在"
           }
         }
       }
     },
-    "/auth/login": {
+    "/posts/{slug}/like": {
       "post": {
-        "summary": "User login",
-        "operationId": "login",
-        "tags": ["auth"],
-        "security": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["email", "password"],
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "password": {
-                    "type": "string",
-                    "minLength": 8
-                  }
-                }
-              }
+        "tags": [
+          "posts"
+        ],
+        "summary": "点赞文章",
+        "operationId": "like",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "文章slug",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        },
+        ],
         "responses": {
           "200": {
-            "description": "Login successful",
+            "description": "点赞成功"
+          },
+          "401": {
+            "description": "未认证"
+          },
+          "404": {
+            "description": "文章不存在"
+          },
+          "409": {
+            "description": "已经点赞过"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "取消点赞文章",
+        "operationId": "unlike",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "文章slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "取消点赞成功"
+          },
+          "401": {
+            "description": "未认证"
+          },
+          "404": {
+            "description": "文章不存在"
+          },
+          "409": {
+            "description": "未点赞过"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/posts/{slug}/stats": {
+      "get": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "获取文章统计",
+        "operationId": "get_stats",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "文章slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取文章统计成功",
+            "headers": {
+              "cache-control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "缓存控制头"
+              },
+              "etag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag用于缓存验证"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": ["success", "data"],
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "required": ["access_token", "refresh_token", "user"],
-                      "properties": {
-                        "access_token": {
-                          "type": "string"
-                        },
-                        "refresh_token": {
-                          "type": "string"
-                        },
-                        "user": {
-                          "$ref": "#/components/schemas/User"
-                        }
-                      }
-                    }
+                  "$ref": "#/components/schemas/PostStatsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "文章不存在"
+          }
+        }
+      }
+    },
+    "/posts/{slug}/view": {
+      "post": {
+        "tags": [
+          "posts"
+        ],
+        "summary": "记录文章浏览",
+        "operationId": "view",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "文章slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "浏览记录成功"
+          },
+          "404": {
+            "description": "文章不存在"
+          },
+          "429": {
+            "description": "限流"
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "tags": [
+          "monitoring"
+        ],
+        "operationId": "readyz",
+        "responses": {
+          "200": {
+            "description": "服务就绪"
+          },
+          "503": {
+            "description": "服务未就绪"
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "全文搜索文章",
+        "operationId": "search_posts",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "搜索关键词",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category_slug",
+            "in": "query",
+            "description": "分类slug筛选",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag_slug",
+            "in": "query",
+            "description": "标签slug筛选",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "author_id",
+            "in": "query",
+            "description": "作者ID筛选",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "返回数量（默认10，最大50）",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "偏移量（分页用）",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "搜索成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误"
+          }
+        }
+      }
+    },
+    "/search/suggest": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "搜索建议（自动补全）",
+        "operationId": "search_suggest",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "搜索关键词",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "返回数量（默认5，最大10）",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
                   }
                 }
               }
             }
           },
-          "401": {
-            "description": "Invalid credentials",
+          "400": {
+            "description": "请求参数错误"
+          }
+        }
+      }
+    },
+    "/search/trending": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "热门搜索关键词",
+        "operationId": "get_trending_keywords",
+        "responses": {
+          "200": {
+            "description": "获取成功",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrendingKeyword"
+                  }
                 }
               }
             }
@@ -171,167 +730,738 @@
   },
   "components": {
     "schemas": {
-      "ApiResponse_PostDetail_": {
+      "AuthResponse": {
         "type": "object",
-        "required": ["success", "data"],
+        "required": [
+          "access_token",
+          "user"
+        ],
         "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/PostDetail"
-          },
-          "message": {
+          "access_token": {
             "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfo"
           }
         }
       },
-      "ApiResponse_PaginatedResponse_PostListItem_": {
+      "DatabasePoolStatus": {
         "type": "object",
-        "required": ["success", "data"],
+        "required": [
+          "size",
+          "idle",
+          "active"
+        ],
         "properties": {
-          "success": {
-            "type": "boolean"
+          "active": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
           },
-          "data": {
-            "$ref": "#/components/schemas/PaginatedResponse_PostListItem_"
+          "idle": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
           },
-          "message": {
-            "type": "string"
+          "size": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
           }
         }
       },
-      "PaginatedResponse_PostListItem_": {
+      "DetailedHealth": {
         "type": "object",
-        "required": ["items", "meta"],
+        "required": [
+          "status",
+          "timestamp",
+          "uptime_seconds",
+          "version",
+          "environment",
+          "services",
+          "metrics"
+        ],
         "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PostListItem"
+          "environment": {
+            "type": "string"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/SystemMetrics"
+          },
+          "services": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ServiceStatus"
+            },
+            "propertyNames": {
+              "type": "string"
             }
           },
-          "meta": {
-            "$ref": "#/components/schemas/PaginationMeta"
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "uptime_seconds": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "version": {
+            "type": "string"
           }
         }
       },
-      "PaginationMeta": {
+      "HealthStatus": {
         "type": "object",
-        "required": ["page", "limit", "total", "total_pages", "has_next", "has_prev"],
+        "required": [
+          "status",
+          "timestamp",
+          "version",
+          "uptime_seconds",
+          "services"
+        ],
         "properties": {
-          "page": {
-            "type": "integer"
+          "services": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ServiceStatus"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
           },
-          "limit": {
-            "type": "integer"
+          "status": {
+            "type": "string"
           },
-          "total": {
-            "type": "integer"
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
           },
-          "total_pages": {
-            "type": "integer"
+          "uptime_seconds": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
           },
-          "has_next": {
-            "type": "boolean"
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
           },
-          "has_prev": {
-            "type": "boolean"
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "MemoryUsage": {
+        "type": "object",
+        "required": [
+          "used_mb",
+          "total_mb",
+          "percentage"
+        ],
+        "properties": {
+          "percentage": {
+            "type": "number",
+            "format": "double"
+          },
+          "total_mb": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "used_mb": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "OutboxQueueMetrics": {
+        "type": "object",
+        "required": [
+          "pending_events",
+          "stale_locked_events",
+          "dead_letter_events"
+        ],
+        "properties": {
+          "dead_letter_events": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "oldest_pending_age_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "pending_events": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "stale_locked_events": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
       "PostDetail": {
         "type": "object",
-        "required": ["id", "slug", "title", "content", "created_at"],
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "content",
+          "status",
+          "show_toc",
+          "layout",
+          "view_count",
+          "like_count",
+          "comment_count",
+          "created_at",
+          "updated_at"
+        ],
         "properties": {
-          "id": {
-            "type": "string"
+          "author_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
           },
-          "slug": {
-            "type": "string"
+          "author_name": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
-          "title": {
-            "type": "string"
+          "canonical_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "category_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "category_slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "comment_count": {
+            "type": "integer",
+            "format": "int32"
           },
           "content": {
             "type": "string"
           },
-          "excerpt": {
-            "type": "string"
+          "content_html": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cover_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "created_at": {
             "type": "string",
             "format": "date-time"
           },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastmod_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "layout": {
+            "type": "string"
+          },
+          "like_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meta_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "meta_title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reading_time": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "scheduled_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "show_toc": {
+            "type": "boolean"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PostStatus"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagBasic"
+            }
+          },
+          "title": {
+            "type": "string"
+          },
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "view_count": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
       "PostListItem": {
         "type": "object",
-        "required": ["id", "slug", "title", "created_at"],
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "status",
+          "view_count",
+          "like_count",
+          "comment_count",
+          "created_at",
+          "tag_count"
+        ],
         "properties": {
-          "id": {
-            "type": "string"
+          "author_name": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
-          "slug": {
-            "type": "string"
+          "category_name": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
-          "title": {
-            "type": "string"
+          "category_slug": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
-          "excerpt": {
-            "type": "string"
+          "comment_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cover_image_url": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "created_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "like_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reading_time": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PostStatus"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tag_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "view_count": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
-      "User": {
+      "PostListResponse": {
         "type": "object",
-        "required": ["id", "email"],
+        "required": [
+          "posts",
+          "total",
+          "page",
+          "limit",
+          "total_pages"
+        ],
         "properties": {
-          "id": {
+          "limit": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PostListItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total_pages": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "PostStatsResponse": {
+        "type": "object",
+        "required": [
+          "slug",
+          "view_count",
+          "like_count",
+          "comment_count",
+          "updated_at"
+        ],
+        "properties": {
+          "comment_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "like_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "slug": {
             "type": "string"
           },
-          "email": {
+          "updated_at": {
             "type": "string",
-            "format": "email"
+            "format": "date-time"
+          },
+          "view_count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PostStatus": {
+        "type": "string",
+        "enum": [
+          "Draft",
+          "Published",
+          "Archived",
+          "Scheduled"
+        ]
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": [
+          "email",
+          "username",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
           },
           "username": {
             "type": "string"
           }
         }
       },
-      "ApiError": {
+      "SearchResponse": {
         "type": "object",
-        "required": ["success", "error"],
+        "required": [
+          "results",
+          "total",
+          "query"
+        ],
         "properties": {
-          "success": {
-            "type": "boolean",
-            "example": false
+          "query": {
+            "type": "string"
           },
-          "error": {
-            "type": "object",
-            "required": ["code", "message", "type"],
-            "properties": {
-              "code": {
-                "type": "string",
-                "example": "POST_NOT_FOUND"
-              },
-              "message": {
-                "type": "string",
-                "example": "文章不存在"
-              },
-              "type": {
-                "type": "string",
-                "example": "404"
-              }
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
             }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SearchResult": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "rank"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "rank": {
+            "type": "number",
+            "format": "float"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "ServiceStatus": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "last_check": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "response_time_ms": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "SystemMetrics": {
+        "type": "object",
+        "required": [
+          "memory_usage",
+          "active_connections",
+          "database_pool",
+          "redis_status",
+          "outbox"
+        ],
+        "properties": {
+          "active_connections": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "cpu_usage": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "database_pool": {
+            "$ref": "#/components/schemas/DatabasePoolStatus"
+          },
+          "memory_usage": {
+            "$ref": "#/components/schemas/MemoryUsage"
+          },
+          "outbox": {
+            "$ref": "#/components/schemas/OutboxQueueMetrics"
+          },
+          "redis_status": {
+            "$ref": "#/components/schemas/ServiceStatus"
+          }
+        }
+      },
+      "TagBasic": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        }
+      },
+      "TrendingKeyword": {
+        "type": "object",
+        "required": [
+          "keyword",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "keyword": {
+            "type": "string"
+          }
+        }
+      },
+      "UserInfo": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "username",
+          "profile",
+          "email_verified",
+          "role"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "email_verified": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "profile": {},
+          "role": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
           }
         }
       }
@@ -343,5 +1473,28 @@
         "bearerFormat": "JWT"
       }
     }
-  }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Authentication & Authorization - User registration, login, token management"
+    },
+    {
+      "name": "posts",
+      "description": "Public post APIs - listing, detail, statistics, and reader actions"
+    },
+    {
+      "name": "search",
+      "description": "Search & discovery - full text search, suggestions, and trending keywords"
+    },
+    {
+      "name": "monitoring",
+      "description": "Health Checks & Metrics - System monitoring and observability"
+    }
+  ]
 }

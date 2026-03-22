@@ -24,8 +24,8 @@
     "generate-stories": "node scripts/generate-stories.mjs",
     "check-console": "node scripts/cleanup-console.mjs",
     "cleanup-console": "AUTO_FIX=true node scripts/cleanup-console.mjs",
-    "generate:types": "bash scripts/generate-api-types.sh",
-    "generate:api-types": "bash scripts/generate-api-types.sh",
+    "generate:types": "bash scripts/generate/generate-api-types.sh",
+    "generate:api-types": "bash scripts/generate/generate-api-types.sh",
     "mock": "pnpm exec prism mock openapi.json -p 4010"
   },
   "dependencies": {

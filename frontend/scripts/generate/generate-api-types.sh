@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 从 OpenAPI 规范生成 TypeScript 类型
 
-set -e
+set -euo pipefail
 
 # 颜色定义
 GREEN='\033[0;32m'
@@ -13,13 +13,13 @@ echo -e "${BLUE}🔧 Generating TypeScript types from OpenAPI specification...${
 
 # 获取脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # OpenAPI 规范路径
 OPENAPI_SPEC="$PROJECT_ROOT/openapi.json"
 
 # 输出文件路径
-OUTPUT_FILE="$PROJECT_ROOT/lib/types/openapi-generated.ts"
+OUTPUT_FILE="$PROJECT_ROOT/src/lib/types/openapi-generated.ts"
 
 # 检查 OpenAPI 规范是否存在
 if [ ! -f "$OPENAPI_SPEC" ]; then
@@ -31,7 +31,10 @@ fi
 # 生成类型
 echo -e "${BLUE}📝 Reading OpenAPI spec from: $OPENAPI_SPEC${NC}"
 
-npx openapi-typescript "$OPENAPI_SPEC" -o "$OUTPUT_FILE"
+(
+    cd "$PROJECT_ROOT"
+    pnpm exec openapi-typescript "$OPENAPI_SPEC" -o "$OUTPUT_FILE"
+)
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ TypeScript types generated successfully!${NC}"

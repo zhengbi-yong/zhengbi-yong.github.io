@@ -1,0 +1,54 @@
+name: API Contract CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'frontend/openapi.json'
+      - 'frontend/src/lib/types/openapi-generated.ts'
+      - 'frontend/scripts/generate/**'
+      - 'frontend/package.json'
+      - 'frontend/pnpm-lock.yaml'
+      - 'scripts/testing/verify-api-contract.sh'
+      - 'Makefile'
+      - '.github/workflows/api-contract-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'frontend/openapi.json'
+      - 'frontend/src/lib/types/openapi-generated.ts'
+      - 'frontend/scripts/generate/**'
+      - 'frontend/package.json'
+      - 'frontend/pnpm-lock.yaml'
+      - 'scripts/testing/verify-api-contract.sh'
+      - 'Makefile'
+      - '.github/workflows/api-contract-ci.yml'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  verify:
+    name: Verify OpenAPI and Generated Types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - uses: pnpm/action-setup@v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'frontend/pnpm-lock.yaml'
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify API contract artifacts
+        run: make verify-api-contract

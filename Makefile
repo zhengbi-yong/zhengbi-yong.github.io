@@ -1,4 +1,4 @@
-.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env bootstrap-remote-host deploy-remote-compose provision-remote-compose
+.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env generate-ci-prod-env verify-api-contract smoke-prod-compose bootstrap-remote-host deploy-remote-compose provision-remote-compose
 
 # 默认目标
 help:
@@ -17,6 +17,9 @@ help:
 	@echo "  make render-release-assets - 生成版本化部署资产"
 	@echo "  make validate-k8s-apply - 在本地 kind 集群验证 kubectl apply"
 	@echo "  make generate-prod-env - 生成带安全默认值的生产环境文件"
+	@echo "  make generate-ci-prod-env - 生成 CI/冒烟测试用生产环境文件"
+	@echo "  make verify-api-contract - 校验 OpenAPI 与前端类型产物无漂移"
+	@echo "  make smoke-prod-compose - 构建并冒烟验证 production Compose 栈"
 	@echo "  make bootstrap-remote-host - 远程安装 Docker/Compose 部署前置条件"
 	@echo "  make deploy-remote-compose - 通过 SSH 将 Compose 运行时发布到服务器"
 	@echo "  make provision-remote-compose - 一条命令生成 env、引导服务器并部署"
@@ -94,7 +97,7 @@ setup-db:
 	@echo "   PostgreSQL: localhost:5432"
 	@echo "   Redis: localhost:6379"
 
-# 生成API类型（后端必须运行）
+# 生成API类型（直接从源码导出）
 generate-api:
 	@echo "📝 生成API类型..."
 	cd backend && make export-spec
@@ -204,6 +207,26 @@ generate-prod-env:
 		$(if $(ENABLE_MINIO),--enable-bundled-minio,) \
 		$(if $(ENABLE_MAILPIT),--enable-bundled-mailpit,) \
 		$(if $(SMTP_MODE),--smtp-mode $(SMTP_MODE),)
+
+generate-ci-prod-env:
+	@bash scripts/deployment/generate-ci-production-env.sh \
+		$(if $(OUTPUT_FILE),--output $(OUTPUT_FILE),) \
+		$(if $(PROJECT_NAME),--project-name $(PROJECT_NAME),) \
+		$(if $(SITE_URL),--site-url $(SITE_URL),) \
+		$(if $(EDGE_PORT),--edge-port $(EDGE_PORT),) \
+		$(if $(BACKEND_PORT),--backend-port $(BACKEND_PORT),) \
+		$(if $(FRONTEND_PORT),--frontend-port $(FRONTEND_PORT),) \
+		$(if $(POSTGRES_PORT),--postgres-port $(POSTGRES_PORT),) \
+		$(if $(REDIS_PORT),--redis-port $(REDIS_PORT),)
+
+verify-api-contract:
+	@bash scripts/testing/verify-api-contract.sh
+
+smoke-prod-compose:
+	@bash scripts/testing/smoke-production-compose.sh \
+		$(if $(ENV_FILE),--env-file $(ENV_FILE),) \
+		$(if $(KEEP_RUNNING),--keep-running,) \
+		$(if $(SKIP_BUILD),--skip-build,)
 
 bootstrap-remote-host:
 	@bash scripts/deployment/bootstrap-remote-host.sh \

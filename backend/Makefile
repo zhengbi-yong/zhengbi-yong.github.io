@@ -34,17 +34,10 @@ clean:
 	@echo "🧹 清理构建文件..."
 	cargo clean
 
-# 导出OpenAPI规范（需要服务器运行）
+# 导出OpenAPI规范（直接从源码生成）
 export-spec:
 	@echo "📝 导出OpenAPI规范..."
-	@if curl -s http://localhost:3000/health > /dev/null 2>&1; then \
-		curl -s http://localhost:3000/api-docs/openapi.json -o ../frontend/openapi.json; \
-		echo "✅ OpenAPI spec exported to ../frontend/openapi.json"; \
-	else \
-		echo "❌ Backend server is not running on port 3000"; \
-		echo "💡 Please start the backend first: make run"; \
-		exit 1; \
-	fi
+	cargo run --locked --bin export_openapi
 
 # 监听OpenAPI变化并自动导出
 watch-spec:

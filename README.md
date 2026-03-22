@@ -59,6 +59,8 @@ cd frontend && pnpm dev
 
 ```bash
 make test
+make verify-api-contract
+make smoke-prod-compose
 cd backend && cargo check && cargo test
 cd frontend && pnpm test
 cd frontend && pnpm test:e2e
@@ -99,6 +101,7 @@ Generate immutable release assets:
 
 ```bash
 make render-release-assets VERSION=1.8.2
+make validate-k8s-apply RELEASE_VERSION=1.8.2
 ```
 
 ## Canonical documentation

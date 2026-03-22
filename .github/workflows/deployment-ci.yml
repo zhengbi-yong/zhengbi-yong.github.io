@@ -9,11 +9,15 @@ on:
       - 'deployments/**'
       - 'deployments/environments/**'
       - 'scripts/deployment/deploy-compose-stack.sh'
+      - 'scripts/deployment/generate-ci-production-env.sh'
+      - 'scripts/deployment/validate-kubernetes-apply.sh'
       - 'scripts/deployment/validate-production-env.sh'
       - 'scripts/release/**'
+      - 'scripts/testing/smoke-production-compose.sh'
       - 'backend/Dockerfile'
       - 'frontend/Dockerfile'
       - '.github/workflows/release-images.yml'
+      - '.github/workflows/deployment-ci.yml'
       - 'frontend/src/lib/api/resolveBackendApiBaseUrl.ts'
       - 'frontend/tests/lib/api/resolveBackendApiBaseUrl.test.ts'
       - 'README.md'
@@ -27,11 +31,15 @@ on:
       - 'deployments/**'
       - 'deployments/environments/**'
       - 'scripts/deployment/deploy-compose-stack.sh'
+      - 'scripts/deployment/generate-ci-production-env.sh'
+      - 'scripts/deployment/validate-kubernetes-apply.sh'
       - 'scripts/deployment/validate-production-env.sh'
       - 'scripts/release/**'
+      - 'scripts/testing/smoke-production-compose.sh'
       - 'backend/Dockerfile'
       - 'frontend/Dockerfile'
       - '.github/workflows/release-images.yml'
+      - '.github/workflows/deployment-ci.yml'
       - 'frontend/src/lib/api/resolveBackendApiBaseUrl.ts'
       - 'frontend/tests/lib/api/resolveBackendApiBaseUrl.test.ts'
       - 'README.md'
@@ -46,29 +54,17 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate deployment shell scripts
-        run: bash -n scripts/deployment/validate-production-env.sh scripts/deployment/deploy-compose-stack.sh scripts/release/oci-metadata.sh scripts/release/render-release-assets.sh
-
-      - name: Create non-placeholder production env
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          src = Path('.env.production.example').read_text()
-          replacements = {
-              'ghcr.io/your-org/your-repo/blog-backend:1.8.2': 'ghcr.io/acme/blog/blog-backend:1.8.2',
-              'ghcr.io/your-org/your-repo/blog-frontend:1.8.2': 'ghcr.io/acme/blog/blog-frontend:1.8.2',
-              'https://blog.example.com': 'https://blog.ci.example',
-              'replace-with-a-strong-database-password': 'postgres-password-1234567890',
-              'replace-with-a-strong-redis-password': 'redis-password-1234567890',
-              'replace-with-a-32-byte-jwt-secret': 'jwt-secret-abcdefghijklmnopqrstuvwxyz123456',
-              'replace-with-a-separate-32-byte-password-pepper': 'pepper-secret-abcdefghijklmnopqrstuvwxyz123',
-              'smtp.example.com': 'smtp.ci.example',
-              'noreply@example.com': 'ops@ci.example',
-              'replace-with-smtp-password': 'smtp-password-1234567890',
-          }
-          for old, new in replacements.items():
-              src = src.replace(old, new)
-          Path('.env.production.ci').write_text(src)
-          PY
+          bash -n scripts/deployment/validate-production-env.sh \
+            scripts/deployment/deploy-compose-stack.sh \
+            scripts/deployment/generate-ci-production-env.sh \
+            scripts/deployment/validate-kubernetes-apply.sh \
+            scripts/release/oci-metadata.sh \
+            scripts/release/render-release-assets.sh \
+            scripts/testing/smoke-production-compose.sh
+
+      - name: Generate CI production env
+        run: make generate-ci-prod-env OUTPUT_FILE=.env.production.ci
 
       - name: Validate production env policy
         run: bash scripts/deployment/validate-production-env.sh .env.production.ci
@@ -109,11 +105,11 @@ jobs:
           ARGOCD_NAMESPACE: argocd
           ARGOCD_PROJECT: blog-platform
         run: |
-          bash scripts/release/render-release-assets.sh \
-            --version 9.9.9 \
-            --repository acme/blog \
-            --backend-digest 1111111111111111111111111111111111111111111111111111111111111111 \
-            --frontend-digest 2222222222222222222222222222222222222222222222222222222222222222
+          make render-release-assets \
+            VERSION=9.9.9 \
+            REPOSITORY=acme/blog \
+            BACKEND_DIGEST=1111111111111111111111111111111111111111111111111111111111111111 \
+            FRONTEND_DIGEST=2222222222222222222222222222222222222222222222222222222222222222
           test -f dist/release-assets/9.9.9/compose/production.env
           test -f dist/release-assets/9.9.9/kubernetes/production/kustomization.yaml
           test -f dist/release-assets/blog-platform-release-9.9.9.tar.gz
@@ -165,3 +161,48 @@ jobs:
       - name: Verify backend URL resolver behavior
         working-directory: ./frontend
         run: pnpm exec vitest run tests/lib/api/resolveBackendApiBaseUrl.test.ts
+
+  compose-smoke:
+    name: Smoke Test Production Compose
+    needs: validate-assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate CI production env
+        run: make generate-ci-prod-env OUTPUT_FILE=.env.production.ci
+
+      - name: Build and smoke-test production stack
+        run: make smoke-prod-compose ENV_FILE=.env.production.ci
+
+  validate-k8s-apply:
+    name: Validate Kubernetes Apply
+    needs: validate-assets
+    runs-on: ubuntu-latest
+    env:
+      GITOPS_REPO_URL: https://github.com/acme/platform-gitops.git
+      GITOPS_TARGET_REVISION: main
+      GITOPS_BASE_PATH: releases
+      ARGOCD_NAMESPACE: argocd
+      ARGOCD_PROJECT: blog-platform
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install kind
+        uses: engineerd/setup-kind@v0.6.0
+        with:
+          skipClusterCreation: true
+
+      - name: Render release assets for Kubernetes validation
+        run: |
+          make render-release-assets \
+            VERSION=9.9.9 \
+            REPOSITORY=acme/blog \
+            BACKEND_DIGEST=1111111111111111111111111111111111111111111111111111111111111111 \
+            FRONTEND_DIGEST=2222222222222222222222222222222222222222222222222222222222222222
+
+      - name: Validate kubectl apply against a disposable cluster
+        run: make validate-k8s-apply RELEASE_VERSION=9.9.9
