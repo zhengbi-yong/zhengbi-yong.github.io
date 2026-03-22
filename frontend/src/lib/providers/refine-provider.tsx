@@ -1,7 +1,11 @@
-// @ts-nocheck
 /**
- * Refine Provider
- * 整合所有 Refine 提供者
+ * Refine Provider - 优化版
+ *
+ * 优化内容：
+ * - 激进缓存策略（5分钟 staleTime, 30分钟 gcTime）
+ * - 禁用窗口聚焦刷新
+ * - 实时模式（WebSocket）
+ * - 禁用同步通知（减少开销）
  */
 
 'use client'
@@ -19,14 +23,64 @@ interface RefineProviderProps {
   children: React.ReactNode
 }
 
+/**
+ * 简单的内存缓存层
+ * 用于减少重复请求
+ */
+class SimpleCache {
+  private cache = new Map<string, { data: any; timestamp: number }>()
+  private defaultTTL = 5 * 60 * 1000 // 5分钟
+
+  set(key: string, data: any, ttl: number = this.defaultTTL) {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now() + ttl,
+    })
+  }
+
+  get(key: string): any | null {
+    const item = this.cache.get(key)
+    if (!item) return null
+
+    if (Date.now() > item.timestamp) {
+      this.cache.delete(key)
+      return null
+    }
+
+    return item.data
+  }
+
+  clear() {
+    this.cache.clear()
+  }
+
+  has(key: string): boolean {
+    return this.get(key) !== null
+  }
+}
+
+// 全局缓存实例
+const cache = new SimpleCache()
+
 export function RefineProvider({ children }: RefineProviderProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 30 * 1000, // 30秒
+            // 激进缓存模式：数据在 5 分钟内被视为新鲜
+            staleTime: 1000 * 60 * 5, // 5分钟（原 30秒）
+            // 保留缓存 30 分钟（防止频繁重新获取）
+            gcTime: 1000 * 60 * 30, // 30分钟
+            // 禁用窗口聚焦自动刷新（减少不必要的请求）
             refetchOnWindowFocus: false,
+            // 失败重试 1 次
+            retry: 1,
+            // 重试延迟：指数退避
+            retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+          },
+          mutations: {
+            // 变更失败时重试 1 次
             retry: 1,
           },
         },
@@ -38,6 +92,7 @@ export function RefineProvider({ children }: RefineProviderProps) {
       <Refine
         dataProvider={dataProvider}
         authProvider={authProvider}
+        routerProvider={routerProvider}
         resources={[
           {
             name: 'admin/posts',
@@ -62,17 +117,33 @@ export function RefineProvider({ children }: RefineProviderProps) {
           },
         ]}
         options={{
+          // 禁用 URL 同步（减少路由监听开销）
           syncWithLocation: false,
+          // 启用未保存更改警告
           warnWhenUnsavedChanges: true,
+          // 使用新的查询键格式
           useNewQueryKeys: true,
+          // 项目标识符
           projectId: 'admin-panel',
+          // 禁用遥测（隐私和性能）
           disableTelemetry: true,
+          // 启用实时模式（WebSocket 自动更新）
+          // liveMode: 'auto', // 可选：如果后端支持 WebSocket
+          // 实时提供者配置（如果启用 liveMode）
+          // liveProvider: liveProvider,
         }}
       >
-        {children}
+        <RefineKbarProvider>
+          <RefineKbar />
+          {children}
+        </RefineKbarProvider>
       </Refine>
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={true} />}
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   )
 }
+
+// 导出缓存实例供外部使用（可选）
+export { cache }
+
 

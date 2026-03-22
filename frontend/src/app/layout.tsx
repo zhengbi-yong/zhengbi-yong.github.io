@@ -3,6 +3,7 @@ import 'pliny/search/algolia.css'
 import 'remark-github-blockquote-alert/alert.css'
 import 'leaflet/dist/leaflet.css'
 import 'katex/dist/katex.min.css' // KaTeX 数学公式样式
+import 'abcjs/abcjs-audio.css'
 
 import { SearchProvider, SearchConfig } from 'pliny/search'
 import type { AnalyticsConfig } from 'pliny/analytics'
@@ -36,9 +37,7 @@ export const metadata: Metadata = {
       { url: '/static/favicons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/static/favicons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
     ],
-    apple: [
-      { url: '/static/favicons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
+    apple: [{ url: '/static/favicons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   openGraph: {
     title: siteMetadata.title,
@@ -106,7 +105,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F3F0" />
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1E3A5F" />
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
-      <body className="pl-[calc(100vw-100%)] antialiased" style={{ backgroundColor: 'var(--site-bg)', color: 'var(--text-primary)' }}>
+      <body
+        className="pl-[calc(100vw-100%)] antialiased"
+        style={{ backgroundColor: 'var(--site-bg)', color: 'var(--text-primary)' }}
+      >
         <Script id="load-env-variables" strategy="beforeInteractive">
           {`window["EXCALIDRAW_ASSET_PATH"] = "/";`}
         </Script>

@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test'
  * Playwright E2E测试配置
  *
  * 环境变量：
- * - BASE_URL: 测试环境URL（默认: http://localhost:3000）
+ * - BASE_URL: 测试环境URL（默认: http://localhost:3001）
  * - E2E_ADMIN_EMAIL: 管理员测试账号邮箱
  * - E2E_ADMIN_PASSWORD: 管理员测试账号密码
  *
@@ -33,7 +33,7 @@ export default defineConfig({
   /* 全局设置 */
   use: {
     /* 基础URL */
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://localhost:3001',
     /* 收集失败测试的trace */
     trace: 'on-first-retry',
     /* 截图配置 */
@@ -78,7 +78,7 @@ export default defineConfig({
     ? undefined
     : {
         command: 'pnpm dev',
-        url: 'http://localhost:3000',
+        url: 'http://localhost:3001',
         reuseExistingServer: !process.env.CI,
         timeout: 120000,
       },

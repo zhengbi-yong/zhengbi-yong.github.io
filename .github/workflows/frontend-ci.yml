@@ -67,9 +67,30 @@ jobs:
         env:
           NEXT_PUBLIC_BACKEND_URL: https://api.example.com/v1
 
+  e2e:
+    name: E2E Tests
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        working-directory: ./frontend
+        run: pnpm exec playwright install chromium
+      - name: Run E2E tests
+        working-directory: ./frontend
+        run: pnpm exec playwright test e2e/abc-notation.spec.ts --project=chromium --reporter=list
+
   deploy:
     name: Deploy to Vercel
-    needs: [build]
+    needs: [build, e2e]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production

@@ -1,6 +1,12 @@
 import dynamic from 'next/dynamic'
-// ReactNode type import removed; JSX runtime handles typing in this file
-import { Suspense } from 'react'
+import {
+  Suspense,
+  Children,
+  isValidElement,
+  type HTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import TOCInline from 'pliny/ui/TOCInline'
 import Pre from 'pliny/ui/Pre'
 import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm'
@@ -12,6 +18,7 @@ import AnimatedList from './AnimatedList'
 import { AnimationSkeleton } from './loaders/AnimationSkeleton'
 import { AnimationErrorBoundary } from './AnimationErrorBoundary'
 import { ExcalidrawEmbed } from './MDXComponents/ExcalidrawEmbed'
+import SheetMusic, { ABCCodeBlock } from './SheetMusic'
 
 // 动态导入动画组件，减少初始 bundle 大小
 // 注意：在 Server Component 中不能使用 ssr: false，但这些组件本身已经是 Client Components
@@ -268,12 +275,61 @@ const WrappedAntVChart = (props: any) => (
   </AnimationErrorBoundary>
 )
 
+type CodeElementProps = {
+  className?: string
+  children?: ReactNode
+}
+
+type PreWithABCProps = HTMLAttributes<HTMLPreElement> & {
+  children?: ReactNode
+}
+
+function isABCCodeClassName(className?: string) {
+  return className?.includes('language-abc') || className?.includes('lang-abc')
+}
+
+function getCodeChild(children: ReactNode): ReactElement<CodeElementProps> | null {
+  const child = Children.toArray(children).find((item) => isValidElement<CodeElementProps>(item))
+
+  return child && isValidElement<CodeElementProps>(child) ? child : null
+}
+
+function extractABCNotation(children: ReactNode) {
+  if (typeof children === 'string') {
+    return children.trim()
+  }
+
+  const codeChild = getCodeChild(children)
+  const codeChildren = codeChild?.props.children
+
+  if (typeof codeChildren === 'string') {
+    return codeChildren.trim()
+  }
+
+  if (Array.isArray(codeChildren)) {
+    return codeChildren.join('').trim()
+  }
+
+  return ''
+}
+
+function PreWithABC({ children, className }: PreWithABCProps) {
+  const codeChild = getCodeChild(children)
+  const codeClassName = codeChild?.props.className
+
+  if (isABCCodeClassName(className) || isABCCodeClassName(codeClassName)) {
+    return <ABCCodeBlock>{extractABCNotation(children)}</ABCCodeBlock>
+  }
+
+  return <Pre>{children}</Pre>
+}
+
 // MDX 组件映射，用于自定义 MDX 渲染
 export const components = {
   Image,
   TOCInline,
   a: CustomLink,
-  pre: Pre,
+  pre: PreWithABC,
   table: TableWrapper,
   BlogNewsletterForm,
   // 第一阶段动画组件（向后兼容）
@@ -288,6 +344,8 @@ export const components = {
   ConfettiOnView: WrappedConfettiOnView,
   // 乐谱组件（动态导入，按需加载）
   MusicSheet,
+  SheetMusic,
+  ABCCodeBlock,
   // 化学结构组件（动态导入，按需加载）
   ChemicalStructure,
   SimpleChemicalStructure,
