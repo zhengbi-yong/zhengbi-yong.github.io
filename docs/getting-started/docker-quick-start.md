@@ -308,7 +308,7 @@ NGINX_HTTPS_PORT=443
 
 ### 资源限制
 
-编辑 `deployments/docker/compose-files/docker-compose.yml` 添加资源限制：
+编辑 `docker-compose.production.yml` 添加资源限制：
 
 ```yaml
 services:
@@ -337,7 +337,7 @@ services:
 
 **启用热重载**:
 
-修改 `deployments/docker/compose-files/docker-compose.yml`:
+修改 `docker-compose.dev.yml`:
 
 ```yaml
 services:
@@ -529,7 +529,7 @@ Get-NetTCPConnection -LocalPort 3000
 # macOS/Linux
 lsof -i :3000
 
-# 终止进程或修改 deployments/docker/compose-files/docker-compose.yml 中的端口映射
+# 终止进程或修改 docker-compose.dev.yml 中的端口映射
 ```
 
 #### 问题 4: 容器无法启动
@@ -581,7 +581,7 @@ docker compose build --no-cache backend
 # 查看容器资源使用
 docker stats
 
-# 增加资源限制（编辑 deployments/docker/compose-files/docker-compose.yml）
+# 增加资源限制（编辑 docker-compose.production.yml）
 # 见上文"资源限制"部分
 
 # 清理未使用的资源

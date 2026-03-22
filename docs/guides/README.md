@@ -123,7 +123,7 @@ This directory contains user guides to help you use the blog system features.
 ### 部署文档 / Deployment
 
 - 🚀 **[部署首页](../deployment/)** - 部署选项
-- 🖥️ **[生产服务器](../deployment/guides/server/production-server.md)** - 生产配置
+- 🖥️ **[自动化 Compose 部署](../deployment/guides/server/automated-compose-deploy.md)** - 生产配置
 
 ### 参考文档 / Reference
 

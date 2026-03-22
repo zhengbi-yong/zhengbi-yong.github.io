@@ -72,13 +72,13 @@ if [ $fail_count -eq 0 ]; then
     log_info "所有镜像测试通过！可以开始部署了。"
     echo ""
     echo "运行部署命令:"
-    echo "  bash deploy-simple.sh"
+    echo "  bash scripts/deployment/deploy-compose-stack.sh --env-file .env.production"
     exit 0
 else
     log_error "部分镜像测试失败！请查看上面的错误信息。"
     echo ""
     echo "建议操作:"
     echo "  1. 配置 Docker 镜像加速器（阿里云）"
-    echo "  2. 或使用国内镜像源修改 docker-compose.yml"
+    echo "  2. 或更新 docker-compose.production.yml 中的镜像来源"
     exit 1
 fi

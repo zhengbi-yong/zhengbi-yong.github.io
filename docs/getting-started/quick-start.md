@@ -119,7 +119,7 @@ This comprehensive guide covers:
 
 1. **[快速开始](../quick-start.md)** - 了解系统
 2. **[部署指南](../deployment/)** - 部署选项
-3. **[生产服务器](../deployment/guides/server/production-server.md)** - 生产配置
+3. **[自动化 Compose 部署](../deployment/guides/server/automated-compose-deploy.md)** - 生产配置
 
 ---
 

@@ -1,6 +1,6 @@
 # Documentation Hub
 
-This is the canonical entrypoint for repository documentation.
+This file is the canonical documentation entrypoint for the repository.
 
 ## Start here
 
@@ -20,25 +20,17 @@ This is the canonical entrypoint for repository documentation.
 - [Observability and Operations](/home/Sisyphus/zhengbi-yong.github.io/docs/features/observability-and-operations.md)
 - [Runtime and Scaling](/home/Sisyphus/zhengbi-yong.github.io/docs/features/runtime-and-scaling.md)
 
-## Development
+## Deployment and operations
 
-- [Developer Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/development/README.md)
-- [Development Quick Start](/home/Sisyphus/zhengbi-yong.github.io/docs/development/quick-start.md)
-- [Architecture](/home/Sisyphus/zhengbi-yong.github.io/docs/development/concepts/architecture.md)
-- [Frontend Architecture](/home/Sisyphus/zhengbi-yong.github.io/docs/development/concepts/frontend-architecture.md)
-- [Backend Architecture](/home/Sisyphus/zhengbi-yong.github.io/docs/development/concepts/backend-architecture.md)
-- [API Reference](/home/Sisyphus/zhengbi-yong.github.io/docs/development/reference/api-reference.md)
-
-## Deployment
-
-- [Deployment Overview](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/README.md)
+- [Deployment Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/README.md)
+- [Deployment Assets](/home/Sisyphus/zhengbi-yong.github.io/deployments/README.md)
 - [Compose Production Stack](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/compose/production-stack.md)
 - [Automated Compose Deploy](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/automated-compose-deploy.md)
 - [System Nginx Cutover](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/system-nginx-cutover.md)
 - [Kubernetes Base](/home/Sisyphus/zhengbi-yong.github.io/deployments/kubernetes/README.md)
 - [GitOps / Argo CD](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/gitops/argocd.md)
 
-## Operations and reference
+## Supporting reference
 
 - [Environment Variables](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/environment-variables.md)
 - [Commands Reference](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/commands.md)
@@ -46,8 +38,9 @@ This is the canonical entrypoint for repository documentation.
 - [Configuration Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/configuration/config-guide.md)
 - [FAQ](/home/Sisyphus/zhengbi-yong.github.io/docs/appendix/faq.md)
 
-## Archival policy
+## Maintenance rule
 
-- Active entrypoints are the documents linked above.
-- Historical reports and superseded procedures belong under `docs/archive/`.
-- If a guide is not linked from this file, it should not be treated as a maintained primary path without verification.
+Only documents linked from this file should be treated as maintained primary
+entrypoints. Historical reports, generated status writeups, and superseded
+procedures belong in archive material or git history, not in the active
+documentation surface.

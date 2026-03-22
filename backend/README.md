@@ -1,222 +1,74 @@
-# Blog Backend API
+# Backend Workspace
 
-A high-performance, Rust-based backend API for a blog platform built with Axum, SQLx, and modern web technologies.
+Rust/Axum backend for the blog platform.
 
-## 🚀 Features
+## Workspace layout
 
-- **High Performance**: Built on Rust with async/await and Tokio runtime
-- **Type Safety**: Full type safety with SQLx compile-time query checking
-- **Authentication**: JWT-based authentication with refresh tokens
-- **Database**: PostgreSQL with connection pooling
-- **Caching**: Redis for session and data caching
-- **API Documentation**: OpenAPI 3.0 with Swagger UI
-- **Monitoring**: Prometheus metrics and health checks
-- **Security**: CORS support, rate limiting, input sanitization
-- **Real-time**: WebSocket support for real-time features
-- **Modular**: Clean architecture with separate crates for core functionality
-
-## 📦 Architecture
-
-The project is organized into several crates:
-
-```
-blog-backend/
+```text
+backend/
 ├── crates/
-│   ├── api/        # HTTP API layer (Axum server)
-│   ├── core/       # Core business logic and utilities
-│   ├── db/         # Database models and schemas
-│   ├── shared/     # Shared types and utilities
-│   └── worker/     # Background worker processes
-├── migrations/         # SQLx database migrations
-├── scripts/           # Development and deployment scripts
-│   ├── deployment/    # Deployment scripts (setup.sh, deploy.sh, quick-start.sh)
-│   ├── development/   # Development helper scripts
-│   ├── data/          # Data management scripts
-│   ├── database/      # Database operation scripts
-│   ├── testing/       # Testing scripts
-│   └── openapi/       # OpenAPI specification scripts
-└── README.md
+│   ├── api/      # HTTP API binary and route layer
+│   ├── core/     # auth, domain services, email, shared business logic
+│   ├── db/       # SQLx-backed models and persistence helpers
+│   ├── shared/   # configuration, errors, shared DTOs
+│   └── worker/   # background outbox consumer and async jobs
+├── migrations/   # SQLx migrations
+└── scripts/      # backend-only helper scripts
 ```
 
-## 🛠 Tech Stack
+## Runtime model
 
-- **Web Framework**: Axum 0.8
-- **Database**: PostgreSQL 15+ with SQLx 0.8
-- **Cache**: Redis 7+ with deadpool-redis
-- **Serialization**: Serde 1.0
-- **Authentication**: JWT with argon2 password hashing
-- **OpenAPI**: Utoipa 4.2 with Swagger UI
-- **Monitoring**: Prometheus and Sentry
-- **Async Runtime**: Tokio 1.42
-- **Logging**: tracing and tracing-subscriber
+- `cargo run --bin migrate`: one-shot schema migration job
+- `cargo run --bin api`: stateless HTTP API
+- `cargo run --bin worker`: background outbox consumer
 
-## 📚 Documentation
+This separation is intentional. The API verifies migration state on startup but
+does not mutate schema automatically.
 
-For comprehensive documentation, see the main project docs: **[Complete Documentation](../docs/)**
+## Local development
 
-### Key Documents
-
-- **[Backend Overview](../docs/development/backend/overview.md)** - Rust project structure and architecture
-- **[API Reference](../docs/development/backend/api-reference.md)** - Complete REST API documentation
-- **[Database Design](../docs/development/backend/database.md)** - Database schemas and relationships
-- **[Backend Testing](../docs/development/backend/testing.md)** - Testing strategies and coverage
-
-### Operations
-
-- **[Performance Monitoring](../docs/development/operations/performance-monitoring.md)** - Performance metrics and monitoring
-- **[Security Guide](../docs/development/operations/security-guide.md)** - Security best practices
-- **[Troubleshooting Guide](../docs/development/operations/troubleshooting-guide.md)** - Issue diagnosis and resolution
-
-### Deployment
-
-- **[Single Server Deployment](../docs/deployment/single-server.md)** - Quick deployment guide
-- **[High Availability Deployment](../docs/deployment/high-availability.md)** - Production setup
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Rust 1.70+
-- Docker & Docker Compose
-- PostgreSQL and Redis (or use Docker)
-
-### Automated Setup (Recommended)
+From the repository root:
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/zhengbi-yong.github.io.git
-cd zhengbi-yong.github.io/blog-backend
-
-# Run the setup script
-./scripts/deployment/setup.sh
+docker compose -f docker-compose.dev.yml up -d postgres redis
+cd backend
+cp .env.example .env
+cargo run --bin migrate
+cargo run --bin api
 ```
 
-The setup script will:
-- ✅ Install Rust (if not installed)
-- ✅ Install Docker (if not installed)
-- ✅ Create environment file with secure secrets
-- ✅ Start PostgreSQL and Redis containers
-- ✅ Install SQLx CLI
-- ✅ Run database migrations
-- ✅ Build and test the project
-
-### Manual Setup
-
-1. **Clone and navigate to the project**
-   ```bash
-   git clone https://github.com/yourusername/zhengbi-yong.github.io.git
-   cd zhengbi-yong.github.io/blog-backend
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Install Rust (if not installed)
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-   # Install SQLx CLI
-   cargo install sqlx-cli --no-default-features --features rustls,postgres
-   ```
-
-3. **Set up environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-4. **Start databases**
-   ```bash
-   docker compose up -d
-   ```
-
-5. **Run migrations**
-   ```bash
-   sqlx migrate run
-   ```
-
-6. **Run the server**
-   ```bash
-   cargo run
-   ```
-
-## 📚 API Documentation
-
-Once the server is running:
-
-- **Swagger UI**: http://localhost:3000/swagger-ui/
-- **OpenAPI JSON**: http://localhost:3000/api-docs/openapi.json
-- **Health Check**: http://localhost:3000/healthz
-- **Metrics**: http://localhost:3000/metrics
-
-## 🧪 Development
-
-### Running Tests
+## Quality checks
 
 ```bash
-# Run all tests
-cargo test
-
-# Run with coverage
-cargo install cargo-tarpaulin
-cargo tarpaulin --out Html
+cd backend
+cargo fmt --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace --locked
 ```
 
-### Code Quality
+## Operations
 
-```bash
-# Check code
-cargo check
+- health: `http://localhost:3000/healthz`
+- readiness: `http://localhost:3000/readyz`
+- metrics: `http://localhost:3000/metrics`
 
-# Lint
-cargo clippy -- -D warnings
+## Canonical documentation
 
-# Format
-cargo fmt
-```
+- [Repository docs hub](/home/Sisyphus/zhengbi-yong.github.io/docs/README.md)
+- [Feature: Auth and Engagement](/home/Sisyphus/zhengbi-yong.github.io/docs/features/auth-and-engagement.md)
+- [Feature: Media and Storage](/home/Sisyphus/zhengbi-yong.github.io/docs/features/media-and-storage.md)
+- [Feature: Search and Discovery](/home/Sisyphus/zhengbi-yong.github.io/docs/features/search-and-discovery.md)
+- [Feature: Observability and Operations](/home/Sisyphus/zhengbi-yong.github.io/docs/features/observability-and-operations.md)
+- [Feature: Runtime and Scaling](/home/Sisyphus/zhengbi-yong.github.io/docs/features/runtime-and-scaling.md)
+- [Deployment guide](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/README.md)
 
-### Database Migrations
+## Notes
 
-```bash
-# Create new migration
-sqlx migrate add <migration_name>
-
-# Run migrations
-sqlx migrate run
-
-# Check migration status
-sqlx migrate info
-```
-
-### Hot Reload
-
-```bash
-# Install cargo-watch
-cargo install cargo-watch
-
-# Run with hot reload
-cargo watch -x run
-```
-
-## 📊 Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | Required |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
-| `JWT_SECRET` | JWT signing secret | Required |
-| `PASSWORD_PEPPER` | Password pepper for hashing | Optional |
-| `RUST_LOG` | Log level | `info` |
-| `ENVIRONMENT` | Environment | `development` |
-| `HOST` | Server bind address | `127.0.0.1` |
-| `PORT` | Server port | `3000` |
-| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:3000` |
-
-## 🔧 Configuration
-
-The application can be configured through environment variables or a `.env` file. See `.env.example` for all available options.
-
-## 📝 API Endpoints
+- Use [backend/.env.example](/home/Sisyphus/zhengbi-yong.github.io/backend/.env.example) as
+  the source of truth for runtime configuration.
+- Use [scripts/deployment](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment) for
+  deployment automation. Older ad-hoc deployment procedures are no longer
+  maintained.
 
 ### Authentication
 - `POST /v1/auth/register` - Register new user

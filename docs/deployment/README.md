@@ -59,6 +59,8 @@ paths:
 - hand-managed image export/load/start procedures
 - low-resource special-case deployment guides
 - legacy Docker guide trees that diverged from the canonical Compose stack
+- duplicated deployment assets under `deployments/docker/compose-files/`
+- standalone deployment wrappers under `deployments/scripts/`
 
 Those flows were removed from the active documentation surface to keep the
 repository understandable and maintainable.

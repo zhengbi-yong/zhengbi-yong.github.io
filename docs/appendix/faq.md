@@ -128,11 +128,11 @@ cd frontend
 EXPORT=1 BASE_PATH=/repo-name pnpm build
 ```
 
-详见 [部署总览](../deployment/overview.md)。
+详见 [部署指南](../deployment/README.md)。
 
 ### Q: 如何部署到生产服务器？
 
-**A**: 按照 [单服务器部署指南](../deployment/single-server.md) 操作：
+**A**: 按照 [自动化 Compose 部署指南](../deployment/guides/server/automated-compose-deploy.md) 操作：
 
 1. 准备服务器
 2. 安装 Docker
@@ -150,11 +150,11 @@ sudo certbot certonly --webroot \
   -d yourdomain.com
 ```
 
-详见 [单服务器部署 - SSL 证书](../deployment/single-server.md#ssl-证书)。
+详见 [System Nginx Cutover](../deployment/guides/server/system-nginx-cutover.md)。
 
 ### Q: 如何实现高可用部署？
 
-**A**: 参考 [高可用部署指南](../deployment/high-availability.md)：
+**A**: 参考 [Kubernetes Base](../deployment/guides/kubernetes/base.md)：
 
 - 负载均衡
 - 数据库主从复制

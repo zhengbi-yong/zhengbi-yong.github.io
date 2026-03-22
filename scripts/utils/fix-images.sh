@@ -126,5 +126,5 @@ grep "image:" docker-compose.yml | head -5
 echo ""
 log_info "配置更新完成！现在可以运行部署了："
 echo ""
-echo "  bash deploy-simple.sh"
+echo "  bash scripts/deployment/deploy-compose-stack.sh --env-file .env.production"
 echo ""

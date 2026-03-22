@@ -28,6 +28,7 @@ frontend/public/sitemap.xml
 
 # production
 /build
+dist/release-assets/
 *.xml
 # 但允许 frontend/public/musicxml 目录下的 XML 文件
 !frontend/public/musicxml/*.xml
@@ -58,6 +59,7 @@ backend/*.log
 .analysis/
 .archive/
 .reorg/
+.tools/
 
 # Test artifacts
 playwright-report/
@@ -68,6 +70,7 @@ frontend/playwright-report/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.remote.*
 
 # Contentlayer
 .contentlayer
