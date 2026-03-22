@@ -10,6 +10,7 @@ pub enum OutboxEventType {
     SearchIndexUpsert { slug: String },
     SearchIndexDelete { slug: String },
     SearchIndexRebuild,
+    PostViewed { slug: String, increment: i64 },
     EmailSend { template: String, to: String },
 }
 
@@ -69,22 +70,84 @@ pub async fn add_search_index_delete(db: &PgPool, slug: &str) -> Result<(), sqlx
     Ok(())
 }
 
-/// Fetch pending outbox events for processing
-pub async fn fetch_pending_events(
+/// Add a full search index rebuild event to the outbox
+pub async fn add_search_index_rebuild(db: &PgPool) -> Result<(), sqlx::Error> {
+    let event = OutboxEventType::SearchIndexRebuild;
+
+    sqlx::query(
+        r#"
+        INSERT INTO outbox_events (id, event_type, payload, created_at, retry_count)
+        VALUES ($1, $2, $3, $4, 0)
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind("search_index_rebuild")
+    .bind(serde_json::to_value(&event).unwrap_or_default())
+    .bind(Utc::now())
+    .execute(db)
+    .await?;
+
+    Ok(())
+}
+
+/// Add a batched post view event to the outbox
+pub async fn add_post_viewed(db: &PgPool, slug: &str, increment: i64) -> Result<(), sqlx::Error> {
+    let event = OutboxEventType::PostViewed {
+        slug: slug.to_string(),
+        increment,
+    };
+
+    sqlx::query(
+        r#"
+        INSERT INTO outbox_events (id, event_type, payload, created_at, retry_count)
+        VALUES ($1, $2, $3, $4, 0)
+        "#,
+    )
+    .bind(Uuid::new_v4())
+    .bind("post_viewed")
+    .bind(serde_json::to_value(&event).unwrap_or_default())
+    .bind(Utc::now())
+    .execute(db)
+    .await?;
+
+    Ok(())
+}
+
+/// Atomically claim pending outbox events for processing.
+pub async fn claim_pending_events(
     db: &PgPool,
+    worker_id: &str,
     limit: i64,
+    lock_timeout_secs: i32,
 ) -> Result<Vec<OutboxEvent>, sqlx::Error> {
     let rows = sqlx::query_as::<_, OutboxEventRow>(
         r#"
-        SELECT id, event_type, payload, created_at, processed_at, retry_count, error
-        FROM outbox_events
-        WHERE processed_at IS NULL AND retry_count < 3
-        ORDER BY created_at ASC
-        LIMIT $1
-        FOR UPDATE SKIP LOCKED
+        WITH candidates AS (
+            SELECT id
+            FROM outbox_events
+            WHERE processed_at IS NULL
+                AND retry_count < 3
+                AND (
+                    locked_at IS NULL
+                    OR locked_at < NOW() - make_interval(secs => $2)
+                )
+            ORDER BY created_at ASC
+            LIMIT $1
+            FOR UPDATE SKIP LOCKED
+        )
+        UPDATE outbox_events AS outbox
+        SET locked_at = NOW(),
+            locked_by = $3,
+            error = NULL
+        FROM candidates
+        WHERE outbox.id = candidates.id
+        RETURNING outbox.id, outbox.event_type, outbox.payload, outbox.created_at,
+            outbox.processed_at, outbox.retry_count, outbox.error
         "#,
     )
     .bind(limit)
+    .bind(lock_timeout_secs)
+    .bind(worker_id)
     .fetch_all(db)
     .await?;
 
@@ -96,7 +159,10 @@ pub async fn mark_event_processed(db: &PgPool, id: Uuid) -> Result<(), sqlx::Err
     sqlx::query(
         r#"
         UPDATE outbox_events
-        SET processed_at = $1
+        SET processed_at = $1,
+            locked_at = NULL,
+            locked_by = NULL,
+            error = NULL
         WHERE id = $2
         "#,
     )
@@ -113,7 +179,10 @@ pub async fn mark_event_failed(db: &PgPool, id: Uuid, error: &str) -> Result<(),
     sqlx::query(
         r#"
         UPDATE outbox_events
-        SET retry_count = retry_count + 1, error = $1
+        SET retry_count = retry_count + 1,
+            error = $1,
+            locked_at = NULL,
+            locked_by = NULL
         WHERE id = $2
         "#,
     )
@@ -148,5 +217,34 @@ impl From<OutboxEventRow> for OutboxEvent {
             retry_count: row.retry_count,
             error: row.error,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::OutboxEventType;
+
+    #[test]
+    fn serializes_search_upsert_payload_with_snake_case_tag() {
+        let payload = serde_json::to_value(OutboxEventType::SearchIndexUpsert {
+            slug: "rust-axum".to_string(),
+        })
+        .unwrap();
+
+        assert_eq!(
+            payload,
+            serde_json::json!({
+                "search_index_upsert": {
+                    "slug": "rust-axum"
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn serializes_rebuild_payload_as_string() {
+        let payload = serde_json::to_value(OutboxEventType::SearchIndexRebuild).unwrap();
+
+        assert_eq!(payload, serde_json::json!("search_index_rebuild"));
     }
 }

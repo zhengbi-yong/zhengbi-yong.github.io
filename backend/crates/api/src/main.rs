@@ -4,6 +4,9 @@
 use axum::Router;
 use blog_api::middleware::{rate_limit_middleware, request_id_middleware, REQUEST_ID_HEADER};
 use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
+use blog_api::runtime::{
+    create_postgres_pool, create_redis_pool, shutdown_signal, verify_migrations,
+};
 use blog_api::state::AppState;
 use opentelemetry::trace::TracerProvider as _;
 use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
@@ -77,34 +80,25 @@ async fn run_server() -> anyhow::Result<()> {
     tracing::info!("Configuration loaded successfully");
 
     // 初始化数据库连接池（带显式连接池配置）
-    let db = sqlx::pool::PoolOptions::<sqlx::Postgres>::new()
-        .max_connections(20)
-        .min_connections(5)
-        .acquire_timeout(std::time::Duration::from_secs(10))
-        .max_lifetime(std::time::Duration::from_secs(1800))
-        .idle_timeout(std::time::Duration::from_secs(600))
-        .connect(&settings.database_url)
-        .await?;
-    tracing::info!("Database connection pool established (max: 20, min: 5)");
+    let db = create_postgres_pool(&settings.database_url, &settings.database_pool).await?;
+    tracing::info!(
+        max_connections = settings.database_pool.max_connections,
+        min_connections = settings.database_pool.min_connections,
+        acquire_timeout_secs = settings.database_pool.acquire_timeout_secs,
+        "Database connection pool established"
+    );
 
     // 检查迁移是否已应用（不自动运行，由单独的 migrate job 执行）
-    check_migrations(&db).await?;
+    verify_migrations(&db).await?;
     tracing::info!("Database migrations verified");
 
     // 初始化 Redis 连接池（带显式连接池配置）
-    let redis = deadpool_redis::Config::from_url(&settings.redis_url)
-        .builder()
-        .expect("Failed to create Redis pool builder")
-        .max_size(10)
-        .timeouts(deadpool_redis::Timeouts {
-            wait: Some(std::time::Duration::from_secs(5)),
-            create: Some(std::time::Duration::from_secs(5)),
-            recycle: Some(std::time::Duration::from_secs(5)),
-        })
-        .runtime(deadpool_redis::Runtime::Tokio1)
-        .build()
-        .expect("Failed to build Redis pool");
-    tracing::info!("Redis connection pool established (max: 10)");
+    let redis = create_redis_pool(&settings.redis_url, &settings.redis_pool)?;
+    tracing::info!(
+        max_size = settings.redis_pool.max_size,
+        wait_timeout_secs = settings.redis_pool.wait_timeout_secs,
+        "Redis connection pool established"
+    );
 
     // 初始化服务
     let jwt = blog_core::JwtService::new(&settings.jwt_secret)
@@ -129,16 +123,22 @@ async fn run_server() -> anyhow::Result<()> {
     // 初始化指标收集
     let metrics = std::sync::Arc::new(tokio::sync::RwLock::new(blog_api::metrics::Metrics::new()));
 
+    let storage_config = blog_api::storage::StorageConfig::from_env()?;
+    let storage =
+        std::sync::Arc::new(blog_api::storage::StorageService::new(&storage_config).await?);
+    tracing::info!(
+        backend = ?storage_config.backend,
+        "Storage backend initialized"
+    );
+
     let search_index = if let Some(config) = &settings.meilisearch {
         let search_index =
             std::sync::Arc::new(blog_api::search_index::SearchIndexService::new(config).await?);
 
         if config.auto_sync_on_startup {
-            let indexed_documents = search_index.sync_all(&db).await?;
-            tracing::info!(
-                indexed_documents,
+            tracing::warn!(
                 index_name = %config.index_name,
-                "Meilisearch startup sync completed"
+                "MEILISEARCH_AUTO_SYNC is enabled, but API startup sync is disabled in scalable mode; queue a rebuild instead"
             );
         }
 
@@ -161,6 +161,7 @@ async fn run_server() -> anyhow::Result<()> {
         email_service,
         metrics,
         search_index,
+        storage,
     };
 
     // 提取服务器地址（在移动 state 之前）
@@ -178,17 +179,24 @@ async fn run_server() -> anyhow::Result<()> {
     // 4. 中间件只在最外层应用一次（专家建议：避免过多中间件层级）
 
     // 🔥 最后尝试：禁用OpenAPI，减少类型复杂度
+    let api_router = v1_routes(state.clone()).layer(axum::middleware::from_fn_with_state(
+        state.clone(),
+        rate_limit_middleware,
+    ));
+
     let app = Router::new()
         // 健康检查（无状态）
         .route("/health", axum::routing::get(blog_api::metrics::health))
-        .route("/healthz", axum::routing::get(blog_api::metrics::health))  // Kubernetes标准健康检查端点
+        .route("/healthz", axum::routing::get(blog_api::metrics::health))
+        .route("/livez", axum::routing::get(blog_api::metrics::health))
         .route("/health/detailed", axum::routing::get(blog_api::metrics::health_detailed))
+        .route("/readyz", axum::routing::get(blog_api::metrics::readyz))
         .route("/ready", axum::routing::get(blog_api::metrics::readyz))
         .route("/metrics", axum::routing::get(blog_api::metrics::metrics_endpoint))
         // OpenAPI 文档 - TEMPORARILY DISABLED TO TEST STACK OVERFLOW
         // .merge(blog_api::routes::openapi::swagger_ui())
         // API v1 路由（分组）- 添加 /api 前缀
-        .nest("/api/v1", v1_routes(state.clone()))
+        .nest("/api/v1", api_router)
         // 中间件（只在最外层应用，按执行顺序逆序排列）
         // 4. CORS 中间件（最先执行）
         .layer(create_cors_layer(state.settings.cors.allowed_origins.clone()))
@@ -213,13 +221,13 @@ async fn run_server() -> anyhow::Result<()> {
                     )
                 })
         )
-        // 1. Request ID 中间件（最后执行，但最先进入请求处理）
-        .layer(axum::middleware::from_fn(request_id_middleware))
-        // 限流中间件（需要 state）
+        // 1.5. HTTP 指标采集（在 request_id 之后，覆盖所有入口请求）
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
-            rate_limit_middleware,
+            blog_api::metrics::http_metrics_middleware,
         ))
+        // 1. Request ID 中间件（最后执行，但最先进入请求处理）
+        .layer(axum::middleware::from_fn(request_id_middleware))
         // 添加状态
         .with_state(state);
 
@@ -228,20 +236,8 @@ async fn run_server() -> anyhow::Result<()> {
     tracing::info!("Server listening on {:?}", listener.local_addr());
 
     // 优雅关闭处理
-    let shutdown_signal = async {
-        let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-            .expect("Failed to create SIGTERM handler");
-        let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
-            .expect("Failed to create SIGINT handler");
-
-        tokio::select! {
-            _ = sigterm.recv() => tracing::info!("Received SIGTERM, starting graceful shutdown..."),
-            _ = sigint.recv() => tracing::info!("Received SIGINT, starting graceful shutdown..."),
-        }
-    };
-
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal)
+        .with_graceful_shutdown(shutdown_signal("api server"))
         .await?;
 
     tracing::info!("Server shutdown complete");
@@ -500,8 +496,21 @@ fn admin_routes() -> Router<AppState> {
         .route("/admin/users/growth", get(blog_api::routes::admin::get_user_growth))
         // 媒体管理
         .route("/admin/media", get(blog_api::routes::media::list_media))
+        .route(
+            "/admin/media/presign-upload",
+            post(blog_api::routes::media::presign_media_upload),
+        )
+        .route(
+            "/admin/media/finalize",
+            post(blog_api::routes::media::finalize_media_upload),
+        )
+        .route("/admin/media/upload", post(blog_api::routes::media::upload_media))
         .route("/admin/media/unused", get(blog_api::routes::media::get_unused_media))
         .route("/admin/media/{id}", get(blog_api::routes::media::get_media))
+        .route(
+            "/admin/media/{id}/download-url",
+            get(blog_api::routes::media::get_media_download_url),
+        )
         .route("/admin/media/{id}", patch(blog_api::routes::media::update_media))
         .route("/admin/media/{id}", delete(blog_api::routes::media::delete_media))
         // 版本控制
@@ -586,28 +595,4 @@ fn create_cors_layer(allowed_origins: Vec<String>) -> CorsLayer {
             }
         }
     }
-}
-
-/// 检查数据库迁移是否已应用
-/// API 启动时只检查，不自动运行迁移
-async fn check_migrations(db: &sqlx::PgPool) -> anyhow::Result<()> {
-    // 检查 _sqlx_migrations 表是否存在且有记录
-    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM _sqlx_migrations")
-        .fetch_one(db)
-        .await
-        .map_err(|e| {
-            anyhow::anyhow!(
-                "无法验证迁移状态。请确保已运行 'cargo run --bin migrate': {}",
-                e
-            )
-        })?;
-
-    if count == 0 {
-        return Err(anyhow::anyhow!(
-            "数据库迁移未应用。请先运行: cargo run --bin migrate"
-        ));
-    }
-
-    tracing::info!("Database migrations verified: {} migrations applied", count);
-    Ok(())
 }

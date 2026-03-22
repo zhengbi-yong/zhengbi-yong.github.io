@@ -156,21 +156,6 @@ pub async fn create_comment(
     .execute(&mut *tx)
     .await?;
 
-    // 写入 Outbox 供 Worker 处理
-    sqlx::query!(
-        r#"
-        INSERT INTO outbox_events (topic, payload)
-        VALUES ('comment.created', $1)
-        "#,
-        serde_json::json!({
-            "comment_id": comment.id,
-            "slug": slug,
-            "user_id": auth_user.id,
-        })
-    )
-    .execute(&mut *tx)
-    .await?;
-
     tx.commit().await?;
 
     // 获取用户信息

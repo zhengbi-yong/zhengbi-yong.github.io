@@ -128,6 +128,7 @@ struct MdxFrontmatter {
     date: chrono::DateTime<chrono::Utc>,
     category: Option<String>,
     summary: Option<String>,
+    #[allow(dead_code)]
     tags: Vec<String>,
     draft: bool,
     show_toc: bool,

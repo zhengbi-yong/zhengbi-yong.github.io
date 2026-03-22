@@ -1,4 +1,5 @@
 use anyhow::Result;
+use blog_api::runtime::run_migrations;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -16,7 +17,7 @@ async fn main() -> Result<()> {
     eprintln!("Database connection established");
 
     eprintln!("Running migrations...");
-    sqlx::migrate!("../../migrations").run(&db).await?;
+    run_migrations(&db).await?;
     eprintln!("✅ Database migrations completed successfully");
 
     Ok(())

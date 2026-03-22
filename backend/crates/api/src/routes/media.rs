@@ -1,16 +1,71 @@
 use crate::state::AppState;
+use crate::storage::StorageError;
 use axum::{
-    extract::{Extension, Path, Query, State},
+    extract::{Extension, Multipart, Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Json},
 };
 use blog_db::cms::*;
 use blog_shared::{AppError, AuthUser};
-use utoipa;
+use serde::{Deserialize, Serialize};
+use sqlx::{Postgres, QueryBuilder};
+use std::collections::BTreeMap;
+use std::path::Path as FsPath;
+use utoipa::{self, ToSchema};
 use uuid::Uuid;
 
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct MediaPresignUploadRequest {
+    pub filename: String,
+    pub content_type: Option<String>,
+    pub expires_secs: Option<u32>,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MediaPresignUploadResponse {
+    pub object_key: String,
+    pub upload_url: String,
+    pub asset_url: String,
+    pub upload_method: String,
+    pub content_type: String,
+    pub expires_in_secs: u32,
+    pub required_headers: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct FinalizeMediaUploadRequest {
+    pub object_key: String,
+    pub original_filename: String,
+    pub alt_text: Option<String>,
+    pub caption: Option<String>,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct MediaDownloadUrlParams {
+    pub expires_secs: Option<u32>,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct MediaDownloadUrlResponse {
+    pub url: String,
+    pub expires_in_secs: Option<u32>,
+}
+
+struct NewMediaRecord {
+    object_key: String,
+    original_filename: String,
+    mime_type: String,
+    size_bytes: i64,
+    width: Option<i32>,
+    height: Option<i32>,
+    alt_text: Option<String>,
+    caption: Option<String>,
+    uploaded_by: Uuid,
+    media_type: String,
+    url: String,
+}
+
 /// 上传媒体文件
-/// TODO: Enable multipart feature in Cargo.toml to use this function
 #[utoipa::path(
     post,
     path = "/admin/media/upload",
@@ -20,46 +75,42 @@ use uuid::Uuid;
         (status = 201, description = "上传成功", body = MediaListItem),
         (status = 400, description = "请求参数错误"),
         (status = 401, description = "未认证"),
-        (status = 413, description = "文件过大"),
-        (status = 501, description = "暂未实现 - 需要启用 multipart feature")
+        (status = 413, description = "文件过大")
     ),
     security(
         ("BearerAuth" = [])
     )
 )]
 pub async fn upload_media(
-    State(_state): State<AppState>,
-    Extension(_auth_user): Extension<AuthUser>,
-    // mut mutipart: Multipart,  // Requires multipart feature
-) -> Result<(StatusCode, Json<serde_json::Value>), AppError> {
-    // TODO: Implement multipart file upload
-    // Requires: axum = { version = "0.8", features = ["multipart"] }
-    Err(AppError::BadRequest(
-        "Media upload not yet implemented - requires multipart feature".to_string(),
-    ))
-
-    /*
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    mut multipart: Multipart,
+) -> Result<(StatusCode, Json<MediaListItem>), AppError> {
     let mut file_data: Option<Vec<u8>> = None;
     let mut filename: Option<String> = None;
     let mut alt_text: Option<String> = None;
     let mut caption: Option<String> = None;
+    let mut content_type: Option<String> = None;
 
-    // 处理 multipart 数据
-    while let Some(field) = mutipart.next_field().await.map_err(|e| {
-        AppError::BadRequest(format!("Failed to read multipart: {}", e))
-    })? {
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|error| AppError::BadRequest(format!("Failed to read multipart: {}", error)))?
+    {
         let field_name = field.name().unwrap_or("").to_string();
 
         match field_name.as_str() {
             "file" => {
-                filename = field.file_name().map(|s| s.to_string());
-                let data = field.bytes().await.map_err(|e| {
-                    AppError::BadRequest(format!("Failed to read file: {}", e))
+                filename = field.file_name().map(|value| value.to_string());
+                content_type = field.content_type().map(|value| value.to_string());
+                let data = field.bytes().await.map_err(|error| {
+                    AppError::BadRequest(format!("Failed to read file: {}", error))
                 })?;
 
-                // 检查文件大小（最大 50MB）
                 if data.len() > 50 * 1024 * 1024 {
-                    return Err(AppError::BadRequest("File too large (max 50MB)".to_string()));
+                    return Err(AppError::BadRequest(
+                        "File too large (max 50MB)".to_string(),
+                    ));
                 }
 
                 file_data = Some(data.to_vec());
@@ -75,111 +126,154 @@ pub async fn upload_media(
     }
 
     let data = file_data.ok_or_else(|| AppError::BadRequest("No file provided".to_string()))?;
-    let original_filename = filename.ok_or_else(|| AppError::BadRequest("No filename provided".to_string()))?;
+    let original_filename =
+        filename.ok_or_else(|| AppError::BadRequest("No filename provided".to_string()))?;
+    let mime_type = resolve_mime_type(content_type.as_deref(), &original_filename);
+    ensure_allowed_mime_type(&mime_type)?;
 
-    // 检测 MIME 类型
-    let mime_type = detect_mime_type(&data, &original_filename);
-
-    // 验证文件类型
-    if !is_allowed_mime_type(&mime_type) {
-        return Err(AppError::BadRequest(format!("File type not allowed: {}", mime_type)));
-    }
-
-    // 生成文件名
-    let file_extension = original_filename
-        .rsplit('.')
-        .next()
-        .unwrap_or("bin");
-    let new_filename = format!("{}.{}", Uuid::new_v4(), file_extension);
-
-    // 确定媒体类型
-    let media_type = get_media_type(&mime_type);
-
-    // 获取图片尺寸（如果是图片）
+    let object_key = build_media_object_key(&original_filename, &mime_type);
+    let media_type = get_media_type(&mime_type).to_string();
     let (width, height) = if media_type == "image" {
         get_image_dimensions(&data)?
     } else {
         (None, None)
     };
 
-    // 存储路径（本地存储，可以改为 S3/R2）
-    let storage_path = format!("/media/{}", new_filename);
+    let stored_url = state
+        .storage
+        .store(&object_key, &data, &mime_type)
+        .await
+        .map_err(map_storage_error)?;
 
-    // TODO: 实际保存文件到存储系统（本地文件系统、S3、R2等）
-    // 这里需要根据实际的存储配置来实现
-    // 例如：
-    // let mut file = tokio::fs::File::create(format!("{}{}", state.media_upload_path, storage_path)).await?;
-    // file.write_all(&data).await?;
-
-    // 保存到数据库
-    let id = sqlx::query_scalar!(
-        r#"
-        INSERT INTO media (
-            filename, original_filename, mime_type, size_bytes,
-            width, height, storage_path, alt_text, caption,
-            uploaded_by, media_type
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING id
-        "#,
-        new_filename,
-        original_filename,
-        mime_type,
-        data.len() as i64,
-        width,
-        height,
-        storage_path,
-        alt_text,
-        caption,
-        auth_user.id,
-        media_type
+    let media = persist_media_record(
+        &state,
+        NewMediaRecord {
+            object_key,
+            original_filename,
+            mime_type,
+            size_bytes: data.len() as i64,
+            width,
+            height,
+            alt_text,
+            caption,
+            uploaded_by: auth_user.id,
+            media_type,
+            url: stored_url,
+        },
     )
-    .fetch_one(&state.db)
     .await?;
 
-    // TODO: 如果使用 CDN，上传到 CDN 并获取 URL
-    // let cdn_url = upload_to_cdn(&data, &new_filename).await?;
-    let cdn_url = None;
-
-    // 更新 CDN URL
-    if let Some(cdn) = cdn_url {
-        sqlx::query!(
-            "UPDATE media SET cdn_url = $1 WHERE id = $2",
-            cdn,
-            id
-        )
-        .execute(&state.db)
-        .await?;
-    }
-
-    // 返回媒体信息
-    let media = sqlx::query_as!(
-        MediaListItem,
-        r#"
-        SELECT
-            id, filename, original_filename, mime_type,
-            size_bytes, width, height,
-            COALESCE(cdn_url, storage_path) as "url!",
-            media_type, usage_count,
-            created_at
-        FROM media
-        WHERE id = $1 AND deleted_at IS NULL
-        "#,
-        id
-    )
-    .fetch_one(&state.db)
-    .await?;
-
-    // 清除缓存
     clear_media_cache(&state).await;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(media),
-    ))
-    */
+    Ok((StatusCode::CREATED, Json(media)))
 }
 
-/// 获取媒体文件详情
+/// 为对象存储生成直传 URL
+#[utoipa::path(
+    post,
+    path = "/admin/media/presign-upload",
+    tag = "admin/media",
+    request_body = MediaPresignUploadRequest,
+    responses(
+        (status = 200, description = "生成成功", body = MediaPresignUploadResponse),
+        (status = 400, description = "请求参数错误"),
+        (status = 401, description = "未认证")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn presign_media_upload(
+    State(state): State<AppState>,
+    Json(req): Json<MediaPresignUploadRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    if req.filename.trim().is_empty() {
+        return Err(AppError::BadRequest("Filename is required".to_string()));
+    }
+
+    let expires_secs = normalize_presign_expiry(req.expires_secs);
+    let mime_type = resolve_mime_type(req.content_type.as_deref(), &req.filename);
+    ensure_allowed_mime_type(&mime_type)?;
+
+    let object_key = build_media_object_key(&req.filename, &mime_type);
+    let upload_url = state
+        .storage
+        .presigned_upload_url(&object_key, &mime_type, expires_secs)
+        .await
+        .map_err(map_storage_error)?
+        .ok_or_else(|| {
+            AppError::BadRequest(
+                "Configured storage backend does not support presigned uploads".to_string(),
+            )
+        })?;
+
+    let mut required_headers = BTreeMap::new();
+    required_headers.insert("content-type".to_string(), mime_type.clone());
+
+    Ok(Json(MediaPresignUploadResponse {
+        object_key: object_key.clone(),
+        upload_url,
+        asset_url: state.storage.object_url(&object_key),
+        upload_method: "PUT".to_string(),
+        content_type: mime_type,
+        expires_in_secs: expires_secs,
+        required_headers,
+    }))
+}
+
+/// 将直传对象登记为媒体记录
+#[utoipa::path(
+    post,
+    path = "/admin/media/finalize",
+    tag = "admin/media",
+    request_body = FinalizeMediaUploadRequest,
+    responses(
+        (status = 201, description = "登记成功", body = MediaListItem),
+        (status = 400, description = "请求参数错误"),
+        (status = 401, description = "未认证"),
+        (status = 404, description = "对象不存在")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn finalize_media_upload(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Json(req): Json<FinalizeMediaUploadRequest>,
+) -> Result<(StatusCode, Json<MediaListItem>), AppError> {
+    let object_key = validate_media_object_key(&req.object_key)?;
+
+    let metadata = state
+        .storage
+        .head(object_key)
+        .await
+        .map_err(map_storage_error)?;
+    let mime_type = resolve_mime_type(metadata.content_type.as_deref(), &req.original_filename);
+    ensure_allowed_mime_type(&mime_type)?;
+
+    let media = persist_media_record(
+        &state,
+        NewMediaRecord {
+            object_key: object_key.to_string(),
+            original_filename: req.original_filename,
+            mime_type: mime_type.clone(),
+            size_bytes: metadata.size_bytes,
+            width: None,
+            height: None,
+            alt_text: req.alt_text,
+            caption: req.caption,
+            uploaded_by: auth_user.id,
+            media_type: get_media_type(&mime_type).to_string(),
+            url: state.storage.object_url(object_key),
+        },
+    )
+    .await?;
+
+    clear_media_cache(&state).await;
+
+    Ok((StatusCode::CREATED, Json(media)))
+}
 
 /// 获取媒体文件详情
 #[utoipa::path(
@@ -201,27 +295,73 @@ pub async fn get_media(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse, AppError> {
-    let media = sqlx::query_as!(
-        Media,
+    let media = sqlx::query_as::<_, Media>(
         r#"
         SELECT
             id, filename, original_filename, mime_type,
-            size_bytes, width, height,
-            storage_path as "storage_path!",
-            cdn_url,
-            alt_text, caption, uploaded_by,
-            media_type as "media_type!",
+            size_bytes, width, height, storage_path, cdn_url,
+            alt_text, caption, uploaded_by, media_type,
             usage_count, created_at, updated_at, deleted_at
         FROM media
         WHERE id = $1 AND deleted_at IS NULL
         "#,
-        id
     )
+    .bind(id)
     .fetch_optional(&state.db)
     .await?
     .ok_or_else(|| AppError::NotFound("Media not found".to_string()))?;
 
     Ok(Json(media).into_response())
+}
+
+/// 为媒体文件生成下载 URL
+#[utoipa::path(
+    get,
+    path = "/admin/media/{id}/download-url",
+    tag = "admin/media",
+    params(
+        ("id" = Uuid, Path, description = "媒体文件ID"),
+        ("expires_secs" = Option<u32>, Query, description = "签名链接有效期，默认900秒")
+    ),
+    responses(
+        (status = 200, description = "生成成功", body = MediaDownloadUrlResponse),
+        (status = 404, description = "媒体文件不存在")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn get_media_download_url(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    Query(params): Query<MediaDownloadUrlParams>,
+) -> Result<impl IntoResponse, AppError> {
+    let expires_secs = normalize_presign_expiry(params.expires_secs);
+    let storage_path: String =
+        sqlx::query_scalar("SELECT storage_path FROM media WHERE id = $1 AND deleted_at IS NULL")
+            .bind(id)
+            .fetch_optional(&state.db)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Media not found".to_string()))?;
+
+    let stable_url = state.storage.object_url(&storage_path);
+    let url = state
+        .storage
+        .presigned_download_url(&storage_path, expires_secs)
+        .await
+        .map_err(map_storage_error)?
+        .unwrap_or_else(|| stable_url.clone());
+
+    let expires_in_secs = if url == stable_url {
+        None
+    } else {
+        Some(expires_secs)
+    };
+
+    Ok(Json(MediaDownloadUrlResponse {
+        url,
+        expires_in_secs,
+    }))
 }
 
 /// 更新媒体文件元数据
@@ -247,7 +387,6 @@ pub async fn update_media(
     Path(id): Path<Uuid>,
     Json(req): Json<UpdateMediaRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    // 检查媒体是否存在
     let exists: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM media WHERE id = $1 AND deleted_at IS NULL)",
     )
@@ -259,7 +398,6 @@ pub async fn update_media(
         return Err(AppError::NotFound("Media not found".to_string()));
     }
 
-    // 构建更新查询
     let mut update_fields = Vec::new();
     let mut param_index = 2;
 
@@ -269,7 +407,6 @@ pub async fn update_media(
     }
     if req.caption.is_some() {
         update_fields.push(format!("caption = ${}", param_index));
-        param_index += 1;
     }
 
     if update_fields.is_empty() {
@@ -294,8 +431,6 @@ pub async fn update_media(
     }
 
     query_builder.execute(&state.db).await?;
-
-    // 清除缓存
     clear_media_cache(&state).await;
 
     Ok(Json(MessageResponse {
@@ -325,19 +460,22 @@ pub async fn delete_media(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse, AppError> {
-    let affected = sqlx::query!(
-        "UPDATE media SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL",
-        id
-    )
-    .execute(&state.db)
-    .await?
-    .rows_affected();
+    let storage_path: String =
+        sqlx::query_scalar("SELECT storage_path FROM media WHERE id = $1 AND deleted_at IS NULL")
+            .bind(id)
+            .fetch_optional(&state.db)
+            .await?
+            .ok_or_else(|| AppError::NotFound("Media not found".to_string()))?;
 
-    if affected == 0 {
-        return Err(AppError::NotFound("Media not found".to_string()));
+    sqlx::query("UPDATE media SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL")
+        .bind(id)
+        .execute(&state.db)
+        .await?;
+
+    if let Err(error) = state.storage.delete(&storage_path).await {
+        tracing::warn!("Failed to delete media object {}: {}", storage_path, error);
     }
 
-    // 清除缓存
     clear_media_cache(&state).await;
 
     Ok(Json(MessageResponse {
@@ -369,52 +507,43 @@ pub async fn list_media(
     Query(params): Query<MediaListParams>,
 ) -> Result<impl IntoResponse, AppError> {
     let page = params.page.unwrap_or(1).max(1);
-    let limit = params.limit.unwrap_or(20).min(100);
+    let limit = params.limit.unwrap_or(20).clamp(1, 100);
     let offset = (page - 1) * limit;
 
-    // 构建查询条件
-    let mut where_conditions = vec!["deleted_at IS NULL".to_string()];
-
-    if let Some(media_type) = &params.media_type {
-        where_conditions.push(format!("media_type = '{}'", media_type));
-    }
-
-    if let Some(search) = &params.search {
-        where_conditions.push(format!(
-            "(original_filename ILIKE '%{}%' OR filename ILIKE '%{}%')",
-            search.replace('\'', "''"),
-            search.replace('\'', "''")
-        ));
-    }
-
-    let where_clause = where_conditions.join(" AND ");
-
-    // 查询总数
-    let count_query = format!("SELECT COUNT(*) FROM media WHERE {}", where_clause);
-    let total: i64 = sqlx::query_scalar(&count_query)
+    let mut count_builder = QueryBuilder::<Postgres>::new(
+        "SELECT COUNT(*)::BIGINT FROM media WHERE deleted_at IS NULL",
+    );
+    apply_media_filters(&mut count_builder, &params);
+    let total: i64 = count_builder
+        .build_query_scalar()
         .fetch_one(&state.db)
         .await?;
 
-    // 查询列表
-    let list_query = format!(
+    let mut list_builder = QueryBuilder::<Postgres>::new(
         r#"
         SELECT
             id, filename, original_filename, mime_type,
             size_bytes, width, height,
-            COALESCE(cdn_url, storage_path) as "url!",
-            media_type, usage_count,
-            created_at
+            COALESCE(cdn_url, storage_path) AS url,
+            media_type, usage_count, created_at
         FROM media
-        WHERE {}
-        ORDER BY created_at DESC
-        LIMIT {} OFFSET {}
+        WHERE deleted_at IS NULL
         "#,
-        where_clause, limit, offset
     );
+    apply_media_filters(&mut list_builder, &params);
+    list_builder
+        .push(" ORDER BY created_at DESC LIMIT ")
+        .push_bind(limit as i64)
+        .push(" OFFSET ")
+        .push_bind(offset as i64);
 
-    let media_list: Vec<MediaListItem> = sqlx::query_as(&list_query).fetch_all(&state.db).await?;
+    let media_list: Vec<MediaListItem> = list_builder.build_query_as().fetch_all(&state.db).await?;
 
-    let total_pages = ((total as f64) / (limit as f64)).ceil() as u32;
+    let total_pages = if total == 0 {
+        0
+    } else {
+        ((total as f64) / (limit as f64)).ceil() as u32
+    };
 
     Ok(Json(MediaListResponse {
         media: media_list,
@@ -442,22 +571,19 @@ pub async fn list_media(
 pub async fn get_unused_media(
     State(state): State<AppState>,
 ) -> Result<impl IntoResponse, AppError> {
-    let media_list: Vec<MediaListItem> = sqlx::query_as!(
-        MediaListItem,
+    let media_list: Vec<MediaListItem> = sqlx::query_as::<_, MediaListItem>(
         r#"
         SELECT
             id, filename, original_filename, mime_type,
             size_bytes, width, height,
-            COALESCE(cdn_url, storage_path) as "url!",
-            media_type as "media_type!",
-            usage_count,
-            created_at
+            COALESCE(cdn_url, storage_path) AS url,
+            media_type, usage_count, created_at
         FROM media
         WHERE usage_count = 0
             AND deleted_at IS NULL
             AND created_at < NOW() - INTERVAL '30 days'
         ORDER BY created_at ASC
-        "#
+        "#,
     )
     .fetch_all(&state.db)
     .await?;
@@ -465,27 +591,165 @@ pub async fn get_unused_media(
     Ok(Json(media_list).into_response())
 }
 
-// ===== 辅助函数 =====
-
-fn detect_mime_type(_data: &[u8], filename: &str) -> String {
-    // 基于文件扩展名的简单检测
-    let extension = filename.rsplit('.').next().unwrap_or("").to_lowercase();
-
-    match extension.as_str() {
-        "jpg" | "jpeg" => "image/jpeg".to_string(),
-        "png" => "image/png".to_string(),
-        "gif" => "image/gif".to_string(),
-        "webp" => "image/webp".to_string(),
-        "svg" => "image/svg+xml".to_string(),
-        "mp4" => "video/mp4".to_string(),
-        "webm" => "video/webm".to_string(),
-        "mov" => "video/quicktime".to_string(),
-        "pdf" => "application/pdf".to_string(),
-        "doc" | "docx" => "application/msword".to_string(),
-        "xls" | "xlsx" => "application/vnd.ms-excel".to_string(),
-        "txt" => "text/plain".to_string(),
-        _ => "application/octet-stream".to_string(),
+fn apply_media_filters(builder: &mut QueryBuilder<Postgres>, params: &MediaListParams) {
+    if let Some(media_type) = params.media_type.as_deref() {
+        builder
+            .push(" AND media_type = ")
+            .push_bind(media_type.to_string());
     }
+
+    if let Some(search) = params
+        .search
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        let pattern = format!("%{}%", search);
+        builder
+            .push(" AND (original_filename ILIKE ")
+            .push_bind(pattern.clone())
+            .push(" OR filename ILIKE ")
+            .push_bind(pattern)
+            .push(")");
+    }
+}
+
+async fn persist_media_record(
+    state: &AppState,
+    media: NewMediaRecord,
+) -> Result<MediaListItem, AppError> {
+    let already_registered: bool = sqlx::query_scalar(
+        "SELECT EXISTS(SELECT 1 FROM media WHERE storage_path = $1 AND deleted_at IS NULL)",
+    )
+    .bind(&media.object_key)
+    .fetch_one(&state.db)
+    .await?;
+
+    if already_registered {
+        return Err(AppError::Conflict(
+            "Media object has already been registered".to_string(),
+        ));
+    }
+
+    let id: Uuid = sqlx::query_scalar(
+        r#"
+        INSERT INTO media (
+            filename, original_filename, mime_type, size_bytes,
+            width, height, storage_path, cdn_url, alt_text, caption,
+            uploaded_by, media_type
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        RETURNING id
+        "#,
+    )
+    .bind(
+        media
+            .object_key
+            .rsplit('/')
+            .next()
+            .unwrap_or(&media.object_key),
+    )
+    .bind(&media.original_filename)
+    .bind(&media.mime_type)
+    .bind(media.size_bytes)
+    .bind(media.width)
+    .bind(media.height)
+    .bind(&media.object_key)
+    .bind(Some(media.url))
+    .bind(media.alt_text)
+    .bind(media.caption)
+    .bind(media.uploaded_by)
+    .bind(&media.media_type)
+    .fetch_one(&state.db)
+    .await?;
+
+    fetch_media_list_item(state, id).await
+}
+
+async fn fetch_media_list_item(state: &AppState, id: Uuid) -> Result<MediaListItem, AppError> {
+    sqlx::query_as::<_, MediaListItem>(
+        r#"
+        SELECT
+            id, filename, original_filename, mime_type,
+            size_bytes, width, height,
+            COALESCE(cdn_url, storage_path) AS url,
+            media_type, usage_count, created_at
+        FROM media
+        WHERE id = $1 AND deleted_at IS NULL
+        "#,
+    )
+    .bind(id)
+    .fetch_one(&state.db)
+    .await
+    .map_err(Into::into)
+}
+
+fn build_media_object_key(original_filename: &str, mime_type: &str) -> String {
+    let file_extension = FsPath::new(original_filename)
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .map(|extension| extension.to_lowercase())
+        .filter(|extension| !extension.is_empty())
+        .or_else(|| infer_extension_from_mime(mime_type).map(str::to_string));
+
+    match file_extension {
+        Some(extension) => format!("media/{}.{}", Uuid::new_v4(), extension),
+        None => format!("media/{}", Uuid::new_v4()),
+    }
+}
+
+fn validate_media_object_key(object_key: &str) -> Result<&str, AppError> {
+    let normalized = object_key.trim_start_matches('/');
+    if !normalized.starts_with("media/")
+        || normalized.len() <= "media/".len()
+        || normalized.contains("..")
+    {
+        return Err(AppError::BadRequest(
+            "object_key must point to a media/* object".to_string(),
+        ));
+    }
+
+    Ok(normalized)
+}
+
+fn normalize_presign_expiry(expires_secs: Option<u32>) -> u32 {
+    expires_secs.unwrap_or(900).clamp(60, 3600)
+}
+
+fn resolve_mime_type(candidate: Option<&str>, filename: &str) -> String {
+    candidate
+        .map(normalize_mime_type)
+        .filter(|mime_type| !mime_type.is_empty())
+        .unwrap_or_else(|| {
+            mime_guess::from_path(filename)
+                .first_or_octet_stream()
+                .essence_str()
+                .to_string()
+        })
+}
+
+fn normalize_mime_type(mime_type: &str) -> String {
+    mime_type
+        .split(';')
+        .next()
+        .unwrap_or(mime_type)
+        .trim()
+        .to_lowercase()
+}
+
+fn ensure_allowed_mime_type(mime_type: &str) -> Result<(), AppError> {
+    if is_allowed_mime_type(mime_type) {
+        Ok(())
+    } else {
+        Err(AppError::BadRequest(format!(
+            "File type not allowed: {}",
+            mime_type
+        )))
+    }
+}
+
+fn infer_extension_from_mime(mime_type: &str) -> Option<&'static str> {
+    mime_guess::get_mime_extensions_str(mime_type)
+        .and_then(|extensions| extensions.first().copied())
 }
 
 fn is_allowed_mime_type(mime_type: &str) -> bool {
@@ -518,9 +782,20 @@ fn get_media_type(mime_type: &str) -> &'static str {
 }
 
 fn get_image_dimensions(_data: &[u8]) -> Result<(Option<i32>, Option<i32>), AppError> {
-    // 这里简化处理，实际应该使用 image crate 解析图片
-    // 返回 None 表示无法获取尺寸
     Ok((None, None))
+}
+
+fn map_storage_error(error: StorageError) -> AppError {
+    match error {
+        StorageError::NotFound(path) => {
+            AppError::NotFound(format!("Media object not found: {}", path))
+        }
+        StorageError::Config(message) => AppError::BadRequest(message),
+        other => {
+            tracing::error!("Storage operation failed: {}", other);
+            AppError::InternalError
+        }
+    }
 }
 
 async fn clear_media_cache(state: &AppState) {
@@ -530,5 +805,44 @@ async fn clear_media_cache(state: &AppState) {
             .query_async(&mut conn)
             .await
             .unwrap_or(());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        build_media_object_key, normalize_mime_type, normalize_presign_expiry,
+        validate_media_object_key,
+    };
+
+    #[test]
+    fn presign_expiry_is_clamped() {
+        assert_eq!(normalize_presign_expiry(Some(5)), 60);
+        assert_eq!(normalize_presign_expiry(None), 900);
+        assert_eq!(normalize_presign_expiry(Some(99999)), 3600);
+    }
+
+    #[test]
+    fn media_keys_must_stay_under_media_prefix() {
+        assert_eq!(
+            validate_media_object_key("/media/example.png").unwrap(),
+            "media/example.png"
+        );
+        assert!(validate_media_object_key("../etc/passwd").is_err());
+    }
+
+    #[test]
+    fn mime_types_are_normalized_without_parameters() {
+        assert_eq!(
+            normalize_mime_type("text/plain; charset=utf-8"),
+            "text/plain"
+        );
+    }
+
+    #[test]
+    fn generated_media_keys_keep_extension_when_available() {
+        let key = build_media_object_key("hero.png", "image/png");
+        assert!(key.starts_with("media/"));
+        assert!(key.ends_with(".png"));
     }
 }

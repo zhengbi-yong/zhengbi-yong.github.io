@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use std::path::Path;
 
 /// Storage backend abstraction for file uploads
 #[async_trait]
@@ -15,6 +14,12 @@ pub trait StorageBackend: Send + Sync {
     /// Delete a file by key
     async fn delete(&self, key: &str) -> Result<(), StorageError>;
 
+    /// Return the durable object URL for the given key.
+    fn object_url(&self, key: &str) -> String;
+
+    /// Read object metadata without downloading the object body.
+    async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError>;
+
     /// Get a presigned URL for direct upload (if supported)
     async fn presigned_upload_url(
         &self,
@@ -29,6 +34,12 @@ pub trait StorageBackend: Send + Sync {
         key: &str,
         expires_secs: u32,
     ) -> Result<Option<String>, StorageError>;
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StoredObjectMetadata {
+    pub size_bytes: i64,
+    pub content_type: Option<String>,
 }
 
 /// Storage errors
@@ -68,7 +79,7 @@ impl LocalStorage {
     }
 
     fn full_path(&self, key: &str) -> std::path::PathBuf {
-        self.base_path.join(key)
+        self.base_path.join(normalize_key(key))
     }
 }
 
@@ -80,28 +91,58 @@ impl StorageBackend for LocalStorage {
         data: &[u8],
         _content_type: &str,
     ) -> Result<String, StorageError> {
+        let key = normalize_key(key);
         let path = self.full_path(key);
 
-        // Create parent directories if needed
         if let Some(parent) = path.parent() {
             tokio::fs::create_dir_all(parent).await?;
         }
 
         tokio::fs::write(&path, data).await?;
 
-        Ok(format!("{}/{}", self.base_url, key))
+        Ok(self.object_url(key))
     }
 
     async fn delete(&self, key: &str) -> Result<(), StorageError> {
-        let path = self.full_path(key);
+        let normalized_key = normalize_key(key);
+        let path = self.full_path(normalized_key);
 
         match tokio::fs::remove_file(&path).await {
             Ok(()) => Ok(()),
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-                Err(StorageError::NotFound(key.to_string()))
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                Err(StorageError::NotFound(normalized_key.to_string()))
             }
-            Err(e) => Err(e.into()),
+            Err(error) => Err(error.into()),
         }
+    }
+
+    fn object_url(&self, key: &str) -> String {
+        format!(
+            "{}/{}",
+            self.base_url.trim_end_matches('/'),
+            normalize_key(key)
+        )
+    }
+
+    async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError> {
+        let normalized_key = normalize_key(key);
+        let path = self.full_path(normalized_key);
+        let metadata = tokio::fs::metadata(&path)
+            .await
+            .map_err(|error| match error.kind() {
+                std::io::ErrorKind::NotFound => StorageError::NotFound(normalized_key.to_string()),
+                _ => StorageError::Io(error),
+            })?;
+
+        Ok(StoredObjectMetadata {
+            size_bytes: metadata.len() as i64,
+            content_type: Some(
+                mime_guess::from_path(normalized_key)
+                    .first_or_octet_stream()
+                    .essence_str()
+                    .to_string(),
+            ),
+        })
     }
 
     async fn presigned_upload_url(
@@ -110,7 +151,6 @@ impl StorageBackend for LocalStorage {
         _content_type: &str,
         _expires_secs: u32,
     ) -> Result<Option<String>, StorageError> {
-        // Local storage doesn't support presigned URLs
         Ok(None)
     }
 
@@ -119,8 +159,7 @@ impl StorageBackend for LocalStorage {
         key: &str,
         _expires_secs: u32,
     ) -> Result<Option<String>, StorageError> {
-        // Return direct URL for local storage
-        Ok(Some(format!("{}/{}", self.base_url, key)))
+        Ok(Some(self.object_url(key)))
     }
 }
 
@@ -148,21 +187,23 @@ impl MinioStorage {
             .endpoint_url(endpoint)
             .credentials_provider(credentials)
             .region(aws_sdk_s3::config::Region::new(region.to_string()))
-            .force_path_style(true) // Required for MinIO
+            .force_path_style(true)
             .build();
 
         let client = aws_sdk_s3::Client::from_conf(config);
-
-        // Ensure bucket exists
         let bucket_exists = client.head_bucket().bucket(bucket).send().await.is_ok();
 
         if !bucket_exists {
-            client
-                .create_bucket()
-                .bucket(bucket)
-                .send()
-                .await
-                .map_err(|e| StorageError::S3(format!("Failed to create bucket: {}", e)))?;
+            let create_result = client.create_bucket().bucket(bucket).send().await;
+
+            if let Err(error) = create_result {
+                if client.head_bucket().bucket(bucket).send().await.is_err() {
+                    return Err(StorageError::S3(format!(
+                        "Failed to create bucket: {}",
+                        error
+                    )));
+                }
+            }
         }
 
         Ok(Self {
@@ -181,6 +222,7 @@ impl StorageBackend for MinioStorage {
         data: &[u8],
         content_type: &str,
     ) -> Result<String, StorageError> {
+        let key = normalize_key(key);
         use aws_sdk_s3::primitives::ByteStream;
 
         self.client
@@ -191,21 +233,50 @@ impl StorageBackend for MinioStorage {
             .content_type(content_type)
             .send()
             .await
-            .map_err(|e| StorageError::S3(format!("Failed to upload: {}", e)))?;
+            .map_err(|error| StorageError::S3(format!("Failed to upload: {}", error)))?;
 
-        Ok(format!("{}/{}/{}", self.public_url, self.bucket, key))
+        Ok(self.object_url(key))
     }
 
     async fn delete(&self, key: &str) -> Result<(), StorageError> {
+        let key = normalize_key(key);
         self.client
             .delete_object()
             .bucket(&self.bucket)
             .key(key)
             .send()
             .await
-            .map_err(|e| StorageError::S3(format!("Failed to delete: {}", e)))?;
+            .map_err(|error| StorageError::S3(format!("Failed to delete: {}", error)))?;
 
         Ok(())
+    }
+
+    fn object_url(&self, key: &str) -> String {
+        format!(
+            "{}/{}/{}",
+            self.public_url.trim_end_matches('/'),
+            self.bucket,
+            normalize_key(key)
+        )
+    }
+
+    async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError> {
+        let key = normalize_key(key);
+        let response = self
+            .client
+            .head_object()
+            .bucket(&self.bucket)
+            .key(key)
+            .send()
+            .await
+            .map_err(|error| {
+                StorageError::S3(format!("Failed to read object metadata: {}", error))
+            })?;
+
+        Ok(StoredObjectMetadata {
+            size_bytes: response.content_length.unwrap_or_default(),
+            content_type: response.content_type,
+        })
     }
 
     async fn presigned_upload_url(
@@ -214,13 +285,14 @@ impl StorageBackend for MinioStorage {
         content_type: &str,
         expires_secs: u32,
     ) -> Result<Option<String>, StorageError> {
+        let key = normalize_key(key);
         use aws_sdk_s3::presigning::PresigningConfig;
         use std::time::Duration;
 
         let presigning_config = PresigningConfig::builder()
             .expires_in(Duration::from_secs(expires_secs as u64))
             .build()
-            .map_err(|e| StorageError::S3(format!("Invalid presigning config: {}", e)))?;
+            .map_err(|error| StorageError::S3(format!("Invalid presigning config: {}", error)))?;
 
         let url = self
             .client
@@ -230,7 +302,9 @@ impl StorageBackend for MinioStorage {
             .content_type(content_type)
             .presigned(presigning_config)
             .await
-            .map_err(|e| StorageError::S3(format!("Failed to generate presigned URL: {}", e)))?;
+            .map_err(|error| {
+                StorageError::S3(format!("Failed to generate presigned URL: {}", error))
+            })?;
 
         Ok(Some(url.uri().to_string()))
     }
@@ -240,13 +314,14 @@ impl StorageBackend for MinioStorage {
         key: &str,
         expires_secs: u32,
     ) -> Result<Option<String>, StorageError> {
+        let key = normalize_key(key);
         use aws_sdk_s3::presigning::PresigningConfig;
         use std::time::Duration;
 
         let presigning_config = PresigningConfig::builder()
             .expires_in(Duration::from_secs(expires_secs as u64))
             .build()
-            .map_err(|e| StorageError::S3(format!("Invalid presigning config: {}", e)))?;
+            .map_err(|error| StorageError::S3(format!("Invalid presigning config: {}", error)))?;
 
         let url = self
             .client
@@ -255,10 +330,16 @@ impl StorageBackend for MinioStorage {
             .key(key)
             .presigned(presigning_config)
             .await
-            .map_err(|e| StorageError::S3(format!("Failed to generate presigned URL: {}", e)))?;
+            .map_err(|error| {
+                StorageError::S3(format!("Failed to generate presigned URL: {}", error))
+            })?;
 
         Ok(Some(url.uri().to_string()))
     }
+}
+
+fn normalize_key(key: &str) -> &str {
+    key.trim_start_matches('/')
 }
 
 /// Storage configuration
@@ -373,6 +454,14 @@ impl StorageService {
         self.backend.delete(key).await
     }
 
+    pub fn object_url(&self, key: &str) -> String {
+        self.backend.object_url(key)
+    }
+
+    pub async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError> {
+        self.backend.head(key).await
+    }
+
     pub async fn presigned_upload_url(
         &self,
         key: &str,
@@ -390,5 +479,53 @@ impl StorageService {
         expires_secs: u32,
     ) -> Result<Option<String>, StorageError> {
         self.backend.presigned_download_url(key, expires_secs).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{LocalStorage, StorageBackend};
+
+    #[tokio::test]
+    async fn local_storage_normalizes_leading_slash_keys() {
+        let base_path =
+            std::env::temp_dir().join(format!("blog-api-storage-{}", uuid::Uuid::new_v4()));
+        let storage = LocalStorage::new(base_path.to_str().unwrap(), "/uploads").unwrap();
+
+        let url = storage
+            .store("/media/example.txt", b"hello", "text/plain")
+            .await
+            .unwrap();
+
+        assert_eq!(url, "/uploads/media/example.txt");
+        assert!(base_path.join("media/example.txt").exists());
+
+        storage.delete("/media/example.txt").await.unwrap();
+        assert!(!base_path.join("media/example.txt").exists());
+
+        let _ = tokio::fs::remove_dir_all(base_path).await;
+    }
+
+    #[tokio::test]
+    async fn local_storage_reports_object_metadata_and_urls() {
+        let base_path =
+            std::env::temp_dir().join(format!("blog-api-storage-{}", uuid::Uuid::new_v4()));
+        let storage =
+            LocalStorage::new(base_path.to_str().unwrap(), "https://cdn.example.com").unwrap();
+
+        storage
+            .store("media/image.png", b"hello", "image/png")
+            .await
+            .unwrap();
+
+        let metadata = storage.head("media/image.png").await.unwrap();
+        assert_eq!(metadata.size_bytes, 5);
+        assert_eq!(metadata.content_type.as_deref(), Some("image/png"));
+        assert_eq!(
+            storage.object_url("/media/image.png"),
+            "https://cdn.example.com/media/image.png"
+        );
+
+        let _ = tokio::fs::remove_dir_all(base_path).await;
     }
 }

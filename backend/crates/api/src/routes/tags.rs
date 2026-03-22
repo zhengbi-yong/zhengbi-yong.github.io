@@ -142,7 +142,6 @@ pub async fn update_tag(
     }
     if req.description.is_some() {
         update_fields.push(format!("description = ${}", param_index));
-        param_index += 1;
     }
 
     if update_fields.is_empty() {

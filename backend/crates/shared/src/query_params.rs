@@ -2,7 +2,7 @@
 //!
 //! 提供标准化的查询参数结构，遵循 RESTful 最佳实践
 
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 
 /// 默认页码
 fn default_page() -> u32 {

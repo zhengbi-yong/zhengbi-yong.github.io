@@ -446,7 +446,7 @@ pub async fn get_related_posts(
     path = "/admin/search/reindex",
     tag = "admin/search",
     responses(
-        (status = 202, description = "重建任务已完成", body = ReindexResponse),
+        (status = 202, description = "重建任务已入队", body = ReindexResponse),
         (status = 503, description = "Meilisearch 未启用")
     ),
     security(
@@ -454,20 +454,24 @@ pub async fn get_related_posts(
     )
 )]
 pub async fn reindex_posts(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
-    let Some(search_index) = &state.search_index else {
+    let Some(_search_index) = &state.search_index else {
         return Err(AppError::BadRequest(
             "Meilisearch is not configured".to_string(),
         ));
     };
 
-    let indexed_documents = search_index.sync_all(&state.db).await.map_err(|error| {
-        tracing::error!("Failed to rebuild Meilisearch index: {error:#}");
-        AppError::InternalError
-    })?;
+    crate::outbox::add_search_index_rebuild(&state.db)
+        .await
+        .map_err(|error| {
+            tracing::error!("Failed to enqueue Meilisearch rebuild: {error:#}");
+            AppError::InternalError
+        })?;
 
     Ok((
         StatusCode::ACCEPTED,
-        Json(ReindexResponse { indexed_documents }),
+        Json(ReindexResponse {
+            indexed_documents: 0,
+        }),
     ))
 }
 

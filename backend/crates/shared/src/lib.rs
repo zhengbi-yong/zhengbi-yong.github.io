@@ -13,7 +13,10 @@ pub mod validators;
 pub use api_response::{
     ApiError, ApiResponse, Link, PaginatedResponse, PaginationMeta, ResourceResponse,
 };
-pub use config::{MeilisearchConfig, Settings};
+pub use config::{
+    DatabasePoolConfig, HealthConfig, MeilisearchConfig, RateLimitConfig, RateLimitFailureMode,
+    RedisPoolConfig, Settings, WorkerConfig,
+};
 pub use error::AppError;
 pub use middleware::AuthUser;
 pub use query_params::{PaginatedQuery, ResourceQuery, SearchQuery};

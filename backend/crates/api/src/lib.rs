@@ -9,6 +9,7 @@ pub mod middleware;
 pub mod observability;
 pub mod outbox;
 pub mod routes;
+pub mod runtime;
 pub mod search_index;
 pub mod state;
 pub mod storage;

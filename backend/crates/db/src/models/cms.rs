@@ -1,5 +1,3 @@
-#![recursion_limit = "256"]
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;

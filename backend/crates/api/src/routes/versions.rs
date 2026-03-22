@@ -56,7 +56,7 @@ pub async fn create_version(
     let new_version = max_version.unwrap_or(0) + 1;
 
     // 创建新版本
-    let version = sqlx::query_as!(
+    let version: PostVersion = sqlx::query_as!(
         PostVersion,
         r#"
         INSERT INTO post_versions (post_id, version_number, title, content, summary, change_log, created_by)

@@ -174,7 +174,7 @@ pub async fn update_reading_progress_handler(
     match existing {
         Some(_) => {
             // 更新现有记录
-            let progress = sqlx::query_as!(
+            let progress: ReadingProgressResponse = sqlx::query_as!(
                 ReadingProgressResponse,
                 r#"
                 UPDATE reading_progress
@@ -214,7 +214,7 @@ pub async fn update_reading_progress_handler(
         }
         None => {
             // 创建新记录
-            let progress = sqlx::query_as!(
+            let progress: ReadingProgressResponse = sqlx::query_as!(
                 ReadingProgressResponse,
                 r#"
                 INSERT INTO reading_progress (
@@ -278,7 +278,7 @@ pub async fn get_reading_history_handler(
     let limit = params.limit.unwrap_or(20).min(100) as i64;
     let offset = params.offset.unwrap_or(0) as i64;
 
-    let history = if params.completed_only.unwrap_or(false) {
+    let history: Vec<ReadingProgressResponse> = if params.completed_only.unwrap_or(false) {
         // 仅返回已读文章
         sqlx::query_as!(
             ReadingProgressResponse,

@@ -166,18 +166,9 @@ pub async fn view(
 
     // 每 10 次浏览写入一次 outbox
     if count % 10 == 0 {
-        sqlx::query!(
-            r#"
-            INSERT INTO outbox_events (topic, payload, run_after)
-            VALUES ('post.viewed', $1, NOW())
-            "#,
-            serde_json::json!({
-                "slug": slug,
-                "count": count,
-            })
-        )
-        .execute(&state.db)
-        .await?;
+        crate::outbox::add_post_viewed(&state.db, &slug, 10)
+            .await
+            .map_err(|_| AppError::InternalError)?;
     }
 
     Ok(StatusCode::NO_CONTENT)
@@ -879,7 +870,6 @@ pub async fn update_post(
     }
     if req.layout.is_some() {
         update_fields.push(format!("layout = ${}", param_index));
-        param_index += 1;
     }
 
     if update_fields.is_empty() {

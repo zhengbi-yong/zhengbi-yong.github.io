@@ -3,9 +3,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use serde_json::json;
 use thiserror::Error;
-use uuid::Uuid;
 
 // 导入新的 API 响应格式
 use super::api_response::{ApiError, ApiResponse};

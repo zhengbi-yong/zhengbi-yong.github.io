@@ -200,7 +200,6 @@ pub async fn update_category(
     }
     if req.display_order.is_some() {
         update_fields.push(format!("display_order = ${}", param_index));
-        param_index += 1;
     }
 
     if update_fields.is_empty() {

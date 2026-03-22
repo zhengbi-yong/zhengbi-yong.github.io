@@ -2,11 +2,14 @@ use crate::AppState;
 use axum::{
     extract::State,
     http::StatusCode,
-    response::{IntoResponse, Json},
+    response::{IntoResponse, Response},
+    Json,
 };
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
+use sysinfo::System;
 use utoipa::ToSchema;
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -44,6 +47,7 @@ pub struct SystemMetrics {
     pub active_connections: u64,
     pub database_pool: DatabasePoolStatus,
     pub redis_status: ServiceStatus,
+    pub outbox: OutboxQueueMetrics,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -60,17 +64,23 @@ pub struct DatabasePoolStatus {
     pub active: u32,
 }
 
-// 应用启动时间（需要从main.rs传递）
-static mut APP_START_TIME: Option<DateTime<Utc>> = None;
+#[derive(Debug, Serialize, ToSchema, Clone, Default)]
+pub struct OutboxQueueMetrics {
+    pub pending_events: i64,
+    pub stale_locked_events: i64,
+    pub dead_letter_events: i64,
+    pub oldest_pending_age_seconds: Option<i64>,
+}
+
+static APP_START_TIME: OnceLock<DateTime<Utc>> = OnceLock::new();
+static HEALTH_SYSTEM: OnceLock<Mutex<System>> = OnceLock::new();
 
 pub fn set_app_start_time() {
-    unsafe {
-        APP_START_TIME = Some(Utc::now());
-    }
+    let _ = APP_START_TIME.get_or_init(Utc::now);
 }
 
 fn get_app_start_time() -> DateTime<Utc> {
-    unsafe { APP_START_TIME.unwrap_or_else(|| Utc::now()) }
+    *APP_START_TIME.get_or_init(Utc::now)
 }
 
 pub fn get_uptime_seconds() -> u64 {
@@ -79,7 +89,6 @@ pub fn get_uptime_seconds() -> u64 {
     now.timestamp().saturating_sub(start.timestamp()) as u64
 }
 
-/// 基础健康检查
 #[utoipa::path(
     get,
     path = "/health",
@@ -101,7 +110,6 @@ pub async fn health() -> impl IntoResponse {
     (StatusCode::OK, Json(status)).into_response()
 }
 
-/// 详细健康检查（包括依赖服务）
 #[utoipa::path(
     get,
     path = "/health/detailed",
@@ -111,75 +119,57 @@ pub async fn health() -> impl IntoResponse {
         (status = 503, description = "服务不健康")
     )
 )]
-pub async fn health_detailed(
-    State(state): State<crate::AppState>,
-) -> Result<impl IntoResponse, StatusCode> {
-    let start_time = std::time::Instant::now();
+pub async fn health_detailed(State(state): State<crate::AppState>) -> Result<Response, StatusCode> {
     let mut services = HashMap::new();
-    let mut healthy = true;
 
-    // 检查数据库连接
     let db_status = check_database_health(&state.db).await;
     services.insert("database".to_string(), db_status.clone());
-    if db_status.status != "healthy" {
-        healthy = false;
-    }
 
-    // 检查 Redis 连接
     let redis_status = check_redis_health(&state.redis).await;
     services.insert("redis".to_string(), redis_status.clone());
-    if redis_status.status != "healthy" {
-        healthy = false;
-    }
 
-    // 检查 JWT 服务
     let jwt_status = check_jwt_health(&state.jwt).await;
     services.insert("jwt".to_string(), jwt_status.clone());
-    if jwt_status.status != "healthy" {
-        healthy = false;
-    }
 
-    // 检查邮件服务
     let email_status = check_email_health(&state.email_service).await;
     services.insert("email".to_string(), email_status.clone());
-    if email_status.status != "healthy" {
-        healthy = false;
-    }
 
-    let _response_time = start_time.elapsed().as_millis();
+    let (outbox_status, outbox_metrics) = check_outbox_health(
+        &state.db,
+        &state.settings.health,
+        state.settings.worker.lock_timeout_secs,
+    )
+    .await;
+    services.insert("outbox".to_string(), outbox_status.clone());
+
+    let overall_status = calculate_overall_status(&services);
+    let status_code = match overall_status.as_str() {
+        "unhealthy" => StatusCode::SERVICE_UNAVAILABLE,
+        _ => StatusCode::OK,
+    };
 
     let metrics = SystemMetrics {
         memory_usage: get_memory_usage(),
-        cpu_usage: get_cpu_usage().await,
+        cpu_usage: get_cpu_usage(),
         active_connections: get_active_connections(&state).await,
         database_pool: get_database_pool_status(&state.db).await,
         redis_status,
+        outbox: outbox_metrics,
     };
 
     let health = DetailedHealth {
-        status: if healthy { "healthy" } else { "unhealthy" }.to_string(),
+        status: overall_status,
         timestamp: Utc::now(),
         uptime_seconds: get_uptime_seconds(),
         version: env!("CARGO_PKG_VERSION").to_string(),
-        environment: std::env::var("RUST_ENV").unwrap_or_else(|_| "development".to_string()),
+        environment: std::env::var("ENVIRONMENT").unwrap_or_else(|_| "development".to_string()),
         services,
         metrics,
     };
 
-    let _status_code = if healthy {
-        StatusCode::OK
-    } else {
-        StatusCode::SERVICE_UNAVAILABLE
-    };
-
-    // 添加响应时间头
-    let response = Json(health);
-    let response_with_timing = response.into_response();
-
-    Ok(response_with_timing)
+    Ok((status_code, Json(health)).into_response())
 }
 
-/// 就绪检查（所有依赖服务都必须健康）
 #[utoipa::path(
     get,
     path = "/readyz",
@@ -190,7 +180,6 @@ pub async fn health_detailed(
     )
 )]
 pub async fn readyz(State(state): State<crate::AppState>) -> Result<(), StatusCode> {
-    // 并发检查所有关键服务
     let (db_ok, redis_ok, jwt_ok, email_ok) = tokio::join!(
         check_database_health(&state.db),
         check_redis_health(&state.redis),
@@ -219,9 +208,9 @@ async fn check_database_health(db: &sqlx::PgPool) -> ServiceStatus {
             response_time_ms: Some(start.elapsed().as_millis() as u64),
             last_check: Some(Utc::now()),
         },
-        Err(e) => ServiceStatus {
+        Err(error) => ServiceStatus {
             status: "unhealthy".to_string(),
-            message: Some(format!("Database connection failed: {}", e)),
+            message: Some(format!("Database connection failed: {}", error)),
             response_time_ms: Some(start.elapsed().as_millis() as u64),
             last_check: Some(Utc::now()),
         },
@@ -239,16 +228,16 @@ async fn check_redis_health(redis_pool: &deadpool_redis::Pool) -> ServiceStatus 
                 response_time_ms: Some(start.elapsed().as_millis() as u64),
                 last_check: Some(Utc::now()),
             },
-            Err(e) => ServiceStatus {
+            Err(error) => ServiceStatus {
                 status: "unhealthy".to_string(),
-                message: Some(format!("Redis PING failed: {}", e)),
+                message: Some(format!("Redis PING failed: {}", error)),
                 response_time_ms: Some(start.elapsed().as_millis() as u64),
                 last_check: Some(Utc::now()),
             },
         },
-        Err(e) => ServiceStatus {
+        Err(error) => ServiceStatus {
             status: "unhealthy".to_string(),
-            message: Some(format!("Redis connection failed: {}", e)),
+            message: Some(format!("Redis connection failed: {}", error)),
             response_time_ms: Some(start.elapsed().as_millis() as u64),
             last_check: Some(Utc::now()),
         },
@@ -257,11 +246,8 @@ async fn check_redis_health(redis_pool: &deadpool_redis::Pool) -> ServiceStatus 
 
 async fn check_jwt_health(jwt: &blog_core::JwtService) -> ServiceStatus {
     let start = std::time::Instant::now();
-
-    // Create a test user ID
     let test_user_id = uuid::Uuid::new_v4();
 
-    // 尝试生成一个测试token
     match jwt.create_refresh_token(&test_user_id) {
         Ok(_) => ServiceStatus {
             status: "healthy".to_string(),
@@ -269,9 +255,9 @@ async fn check_jwt_health(jwt: &blog_core::JwtService) -> ServiceStatus {
             response_time_ms: Some(start.elapsed().as_millis() as u64),
             last_check: Some(Utc::now()),
         },
-        Err(e) => ServiceStatus {
+        Err(error) => ServiceStatus {
             status: "unhealthy".to_string(),
-            message: Some(format!("JWT service error: {}", e)),
+            message: Some(format!("JWT service error: {}", error)),
             response_time_ms: Some(start.elapsed().as_millis() as u64),
             last_check: Some(Utc::now()),
         },
@@ -281,8 +267,6 @@ async fn check_jwt_health(jwt: &blog_core::JwtService) -> ServiceStatus {
 async fn check_email_health(_email_service: &blog_core::email::EmailService) -> ServiceStatus {
     let start = std::time::Instant::now();
 
-    // 检查邮件服务配置
-    // 这里可以尝试发送一个测试邮件或者验证配置
     ServiceStatus {
         status: "healthy".to_string(),
         message: Some("Email service is configured".to_string()),
@@ -291,26 +275,160 @@ async fn check_email_health(_email_service: &blog_core::email::EmailService) -> 
     }
 }
 
-fn get_memory_usage() -> MemoryUsage {
-    // 简单的内存使用估算
-    // 在生产环境中，这里应该使用更精确的内存监控库
-    MemoryUsage {
-        used_mb: 128,     // 示例值
-        total_mb: 1024,   // 示例值
-        percentage: 12.5, // 示例值
+async fn check_outbox_health(
+    db: &sqlx::PgPool,
+    health_config: &blog_shared::HealthConfig,
+    lock_timeout_secs: i32,
+) -> (ServiceStatus, OutboxQueueMetrics) {
+    let start = std::time::Instant::now();
+
+    match fetch_outbox_metrics(db, lock_timeout_secs).await {
+        Ok(metrics_row) => {
+            let metrics: OutboxQueueMetrics = metrics_row.into();
+            let now = Utc::now();
+            let status = evaluate_outbox_status(&metrics, health_config);
+
+            (
+                ServiceStatus {
+                    status: status.to_string(),
+                    message: Some(format!(
+                        "pending={}, stale_locked={}, dead_letter={}",
+                        metrics.pending_events,
+                        metrics.stale_locked_events,
+                        metrics.dead_letter_events
+                    )),
+                    response_time_ms: Some(start.elapsed().as_millis() as u64),
+                    last_check: Some(now),
+                },
+                metrics,
+            )
+        }
+        Err(error) => (
+            ServiceStatus {
+                status: "unhealthy".to_string(),
+                message: Some(format!("Outbox query failed: {}", error)),
+                response_time_ms: Some(start.elapsed().as_millis() as u64),
+                last_check: Some(Utc::now()),
+            },
+            OutboxQueueMetrics::default(),
+        ),
     }
 }
 
-async fn get_cpu_usage() -> Option<f64> {
-    // 在生产环境中，这里应该使用系统监控库
-    // 例如：sysinfo crate
-    Some(5.2) // 示例值：5.2%
+pub(crate) async fn collect_outbox_metrics(
+    db: &sqlx::PgPool,
+    lock_timeout_secs: i32,
+) -> Result<OutboxQueueMetrics, sqlx::Error> {
+    fetch_outbox_metrics(db, lock_timeout_secs)
+        .await
+        .map(Into::into)
+}
+
+async fn fetch_outbox_metrics(
+    db: &sqlx::PgPool,
+    lock_timeout_secs: i32,
+) -> Result<OutboxMetricsRow, sqlx::Error> {
+    sqlx::query_as::<_, OutboxMetricsRow>(
+        r#"
+        SELECT
+            COUNT(*) FILTER (
+                WHERE processed_at IS NULL
+                    AND retry_count < 3
+            ) AS pending_events,
+            COUNT(*) FILTER (
+                WHERE processed_at IS NULL
+                    AND retry_count < 3
+                    AND locked_at IS NOT NULL
+                    AND locked_at < NOW() - make_interval(secs => $1)
+            ) AS stale_locked_events,
+            COUNT(*) FILTER (
+                WHERE processed_at IS NULL
+                    AND retry_count >= 3
+            ) AS dead_letter_events,
+            MAX(
+                FLOOR(EXTRACT(EPOCH FROM NOW() - created_at))
+            ) FILTER (
+                WHERE processed_at IS NULL
+                    AND retry_count < 3
+            ) AS oldest_pending_age_seconds
+        FROM outbox_events
+        "#,
+    )
+    .bind(lock_timeout_secs)
+    .fetch_one(db)
+    .await
+}
+
+fn calculate_overall_status(services: &HashMap<String, ServiceStatus>) -> String {
+    if services
+        .values()
+        .any(|service| service.status == "unhealthy")
+    {
+        "unhealthy".to_string()
+    } else if services
+        .values()
+        .any(|service| service.status == "degraded")
+    {
+        "degraded".to_string()
+    } else {
+        "healthy".to_string()
+    }
+}
+
+fn evaluate_outbox_status(
+    metrics: &OutboxQueueMetrics,
+    health_config: &blog_shared::HealthConfig,
+) -> &'static str {
+    if metrics.dead_letter_events > 0
+        || metrics.pending_events >= health_config.outbox_pending_fail_threshold
+        || metrics.oldest_pending_age_seconds.unwrap_or_default()
+            >= health_config.outbox_oldest_fail_secs
+    {
+        "unhealthy"
+    } else if metrics.stale_locked_events > 0
+        || metrics.pending_events >= health_config.outbox_pending_warn_threshold
+        || metrics.oldest_pending_age_seconds.unwrap_or_default()
+            >= health_config.outbox_oldest_warn_secs
+    {
+        "degraded"
+    } else {
+        "healthy"
+    }
+}
+
+fn get_memory_usage() -> MemoryUsage {
+    let mut system = health_system()
+        .lock()
+        .expect("health system mutex should not be poisoned");
+    system.refresh_memory();
+
+    let used_mb = system.used_memory() / 1024 / 1024;
+    let total_mb = system.total_memory() / 1024 / 1024;
+    let percentage = if total_mb == 0 {
+        0.0
+    } else {
+        (used_mb as f64 / total_mb as f64) * 100.0
+    };
+
+    MemoryUsage {
+        used_mb,
+        total_mb,
+        percentage,
+    }
+}
+
+fn get_cpu_usage() -> Option<f64> {
+    let mut system = health_system()
+        .lock()
+        .expect("health system mutex should not be poisoned");
+    system.refresh_cpu_usage();
+    Some(system.global_cpu_usage() as f64)
 }
 
 async fn get_active_connections(state: &AppState) -> u64 {
-    // 这里可以跟踪活跃的WebSocket连接等
-    // 暂时返回数据库池的活跃连接数
-    state.db.size() as u64
+    let size = state.db.size();
+    let idle = state.db.num_idle() as u32;
+    u64::from(size.saturating_sub(idle))
 }
 
 async fn get_database_pool_status(db: &sqlx::PgPool) -> DatabasePoolStatus {
@@ -319,6 +437,108 @@ async fn get_database_pool_status(db: &sqlx::PgPool) -> DatabasePoolStatus {
     DatabasePoolStatus {
         size,
         idle,
-        active: size - idle, // Calculate active connections
+        active: size.saturating_sub(idle),
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct OutboxMetricsRow {
+    pending_events: i64,
+    stale_locked_events: i64,
+    dead_letter_events: i64,
+    oldest_pending_age_seconds: Option<i64>,
+}
+
+impl From<OutboxMetricsRow> for OutboxQueueMetrics {
+    fn from(value: OutboxMetricsRow) -> Self {
+        Self {
+            pending_events: value.pending_events,
+            stale_locked_events: value.stale_locked_events,
+            dead_letter_events: value.dead_letter_events,
+            oldest_pending_age_seconds: value.oldest_pending_age_seconds,
+        }
+    }
+}
+
+fn health_system() -> &'static Mutex<System> {
+    HEALTH_SYSTEM.get_or_init(|| {
+        let mut system = System::new();
+        system.refresh_memory();
+        system.refresh_cpu_usage();
+        Mutex::new(system)
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        calculate_overall_status, evaluate_outbox_status, OutboxQueueMetrics, ServiceStatus,
+    };
+    use blog_shared::HealthConfig;
+    use chrono::Utc;
+    use std::collections::HashMap;
+
+    fn health_config() -> HealthConfig {
+        HealthConfig {
+            outbox_pending_warn_threshold: 100,
+            outbox_pending_fail_threshold: 500,
+            outbox_oldest_warn_secs: 60,
+            outbox_oldest_fail_secs: 300,
+        }
+    }
+
+    #[test]
+    fn outbox_status_degrades_before_it_fails() {
+        let config = health_config();
+        let degraded = OutboxQueueMetrics {
+            pending_events: 150,
+            stale_locked_events: 0,
+            dead_letter_events: 0,
+            oldest_pending_age_seconds: Some(30),
+        };
+        let unhealthy = OutboxQueueMetrics {
+            pending_events: 50,
+            stale_locked_events: 0,
+            dead_letter_events: 1,
+            oldest_pending_age_seconds: Some(10),
+        };
+
+        assert_eq!(evaluate_outbox_status(&degraded, &config), "degraded");
+        assert_eq!(evaluate_outbox_status(&unhealthy, &config), "unhealthy");
+    }
+
+    #[test]
+    fn overall_status_prefers_unhealthy_over_degraded() {
+        let mut services = HashMap::new();
+        services.insert(
+            "database".to_string(),
+            ServiceStatus {
+                status: "healthy".to_string(),
+                message: None,
+                response_time_ms: Some(1),
+                last_check: Some(Utc::now()),
+            },
+        );
+        services.insert(
+            "outbox".to_string(),
+            ServiceStatus {
+                status: "degraded".to_string(),
+                message: None,
+                response_time_ms: Some(1),
+                last_check: Some(Utc::now()),
+            },
+        );
+        assert_eq!(calculate_overall_status(&services), "degraded");
+
+        services.insert(
+            "redis".to_string(),
+            ServiceStatus {
+                status: "unhealthy".to_string(),
+                message: None,
+                response_time_ms: Some(1),
+                last_check: Some(Utc::now()),
+            },
+        );
+        assert_eq!(calculate_overall_status(&services), "unhealthy");
     }
 }

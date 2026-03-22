@@ -171,35 +171,6 @@ pub async fn blacklist_all_user_tokens(
     Ok(())
 }
 
-/// 检查用户是否被强制登出
-async fn is_user_force_logged_out(
-    state: &AppState,
-    user_id: uuid::Uuid,
-    token_issued_at: i64,
-) -> Result<bool, AuthError> {
-    let key = format!("user_tokens_invalid:{}", user_id);
-
-    let mut conn = state.redis.get().await.map_err(|e| {
-        tracing::error!("Failed to get Redis connection: {}", e);
-        AuthError::InvalidToken
-    })?;
-
-    use redis::AsyncCommands;
-    let invalid_since: Option<i64> = conn.get(&key).await.map_err(|e| {
-        tracing::error!("Redis user invalidation check failed: {}", e);
-        AuthError::InvalidToken
-    })?;
-
-    // 如果存在强制登出记录，且 token 签发时间早于强制登出时间，则 token 无效
-    if let Some(invalid_since) = invalid_since {
-        if token_issued_at < invalid_since {
-            return Ok(true);
-        }
-    }
-
-    Ok(false)
-}
-
 /// 可选的认证中间件
 ///
 /// 尝试验证 token 但不会因无效 token 而拒绝请求

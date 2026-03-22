@@ -1,5 +1,3 @@
-#![recursion_limit = "256"]
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
@@ -141,13 +139,14 @@ pub struct CommentWithUser {
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
 pub struct OutboxEvent {
     pub id: Uuid,
-    pub topic: String,
+    pub event_type: String,
     pub payload: serde_json::Value,
-    pub status: String,
-    pub run_after: DateTime<Utc>,
-    pub attempts: i32,
-    pub last_error: Option<String>,
     pub created_at: DateTime<Utc>,
+    pub processed_at: Option<DateTime<Utc>>,
+    pub retry_count: i32,
+    pub error: Option<String>,
+    pub locked_at: Option<DateTime<Utc>>,
+    pub locked_by: Option<String>,
 }
 
 // 请求/响应 DTO
