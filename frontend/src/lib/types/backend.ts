@@ -591,7 +591,7 @@ export interface CommentNotification {
   created_at: string
 }
 
-export interface NotificationListResponse {
+export interface CommentNotificationListResponse {
   notifications: CommentNotification[]
   total: number
   unread_count: number
@@ -599,5 +599,4 @@ export interface NotificationListResponse {
   per_page: number
   total_pages: number
 }
-
 

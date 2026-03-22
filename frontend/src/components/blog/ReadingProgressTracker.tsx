@@ -20,7 +20,7 @@ interface ReadingProgressTrackerProps {
   postId?: string
 }
 
-export function ReadingProgressTracker({ slug, postId }: ReadingProgressTrackerProps) {
+export function ReadingProgressTracker({ slug }: ReadingProgressTrackerProps) {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
   const [progress, setProgress] = useState(0)
@@ -29,7 +29,9 @@ export function ReadingProgressTracker({ slug, postId }: ReadingProgressTrackerP
 
   // 加载已保存的进度
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      return undefined
+    }
 
     const loadProgress = async () => {
       try {
@@ -83,7 +85,9 @@ export function ReadingProgressTracker({ slug, postId }: ReadingProgressTrackerP
 
   // 监听滚动事件
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      return undefined
+    }
 
     let ticking = false
 

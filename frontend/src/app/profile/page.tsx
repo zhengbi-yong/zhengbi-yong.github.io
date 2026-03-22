@@ -17,7 +17,6 @@ import { authService } from '@/lib/api/backend'
 import type { UserProfile, UpdateProfileRequest, UserReadingStats } from '@/lib/types/backend'
 import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
-import { BookmarkButton } from '@/components/BookmarkButton'
 
 export default function ProfilePage() {
   const { t } = useTranslation()

@@ -92,7 +92,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
       setTotal(0)
       setIsLoading(false)
       setError(null)
-      return
+      return undefined
     }
 
     const controller = new AbortController()
@@ -129,15 +129,13 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
         setSuggestions(suggestionData)
         setTotal(searchData.total)
       } catch (fetchError) {
-        if ((fetchError as Error).name === 'AbortError') {
-          return
+        if ((fetchError as Error).name !== 'AbortError') {
+          console.error('Search request failed:', fetchError)
+          setError('Search is temporarily unavailable.')
+          setResults([])
+          setSuggestions([])
+          setTotal(0)
         }
-
-        console.error('Search request failed:', fetchError)
-        setError('Search is temporarily unavailable.')
-        setResults([])
-        setSuggestions([])
-        setTotal(0)
       } finally {
         setIsLoading(false)
       }

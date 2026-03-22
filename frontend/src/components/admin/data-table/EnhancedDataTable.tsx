@@ -18,7 +18,6 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
-  MoreHorizontal,
 } from 'lucide-react'
 
 export interface Column<T> {
@@ -44,8 +43,6 @@ export function EnhancedDataTable<T extends Record<string, any>>({
   data,
   columns,
   onRowClick,
-  enableVirtualScroll = false,
-  compact = true,
   rowKey = 'id',
   className,
 }: EnhancedDataTableProps<T>) {
@@ -292,7 +289,6 @@ export interface DataTableRowProps<T> {
 export function DataTableRow<T extends Record<string, any>>({
   data,
   columns,
-  index,
   isSelected = false,
   onToggleSelect,
   onClick,

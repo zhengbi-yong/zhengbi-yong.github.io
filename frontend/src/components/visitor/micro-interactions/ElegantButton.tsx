@@ -8,10 +8,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { HTMLMotionProps } from 'framer-motion'
+import { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
-interface ElegantButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ElegantButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   children: ReactNode
   variant?: 'primary' | 'secondary' | 'ghost'
   size?: 'sm' | 'md' | 'lg'

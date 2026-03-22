@@ -33,7 +33,6 @@ export function useImageOptimization(options: UseImageOptimizationOptions = {}):
   const {
     threshold = 0.1,
     rootMargin = '50px',
-    fadeInDuration = 300,
     retryCount = 3,
     retryDelay = 1000,
   } = options
@@ -47,7 +46,9 @@ export function useImageOptimization(options: UseImageOptimizationOptions = {}):
   // Intersection Observer for lazy loading
   useEffect(() => {
     const element = imageRef.current
-    if (!element) return
+    if (!element) {
+      return undefined
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -80,7 +81,9 @@ export function useImageOptimization(options: UseImageOptimizationOptions = {}):
 
   // Simulated image loading (in real usage, this would be tied to actual img onLoad)
   useEffect(() => {
-    if (!isLoading) return
+    if (!isLoading) {
+      return undefined
+    }
 
     const timer = setTimeout(() => {
       // Simulate success/failure randomly for demo
@@ -106,6 +109,7 @@ export function useImageOptimization(options: UseImageOptimizationOptions = {}):
 
       return () => clearTimeout(timer)
     }
+    return undefined
   }, [hasError, retryAttempts, retryCount, retryDelay, retry])
 
   return {
@@ -194,7 +198,9 @@ export function useResponsiveImage() {
   })
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') {
+      return undefined
+    }
 
     const updateScreenSize = () => {
       const width = window.innerWidth

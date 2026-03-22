@@ -24,7 +24,6 @@ interface CommentNotificationButtonProps {
 
 export function CommentNotificationButton({
   postId,
-  postTitle,
   className = '',
   variant = 'pill',
 }: CommentNotificationButtonProps) {

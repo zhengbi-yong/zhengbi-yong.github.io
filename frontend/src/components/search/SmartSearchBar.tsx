@@ -17,8 +17,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useDebounce } from '@/lib/hooks/useDebounce'
 import { searchService } from '@/lib/api/backend'
-import type { SearchResultItem } from '@/lib/types/backend'
-import siteMetadata from '@/data/siteMetadata'
+import type { SearchResult } from '@/lib/types/backend'
 
 interface SmartSearchBarProps {
   className?: string
@@ -79,13 +78,13 @@ export function SmartSearchBar({
 
     setLoading(true)
     try {
-      const response = await searchService.searchPosts(searchQuery, { limit: 5 })
+      const response = await searchService.search(searchQuery, { limit: 5 })
 
-      const searchSuggestions: SuggestionItem[] = response.results.map((item) => ({
+      const searchSuggestions: SuggestionItem[] = response.results.map((item: SearchResult) => ({
         type: 'post',
         title: item.title,
         url: `/blog/${item.slug}`,
-        subtitle: `${item.category} · ${item.tags.join(', ')}`,
+        subtitle: item.summary || undefined,
       }))
 
       setSuggestions(searchSuggestions)

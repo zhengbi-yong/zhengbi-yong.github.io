@@ -16,7 +16,6 @@ import Link from 'next/link'
 export default function ReadingHistoryPage() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
-  const [authLoading] = useState(false)
   const [history, setHistory] = useState<ReadingProgress[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)

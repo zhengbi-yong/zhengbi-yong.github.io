@@ -45,16 +45,8 @@ export function PerformanceMonitor({
   const observerRef = useRef<PerformanceObserver | null>(null)
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.PerformanceObserver) return
-
-    // Observer configuration
-    const observeOptions = {
-      // LCP: Largest Contentful Paint
-      lcp: { type: 'largest-contentful-paint', buffered: true },
-      // FID: First Input Delay
-      fid: { type: 'first-input', buffered: true },
-      // CLS: Cumulative Layout Shift
-      cls: { type: 'layout-shift', buffered: true },
+    if (typeof window === 'undefined' || !window.PerformanceObserver) {
+      return undefined
     }
 
     // Collect all metrics
@@ -144,7 +136,9 @@ export function PerformanceMonitor({
 
   // Measure first render time
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined') {
+      return undefined
+    }
 
     const startTime = performance.now()
     return () => {
@@ -161,7 +155,9 @@ export function PerformanceMonitor({
  */
 export function useRenderTime(componentName: string) {
   useEffect(() => {
-    if (typeof window === 'undefined' || process.env.NODE_ENV !== 'development') return
+    if (typeof window === 'undefined' || process.env.NODE_ENV !== 'development') {
+      return undefined
+    }
 
     const startTime = performance.now()
 

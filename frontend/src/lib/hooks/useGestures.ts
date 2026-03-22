@@ -10,7 +10,8 @@
  * - 双击手势
  */
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import type { TouchEvent as ReactTouchEvent } from 'react'
+import { useRef, useState, useCallback } from 'react'
 
 export interface GestureHandlers {
   onSwipeLeft?: () => void
@@ -40,11 +41,11 @@ export function useGestures(handlers: GestureHandlers, options: GestureOptions =
   const [isLongPressing, setIsLongPressing] = useState(false)
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
   const lastTapRef = useRef<number>(0)
-  const longPressTimerRef = useRef<NodeJS.Timeout>()
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
   const initialDistanceRef = useRef<number>(0)
 
   const handleTouchStart = useCallback(
-    (e: TouchEvent) => {
+    (e: ReactTouchEvent<HTMLElement>) => {
       if (e.touches.length !== 1) return
 
       const touch = e.touches[0]
@@ -75,7 +76,7 @@ export function useGestures(handlers: GestureHandlers, options: GestureOptions =
   )
 
   const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
+    (e: ReactTouchEvent<HTMLElement>) => {
       // 如果正在长按，取消长按
       if (isLongPressing) {
         setIsLongPressing(false)
@@ -108,7 +109,7 @@ export function useGestures(handlers: GestureHandlers, options: GestureOptions =
   )
 
   const handleTouchEnd = useCallback(
-    (e: TouchEvent) => {
+    (e: ReactTouchEvent<HTMLElement>) => {
       // 清除长按计时器
       if (longPressTimerRef.current) {
         clearTimeout(longPressTimerRef.current)
@@ -126,8 +127,6 @@ export function useGestures(handlers: GestureHandlers, options: GestureOptions =
       const touch = e.changedTouches[0]
       const deltaX = touch.clientX - touchStartRef.current.x
       const deltaY = touch.clientY - touchStartRef.current.y
-      const deltaTime = Date.now() - touchStartRef.current.time
-
       // 检测滑动手势
       if (Math.abs(deltaX) > Math.abs(deltaY)) {
         // 水平滑动

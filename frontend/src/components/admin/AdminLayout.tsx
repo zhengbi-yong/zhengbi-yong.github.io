@@ -32,7 +32,11 @@ import {
   Search,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { KeyboardShortcutProvider, CommandPalette } from '@/components/admin/keyboard-shortcuts'
+import {
+  KeyboardShortcutProvider,
+  CommandPalette,
+  useKeyboardShortcuts,
+} from '@/components/admin/keyboard-shortcuts'
 
 // 导入管理界面紧凑样式
 import '@/styles/admin-compact.css'
@@ -341,4 +345,3 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     </KeyboardShortcutProvider>
   )
 }
-

@@ -28,6 +28,16 @@ interface PushNotificationOptions {
   }>
 }
 
+interface NotificationActionOption {
+  action: string
+  title: string
+  icon?: string
+}
+
+interface NotificationOptionsWithActions extends NotificationOptions {
+  actions?: NotificationActionOption[]
+}
+
 interface NotificationPermission {
   state: 'default' | 'granted' | 'denied'
   canRequest: boolean
@@ -190,13 +200,15 @@ export function usePushNotifications() {
 
       try {
         const registration = await navigator.serviceWorker.ready
-        await registration.showNotification(options.title, {
+        const notificationOptions: NotificationOptionsWithActions = {
           body: options.body,
           icon: options.icon,
           badge: options.badge,
           data: options.data,
           actions: options.actions,
-        })
+        }
+
+        await registration.showNotification(options.title, notificationOptions)
       } catch (error) {
         console.error('Failed to show notification:', error)
         throw error

@@ -12,6 +12,13 @@ interface SheetMusicProps {
   showPlayback?: boolean
 }
 
+interface SynthControllerHandle {
+  load: (...args: any[]) => void
+  setTune: (...args: any[]) => Promise<unknown>
+  disable: (isDisabled: boolean) => void
+  destroy?: () => void
+}
+
 /**
  * SheetMusic - ABC 记谱法乐谱渲染组件
  *
@@ -35,7 +42,7 @@ export default function SheetMusic({
 }: SheetMusicProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const playbackRef = useRef<HTMLDivElement>(null)
-  const synthControllerRef = useRef<{ destroy: () => void } | null>(null)
+  const synthControllerRef = useRef<SynthControllerHandle | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
 
@@ -45,10 +52,11 @@ export default function SheetMusic({
 
   useEffect(() => {
     if (!isClient || !containerRef.current) {
-      return
+      return undefined
     }
 
-    synthControllerRef.current?.destroy()
+    synthControllerRef.current?.destroy?.()
+    synthControllerRef.current?.disable(true)
     synthControllerRef.current = null
 
     try {
@@ -74,7 +82,7 @@ export default function SheetMusic({
         const visualObj = visualObjs?.[0]
 
         if (visualObj) {
-          const synthController = new abcjs.synth.SynthController()
+          const synthController = new abcjs.synth.SynthController() as SynthControllerHandle
           synthController.load(playbackRef.current, undefined, {
             displayLoop: true,
             displayRestart: true,
@@ -91,7 +99,8 @@ export default function SheetMusic({
     }
 
     return () => {
-      synthControllerRef.current?.destroy()
+      synthControllerRef.current?.destroy?.()
+      synthControllerRef.current?.disable(true)
       synthControllerRef.current = null
     }
   }, [abcnotation, showPlayback, isClient])
@@ -145,7 +154,13 @@ export default function SheetMusic({
 /**
  * ABC 代码块包装器 - 用于 MDX 中
  */
-export function ABCCodeBlock({ children, className }: { children?: string; className?: string }) {
+export function ABCCodeBlock({
+  children,
+  className,
+}: {
+  children?: string | string[] | null
+  className?: string
+}) {
   // 从代码块中提取 ABC 记谱法
   const abcnotation =
     typeof children === 'string'

@@ -220,7 +220,6 @@ const resources = {
       'notification.pushNotifications': '推送通知',
       'notification.pushNotificationsDesc': '接收新文章和评论的推送通知',
       'notification.denied': '您已拒绝通知权限。请在浏览器设置中允许通知。',
-      'notification.error': '操作失败',
     }
   },
   en: {
@@ -433,7 +432,6 @@ const resources = {
       'notification.pushNotifications': 'Push Notifications',
       'notification.pushNotificationsDesc': 'Receive push notifications for new articles and comments',
       'notification.denied': 'You have denied notification permission. Please allow notifications in your browser settings.',
-      'notification.error': 'Operation failed',
     }
   }
 }

@@ -121,8 +121,6 @@ export function RefineProvider({ children }: RefineProviderProps) {
           syncWithLocation: false,
           // 启用未保存更改警告
           warnWhenUnsavedChanges: true,
-          // 使用新的查询键格式
-          useNewQueryKeys: true,
           // 项目标识符
           projectId: 'admin-panel',
           // 禁用遥测（隐私和性能）
@@ -145,5 +143,4 @@ export function RefineProvider({ children }: RefineProviderProps) {
 
 // 导出缓存实例供外部使用（可选）
 export { cache }
-
 

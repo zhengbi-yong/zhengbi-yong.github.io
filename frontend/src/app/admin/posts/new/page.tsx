@@ -127,13 +127,11 @@ export default function NewPostPage() {
       }
 
       // 解析成功响应
-      let result = null
       if (hasJsonBody) {
         try {
-          result = await response.json()
+          await response.json()
         } catch {
-          // 如果响应为空或解析失败，使用默认值
-          result = { slug, title }
+          // 如果响应为空或解析失败，继续使用本地 slug 跳转
         }
       }
 

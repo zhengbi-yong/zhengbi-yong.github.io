@@ -133,7 +133,6 @@ class TextProcessor {
     const sentences: string[] = []
 
     // 尝试中文分句
-    let match
     const zhMatches = text.match(chineseSentenceRegex)
     if (zhMatches) {
       sentences.push(...text.split(chineseSentenceRegex).filter(Boolean))
@@ -262,8 +261,6 @@ class TextRankSummarizer {
     text: string,
     options: SummaryOptions = {}
   ): { summary: string; keyPoints: KeyPoint[] } {
-    const startTime = performance.now()
-
     // 分句
     const sentences = TextProcessor.splitIntoSentences(text)
     if (sentences.length <= 3) {
@@ -284,8 +281,6 @@ class TextRankSummarizer {
 
     // 生成摘要
     const summary = this.formatSummary(topSentences, options)
-
-    const endTime = performance.now()
 
     return {
       summary,
@@ -336,7 +331,7 @@ class TextRankSummarizer {
 
         for (let j = 0; j < n; j++) {
           if (i !== j) {
-            const sum = matrix[j].reduce((acc, val, k) => acc + val, 0)
+            const sum = matrix[j].reduce((acc, val) => acc + val, 0)
             if (sum > 0) {
               score += dampingFactor * (matrix[j][i] / sum) * scores[j]
             }

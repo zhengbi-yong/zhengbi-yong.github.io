@@ -26,8 +26,7 @@ import { common, createLowlight } from 'lowlight'
 import { cn } from '@/lib/utils'
 import { EditorToolbar } from './EditorToolbar'
 import { FloatingMenu } from './FloatingMenu'
-import { useMemo, useEffect, useState } from 'react'
-import katex from 'katex'
+import { useEffect, useState } from 'react'
 
 // 创建代码高亮实例（按需加载常用语言）
 const lowlight = createLowlight(common)

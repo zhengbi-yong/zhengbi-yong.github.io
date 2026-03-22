@@ -11,8 +11,8 @@
  * - 优化触摸目标
  */
 
-import { useEffect, useState } from 'react'
-import { useGestures } from '@/lib/hooks/useGestures'
+import { useCallback, useEffect, useState } from 'react'
+import { useGestures, usePullToRefresh } from '@/lib/hooks/useGestures'
 
 interface MobileOptimizedContainerProps {
   children: React.ReactNode
@@ -29,18 +29,6 @@ export function MobileOptimizedContainer({
   onSwipeRight,
   className = '',
 }: MobileOptimizedContainerProps) {
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
   const gestureHandlers = useGestures(
     {
       onSwipeLeft,
@@ -59,7 +47,7 @@ export function MobileOptimizedContainer({
         paddingLeft: 'env(safe-area-inset-left)',
         paddingRight: 'env(safe-area-inset-right)',
       }}
-      {...(enableSwipeGestures ? gestureHandlers.gestureHandlers : {})}
+      {...(enableSwipeGestures ? gestureHandlers.gestureHandlers : undefined)}
     >
       {children}
     </div>

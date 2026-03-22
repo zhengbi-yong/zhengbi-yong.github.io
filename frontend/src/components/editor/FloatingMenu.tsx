@@ -7,7 +7,7 @@
  */
 
 import { Editor, isNodeSelection } from '@tiptap/react'
-import { Check, List, Quote, Heading1, Heading2, Code, Image as ImageIcon } from 'lucide-react'
+import { List, Quote, Heading1, Heading2, Code, Image as ImageIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState, useEffect, useRef } from 'react'
 
@@ -21,7 +21,9 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!editor) return
+    if (!editor) {
+      return undefined
+    }
 
     const handleUpdate = () => {
       const { state, view } = editor

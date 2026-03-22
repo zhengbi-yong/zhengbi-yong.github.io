@@ -24,6 +24,13 @@ interface PreloadQueue {
   low: PreloadResource[]
 }
 
+interface NavigatorWithConnection extends Navigator {
+  connection?: {
+    saveData?: boolean
+    effectiveType?: string
+  }
+}
+
 class ResourcePreloader {
   private queue: PreloadQueue = {
     high: [],
@@ -31,7 +38,6 @@ class ResourcePreloader {
   }
   private loaded = new Set<string>()
   private loading = new Set<string>()
-  private isIdle = false
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -46,7 +52,6 @@ class ResourcePreloader {
   private setupIdleCallback() {
     if ('requestIdleCallback' in window) {
       const checkIdle = () => {
-        this.isIdle = true
         this.processQueue('low')
         ;(window as any).requestIdleCallback(checkIdle)
       }
@@ -102,10 +107,11 @@ class ResourcePreloader {
    * Check if we should preload based on network conditions
    */
   private shouldPreload(priority: 'high' | 'low'): boolean {
-    if (typeof navigator === 'undefined' || !navigator.connection) return true
+    const connection = (navigator as NavigatorWithConnection).connection
+    if (typeof navigator === 'undefined' || !connection) return true
 
-    const connection = (navigator as any).connection
-    const isSlowConnection = connection.saveData || connection.effectiveType.includes('2g')
+    const isSlowConnection =
+      Boolean(connection.saveData) || connection.effectiveType?.includes('2g') === true
 
     // Only preload high priority on slow connections
     if (isSlowConnection && priority === 'low') return false

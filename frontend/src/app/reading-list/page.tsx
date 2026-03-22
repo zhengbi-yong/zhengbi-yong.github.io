@@ -60,7 +60,7 @@ export default function ReadingListPage() {
   }, [user, currentPage])
 
   // 保存笔记
-  const handleSaveNote = async (bookmarkId: string, postId: string) => {
+  const handleSaveNote = async (postId: string) => {
     try {
       await bookmarkService.updateBookmarkNote(postId, noteText)
       // 重新加载当前页
@@ -69,21 +69,6 @@ export default function ReadingListPage() {
       setNoteText('')
     } catch (error) {
       alert(t('bookmark.saveNoteFailed') || '保存笔记失败')
-    }
-  }
-
-  // 删除收藏
-  const handleRemoveBookmark = async (postId: string) => {
-    if (!confirm(t('bookmark.confirmRemove') || '确定要取消收藏吗？')) {
-      return
-    }
-
-    try {
-      await bookmarkService.removeBookmark(postId)
-      // 重新加载当前页
-      loadBookmarks(currentPage)
-    } catch (error) {
-      alert(t('bookmark.removeFailed') || '取消收藏失败')
     }
   }
 
@@ -207,7 +192,7 @@ export default function ReadingListPage() {
                         />
                         <div className="mt-2 flex gap-2">
                           <button
-                            onClick={() => handleSaveNote(bookmark.id, bookmark.post_id)}
+                            onClick={() => handleSaveNote(bookmark.post_id)}
                             className="rounded bg-blue-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-600"
                           >
                             {t('bookmark.save') || '保存'}

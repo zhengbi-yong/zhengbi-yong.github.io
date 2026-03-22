@@ -125,7 +125,9 @@ export function CommandPalette() {
 
   // 键盘导航
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) {
+      return undefined
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       switch (event.key) {
