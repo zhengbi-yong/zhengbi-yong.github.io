@@ -84,13 +84,20 @@ fn main() {
 
     if let Some(components) = spec.components.as_ref() {
         println!("   - Schemas: {}", components.schemas.len());
-        println!("   - Security Schemes: {}", components.security_schemes.len());
+        println!(
+            "   - Security Schemes: {}",
+            components.security_schemes.len()
+        );
     }
 
     if let Some(servers) = spec.servers.as_ref() {
         println!("   - Servers: {}", servers.len());
         for server in servers {
-            println!("      • {} ({})", server.url, server.description.as_ref().unwrap_or(&"".to_string()));
+            println!(
+                "      • {} ({})",
+                server.url,
+                server.description.as_ref().unwrap_or(&"".to_string())
+            );
         }
     }
 

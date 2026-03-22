@@ -16,16 +16,16 @@ mod password_security_tests {
 
         // 测试各种弱密码
         let weak_passwords = vec![
-            "short",                    // 太短
-            "password123",             // 常见密码
-            "12345678901",             // 只有数字
-            "ABCDEFGHIJKL",            // 只有大写
-            "abcdefghijkl",            // 只有小写
-            "NoDigits!",               // 缺少数字
-            "nodigits123",             // 缺少大写
-            "NOLOWERCASE123!",         // 缺少小写
-            "NoSpecialChars123",       // 缺少特殊字符
-            "Password123!",            // 包含 "Password"
+            "short",             // 太短
+            "password123",       // 常见密码
+            "12345678901",       // 只有数字
+            "ABCDEFGHIJKL",      // 只有大写
+            "abcdefghijkl",      // 只有小写
+            "NoDigits!",         // 缺少数字
+            "nodigits123",       // 缺少大写
+            "NOLOWERCASE123!",   // 缺少小写
+            "NoSpecialChars123", // 缺少特殊字符
+            "Password123!",      // 包含 "Password"
         ];
 
         for password in weak_passwords {
@@ -173,17 +173,16 @@ mod token_security_tests {
 
         // 创建一个已过期的 token（需要修改过期时间或等待）
         // 这里我们验证正常创建的 token 有正确的过期时间
-        let token = jwt.create_access_token(&user_id, "test@example.com", "testuser").unwrap();
+        let token = jwt
+            .create_access_token(&user_id, "test@example.com", "testuser")
+            .unwrap();
         let claims = jwt.verify_access_token(&token).unwrap();
 
         // 验证过期时间在未来（大约 15 分钟后）
         let now = chrono::Utc::now().timestamp();
         let expected_expiry = now + (15 * 60);
 
-        assert!(
-            claims.exp > now,
-            "Token 过期时间应该在未来"
-        );
+        assert!(claims.exp > now, "Token 过期时间应该在未来");
 
         assert!(
             claims.exp <= expected_expiry + 2,
@@ -197,7 +196,9 @@ mod token_security_tests {
         let jwt = JwtService::new("a".repeat(32).as_str()).unwrap();
         let user_id = uuid::Uuid::new_v4();
 
-        let token = jwt.create_access_token(&user_id, "test@example.com", "testuser").unwrap();
+        let token = jwt
+            .create_access_token(&user_id, "test@example.com", "testuser")
+            .unwrap();
 
         // 篡改 token
         let mut token_bytes = token.into_bytes();
@@ -223,7 +224,9 @@ mod token_security_tests {
         let user_id = uuid::Uuid::new_v4();
 
         // 用 jwt1 签发 token
-        let token = jwt1.create_access_token(&user_id, "test@example.com", "testuser").unwrap();
+        let token = jwt1
+            .create_access_token(&user_id, "test@example.com", "testuser")
+            .unwrap();
 
         // 用 jwt2 验证应该失败
         assert!(
@@ -295,11 +298,7 @@ mod ip_extraction_security_tests {
     /// 系统应该只取最后一个 IP（最接近服务器的）
     #[test]
     fn test_x_forwarded_for_spoofing_protection() {
-        let mut req = Request::builder()
-            .uri("/test")
-            .body(Body::empty())
-            .unwrap();
-
+        let mut req = Request::builder().uri("/test").body(Body::empty()).unwrap();
 
         // 攻击者尝试伪造一个内部 IP
         req.headers_mut().insert(
@@ -319,34 +318,24 @@ mod ip_extraction_security_tests {
     #[test]
     fn test_ip_header_priority() {
         // Cloudflare IP 应该优先
-        let mut req_cf = Request::builder()
-            .uri("/test")
-            .body(Body::empty())
-            .unwrap();
-        req_cf.headers_mut().insert(
-            "cf-connecting-ip",
-            HeaderValue::from_static("203.0.113.10"),
-        );
-        req_cf.headers_mut().insert(
-            "x-real-ip",
-            HeaderValue::from_static("198.51.100.10"),
-        );
+        let mut req_cf = Request::builder().uri("/test").body(Body::empty()).unwrap();
+        req_cf
+            .headers_mut()
+            .insert("cf-connecting-ip", HeaderValue::from_static("203.0.113.10"));
+        req_cf
+            .headers_mut()
+            .insert("x-real-ip", HeaderValue::from_static("198.51.100.10"));
         let ip_cf = extract_real_ip(&req_cf);
         assert_eq!(ip_cf, IpAddr::V4(Ipv4Addr::new(203, 0, 113, 10)));
 
         // X-Real-IP 应该优先于 X-Forwarded-For
-        let mut req_real = Request::builder()
-            .uri("/test")
-            .body(Body::empty())
-            .unwrap();
-        req_real.headers_mut().insert(
-            "x-real-ip",
-            HeaderValue::from_static("198.51.100.20"),
-        );
-        req_real.headers_mut().insert(
-            "x-forwarded-for",
-            HeaderValue::from_static("192.0.2.20"),
-        );
+        let mut req_real = Request::builder().uri("/test").body(Body::empty()).unwrap();
+        req_real
+            .headers_mut()
+            .insert("x-real-ip", HeaderValue::from_static("198.51.100.20"));
+        req_real
+            .headers_mut()
+            .insert("x-forwarded-for", HeaderValue::from_static("192.0.2.20"));
         let ip_real = extract_real_ip(&req_real);
         assert_eq!(ip_real, IpAddr::V4(Ipv4Addr::new(198, 51, 100, 20)));
     }
@@ -354,14 +343,9 @@ mod ip_extraction_security_tests {
     /// 测试 IPv6 地址处理
     #[test]
     fn test_ipv6_handling() {
-        let mut req = Request::builder()
-            .uri("/test")
-            .body(Body::empty())
-            .unwrap();
-        req.headers_mut().insert(
-            "cf-connecting-ip",
-            HeaderValue::from_static("2001:db8::1"),
-        );
+        let mut req = Request::builder().uri("/test").body(Body::empty()).unwrap();
+        req.headers_mut()
+            .insert("cf-connecting-ip", HeaderValue::from_static("2001:db8::1"));
 
         let ip = extract_real_ip(&req);
         assert_eq!(
@@ -373,10 +357,7 @@ mod ip_extraction_security_tests {
     /// 测试无效 IP 地址处理
     #[test]
     fn test_invalid_ip_fallback() {
-        let mut req = Request::builder()
-            .uri("/test")
-            .body(Body::empty())
-            .unwrap();
+        let mut req = Request::builder().uri("/test").body(Body::empty()).unwrap();
         req.headers_mut().insert(
             "x-forwarded-for",
             HeaderValue::from_static("invalid-ip-address"),
@@ -390,10 +371,7 @@ mod ip_extraction_security_tests {
     /// 测试空 IP 头的处理
     #[test]
     fn test_empty_headers_fallback() {
-        let req = Request::builder()
-            .uri("/test")
-            .body(Body::empty())
-            .unwrap();
+        let req = Request::builder().uri("/test").body(Body::empty()).unwrap();
 
         let ip = extract_real_ip(&req);
         // 所有头都为空时，应该返回 0.0.0.0
@@ -403,10 +381,7 @@ mod ip_extraction_security_tests {
     /// 测试 X-Forwarded-For 多 IP 提取最后一个
     #[test]
     fn test_x_forwarded_for_multiple_ips() {
-        let mut req = Request::builder()
-            .uri("/test")
-            .body(Body::empty())
-            .unwrap();
+        let mut req = Request::builder().uri("/test").body(Body::empty()).unwrap();
         req.headers_mut().insert(
             "x-forwarded-for",
             HeaderValue::from_static("203.0.113.1, 198.51.100.1, 192.0.2.1"),
@@ -420,14 +395,9 @@ mod ip_extraction_security_tests {
     /// 测试带空格的 IP 地址处理
     #[test]
     fn test_ip_with_whitespace() {
-        let mut req = Request::builder()
-            .uri("/test")
-            .body(Body::empty())
-            .unwrap();
-        req.headers_mut().insert(
-            "x-forwarded-for",
-            HeaderValue::from_static("  192.0.2.1  "),
-        );
+        let mut req = Request::builder().uri("/test").body(Body::empty()).unwrap();
+        req.headers_mut()
+            .insert("x-forwarded-for", HeaderValue::from_static("  192.0.2.1  "));
 
         let ip = extract_real_ip(&req);
         // 应该正确处理前后空格

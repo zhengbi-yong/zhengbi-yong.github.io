@@ -50,13 +50,18 @@ impl TestUser {
             .map_err(|e| format!("Request failed: {}", e))?;
 
         if response.status().is_success() {
-            let json: serde_json::Value = response.json().await
+            let json: serde_json::Value = response
+                .json()
+                .await
                 .map_err(|e| format!("Failed to parse response: {}", e))?;
             self.access_token = Some(json["access_token"].as_str().unwrap().to_string());
             Ok(())
         } else {
             let status = response.status();
-            let error = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             Err(format!("Registration failed: {} - {}", status, error))
         }
     }
@@ -74,13 +79,18 @@ impl TestUser {
             .map_err(|e| format!("Request failed: {}", e))?;
 
         if response.status().is_success() {
-            let json: serde_json::Value = response.json().await
+            let json: serde_json::Value = response
+                .json()
+                .await
                 .map_err(|e| format!("Failed to parse response: {}", e))?;
             self.access_token = Some(json["access_token"].as_str().unwrap().to_string());
             Ok(())
         } else {
             let status = response.status();
-            let error = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             Err(format!("Login failed: {} - {}", status, error))
         }
     }
@@ -97,14 +107,20 @@ impl TestUser {
             Ok(())
         } else {
             let status = response.status();
-            let error = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             Err(format!("Logout failed: {} - {}", status, error))
         }
     }
 
     /// 获取认证头
     pub fn auth_header(&self) -> String {
-        format!("Bearer {}", self.access_token.as_ref().expect("User not logged in"))
+        format!(
+            "Bearer {}",
+            self.access_token.as_ref().expect("User not logged in")
+        )
     }
 }
 
@@ -117,7 +133,7 @@ pub async fn create_admin_user(db: &sqlx::PgPool) -> Result<TestUser, String> {
         .map_err(|e| format!("Failed to hash password: {}", e))?;
 
     sqlx::query(
-        "INSERT INTO users (email, username, password_hash, role) VALUES ($1, $2, $3, 'admin')"
+        "INSERT INTO users (email, username, password_hash, role) VALUES ($1, $2, $3, 'admin')",
     )
     .bind(&user.email)
     .bind(&user.username)

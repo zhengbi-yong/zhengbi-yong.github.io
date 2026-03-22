@@ -1,6 +1,4 @@
-use opentelemetry::trace::TracerProvider;
 use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_sdk::runtime::Tokio;
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use opentelemetry_sdk::Resource;
 use std::time::Duration;
@@ -12,7 +10,7 @@ use std::time::Duration;
 /// - OTEL_SERVICE_NAME: Service name (default: blog-api)
 /// - OTEL_SERVICE_VERSION: Service version
 /// - OTEL_ENABLED: Enable OTel (default: true in production)
-pub fn init_tracer() -> Option<()> {
+pub fn init_tracer() -> Option<SdkTracerProvider> {
     // Check if OTel is enabled
     let enabled = std::env::var("OTEL_ENABLED")
         .map(|v| v == "true")
@@ -61,18 +59,19 @@ pub fn init_tracer() -> Option<()> {
         .build();
 
     // Set the global tracer provider
-    opentelemetry::global::set_tracer_provider(provider);
+    opentelemetry::global::set_tracer_provider(provider.clone());
 
     tracing::info!(
         "OpenTelemetry tracer initialized with endpoint: {}",
         endpoint
     );
 
-    Some(())
+    Some(provider)
 }
 
 /// Shutdown OpenTelemetry gracefully
-pub fn shutdown_tracer() {
-    // The global tracer provider will be dropped automatically on program exit
-    // This function exists for explicit shutdown if needed in the future
+pub fn shutdown_tracer(provider: Option<SdkTracerProvider>) {
+    if let Some(provider) = provider {
+        let _ = provider.shutdown();
+    }
 }

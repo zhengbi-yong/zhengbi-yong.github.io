@@ -14,8 +14,8 @@
 
 use reqwest::Client;
 use serde_json::{json, Value};
-use std::time::Duration;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
 use uuid::Uuid;
 
 const BASE_URL: &str = "http://localhost:3000";
@@ -27,7 +27,7 @@ const TEST_PASSWORD: &str = "test_password_123_STRICT";
 #[ignore] // 需要运行中的后端服务
 async fn test_concurrent_like_consistency() {
     let client = Client::new();
-    
+
     // 注册用户
     let email = format!("like_consistency_{}@test.com", Uuid::new_v4().simple());
     let username = format!("like_user_{}", Uuid::new_v4().simple());
@@ -125,7 +125,7 @@ async fn test_concurrent_like_consistency() {
 #[ignore] // 需要运行中的后端服务
 async fn test_concurrent_unlike_consistency() {
     let client = Client::new();
-    
+
     // 注册用户
     let email = format!("unlike_consistency_{}@test.com", Uuid::new_v4().simple());
     let username = format!("unlike_user_{}", Uuid::new_v4().simple());
@@ -218,11 +218,7 @@ async fn test_concurrent_unlike_consistency() {
     println!("  统计中的点赞数: {}", like_count);
 
     // 严格断言：最终点赞数必须为0（因为只点赞了一次，然后并发取消）
-    assert_eq!(
-        like_count, 0,
-        "最终点赞数必须为0，实际: {}",
-        like_count
-    );
+    assert_eq!(like_count, 0, "最终点赞数必须为0，实际: {}", like_count);
 }
 
 /// 测试3: 并发浏览计数准确性
@@ -231,7 +227,7 @@ async fn test_concurrent_unlike_consistency() {
 #[ignore] // 需要运行中的后端服务
 async fn test_concurrent_view_count_accuracy() {
     let client = Client::new();
-    
+
     // 注册用户
     let email = format!("view_accuracy_{}@test.com", Uuid::new_v4().simple());
     let username = format!("view_user_{}", Uuid::new_v4().simple());
@@ -341,7 +337,7 @@ async fn test_concurrent_view_count_accuracy() {
 #[ignore] // 需要运行中的后端服务
 async fn test_concurrent_comment_consistency() {
     let client = Client::new();
-    
+
     // 注册用户
     let email = format!("comment_consistency_{}@test.com", Uuid::new_v4().simple());
     let username = format!("comment_user_{}", Uuid::new_v4().simple());
@@ -439,12 +435,12 @@ async fn test_concurrent_comment_consistency() {
     assert_eq!(
         comment_count as u64, success_count,
         "评论数必须等于成功请求数，实际评论数: {}, 成功请求数: {}",
-        comment_count,
-        success_count
+        comment_count, success_count
     );
 
     // 严格断言：所有创建的评论都应该在列表中
-    let created_ids: std::collections::HashSet<String> = comment_ids.lock().unwrap().iter().cloned().collect();
+    let created_ids: std::collections::HashSet<String> =
+        comment_ids.lock().unwrap().iter().cloned().collect();
     let listed_ids: std::collections::HashSet<String> = comments
         .iter()
         .filter_map(|c| c.get("id").and_then(|v| v.as_str()).map(|s| s.to_string()))
@@ -463,7 +459,7 @@ async fn test_concurrent_comment_consistency() {
 #[ignore] // 需要运行中的后端服务
 async fn test_read_write_race_condition() {
     let client = Client::new();
-    
+
     // 注册用户
     let email = format!("race_{}@test.com", Uuid::new_v4().simple());
     let username = format!("race_user_{}", Uuid::new_v4().simple());
@@ -547,12 +543,11 @@ async fn test_read_write_race_condition() {
     println!("  写操作成功数: {}", write_counter.load(Ordering::Relaxed));
 
     // 严格断言：所有操作都应该成功
-    let total_success = read_counter.load(Ordering::Relaxed) + write_counter.load(Ordering::Relaxed);
+    let total_success =
+        read_counter.load(Ordering::Relaxed) + write_counter.load(Ordering::Relaxed);
     assert_eq!(
         total_success, ITERATIONS as u64,
         "所有操作都应该成功，实际成功: {}, 总操作: {}",
-        total_success,
-        ITERATIONS
+        total_success, ITERATIONS
     );
 }
-

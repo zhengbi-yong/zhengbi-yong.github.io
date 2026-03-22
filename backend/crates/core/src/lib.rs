@@ -6,4 +6,4 @@ pub mod auth;
 pub mod email;
 
 // 重新导出常用类型
-pub use auth::{JwtService, Claims, TokenType, RefreshClaims};
+pub use auth::{Claims, JwtService, RefreshClaims, TokenType};

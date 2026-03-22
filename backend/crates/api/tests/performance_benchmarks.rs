@@ -1,7 +1,7 @@
 //! 性能基准测试
-//! 
+//!
 //! 严格的性能要求和基准测试
-//! 
+//!
 //! 测试包括：
 //! - 响应时间基准
 //! - 吞吐量测试
@@ -10,8 +10,8 @@
 
 use reqwest::Client;
 use serde_json::json;
-use std::time::{Duration, Instant};
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
 const BASE_URL: &str = "http://localhost:3000";
 const TEST_PASSWORD: &str = "test_password_123_STRICT";
@@ -49,10 +49,7 @@ async fn test_health_check_performance() {
 
     for _ in 0..REQUESTS {
         let request_start = Instant::now();
-        let response = client
-            .get(&format!("{}/healthz", BASE_URL))
-            .send()
-            .await;
+        let response = client.get(&format!("{}/healthz", BASE_URL)).send().await;
 
         let request_duration = request_start.elapsed();
 
@@ -72,7 +69,8 @@ async fn test_health_check_performance() {
 
     // 计算统计信息
     response_times.sort();
-    let avg_response_time: Duration = response_times.iter().sum::<Duration>() / response_times.len() as u32;
+    let avg_response_time: Duration =
+        response_times.iter().sum::<Duration>() / response_times.len() as u32;
     let p95_index = (response_times.len() * 95) / 100;
     let p99_index = (response_times.len() * 99) / 100;
     let p95_response_time = response_times[p95_index];
@@ -169,7 +167,8 @@ async fn test_auth_endpoint_performance() {
     // 计算统计信息
     response_times.sort();
     if !response_times.is_empty() {
-        let avg_response_time: Duration = response_times.iter().sum::<Duration>() / response_times.len() as u32;
+        let avg_response_time: Duration =
+            response_times.iter().sum::<Duration>() / response_times.len() as u32;
         let p95_index = (response_times.len() * 95) / 100;
         let p99_index = (response_times.len() * 99) / 100;
         let p95_response_time = response_times[p95_index];
@@ -295,10 +294,7 @@ async fn test_latency_distribution() {
 
     for _ in 0..REQUESTS {
         let start = Instant::now();
-        let response = client
-            .get(&format!("{}/healthz", BASE_URL))
-            .send()
-            .await;
+        let response = client.get(&format!("{}/healthz", BASE_URL)).send().await;
 
         let duration = start.elapsed();
 
@@ -316,7 +312,8 @@ async fn test_latency_distribution() {
     let mut latency_distribution = HashMap::new();
 
     for p in &percentiles {
-        let index = ((response_times.len() as f64 * p / 100.0) as usize).min(response_times.len() - 1);
+        let index =
+            ((response_times.len() as f64 * p / 100.0) as usize).min(response_times.len() - 1);
         latency_distribution.insert(*p as i32, response_times[index]);
     }
 
@@ -435,4 +432,3 @@ async fn test_sustained_load_performance() {
         throughput
     );
 }
-

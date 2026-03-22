@@ -14,10 +14,10 @@
 //! - 特殊字符处理
 //! - Unicode字符处理
 
+use rand::Rng;
 use reqwest::Client;
 use serde_json::{json, Value};
 use uuid::Uuid;
-use rand::Rng;
 
 const BASE_URL: &str = "http://localhost:3000";
 const TEST_PASSWORD: &str = "test_password_123_STRICT";
@@ -26,7 +26,7 @@ const TEST_PASSWORD: &str = "test_password_123_STRICT";
 fn generate_random_string(length: usize) -> String {
     use rand::distributions::Alphanumeric;
     use rand::Rng;
-    
+
     rand::thread_rng()
         .sample_iter(&Alphanumeric)
         .take(length)
@@ -37,7 +37,7 @@ fn generate_random_string(length: usize) -> String {
 /// 生成随机Unicode字符串
 fn generate_random_unicode_string(length: usize) -> String {
     use rand::Rng;
-    
+
     (0..length)
         .map(|_| {
             let mut rng = rand::thread_rng();
@@ -140,7 +140,7 @@ async fn test_boundary_values_extreme_lengths() {
             Ok(resp) => {
                 let status = resp.status();
                 println!("{} ({} 字符): 状态码 {}", description, length, status);
-                
+
                 // 严格断言：系统应该优雅处理超长输入，不应该崩溃
                 assert!(
                     status.is_client_error() || status.is_success(),
@@ -195,7 +195,7 @@ async fn test_special_characters() {
             Ok(resp) => {
                 let status = resp.status();
                 println!("{}: 状态码 {}", description, status);
-                
+
                 // 严格断言：系统应该安全处理特殊字符
                 assert!(
                     status.is_client_error() || status.is_success(),
@@ -241,7 +241,7 @@ async fn test_unicode_characters() {
             Ok(resp) => {
                 if resp.status().is_success() {
                     success_count += 1;
-                    
+
                     // 验证返回的用户名是否正确
                     let json: Value = resp.json().await.unwrap();
                     let returned_username = json
@@ -251,11 +251,8 @@ async fn test_unicode_characters() {
                         .unwrap()
                         .as_str()
                         .unwrap();
-                    
-                    assert_eq!(
-                        returned_username, username,
-                        "返回的用户名应该与输入一致"
-                    );
+
+                    assert_eq!(returned_username, username, "返回的用户名应该与输入一致");
                 }
             }
             Err(_) => {}
@@ -340,7 +337,7 @@ async fn test_random_json_structures() {
             Ok(resp) => {
                 handled_count += 1;
                 let status = resp.status();
-                
+
                 // 严格断言：系统应该正确处理所有JSON结构（成功或返回错误）
                 assert!(
                     status.is_client_error() || status.is_success(),
@@ -362,8 +359,7 @@ async fn test_random_json_structures() {
     assert_eq!(
         handled_count, TEST_COUNT,
         "所有请求都应该得到响应，实际: {}, 期望: {}",
-        handled_count,
-        TEST_COUNT
+        handled_count, TEST_COUNT
     );
 }
 
@@ -444,4 +440,3 @@ async fn test_concurrent_fuzzing() {
         errors
     );
 }
-

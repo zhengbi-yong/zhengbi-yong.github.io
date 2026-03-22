@@ -2,5 +2,5 @@
 //!
 //! 包含完整的用户生命周期和复杂业务场景测试
 
-mod user_lifecycle_tests;
 mod complex_scenarios_tests;
+mod user_lifecycle_tests;

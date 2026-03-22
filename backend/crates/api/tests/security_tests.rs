@@ -15,7 +15,7 @@ mod sql_injection_tests {
     /// 测试登录端点的 SQL 注入
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_login_sql_injection() {
         let client = Client::new();
 
@@ -52,15 +52,11 @@ mod sql_injection_tests {
     /// 测试注册端点的 SQL 注入
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_register_sql_injection() {
         let client = Client::new();
 
-        let sql_payloads = vec![
-            "'; DROP TABLE users; --",
-            "' OR '1'='1",
-            "admin'--",
-        ];
+        let sql_payloads = vec!["'; DROP TABLE users; --", "' OR '1'='1", "admin'--"];
 
         for payload in sql_payloads {
             let response = client
@@ -91,13 +87,19 @@ mod xss_tests {
     /// 测试评论中的 XSS
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_comment_xss() {
         let client = Client::new();
 
         // 先注册并登录
-        let email = format!("{}@example.com", uuid::Uuid::new_v4().simple().to_string()[..8].to_string());
-        let username = format!("user_{}", uuid::Uuid::new_v4().simple().to_string()[..8].to_string());
+        let email = format!(
+            "{}@example.com",
+            uuid::Uuid::new_v4().simple().to_string()[..8].to_string()
+        );
+        let username = format!(
+            "user_{}",
+            uuid::Uuid::new_v4().simple().to_string()[..8].to_string()
+        );
 
         let register_response = client
             .post(&format!("{}/v1/auth/register", BASE_URL))
@@ -167,7 +169,7 @@ mod xss_tests {
     /// 测试用户名中的 XSS
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_username_xss() {
         let client = Client::new();
 
@@ -215,7 +217,7 @@ mod auth_bypass_tests {
     /// 测试无效 token
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_invalid_token() {
         let client = Client::new();
 
@@ -246,7 +248,7 @@ mod auth_bypass_tests {
     /// 测试过期 token
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_expired_token() {
         // 这个测试需要生成一个过期的 token
         // 由于 JWT 的过期时间通常较长，这个测试可能需要特殊配置
@@ -256,7 +258,7 @@ mod auth_bypass_tests {
     /// 测试无认证访问受保护端点
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_unauthenticated_access() {
         let client = Client::new();
 
@@ -299,7 +301,7 @@ mod rate_limiting_tests {
     /// 测试登录速率限制
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_login_rate_limiting() {
         let client = Client::new();
 
@@ -319,7 +321,7 @@ mod rate_limiting_tests {
                 .unwrap();
 
             match response.status().as_u16() {
-                401 => success_count += 1, // 正常的认证失败
+                401 => success_count += 1,      // 正常的认证失败
                 429 => rate_limited_count += 1, // 速率限制
                 _ => {}
             }
@@ -346,7 +348,7 @@ mod input_validation_tests {
     /// 测试邮箱格式验证
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_email_validation() {
         let client = Client::new();
 
@@ -382,16 +384,11 @@ mod input_validation_tests {
     /// 测试密码强度验证
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_password_validation() {
         let client = Client::new();
 
-        let weak_passwords = vec![
-            "short",
-            "12345678",
-            "password",
-            "aaaaaaaa",
-        ];
+        let weak_passwords = vec!["short", "12345678", "password", "aaaaaaaa"];
 
         for password in weak_passwords {
             let response = client
@@ -415,4 +412,3 @@ mod input_validation_tests {
         }
     }
 }
-

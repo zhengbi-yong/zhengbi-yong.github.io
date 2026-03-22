@@ -4,8 +4,8 @@ use lettre::{
     transport::smtp::authentication::Credentials,
     Message, SmtpTransport, Transport,
 };
-use uuid::Uuid;
 use serde_json::json;
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct EmailService {
@@ -30,7 +30,11 @@ impl EmailService {
         let mailer = if config.tls {
             SmtpTransport::relay(&config.host)
                 .map_err(|e| {
-                    tracing::error!("Failed to create SMTP transport with TLS for host '{}': {}", config.host, e);
+                    tracing::error!(
+                        "Failed to create SMTP transport with TLS for host '{}': {}",
+                        config.host,
+                        e
+                    );
                     AppError::InternalError
                 })?
                 .port(config.port)
@@ -44,19 +48,23 @@ impl EmailService {
                 .build()
         };
 
-        tracing::info!("EmailService initialized with SMTP host: {}:{} (TLS: {})", config.host, config.port, config.tls);
+        tracing::info!(
+            "EmailService initialized with SMTP host: {}:{} (TLS: {})",
+            config.host,
+            config.port,
+            config.tls
+        );
 
         Ok(Self { mailer, from })
     }
 
     /// 发送邮箱验证邮件
-    pub async fn send_verification_email(
-        &self,
-        to: &str,
-        user_id: &Uuid,
-    ) -> Result<(), AppError> {
+    pub async fn send_verification_email(&self, to: &str, user_id: &Uuid) -> Result<(), AppError> {
         let verification_token = self.generate_verification_token(user_id);
-        let verification_url = format!("https://yourdomain.com/verify-email?token={}", verification_token);
+        let verification_url = format!(
+            "https://yourdomain.com/verify-email?token={}",
+            verification_token
+        );
 
         let email_body = self.render_verification_email_template(&verification_url)?;
 
@@ -94,7 +102,10 @@ impl EmailService {
         to: &str,
         reset_token: &str,
     ) -> Result<(), AppError> {
-        let reset_url = format!("https://yourdomain.com/reset-password?token={}", reset_token);
+        let reset_url = format!(
+            "https://yourdomain.com/reset-password?token={}",
+            reset_token
+        );
 
         let email = Message::builder()
             .from(self.from.clone())
@@ -142,26 +153,22 @@ impl EmailService {
             .subject(format!("New comment on \"{}\"", post_title))
             .multipart(
                 MultiPart::alternative()
-                    .singlepart(
-                        SinglePart::builder()
-                            .header(ContentType::TEXT_PLAIN)
-                            .body(self.render_comment_notification_text(
-                                author_name,
-                                post_title,
-                                comment_content,
-                                comment_url,
-                            )),
-                    )
-                    .singlepart(
-                        SinglePart::builder()
-                            .header(ContentType::TEXT_HTML)
-                            .body(self.render_comment_notification_html(
-                                author_name,
-                                post_title,
-                                comment_content,
-                                comment_url,
-                            )),
-                    ),
+                    .singlepart(SinglePart::builder().header(ContentType::TEXT_PLAIN).body(
+                        self.render_comment_notification_text(
+                            author_name,
+                            post_title,
+                            comment_content,
+                            comment_url,
+                        ),
+                    ))
+                    .singlepart(SinglePart::builder().header(ContentType::TEXT_HTML).body(
+                        self.render_comment_notification_html(
+                            author_name,
+                            post_title,
+                            comment_content,
+                            comment_url,
+                        ),
+                    )),
             )
             .map_err(|e| {
                 tracing::error!("Failed to build email: {}", e);
@@ -176,14 +183,12 @@ impl EmailService {
         let mailer = self.mailer.clone();
 
         // 在单独的线程中同步发送邮件
-        tokio::task::spawn_blocking(move || {
-            match mailer.send(&email) {
-                Ok(_) => {
-                    tracing::info!("Email sent successfully");
-                }
-                Err(e) => {
-                    tracing::error!("Failed to send email: {}", e);
-                }
+        tokio::task::spawn_blocking(move || match mailer.send(&email) {
+            Ok(_) => {
+                tracing::info!("Email sent successfully");
+            }
+            Err(e) => {
+                tracing::error!("Failed to send email: {}", e);
             }
         });
 
@@ -192,7 +197,7 @@ impl EmailService {
 
     /// 生成验证令牌
     fn generate_verification_token(&self, user_id: &Uuid) -> String {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let token_data = json!({
             "user_id": user_id,
             "timestamp": chrono::Utc::now().timestamp(),
@@ -202,7 +207,10 @@ impl EmailService {
     }
 
     /// 渲染验证邮件模板（HTML）
-    fn render_verification_email_template(&self, verification_url: &str) -> Result<String, AppError> {
+    fn render_verification_email_template(
+        &self,
+        verification_url: &str,
+    ) -> Result<String, AppError> {
         let html = format!(
             r#"
 <!DOCTYPE html>
@@ -456,7 +464,8 @@ mod tests {
             password: "test".to_string(),
             from: "test@example.com".to_string(),
             tls: false,
-        }).unwrap();
+        })
+        .unwrap();
 
         let user_id = Uuid::new_v4();
         let token = service.generate_verification_token(&user_id);

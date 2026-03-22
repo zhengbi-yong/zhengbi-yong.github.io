@@ -1,41 +1,56 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
+function resolveBackendApiBaseUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
+  const trimmedUrl = configuredUrl.replace(/\/$/, '')
 
-export const dynamic = 'force-dynamic';
+  if (trimmedUrl.endsWith('/api/v1')) {
+    return trimmedUrl
+  }
+
+  if (trimmedUrl.endsWith('/v1')) {
+    return trimmedUrl.replace(/\/v1$/, '/api/v1')
+  }
+
+  return `${trimmedUrl}/api/v1`
+}
+
+const BACKEND_API_URL = resolveBackendApiBaseUrl()
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  revalidatePath(request.nextUrl.pathname);
-  
-  const url = new URL(request.url);
-  const searchParams = url.searchParams.toString();
-  
+  revalidatePath(request.nextUrl.pathname)
+
+  const url = new URL(request.url)
+  const searchParams = url.searchParams.toString()
+
   try {
-    const backendUrl = `${BACKEND_API_URL}/v1/posts${searchParams ? '?' + searchParams : ''}`;
-    
+    const backendUrl = `${BACKEND_API_URL}/posts${searchParams ? '?' + searchParams : ''}`
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
-    };
-    
-    const authHeader = request.headers.get('Authorization');
+    }
+
+    const authHeader = request.headers.get('Authorization')
     if (authHeader) {
-      headers['Authorization'] = authHeader;
+      headers['Authorization'] = authHeader
     }
-    
-    const cookieHeader = request.headers.get('Cookie');
+
+    const cookieHeader = request.headers.get('Cookie')
     if (cookieHeader) {
-      headers['Cookie'] = cookieHeader;
+      headers['Cookie'] = cookieHeader
     }
-    
+
     const response = await fetch(backendUrl, {
       method: 'GET',
       headers,
       cache: 'no-store',
-    });
-    
-    const data = await response.text();
-    
+    })
+
+    const data = await response.text()
+
     return new NextResponse(data, {
       status: response.status,
       headers: {
@@ -45,15 +60,15 @@ export async function GET(request: NextRequest) {
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
       },
-    });
+    })
   } catch (error) {
-    console.error('Posts proxy error:', error);
+    console.error('Posts proxy error:', error)
     return new NextResponse(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Failed to fetch from backend',
         message: error instanceof Error ? error.message : 'Unknown error',
       }),
       { status: 500 }
-    );
+    )
   }
 }

@@ -27,6 +27,5 @@ pub use reading_progress::*; // 导出MDX同步函数
 pub use categories::*;
 pub use media::*;
 pub use search::*;
-pub use search_optimized::*;
 pub use tags::*;
 pub use versions::*;

@@ -45,7 +45,7 @@ impl TestClient {
         loop {
             // 在每次请求前稍微等待，避免过快请求
             tokio::time::sleep(std::time::Duration::from_millis(300)).await;
-            
+
             let response = self
                 .client
                 .post(&format!("{}/v1/auth/register", BASE_URL))
@@ -64,12 +64,17 @@ impl TestClient {
                     tokio::time::sleep(std::time::Duration::from_secs(3)).await;
                     continue;
                 } else {
-                    return Err(anyhow::anyhow!("Registration failed: rate limited after 10 retries"));
+                    return Err(anyhow::anyhow!(
+                        "Registration failed: rate limited after 10 retries"
+                    ));
                 }
             }
 
             if !response.status().is_success() {
-                return Err(anyhow::anyhow!("Registration failed with status: {}", response.status()));
+                return Err(anyhow::anyhow!(
+                    "Registration failed with status: {}",
+                    response.status()
+                ));
             }
 
             let response_text = response.text().await?;
@@ -77,8 +82,9 @@ impl TestClient {
                 return Err(anyhow::anyhow!("Empty response body"));
             }
 
-            let json: Value = serde_json::from_str(&response_text)
-                .map_err(|e| anyhow::anyhow!("Failed to parse JSON: {}, body: {}", e, response_text))?;
+            let json: Value = serde_json::from_str(&response_text).map_err(|e| {
+                anyhow::anyhow!("Failed to parse JSON: {}, body: {}", e, response_text)
+            })?;
 
             if let Some(token) = json.get("access_token").and_then(|v| v.as_str()) {
                 self.auth_token = Some(token.to_string());
@@ -95,7 +101,7 @@ impl TestClient {
         loop {
             // 在每次请求前稍微等待
             tokio::time::sleep(std::time::Duration::from_millis(300)).await;
-            
+
             let response = self
                 .client
                 .post(&format!("{}/v1/auth/login", BASE_URL))
@@ -113,12 +119,17 @@ impl TestClient {
                     tokio::time::sleep(std::time::Duration::from_secs(3)).await;
                     continue;
                 } else {
-                    return Err(anyhow::anyhow!("Login failed: rate limited after 10 retries"));
+                    return Err(anyhow::anyhow!(
+                        "Login failed: rate limited after 10 retries"
+                    ));
                 }
             }
 
             if !response.status().is_success() {
-                return Err(anyhow::anyhow!("Login failed with status: {}", response.status()));
+                return Err(anyhow::anyhow!(
+                    "Login failed with status: {}",
+                    response.status()
+                ));
             }
 
             let response_text = response.text().await?;
@@ -126,8 +137,9 @@ impl TestClient {
                 return Err(anyhow::anyhow!("Empty response body"));
             }
 
-            let json: Value = serde_json::from_str(&response_text)
-                .map_err(|e| anyhow::anyhow!("Failed to parse JSON: {}, body: {}", e, response_text))?;
+            let json: Value = serde_json::from_str(&response_text).map_err(|e| {
+                anyhow::anyhow!("Failed to parse JSON: {}, body: {}", e, response_text)
+            })?;
 
             if let Some(token) = json.get("access_token").and_then(|v| v.as_str()) {
                 self.auth_token = Some(token.to_string());
@@ -139,7 +151,9 @@ impl TestClient {
 
     /// 获取当前用户信息
     async fn get_current_user(&self) -> anyhow::Result<Value> {
-        let token = self.auth_token.as_ref()
+        let token = self
+            .auth_token
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("No auth token available"))?;
 
         let response = self
@@ -150,7 +164,10 @@ impl TestClient {
             .await?;
 
         if !response.status().is_success() {
-            return Err(anyhow::anyhow!("Get user failed with status: {}", response.status()));
+            return Err(anyhow::anyhow!(
+                "Get user failed with status: {}",
+                response.status()
+            ));
         }
 
         let response_text = response.text().await?;
@@ -165,7 +182,8 @@ impl TestClient {
     /// 创建测试文章统计（先获取统计以创建记录，然后浏览）
     async fn create_post_stats(&self, slug: &str) -> anyhow::Result<()> {
         // 先获取统计，这会自动创建记录（如果不存在）
-        let _ = self.client
+        let _ = self
+            .client
             .get(&format!("{}/v1/posts/{}/stats", BASE_URL, slug))
             .send()
             .await;
@@ -174,11 +192,14 @@ impl TestClient {
         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 
         // 然后进行浏览（需要认证）
-        let token = self.auth_token.as_ref()
+        let token = self
+            .auth_token
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("No auth token available"))?;
 
         // 发送浏览请求
-        let response = self.client
+        let response = self
+            .client
             .post(&format!("{}/v1/posts/{}/view", BASE_URL, slug))
             .header("Authorization", format!("Bearer {}", token))
             .send()
@@ -201,7 +222,10 @@ impl TestClient {
             .await?;
 
         if !response.status().is_success() {
-            return Err(anyhow::anyhow!("Get stats failed with status: {}", response.status()));
+            return Err(anyhow::anyhow!(
+                "Get stats failed with status: {}",
+                response.status()
+            ));
         }
 
         let response_text = response.text().await?;
@@ -215,7 +239,9 @@ impl TestClient {
 
     /// 增加文章浏览量
     async fn view_post(&self, slug: &str) -> anyhow::Result<reqwest::Response> {
-        let token = self.auth_token.as_ref()
+        let token = self
+            .auth_token
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("No auth token available"))?;
 
         let response = self
@@ -230,7 +256,9 @@ impl TestClient {
 
     /// 创建评论
     async fn create_comment(&self, slug: &str, content: &str) -> anyhow::Result<Value> {
-        let token = self.auth_token.as_ref()
+        let token = self
+            .auth_token
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("No auth token available"))?;
 
         let response = self
@@ -247,7 +275,11 @@ impl TestClient {
         if !response.status().is_success() {
             let status = response.status();
             let error_text = response.text().await.unwrap_or_default();
-            return Err(anyhow::anyhow!("Create comment failed with status: {}, body: {}", status, error_text));
+            return Err(anyhow::anyhow!(
+                "Create comment failed with status: {}, body: {}",
+                status,
+                error_text
+            ));
         }
 
         let response_text = response.text().await?;
@@ -268,7 +300,10 @@ impl TestClient {
             .await?;
 
         if !response.status().is_success() {
-            return Err(anyhow::anyhow!("List comments failed with status: {}", response.status()));
+            return Err(anyhow::anyhow!(
+                "List comments failed with status: {}",
+                response.status()
+            ));
         }
 
         let response_text = response.text().await?;
@@ -290,33 +325,60 @@ impl TestClient {
 async fn test_authentication_flow() -> anyhow::Result<()> {
     // 等待避免速率限制
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-    
+
     let mut client = TestClient::new().await;
     let test_email = generate_test_email();
     let test_username = generate_test_username();
 
     // 1. 测试用户注册
     let register_response = client.register_user(&test_email, &test_username).await?;
-    assert!(register_response.get("access_token").is_some(), "Registration should return access token");
-    assert!(register_response.get("user").is_some(), "Registration should return user info");
+    assert!(
+        register_response.get("access_token").is_some(),
+        "Registration should return access token"
+    );
+    assert!(
+        register_response.get("user").is_some(),
+        "Registration should return user info"
+    );
 
     let user_info = register_response.get("user").unwrap();
-    assert_eq!(user_info.get("email").unwrap().as_str().unwrap(), test_email);
-    assert_eq!(user_info.get("username").unwrap().as_str().unwrap(), test_username);
-    assert_eq!(user_info.get("email_verified").unwrap().as_bool().unwrap(), false);
+    assert_eq!(
+        user_info.get("email").unwrap().as_str().unwrap(),
+        test_email
+    );
+    assert_eq!(
+        user_info.get("username").unwrap().as_str().unwrap(),
+        test_username
+    );
+    assert_eq!(
+        user_info.get("email_verified").unwrap().as_bool().unwrap(),
+        false
+    );
 
     // 2. 测试获取当前用户信息
     let current_user = client.get_current_user().await?;
-    assert_eq!(current_user.get("email").unwrap().as_str().unwrap(), test_email);
-    assert_eq!(current_user.get("username").unwrap().as_str().unwrap(), test_username);
+    assert_eq!(
+        current_user.get("email").unwrap().as_str().unwrap(),
+        test_email
+    );
+    assert_eq!(
+        current_user.get("username").unwrap().as_str().unwrap(),
+        test_username
+    );
 
     // 3. 测试用户登出（重新登录）
     client.auth_token = None;
     let login_response = client.login_user(&test_email).await?;
-    assert!(login_response.get("access_token").is_some(), "Login should return access token");
+    assert!(
+        login_response.get("access_token").is_some(),
+        "Login should return access token"
+    );
 
     let logged_in_user = client.get_current_user().await?;
-    assert_eq!(logged_in_user.get("email").unwrap().as_str().unwrap(), test_email);
+    assert_eq!(
+        logged_in_user.get("email").unwrap().as_str().unwrap(),
+        test_email
+    );
 
     Ok(())
 }
@@ -328,7 +390,7 @@ async fn test_authentication_flow() -> anyhow::Result<()> {
 async fn test_post_functionality() -> anyhow::Result<()> {
     // 等待避免速率限制
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-    
+
     let mut client = TestClient::new().await;
     let test_email = generate_test_email();
     let test_username = generate_test_username();
@@ -344,16 +406,29 @@ async fn test_post_functionality() -> anyhow::Result<()> {
     // 2. 获取文章统计（等待数据同步）
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
     let stats_response = client.get_post_stats(test_slug).await?;
-    assert_eq!(stats_response.get("slug").unwrap().as_str().unwrap(), test_slug);
+    assert_eq!(
+        stats_response.get("slug").unwrap().as_str().unwrap(),
+        test_slug
+    );
     // 浏览数可能因为异步更新而不完全准确，只要 >= 0 即可
     assert!(stats_response.get("view_count").unwrap().as_i64().unwrap() >= 0);
-    assert_eq!(stats_response.get("like_count").unwrap().as_i64().unwrap(), 0); // 初始为0
-    assert_eq!(stats_response.get("comment_count").unwrap().as_i64().unwrap(), 0); // 初始为0
+    assert_eq!(
+        stats_response.get("like_count").unwrap().as_i64().unwrap(),
+        0
+    ); // 初始为0
+    assert_eq!(
+        stats_response
+            .get("comment_count")
+            .unwrap()
+            .as_i64()
+            .unwrap(),
+        0
+    ); // 初始为0
 
     // 3. 增加文章浏览量
     let view_response = client.view_post(test_slug).await?;
     assert!(view_response.status().is_success() || view_response.status().as_u16() == 204);
-    
+
     // 等待数据同步
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
     let updated_stats = client.get_post_stats(test_slug).await?;
@@ -369,7 +444,7 @@ async fn test_post_functionality() -> anyhow::Result<()> {
 async fn test_comment_functionality() -> anyhow::Result<()> {
     // 等待避免速率限制
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-    
+
     let mut client = TestClient::new().await;
     let test_email = generate_test_email();
     let test_username = generate_test_username();
@@ -396,7 +471,7 @@ async fn test_comment_functionality() -> anyhow::Result<()> {
     // 2. 获取评论列表（等待评论被处理）
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
     let list_response = client.list_comments(test_slug).await?;
-    
+
     // 评论可能需要审核，所以可能暂时不在列表中
     if let Some(comments) = list_response.get("comments").and_then(|v| v.as_array()) {
         // 如果评论在列表中，验证内容
@@ -419,13 +494,13 @@ async fn test_comment_functionality() -> anyhow::Result<()> {
 async fn test_error_handling() -> anyhow::Result<()> {
     // 等待更长时间避免速率限制（因为前面可能有其他测试）
     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-    
+
     let client = Client::new();
 
     // 1. 测试无效凭证登录
     // 注意：可能需要等待以避免速率限制
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-    
+
     let response = client
         .post(&format!("{}/v1/auth/login", BASE_URL))
         .json(&json!({
@@ -445,7 +520,7 @@ async fn test_error_handling() -> anyhow::Result<()> {
     // 2. 测试重复注册
     let test_email = generate_test_email();
     let test_username = generate_test_username();
-    
+
     // 第一次注册
     let response1 = client
         .post(&format!("{}/v1/auth/register", BASE_URL))
@@ -456,7 +531,7 @@ async fn test_error_handling() -> anyhow::Result<()> {
         }))
         .send()
         .await?;
-    
+
     assert!(response1.status().is_success(), "第一次注册应该成功");
 
     // 第二次注册（重复邮箱）
@@ -496,10 +571,7 @@ async fn test_health_endpoints() -> anyhow::Result<()> {
     let client = reqwest::Client::new();
 
     // 1. 测试基本健康检查
-    let response = client
-        .get(&format!("{}/healthz", BASE_URL))
-        .send()
-        .await?;
+    let response = client.get(&format!("{}/healthz", BASE_URL)).send().await?;
 
     assert_eq!(response.status(), 200);
 
@@ -515,23 +587,30 @@ async fn test_health_endpoints() -> anyhow::Result<()> {
     assert_eq!(response.status(), 200);
 
     let detailed_health: Value = response.json().await?;
-    assert_eq!(detailed_health.get("status").unwrap().as_str().unwrap(), "healthy");
-    assert!(detailed_health.get("services").unwrap().as_object().unwrap().contains_key("database"));
-    assert!(detailed_health.get("services").unwrap().as_object().unwrap().contains_key("redis"));
+    assert_eq!(
+        detailed_health.get("status").unwrap().as_str().unwrap(),
+        "healthy"
+    );
+    assert!(detailed_health
+        .get("services")
+        .unwrap()
+        .as_object()
+        .unwrap()
+        .contains_key("database"));
+    assert!(detailed_health
+        .get("services")
+        .unwrap()
+        .as_object()
+        .unwrap()
+        .contains_key("redis"));
 
     // 3. 测试就绪检查
-    let response = client
-        .get(&format!("{}/readyz", BASE_URL))
-        .send()
-        .await?;
+    let response = client.get(&format!("{}/readyz", BASE_URL)).send().await?;
 
     assert_eq!(response.status(), 200);
 
     // 4. 测试 Prometheus 指标端点
-    let response = client
-        .get(&format!("{}/metrics", BASE_URL))
-        .send()
-        .await?;
+    let response = client.get(&format!("{}/metrics", BASE_URL)).send().await?;
 
     assert_eq!(response.status(), 200);
     assert_eq!(
@@ -561,9 +640,7 @@ async fn test_rate_limiting() -> anyhow::Result<()> {
         let client_clone = client.clone();
         let url_clone = base_url.clone();
 
-        let handle = tokio::spawn(async move {
-            client_clone.get(&url_clone).send().await
-        });
+        let handle = tokio::spawn(async move { client_clone.get(&url_clone).send().await });
 
         handles.push(handle);
     }
@@ -595,11 +672,11 @@ async fn test_rate_limiting() -> anyhow::Result<()> {
 async fn test_concurrent_requests() -> anyhow::Result<()> {
     // 等待避免速率限制（这是最后一个测试，需要更多等待）
     tokio::time::sleep(std::time::Duration::from_secs(4)).await;
-    
+
     let mut client = TestClient::new().await;
     let test_email = generate_test_email();
     let test_username = generate_test_username();
-    
+
     // 增加重试次数
     let mut retries = 5;
     loop {

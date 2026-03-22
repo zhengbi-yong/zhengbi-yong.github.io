@@ -15,19 +15,18 @@
 //! - e2e: 端到端测试（新增）
 //! - helpers: 测试辅助模块（新增）
 
-mod integration_tests;
-mod stress_tests;
-mod security_tests;
-mod extreme_stress_tests;
-mod data_consistency_tests;
 mod chaos_engineering_tests;
+mod data_consistency_tests;
+mod extreme_stress_tests;
 mod fuzzing_tests;
+mod integration_tests;
 mod performance_benchmarks;
+mod security_tests;
+mod stress_tests;
 
 // 新增测试模块
 mod api_features_tests;
-mod unit;
-mod security;
 mod e2e;
 mod helpers;
-
+mod security;
+mod unit;

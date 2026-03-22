@@ -1,17 +1,19 @@
-use sqlx::PgPool;
 use blog_core::JwtService;
+use sqlx::PgPool;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgresql://blog_user:blog_password@localhost:5432/blog_db".to_string());
+    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
+        "postgresql://blog_user:blog_password@localhost:5432/blog_db".to_string()
+    });
 
     println!("Connecting to database...");
     let pool = PgPool::connect(&database_url).await?;
 
     // Create JWT service for password hashing
     let jwt_service = JwtService::new(
-        &std::env::var("JWT_SECRET").unwrap_or_else(|_| "dev-secret-key-for-testing-only-32-chars".to_string())
+        &std::env::var("JWT_SECRET")
+            .unwrap_or_else(|_| "dev-secret-key-for-testing-only-32-chars".to_string()),
     )?;
 
     // Admin user details
@@ -38,7 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         email,
         username,
         password_hash,
-        true  // Always update password to Argon2 format
+        true // Always update password to Argon2 format
     )
     .fetch_one(&pool)
     .await?;

@@ -17,7 +17,7 @@ pub struct PasswordValidator {
 impl Default for PasswordValidator {
     fn default() -> Self {
         Self {
-            min_length: 12,  // 提高到12位
+            min_length: 12, // 提高到12位
             max_length: 128,
             require_uppercase: true,
             require_lowercase: true,
@@ -89,9 +89,11 @@ impl PasswordValidator {
         if self.require_digit && !password.chars().any(|c| c.is_ascii_digit()) {
             return Err(PasswordError::MissingDigit);
         }
-        if self.require_special_char && !password.chars().any(|c| {
-            matches!(c, '!'..='/' | ':'..'@' | '['..'`' | '{'..'~')
-        }) {
+        if self.require_special_char
+            && !password
+                .chars()
+                .any(|c| matches!(c, '!'..='/' | ':'..'@' | '['..'`' | '{'..'~'))
+        {
             return Err(PasswordError::MissingSpecialChar);
         }
 
@@ -124,7 +126,9 @@ impl fmt::Display for PasswordError {
             PasswordError::MissingUppercase => write!(f, "密码必须包含至少一个大写字母"),
             PasswordError::MissingLowercase => write!(f, "密码必须包含至少一个小写字母"),
             PasswordError::MissingDigit => write!(f, "密码必须包含至少一个数字"),
-            PasswordError::MissingSpecialChar => write!(f, "密码必须包含至少一个特殊字符 (!@#$%^&* 等)"),
+            PasswordError::MissingSpecialChar => {
+                write!(f, "密码必须包含至少一个特殊字符 (!@#$%^&* 等)")
+            }
             PasswordError::TooCommon => write!(f, "密码过于常见，请选择更强的密码"),
         }
     }
@@ -136,16 +140,32 @@ impl std::error::Error for PasswordError {}
 fn is_common_password(password: &str) -> bool {
     // 常见弱密码列表（示例）
     const COMMON_PASSWORDS: &[&str] = &[
-        "password", "123456", "password123", "admin", "qwerty",
-        "abc123", "letmein", "monkey", "dragon", "1234567890",
-        "baseball", "iloveyou", "trustno1", "sunshine", "master",
-        "hello", "welcome", "login", "football", "123123",
+        "password",
+        "123456",
+        "password123",
+        "admin",
+        "qwerty",
+        "abc123",
+        "letmein",
+        "monkey",
+        "dragon",
+        "1234567890",
+        "baseball",
+        "iloveyou",
+        "trustno1",
+        "sunshine",
+        "master",
+        "hello",
+        "welcome",
+        "login",
+        "football",
+        "123123",
     ];
 
     let lower = password.to_lowercase();
-    COMMON_PASSWORDS.iter().any(|&weak| {
-        lower.contains(weak) || lower == weak
-    })
+    COMMON_PASSWORDS
+        .iter()
+        .any(|&weak| lower.contains(weak) || lower == weak)
 }
 
 #[cfg(test)]

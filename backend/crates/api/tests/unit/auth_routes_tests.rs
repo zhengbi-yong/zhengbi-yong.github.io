@@ -34,7 +34,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_register_success() {
         let client = Client::new();
         let email = generate_test_email();
@@ -65,7 +65,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_register_email_too_short() {
         let client = Client::new();
 
@@ -85,7 +85,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_register_password_too_short() {
         let client = Client::new();
 
@@ -105,7 +105,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_register_username_too_short() {
         let client = Client::new();
 
@@ -125,7 +125,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_register_missing_email() {
         let client = Client::new();
 
@@ -144,7 +144,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_login_success() {
         let client = Client::new();
         let email = generate_test_email();
@@ -184,7 +184,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_login_wrong_password() {
         let client = Client::new();
         let email = generate_test_email();
@@ -219,7 +219,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_login_nonexistent_user() {
         let client = Client::new();
 
@@ -238,7 +238,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_login_missing_email() {
         let client = Client::new();
 
@@ -256,7 +256,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_current_user() {
         let client = Client::new();
         let email = generate_test_email();
@@ -295,7 +295,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_current_user_unauthorized() {
         let client = Client::new();
 
@@ -310,7 +310,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_current_user_invalid_token() {
         let client = Client::new();
 
@@ -327,7 +327,7 @@ mod tests {
     /// 测试登出功能 - token 应被加入黑名单
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_logout_success() {
         let client = Client::new();
         let email = generate_test_email();
@@ -363,7 +363,7 @@ mod tests {
     /// 测试登出后 token 失效
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_logout_token_blacklisted() {
         let client = Client::new();
         let email = generate_test_email();
@@ -408,7 +408,7 @@ mod tests {
     /// 测试未认证用户登出
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_logout_unauthorized() {
         let client = Client::new();
 
@@ -424,7 +424,7 @@ mod tests {
     /// 测试 Token 刷新功能
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_refresh_token_success() {
         let client = Client::new();
         let email = generate_test_email();
@@ -461,4 +461,3 @@ mod tests {
         assert!(response.status() == 200 || response.status() == 404 || response.status() == 501);
     }
 }
-

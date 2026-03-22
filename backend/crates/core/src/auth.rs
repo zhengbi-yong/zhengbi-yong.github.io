@@ -2,20 +2,20 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
+use blog_shared::{AppError, PasswordValidator};
+use chrono::{Duration, Utc};
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use chrono::{Duration, Utc};
 use sha2::{Digest, Sha256};
-use blog_shared::{AppError, PasswordValidator};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
-    pub sub: String,    // user_id
+    pub sub: String, // user_id
     pub email: String,
     pub username: String,
-    pub exp: i64,       // 过期时间
-    pub iat: i64,       // 签发时间
+    pub exp: i64, // 过期时间
+    pub iat: i64, // 签发时间
     pub token_type: TokenType,
 }
 
@@ -48,7 +48,8 @@ impl JwtService {
     pub fn hash_password(&self, password: &str) -> Result<String, AppError> {
         // 使用 PasswordValidator 验证密码强度
         let validator = PasswordValidator::default();
-        validator.validate(password)
+        validator
+            .validate(password)
             .map_err(|e| AppError::Validation(e.to_string()))?;
 
         // 验证通过后进行哈希
@@ -67,8 +68,7 @@ impl JwtService {
             return Ok(false);
         }
 
-        let parsed_hash = PasswordHash::new(hash)
-            .map_err(|_| AppError::PasswordHashError)?;
+        let parsed_hash = PasswordHash::new(hash).map_err(|_| AppError::PasswordHashError)?;
         Ok(Argon2::default()
             .verify_password(password.as_bytes(), &parsed_hash)
             .is_ok())
@@ -103,11 +103,14 @@ impl JwtService {
 
         let claims = Claims {
             sub: user_id.to_string(),
-            email: String::new(), // Refresh token 不需要邮箱
+            email: String::new(),    // Refresh token 不需要邮箱
             username: String::new(), // Refresh token 不需要用户名
             exp: (now + Duration::days(7)).timestamp(),
             iat: now.timestamp(),
-            token_type: TokenType::Refresh { token_id, family_id },
+            token_type: TokenType::Refresh {
+                token_id,
+                family_id,
+            },
         };
 
         let token = encode(&Header::default(), &claims, &self.encoding_key)
@@ -119,12 +122,8 @@ impl JwtService {
     /// 验证 Access Token
     pub fn verify_access_token(&self, token: &str) -> Result<Claims, AppError> {
         let validation = Validation::default();
-        let token_data = decode::<Claims>(
-            token,
-            &self.decoding_key,
-            &validation,
-        )
-        .map_err(|_| AppError::InvalidToken)?;
+        let token_data = decode::<Claims>(token, &self.decoding_key, &validation)
+            .map_err(|_| AppError::InvalidToken)?;
 
         match token_data.claims.token_type {
             TokenType::Access => {
@@ -142,15 +141,14 @@ impl JwtService {
     /// 验证 Refresh Token
     pub fn verify_refresh_token(&self, token: &str) -> Result<RefreshClaims, AppError> {
         let validation = Validation::default();
-        let token_data = decode::<Claims>(
-            token,
-            &self.decoding_key,
-            &validation,
-        )
-        .map_err(|_| AppError::InvalidToken)?;
+        let token_data = decode::<Claims>(token, &self.decoding_key, &validation)
+            .map_err(|_| AppError::InvalidToken)?;
 
         match token_data.claims.token_type {
-            TokenType::Refresh { token_id, family_id } => {
+            TokenType::Refresh {
+                token_id,
+                family_id,
+            } => {
                 // 检查是否过期
                 let now = Utc::now().timestamp();
                 if token_data.claims.exp < now {
@@ -233,7 +231,7 @@ mod tests {
     #[test]
     fn test_password_too_short() {
         let jwt = JwtService::new("super-secret-key-that-is-at-least-32-characters-long").unwrap();
-        let result = jwt.hash_password("Short1!");  // 7 字符
+        let result = jwt.hash_password("Short1!"); // 7 字符
         assert!(result.is_err());
     }
 
@@ -244,9 +242,9 @@ mod tests {
         let jwt = JwtService::new("a".repeat(32).as_str()).unwrap();
 
         // 新的密码要求：最少 12 字符，包含大小写、数字、特殊字符
-        assert!(jwt.hash_password("SecurePass123!").is_ok());   // 满足所有要求
-        assert!(jwt.hash_password("Short1!").is_err());          // 太短
-        assert!(jwt.hash_password("").is_err());                // 空字符串
+        assert!(jwt.hash_password("SecurePass123!").is_ok()); // 满足所有要求
+        assert!(jwt.hash_password("Short1!").is_err()); // 太短
+        assert!(jwt.hash_password("").is_err()); // 空字符串
     }
 
     #[test]
@@ -254,7 +252,7 @@ mod tests {
         let jwt = JwtService::new("a".repeat(32).as_str()).unwrap();
 
         // 测试密码复杂度要求
-        assert!(jwt.hash_password("Tr0ngS3cureP@ss!").is_ok());  // 满足所有要求
+        assert!(jwt.hash_password("Tr0ngS3cureP@ss!").is_ok()); // 满足所有要求
 
         // 缺少大写字母
         assert!(jwt.hash_password("lowercase123!").is_err());
@@ -319,7 +317,9 @@ mod tests {
     fn test_access_token_expiration() {
         let jwt = JwtService::new("a".repeat(32).as_str()).unwrap();
         let user_id = Uuid::new_v4();
-        let token = jwt.create_access_token(&user_id, "test@example.com", "testuser").unwrap();
+        let token = jwt
+            .create_access_token(&user_id, "test@example.com", "testuser")
+            .unwrap();
         let claims = jwt.verify_access_token(&token).unwrap();
 
         let now = Utc::now().timestamp();
@@ -394,7 +394,8 @@ mod tests {
         let tokens: Vec<_> = (0..10)
             .map(|_| {
                 let user_id = Uuid::new_v4();
-                jwt.create_access_token(&user_id, "test@example.com", "testuser").unwrap()
+                jwt.create_access_token(&user_id, "test@example.com", "testuser")
+                    .unwrap()
             })
             .collect();
 
@@ -418,7 +419,9 @@ mod tests {
         assert_eq!(unique_hashes.len(), hashes.len());
 
         // 但所有哈希都应该能验证密码
-        assert!(hashes.iter().all(|hash| jwt.verify_password(password, hash).unwrap()));
+        assert!(hashes
+            .iter()
+            .all(|hash| jwt.verify_password(password, hash).unwrap()));
     }
 
     #[test]

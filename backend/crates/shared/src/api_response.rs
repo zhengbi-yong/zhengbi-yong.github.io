@@ -348,7 +348,11 @@ mod tests {
 
     #[test]
     fn test_error_response() {
-        let error = ApiError::new("TEST_ERROR", "Test error message", axum::http::StatusCode::BAD_REQUEST);
+        let error = ApiError::new(
+            "TEST_ERROR",
+            "Test error message",
+            axum::http::StatusCode::BAD_REQUEST,
+        );
         let response = ApiResponse::<()>::error(error);
 
         assert!(!response.success);

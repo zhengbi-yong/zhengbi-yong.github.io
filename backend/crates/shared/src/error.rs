@@ -110,92 +110,110 @@ pub enum AppError {
     CommentTooDeep,
 }
 
-
-
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, error_code, error_message): (StatusCode, &'static str, String) = match self {
             // 认证错误 - 401
-            AppError::InvalidCredentials => {
-                (StatusCode::UNAUTHORIZED, "INVALID_CREDENTIALS", self.to_string())
-            }
-            AppError::InvalidToken => {
-                (StatusCode::UNAUTHORIZED, "INVALID_TOKEN", self.to_string())
-            }
-            AppError::TokenExpired => {
-                (StatusCode::UNAUTHORIZED, "TOKEN_EXPIRED", "登录已过期，请重新登录".to_string())
-            }
-            AppError::MissingRefreshToken => {
-                (StatusCode::UNAUTHORIZED, "MISSING_REFRESH_TOKEN", self.to_string())
-            }
-            AppError::UserNotFound => {
-                (StatusCode::UNAUTHORIZED, "USER_NOT_FOUND", "用户不存在".to_string())
-            }
+            AppError::InvalidCredentials => (
+                StatusCode::UNAUTHORIZED,
+                "INVALID_CREDENTIALS",
+                self.to_string(),
+            ),
+            AppError::InvalidToken => (StatusCode::UNAUTHORIZED, "INVALID_TOKEN", self.to_string()),
+            AppError::TokenExpired => (
+                StatusCode::UNAUTHORIZED,
+                "TOKEN_EXPIRED",
+                "登录已过期，请重新登录".to_string(),
+            ),
+            AppError::MissingRefreshToken => (
+                StatusCode::UNAUTHORIZED,
+                "MISSING_REFRESH_TOKEN",
+                self.to_string(),
+            ),
+            AppError::UserNotFound => (
+                StatusCode::UNAUTHORIZED,
+                "USER_NOT_FOUND",
+                "用户不存在".to_string(),
+            ),
 
             // 权限错误 - 403
-            AppError::InvalidTokenType => {
-                (StatusCode::FORBIDDEN, "INVALID_TOKEN_TYPE", self.to_string())
-            }
-            AppError::TokenCreationError => {
-                (StatusCode::FORBIDDEN, "TOKEN_CREATION_FAILED", self.to_string())
-            }
-            AppError::Unauthorized => {
-                (StatusCode::FORBIDDEN, "UNAUTHORIZED", self.to_string())
-            }
+            AppError::InvalidTokenType => (
+                StatusCode::FORBIDDEN,
+                "INVALID_TOKEN_TYPE",
+                self.to_string(),
+            ),
+            AppError::TokenCreationError => (
+                StatusCode::FORBIDDEN,
+                "TOKEN_CREATION_FAILED",
+                self.to_string(),
+            ),
+            AppError::Unauthorized => (StatusCode::FORBIDDEN, "UNAUTHORIZED", self.to_string()),
 
             // 资源未找到 - 404
-            AppError::PostNotFound => {
-                (StatusCode::NOT_FOUND, "POST_NOT_FOUND", "文章不存在".to_string())
-            }
-            AppError::CommentNotFound => {
-                (StatusCode::NOT_FOUND, "COMMENT_NOT_FOUND", "评论不存在".to_string())
-            }
-            AppError::NotFound(msg) => {
-                (StatusCode::NOT_FOUND, "NOT_FOUND", msg)
-            }
+            AppError::PostNotFound => (
+                StatusCode::NOT_FOUND,
+                "POST_NOT_FOUND",
+                "文章不存在".to_string(),
+            ),
+            AppError::CommentNotFound => (
+                StatusCode::NOT_FOUND,
+                "COMMENT_NOT_FOUND",
+                "评论不存在".to_string(),
+            ),
+            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, "NOT_FOUND", msg),
 
             // 请求错误 - 400
-            AppError::Conflict(msg) => {
-                (StatusCode::CONFLICT, "CONFLICT", msg)
-            }
-            AppError::BadRequest(msg) => {
-                (StatusCode::BAD_REQUEST, "BAD_REQUEST", msg)
-            }
-            AppError::EmailAlreadyExists => {
-                (StatusCode::CONFLICT, "EMAIL_EXISTS", "该邮箱已被注册".to_string())
-            }
-            AppError::UsernameAlreadyExists => {
-                (StatusCode::CONFLICT, "USERNAME_EXISTS", "该用户名已被使用".to_string())
-            }
-            AppError::AlreadyLiked => {
-                (StatusCode::BAD_REQUEST, "ALREADY_LIKED", "已经点赞过了".to_string())
-            }
-            AppError::NotLiked => {
-                (StatusCode::BAD_REQUEST, "NOT_LIKED", "还未点赞".to_string())
-            }
-            AppError::EmptyComment => {
-                (StatusCode::BAD_REQUEST, "EMPTY_COMMENT", "评论内容不能为空".to_string())
-            }
-            AppError::CommentTooLong => {
-                (StatusCode::BAD_REQUEST, "COMMENT_TOO_LONG", "评论内容过长".to_string())
-            }
-            AppError::CommentTooDeep => {
-                (StatusCode::BAD_REQUEST, "COMMENT_TOO_DEEP", "评论层级过深".to_string())
-            }
-            AppError::InvalidInput => {
-                (StatusCode::BAD_REQUEST, "INVALID_INPUT", "输入内容无效".to_string())
-            }
-            AppError::InvalidCursor => {
-                (StatusCode::BAD_REQUEST, "INVALID_CURSOR", "无效的游标".to_string())
-            }
-            AppError::Validation(msg) => {
-                (StatusCode::BAD_REQUEST, "VALIDATION_ERROR", msg)
-            }
+            AppError::Conflict(msg) => (StatusCode::CONFLICT, "CONFLICT", msg),
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, "BAD_REQUEST", msg),
+            AppError::EmailAlreadyExists => (
+                StatusCode::CONFLICT,
+                "EMAIL_EXISTS",
+                "该邮箱已被注册".to_string(),
+            ),
+            AppError::UsernameAlreadyExists => (
+                StatusCode::CONFLICT,
+                "USERNAME_EXISTS",
+                "该用户名已被使用".to_string(),
+            ),
+            AppError::AlreadyLiked => (
+                StatusCode::BAD_REQUEST,
+                "ALREADY_LIKED",
+                "已经点赞过了".to_string(),
+            ),
+            AppError::NotLiked => (StatusCode::BAD_REQUEST, "NOT_LIKED", "还未点赞".to_string()),
+            AppError::EmptyComment => (
+                StatusCode::BAD_REQUEST,
+                "EMPTY_COMMENT",
+                "评论内容不能为空".to_string(),
+            ),
+            AppError::CommentTooLong => (
+                StatusCode::BAD_REQUEST,
+                "COMMENT_TOO_LONG",
+                "评论内容过长".to_string(),
+            ),
+            AppError::CommentTooDeep => (
+                StatusCode::BAD_REQUEST,
+                "COMMENT_TOO_DEEP",
+                "评论层级过深".to_string(),
+            ),
+            AppError::InvalidInput => (
+                StatusCode::BAD_REQUEST,
+                "INVALID_INPUT",
+                "输入内容无效".to_string(),
+            ),
+            AppError::InvalidCursor => (
+                StatusCode::BAD_REQUEST,
+                "INVALID_CURSOR",
+                "无效的游标".to_string(),
+            ),
+            AppError::Validation(msg) => (StatusCode::BAD_REQUEST, "VALIDATION_ERROR", msg),
 
             // 请求过多 - 429
-            AppError::Redis(_) => {
-                (StatusCode::TOO_MANY_REQUESTS, "RATE_LIMIT_EXCEEDED", "请求过于频繁，请稍后再试".to_string())
-            }
+            AppError::Redis(_) => (
+                StatusCode::TOO_MANY_REQUESTS,
+                "RATE_LIMIT_EXCEEDED",
+                "请求过于频繁，请稍后再试".to_string(),
+            ),
 
             // 服务器错误 - 500
             AppError::Database(err) => {
@@ -214,9 +232,11 @@ impl IntoResponse for AppError {
                     "密码处理失败".to_string(),
                 )
             }
-            AppError::InvalidUserId => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "INVALID_USER_ID", "用户ID无效".to_string())
-            }
+            AppError::InvalidUserId => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "INVALID_USER_ID",
+                "用户ID无效".to_string(),
+            ),
             AppError::Io(err) => {
                 tracing::error!("IO error: {:?}", err);
                 (
@@ -249,5 +269,3 @@ pub enum RequestIdError {
     #[error("Failed to generate request ID")]
     GenerationFailed,
 }
-
-

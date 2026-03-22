@@ -8,6 +8,7 @@ pub mod metrics;
 pub mod middleware;
 pub mod observability;
 pub mod routes;
+pub mod search_index;
 pub mod state;
 pub mod utils;
 

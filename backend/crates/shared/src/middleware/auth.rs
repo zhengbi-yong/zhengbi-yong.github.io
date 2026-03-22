@@ -54,7 +54,10 @@ impl IntoResponse for AuthError {
     fn into_response(self) -> Response {
         let (status, message) = match self {
             AuthError::MissingToken => (StatusCode::UNAUTHORIZED, "Missing authentication token"),
-            AuthError::InvalidHeaderFormat => (StatusCode::BAD_REQUEST, "Invalid authorization header format"),
+            AuthError::InvalidHeaderFormat => (
+                StatusCode::BAD_REQUEST,
+                "Invalid authorization header format",
+            ),
             AuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid or expired token"),
             AuthError::TokenExpired => (StatusCode::UNAUTHORIZED, "Token has expired"),
             AuthError::InvalidTokenType => (StatusCode::BAD_REQUEST, "Invalid token type"),

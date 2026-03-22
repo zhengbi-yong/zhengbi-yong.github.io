@@ -12,6 +12,7 @@ pub struct Settings {
     pub smtp: SmtpConfig,
     pub cors: CorsConfig,
     pub rate_limit: RateLimitConfig,
+    pub meilisearch: Option<MeilisearchConfig>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -54,7 +55,8 @@ impl CorsConfig {
 
                 // 生产环境强制 HTTPS
                 if std::env::var("ENVIRONMENT").unwrap_or_default() == "production"
-                    && url.scheme() != "https" {
+                    && url.scheme() != "https"
+                {
                     tracing::warn!("CORS: 生产环境建议使用 HTTPS origin: {}", origin);
                 }
             }
@@ -74,6 +76,14 @@ pub struct RateLimitConfig {
     pub comment_rpm: u32, // 评论相关请求每分钟限制
     pub default_rps: u32, // 默认每秒限制
     pub default_rpm: u32, // 默认每分钟限制
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct MeilisearchConfig {
+    pub url: String,
+    pub master_key: String,
+    pub index_name: String,
+    pub auto_sync_on_startup: bool,
 }
 
 impl Settings {
@@ -163,6 +173,23 @@ impl Settings {
                     .parse()
                     .map_err(|_| anyhow::anyhow!("Invalid RATE_LIMIT_DEFAULT_RPM"))?,
             },
+            meilisearch: match env::var("MEILISEARCH_URL") {
+                Ok(url) if !url.trim().is_empty() => Some(MeilisearchConfig {
+                    url,
+                    master_key: env::var("MEILISEARCH_MASTER_KEY").map_err(|_| {
+                        anyhow::anyhow!(
+                            "MEILISEARCH_MASTER_KEY must be set when MEILISEARCH_URL is configured"
+                        )
+                    })?,
+                    index_name: env::var("MEILISEARCH_INDEX")
+                        .unwrap_or_else(|_| "posts".to_string()),
+                    auto_sync_on_startup: env::var("MEILISEARCH_AUTO_SYNC")
+                        .unwrap_or_else(|_| "true".to_string())
+                        .parse()
+                        .map_err(|_| anyhow::anyhow!("Invalid MEILISEARCH_AUTO_SYNC"))?,
+                }),
+                Ok(_) | Err(_) => None,
+            },
         };
 
         // 验证 CORS 配置
@@ -209,6 +236,12 @@ RATE_LIMIT_COMMENT_RPS=2
 RATE_LIMIT_COMMENT_RPM=20
 RATE_LIMIT_DEFAULT_RPS=100
 RATE_LIMIT_DEFAULT_RPM=6000
+
+# Meilisearch (optional)
+MEILISEARCH_URL=http://localhost:7700
+MEILISEARCH_MASTER_KEY=change-me-in-production
+MEILISEARCH_INDEX=posts
+MEILISEARCH_AUTO_SYNC=true
 "#
         .to_string()
     }

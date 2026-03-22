@@ -2,8 +2,8 @@
 //!
 //! 提供创建测试数据的辅助函数
 
+use blog_db::{LoginRequest, RegisterRequest};
 use uuid::Uuid;
-use blog_db::{RegisterRequest, LoginRequest};
 
 /// 生成唯一测试邮箱
 pub fn generate_test_email() -> String {
@@ -21,7 +21,11 @@ pub fn generate_strong_password() -> String {
 }
 
 /// 创建注册请求
-pub fn create_register_request(email: Option<String>, username: Option<String>, password: Option<String>) -> RegisterRequest {
+pub fn create_register_request(
+    email: Option<String>,
+    username: Option<String>,
+    password: Option<String>,
+) -> RegisterRequest {
     RegisterRequest {
         email: email.unwrap_or_else(generate_test_email),
         username: username.unwrap_or_else(generate_test_username),

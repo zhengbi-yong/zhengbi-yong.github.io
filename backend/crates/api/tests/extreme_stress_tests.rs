@@ -1,6 +1,6 @@
 //! 极端压力测试
 //! 以最严苛的方式测试后端的稳定性和正确性
-//! 
+//!
 //! 测试包括：
 //! - 超高并发（1000+ 并发请求）
 //! - 长时间运行（持续运行测试）
@@ -10,8 +10,8 @@
 
 use reqwest::Client;
 use serde_json::{json, Value};
-use std::time::{Duration, Instant};
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::{Duration, Instant};
 use uuid::Uuid;
 
 const BASE_URL: &str = "http://localhost:3000";
@@ -58,7 +58,7 @@ async fn test_extreme_concurrent_registration() {
 
         let handle = tokio::spawn(async move {
             TOTAL_REQUESTS.fetch_add(1, Ordering::Relaxed);
-            
+
             let response = client_clone
                 .post(&format!("{}/v1/auth/register", BASE_URL))
                 .json(&json!({
@@ -204,7 +204,7 @@ async fn test_long_running_stress() {
     }
 
     println!("长时间运行测试完成: {} 次迭代", iteration);
-    
+
     // 严格断言：必须完成至少一定数量的迭代
     assert!(
         iteration > 1000,
@@ -246,12 +246,20 @@ async fn test_memory_leak_detection() {
 
         // 每1000次迭代报告一次
         if iteration % 1000 == 0 {
-            println!("已完成 {} 次迭代 ({} 个请求)", iteration, iteration * REQUESTS_PER_ITERATION);
+            println!(
+                "已完成 {} 次迭代 ({} 个请求)",
+                iteration,
+                iteration * REQUESTS_PER_ITERATION
+            );
         }
     }
 
-    println!("内存泄漏检测测试完成: {} 次迭代，{} 个请求", ITERATIONS, ITERATIONS * REQUESTS_PER_ITERATION);
-    
+    println!(
+        "内存泄漏检测测试完成: {} 次迭代，{} 个请求",
+        ITERATIONS,
+        ITERATIONS * REQUESTS_PER_ITERATION
+    );
+
     // 注意：实际的内存泄漏检测需要外部工具（如 valgrind）
     // 这里只是确保大量请求不会导致明显的性能下降
 }
@@ -262,7 +270,7 @@ async fn test_memory_leak_detection() {
 #[ignore] // 默认忽略，需要时手动运行
 async fn test_resource_exhaustion() {
     let client = ExtremeStressClient::new().await;
-    
+
     // 创建大量连接但不释放
     const CONNECTION_COUNT: usize = 500;
     let mut handles = Vec::new();
@@ -286,7 +294,7 @@ async fn test_resource_exhaustion() {
 
             // 保持连接一段时间
             tokio::time::sleep(Duration::from_millis(100)).await;
-            
+
             response
         }));
     }
@@ -304,8 +312,11 @@ async fn test_resource_exhaustion() {
         }
     }
 
-    println!("资源耗尽测试完成: {} 个连接，{} 成功", CONNECTION_COUNT, success_count);
-    
+    println!(
+        "资源耗尽测试完成: {} 个连接，{} 成功",
+        CONNECTION_COUNT, success_count
+    );
+
     // 严格断言：即使在高负载下，成功率也应该 > 95%
     let success_rate = success_count as f64 / CONNECTION_COUNT as f64;
     assert!(
@@ -321,7 +332,7 @@ async fn test_resource_exhaustion() {
 #[ignore] // 默认忽略，需要时手动运行
 async fn test_extreme_load_data_consistency() {
     let client = ExtremeStressClient::new().await;
-    
+
     // 先注册用户
     let email = format!("consistency_{}@stress.test", Uuid::new_v4().simple());
     let username = format!("consistency_user_{}", Uuid::new_v4().simple());
@@ -408,10 +419,10 @@ async fn test_extreme_load_data_consistency() {
     if !view_counts.is_empty() {
         let first_count = view_counts[0];
         let _all_same = view_counts.iter().all(|&c| c == first_count);
-        
+
         // 允许小的差异（由于缓存或异步更新）
         let max_diff = view_counts.iter().max().unwrap() - view_counts.iter().min().unwrap();
-        
+
         assert!(
             max_diff <= 10,
             "统计值差异过大: 最大差异 = {}, 样本 = {:?}",
@@ -436,7 +447,7 @@ async fn test_extreme_load_data_consistency() {
 async fn test_burst_traffic() {
     let client = ExtremeStressClient::new().await;
     const BURST_SIZE: usize = 2000;
-    
+
     println!("开始突发流量测试: {} 个请求", BURST_SIZE);
 
     let start_time = Instant::now();
@@ -454,7 +465,7 @@ async fn test_burst_traffic() {
                 .send()
                 .await;
             let duration = start.elapsed();
-            
+
             (result, duration, request_id)
         }));
     }
@@ -480,7 +491,8 @@ async fn test_burst_traffic() {
     }
 
     let total_duration = start_time.elapsed();
-    let avg_response_time: Duration = response_times.iter().sum::<Duration>() / response_times.len() as u32;
+    let avg_response_time: Duration =
+        response_times.iter().sum::<Duration>() / response_times.len() as u32;
     let p95_response_time = response_times[response_times.len() * 95 / 100];
 
     println!("突发流量测试完成:");
@@ -490,7 +502,10 @@ async fn test_burst_traffic() {
     println!("  平均响应时间: {:?}", avg_response_time);
     println!("  P95响应时间: {:?}", p95_response_time);
     println!("  最大响应时间: {:?}", max_response_time);
-    println!("  QPS: {:.2}", BURST_SIZE as f64 / total_duration.as_secs_f64());
+    println!(
+        "  QPS: {:.2}",
+        BURST_SIZE as f64 / total_duration.as_secs_f64()
+    );
 
     // 严格断言：成功率必须 = 100%
     assert_eq!(
@@ -520,4 +535,3 @@ async fn test_burst_traffic() {
         total_duration
     );
 }
-

@@ -65,7 +65,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_list_categories_public() {
         let client = Client::new();
 
@@ -83,7 +83,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_category_tree() {
         let client = Client::new();
 
@@ -98,7 +98,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_category_by_slug() {
         let client = Client::new();
 
@@ -115,7 +115,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_category_posts() {
         let client = Client::new();
 
@@ -132,7 +132,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_create_category_requires_auth() {
         let client = Client::new();
 
@@ -152,7 +152,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_create_category_success() {
         let client = Client::new();
         let token = register_admin_and_login().await;
@@ -179,7 +179,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_list_tags_public() {
         let client = Client::new();
 
@@ -197,7 +197,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_popular_tags() {
         let client = Client::new();
 
@@ -212,7 +212,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_tags_autocomplete() {
         let client = Client::new();
 
@@ -227,7 +227,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_tag_by_slug() {
         let client = Client::new();
 
@@ -244,7 +244,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_tag_posts() {
         let client = Client::new();
 
@@ -261,7 +261,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_create_tag_requires_auth() {
         let client = Client::new();
 
@@ -283,7 +283,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_search_posts() {
         let client = Client::new();
 
@@ -298,7 +298,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_search_with_category_filter() {
         let client = Client::new();
 
@@ -313,12 +313,15 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_search_with_tags_filter() {
         let client = Client::new();
 
         let response = client
-            .get(&format!("{}/v1/search?q=test&tags=chemistry,tutorial", BASE_URL))
+            .get(&format!(
+                "{}/v1/search?q=test&tags=chemistry,tutorial",
+                BASE_URL
+            ))
             .send()
             .await
             .unwrap();
@@ -328,7 +331,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_search_suggest() {
         let client = Client::new();
 
@@ -343,7 +346,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_trending_keywords() {
         let client = Client::new();
 
@@ -360,7 +363,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_list_media_requires_auth() {
         let client = Client::new();
 
@@ -375,7 +378,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_list_media_success() {
         let client = Client::new();
         let token = register_admin_and_login().await;
@@ -393,7 +396,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_unused_media_requires_auth() {
         let client = Client::new();
 
@@ -408,7 +411,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_media_by_id_requires_auth() {
         let client = Client::new();
 
@@ -425,7 +428,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_list_versions_requires_auth() {
         let client = Client::new();
 
@@ -440,7 +443,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_create_version_requires_auth() {
         let client = Client::new();
 
@@ -460,15 +463,12 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_get_version_requires_auth() {
         let client = Client::new();
 
         let response = client
-            .get(&format!(
-                "{}/v1/admin/posts/test-post/versions/1",
-                BASE_URL
-            ))
+            .get(&format!("{}/v1/admin/posts/test-post/versions/1", BASE_URL))
             .send()
             .await
             .unwrap();
@@ -478,7 +478,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_restore_version_requires_auth() {
         let client = Client::new();
 
@@ -496,15 +496,12 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_delete_version_requires_auth() {
         let client = Client::new();
 
         let response = client
-            .delete(&format!(
-                "{}/v1/admin/posts/test-post/versions/1",
-                BASE_URL
-            ))
+            .delete(&format!("{}/v1/admin/posts/test-post/versions/1", BASE_URL))
             .send()
             .await
             .unwrap();
@@ -514,7 +511,7 @@ mod tests {
 
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_compare_versions_requires_auth() {
         let client = Client::new();
 

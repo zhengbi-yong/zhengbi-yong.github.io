@@ -34,15 +34,12 @@ async fn test_service_recovery() {
 
     println!("测试服务恢复能力...");
     println!("请手动停止后端服务，然后按回车继续...");
-    
+
     // 等待用户操作
     tokio::time::sleep(Duration::from_secs(5)).await;
 
     // 尝试请求（应该失败）
-    let response = client
-        .get(&format!("{}/healthz", BASE_URL))
-        .send()
-        .await;
+    let response = client.get(&format!("{}/healthz", BASE_URL)).send().await;
 
     match response {
         Ok(_) => {
@@ -50,17 +47,13 @@ async fn test_service_recovery() {
         }
         Err(_) => {
             println!("服务已停止，等待恢复...");
-            
+
             // 等待服务恢复（最多等待30秒）
             let mut recovered = false;
             for _ in 0..30 {
                 tokio::time::sleep(Duration::from_secs(1)).await;
-                
-                if let Ok(resp) = client
-                    .get(&format!("{}/healthz", BASE_URL))
-                    .send()
-                    .await
-                {
+
+                if let Ok(resp) = client.get(&format!("{}/healthz", BASE_URL)).send().await {
                     if resp.status().is_success() {
                         recovered = true;
                         println!("服务已恢复！");
@@ -85,10 +78,7 @@ async fn test_timeout_handling() {
         .unwrap();
 
     // 发送请求，应该正确处理超时
-    let response = client
-        .get(&format!("{}/healthz", BASE_URL))
-        .send()
-        .await;
+    let response = client.get(&format!("{}/healthz", BASE_URL)).send().await;
 
     // 超时不应该导致panic，应该返回错误
     match response {
@@ -113,7 +103,7 @@ async fn test_timeout_handling() {
 #[ignore] // 需要运行中的后端服务
 async fn test_partial_service_failure() {
     let client = Client::new();
-    
+
     // 注册用户
     let email = format!("partial_failure_{}@test.com", Uuid::new_v4().simple());
     let username = format!("partial_user_{}", Uuid::new_v4().simple());
@@ -169,7 +159,7 @@ async fn test_partial_service_failure() {
 #[ignore] // 需要运行中的后端服务
 async fn test_data_corruption_recovery() {
     let client = Client::new();
-    
+
     // 注册用户
     let email = format!("corruption_{}@test.com", Uuid::new_v4().simple());
     let username = format!("corruption_user_{}", Uuid::new_v4().simple());
@@ -345,10 +335,10 @@ async fn test_connection_pool_exhaustion() {
                     .get(&format!("{}/healthz", BASE_URL))
                     .send()
                     .await;
-                
+
                 tokio::time::sleep(Duration::from_millis(10)).await;
             }
-            
+
             request_id
         }));
     }
@@ -370,8 +360,6 @@ async fn test_connection_pool_exhaustion() {
     assert_eq!(
         completed, CONCURRENT_CONNECTIONS,
         "所有连接都应该完成，实际完成: {}, 期望: {}",
-        completed,
-        CONCURRENT_CONNECTIONS
+        completed, CONCURRENT_CONNECTIONS
     );
 }
-

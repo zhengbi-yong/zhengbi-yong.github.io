@@ -33,7 +33,7 @@ mod auth_boundary_tests {
     /// 测试空邮箱
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_empty_email() {
         let client = StressTestClient::new().await;
 
@@ -55,7 +55,7 @@ mod auth_boundary_tests {
     /// 测试超长邮箱
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_very_long_email() {
         let client = StressTestClient::new().await;
         let long_email = format!("{}@example.com", "a".repeat(1000));
@@ -75,7 +75,11 @@ mod auth_boundary_tests {
         // 应该返回 400、422、413 或 429（验证失败、请求体过大或速率限制）
         // 注意：如果后端没有长度限制，可能会返回200，但这是可以接受的
         assert!(
-            response.status() == 400 || response.status() == 422 || response.status() == 413 || response.status() == 429 || response.status() == 200,
+            response.status() == 400
+                || response.status() == 422
+                || response.status() == 413
+                || response.status() == 429
+                || response.status() == 200,
             "Very long email should be rejected or rate limited, got status: {}",
             response.status()
         );
@@ -84,7 +88,7 @@ mod auth_boundary_tests {
     /// 测试特殊字符邮箱
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_special_characters_email() {
         let client = StressTestClient::new().await;
 
@@ -115,13 +119,12 @@ mod auth_boundary_tests {
                 assert!(json.get("access_token").is_some());
             }
         }
-
     }
 
     /// 测试超短密码
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_short_password() {
         let client = StressTestClient::new().await;
 
@@ -143,7 +146,7 @@ mod auth_boundary_tests {
     /// 测试超长密码
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_very_long_password() {
         let client = StressTestClient::new().await;
         // 使用较小的长度避免请求体过大（10000字符可能导致413）
@@ -164,7 +167,10 @@ mod auth_boundary_tests {
         // 超长密码可能被接受或拒绝，取决于实现
         // 但应该不会导致服务器崩溃（可能返回200、400、413或429）
         assert!(
-            response.status() == 200 || response.status() == 400 || response.status() == 413 || response.status() == 429,
+            response.status() == 200
+                || response.status() == 400
+                || response.status() == 413
+                || response.status() == 429,
             "Very long password should be handled gracefully, got status: {}",
             response.status()
         );
@@ -173,7 +179,7 @@ mod auth_boundary_tests {
     /// 测试 Unicode 字符
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_unicode_characters() {
         let client = StressTestClient::new().await;
 
@@ -203,7 +209,7 @@ mod auth_boundary_tests {
     /// 测试 SQL 注入尝试
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_sql_injection_attempts() {
         let client = StressTestClient::new().await;
 
@@ -217,7 +223,7 @@ mod auth_boundary_tests {
         for payload in sql_payloads {
             // 添加延迟避免速率限制
             tokio::time::sleep(std::time::Duration::from_millis(200)).await;
-            
+
             let response = client
                 .client
                 .post(&format!("{}/v1/auth/login", BASE_URL))
@@ -238,13 +244,12 @@ mod auth_boundary_tests {
                 payload
             );
         }
-
     }
 
     /// 测试 XSS 尝试
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_xss_attempts() {
         let client = StressTestClient::new().await;
 
@@ -285,7 +290,6 @@ mod auth_boundary_tests {
                 );
             }
         }
-
     }
 }
 
@@ -296,7 +300,7 @@ mod post_boundary_tests {
     /// 测试超长 slug
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_very_long_slug() {
         let client = StressTestClient::new().await;
         // 使用较小的长度避免URL过长（10000字符可能导致414）
@@ -311,7 +315,10 @@ mod post_boundary_tests {
 
         // 超长 slug 应该被处理（可能返回 404、400、414 或 429）
         assert!(
-            response.status() == 404 || response.status() == 400 || response.status() == 414 || response.status() == 429,
+            response.status() == 404
+                || response.status() == 400
+                || response.status() == 414
+                || response.status() == 429,
             "Very long slug should be handled gracefully, got status: {}",
             response.status()
         );
@@ -320,15 +327,15 @@ mod post_boundary_tests {
     /// 测试特殊字符 slug
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_special_characters_slug() {
         let client = StressTestClient::new().await;
 
         // URL 编码的特殊字符
         let special_slugs = vec![
-            "test%2Fpost",  // 编码的斜杠
-            "test%20post",  // 编码的空格
-            "test%26post",  // 编码的 &
+            "test%2Fpost", // 编码的斜杠
+            "test%20post", // 编码的空格
+            "test%26post", // 编码的 &
         ];
 
         for slug in special_slugs {
@@ -345,13 +352,12 @@ mod post_boundary_tests {
                 "Special character slug should be handled"
             );
         }
-
     }
 
     /// 测试空 slug
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_empty_slug() {
         let client = StressTestClient::new().await;
 
@@ -417,7 +423,7 @@ mod comment_boundary_tests {
 
             let json: Value = serde_json::from_str(&response_text)
                 .unwrap_or_else(|e| panic!("Failed to parse JSON: {}, body: {}", e, response_text));
-            
+
             if let Some(token) = json.get("access_token").and_then(|v| v.as_str()) {
                 return token.to_string();
             } else {
@@ -429,7 +435,7 @@ mod comment_boundary_tests {
     /// 测试空评论内容
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_empty_comment_content() {
         let client = StressTestClient::new().await;
         let token = get_auth_token(&client.client).await;
@@ -453,7 +459,7 @@ mod comment_boundary_tests {
             "Empty comment should return 400, 404 or 429, got: {}",
             response.status()
         );
-        
+
         // 检查响应体是否为空，如果为空则不解析JSON
         let response_text = response.text().await.unwrap();
         if !response_text.is_empty() {
@@ -465,7 +471,7 @@ mod comment_boundary_tests {
     /// 测试超长评论内容
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_very_long_comment_content() {
         let client = StressTestClient::new().await;
         let token = get_auth_token(&client.client).await;
@@ -488,11 +494,14 @@ mod comment_boundary_tests {
         // 超长内容应该被拒绝（可能返回400、413、404或429）
         // 注意：如果文章不存在，可能返回404
         assert!(
-            response.status() == 400 || response.status() == 413 || response.status() == 404 || response.status() == 429,
+            response.status() == 400
+                || response.status() == 413
+                || response.status() == 404
+                || response.status() == 429,
             "Very long comment should be handled gracefully, got status: {}",
             response.status()
         );
-        
+
         // 检查响应体是否为空，如果为空则不解析JSON
         let response_text = response.text().await.unwrap();
         if !response_text.is_empty() {
@@ -504,7 +513,7 @@ mod comment_boundary_tests {
     /// 测试 HTML 标签清理
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_html_sanitization() {
         let client = StressTestClient::new().await;
         let token = get_auth_token(&client.client).await;
@@ -529,9 +538,15 @@ mod comment_boundary_tests {
                 if let Ok(json) = serde_json::from_str::<Value>(&response_text) {
                     if let Some(content) = json.get("content").and_then(|v| v.as_str()) {
                         // 脚本标签应该被移除
-                        assert!(!content.contains("<script>"), "Script tags should be removed");
+                        assert!(
+                            !content.contains("<script>"),
+                            "Script tags should be removed"
+                        );
                         // 安全的 HTML 标签应该保留
-                        assert!(content.contains("<p>"), "Safe HTML tags should be preserved");
+                        assert!(
+                            content.contains("<p>"),
+                            "Safe HTML tags should be preserved"
+                        );
                     }
                 }
             }
@@ -552,7 +567,7 @@ mod concurrency_tests {
     /// 测试并发注册
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_concurrent_registration() {
         let client = StressTestClient::new().await;
 
@@ -560,7 +575,11 @@ mod concurrency_tests {
         for i in 0..50 {
             let client_clone = client.client.clone();
             // 使用UUID确保唯一性
-            let email = format!("concurrent_{}_{}@example.com", i, Uuid::new_v4().simple().to_string());
+            let email = format!(
+                "concurrent_{}_{}@example.com",
+                i,
+                Uuid::new_v4().simple().to_string()
+            );
             let username = format!("user_{}_{}", i, Uuid::new_v4().simple().to_string());
 
             let handle = tokio::spawn(async move {
@@ -615,13 +634,12 @@ mod concurrency_tests {
         );
         // 由于并发请求，可能会有一些冲突（如果UUID生成不够快）
         // assert_eq!(conflict_count, 0, "No conflicts should occur");
-
     }
 
     /// 测试并发登录
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_concurrent_login() {
         let client = StressTestClient::new().await;
 
@@ -640,7 +658,7 @@ mod concurrency_tests {
             .send()
             .await
             .unwrap();
-        
+
         // 如果注册失败（可能是速率限制），跳过测试
         if !register_response.status().is_success() {
             return;
@@ -648,7 +666,8 @@ mod concurrency_tests {
 
         // 并发登录（减少并发数避免速率限制）
         let mut handles = Vec::new();
-        for _ in 0..50 {  // 减少到50个并发请求
+        for _ in 0..50 {
+            // 减少到50个并发请求
             let client_clone = client.client.clone();
             let email_clone = email.clone();
 
@@ -669,7 +688,7 @@ mod concurrency_tests {
         let mut success_count = 0;
         let mut rate_limited_count = 0;
         let mut error_count = 0;
-        
+
         for handle in handles {
             match handle.await.unwrap() {
                 Ok(response) => {
@@ -697,13 +716,12 @@ mod concurrency_tests {
             rate_limited_count,
             error_count
         );
-
     }
 
     /// 测试并发文章浏览
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_concurrent_post_views() {
         let client = StressTestClient::new().await;
         let token = {
@@ -734,7 +752,7 @@ mod concurrency_tests {
 
             let json: Value = serde_json::from_str(&response_text)
                 .unwrap_or_else(|e| panic!("Failed to parse JSON: {}, body: {}", e, response_text));
-            
+
             json.get("access_token")
                 .and_then(|v| v.as_str())
                 .unwrap_or_else(|| panic!("No access_token in response: {:?}", json))
@@ -742,13 +760,14 @@ mod concurrency_tests {
         };
 
         let test_slug = "concurrent-view-test";
-        
+
         // 注意：文章统计会在第一次浏览时自动创建
         // 这里我们直接进行并发浏览测试
 
         // 并发浏览（减少并发数避免速率限制）
         let mut handles = Vec::new();
-        for _ in 0..50 {  // 减少到50个并发请求
+        for _ in 0..50 {
+            // 减少到50个并发请求
             let client_clone = client.client.clone();
             let token_clone = token.clone();
 
@@ -766,7 +785,7 @@ mod concurrency_tests {
         let mut success_count = 0;
         let mut rate_limited_count = 0;
         let mut error_count = 0;
-        
+
         for handle in handles {
             match handle.await.unwrap() {
                 Ok(response) => {
@@ -810,12 +829,15 @@ mod concurrency_tests {
                 if let Ok(stats) = serde_json::from_str::<Value>(&response_text) {
                     if let Some(view_count) = stats.get("view_count").and_then(|v| v.as_i64()) {
                         // 浏览数应该 >= 0（允许异步更新）
-                        assert!(view_count >= 0, "View count should be >= 0, got: {}", view_count);
+                        assert!(
+                            view_count >= 0,
+                            "View count should be >= 0, got: {}",
+                            view_count
+                        );
                     }
                 }
             }
         }
-
     }
 }
 
@@ -826,7 +848,7 @@ mod performance_tests {
     /// 测试快速连续请求
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_rapid_requests() {
         let client = StressTestClient::new().await;
 
@@ -865,13 +887,12 @@ mod performance_tests {
             duration.as_secs() < 10,
             "1000 requests should complete in less than 10 seconds"
         );
-
     }
 
     /// 测试响应时间
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_response_time() {
         let client = StressTestClient::new().await;
 
@@ -905,7 +926,6 @@ mod performance_tests {
             max_time.as_millis() < 500,
             "Max response time should be less than 500ms"
         );
-
     }
 }
 
@@ -916,7 +936,7 @@ mod consistency_tests {
     /// 测试文章统计一致性
     #[tokio::test]
     #[serial_test::serial]
-#[ignore] // 需要运行中的后端服务
+    #[ignore] // 需要运行中的后端服务
     async fn test_post_stats_consistency() {
         let client = StressTestClient::new().await;
         let test_slug = "consistency-test";
@@ -954,9 +974,10 @@ mod consistency_tests {
         };
 
         // 多次获取统计，应该返回一致的值（允许小的差异）
-        for _ in 0..5 {  // 减少次数避免速率限制
+        for _ in 0..5 {
+            // 减少次数避免速率限制
             tokio::time::sleep(std::time::Duration::from_millis(200)).await;
-            
+
             let response = client
                 .client
                 .get(&format!("{}/v1/posts/{}/stats", BASE_URL, test_slug))
@@ -970,12 +991,12 @@ mod consistency_tests {
                     if let Ok(stats) = serde_json::from_str::<Value>(&response_text) {
                         if let (Some(view_count), Some(like_count)) = (
                             stats.get("view_count").and_then(|v| v.as_i64()),
-                            stats.get("like_count").and_then(|v| v.as_i64())
+                            stats.get("like_count").and_then(|v| v.as_i64()),
                         ) {
                             // 允许小的差异（由于异步更新）
                             let view_diff = (view_count - first_view_count).abs();
                             let like_diff = (like_count - first_like_count).abs();
-                            
+
                             assert!(
                                 view_diff <= 10,
                                 "View count should be consistent, diff: {}, first: {}, current: {}",
@@ -997,7 +1018,3 @@ mod consistency_tests {
         }
     }
 }
-
-
-
-

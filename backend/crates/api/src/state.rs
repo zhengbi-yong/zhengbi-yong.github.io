@@ -8,4 +8,5 @@ pub struct AppState {
     pub settings: blog_shared::Settings,
     pub email_service: blog_core::email::EmailService,
     pub metrics: Arc<tokio::sync::RwLock<crate::metrics::Metrics>>,
+    pub search_index: Option<Arc<crate::search_index::SearchIndexService>>,
 }

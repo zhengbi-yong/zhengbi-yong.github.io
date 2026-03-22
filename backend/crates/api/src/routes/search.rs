@@ -1,7 +1,7 @@
 use crate::state::AppState;
 use axum::{
     extract::{Path, Query, State},
-    http::header,
+    http::{header, StatusCode},
     response::{IntoResponse, Json},
 };
 use blog_db::cms::*;
@@ -33,7 +33,7 @@ pub async fn search_posts(
     State(state): State<AppState>,
     Query(params): Query<SearchRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    if params.q.is_empty() {
+    if params.q.trim().is_empty() {
         return Err(AppError::BadRequest(
             "Search query cannot be empty".to_string(),
         ));
@@ -41,6 +41,50 @@ pub async fn search_posts(
 
     let limit = params.limit.unwrap_or(10).min(50);
     let offset = params.offset.unwrap_or(0);
+
+    if let Some(search_index) = &state.search_index {
+        match search_index
+            .search(&crate::search_index::SearchOptions {
+                query: params.q.clone(),
+                category_slug: params.category_slug.clone(),
+                tag_slug: params.tag_slug.clone(),
+                limit: limit as usize,
+                offset: offset as usize,
+            })
+            .await
+        {
+            Ok(response) => {
+                let results = response
+                    .hits
+                    .into_iter()
+                    .map(|hit| SearchResult {
+                        id: Uuid::parse_str(&hit.id).unwrap_or_else(|_| Uuid::nil()),
+                        slug: hit.slug,
+                        title: hit.title,
+                        summary: hit.summary,
+                        published_at: hit.published_at,
+                        rank: 1.0,
+                    })
+                    .collect();
+
+                return Ok((
+                    [(
+                        header::CACHE_CONTROL,
+                        "public, s-maxage=60, stale-while-revalidate=300",
+                    )],
+                    Json(SearchResponse {
+                        results,
+                        total: response.total as i64,
+                        query: params.q,
+                    }),
+                )
+                    .into_response());
+            }
+            Err(error) => {
+                tracing::warn!("Meilisearch query failed, falling back to PostgreSQL: {error:#}");
+            }
+        }
+    }
 
     // 转义搜索词
     let escaped_query = params.q.replace('\'', "''").replace('\\', "\\\\");
@@ -172,10 +216,31 @@ pub async fn search_suggest(
     Query(params): Query<SuggestParams>,
 ) -> Result<impl IntoResponse, AppError> {
     if params.q.len() < 2 {
-        return Ok(Json::<Vec<SearchResult>>(vec![]).into_response());
+        return Ok(Json::<Vec<String>>(vec![]).into_response());
     }
 
     let limit = params.limit.unwrap_or(5).min(10);
+
+    if let Some(search_index) = &state.search_index {
+        match search_index.suggest_titles(&params.q, limit as usize).await {
+            Ok(suggestions) => {
+                return Ok((
+                    [(
+                        header::CACHE_CONTROL,
+                        "public, s-maxage=300, stale-while-revalidate=600",
+                    )],
+                    Json(suggestions),
+                )
+                    .into_response());
+            }
+            Err(error) => {
+                tracing::warn!(
+                    "Meilisearch suggestions failed, falling back to PostgreSQL: {error:#}"
+                );
+            }
+        }
+    }
+
     let search_term = format!("{}%", params.q.replace('\'', "''"));
 
     // 搜索标题匹配的文章
@@ -375,6 +440,37 @@ pub async fn get_related_posts(
         .into_response())
 }
 
+/// 重建搜索索引
+#[utoipa::path(
+    post,
+    path = "/admin/search/reindex",
+    tag = "admin/search",
+    responses(
+        (status = 202, description = "重建任务已完成", body = ReindexResponse),
+        (status = 503, description = "Meilisearch 未启用")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn reindex_posts(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
+    let Some(search_index) = &state.search_index else {
+        return Err(AppError::BadRequest(
+            "Meilisearch is not configured".to_string(),
+        ));
+    };
+
+    let indexed_documents = search_index.sync_all(&state.db).await.map_err(|error| {
+        tracing::error!("Failed to rebuild Meilisearch index: {error:#}");
+        AppError::InternalError
+    })?;
+
+    Ok((
+        StatusCode::ACCEPTED,
+        Json(ReindexResponse { indexed_documents }),
+    ))
+}
+
 // ===== 辅助结构体 =====
 
 #[derive(serde::Deserialize)]
@@ -402,6 +498,11 @@ pub struct RelatedPost {
     pub published_at: Option<chrono::DateTime<chrono::Utc>>,
     pub view_count: i64,
     pub cover_image_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct ReindexResponse {
+    pub indexed_documents: usize,
 }
 
 // NOTE: Cannot implement IntoResponse for Vec<RelatedPost> due to orphan rule

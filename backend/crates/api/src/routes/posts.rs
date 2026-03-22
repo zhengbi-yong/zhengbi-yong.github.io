@@ -376,6 +376,7 @@ pub async fn create_post(
     Extension(auth_user): Extension<Option<AuthUser>>, // Allow None for migration
     Json(req): Json<CreatePostRequest>,
 ) -> Result<impl IntoResponse, AppError> {
+    let created_slug = req.slug.clone();
     let mut tx = state.db.begin().await?;
 
     // 检查 slug 是否已存在
@@ -413,7 +414,7 @@ pub async fn create_post(
         )
         RETURNING id
         "#,
-        req.slug,
+        created_slug,
         req.title,
         req.content,
         req.summary,
@@ -474,7 +475,7 @@ pub async fn create_post(
         VALUES ($1, 0, 0, 0, NOW())
         ON CONFLICT (slug) DO NOTHING
         "#,
-        req.slug
+        created_slug
     )
     .execute(&mut *tx)
     .await?;
@@ -483,8 +484,12 @@ pub async fn create_post(
 
     // 清除列表缓存
     clear_posts_cache(&state).await;
+    sync_post_search_index(&state, &created_slug).await;
 
-    Ok((StatusCode::CREATED, Json(SlugResponse { slug: req.slug })))
+    Ok((
+        StatusCode::CREATED,
+        Json(SlugResponse { slug: created_slug }),
+    ))
 }
 
 /// 获取文章详情
@@ -957,6 +962,7 @@ pub async fn update_post(
     // 清除缓存
     clear_post_cache(&state, &slug).await;
     clear_posts_cache(&state).await;
+    sync_post_search_index(&state, &slug).await;
 
     Ok(Json(MessageResponse {
         message: "Post updated successfully".to_string(),
@@ -1000,6 +1006,7 @@ pub async fn delete_post(
     // 清除缓存
     clear_post_cache(&state, &slug).await;
     clear_posts_cache(&state).await;
+    delete_post_search_index(&state, &slug).await;
 
     Ok(Json(MessageResponse {
         message: "Post deleted successfully".to_string(),
@@ -1158,5 +1165,25 @@ async fn clear_posts_cache(state: &AppState) {
             .query_async(&mut conn)
             .await
             .unwrap_or(());
+    }
+}
+
+async fn sync_post_search_index(state: &AppState, slug: &str) {
+    let Some(search_index) = &state.search_index else {
+        return;
+    };
+
+    if let Err(error) = search_index.sync_post_by_slug(&state.db, slug).await {
+        tracing::warn!("Failed to sync post {slug} to Meilisearch: {error:#}");
+    }
+}
+
+async fn delete_post_search_index(state: &AppState, slug: &str) {
+    let Some(search_index) = &state.search_index else {
+        return;
+    };
+
+    if let Err(error) = search_index.delete_post_by_slug(slug).await {
+        tracing::warn!("Failed to delete post {slug} from Meilisearch: {error:#}");
     }
 }

@@ -212,7 +212,11 @@ mod tests {
 
         assert_eq!(
             query.parse_fields(),
-            Some(vec!["id".to_string(), "title".to_string(), "slug".to_string()])
+            Some(vec![
+                "id".to_string(),
+                "title".to_string(),
+                "slug".to_string()
+            ])
         );
     }
 

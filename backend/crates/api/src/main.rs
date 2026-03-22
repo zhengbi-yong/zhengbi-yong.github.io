@@ -5,6 +5,7 @@ use axum::Router;
 use blog_api::middleware::{request_id_middleware, REQUEST_ID_HEADER};
 use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
 use blog_api::state::AppState;
+use opentelemetry::trace::TracerProvider as _;
 use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::prelude::*;
@@ -21,6 +22,11 @@ async fn main() {
     }
 
     // 初始化 tracing subscriber
+    let otel_provider = init_tracer();
+    let otel_layer = otel_provider
+        .as_ref()
+        .map(|provider| tracing_opentelemetry::layer().with_tracer(provider.tracer("blog-api")));
+
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::from_default_env())
         .with(
@@ -29,6 +35,7 @@ async fn main() {
                 .json()
                 .flatten_event(true),
         )
+        .with(otel_layer)
         .init();
 
     if let Err(e) = run_server().await {
@@ -44,8 +51,11 @@ async fn main() {
         eprintln!("   3. 检查 JWT_SECRET 长度是否至少 32 个字符");
         eprintln!("   4. 检查 SMTP 配置是否正确");
         eprintln!("   5. 查看上面的详细错误信息");
+        shutdown_tracer(otel_provider);
         std::process::exit(1);
     }
+
+    shutdown_tracer(otel_provider);
 }
 
 async fn run_server() -> anyhow::Result<()> {
@@ -102,6 +112,25 @@ async fn run_server() -> anyhow::Result<()> {
     // 初始化指标收集
     let metrics = std::sync::Arc::new(tokio::sync::RwLock::new(blog_api::metrics::Metrics::new()));
 
+    let search_index = if let Some(config) = &settings.meilisearch {
+        let search_index =
+            std::sync::Arc::new(blog_api::search_index::SearchIndexService::new(config).await?);
+
+        if config.auto_sync_on_startup {
+            let indexed_documents = search_index.sync_all(&db).await?;
+            tracing::info!(
+                indexed_documents,
+                index_name = %config.index_name,
+                "Meilisearch startup sync completed"
+            );
+        }
+
+        Some(search_index)
+    } else {
+        tracing::info!("Meilisearch is not configured; search will use PostgreSQL fallback");
+        None
+    };
+
     tracing::info!("Services initialized successfully");
 
     // 设置应用启动时间用于健康检查
@@ -114,6 +143,7 @@ async fn run_server() -> anyhow::Result<()> {
         settings,
         email_service,
         metrics,
+        search_index,
     };
 
     // 提取服务器地址（在移动 state 之前）
@@ -351,17 +381,14 @@ fn tag_routes() -> Router<AppState> {
 fn search_routes() -> Router<AppState> {
     use axum::routing::get;
     Router::new()
-        .route(
-            "/search",
-            get(blog_api::routes::search_optimized::search_posts_optimized),
-        )
+        .route("/search", get(blog_api::routes::search::search_posts))
         .route(
             "/search/suggest",
-            get(blog_api::routes::search_optimized::search_suggest_optimized),
+            get(blog_api::routes::search::search_suggest),
         )
         .route(
             "/search/trending",
-            get(blog_api::routes::search_optimized::get_trending_keywords_optimized),
+            get(blog_api::routes::search::get_trending_keywords),
         )
 }
 
@@ -448,6 +475,7 @@ fn admin_routes() -> Router<AppState> {
         .route("/admin/posts/{post_id}/versions/compare", get(blog_api::routes::versions::compare_versions))
         // MDX同步
         .route("/admin/sync/mdx", post(blog_api::routes::mdx_sync::sync_mdx_to_db))
+        .route("/admin/search/reindex", post(blog_api::routes::search::reindex_posts))
 }
 
 /// 创建安全的 CORS 层
