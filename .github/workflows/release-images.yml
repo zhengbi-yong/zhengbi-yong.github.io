@@ -1,0 +1,226 @@
+name: Release Images
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: release-images-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: Prepare Release Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      app_version: ${{ steps.meta.outputs.app_version }}
+      release_version: ${{ steps.meta.outputs.release_version }}
+      major_minor_version: ${{ steps.meta.outputs.major_minor_version }}
+      publish_release: ${{ steps.meta.outputs.publish_release }}
+      publish_major_minor: ${{ steps.meta.outputs.publish_major_minor }}
+      publish_latest: ${{ steps.meta.outputs.publish_latest }}
+      vcs_ref: ${{ steps.meta.outputs.vcs_ref }}
+      sha_short: ${{ steps.meta.outputs.sha_short }}
+      build_date: ${{ steps.meta.outputs.build_date }}
+      source_url: ${{ steps.meta.outputs.source_url }}
+      backend_image: ${{ steps.meta.outputs.backend_image }}
+      frontend_image: ${{ steps.meta.outputs.frontend_image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve OCI metadata
+        id: meta
+        run: |
+          bash scripts/release/oci-metadata.sh \
+            --github-output "$GITHUB_OUTPUT" \
+            --repository "${{ github.repository }}" \
+            --registry ghcr.io
+
+  publish-backend:
+    name: Publish Backend Image
+    needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare backend image tags
+        id: backend_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ needs.prepare.outputs.backend_image }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=sha-${{ needs.prepare.outputs.sha_short }}
+            type=raw,value=latest,enable=${{ needs.prepare.outputs.publish_latest == 'true' }}
+            type=raw,value=${{ needs.prepare.outputs.release_version }},enable=${{ needs.prepare.outputs.publish_release == 'true' }}
+            type=raw,value=${{ needs.prepare.outputs.major_minor_version }},enable=${{ needs.prepare.outputs.publish_major_minor == 'true' }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.prepare.outputs.app_version }}
+            org.opencontainers.image.revision=${{ needs.prepare.outputs.vcs_ref }}
+            org.opencontainers.image.created=${{ needs.prepare.outputs.build_date }}
+            org.opencontainers.image.source=${{ needs.prepare.outputs.source_url }}
+
+      - name: Build and publish backend image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          target: production
+          push: true
+          build-args: |
+            APP_VERSION=${{ needs.prepare.outputs.app_version }}
+            VCS_REF=${{ needs.prepare.outputs.vcs_ref }}
+            BUILD_DATE=${{ needs.prepare.outputs.build_date }}
+          labels: ${{ steps.backend_meta.outputs.labels }}
+          tags: ${{ steps.backend_meta.outputs.tags }}
+          cache-from: type=gha,scope=backend-release
+          cache-to: type=gha,mode=max,scope=backend-release
+          provenance: mode=max
+          sbom: true
+
+  publish-frontend:
+    name: Publish Frontend Image
+    needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare frontend image tags
+        id: frontend_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ needs.prepare.outputs.frontend_image }}
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=sha-${{ needs.prepare.outputs.sha_short }}
+            type=raw,value=latest,enable=${{ needs.prepare.outputs.publish_latest == 'true' }}
+            type=raw,value=${{ needs.prepare.outputs.release_version }},enable=${{ needs.prepare.outputs.publish_release == 'true' }}
+            type=raw,value=${{ needs.prepare.outputs.major_minor_version }},enable=${{ needs.prepare.outputs.publish_major_minor == 'true' }}
+          labels: |
+            org.opencontainers.image.version=${{ needs.prepare.outputs.app_version }}
+            org.opencontainers.image.revision=${{ needs.prepare.outputs.vcs_ref }}
+            org.opencontainers.image.created=${{ needs.prepare.outputs.build_date }}
+            org.opencontainers.image.source=${{ needs.prepare.outputs.source_url }}
+
+      - name: Build and publish frontend image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          build-args: |
+            APP_VERSION=${{ needs.prepare.outputs.app_version }}
+            VCS_REF=${{ needs.prepare.outputs.vcs_ref }}
+            BUILD_DATE=${{ needs.prepare.outputs.build_date }}
+          labels: ${{ steps.frontend_meta.outputs.labels }}
+          tags: ${{ steps.frontend_meta.outputs.tags }}
+          cache-from: type=gha,scope=frontend-release
+          cache-to: type=gha,mode=max,scope=frontend-release
+          provenance: mode=max
+          sbom: true
+
+  release-assets:
+    name: Build Release Assets
+    needs: [prepare, publish-backend, publish-frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Render immutable release assets
+        env:
+          GITOPS_REPO_URL: ${{ vars.GITOPS_REPO_URL }}
+          GITOPS_TARGET_REVISION: ${{ vars.GITOPS_TARGET_REVISION }}
+          GITOPS_BASE_PATH: ${{ vars.GITOPS_BASE_PATH }}
+          ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+          ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
+        run: |
+          bash scripts/release/render-release-assets.sh \
+            --version "${{ needs.prepare.outputs.app_version }}" \
+            --repository "${{ github.repository }}" \
+            --registry ghcr.io \
+            --backend-digest "${{ needs.publish-backend.outputs.digest }}" \
+            --frontend-digest "${{ needs.publish-frontend.outputs.digest }}"
+
+      - name: Upload release assets artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ needs.prepare.outputs.app_version }}
+          path: |
+            dist/release-assets/${{ needs.prepare.outputs.app_version }}
+            dist/release-assets/blog-platform-release-${{ needs.prepare.outputs.app_version }}.tar.gz
+            dist/release-assets/blog-platform-release-${{ needs.prepare.outputs.app_version }}.sha256
+          if-no-files-found: error
+
+  github-release:
+    name: Publish GitHub Release
+    needs: [prepare, publish-backend, publish-frontend, release-assets]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Render immutable release assets
+        env:
+          GITOPS_REPO_URL: ${{ vars.GITOPS_REPO_URL }}
+          GITOPS_TARGET_REVISION: ${{ vars.GITOPS_TARGET_REVISION }}
+          GITOPS_BASE_PATH: ${{ vars.GITOPS_BASE_PATH }}
+          ARGOCD_NAMESPACE: ${{ vars.ARGOCD_NAMESPACE }}
+          ARGOCD_PROJECT: ${{ vars.ARGOCD_PROJECT }}
+        run: |
+          bash scripts/release/render-release-assets.sh \
+            --version "${{ needs.prepare.outputs.app_version }}" \
+            --repository "${{ github.repository }}" \
+            --registry ghcr.io \
+            --backend-digest "${{ needs.publish-backend.outputs.digest }}" \
+            --frontend-digest "${{ needs.publish-frontend.outputs.digest }}"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/release-assets/blog-platform-release-${{ needs.prepare.outputs.app_version }}.tar.gz
+            dist/release-assets/blog-platform-release-${{ needs.prepare.outputs.app_version }}.sha256

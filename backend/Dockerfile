@@ -1,7 +1,7 @@
 # =============================================================================
 # Development Stage
 # =============================================================================
-FROM rustlang/rust:nightly-slim AS development
+FROM rust:1.92-slim-bookworm AS development
 
 # 安装开发依赖
 RUN apt-get update && apt-get install -y \
@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
 # 设置工作目录
 WORKDIR /app
 
+ENV SQLX_OFFLINE=true
+
 # 创建非 root 用户
 RUN useradd -m -u 1000 rustuser && \
     chown -R rustuser:rustuser /app
@@ -25,7 +27,7 @@ COPY --chown=rustuser:rustuser . .
 USER rustuser
 
 # 构建所有二进制文件
-RUN cargo build -p blog-api -p blog-worker
+RUN cargo build --locked -p blog-api -p blog-worker
 
 # 默认命令：直接运行应用
 CMD ["cargo", "run", "--bin", "api"]
@@ -33,10 +35,11 @@ CMD ["cargo", "run", "--bin", "api"]
 # =============================================================================
 # Builder Stage
 # =============================================================================
-FROM rustlang/rust:nightly-slim AS builder
+FROM rust:1.92-slim-bookworm AS builder
 
-# 接受数据库URL作为构建参数
-ARG DATABASE_URL
+ARG APP_VERSION=dev
+ARG VCS_REF=local
+ARG BUILD_DATE=unknown
 
 # 安装必要的系统依赖
 RUN apt-get update && apt-get install -y \
@@ -49,23 +52,27 @@ RUN apt-get update && apt-get install -y \
 # 设置工作目录
 WORKDIR /app
 
+ENV SQLX_OFFLINE=true
+
 # 复制所有源代码（包括 Cargo 文件和 SQLx 缓存）
 COPY . .
 
-# 如果没有提供DATABASE_URL，设置离线模式
-RUN if [ -z "$DATABASE_URL" ]; then \
-        echo "Building in offline mode (SQLX_OFFLINE=true)"; \
-        export SQLX_OFFLINE=true; \
-    else \
-        echo "Building in online mode with DATABASE_URL"; \
-        export DATABASE_URL="$DATABASE_URL"; \
-    fi && \
-    cargo build --release -p blog-api -p blog-worker
+RUN cargo build --locked --release -p blog-api -p blog-worker
 
 # =============================================================================
 # Production Stage
 # =============================================================================
 FROM debian:bookworm-slim AS production
+
+ARG APP_VERSION=dev
+ARG VCS_REF=local
+ARG BUILD_DATE=unknown
+
+LABEL org.opencontainers.image.title="blog-backend" \
+      org.opencontainers.image.description="Rust API, worker, and migration runtime for the blog platform" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.created="${BUILD_DATE}"
 
 # 安装运行时依赖
 RUN apt-get update && apt-get install -y \
@@ -85,6 +92,7 @@ WORKDIR /app
 # 从构建阶段复制二进制文件
 COPY --from=builder /app/target/release/api /usr/local/bin/
 COPY --from=builder /app/target/release/worker /usr/local/bin/
+COPY --from=builder /app/target/release/migrate /usr/local/bin/
 COPY --from=builder /app/target/release/create_admin /usr/local/bin/
 
 # 复制迁移文件

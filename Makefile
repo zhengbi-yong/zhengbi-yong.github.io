@@ -1,4 +1,4 @@
-.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin
+.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env bootstrap-remote-host deploy-remote-compose provision-remote-compose
 
 # 默认目标
 help:
@@ -12,6 +12,15 @@ help:
 	@echo "  make install       - 安装所有依赖"
 	@echo "  make setup-db      - 启动数据库服务"
 	@echo "  make generate-api  - 生成API类型"
+	@echo "  make print-version-metadata - 输出当前发布元数据"
+	@echo "  make render-release-assets - 生成版本化部署资产"
+	@echo "  make validate-k8s-apply - 在本地 kind 集群验证 kubectl apply"
+	@echo "  make generate-prod-env - 生成带安全默认值的生产环境文件"
+	@echo "  make bootstrap-remote-host - 远程安装 Docker/Compose 部署前置条件"
+	@echo "  make deploy-remote-compose - 通过 SSH 将 Compose 运行时发布到服务器"
+	@echo "  make provision-remote-compose - 一条命令生成 env、引导服务器并部署"
+	@echo "  make deploy-prod-validate - 校验生产环境变量"
+	@echo "  make deploy-prod-up - 按标准生产栈部署"
 	@echo ""
 
 # 初始化开发环境
@@ -69,7 +78,7 @@ install:
 # 启动数据库服务
 setup-db:
 	@echo "🗄️  启动数据库服务..."
-	docker-compose up -d postgres redis
+	docker compose -f docker-compose.dev.yml up -d postgres redis
 	@echo "✅ 数据库服务已启动！"
 	@echo ""
 	@echo "💡 数据库连接:"
@@ -90,12 +99,12 @@ db-migrate:
 
 # 查看日志
 logs:
-	docker-compose logs -f
+	docker compose -f docker-compose.dev.yml logs -f
 
 # 停止所有服务
 stop:
 	@echo "🛑 停止所有服务..."
-	docker-compose down
+	docker compose -f docker-compose.dev.yml down
 	@echo "✅ 服务已停止！"
 
 # 重启所有服务
@@ -103,33 +112,122 @@ restart: stop setup-db
 	@echo "✅ 服务已重启！"
 
 # =============================================================================
-# Docker 开发环境命令
+# 本地开发命令
 # =============================================================================
 
-# 启动开发环境后端
 dev-backend:
-	@echo "🚀 启动开发环境后端..."
-	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml up -d backend
-	@echo "✅ 开发后端已启动"
-	@echo "💡 使用 'make dev-shell' 进入容器"
+	@echo "🚀 启动开发基础设施并运行后端..."
+	docker compose -f docker-compose.dev.yml up -d postgres redis meilisearch minio
+	cd backend && cargo run --bin api
 
-# 进入开发容器
 dev-shell:
-	@echo "🐚 进入开发容器..."
-	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml exec backend bash
+	@echo "🐚 打开后端工作目录 shell..."
+	cd backend && $$SHELL
 
-# 运行迁移（开发环境）
 dev-migrate:
-	@echo "🗄️  运行数据库迁移（开发环境）..."
-	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml exec backend cargo run --bin api -- migrate
+	@echo "🗄️  启动基础设施并运行迁移..."
+	docker compose -f docker-compose.dev.yml up -d postgres redis
+	cd backend && cargo run --bin migrate
 
-# 创建管理员（开发环境）
 dev-create-admin:
-	@echo "👤 创建管理员账户（开发环境）..."
-	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml exec backend cargo run --bin create_admin
+	@echo "👤 启动基础设施并创建管理员账户..."
+	docker compose -f docker-compose.dev.yml up -d postgres redis
+	cd backend && cargo run --bin create_admin
 
-# 停止开发环境
 dev-stop:
 	@echo "🛑 停止开发环境..."
-	docker compose -f deployments/docker/compose-files/docker-compose.yml -f deployments/docker/compose-files/docker-compose.dev.yml down
+	docker compose -f docker-compose.dev.yml down
 	@echo "✅ 开发环境已停止"
+
+# =============================================================================
+# 标准生产部署命令
+# =============================================================================
+
+deploy-prod-validate:
+	@bash scripts/deployment/validate-production-env.sh .env.production
+
+deploy-prod-up:
+	@bash scripts/deployment/deploy-compose-stack.sh --env-file .env.production
+
+deploy-prod-up-build:
+	@bash scripts/deployment/deploy-compose-stack.sh --env-file .env.production --build
+
+deploy-prod-migrate:
+	@docker compose --env-file .env.production -f docker-compose.production.yml --profile ops run --rm migrate
+
+print-version-metadata:
+	@bash scripts/release/oci-metadata.sh
+
+render-release-assets:
+	@bash scripts/release/render-release-assets.sh \
+		$(if $(VERSION),--version $(VERSION),) \
+		$(if $(REPOSITORY),--repository $(REPOSITORY),) \
+		$(if $(REGISTRY),--registry $(REGISTRY),) \
+		$(if $(BACKEND_DIGEST),--backend-digest $(BACKEND_DIGEST),) \
+		$(if $(FRONTEND_DIGEST),--frontend-digest $(FRONTEND_DIGEST),) \
+		$(if $(GITOPS_REPO_URL),--gitops-repo-url $(GITOPS_REPO_URL),) \
+		$(if $(GITOPS_TARGET_REVISION),--gitops-target-revision $(GITOPS_TARGET_REVISION),) \
+		$(if $(GITOPS_BASE_PATH),--gitops-base-path $(GITOPS_BASE_PATH),) \
+		$(if $(ARGOCD_NAMESPACE),--argocd-namespace $(ARGOCD_NAMESPACE),) \
+		$(if $(ARGOCD_PROJECT),--argocd-project $(ARGOCD_PROJECT),)
+
+validate-k8s-apply:
+	@bash scripts/deployment/validate-kubernetes-apply.sh \
+		$(if $(RELEASE_VERSION),--release-version $(RELEASE_VERSION),) \
+		$(if $(RELEASE_DIR),--release-dir $(RELEASE_DIR),) \
+		$(if $(KIND_CLUSTER_NAME),--cluster-name $(KIND_CLUSTER_NAME),) \
+		$(if $(KUBECONFIG_PATH),--kubeconfig $(KUBECONFIG_PATH),) \
+		$(if $(TOOLS_DIR),--tools-dir $(TOOLS_DIR),) \
+		$(if $(ARGOCD_NAMESPACE),--argocd-namespace $(ARGOCD_NAMESPACE),)
+
+generate-prod-env:
+	@bash scripts/deployment/generate-production-env.sh \
+		$(if $(OUTPUT_FILE),--output $(OUTPUT_FILE),) \
+		$(if $(PUBLIC_HOST),--public-host $(PUBLIC_HOST),) \
+		$(if $(SITE_URL),--site-url $(SITE_URL),) \
+		$(if $(SCHEME),--scheme $(SCHEME),) \
+		$(if $(RELEASE_VERSION),--release-version $(RELEASE_VERSION),) \
+		$(if $(REPOSITORY),--repository $(REPOSITORY),) \
+		$(if $(REGISTRY),--registry $(REGISTRY),) \
+		$(if $(BACKEND_IMAGE),--backend-image $(BACKEND_IMAGE),) \
+		$(if $(FRONTEND_IMAGE),--frontend-image $(FRONTEND_IMAGE),) \
+		$(if $(ENABLE_MEILISEARCH),--enable-bundled-meilisearch,) \
+		$(if $(ENABLE_MINIO),--enable-bundled-minio,) \
+		$(if $(ENABLE_MAILPIT),--enable-bundled-mailpit,) \
+		$(if $(SMTP_MODE),--smtp-mode $(SMTP_MODE),)
+
+bootstrap-remote-host:
+	@bash scripts/deployment/bootstrap-remote-host.sh \
+		$(if $(TARGET),--target $(TARGET),) \
+		$(if $(SSH_PORT),--ssh-port $(SSH_PORT),) \
+		$(if $(SSH_KEY),--identity-file $(SSH_KEY),) \
+		$(if $(CONFIGURE_FIREWALL),--configure-firewall,)
+
+deploy-remote-compose:
+	@bash scripts/deployment/deploy-remote-compose.sh \
+		$(if $(TARGET),--target $(TARGET),) \
+		$(if $(ENV_FILE),--env-file $(ENV_FILE),) \
+		$(if $(REMOTE_DIR),--remote-dir $(REMOTE_DIR),) \
+		$(if $(SSH_PORT),--ssh-port $(SSH_PORT),) \
+		$(if $(SSH_KEY),--identity-file $(SSH_KEY),) \
+		$(if $(BOOTSTRAP),--bootstrap,) \
+		$(if $(SKIP_MIGRATE),--skip-migrate,) \
+		$(if $(DRY_RUN),--dry-run,)
+
+provision-remote-compose:
+	@bash scripts/deployment/provision-compose-host.sh \
+		$(if $(TARGET),--target $(TARGET),) \
+		$(if $(PUBLIC_HOST),--public-host $(PUBLIC_HOST),) \
+		$(if $(SITE_URL),--site-url $(SITE_URL),) \
+		$(if $(SCHEME),--scheme $(SCHEME),) \
+		$(if $(RELEASE_VERSION),--release-version $(RELEASE_VERSION),) \
+		$(if $(REPOSITORY),--repository $(REPOSITORY),) \
+		$(if $(REGISTRY),--registry $(REGISTRY),) \
+		$(if $(REMOTE_DIR),--remote-dir $(REMOTE_DIR),) \
+		$(if $(SSH_PORT),--ssh-port $(SSH_PORT),) \
+		$(if $(SSH_KEY),--identity-file $(SSH_KEY),) \
+		$(if $(SMTP_MODE),--smtp-mode $(SMTP_MODE),) \
+		$(if $(ENABLE_MEILISEARCH),--enable-bundled-meilisearch,) \
+		$(if $(ENABLE_MINIO),--enable-bundled-minio,) \
+		$(if $(ENABLE_MAILPIT),--enable-bundled-mailpit,) \
+		$(if $(DRY_RUN),--dry-run,)

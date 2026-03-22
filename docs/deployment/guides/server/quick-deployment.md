@@ -1,172 +1,144 @@
 # 快速部署指南
 
-## 本地开发
+这是单机部署的最快路径，目标是把运维输入压缩到最少。
+
+## 最少输入的自动部署
 
 ```bash
-# 安装依赖
-cd frontend && pnpm install
-
-# 启动开发服务器
-pnpm dev
+bash scripts/deployment/provision-compose-host.sh --target ubuntu@203.0.113.10
 ```
 
-## 生产部署
+这条命令会自动完成：
 
-### 方式 1: 一键部署脚本（推荐）
+1. 生成生产环境文件和随机安全密钥
+2. 在远程主机安装 Docker Engine 与 Docker Compose
+3. 上传标准 Compose 运行时包
+4. 远程执行数据库迁移和服务启动
+
+默认站点地址会从 SSH 目标推导为 `http://203.0.113.10`。
+默认只有边缘代理对公网监听；前端、后端、数据库、Redis 和 Mailpit 默认绑定到 `127.0.0.1`。
+
+## 无需镜像仓库的一键部署
+
+如果你希望直接从当前仓库构建并推送到服务器，不依赖远端拉取镜像：
 
 ```bash
-# 自动构建、导出、上传并部署
-./scripts/deployment/deploy-production.sh <server-ip> <user>
-
-# 示例
-./scripts/deployment/deploy-production.sh 152.136.43.194 ubuntu
+bash scripts/deployment/provision-compose-host.sh \
+  --target ubuntu@203.0.113.10 \
+  --image-source local \
+  --configure-firewall
 ```
 
-### 方式 2: 手动部署
+这条命令会在本机构建 `blog-backend:local` 和 `blog-frontend:local`，再通过 SSH 直接加载到服务器。
 
-#### 步骤 1: 构建镜像
+## 推荐的生产命令
 
 ```bash
-npm run build
+bash scripts/deployment/provision-compose-host.sh \
+  --target ubuntu@203.0.113.10 \
+  --site-url https://blog.example.com \
+  --release-version 1.8.2 \
+  --enable-bundled-meilisearch \
+  --enable-bundled-minio
 ```
 
-#### 步骤 2: 导出镜像
+## 已有系统 nginx 时的生产切换
+
+如果服务器已经由系统 nginx 接管 `80/443`，直接让部署脚本在服务启动后完成切流：
 
 ```bash
-npm run export
+bash scripts/deployment/provision-compose-host.sh \
+  --target ubuntu@203.0.113.10 \
+  --site-url https://blog.example.com \
+  --cutover-system-nginx
 ```
 
-#### 步骤 3: 上传到服务器
+这一模式会自动把 Compose edge 默认改成 `127.0.0.1:18080`，避免和系统 nginx 抢占端口。
+
+如需显式回滚：
 
 ```bash
-# 上传镜像
-scp -r docker-images-export/ ubuntu@your-server:~/blog-deployment/
-
-# 上传配置
-scp server-setup/.env.production ubuntu@your-server:~/blog/.env
-scp server-setup/nginx.conf ubuntu@your-server:~/blog/nginx.conf
-scp server-setup/site.conf ubuntu@your-server:~/blog/site.conf
-scp docker-compose.server.yml ubuntu@your-server:~/blog/deployments/docker/compose-files/docker-compose.yml
+bash scripts/deployment/rollback-system-nginx.sh \
+  --target ubuntu@203.0.113.10
 ```
 
-#### 步骤 4: 服务器部署
+## 分阶段使用
+
+如果你希望拆成几个更可控的步骤：
 
 ```bash
-ssh ubuntu@your-server
+# 1. 生成可审查的生产 env
+bash scripts/deployment/generate-production-env.sh \
+  --public-host 203.0.113.10 \
+  --release-version 1.8.2 \
+  --smtp-mode mailpit \
+  --enable-bundled-mailpit \
+  --compose-project-name blog-platform \
+  --output .env.production
 
-# 导入镜像
-cd ~/blog-deployment
-bash import-images.sh
+# 2. 引导服务器
+bash scripts/deployment/bootstrap-remote-host.sh \
+  --target ubuntu@203.0.113.10 \
+  --configure-firewall
 
-# 配置 Nginx
-sudo cp ~/blog/site.conf /etc/nginx/sites-available/default
-sudo systemctl reload nginx
-
-# 启动服务
-cd ~/blog
-docker compose up -d
+# 3. 部署到服务器
+bash scripts/deployment/deploy-remote-compose.sh \
+  --target ubuntu@203.0.113.10 \
+  --env-file .env.production
 ```
 
-## 配置说明
+## 并行 staging/canary
 
-### 必须修改的配置
-
-在 `server-setup/.env.production` 中修改：
-
-```env
-# 服务器 IP
-NEXT_PUBLIC_SITE_URL=http://your-server-ip
-NEXT_PUBLIC_API_URL=http://your-server-ip/api
-
-# CORS 允许的域名
-CORS_ALLOWED_ORIGINS=http://your-server-ip,http://your-server-ip:3001
-
-# 安全密钥（必须修改！）
-JWT_SECRET=<your-32-char-secret>
-PASSWORD_PEPPER=<your-32-char-secret>
-SESSION_SECRET=<your-32-char-secret>
-```
-
-### 云服务商配置
-
-在云服务商控制台（腾讯云/阿里云等）开放端口：
-
-- **22** - SSH
-- **80** - HTTP
-- **443** - HTTPS
-- **3000** - Backend API (可选)
-- **3001** - Frontend (可选)
-
-## 访问地址
-
-- **前端**: http://your-server-ip
-- **后端 API**: http://your-server-ip/api
-- **前端直连**: http://your-server-ip:3001 (需要开放 3001 端口)
-- **后端直连**: http://your-server-ip:3000 (需要开放 3000 端口)
-
-## 服务管理
+如果同一台机器要再起一套隔离环境，直接覆写项目名和端口：
 
 ```bash
-# SSH 登录服务器
-ssh ubuntu@your-server
-
-# 查看服务状态
-cd ~/blog
-docker compose ps
-
-# 查看日志
-docker compose logs -f
-
-# 重启服务
-docker compose restart
-
-# 停止服务
-docker compose down
+bash scripts/deployment/provision-compose-host.sh \
+  --target ubuntu@203.0.113.10 \
+  --remote-dir /opt/blog-platform-staging \
+  --site-url http://203.0.113.10:18080 \
+  --compose-project-name blog-platform-staging \
+  --set-env EDGE_HTTP_PORT=18080 \
+  --set-env FRONTEND_PORT=13101 \
+  --set-env BACKEND_PORT=13100 \
+  --set-env POSTGRES_PORT=25432 \
+  --set-env REDIS_PORT=26379 \
+  --image-source local \
+  --configure-firewall
 ```
 
-## 更新部署
+## 服务器前置条件
+
+- 能通过 SSH 登录远程主机
+- 远程用户是 `root`，或具备无密码 `sudo`
+- 服务器可以访问 Docker 安装源和镜像仓库
+- 云防火墙或安全组至少开放：
+  - `22/tcp`
+  - `80/tcp`
+  - `443/tcp`（如果站点放在 HTTPS 反向代理后）
+  - 任何自定义边缘端口，例如 `18080/tcp`（用于 staging/canary）
+
+## 访问方式
+
+- 默认边缘代理开启时：`http://<your-host>`
+- 如启用了自定义边缘端口：`http://<your-host>:<EDGE_HTTP_PORT>`
+- 前端、后端、数据库、Redis、Mailpit 默认仅绑定本机回环地址，不直接暴露到公网
+
+## 维护命令
 
 ```bash
-# 本地重新构建
-npm run build
-npm run export
+# 重新部署当前 env
+bash scripts/deployment/deploy-remote-compose.sh \
+  --target ubuntu@203.0.113.10 \
+  --env-file .env.production
 
-# 上传新镜像
-scp docker-images-export/blog-backend-local.tar ubuntu@your-server:~/blog-deployment/
-scp docker-images-export/blog-frontend-local.tar ubuntu@your-server:~/blog-deployment/
-
-# 服务器上更新
-ssh ubuntu@your-server
-cd ~/blog-deployment
-docker load -i blog-backend-local.tar
-docker load -i blog-frontend-local.tar
-
-cd ~/blog
-docker compose down
-docker compose up -d
+# 本地先做打包/校验，不真正 SSH
+bash scripts/deployment/provision-compose-host.sh \
+  --target ubuntu@203.0.113.10 \
+  --dry-run
 ```
 
-## 详细文档
+## 规范文档
 
-完整部署文档请查看: [docs/SERVER_DEPLOYMENT_GUIDE.md](docs/SERVER_DEPLOYMENT_GUIDE.md)
-
-## 故障排查
-
-### 无法访问网站
-
-1. 检查服务状态: `docker compose ps`
-2. 检查防火墙: `sudo ufw status`
-3. 检查云服务商安全组规则
-4. 查看日志: `docker compose logs -f`
-
-### 登录失败 (failed to fetch)
-
-1. 检查后端 CORS 配置
-2. 确认 `.env` 中的 `CORS_ALLOWED_ORIGINS` 包含正确的域名
-3. 查看后端日志: `docker compose logs backend`
-
-### 服务无法启动
-
-1. 查看详细日志: `docker compose logs backend`
-2. 检查端口占用: `sudo netstat -tlnp | grep -E '3000|3001'`
-3. 检查磁盘空间: `df -h`
+- [Automated Compose Deploy](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/automated-compose-deploy.md)
+- [System Nginx Cutover](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/system-nginx-cutover.md)
+- [Compose Production Stack](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/compose/production-stack.md)

@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+namespace: blog-platform-staging
+patches:
+  - path: namespace-patch.yaml
+    target:
+      kind: Namespace
+      name: blog-platform
+  - path: configmap-patch.yaml
+    target:
+      kind: ConfigMap
+      name: blog-runtime-config
+  - path: ingress-patch.yaml
+    target:
+      kind: Ingress
+      name: blog-platform
+  - path: api-deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: blog-api
+  - path: frontend-deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: blog-frontend
+  - path: worker-deployment-patch.yaml
+    target:
+      kind: Deployment
+      name: blog-worker
+  - path: api-hpa-patch.yaml
+    target:
+      kind: HorizontalPodAutoscaler
+      name: blog-api
+  - path: frontend-hpa-patch.yaml
+    target:
+      kind: HorizontalPodAutoscaler
+      name: blog-frontend

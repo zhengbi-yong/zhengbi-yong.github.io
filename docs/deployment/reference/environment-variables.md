@@ -10,6 +10,16 @@ Complete reference of all environment variables used in the blog platform.
 The blog platform uses environment variables for configuration. These variables control database connections, authentication, security settings, and more.
 / 博客平台使用环境变量进行配置。这些变量控制数据库连接、认证、安全设置等。
 
+For the canonical production path, start from:
+
+- [.env.production.example](/home/Sisyphus/zhengbi-yong.github.io/.env.production.example)
+- [generate-production-env.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/generate-production-env.sh)
+- [validate-production-env.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/validate-production-env.sh)
+
+For the lowest-friction SSH deployment path, see:
+
+- [automated-compose-deploy.md](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/automated-compose-deploy.md)
+
 ### Configuration Files / 配置文件
 
 **Primary Configuration / 主配置**:
@@ -70,7 +80,7 @@ DATABASE_URL=postgresql://blog_user:PASSWORD@db.example.com:5432/blog_db?sslmode
 - ⚠️ **Restrict user permissions to minimum required**
 - ⚠️ **Use SSL for remote connections (sslmode=require)**
 
-**See Also / 另见**: [Database Setup](../guides/server/production-server.md#database-setup)
+**See Also / 另见**: [Compose Production Stack](../guides/compose/production-stack.md)
 
 ---
 
@@ -820,9 +830,10 @@ docker compose restart backend
 ## 📖 Related Documentation / 相关文档
 
 - [Prerequisites](../getting-started/prerequisites.md) - Environment setup
-- [Production Server Guide](../guides/server/production-server.md) - Production configuration
+- [Compose Production Stack](../guides/compose/production-stack.md) - Production configuration
+- [Automated Compose Deploy](../guides/server/automated-compose-deploy.md) - SSH bootstrap workflow
 - [Security Best Practices](../best-practices/security.md) - Security hardening
-- [Configuration Checklist](./configuration-checklist.md) - Pre-deployment checks
+- [Commands Reference](./commands.md) - Common deployment commands
 
 ---
 

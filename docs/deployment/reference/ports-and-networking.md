@@ -65,7 +65,7 @@ Internet (Public)
 | **443** | HTTPS | Nginx | HTTPS (main traffic) | ✅ Yes |
 | **22** | SSH | SSHD | Server administration | ✅ Yes (for management) |
 
-**Note / 注意**: Ports 80 and 443 are the **only** ports that should be exposed to the public. / 端口80和443是**唯一**应该向公众开放的端口。
+**Note / 注意**: In the production Compose stack, only the edge proxy is public by default. Backend, frontend, PostgreSQL, Redis, Mailpit, Meilisearch, and MinIO bind to `127.0.0.1` unless you explicitly override their `*_BIND_HOST` values. / 在生产 Compose 栈中，默认只有边缘代理对外公开。后端、前端、PostgreSQL、Redis、Mailpit、Meilisearch 和 MinIO 默认绑定到 `127.0.0.1`，除非你显式覆写对应的 `*_BIND_HOST`。
 
 ### Internal Ports (Docker Network) / 内部端口（Docker网络）
 
@@ -75,6 +75,21 @@ Internet (Public)
 | **3001** | Frontend (Next.js) | Docker + Nginx / Docker + Nginx | Optional (development) / 可选（开发） |
 | **5432** | PostgreSQL | Docker containers only / 仅Docker容器 | ❌ No / 否 |
 | **6379** | Redis | Docker containers only / 仅Docker容器 | ❌ No / 否 |
+
+### Bind Host Defaults / 默认绑定地址
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `EDGE_BIND_HOST` | `0.0.0.0` | Edge proxy is reachable from outside the host |
+| `FRONTEND_BIND_HOST` | `127.0.0.1` | Frontend direct port is host-local by default |
+| `BACKEND_BIND_HOST` | `127.0.0.1` | Backend direct port is host-local by default |
+| `POSTGRES_BIND_HOST` | `127.0.0.1` | PostgreSQL is not published publicly |
+| `REDIS_BIND_HOST` | `127.0.0.1` | Redis is not published publicly |
+| `MEILISEARCH_BIND_HOST` | `127.0.0.1` | Meilisearch is not published publicly |
+| `MINIO_BIND_HOST` | `127.0.0.1` | MinIO API and console are not published publicly |
+| `MAILPIT_BIND_HOST` | `127.0.0.1` | Mailpit SMTP and UI are not published publicly |
+
+This makes the default single-host deployment safer while still allowing SSH-based access for maintenance and debugging.
 
 ### Development Ports / 开发端口
 
@@ -116,6 +131,9 @@ sudo ufw allow 80/tcp comment 'HTTP'
 # Allow HTTPS
 sudo ufw allow 443/tcp comment 'HTTPS'
 
+# Optional staging/canary edge port
+sudo ufw allow 18080/tcp comment 'Staging edge'
+
 # Check rules
 sudo ufw status numbered
 ```
@@ -129,6 +147,7 @@ Status: active
 [ 1] 22/tcp                     ALLOW IN    Anywhere                   (SSH)
 [ 2] 80/tcp                     ALLOW IN    Anywhere                   (HTTP)
 [ 3] 443/tcp                    ALLOW IN    Anywhere                   (HTTPS)
+[ 4] 18080/tcp                  ALLOW IN    Anywhere                   (Staging)
 ```
 
 **Deny Specific Ports (Optional) / 拒绝特定端口（可选）**:
@@ -546,7 +565,8 @@ sudo iptables -L -v -n
 ## 📖 Related Documentation / 相关文档
 
 - [Architecture Overview](../concepts/architecture.md) - System architecture
-- [Production Server Guide](../guides/server/production-server.md) - Server setup
+- [Compose Production Stack](../guides/compose/production-stack.md) - Canonical single-host networking
+- [System Nginx Cutover](../guides/server/system-nginx-cutover.md) - Host nginx networking model
 - [Security Best Practices](../best-practices/security.md) - Security hardening
 - [Commands Reference](./commands.md) - Network commands
 

@@ -16,6 +16,12 @@ RUN pnpm install --frozen-lockfile
 FROM node:22-alpine AS builder
 WORKDIR /app
 
+ARG APP_VERSION=dev
+ARG VCS_REF=local
+ARG BUILD_DATE=unknown
+ARG NEXT_IGNORE_BUILD_ERRORS=0
+ARG NEXT_IGNORE_ESLINT=0
+
 # 安装 pnpm (需要在 builder 阶段使用)
 RUN npm install -g pnpm
 
@@ -27,6 +33,9 @@ RUN rm -rf .contentlayer/.cache
 
 # 安装contentlayer（需要生成内容）
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV NEXT_IGNORE_BUILD_ERRORS=${NEXT_IGNORE_BUILD_ERRORS}
+ENV NEXT_IGNORE_ESLINT=${NEXT_IGNORE_ESLINT}
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # 构建应用
 RUN pnpm build
@@ -34,6 +43,16 @@ RUN pnpm build
 # Stage 3: 生产运行
 FROM node:22-alpine AS runner
 WORKDIR /app
+
+ARG APP_VERSION=dev
+ARG VCS_REF=local
+ARG BUILD_DATE=unknown
+
+LABEL org.opencontainers.image.title="blog-frontend" \
+      org.opencontainers.image.description="Next.js frontend runtime for the blog platform" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.created="${BUILD_DATE}"
 
 # 安装 curl 用于健康检查
 RUN apk add --no-cache curl
@@ -63,6 +82,9 @@ EXPOSE 3001
 
 ENV PORT 3001
 ENV HOSTNAME "0.0.0.0"
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3001/ || exit 1
 
 # 启动应用
 CMD ["node", "server.js"]

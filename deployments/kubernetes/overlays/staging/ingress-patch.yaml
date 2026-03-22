@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blog-platform
+spec:
+  rules:
+    - host: staging.blog.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-api
+                port:
+                  number: 3000
+          - path: /health
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-api
+                port:
+                  number: 3000
+          - path: /livez
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-api
+                port:
+                  number: 3000
+          - path: /readyz
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-api
+                port:
+                  number: 3000
+          - path: /metrics
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-api
+                port:
+                  number: 3000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-frontend
+                port:
+                  number: 3001

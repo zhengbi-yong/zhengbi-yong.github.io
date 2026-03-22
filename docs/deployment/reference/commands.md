@@ -12,12 +12,56 @@ This reference covers commonly used commands for Docker, database operations, an
 
 ### Quick Navigation / 快速导航
 
+- [Project Deployment Commands](#project-deployment-commands) - Canonical repo workflows
 - [Docker Commands](#docker-commands) - Container management
 - [Docker Compose Commands](#docker-compose-commands) - Multi-container orchestration
 - [Database Commands](#database-commands) - PostgreSQL operations
 - [Redis Commands](#redis-commands) - Cache operations
 - [Network Commands](#network-commands) - Networking and ports
 - [System Commands](#system-commands) - Server management
+
+---
+
+## 🚀 Project Deployment Commands
+
+```bash
+# Lowest-friction fresh-server deploy
+bash scripts/deployment/provision-compose-host.sh --target ubuntu@203.0.113.10
+
+# Generate a validated production env
+bash scripts/deployment/generate-production-env.sh \
+  --public-host 203.0.113.10 \
+  --smtp-mode mailpit \
+  --enable-bundled-mailpit \
+  --output .env.production
+
+# Bootstrap Docker/Compose on a remote host
+bash scripts/deployment/bootstrap-remote-host.sh --target ubuntu@203.0.113.10
+
+# Upload and deploy the canonical Compose runtime
+bash scripts/deployment/deploy-remote-compose.sh \
+  --target ubuntu@203.0.113.10 \
+  --env-file .env.production
+
+# Switch public traffic to the new Compose edge behind system nginx
+bash scripts/deployment/cutover-system-nginx.sh \
+  --target ubuntu@203.0.113.10 \
+  --remote-dir /opt/blog-platform
+
+# Roll system nginx back to the latest backup
+bash scripts/deployment/rollback-system-nginx.sh \
+  --target ubuntu@203.0.113.10 \
+  --remote-dir /opt/blog-platform
+
+# Validate and start the local production Compose stack
+bash scripts/deployment/deploy-compose-stack.sh --env-file .env.production --pull
+
+# Render versioned release assets
+make render-release-assets VERSION=1.8.2
+
+# Validate Kubernetes apply on a disposable local cluster
+make validate-k8s-apply RELEASE_VERSION=1.8.2
+```
 
 ---
 
@@ -964,7 +1008,7 @@ free -h
 docker compose logs --tail 50
 
 # Test database
-docker compose exec postgres pg_sql -U blog_user -d blog_db -c "SELECT 1;"
+docker compose exec postgres psql -U blog_user -d blog_db -c "SELECT 1;"
 
 # Test Redis
 docker compose exec redis redis-cli ping
@@ -974,9 +1018,10 @@ docker compose exec redis redis-cli ping
 
 ## 📖 Related Documentation / 相关文档
 
-- [Docker Guide](../guides/docker/production-deployment.md) - Docker deployment
-- [Database Setup](../guides/server/production-server.md) - Database configuration
-- [Troubleshooting](../getting-started/troubleshooting-common.md) - Common issues
+- [Compose Production Stack](../guides/compose/production-stack.md) - Canonical Compose deployment
+- [Automated Compose Deploy](../guides/server/automated-compose-deploy.md) - Remote SSH deployment
+- [System Nginx Cutover](../guides/server/system-nginx-cutover.md) - Host nginx switch-over
+- [Troubleshooting](../../getting-started/troubleshooting.md) - Common issues
 - [Environment Variables](./environment-variables.md) - Configuration reference
 
 ---

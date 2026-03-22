@@ -2,6 +2,8 @@
 const { withContentlayer } = require('next-contentlayer2')
 const { withSentryConfig } = require('@sentry/nextjs')
 
+const ignoreBuildErrors = process.env.NEXT_IGNORE_BUILD_ERRORS === '1'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // 解决 workspace 多个 lockfile 的警告
@@ -27,6 +29,9 @@ const nextConfig = {
   },
   // 其他配置
   reactStrictMode: true,
+  typescript: {
+    ignoreBuildErrors,
+  },
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   // 禁用生产环境的浏览器 source map
   productionBrowserSourceMaps: false,
