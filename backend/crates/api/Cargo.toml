@@ -64,7 +64,6 @@ base64 = { workspace = true }
 bytes = { workspace = true }
 futures = { workspace = true }
 futures-util = { workspace = true }
-http = { workspace = true }
 http-body = { workspace = true }
 http-body-util = { workspace = true }
 pin-project-lite = { workspace = true }

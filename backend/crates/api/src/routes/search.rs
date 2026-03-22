@@ -1,14 +1,14 @@
+use crate::state::AppState;
 use axum::{
-    extract::{Query, State, Path},
+    extract::{Path, Query, State},
     http::header,
     response::{IntoResponse, Json},
 };
 use blog_db::cms::*;
 use blog_shared::AppError;
-use crate::state::AppState;
-use utoipa;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Row};
+use utoipa;
 use uuid::Uuid;
 
 /// 全文搜索文章
@@ -34,7 +34,9 @@ pub async fn search_posts(
     Query(params): Query<SearchRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     if params.q.is_empty() {
-        return Err(AppError::BadRequest("Search query cannot be empty".to_string()));
+        return Err(AppError::BadRequest(
+            "Search query cannot be empty".to_string(),
+        ));
     }
 
     let limit = params.limit.unwrap_or(10).min(50);
@@ -47,7 +49,10 @@ pub async fn search_posts(
     let mut where_conditions = vec![
         "p.deleted_at IS NULL".to_string(),
         "p.status = 'published'".to_string(),
-        format!("p.search_vector @@ plainto_tsquery('simple', '{}')", escaped_query),
+        format!(
+            "p.search_vector @@ plainto_tsquery('simple', '{}')",
+            escaped_query
+        ),
     ];
 
     if let Some(category_slug) = &params.category_slug {
@@ -82,13 +87,17 @@ pub async fn search_posts(
 
     if total == 0 {
         return Ok((
-            [(header::CACHE_CONTROL, "public, s-maxage=60, stale-while-revalidate=300")],
+            [(
+                header::CACHE_CONTROL,
+                "public, s-maxage=60, stale-while-revalidate=300",
+            )],
             Json(SearchResponse {
                 results: vec![],
                 total: 0,
                 query: params.q.clone(),
             }),
-        ).into_response());
+        )
+            .into_response());
     }
 
     // 执行搜索查询（使用 ts_rank 排序）
@@ -109,9 +118,7 @@ pub async fn search_posts(
         escaped_query, where_clause, limit, offset
     );
 
-    let rows = sqlx::query(&search_query)
-        .fetch_all(&state.db)
-        .await?;
+    let rows = sqlx::query(&search_query).fetch_all(&state.db).await?;
 
     let mut results = Vec::new();
     for row in rows {
@@ -133,13 +140,17 @@ pub async fn search_posts(
     }
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=60, stale-while-revalidate=300")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=60, stale-while-revalidate=300",
+        )],
         Json(SearchResponse {
             results,
             total,
             query: params.q,
         }),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 搜索建议（自动补全）
@@ -177,7 +188,7 @@ pub async fn search_suggest(
             AND deleted_at IS NULL
         ORDER BY view_count DESC
         LIMIT $2
-        "#
+        "#,
     )
     .bind(search_term)
     .bind(limit as i64)
@@ -185,9 +196,13 @@ pub async fn search_suggest(
     .await?;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(suggestions),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 热门搜索关键词
@@ -205,7 +220,10 @@ pub async fn get_trending_keywords(
     // 尝试从缓存获取
     let cache_key = "search:trending";
 
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
 
     if let Ok(cached) = redis::cmd("GET")
@@ -216,9 +234,13 @@ pub async fn get_trending_keywords(
         if let Some(cached_str) = cached {
             if let Ok(keywords) = serde_json::from_str::<Vec<TrendingKeyword>>(&cached_str) {
                 return Ok((
-                    [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                    [(
+                        header::CACHE_CONTROL,
+                        "public, s-maxage=300, stale-while-revalidate=600",
+                    )],
                     Json(keywords),
-                ).into_response());
+                )
+                    .into_response());
             }
         }
     }
@@ -255,9 +277,13 @@ pub async fn get_trending_keywords(
     }
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(keywords),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 相关文章推荐
@@ -340,9 +366,13 @@ pub async fn get_related_posts(
     .await?;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(related_posts),
-    ).into_response())
+    )
+        .into_response())
 }
 
 // ===== 辅助结构体 =====

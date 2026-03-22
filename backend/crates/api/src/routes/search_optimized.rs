@@ -1,14 +1,14 @@
+use crate::state::AppState;
 use axum::{
     extract::{Query, State},
-    http::{header},
+    http::header,
     response::{IntoResponse, Json},
 };
 use blog_shared::AppError;
-use crate::state::AppState;
-use utoipa;
-use serde::{Serialize, Deserialize};
-use sqlx::Row;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use sqlx::Row;
+use utoipa;
 
 /// 优化后的搜索请求参数
 #[derive(Debug, Deserialize, utoipa::IntoParams)]
@@ -81,7 +81,9 @@ pub async fn search_posts_optimized(
     let start = std::time::Instant::now();
 
     if params.q.trim().is_empty() {
-        return Err(AppError::BadRequest("Search query cannot be empty".to_string()));
+        return Err(AppError::BadRequest(
+            "Search query cannot be empty".to_string(),
+        ));
     }
 
     let limit = params.limit.unwrap_or(20).min(50);
@@ -167,14 +169,18 @@ pub async fn search_posts_optimized(
     let took_ms = start.elapsed().as_millis() as u64;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=60, stale-while-revalidate=300")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=60, stale-while-revalidate=300",
+        )],
         Json(OptimizedSearchResponse {
             results,
             total,
             query: params.q,
             took_ms,
         }),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 搜索建议（优化版，使用模糊搜索）
@@ -211,7 +217,7 @@ pub async fn search_suggest_optimized(
             category,
             similarity_score
         FROM fuzzy_search_suggestions($1::text, $2::integer)
-        "#
+        "#,
     )
     .bind(&escaped_query)
     .bind(limit as i64)
@@ -228,9 +234,13 @@ pub async fn search_suggest_optimized(
     }
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(results),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 热门搜索关键词（从search_keywords表）
@@ -257,9 +267,13 @@ pub async fn get_trending_keywords_optimized(
             if let Some(cached_str) = cached {
                 if let Ok(keywords) = serde_json::from_str::<Vec<TrendingKeyword>>(&cached_str) {
                     return Ok((
-                        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                        [(
+                            header::CACHE_CONTROL,
+                            "public, s-maxage=300, stale-while-revalidate=600",
+                        )],
                         Json(keywords),
-                    ).into_response());
+                    )
+                        .into_response());
                 }
             }
         }
@@ -294,9 +308,13 @@ pub async fn get_trending_keywords_optimized(
     }
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(keywords),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 记录搜索关键词（辅助函数）
@@ -315,7 +333,7 @@ async fn record_search_keyword(
         ON CONFLICT (keyword) DO UPDATE SET
             search_count = search_keywords.search_count + 1,
             last_searched_at = NOW()
-        "#
+        "#,
     )
     .bind(&escaped_keyword)
     .execute(&state.db)

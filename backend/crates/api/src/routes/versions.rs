@@ -1,11 +1,11 @@
+use crate::state::AppState;
 use axum::{
-    extract::{Path, Query, State, Extension},
+    extract::{Extension, Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Json},
 };
 use blog_db::cms::*;
 use blog_shared::{AppError, AuthUser};
-use crate::state::AppState;
 use utoipa;
 use uuid::Uuid;
 
@@ -36,7 +36,7 @@ pub async fn create_version(
 ) -> Result<impl IntoResponse, AppError> {
     // 检查文章是否存在
     let post_exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM posts WHERE id = $1 AND deleted_at IS NULL)"
+        "SELECT EXISTS(SELECT 1 FROM posts WHERE id = $1 AND deleted_at IS NULL)",
     )
     .bind(post_id)
     .fetch_one(&state.db)
@@ -47,12 +47,11 @@ pub async fn create_version(
     }
 
     // 获取当前最大版本号
-    let max_version: Option<i32> = sqlx::query_scalar(
-        "SELECT MAX(version_number) FROM post_versions WHERE post_id = $1"
-    )
-    .bind(post_id)
-    .fetch_one(&state.db)
-    .await?;
+    let max_version: Option<i32> =
+        sqlx::query_scalar("SELECT MAX(version_number) FROM post_versions WHERE post_id = $1")
+            .bind(post_id)
+            .fetch_one(&state.db)
+            .await?;
 
     let new_version = max_version.unwrap_or(0) + 1;
 
@@ -75,10 +74,7 @@ pub async fn create_version(
     .fetch_one(&state.db)
     .await?;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(version),
-    ))
+    Ok((StatusCode::CREATED, Json(version)))
 }
 
 /// 获取文章的所有版本
@@ -104,7 +100,7 @@ pub async fn list_versions(
 ) -> Result<impl IntoResponse, AppError> {
     // 检查文章是否存在
     let post_exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM posts WHERE id = $1 AND deleted_at IS NULL)"
+        "SELECT EXISTS(SELECT 1 FROM posts WHERE id = $1 AND deleted_at IS NULL)",
     )
     .bind(post_id)
     .fetch_one(&state.db)
@@ -232,12 +228,11 @@ pub async fn restore_version(
     .await?;
 
     // 创建新版本（记录恢复操作）
-    let max_version: Option<i32> = sqlx::query_scalar(
-        "SELECT MAX(version_number) FROM post_versions WHERE post_id = $1"
-    )
-    .bind(post_id)
-    .fetch_one(&mut *tx)
-    .await?;
+    let max_version: Option<i32> =
+        sqlx::query_scalar("SELECT MAX(version_number) FROM post_versions WHERE post_id = $1")
+            .bind(post_id)
+            .fetch_one(&mut *tx)
+            .await?;
 
     let new_version = max_version.unwrap_or(0) + 1;
 
@@ -357,7 +352,7 @@ pub async fn delete_version(
 
     // 检查版本是否存在
     let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM post_versions WHERE post_id = $1 AND version_number = $2)"
+        "SELECT EXISTS(SELECT 1 FROM post_versions WHERE post_id = $1 AND version_number = $2)",
     )
     .bind(post_id)
     .bind(version_number)
@@ -370,16 +365,17 @@ pub async fn delete_version(
     }
 
     // 检查是否是最新版本
-    let max_version: Option<i32> = sqlx::query_scalar(
-        "SELECT MAX(version_number) FROM post_versions WHERE post_id = $1"
-    )
-    .bind(post_id)
-    .fetch_one(&mut *tx)
-    .await?;
+    let max_version: Option<i32> =
+        sqlx::query_scalar("SELECT MAX(version_number) FROM post_versions WHERE post_id = $1")
+            .bind(post_id)
+            .fetch_one(&mut *tx)
+            .await?;
 
     if Some(version_number) == max_version {
         tx.rollback().await?;
-        return Err(AppError::Conflict("Cannot delete the latest version".to_string()));
+        return Err(AppError::Conflict(
+            "Cannot delete the latest version".to_string(),
+        ));
     }
 
     // 删除版本
@@ -423,12 +419,10 @@ pub struct VersionCompareResponse {
 
 async fn clear_post_cache(state: &AppState, post_id: Uuid) {
     // 根据 post_id 查找 slug 并清除缓存
-    if let Ok(Some(slug)) = sqlx::query_scalar::<_, String>(
-        "SELECT slug FROM posts WHERE id = $1"
-    )
-    .bind(post_id)
-    .fetch_optional(&state.db)
-    .await
+    if let Ok(Some(slug)) = sqlx::query_scalar::<_, String>("SELECT slug FROM posts WHERE id = $1")
+        .bind(post_id)
+        .fetch_optional(&state.db)
+        .await
     {
         if let Ok(mut conn) = state.redis.get().await {
             let _: () = redis::cmd("DEL")

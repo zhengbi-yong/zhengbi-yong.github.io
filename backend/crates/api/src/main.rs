@@ -2,7 +2,7 @@
 #![type_length_limit = "10000000"]
 
 use axum::Router;
-use blog_api::middleware::request_id_middleware;
+use blog_api::middleware::{request_id_middleware, REQUEST_ID_HEADER};
 use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
 use blog_api::state::AppState;
 use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
@@ -20,10 +20,7 @@ async fn main() {
         eprintln!("⚠️  无法加载 .env 文件: {}. 将使用系统环境变量。", e);
     }
 
-    // 初始化 OpenTelemetry tracer
-    let _tracer = init_tracer();
-
-    // 初始化 tracing subscriber，包含 request_id 字段
+    // 初始化 tracing subscriber
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::from_default_env())
         .with(
@@ -145,15 +142,32 @@ async fn run_server() -> anyhow::Result<()> {
         // .merge(blog_api::routes::openapi::swagger_ui())
         // API v1 路由（分组）- 添加 /api 前缀
         .nest("/api/v1", v1_routes(state.clone()))
-        // 中间件（只在最外层应用）
-        // 1. Request ID 中间件（最先执行，确保所有后续层都能获取 request_id）
-        .layer(axum::middleware::from_fn(request_id_middleware))
-        // 2. HTTP Trace 中间件
-        .layer(TraceLayer::new_for_http())
+        // 中间件（只在最外层应用，按执行顺序逆序排列）
+        // 4. CORS 中间件（最先执行）
+        .layer(create_cors_layer(state.settings.cors.allowed_origins.clone()))
         // 3. 压缩中间件
         .layer(CompressionLayer::new())
-        // 4. CORS 中间件
-        .layer(create_cors_layer(state.settings.cors.allowed_origins.clone()))
+        // 2. HTTP Trace 中间件（包含 request_id 在 span 中）
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(|request: &axum::extract::Request| {
+                    let request_id = request
+                        .headers()
+                        .get(REQUEST_ID_HEADER)
+                        .and_then(|v| v.to_str().ok())
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| "unknown".to_string());
+
+                    tracing::info_span!(
+                        "http_request",
+                        method = %request.method(),
+                        uri = %request.uri(),
+                        request_id = %request_id,
+                    )
+                })
+        )
+        // 1. Request ID 中间件（最后执行，但最先进入请求处理）
+        .layer(axum::middleware::from_fn(request_id_middleware))
         // 添加状态
         .with_state(state);
 

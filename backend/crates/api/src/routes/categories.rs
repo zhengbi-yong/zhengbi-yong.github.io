@@ -1,3 +1,4 @@
+use crate::state::AppState;
 use axum::{
     extract::{Path, Query, State},
     http::{header, StatusCode},
@@ -5,7 +6,6 @@ use axum::{
 };
 use blog_db::cms::*;
 use blog_shared::AppError;
-use crate::state::AppState;
 use utoipa;
 use uuid::Uuid;
 
@@ -30,12 +30,11 @@ pub async fn create_category(
     Json(req): Json<CreateCategoryRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // 检查 slug 是否已存在
-    let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM categories WHERE slug = $1)"
-    )
-    .bind(&req.slug)
-    .fetch_one(&state.db)
-    .await?;
+    let exists: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM categories WHERE slug = $1)")
+            .bind(&req.slug)
+            .fetch_one(&state.db)
+            .await?;
 
     if exists {
         return Err(AppError::Conflict("Slug already exists".to_string()));
@@ -43,12 +42,11 @@ pub async fn create_category(
 
     // 检查父分类是否存在（如果提供）
     if let Some(parent_id) = req.parent_id {
-        let parent_exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM categories WHERE id = $1)"
-        )
-        .bind(parent_id)
-        .fetch_one(&state.db)
-        .await?;
+        let parent_exists: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM categories WHERE id = $1)")
+                .bind(parent_id)
+                .fetch_one(&state.db)
+                .await?;
 
         if !parent_exists {
             return Err(AppError::NotFound("Parent category not found".to_string()));
@@ -77,10 +75,7 @@ pub async fn create_category(
     // 清除缓存
     clear_categories_cache(&state).await;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(IdResponse { id }),
-    ))
+    Ok((StatusCode::CREATED, Json(IdResponse { id })))
 }
 
 /// 获取分类详情
@@ -117,9 +112,13 @@ pub async fn get_category(
     .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(category),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 更新分类
@@ -149,27 +148,26 @@ pub async fn update_category(
     let mut tx = state.db.begin().await?;
 
     // 检查分类是否存在
-    let category_id: Uuid = sqlx::query_scalar(
-        "SELECT id FROM categories WHERE slug = $1"
-    )
-    .bind(&slug)
-    .fetch_optional(&mut *tx)
-    .await?
-    .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
+    let category_id: Uuid = sqlx::query_scalar("SELECT id FROM categories WHERE slug = $1")
+        .bind(&slug)
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
 
     // 检查父分类是否存在（如果提供）
     if let Some(parent_id) = req.parent_id {
         // 不能将自己设置为父分类
         if parent_id == category_id {
-            return Err(AppError::BadRequest("Cannot set self as parent".to_string()));
+            return Err(AppError::BadRequest(
+                "Cannot set self as parent".to_string(),
+            ));
         }
 
-        let parent_exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM categories WHERE id = $1)"
-        )
-        .bind(parent_id)
-        .fetch_one(&mut *tx)
-        .await?;
+        let parent_exists: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM categories WHERE id = $1)")
+                .bind(parent_id)
+                .fetch_one(&mut *tx)
+                .await?;
 
         if !parent_exists {
             return Err(AppError::NotFound("Parent category not found".to_string()));
@@ -209,7 +207,8 @@ pub async fn update_category(
         tx.rollback().await?;
         return Ok(Json(MessageResponse {
             message: "No fields to update".to_string(),
-        }).into_response());
+        })
+        .into_response());
     }
 
     let query = format!(
@@ -246,7 +245,8 @@ pub async fn update_category(
 
     Ok(Json(MessageResponse {
         message: "Category updated successfully".to_string(),
-    }).into_response())
+    })
+    .into_response())
 }
 
 /// 删除分类
@@ -274,30 +274,29 @@ pub async fn delete_category(
     let mut tx = state.db.begin().await?;
 
     // 检查分类是否存在
-    let category_id: Uuid = sqlx::query_scalar(
-        "SELECT id FROM categories WHERE slug = $1"
-    )
-    .bind(&slug)
-    .fetch_optional(&mut *tx)
-    .await?
-    .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
+    let category_id: Uuid = sqlx::query_scalar("SELECT id FROM categories WHERE slug = $1")
+        .bind(&slug)
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
 
     // 检查是否有子分类
-    let has_children: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM categories WHERE parent_id = $1)"
-    )
-    .bind(category_id)
-    .fetch_one(&mut *tx)
-    .await?;
+    let has_children: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM categories WHERE parent_id = $1)")
+            .bind(category_id)
+            .fetch_one(&mut *tx)
+            .await?;
 
     if has_children {
         tx.rollback().await?;
-        return Err(AppError::Conflict("Cannot delete category with subcategories".to_string()));
+        return Err(AppError::Conflict(
+            "Cannot delete category with subcategories".to_string(),
+        ));
     }
 
     // 检查是否有关联的文章
     let has_posts: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM posts WHERE category_id = $1 AND deleted_at IS NULL)"
+        "SELECT EXISTS(SELECT 1 FROM posts WHERE category_id = $1 AND deleted_at IS NULL)",
     )
     .bind(category_id)
     .fetch_one(&mut *tx)
@@ -305,16 +304,15 @@ pub async fn delete_category(
 
     if has_posts {
         tx.rollback().await?;
-        return Err(AppError::Conflict("Cannot delete category with posts".to_string()));
+        return Err(AppError::Conflict(
+            "Cannot delete category with posts".to_string(),
+        ));
     }
 
     // 删除分类
-    sqlx::query!(
-        "DELETE FROM categories WHERE id = $1",
-        category_id
-    )
-    .execute(&mut *tx)
-    .await?;
+    sqlx::query!("DELETE FROM categories WHERE id = $1", category_id)
+        .execute(&mut *tx)
+        .await?;
 
     tx.commit().await?;
 
@@ -335,9 +333,7 @@ pub async fn delete_category(
         (status = 200, description = "获取成功", body = Vec<Category>)
     )
 )]
-pub async fn list_categories(
-    State(state): State<AppState>,
-) -> Result<impl IntoResponse, AppError> {
+pub async fn list_categories(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
     let categories: Vec<Category> = sqlx::query_as!(
         Category,
         r#"
@@ -353,9 +349,13 @@ pub async fn list_categories(
     .await?;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(categories),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 获取分类树
@@ -373,7 +373,10 @@ pub async fn get_category_tree(
     // 尝试从缓存获取
     let cache_key = "categories:tree";
 
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
 
     if let Ok(cached) = redis::cmd("GET")
@@ -384,9 +387,13 @@ pub async fn get_category_tree(
         if let Some(cached_str) = cached {
             if let Ok(tree) = serde_json::from_str::<Vec<CategoryTreeNode>>(&cached_str) {
                 return Ok((
-                    [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                    [(
+                        header::CACHE_CONTROL,
+                        "public, s-maxage=300, stale-while-revalidate=600",
+                    )],
                     Json(tree),
-                ).into_response());
+                )
+                    .into_response());
             }
         }
     }
@@ -420,9 +427,13 @@ pub async fn get_category_tree(
     }
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(tree),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 获取分类的文章列表
@@ -446,13 +457,11 @@ pub async fn get_category_posts(
     Query(params): Query<PostListParams>,
 ) -> Result<impl IntoResponse, AppError> {
     // 检查分类是否存在
-    let category_id: Uuid = sqlx::query_scalar(
-        "SELECT id FROM categories WHERE slug = $1"
-    )
-    .bind(&slug)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
+    let category_id: Uuid = sqlx::query_scalar("SELECT id FROM categories WHERE slug = $1")
+        .bind(&slug)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
 
     let page = params.page.unwrap_or(1).max(1);
     let limit = params.limit.unwrap_or(20).min(100);
@@ -460,7 +469,7 @@ pub async fn get_category_posts(
 
     // 查询总数
     let total: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM posts WHERE category_id = $1 AND deleted_at IS NULL"
+        "SELECT COUNT(*) FROM posts WHERE category_id = $1 AND deleted_at IS NULL",
     )
     .bind(category_id)
     .fetch_one(&state.db)
@@ -500,7 +509,10 @@ pub async fn get_category_posts(
     let total_pages = ((total as f64) / (limit as f64)).ceil() as u32;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=60, stale-while-revalidate=300")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=60, stale-while-revalidate=300",
+        )],
         Json(PostListResponse {
             posts,
             total,
@@ -508,7 +520,8 @@ pub async fn get_category_posts(
             limit,
             total_pages,
         }),
-    ).into_response())
+    )
+        .into_response())
 }
 
 // ===== 辅助函数 =====
@@ -518,21 +531,25 @@ fn build_category_tree(categories: &[Category]) -> Vec<CategoryTreeNode> {
 
     // 首先创建所有节点
     for category in categories {
-        category_map.insert(category.id, CategoryTreeNode {
-            id: category.id,
-            slug: category.slug.clone(),
-            name: category.name.clone(),
-            description: category.description.clone(),
-            icon: category.icon.clone(),
-            color: category.color.clone(),
-            display_order: category.display_order,
-            post_count: category.post_count,
-            children: Vec::new(),
-        });
+        category_map.insert(
+            category.id,
+            CategoryTreeNode {
+                id: category.id,
+                slug: category.slug.clone(),
+                name: category.name.clone(),
+                description: category.description.clone(),
+                icon: category.icon.clone(),
+                color: category.color.clone(),
+                display_order: category.display_order,
+                post_count: category.post_count,
+                children: Vec::new(),
+            },
+        );
     }
 
     // 构建父子关系映射
-    let mut child_to_parent: std::collections::HashMap<Uuid, Option<Uuid>> = std::collections::HashMap::new();
+    let mut child_to_parent: std::collections::HashMap<Uuid, Option<Uuid>> =
+        std::collections::HashMap::new();
     for category in categories {
         child_to_parent.insert(category.id, category.parent_id);
     }

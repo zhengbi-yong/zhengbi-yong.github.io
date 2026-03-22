@@ -1,16 +1,14 @@
-use axum::{
-    extract::{Path, State, Query, Extension},
-    response::{IntoResponse, Json},
-    http::StatusCode,
-};
-use blog_db::{
-    CreateCommentRequest, CommentListParams, CommentListResponse, CommentResponse,
-};
-use blog_shared::{AppError, AuthUser};
 use crate::state::AppState;
 use ammonia::Builder;
-use utoipa;
+use axum::{
+    extract::{Extension, Path, Query, State},
+    http::StatusCode,
+    response::{IntoResponse, Json},
+};
+use blog_db::{CommentListParams, CommentListResponse, CommentResponse, CreateCommentRequest};
+use blog_shared::{AppError, AuthUser};
 use sqlx::Row;
+use utoipa;
 
 // HTML 清理配置
 fn sanitize_comment_html(input: &str) -> String {
@@ -61,12 +59,11 @@ pub async fn create_comment(
     Json(payload): Json<CreateCommentRequest>,
 ) -> Result<Json<CommentResponse>, AppError> {
     // 检查文章是否存在
-    let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM post_stats WHERE slug = $1)"
-    )
-    .bind(&slug)
-    .fetch_one(&state.db)
-    .await?;
+    let exists: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM post_stats WHERE slug = $1)")
+            .bind(&slug)
+            .fetch_one(&state.db)
+            .await?;
 
     if !exists {
         return Err(AppError::PostNotFound);
@@ -83,13 +80,10 @@ pub async fn create_comment(
 
     // 计算路径和深度
     let (path, depth) = if let Some(parent_id) = payload.parent_id {
-        let parent = sqlx::query!(
-            "SELECT path, depth FROM comments WHERE id = $1",
-            parent_id
-        )
-        .fetch_optional(&state.db)
-        .await?
-        .ok_or(AppError::CommentNotFound)?;
+        let parent = sqlx::query!("SELECT path, depth FROM comments WHERE id = $1", parent_id)
+            .fetch_optional(&state.db)
+            .await?
+            .ok_or(AppError::CommentNotFound)?;
 
         if parent.depth >= 5 {
             return Err(AppError::CommentTooDeep);
@@ -147,7 +141,9 @@ pub async fn create_comment(
         created_at: comment_row.get("created_at"),
         updated_at: comment_row.get("updated_at"),
         deleted_at: comment_row.get("deleted_at"),
-        created_ip: comment_row.get::<Option<sqlx::types::ipnetwork::IpNetwork>, _>("created_ip").map(|ip| ip.to_string()),
+        created_ip: comment_row
+            .get::<Option<sqlx::types::ipnetwork::IpNetwork>, _>("created_ip")
+            .map(|ip| ip.to_string()),
         user_agent: comment_row.get("user_agent"),
         moderation_reason: comment_row.get("moderation_reason"),
     };
@@ -223,8 +219,7 @@ pub async fn list_comments(
 
     // 只返回已审核的评论
     let comments = if let Some(cursor) = params.cursor {
-        let cursor_uuid = uuid::Uuid::parse_str(&cursor)
-            .map_err(|_| AppError::InvalidCursor)?;
+        let cursor_uuid = uuid::Uuid::parse_str(&cursor).map_err(|_| AppError::InvalidCursor)?;
 
         // 使用更简单的查询
         let rows = sqlx::query(
@@ -240,7 +235,7 @@ pub async fn list_comments(
             AND c.created_at < (SELECT created_at FROM comments WHERE id = $2)
             ORDER BY c.created_at DESC
             LIMIT $3
-            "#
+            "#,
         )
         .bind(&slug)
         .bind(&cursor_uuid)
@@ -248,29 +243,33 @@ pub async fn list_comments(
         .fetch_all(&state.db)
         .await?;
 
-        let comments: Vec<blog_db::CommentWithUser> = rows.into_iter().map(|row| {
-            blog_db::CommentWithUser {
-                id: row.get("id"),
-                slug: row.get("slug"),
-                user_id: row.get("user_id"),
-                parent_id: row.get("parent_id"),
-                content: row.get("content"),
-                html_sanitized: row.get("html_sanitized"),
-                status: blog_db::CommentStatus::Approved, // We only query approved comments
-                path: row.get("path"),
-                depth: row.get("depth"),
-                like_count: row.get("like_count"),
-                created_at: row.get("created_at"),
-                updated_at: row.get("updated_at"),
-                deleted_at: row.get("deleted_at"),
-                created_ip: row.get::<Option<sqlx::types::ipnetwork::IpNetwork>, _>("created_ip")
-                    .map(|ip| ip.to_string()),
-                user_agent: row.get("user_agent"),
-                moderation_reason: row.get("moderation_reason"),
-                username: row.get("username"),
-                profile: row.get("profile"),
-            }
-        }).collect();
+        let comments: Vec<blog_db::CommentWithUser> = rows
+            .into_iter()
+            .map(|row| {
+                blog_db::CommentWithUser {
+                    id: row.get("id"),
+                    slug: row.get("slug"),
+                    user_id: row.get("user_id"),
+                    parent_id: row.get("parent_id"),
+                    content: row.get("content"),
+                    html_sanitized: row.get("html_sanitized"),
+                    status: blog_db::CommentStatus::Approved, // We only query approved comments
+                    path: row.get("path"),
+                    depth: row.get("depth"),
+                    like_count: row.get("like_count"),
+                    created_at: row.get("created_at"),
+                    updated_at: row.get("updated_at"),
+                    deleted_at: row.get("deleted_at"),
+                    created_ip: row
+                        .get::<Option<sqlx::types::ipnetwork::IpNetwork>, _>("created_ip")
+                        .map(|ip| ip.to_string()),
+                    user_agent: row.get("user_agent"),
+                    moderation_reason: row.get("moderation_reason"),
+                    username: row.get("username"),
+                    profile: row.get("profile"),
+                }
+            })
+            .collect();
 
         comments
     } else {
@@ -287,43 +286,45 @@ pub async fn list_comments(
             WHERE c.slug = $1 AND c.status = 'approved'
             ORDER BY c.created_at DESC
             LIMIT $2
-            "#
+            "#,
         )
         .bind(&slug)
         .bind(limit as i64)
         .fetch_all(&state.db)
         .await?;
 
-        let comments: Vec<blog_db::CommentWithUser> = rows.into_iter().map(|row| {
-            blog_db::CommentWithUser {
-                id: row.get("id"),
-                slug: row.get("slug"),
-                user_id: row.get("user_id"),
-                parent_id: row.get("parent_id"),
-                content: row.get("content"),
-                html_sanitized: row.get("html_sanitized"),
-                status: blog_db::CommentStatus::Approved, // We only query approved comments
-                path: row.get("path"),
-                depth: row.get("depth"),
-                like_count: row.get("like_count"),
-                created_at: row.get("created_at"),
-                updated_at: row.get("updated_at"),
-                deleted_at: row.get("deleted_at"),
-                created_ip: row.get::<Option<sqlx::types::ipnetwork::IpNetwork>, _>("created_ip")
-                    .map(|ip| ip.to_string()),
-                user_agent: row.get("user_agent"),
-                moderation_reason: row.get("moderation_reason"),
-                username: row.get("username"),
-                profile: row.get("profile"),
-            }
-        }).collect();
+        let comments: Vec<blog_db::CommentWithUser> = rows
+            .into_iter()
+            .map(|row| {
+                blog_db::CommentWithUser {
+                    id: row.get("id"),
+                    slug: row.get("slug"),
+                    user_id: row.get("user_id"),
+                    parent_id: row.get("parent_id"),
+                    content: row.get("content"),
+                    html_sanitized: row.get("html_sanitized"),
+                    status: blog_db::CommentStatus::Approved, // We only query approved comments
+                    path: row.get("path"),
+                    depth: row.get("depth"),
+                    like_count: row.get("like_count"),
+                    created_at: row.get("created_at"),
+                    updated_at: row.get("updated_at"),
+                    deleted_at: row.get("deleted_at"),
+                    created_ip: row
+                        .get::<Option<sqlx::types::ipnetwork::IpNetwork>, _>("created_ip")
+                        .map(|ip| ip.to_string()),
+                    user_agent: row.get("user_agent"),
+                    moderation_reason: row.get("moderation_reason"),
+                    username: row.get("username"),
+                    profile: row.get("profile"),
+                }
+            })
+            .collect();
 
         comments
     };
 
-    let next_cursor = comments
-        .last()
-        .map(|c| c.id.to_string());
+    let next_cursor = comments.last().map(|c| c.id.to_string());
 
     // 转换为响应格式
     let comment_responses: Vec<CommentResponse> = comments
@@ -375,7 +376,7 @@ pub async fn like_comment(
 
     // 检查评论是否存在
     let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1 AND status = $2::comment_status)"
+        "SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1 AND status = $2::comment_status)",
     )
     .bind(&id)
     .bind("approved")
@@ -388,7 +389,7 @@ pub async fn like_comment(
 
     // 检查是否已经点赞过
     let already_liked: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM comment_likes WHERE comment_id = $1 AND user_id = $2)"
+        "SELECT EXISTS(SELECT 1 FROM comment_likes WHERE comment_id = $1 AND user_id = $2)",
     )
     .bind(&id)
     .bind(&user_id)
@@ -400,21 +401,17 @@ pub async fn like_comment(
     }
 
     // 添加点赞记录
-    sqlx::query(
-        "INSERT INTO comment_likes (comment_id, user_id) VALUES ($1, $2)"
-    )
-    .bind(&id)
-    .bind(&user_id)
-    .execute(&state.db)
-    .await?;
+    sqlx::query("INSERT INTO comment_likes (comment_id, user_id) VALUES ($1, $2)")
+        .bind(&id)
+        .bind(&user_id)
+        .execute(&state.db)
+        .await?;
 
     // 更新评论的点赞计数
-    sqlx::query(
-        "UPDATE comments SET like_count = like_count + 1 WHERE id = $1"
-    )
-    .bind(&id)
-    .execute(&state.db)
-    .await?;
+    sqlx::query("UPDATE comments SET like_count = like_count + 1 WHERE id = $1")
+        .bind(&id)
+        .execute(&state.db)
+        .await?;
 
     Ok(StatusCode::NO_CONTENT)
 }
@@ -443,35 +440,30 @@ pub async fn unlike_comment(
     let user_id = auth_user.id;
 
     // 检查评论是否存在
-    let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1)"
-    )
-    .bind(&id)
-    .fetch_one(&state.db)
-    .await?;
+    let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1)")
+        .bind(&id)
+        .fetch_one(&state.db)
+        .await?;
 
     if !exists {
         return Err(AppError::CommentNotFound);
     }
 
     // 删除点赞记录
-    let rows_affected = sqlx::query(
-        "DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2"
-    )
-    .bind(&id)
-    .bind(&user_id)
-    .execute(&state.db)
-    .await?
-    .rows_affected();
+    let rows_affected =
+        sqlx::query("DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2")
+            .bind(&id)
+            .bind(&user_id)
+            .execute(&state.db)
+            .await?
+            .rows_affected();
 
     // 如果找到了点赞记录，更新评论的点赞计数
     if rows_affected > 0 {
-        sqlx::query(
-            "UPDATE comments SET like_count = GREATEST(like_count - 1, 0) WHERE id = $1"
-        )
-        .bind(&id)
-        .execute(&state.db)
-        .await?;
+        sqlx::query("UPDATE comments SET like_count = GREATEST(like_count - 1, 0) WHERE id = $1")
+            .bind(&id)
+            .execute(&state.db)
+            .await?;
     }
 
     Ok(StatusCode::NO_CONTENT)

@@ -1,13 +1,13 @@
+use crate::state::AppState;
 use axum::{
-    extract::{Path, Query, State, Extension},
+    extract::{Extension, Path, Query, State},
     http::{header, StatusCode},
     response::{IntoResponse, Json},
-  };
-  use blog_db::{PostStatsResponse, cms::*};
-  use blog_shared::{AppError, middleware::AuthUser};
-  use crate::state::AppState;
-  use utoipa;
-  use uuid::Uuid;
+};
+use blog_db::{cms::*, PostStatsResponse};
+use blog_shared::{middleware::AuthUser, AppError};
+use utoipa;
+use uuid::Uuid;
 
 /// 获取文章统计
 #[utoipa::path(
@@ -32,7 +32,10 @@ pub async fn get_stats(
     // 尝试从 Redis 缓存获取
     let cache_key = format!("post_stats:{}", slug);
 
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
 
     if let Ok(cached) = redis::cmd("GET")
@@ -42,13 +45,20 @@ pub async fn get_stats(
     {
         if let Some(cached_str) = &cached {
             if let Ok(stats) = serde_json::from_str::<PostStatsResponse>(cached_str) {
-            return Ok((
-                [
-                    (header::CACHE_CONTROL, "public, s-maxage=5, stale-while-revalidate=60"),
-                    (header::ETAG, format!("\"{}\"", compute_etag(&stats)).as_str()),
-                ],
-                Json(stats),
-            ).into_response());
+                return Ok((
+                    [
+                        (
+                            header::CACHE_CONTROL,
+                            "public, s-maxage=5, stale-while-revalidate=60",
+                        ),
+                        (
+                            header::ETAG,
+                            format!("\"{}\"", compute_etag(&stats)).as_str(),
+                        ),
+                    ],
+                    Json(stats),
+                )
+                    .into_response());
             }
         }
     }
@@ -83,11 +93,18 @@ pub async fn get_stats(
 
         Ok((
             [
-                (header::CACHE_CONTROL, "public, s-maxage=5, stale-while-revalidate=60"),
-                (header::ETAG, format!("\"{}\"", compute_etag(&response)).as_str()),
+                (
+                    header::CACHE_CONTROL,
+                    "public, s-maxage=5, stale-while-revalidate=60",
+                ),
+                (
+                    header::ETAG,
+                    format!("\"{}\"", compute_etag(&response)).as_str(),
+                ),
             ],
             Json(response),
-        ).into_response())
+        )
+            .into_response())
     } else {
         // 如果统计不存在，创建默认值
         let default_stats = PostStatsResponse {
@@ -98,12 +115,9 @@ pub async fn get_stats(
             updated_at: chrono::Utc::now(),
         };
 
-        sqlx::query!(
-            "INSERT INTO post_stats (slug) VALUES ($1)",
-            slug
-        )
-        .execute(&state.db)
-        .await?;
+        sqlx::query!("INSERT INTO post_stats (slug) VALUES ($1)", slug)
+            .execute(&state.db)
+            .await?;
 
         Ok(Json(default_stats).into_response())
     }
@@ -128,19 +142,21 @@ pub async fn view(
     Path(slug): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
     // 检查文章是否存在
-    let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM post_stats WHERE slug = $1)"
-    )
-    .bind(&slug)
-    .fetch_one(&state.db)
-    .await?;
+    let exists: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM post_stats WHERE slug = $1)")
+            .bind(&slug)
+            .fetch_one(&state.db)
+            .await?;
 
     if !exists {
         return Err(AppError::PostNotFound);
     }
 
     // Redis 计数
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
     let pv_key = format!("pv:{}", slug);
     let count: i64 = redis::cmd("INCR")
@@ -194,12 +210,11 @@ pub async fn like(
     let mut tx = state.db.begin().await?;
 
     // 检查文章是否存在
-    let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM post_stats WHERE slug = $1)"
-    )
-    .bind(&slug)
-    .fetch_one(&mut *tx)
-    .await?;
+    let exists: bool =
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM post_stats WHERE slug = $1)")
+            .bind(&slug)
+            .fetch_one(&mut *tx)
+            .await?;
 
     if !exists {
         tx.rollback().await?;
@@ -208,7 +223,7 @@ pub async fn like(
 
     // 检查是否已点赞
     let already_liked: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM post_likes WHERE slug = $1 AND user_id = $2)"
+        "SELECT EXISTS(SELECT 1 FROM post_likes WHERE slug = $1 AND user_id = $2)",
     )
     .bind(&slug)
     .bind(&auth_user.id)
@@ -240,7 +255,10 @@ pub async fn like(
     tx.commit().await?;
 
     // 清除缓存
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
     let cache_key = format!("post_stats:{}", slug);
     let _: () = redis::cmd("DEL")
@@ -279,7 +297,7 @@ pub async fn unlike(
 
     // 检查是否已点赞
     let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM post_likes WHERE slug = $1 AND user_id = $2)"
+        "SELECT EXISTS(SELECT 1 FROM post_likes WHERE slug = $1 AND user_id = $2)",
     )
     .bind(&slug)
     .bind(&auth_user.id)
@@ -311,7 +329,10 @@ pub async fn unlike(
     tx.commit().await?;
 
     // 清除缓存
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
     let cache_key = format!("post_stats:{}", slug);
     let _: () = redis::cmd("DEL")
@@ -359,7 +380,7 @@ pub async fn create_post(
 
     // 检查 slug 是否已存在
     let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1 AND deleted_at IS NULL)"
+        "SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1 AND deleted_at IS NULL)",
     )
     .bind(&req.slug)
     .fetch_one(&mut *tx)
@@ -438,7 +459,10 @@ pub async fn create_post(
         req.title,
         req.content,
         req.summary,
-        auth_user.as_ref().map(|u| u.id).unwrap_or_else(|| uuid::Uuid::new_v4())
+        auth_user
+            .as_ref()
+            .map(|u| u.id)
+            .unwrap_or_else(|| uuid::Uuid::new_v4())
     )
     .execute(&mut *tx)
     .await?;
@@ -460,10 +484,7 @@ pub async fn create_post(
     // 清除列表缓存
     clear_posts_cache(&state).await;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(SlugResponse { slug: req.slug }),
-    ))
+    Ok((StatusCode::CREATED, Json(SlugResponse { slug: req.slug })))
 }
 
 /// 获取文章详情
@@ -486,7 +507,10 @@ pub async fn get_post(
     // 尝试从缓存获取
     let cache_key = format!("post:{}", slug);
 
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
 
     if let Ok(cached) = redis::cmd("GET")
@@ -497,9 +521,13 @@ pub async fn get_post(
         if let Some(cached_str) = cached {
             if let Ok(post) = serde_json::from_str::<PostDetail>(&cached_str) {
                 return Ok((
-                    [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                    [(
+                        header::CACHE_CONTROL,
+                        "public, s-maxage=300, stale-while-revalidate=600",
+                    )],
                     Json(post),
-                ).into_response());
+                )
+                    .into_response());
             }
         }
     }
@@ -591,9 +619,13 @@ pub async fn get_post(
             }
 
             Ok((
-                [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                [(
+                    header::CACHE_CONTROL,
+                    "public, s-maxage=300, stale-while-revalidate=600",
+                )],
                 Json(post_detail),
-            ).into_response())
+            )
+                .into_response())
         }
         None => Err(AppError::PostNotFound),
     }
@@ -621,7 +653,10 @@ pub async fn get_post_by_id(
     // 尝试从缓存获取
     let cache_key = format!("post:id:{}", id);
 
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
 
     if let Ok(cached) = redis::cmd("GET")
@@ -632,9 +667,13 @@ pub async fn get_post_by_id(
         if let Some(cached_str) = cached {
             if let Ok(post) = serde_json::from_str::<PostDetail>(&cached_str) {
                 return Ok((
-                    [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                    [(
+                        header::CACHE_CONTROL,
+                        "public, s-maxage=300, stale-while-revalidate=600",
+                    )],
                     Json(post),
-                ).into_response());
+                )
+                    .into_response());
             }
         }
     }
@@ -727,9 +766,13 @@ pub async fn get_post_by_id(
             }
 
             Ok((
-                [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+                [(
+                    header::CACHE_CONTROL,
+                    "public, s-maxage=300, stale-while-revalidate=600",
+                )],
                 Json(post_detail),
-            ).into_response())
+            )
+                .into_response())
         }
         None => Err(AppError::PostNotFound),
     }
@@ -762,13 +805,12 @@ pub async fn update_post(
     let mut tx = state.db.begin().await?;
 
     // 检查文章是否存在
-    let post_id: Uuid = sqlx::query_scalar(
-        "SELECT id FROM posts WHERE slug = $1 AND deleted_at IS NULL"
-    )
-    .bind(&slug)
-    .fetch_optional(&mut *tx)
-    .await?
-    .ok_or(AppError::PostNotFound)?;
+    let post_id: Uuid =
+        sqlx::query_scalar("SELECT id FROM posts WHERE slug = $1 AND deleted_at IS NULL")
+            .bind(&slug)
+            .fetch_optional(&mut *tx)
+            .await?
+            .ok_or(AppError::PostNotFound)?;
 
     // 构建更新查询（动态）
     let mut update_fields = Vec::new();
@@ -835,7 +877,8 @@ pub async fn update_post(
         tx.rollback().await?;
         return Ok(Json(MessageResponse {
             message: "No fields to update".to_string(),
-        }).into_response());
+        })
+        .into_response());
     }
 
     let query = format!(
@@ -893,12 +936,9 @@ pub async fn update_post(
     // 更新标签（如果提供）
     if let Some(tag_ids) = req.tag_ids {
         // 删除现有标签关联
-        sqlx::query!(
-            "DELETE FROM post_tags WHERE post_id = $1",
-            post_id
-        )
-        .execute(&mut *tx)
-        .await?;
+        sqlx::query!("DELETE FROM post_tags WHERE post_id = $1", post_id)
+            .execute(&mut *tx)
+            .await?;
 
         // 添加新标签关联
         for tag_id in tag_ids {
@@ -920,7 +960,8 @@ pub async fn update_post(
 
     Ok(Json(MessageResponse {
         message: "Post updated successfully".to_string(),
-    }).into_response())
+    })
+    .into_response())
 }
 
 /// 删除文章（软删除）
@@ -1006,22 +1047,25 @@ pub async fn list_posts(
         where_conditions.push(format!("p.category_id = '{}'", category_id));
     }
     if let Some(tag_id) = params.tag_id {
-        where_conditions.push(format!("EXISTS (SELECT 1 FROM post_tags pt WHERE pt.post_id = p.id AND pt.tag_id = '{}')", tag_id));
+        where_conditions.push(format!(
+            "EXISTS (SELECT 1 FROM post_tags pt WHERE pt.post_id = p.id AND pt.tag_id = '{}')",
+            tag_id
+        ));
     }
     if let Some(author_id) = params.author_id {
         where_conditions.push(format!("p.author_id = '{}'", author_id));
     }
     if let Some(search) = params.search {
-        where_conditions.push(format!("p.search_vector @@ plainto_tsquery('simple', '{}')", search.replace('\'', "''")));
+        where_conditions.push(format!(
+            "p.search_vector @@ plainto_tsquery('simple', '{}')",
+            search.replace('\'', "''")
+        ));
     }
 
     let where_clause = where_conditions.join(" AND ");
 
     // 查询总数
-    let count_query = format!(
-        "SELECT COUNT(*) FROM posts p WHERE {}",
-        where_clause
-    );
+    let count_query = format!("SELECT COUNT(*) FROM posts p WHERE {}", where_clause);
     let total: i64 = sqlx::query_scalar(&count_query)
         .fetch_one(&state.db)
         .await?;
@@ -1052,12 +1096,11 @@ pub async fn list_posts(
     );
 
     use sqlx::Row;
-    let rows = sqlx::query(&list_query)
-        .fetch_all(&state.db)
-        .await?;
+    let rows = sqlx::query(&list_query).fetch_all(&state.db).await?;
 
-    let posts: Vec<PostListItem> = rows.into_iter().map(|row| {
-        PostListItem {
+    let posts: Vec<PostListItem> = rows
+        .into_iter()
+        .map(|row| PostListItem {
             id: row.get("id"),
             slug: row.get("slug"),
             title: row.get("title"),
@@ -1074,13 +1117,16 @@ pub async fn list_posts(
             created_at: row.get("created_at"),
             reading_time: row.get::<Option<i32>, _>("reading_time"),
             tag_count: row.get("tag_count"),
-        }
-    }).collect();
+        })
+        .collect();
 
     let total_pages = ((total as f64) / (limit as f64)).ceil() as u32;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=60, stale-while-revalidate=300")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=60, stale-while-revalidate=300",
+        )],
         Json(PostListResponse {
             posts,
             total,
@@ -1088,7 +1134,8 @@ pub async fn list_posts(
             limit,
             total_pages,
         }),
-    ).into_response())
+    )
+        .into_response())
 }
 
 // ===== 缓存辅助函数 =====
@@ -1098,7 +1145,8 @@ async fn clear_post_cache(state: &AppState, slug: &str) {
         let _: () = redis::cmd("DEL")
             .arg(format!("post:{}", slug))
             .query_async(&mut conn)
-            .await.unwrap_or(());
+            .await
+            .unwrap_or(());
     }
 }
 
@@ -1108,6 +1156,7 @@ async fn clear_posts_cache(state: &AppState) {
         let _: () = redis::cmd("DEL")
             .arg("posts:list:*")
             .query_async(&mut conn)
-            .await.unwrap_or(());
+            .await
+            .unwrap_or(());
     }
 }

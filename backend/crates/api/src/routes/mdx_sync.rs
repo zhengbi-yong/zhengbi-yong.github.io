@@ -1,15 +1,15 @@
+use crate::state::AppState;
 use axum::{
     extract::State,
-    response::{IntoResponse, Json},
     http::StatusCode,
+    response::{IntoResponse, Json},
 };
 use blog_shared::AppError;
-use crate::state::AppState;
 use serde::{Deserialize, Serialize};
-use sha2::{Sha256, Digest};
-use std::path::{Path, PathBuf};
-use std::fs;
+use sha2::{Digest, Sha256};
 use std::env;
+use std::fs;
+use std::path::{Path, PathBuf};
 use utoipa::ToSchema;
 
 // ============================================
@@ -76,8 +76,8 @@ pub async fn sync_mdx_to_db(
     let force = req.force.unwrap_or(false);
 
     // 获取MDX文件目录
-    let blog_dir = env::var("FRONTEND_BLOG_DIR")
-        .unwrap_or_else(|_| "../frontend/data/blog".to_string());
+    let blog_dir =
+        env::var("FRONTEND_BLOG_DIR").unwrap_or_else(|_| "../frontend/data/blog".to_string());
 
     // 扫描MDX文件
     let mdx_files = scan_mdx_files(&blog_dir)
@@ -167,8 +167,7 @@ async fn process_mdx_file(
     force: bool,
 ) -> Result<ProcessResult, String> {
     // 读取文件内容
-    let content = fs::read_to_string(file_path)
-        .map_err(|e| format!("读取文件失败: {}", e))?;
+    let content = fs::read_to_string(file_path).map_err(|e| format!("读取文件失败: {}", e))?;
 
     // 解析frontmatter和内容
     let (frontmatter, body) = parse_mdx_content(&content, file_path)?;
@@ -177,13 +176,12 @@ async fn process_mdx_file(
     let content_hash = compute_content_hash(&body);
 
     // 检查文章是否已存在
-    let existing_post: Option<(String, Option<String>)> = sqlx::query_as(
-        "SELECT id, content_hash FROM posts WHERE slug = $1 AND deleted_at IS NULL"
-    )
-    .bind(&frontmatter.slug)
-    .fetch_optional(pool)
-    .await
-    .map_err(|e| format!("查询数据库失败: {}", e))?;
+    let existing_post: Option<(String, Option<String>)> =
+        sqlx::query_as("SELECT id, content_hash FROM posts WHERE slug = $1 AND deleted_at IS NULL")
+            .bind(&frontmatter.slug)
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| format!("查询数据库失败: {}", e))?;
 
     match existing_post {
         Some((post_id, existing_hash)) => {
@@ -202,7 +200,7 @@ async fn process_mdx_file(
                     content_hash = $4,
                     updated_at = NOW()
                 WHERE id = $5
-                "#
+                "#,
             )
             .bind(&frontmatter.title)
             .bind(&body)
@@ -227,9 +225,10 @@ async fn process_mdx_file(
             let reading_time = calculate_reading_time(&body);
 
             // 获取分类ID
-            let category_id: Option<uuid::Uuid> = if let Some(category_slug) = &frontmatter.category {
+            let category_id: Option<uuid::Uuid> = if let Some(category_slug) = &frontmatter.category
+            {
                 sqlx::query_scalar::<_, uuid::Uuid>(
-                    "SELECT id FROM categories WHERE slug = $1 OR name = $1 LIMIT 1"
+                    "SELECT id FROM categories WHERE slug = $1 OR name = $1 LIMIT 1",
                 )
                 .bind(category_slug)
                 .fetch_optional(pool)
@@ -241,7 +240,11 @@ async fn process_mdx_file(
 
             let post_id = uuid::Uuid::new_v4();
 
-            let status_str = if frontmatter.draft { "draft" } else { "published" };
+            let status_str = if frontmatter.draft {
+                "draft"
+            } else {
+                "published"
+            };
 
             sqlx::query(
                 r#"
@@ -250,7 +253,7 @@ async fn process_mdx_file(
                     published_at, category_id, show_toc, reading_time,
                     view_count, like_count, comment_count, content_hash
                 ) VALUES ($1, $2, $3, $4, $5, $6::post_status, $7, $8, $9, $10, 0, 0, 0, $11)
-                "#
+                "#,
             )
             .bind(post_id)
             .bind(&frontmatter.slug)
@@ -295,7 +298,8 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
             Some("---") => break,
             Some(line) => {
                 if line.starts_with("title:") {
-                    title = line.replacen("title:", "", 1)
+                    title = line
+                        .replacen("title:", "", 1)
                         .trim()
                         .trim_matches('"')
                         .trim_matches('\'')
@@ -308,7 +312,7 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
                             .trim()
                             .trim_matches('"')
                             .trim_matches('\'')
-                            .to_string()
+                            .to_string(),
                     );
                 } else if line.starts_with("summary:") {
                     summary = Some(
@@ -316,7 +320,7 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
                             .trim()
                             .trim_matches('"')
                             .trim_matches('\'')
-                            .to_string()
+                            .to_string(),
                     );
                 } else if line.starts_with("tags:") {
                     let tags_str = line.replacen("tags:", "", 1).trim().to_string();
@@ -326,7 +330,11 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
                             .replace(']', "")
                             .replace('\"', "")
                             .replace('\'', "");
-                        tags = cleaned.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+                        tags = cleaned
+                            .split(',')
+                            .map(|s| s.trim().to_string())
+                            .filter(|s| !s.is_empty())
+                            .collect();
                     }
                 } else if line.starts_with("draft:") {
                     let draft_str = line.replacen("draft:", "", 1).trim().to_lowercase();
@@ -346,7 +354,8 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
 
     // 生成默认值
     if title.is_empty() {
-        title = path.file_stem()
+        title = path
+            .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("untitled")
             .to_string();
@@ -358,7 +367,9 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
         chrono::Utc::now()
     } else {
         chrono::DateTime::parse_from_rfc3339(&format!("{}T00:00:00Z", date_str))
-            .or_else(|_| chrono::DateTime::parse_from_rfc3339(&format!("{}T00:00:00+00:00", date_str)))
+            .or_else(|_| {
+                chrono::DateTime::parse_from_rfc3339(&format!("{}T00:00:00+00:00", date_str))
+            })
             .map(|dt| dt.with_timezone(&chrono::Utc))
             .unwrap_or_else(|_| chrono::Utc::now())
     };
@@ -382,7 +393,8 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
 }
 
 fn generate_slug(title: &str) -> String {
-    title.to_lowercase()
+    title
+        .to_lowercase()
         .replace(' ', "-")
         .replace('/', "-")
         .replace('?', "")
@@ -402,7 +414,10 @@ fn compute_content_hash(content: &str) -> String {
 }
 
 async fn clear_cache(state: &AppState) -> Result<(), AppError> {
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| AppError::InternalError)?;
 
     // 清除所有文章列表缓存
@@ -454,10 +469,14 @@ fn calculate_reading_time(content: &str) -> i32 {
         for word in words {
             if word.chars().any(|c| c.is_alphabetic() && (c as u32) > 0x7F) {
                 // 包含非ASCII字符，算作中文
-                chinese_chars += word.chars().filter(|c| {
-                    c.is_alphabetic() && (*c as u32) > 0x7F
-                }).count();
-            } else if word.chars().all(|c| c.is_alphabetic() || c == '\'' || c == '-') {
+                chinese_chars += word
+                    .chars()
+                    .filter(|c| c.is_alphabetic() && (*c as u32) > 0x7F)
+                    .count();
+            } else if word
+                .chars()
+                .all(|c| c.is_alphabetic() || c == '\'' || c == '-')
+            {
                 // 纯英文单词
                 english_words += 1;
             }

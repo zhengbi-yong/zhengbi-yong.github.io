@@ -1,12 +1,8 @@
-use prometheus::{Counter, Histogram, Gauge, Registry, TextEncoder, Opts};
-use axum::{
-    extract::State,
-    response::Response,
-    http::StatusCode,
-};
+use crate::AppState;
+use axum::{extract::State, http::StatusCode, response::Response};
+use prometheus::{Counter, Gauge, Histogram, Opts, Registry, TextEncoder};
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::AppState;
 
 // Prometheus指标结构
 #[derive(Clone)]
@@ -33,109 +29,103 @@ impl Metrics {
 
         let http_requests_total = prometheus::IntCounterVec::new(
             Opts::new("http_requests_total", "Total number of HTTP requests"),
-            &["method", "endpoint", "status_code"]
+            &["method", "endpoint", "status_code"],
         )
         .expect("Failed to create http_requests_total counter");
 
         let http_request_duration = Histogram::with_opts(
             prometheus::HistogramOpts::new(
                 "http_request_duration_seconds",
-                "HTTP request duration in seconds"
-            ).buckets(vec![0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0, 300.0])
+                "HTTP request duration in seconds",
+            )
+            .buckets(vec![
+                0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0, 300.0,
+            ]),
         )
         .expect("Failed to create http_request_duration histogram");
 
-        let active_connections = Gauge::new(
-            "active_connections",
-            "Number of active connections"
-        )
-        .expect("Failed to create active_connections gauge");
+        let active_connections = Gauge::new("active_connections", "Number of active connections")
+            .expect("Failed to create active_connections gauge");
 
         let database_connections_active = Gauge::new(
             "database_connections_active",
-            "Number of active database connections"
+            "Number of active database connections",
         )
         .expect("Failed to create database_connections_active gauge");
 
         let redis_connections_active = Gauge::new(
             "redis_connections_active",
-            "Number of active Redis connections"
+            "Number of active Redis connections",
         )
         .expect("Failed to create redis_connections_active gauge");
 
-        let cache_hits = Counter::new(
-            "cache_hits_total",
-            "Total number of cache hits"
-        )
-        .expect("Failed to create cache_hits_total counter");
+        let cache_hits = Counter::new("cache_hits_total", "Total number of cache hits")
+            .expect("Failed to create cache_hits_total counter");
 
-        let cache_misses = Counter::new(
-            "cache_misses_total",
-            "Total number of cache misses"
-        )
-        .expect("Failed to create cache_misses_total counter");
+        let cache_misses = Counter::new("cache_misses_total", "Total number of cache misses")
+            .expect("Failed to create cache_misses_total counter");
 
         let user_registrations_total = Counter::new(
             "user_registrations_total",
-            "Total number of user registrations"
+            "Total number of user registrations",
         )
         .expect("Failed to create user_registrations_total counter");
 
-        let user_logins_total = Counter::new(
-            "user_logins_total",
-            "Total number of user logins"
-        )
-        .expect("Failed to create user_logins_total counter");
+        let user_logins_total = Counter::new("user_logins_total", "Total number of user logins")
+            .expect("Failed to create user_logins_total counter");
 
-        let comments_created_total = Counter::new(
-            "comments_created_total",
-            "Total number of comments created"
-        )
-        .expect("Failed to create comments_created_total counter");
+        let comments_created_total =
+            Counter::new("comments_created_total", "Total number of comments created")
+                .expect("Failed to create comments_created_total counter");
 
-        let post_views_total = Counter::new(
-            "post_views_total",
-            "Total number of post views"
-        )
-        .expect("Failed to create post_views_total counter");
+        let post_views_total = Counter::new("post_views_total", "Total number of post views")
+            .expect("Failed to create post_views_total counter");
 
-        let post_likes_total = Counter::new(
-            "post_likes_total",
-            "Total number of post likes"
-        )
-        .expect("Failed to create post_likes_total counter");
+        let post_likes_total = Counter::new("post_likes_total", "Total number of post likes")
+            .expect("Failed to create post_likes_total counter");
 
-        let comment_likes_total = Counter::new(
-            "comment_likes_total",
-            "Total number of comment likes"
-        )
-        .expect("Failed to create comment_likes_total counter");
+        let comment_likes_total =
+            Counter::new("comment_likes_total", "Total number of comment likes")
+                .expect("Failed to create comment_likes_total counter");
 
-        registry.register(Box::new(http_requests_total.clone()))
+        registry
+            .register(Box::new(http_requests_total.clone()))
             .expect("Failed to register http_requests_total");
-        registry.register(Box::new(http_request_duration.clone()))
+        registry
+            .register(Box::new(http_request_duration.clone()))
             .expect("Failed to register http_request_duration");
-        registry.register(Box::new(active_connections.clone()))
+        registry
+            .register(Box::new(active_connections.clone()))
             .expect("Failed to register active_connections");
-        registry.register(Box::new(database_connections_active.clone()))
+        registry
+            .register(Box::new(database_connections_active.clone()))
             .expect("Failed to register database_connections_active");
-        registry.register(Box::new(redis_connections_active.clone()))
+        registry
+            .register(Box::new(redis_connections_active.clone()))
             .expect("Failed to register redis_connections_active");
-        registry.register(Box::new(cache_hits.clone()))
+        registry
+            .register(Box::new(cache_hits.clone()))
             .expect("Failed to register cache_hits");
-        registry.register(Box::new(cache_misses.clone()))
+        registry
+            .register(Box::new(cache_misses.clone()))
             .expect("Failed to register cache_misses");
-        registry.register(Box::new(user_registrations_total.clone()))
+        registry
+            .register(Box::new(user_registrations_total.clone()))
             .expect("Failed to register user_registrations_total");
-        registry.register(Box::new(user_logins_total.clone()))
+        registry
+            .register(Box::new(user_logins_total.clone()))
             .expect("Failed to register user_logins_total");
-        registry.register(Box::new(comments_created_total.clone()))
+        registry
+            .register(Box::new(comments_created_total.clone()))
             .expect("Failed to register comments_created_total");
-        registry.register(Box::new(post_views_total.clone()))
+        registry
+            .register(Box::new(post_views_total.clone()))
             .expect("Failed to register post_views_total");
-        registry.register(Box::new(post_likes_total.clone()))
+        registry
+            .register(Box::new(post_likes_total.clone()))
             .expect("Failed to register post_likes_total");
-        registry.register(Box::new(comment_likes_total.clone()))
+        registry
+            .register(Box::new(comment_likes_total.clone()))
             .expect("Failed to register comment_likes_total");
 
         Self {
@@ -213,7 +203,9 @@ impl Metrics {
     pub fn export(&self) -> std::result::Result<Vec<u8>, prometheus::Error> {
         let encoder = TextEncoder::new();
         let metric_families = self.registry.gather();
-        encoder.encode_to_string(&metric_families).map(|data| data.into_bytes())
+        encoder
+            .encode_to_string(&metric_families)
+            .map(|data| data.into_bytes())
     }
 }
 
@@ -245,7 +237,7 @@ impl MetricsMiddleware {
     )
 )]
 pub async fn metrics_endpoint(
-    State(state): State<AppState>
+    State(state): State<AppState>,
 ) -> std::result::Result<Response, StatusCode> {
     let metrics = state.metrics.read().await;
 
@@ -257,7 +249,7 @@ pub async fn metrics_endpoint(
                 .body(axum::body::Body::from(data))
                 .expect("Failed to build metrics response");
             Ok(response)
-        },
+        }
         Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
     }
 }

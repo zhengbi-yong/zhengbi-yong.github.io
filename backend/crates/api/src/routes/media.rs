@@ -1,11 +1,11 @@
+use crate::state::AppState;
 use axum::{
-    extract::{Path, Query, State, Extension},
+    extract::{Extension, Path, Query, State},
     http::StatusCode,
     response::{IntoResponse, Json},
 };
 use blog_db::cms::*;
 use blog_shared::{AppError, AuthUser};
-use crate::state::AppState;
 use utoipa;
 use uuid::Uuid;
 
@@ -34,7 +34,9 @@ pub async fn upload_media(
 ) -> Result<(StatusCode, Json<serde_json::Value>), AppError> {
     // TODO: Implement multipart file upload
     // Requires: axum = { version = "0.8", features = ["multipart"] }
-    Err(AppError::BadRequest("Media upload not yet implemented - requires multipart feature".to_string()))
+    Err(AppError::BadRequest(
+        "Media upload not yet implemented - requires multipart feature".to_string(),
+    ))
 
     /*
     let mut file_data: Option<Vec<u8>> = None;
@@ -247,7 +249,7 @@ pub async fn update_media(
 ) -> Result<impl IntoResponse, AppError> {
     // 检查媒体是否存在
     let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM media WHERE id = $1 AND deleted_at IS NULL)"
+        "SELECT EXISTS(SELECT 1 FROM media WHERE id = $1 AND deleted_at IS NULL)",
     )
     .bind(id)
     .fetch_one(&state.db)
@@ -273,7 +275,8 @@ pub async fn update_media(
     if update_fields.is_empty() {
         return Ok(Json(MessageResponse {
             message: "No fields to update".to_string(),
-        }).into_response());
+        })
+        .into_response());
     }
 
     let query = format!(
@@ -297,7 +300,8 @@ pub async fn update_media(
 
     Ok(Json(MessageResponse {
         message: "Media updated successfully".to_string(),
-    }).into_response())
+    })
+    .into_response())
 }
 
 /// 删除媒体文件（软删除）
@@ -386,10 +390,7 @@ pub async fn list_media(
     let where_clause = where_conditions.join(" AND ");
 
     // 查询总数
-    let count_query = format!(
-        "SELECT COUNT(*) FROM media WHERE {}",
-        where_clause
-    );
+    let count_query = format!("SELECT COUNT(*) FROM media WHERE {}", where_clause);
     let total: i64 = sqlx::query_scalar(&count_query)
         .fetch_one(&state.db)
         .await?;
@@ -411,9 +412,7 @@ pub async fn list_media(
         where_clause, limit, offset
     );
 
-    let media_list: Vec<MediaListItem> = sqlx::query_as(&list_query)
-        .fetch_all(&state.db)
-        .await?;
+    let media_list: Vec<MediaListItem> = sqlx::query_as(&list_query).fetch_all(&state.db).await?;
 
     let total_pages = ((total as f64) / (limit as f64)).ceil() as u32;
 
@@ -423,7 +422,8 @@ pub async fn list_media(
         page,
         limit,
         total_pages,
-    }).into_response())
+    })
+    .into_response())
 }
 
 /// 获取未使用的媒体文件

@@ -1,13 +1,13 @@
+use crate::AppState;
 use axum::{
     extract::State,
-    response::{Json, IntoResponse},
     http::StatusCode,
+    response::{IntoResponse, Json},
 };
-use serde::Serialize;
 use chrono::{DateTime, Utc};
+use serde::Serialize;
 use std::collections::HashMap;
 use utoipa::ToSchema;
-use crate::AppState;
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct HealthStatus {
@@ -70,9 +70,7 @@ pub fn set_app_start_time() {
 }
 
 fn get_app_start_time() -> DateTime<Utc> {
-    unsafe {
-        APP_START_TIME.unwrap_or_else(|| Utc::now())
-    }
+    unsafe { APP_START_TIME.unwrap_or_else(|| Utc::now()) }
 }
 
 pub fn get_uptime_seconds() -> u64 {
@@ -113,7 +111,9 @@ pub async fn health() -> impl IntoResponse {
         (status = 503, description = "服务不健康")
     )
 )]
-pub async fn health_detailed(State(state): State<crate::AppState>) -> Result<impl IntoResponse, StatusCode> {
+pub async fn health_detailed(
+    State(state): State<crate::AppState>,
+) -> Result<impl IntoResponse, StatusCode> {
     let start_time = std::time::Instant::now();
     let mut services = HashMap::new();
     let mut healthy = true;
@@ -166,7 +166,11 @@ pub async fn health_detailed(State(state): State<crate::AppState>) -> Result<imp
         metrics,
     };
 
-    let _status_code = if healthy { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE };
+    let _status_code = if healthy {
+        StatusCode::OK
+    } else {
+        StatusCode::SERVICE_UNAVAILABLE
+    };
 
     // 添加响应时间头
     let response = Json(health);
@@ -197,7 +201,8 @@ pub async fn readyz(State(state): State<crate::AppState>) -> Result<(), StatusCo
     if db_ok.status == "healthy"
         && redis_ok.status == "healthy"
         && jwt_ok.status == "healthy"
-        && email_ok.status == "healthy" {
+        && email_ok.status == "healthy"
+    {
         Ok(())
     } else {
         Err(StatusCode::SERVICE_UNAVAILABLE)
@@ -207,10 +212,7 @@ pub async fn readyz(State(state): State<crate::AppState>) -> Result<(), StatusCo
 async fn check_database_health(db: &sqlx::PgPool) -> ServiceStatus {
     let start = std::time::Instant::now();
 
-    match sqlx::query("SELECT 1 as test")
-        .fetch_one(db)
-        .await
-    {
+    match sqlx::query("SELECT 1 as test").fetch_one(db).await {
         Ok(_) => ServiceStatus {
             status: "healthy".to_string(),
             message: None,
@@ -222,7 +224,7 @@ async fn check_database_health(db: &sqlx::PgPool) -> ServiceStatus {
             message: Some(format!("Database connection failed: {}", e)),
             response_time_ms: Some(start.elapsed().as_millis() as u64),
             last_check: Some(Utc::now()),
-        }
+        },
     }
 }
 
@@ -230,31 +232,26 @@ async fn check_redis_health(redis_pool: &deadpool_redis::Pool) -> ServiceStatus 
     let start = std::time::Instant::now();
 
     match redis_pool.get().await {
-        Ok(mut conn) => {
-            match redis::cmd("PING")
-                .query_async::<String>(&mut conn)
-                .await
-            {
-                Ok(_) => ServiceStatus {
-                    status: "healthy".to_string(),
-                    message: None,
-                    response_time_ms: Some(start.elapsed().as_millis() as u64),
-                    last_check: Some(Utc::now()),
-                },
-                Err(e) => ServiceStatus {
-                    status: "unhealthy".to_string(),
-                    message: Some(format!("Redis PING failed: {}", e)),
-                    response_time_ms: Some(start.elapsed().as_millis() as u64),
-                    last_check: Some(Utc::now()),
-                }
-            }
+        Ok(mut conn) => match redis::cmd("PING").query_async::<String>(&mut conn).await {
+            Ok(_) => ServiceStatus {
+                status: "healthy".to_string(),
+                message: None,
+                response_time_ms: Some(start.elapsed().as_millis() as u64),
+                last_check: Some(Utc::now()),
+            },
+            Err(e) => ServiceStatus {
+                status: "unhealthy".to_string(),
+                message: Some(format!("Redis PING failed: {}", e)),
+                response_time_ms: Some(start.elapsed().as_millis() as u64),
+                last_check: Some(Utc::now()),
+            },
         },
         Err(e) => ServiceStatus {
             status: "unhealthy".to_string(),
             message: Some(format!("Redis connection failed: {}", e)),
             response_time_ms: Some(start.elapsed().as_millis() as u64),
             last_check: Some(Utc::now()),
-        }
+        },
     }
 }
 
@@ -277,7 +274,7 @@ async fn check_jwt_health(jwt: &blog_core::JwtService) -> ServiceStatus {
             message: Some(format!("JWT service error: {}", e)),
             response_time_ms: Some(start.elapsed().as_millis() as u64),
             last_check: Some(Utc::now()),
-        }
+        },
     }
 }
 
@@ -298,9 +295,9 @@ fn get_memory_usage() -> MemoryUsage {
     // 简单的内存使用估算
     // 在生产环境中，这里应该使用更精确的内存监控库
     MemoryUsage {
-        used_mb: 128,  // 示例值
-        total_mb: 1024,  // 示例值
-        percentage: 12.5,   // 示例值
+        used_mb: 128,     // 示例值
+        total_mb: 1024,   // 示例值
+        percentage: 12.5, // 示例值
     }
 }
 

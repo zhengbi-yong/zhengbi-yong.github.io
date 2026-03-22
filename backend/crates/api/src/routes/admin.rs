@@ -1,25 +1,23 @@
 use axum::{
-    extract::{Path, Query, State, Extension},
+    extract::{Extension, Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
-use blog_shared::{AppError, AuthUser};
 use crate::state::AppState;
+use blog_shared::{AppError, AuthUser};
 
 // ===== 简化的管理员权限检查 =====
 
 async fn is_admin(user_id: Uuid, state: &AppState) -> Result<bool, AppError> {
-    let role: Option<String> = sqlx::query_scalar(
-        "SELECT role FROM users WHERE id = $1"
-    )
-    .bind(user_id)
-    .fetch_optional(&state.db)
-    .await?;
+    let role: Option<String> = sqlx::query_scalar("SELECT role FROM users WHERE id = $1")
+        .bind(user_id)
+        .fetch_optional(&state.db)
+        .await?;
 
     Ok(role.as_deref() == Some("admin"))
 }
@@ -178,7 +176,7 @@ pub async fn list_users(
     // 获取用户列表
     let users = sqlx::query_as::<_, UserListItem>(
         "SELECT id, email, username, role, email_verified, created_at::text FROM users
-         ORDER BY created_at DESC LIMIT $1 OFFSET $2"
+         ORDER BY created_at DESC LIMIT $1 OFFSET $2",
     )
     .bind(page_size as i64)
     .bind(offset as i64)
@@ -315,7 +313,8 @@ pub async fn list_comments_admin(
                COALESCE(u.username, 'Anonymous') as username
         FROM comments c
         LEFT JOIN users u ON c.user_id = u.id
-    "#.to_string();
+    "#
+    .to_string();
 
     let mut count_query = "SELECT COUNT(*) FROM comments".to_string();
 
@@ -325,12 +324,13 @@ pub async fn list_comments_admin(
     }
 
     // 获取总数
-    let total: (i64,) = sqlx::query_as(&count_query)
-        .fetch_one(&state.db)
-        .await?;
+    let total: (i64,) = sqlx::query_as(&count_query).fetch_one(&state.db).await?;
 
     // 获取评论列表
-    let final_query = format!("{} ORDER BY c.created_at DESC LIMIT {} OFFSET {}", base_query, page_size, offset);
+    let final_query = format!(
+        "{} ORDER BY c.created_at DESC LIMIT {} OFFSET {}",
+        base_query, page_size, offset
+    );
 
     let comments = sqlx::query_as::<_, CommentAdminItem>(&final_query)
         .fetch_all(&state.db)
@@ -454,17 +454,20 @@ pub async fn get_admin_stats(
         .fetch_one(&state.db)
         .await?;
 
-    let pending_comments: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'pending'")
-        .fetch_one(&state.db)
-        .await?;
+    let pending_comments: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'pending'")
+            .fetch_one(&state.db)
+            .await?;
 
-    let approved_comments: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'approved'")
-        .fetch_one(&state.db)
-        .await?;
+    let approved_comments: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'approved'")
+            .fetch_one(&state.db)
+            .await?;
 
-    let rejected_comments: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'rejected'")
-        .fetch_one(&state.db)
-        .await?;
+    let rejected_comments: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM comments WHERE status = 'rejected'")
+            .fetch_one(&state.db)
+            .await?;
 
     Ok(Json(AdminStats {
         total_users: total_users.0,
@@ -519,7 +522,7 @@ pub async fn list_posts_admin(
          FROM post_stats
          WHERE slug != ''
          ORDER BY updated_at DESC
-         LIMIT $1 OFFSET $2"
+         LIMIT $1 OFFSET $2",
     )
     .bind(page_size as i64)
     .bind(offset as i64)
@@ -565,7 +568,9 @@ pub async fn get_user_growth(
     let days = query.days.unwrap_or(30).min(90) as i64;
 
     // 计算起始日期
-    let start_date = (chrono::Utc::now() - chrono::Duration::days(days)).naive_utc().date();
+    let start_date = (chrono::Utc::now() - chrono::Duration::days(days))
+        .naive_utc()
+        .date();
 
     // 获取每天的用户注册数据
     let growth_data = sqlx::query!(

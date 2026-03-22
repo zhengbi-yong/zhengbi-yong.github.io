@@ -1,3 +1,4 @@
+use crate::state::AppState;
 use axum::{
     extract::{Path, Query, State},
     http::{header, StatusCode},
@@ -5,7 +6,6 @@ use axum::{
 };
 use blog_db::cms::*;
 use blog_shared::AppError;
-use crate::state::AppState;
 use utoipa;
 use uuid::Uuid;
 
@@ -30,12 +30,10 @@ pub async fn create_tag(
     Json(req): Json<CreateTagRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // 检查 slug 是否已存在
-    let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM tags WHERE slug = $1)"
-    )
-    .bind(&req.slug)
-    .fetch_one(&state.db)
-    .await?;
+    let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM tags WHERE slug = $1)")
+        .bind(&req.slug)
+        .fetch_one(&state.db)
+        .await?;
 
     if exists {
         return Err(AppError::Conflict("Slug already exists".to_string()));
@@ -57,10 +55,7 @@ pub async fn create_tag(
     // 清除缓存
     clear_tags_cache(&state).await;
 
-    Ok((
-        StatusCode::CREATED,
-        Json(IdResponse { id }),
-    ))
+    Ok((StatusCode::CREATED, Json(IdResponse { id })))
 }
 
 /// 获取标签详情
@@ -94,9 +89,13 @@ pub async fn get_tag(
     .ok_or_else(|| AppError::NotFound("Tag not found".to_string()))?;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(tag),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 更新标签
@@ -124,12 +123,10 @@ pub async fn update_tag(
     Json(req): Json<UpdateTagRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // 检查标签是否存在
-    let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM tags WHERE slug = $1)"
-    )
-    .bind(&slug)
-    .fetch_one(&state.db)
-    .await?;
+    let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM tags WHERE slug = $1)")
+        .bind(&slug)
+        .fetch_one(&state.db)
+        .await?;
 
     if !exists {
         return Err(AppError::NotFound("Tag not found".to_string()));
@@ -151,7 +148,8 @@ pub async fn update_tag(
     if update_fields.is_empty() {
         return Ok(Json(MessageResponse {
             message: "No fields to update".to_string(),
-        }).into_response());
+        })
+        .into_response());
     }
 
     let query = format!(
@@ -175,7 +173,8 @@ pub async fn update_tag(
 
     Ok(Json(MessageResponse {
         message: "Tag updated successfully".to_string(),
-    }).into_response())
+    })
+    .into_response())
 }
 
 /// 删除标签
@@ -199,13 +198,10 @@ pub async fn delete_tag(
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
-    let affected = sqlx::query!(
-        "DELETE FROM tags WHERE slug = $1",
-        slug
-    )
-    .execute(&state.db)
-    .await?
-    .rows_affected();
+    let affected = sqlx::query!("DELETE FROM tags WHERE slug = $1", slug)
+        .execute(&state.db)
+        .await?
+        .rows_affected();
 
     if affected == 0 {
         return Err(AppError::NotFound("Tag not found".to_string()));
@@ -250,14 +246,16 @@ pub async fn list_tags(
         sort_by, sort_order
     );
 
-    let tags: Vec<Tag> = sqlx::query_as(&query)
-        .fetch_all(&state.db)
-        .await?;
+    let tags: Vec<Tag> = sqlx::query_as(&query).fetch_all(&state.db).await?;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(tags),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 标签自动补全
@@ -293,9 +291,13 @@ pub async fn autocomplete_tags(
     .await?;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(tags),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 获取标签的文章列表
@@ -319,13 +321,11 @@ pub async fn get_tag_posts(
     Query(params): Query<PostListParams>,
 ) -> Result<impl IntoResponse, AppError> {
     // 检查标签是否存在
-    let tag_id: Uuid = sqlx::query_scalar(
-        "SELECT id FROM tags WHERE slug = $1"
-    )
-    .bind(&slug)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| AppError::NotFound("Tag not found".to_string()))?;
+    let tag_id: Uuid = sqlx::query_scalar("SELECT id FROM tags WHERE slug = $1")
+        .bind(&slug)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Tag not found".to_string()))?;
 
     let page = params.page.unwrap_or(1).max(1);
     let limit = params.limit.unwrap_or(20).min(100);
@@ -338,7 +338,7 @@ pub async fn get_tag_posts(
         FROM posts p
         JOIN post_tags pt ON p.id = pt.post_id
         WHERE pt.tag_id = $1 AND p.deleted_at IS NULL
-        "#
+        "#,
     )
     .bind(tag_id)
     .fetch_one(&state.db)
@@ -379,7 +379,10 @@ pub async fn get_tag_posts(
     let total_pages = ((total as f64) / (limit as f64)).ceil() as u32;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=60, stale-while-revalidate=300")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=60, stale-while-revalidate=300",
+        )],
         Json(PostListResponse {
             posts,
             total,
@@ -387,7 +390,8 @@ pub async fn get_tag_posts(
             limit,
             total_pages,
         }),
-    ).into_response())
+    )
+        .into_response())
 }
 
 /// 获取热门标签
@@ -423,9 +427,13 @@ pub async fn get_popular_tags(
     .await?;
 
     Ok((
-        [(header::CACHE_CONTROL, "public, s-maxage=300, stale-while-revalidate=600")],
+        [(
+            header::CACHE_CONTROL,
+            "public, s-maxage=300, stale-while-revalidate=600",
+        )],
         Json(tags),
-    ).into_response())
+    )
+        .into_response())
 }
 
 // ===== 辅助结构体 =====

@@ -1,18 +1,16 @@
+use crate::state::AppState;
+use crate::utils::ip_extractor::RealIp;
 use axum::{
-    extract::{State, Json, Extension},
+    extract::{Extension, Json, State},
     http::header,
     response::IntoResponse,
 };
-use axum_extra::extract::cookie::{CookieJar, SameSite, Cookie};
-use uuid::Uuid;
-use time;
-use blog_db::{
-    RegisterRequest, LoginRequest, AuthResponse, UserInfo, User, RefreshToken,
-};
+use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
+use blog_db::{AuthResponse, LoginRequest, RefreshToken, RegisterRequest, User, UserInfo};
 use blog_shared::{AppError, AuthUser, PasswordValidator};
-use crate::state::AppState;
-use crate::utils::ip_extractor::RealIp;
 use serde_json::json;
+use time;
+use uuid::Uuid;
 
 /// 用户注册
 #[utoipa::path(
@@ -84,11 +82,11 @@ pub async fn register(
                 created_at: row.created_at,
                 updated_at: row.updated_at,
             }
-        },
+        }
         None => {
             // 插入失败，检查是否是用户名冲突（即使 email 通过）
             let username_conflict = sqlx::query_scalar::<_, bool>(
-                "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 AND email != $2)"
+                "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 AND email != $2)",
             )
             .bind(&payload.username)
             .bind(&payload.email)
@@ -112,7 +110,7 @@ pub async fn register(
         r#"
         INSERT INTO refresh_tokens (user_id, token_hash, family_id, expires_at, created_ip)
         VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4::inet)
-        "#
+        "#,
     )
     .bind(user.id)
     .bind(&token_hash)
@@ -124,7 +122,9 @@ pub async fn register(
     tx.commit().await?;
 
     // 生成 JWT
-    let access_token = state.jwt.create_access_token(&user.id, &user.email, &user.username)?;
+    let access_token = state
+        .jwt
+        .create_access_token(&user.id, &user.email, &user.username)?;
 
     // 设置 refresh token cookie
     let cookie_value = Cookie::build(("refresh_token", refresh_token))
@@ -141,8 +141,9 @@ pub async fn register(
         Json(AuthResponse {
             access_token,
             user: user.into(),
-        })
-    ).into_response())
+        }),
+    )
+        .into_response())
 }
 
 /// 用户登录
@@ -191,14 +192,14 @@ pub async fn login(
     // 验证密码
     use argon2::{Argon2, PasswordHash, PasswordVerifier};
 
-    let parsed_hash = PasswordHash::new(&user.password_hash)
-        .map_err(|_| AppError::InternalError)?;
+    let parsed_hash =
+        PasswordHash::new(&user.password_hash).map_err(|_| AppError::InternalError)?;
     let argon2 = Argon2::default();
 
-    if argon2.verify_password(
-        payload.password.as_bytes(),
-        &parsed_hash
-    ).is_err() {
+    if argon2
+        .verify_password(payload.password.as_bytes(), &parsed_hash)
+        .is_err()
+    {
         return Err(AppError::InvalidCredentials);
     }
 
@@ -228,7 +229,7 @@ pub async fn login(
         r#"
         INSERT INTO refresh_tokens (user_id, token_hash, family_id, expires_at, created_ip)
         VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4::inet)
-        "#
+        "#,
     )
     .bind(user.id)
     .bind(&new_token_hash)
@@ -241,7 +242,9 @@ pub async fn login(
     tx.commit().await?;
 
     // 生成 access token
-    let access_token = state.jwt.create_access_token(&user.id, &user.email, &user.username)?;
+    let access_token = state
+        .jwt
+        .create_access_token(&user.id, &user.email, &user.username)?;
 
     // 设置 refresh token cookie
     let cookie_value = Cookie::build(("refresh_token", new_token))
@@ -258,8 +261,9 @@ pub async fn login(
         Json(AuthResponse {
             access_token,
             user: user.into(),
-        })
-    ).into_response())
+        }),
+    )
+        .into_response())
 }
 
 /// 刷新访问令牌
@@ -335,15 +339,15 @@ pub async fn refresh(
     };
 
     // 生成新的 access token
-    let access_token = state.jwt.create_access_token(&user.id, &user.email, &user.username)?;
+    let access_token = state
+        .jwt
+        .create_access_token(&user.id, &user.email, &user.username)?;
 
     // 更新 token 的最后使用时间
-    sqlx::query(
-        "UPDATE refresh_tokens SET last_used_at = NOW() WHERE id = $1"
-    )
-    .bind(token_record.id)
-    .execute(&state.db)
-    .await?;
+    sqlx::query("UPDATE refresh_tokens SET last_used_at = NOW() WHERE id = $1")
+        .bind(token_record.id)
+        .execute(&state.db)
+        .await?;
 
     Ok(Json(json!({
         "access_token": access_token,
@@ -374,7 +378,6 @@ pub async fn me(
     )
     .fetch_optional(&state.db)
     .await?
-
     .ok_or(AppError::Unauthorized)?;
 
     Ok(Json(UserInfo {
@@ -400,19 +403,14 @@ pub async fn me(
         ("BearerAuth" = [])
     )
 )]
-pub async fn logout(
-    State(state): State<AppState>,
-    jar: CookieJar,
-) -> Result<(), AppError> {
+pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Result<(), AppError> {
     if let Some(refresh_token) = jar.get("refresh_token") {
         // 吊销 token
         let token_hash = state.jwt.hash_token(refresh_token.value());
-        sqlx::query(
-            "UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1"
-        )
-        .bind(&token_hash)
-        .execute(&state.db)
-        .await?;
+        sqlx::query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1")
+            .bind(&token_hash)
+            .execute(&state.db)
+            .await?;
     }
 
     // 清除 cookie

@@ -49,8 +49,6 @@ Sentry.init({
   integrations: [
     // 自动捕获 console 错误
     Sentry.captureConsoleIntegration(),
-    // 自动捕获未处理的 Promise 拒绝
-    Sentry.captureConsoleIntegration(),
   ],
 
   // 忽略常见噪声错误

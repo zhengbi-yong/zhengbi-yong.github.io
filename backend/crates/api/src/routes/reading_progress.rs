@@ -1,23 +1,23 @@
 use axum::{
-    extract::{Path, Query, State, Extension},
+    extract::{Extension, Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use chrono::Utc;
+use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
 
-use blog_shared::{AppError, AuthUser};
 use crate::state::AppState;
+use blog_shared::{AppError, AuthUser};
 
 // ===== API 模型 =====
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ReadingProgressRequest {
-    pub progress: i32,          // 0-100
-    pub scroll_percentage: f64, // 0.0-1.0
+    pub progress: i32,                   // 0-100
+    pub scroll_percentage: f64,          // 0.0-1.0
     pub last_read_position: Option<i32>, // 滚动位置(像素)
     pub word_count: Option<i32>,
     pub words_read: Option<i32>,

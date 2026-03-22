@@ -1,7 +1,8 @@
 use opentelemetry::trace::TracerProvider;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::runtime::Tokio;
-use opentelemetry_sdk::trace::Tracer;
+use opentelemetry_sdk::trace::SdkTracerProvider;
+use opentelemetry_sdk::Resource;
 use std::time::Duration;
 
 /// Initialize OpenTelemetry tracer with OTLP exporter
@@ -11,7 +12,7 @@ use std::time::Duration;
 /// - OTEL_SERVICE_NAME: Service name (default: blog-api)
 /// - OTEL_SERVICE_VERSION: Service version
 /// - OTEL_ENABLED: Enable OTel (default: true in production)
-pub fn init_tracer() -> Option<Tracer> {
+pub fn init_tracer() -> Option<()> {
     // Check if OTel is enabled
     let enabled = std::env::var("OTEL_ENABLED")
         .map(|v| v == "true")
@@ -43,19 +44,21 @@ pub fn init_tracer() -> Option<Tracer> {
         .build()
         .ok()?;
 
-    let provider = opentelemetry_sdk::trace::TracerProvider::builder()
-        .with_batch_exporter(exporter, Tokio)
-        .with_resource(opentelemetry_sdk::Resource::new(vec![
+    let resource = Resource::builder()
+        .with_attributes(vec![
             opentelemetry::KeyValue::new("service.name", service_name.clone()),
             opentelemetry::KeyValue::new("service.version", service_version),
             opentelemetry::KeyValue::new(
                 "deployment.environment",
                 std::env::var("ENVIRONMENT").unwrap_or_else(|_| "development".to_string()),
             ),
-        ]))
+        ])
         .build();
 
-    let tracer = provider.tracer(service_name);
+    let provider = SdkTracerProvider::builder()
+        .with_batch_exporter(exporter)
+        .with_resource(resource)
+        .build();
 
     // Set the global tracer provider
     opentelemetry::global::set_tracer_provider(provider);
@@ -65,10 +68,11 @@ pub fn init_tracer() -> Option<Tracer> {
         endpoint
     );
 
-    Some(tracer)
+    Some(())
 }
 
 /// Shutdown OpenTelemetry gracefully
 pub fn shutdown_tracer() {
-    opentelemetry::global::shutdown_tracer_provider();
+    // The global tracer provider will be dropped automatically on program exit
+    // This function exists for explicit shutdown if needed in the future
 }

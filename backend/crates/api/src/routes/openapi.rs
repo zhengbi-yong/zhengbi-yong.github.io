@@ -1,5 +1,5 @@
-use utoipa::OpenApi;
 use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme};
+use utoipa::OpenApi;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -171,7 +171,7 @@ impl utoipa::Modify for SecurityAddon {
                         .scheme(HttpAuthScheme::Bearer)
                         .bearer_format("JWT")
                         .build(),
-                )
+                ),
             )
         }
     }
@@ -184,6 +184,5 @@ pub fn openapi_spec() -> utoipa::openapi::OpenApi {
 
 /// 创建 Swagger UI 路由
 pub fn swagger_ui() -> utoipa_swagger_ui::SwaggerUi {
-    utoipa_swagger_ui::SwaggerUi::new("/swagger-ui")
-        .url("/api-docs/openapi.json", openapi_spec())
+    utoipa_swagger_ui::SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi_spec())
 }
