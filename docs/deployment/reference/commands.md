@@ -15,7 +15,7 @@ This reference covers commonly used commands for Docker, database operations, an
 - [Project Deployment Commands](#project-deployment-commands) - Canonical repo workflows
 - [Docker Commands](#docker-commands) - Container management
 - [Docker Compose Commands](#docker-compose-commands) - Multi-container orchestration
-- [Database Commands](#database-commands) - PostgreSQL operations
+- [Database Commands](#database-commands-postgresql) - PostgreSQL operations
 - [Redis Commands](#redis-commands) - Cache operations
 - [Network Commands](#network-commands) - Networking and ports
 - [System Commands](#system-commands) - Server management

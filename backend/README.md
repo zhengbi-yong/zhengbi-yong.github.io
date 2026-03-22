@@ -134,17 +134,13 @@ For production, ensure:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🆘 Support
 
 If you encounter any issues:
 
-1. Check the [troubleshooting section](./SETUP.md#troubleshooting)
-2. Search [existing issues](https://github.com/yourusername/zhengbi-yong.github.io/issues)
-3. Create a [new issue](https://github.com/yourusername/zhengbi-yong.github.io/issues/new)
+1. Check the [troubleshooting guide](../docs/getting-started/troubleshooting.md)
+2. Search [existing issues](https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues)
+3. Create a [new issue](https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues/new)
 
 ## 🙏 Acknowledgments
 

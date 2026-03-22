@@ -1,0 +1,54 @@
+name: Docs CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'README.md'
+      - 'AGENTS.md'
+      - 'backend/README.md'
+      - 'deployments/README.md'
+      - 'frontend/README.md'
+      - 'frontend/AGENTS.md'
+      - 'scripts/README_ADMIN.md'
+      - 'docs/**'
+      - 'scripts/docs/**'
+      - '.markdownlint-cli2.jsonc'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/docs-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'README.md'
+      - 'AGENTS.md'
+      - 'backend/README.md'
+      - 'deployments/README.md'
+      - 'frontend/README.md'
+      - 'frontend/AGENTS.md'
+      - 'scripts/README_ADMIN.md'
+      - 'docs/**'
+      - 'scripts/docs/**'
+      - '.markdownlint-cli2.jsonc'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/docs-ci.yml'
+
+jobs:
+  docs:
+    name: Markdown & Links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'pnpm-lock.yaml'
+      - name: Install docs tooling
+        run: pnpm install --frozen-lockfile
+      - name: Run markdownlint
+        run: pnpm docs:markdown
+      - name: Run documentation link checks
+        run: pnpm docs:links

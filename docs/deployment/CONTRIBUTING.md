@@ -315,9 +315,9 @@ cargo update
 
 ## 获取帮助
 
-- 📖 查看文档: [docs/](./docs/)
-- 💬 讨论: [GitHub Discussions](https://github.com/zhengbi-yong.github.io/discussions)
-- 🐛 问题反馈: [GitHub Issues](https://github.com/zhengbi-yong.github.io/issues)
+- 📖 查看文档: [Documentation Hub](../README.md)
+- 💬 讨论: [GitHub Discussions](https://github.com/zhengbi-yong/zhengbi-yong.github.io/discussions)
+- 🐛 问题反馈: [GitHub Issues](https://github.com/zhengbi-yong/zhengbi-yong.github.io/issues)
 - 📧 联系维护者: 通过 GitHub Issues
 
 ## 许可证

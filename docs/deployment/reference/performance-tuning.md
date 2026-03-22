@@ -648,10 +648,10 @@ redis: 512MB-1GB
 
 ## 📖 Related Documentation / 相关文档
 
-- [Architecture Overview](../concepts/architecture.md) - System design
-- [Deployment Options](../concepts/deployment-options.md) - Resource requirements by deployment type
-- [Monitoring Guide](../best-practices/monitoring.md) - Performance monitoring
-- [Scaling Strategy](../best-practices/scaling.md) - Horizontal and vertical scaling
+- [Architecture Overview](../../development/concepts/architecture.md) - System design
+- [Deployment Guide](../README.md) - Resource requirements by deployment type
+- [Monitoring Guide](../../development/operations/performance-monitoring.md) - Performance monitoring
+- [Runtime and Scaling](../../features/runtime-and-scaling.md) - Horizontal and vertical scaling
 
 ---
 

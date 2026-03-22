@@ -564,10 +564,10 @@ sudo iptables -L -v -n
 
 ## 📖 Related Documentation / 相关文档
 
-- [Architecture Overview](../concepts/architecture.md) - System architecture
+- [Architecture Overview](../../development/concepts/architecture.md) - System architecture
 - [Compose Production Stack](../guides/compose/production-stack.md) - Canonical single-host networking
 - [System Nginx Cutover](../guides/server/system-nginx-cutover.md) - Host nginx networking model
-- [Security Best Practices](../best-practices/security.md) - Security hardening
+- [Security Guide](../../development/operations/security-guide.md) - Security hardening
 - [Commands Reference](./commands.md) - Network commands
 
 ---

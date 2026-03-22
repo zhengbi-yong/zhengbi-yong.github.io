@@ -622,9 +622,9 @@ security:
 
 ### B. 相关文档
 
-- [Docker部署指南](docker.md)
+- [Docker 快速开始](../getting-started/docker-quick-start.md)
 - [快速开始指南](../quick-start.md)
-- [故障排查](troubleshooting.md)
+- [故障排查](../getting-started/troubleshooting.md)
 
 ---
 

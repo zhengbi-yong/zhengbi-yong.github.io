@@ -698,7 +698,7 @@ Docker 环境配置完成后：
 1. 📖 阅读 [环境配置](environment-setup.md) 了解详细配置
 2. ✍️ 查看 [内容管理](../guides/content-management.md) 学习如何创建文章
 3. 🎨 探索 [写作指南](../guides/writing-guide.md) 了解 MDX 组件使用
-4. 🚀 参考 [服务器部署](../deployment/SERVER_DEPLOYMENT_GUIDE.md) 准备生产环境
+4. 🚀 参考 [服务器部署](../deployment/guides/server/quick-deployment.md) 准备生产环境
 
 ---
 

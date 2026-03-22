@@ -63,7 +63,7 @@ This comprehensive guide covers:
 |--------------|-------------------|------------------|------------|
 | **[Docker 快速开始](../quick-start.md)** | 跨平台、快速开始 / Cross-platform, quick start | ⭐ Easy | 5 min |
 | **[Docker 详细](docker-quick-start.md)** | 需要详细配置 / Need detailed config | ⭐ Easy | 10-15 min |
-| **[本地开发](local-development-*.md)** | 前后端分离开发 / Separate frontend/backend | ⭐⭐ Medium | 10-20 min |
+| **[本地开发](README.md)** | 前后端分离开发 / Separate frontend/backend | ⭐⭐ Medium | 10-20 min |
 
 ---
 
@@ -89,15 +89,15 @@ This comprehensive guide covers:
 
 ### 开发文档 / Development Documentation
 
-- 🏗️ **[系统架构](../development/architecture.md)** - 架构概览
-- 💻 **[前端开发](../development/frontend/)** - Next.js 和 React
-- ⚙️ **[后端开发](../development/backend/)** - Rust 和 API
+- 🏗️ **[系统架构](../development/concepts/architecture.md)** - 架构概览
+- 💻 **[前端架构](../development/concepts/frontend-architecture.md)** - Next.js 和 React
+- ⚙️ **[后端架构](../development/concepts/backend-architecture.md)** - Rust 和 API
 
 ### 部署文档 / Deployment Documentation
 
 - 🚀 **[部署首页](../deployment/)** - 部署选项概览
 - 🖥️ **[服务器部署](../deployment/guides/server/)** - 生产服务器配置
-- 🔒 **[安全最佳实践](../deployment/best-practices/security.md)** - 安全加固
+- 🔒 **[安全指南](../development/operations/security-guide.md)** - 安全加固
 
 ---
 
@@ -112,8 +112,8 @@ This comprehensive guide covers:
 ### 开发者 / Developers
 
 1. **[快速开始](../quick-start.md)** - 快速启动
-2. **[系统架构](../development/architecture.md)** - 理解架构
-3. **[前端开发](../development/frontend/)** 或 **[后端开发](../development/backend/)** - 选择你的方向
+2. **[系统架构](../development/concepts/architecture.md)** - 理解架构
+3. **[前端架构](../development/concepts/frontend-architecture.md)** 或 **[后端架构](../development/concepts/backend-architecture.md)** - 选择你的方向
 
 ### 运维工程师 / DevOps Engineers
 

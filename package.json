@@ -1,0 +1,13 @@
+{
+  "name": "zhengbi-yong-github-io-tooling",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "docs:markdown": "node scripts/docs/run-markdownlint.mjs",
+    "docs:links": "node scripts/docs/check-links.mjs",
+    "docs:check": "pnpm docs:markdown && pnpm docs:links"
+  },
+  "devDependencies": {
+    "markdownlint-cli2": "^0.18.1"
+  }
+}

@@ -1,4 +1,4 @@
-.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env bootstrap-remote-host deploy-remote-compose provision-remote-compose
+.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env bootstrap-remote-host deploy-remote-compose provision-remote-compose
 
 # 默认目标
 help:
@@ -8,6 +8,7 @@ help:
 	@echo "  make dev           - 启动前后端开发服务器"
 	@echo "  make build         - 构建前后端"
 	@echo "  make test          - 运行所有测试"
+	@echo "  make lint-docs     - 校验维护中的 Markdown 文档与链接"
 	@echo "  make clean         - 清理所有构建文件"
 	@echo "  make install       - 安装所有依赖"
 	@echo "  make setup-db      - 启动数据库服务"
@@ -26,6 +27,8 @@ help:
 # 初始化开发环境
 setup:
 	@echo "🚀 初始化开发环境..."
+	@echo "📦 安装仓库级工具..."
+	pnpm install
 	@echo "📦 安装后端依赖..."
 	cd backend && cargo fetch
 	@echo "📦 安装前端依赖..."
@@ -59,6 +62,10 @@ test:
 	@echo "🧪 运行前端测试..."
 	cd frontend && pnpm test
 
+lint-docs:
+	@echo "📝 校验维护中的文档..."
+	pnpm docs:check
+
 # 清理所有构建文件
 clean:
 	@echo "🧹 清理后端..."
@@ -69,6 +76,8 @@ clean:
 
 # 安装所有依赖
 install:
+	@echo "📦 安装仓库级工具..."
+	pnpm install
 	@echo "📦 安装后端依赖..."
 	cd backend && cargo fetch
 	@echo "📦 安装前端依赖..."

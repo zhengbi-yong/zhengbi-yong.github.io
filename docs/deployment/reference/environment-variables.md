@@ -402,7 +402,7 @@ PROMETHEUS_ENABLED=false
 - Error rates
 - Resource usage
 
-**See Also / 另见**: [Monitoring Guide](../best-practices/monitoring.md)
+**See Also / 另见**: [Monitoring Guide](../../development/operations/performance-monitoring.md)
 
 ---
 
@@ -829,10 +829,10 @@ docker compose restart backend
 
 ## 📖 Related Documentation / 相关文档
 
-- [Prerequisites](../getting-started/prerequisites.md) - Environment setup
+- [Environment Setup](../../getting-started/environment-setup.md) - Environment setup
 - [Compose Production Stack](../guides/compose/production-stack.md) - Production configuration
 - [Automated Compose Deploy](../guides/server/automated-compose-deploy.md) - SSH bootstrap workflow
-- [Security Best Practices](../best-practices/security.md) - Security hardening
+- [Security Guide](../../development/operations/security-guide.md) - Security hardening
 - [Commands Reference](./commands.md) - Common deployment commands
 
 ---

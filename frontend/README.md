@@ -43,9 +43,9 @@ For comprehensive documentation, see the main project docs: **[Complete Document
 
 ### Key Documents
 
-- **[Frontend Overview](../docs/development/frontend/overview.md)** - Next.js project structure and architecture
-- **[Refine Integration](../docs/development/frontend/refine-integration.md)** - Refine framework integration guide
-- **[Frontend Testing](../docs/development/frontend/testing.md)** - Testing strategies and coverage
+- **[Frontend Architecture](../docs/development/concepts/frontend-architecture.md)** - Next.js project structure and architecture
+- **[Refine Integration](../docs/development/guides/frontend-development/refine-integration.md)** - Refine framework integration guide
+- **[Frontend Testing](../docs/development/guides/testing/frontend-testing.md)** - Testing strategies and coverage
 
 ### User Guides
 
