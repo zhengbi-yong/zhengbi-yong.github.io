@@ -1,20 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
-
-function resolveBackendApiBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
-  const trimmedUrl = configuredUrl.replace(/\/$/, '')
-
-  if (trimmedUrl.endsWith('/api/v1')) {
-    return trimmedUrl
-  }
-
-  if (trimmedUrl.endsWith('/v1')) {
-    return trimmedUrl.replace(/\/v1$/, '/api/v1')
-  }
-
-  return `${trimmedUrl}/api/v1`
-}
+import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
 const BACKEND_API_URL = resolveBackendApiBaseUrl()
 
