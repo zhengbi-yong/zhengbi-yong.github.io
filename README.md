@@ -61,6 +61,7 @@ cd frontend && pnpm dev
 make test
 make verify-api-contract
 make smoke-prod-compose
+make smoke-prod-compose-fast
 cd backend && cargo check && cargo test
 cd frontend && pnpm test
 cd frontend && pnpm test:e2e
@@ -75,6 +76,16 @@ cp .env.production.example .env.production
 make deploy-prod-validate
 make deploy-prod-up
 ```
+
+For repeat local validation after images already exist:
+
+```bash
+make smoke-prod-compose-fast ENV_FILE=.env.production
+```
+
+Sentry release creation and source map upload are now credential-driven. Set
+`SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` only in environments
+where build-time release artifacts should be published.
 
 Lowest-friction remote deployment:
 

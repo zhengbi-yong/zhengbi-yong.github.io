@@ -1,4 +1,4 @@
-.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env generate-ci-prod-env verify-api-contract smoke-prod-compose bootstrap-remote-host deploy-remote-compose provision-remote-compose
+.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env generate-ci-prod-env verify-api-contract smoke-prod-compose smoke-prod-compose-fast bootstrap-remote-host deploy-remote-compose provision-remote-compose
 
 # 默认目标
 help:
@@ -20,6 +20,7 @@ help:
 	@echo "  make generate-ci-prod-env - 生成 CI/冒烟测试用生产环境文件"
 	@echo "  make verify-api-contract - 校验 OpenAPI 与前端类型产物无漂移"
 	@echo "  make smoke-prod-compose - 构建并冒烟验证 production Compose 栈"
+	@echo "  make smoke-prod-compose-fast - 复用当前镜像快速冒烟验证 production Compose 栈"
 	@echo "  make bootstrap-remote-host - 远程安装 Docker/Compose 部署前置条件"
 	@echo "  make deploy-remote-compose - 通过 SSH 将 Compose 运行时发布到服务器"
 	@echo "  make provision-remote-compose - 一条命令生成 env、引导服务器并部署"
@@ -227,6 +228,12 @@ smoke-prod-compose:
 		$(if $(ENV_FILE),--env-file $(ENV_FILE),) \
 		$(if $(KEEP_RUNNING),--keep-running,) \
 		$(if $(SKIP_BUILD),--skip-build,)
+
+smoke-prod-compose-fast:
+	@bash scripts/testing/smoke-production-compose.sh \
+		$(if $(ENV_FILE),--env-file $(ENV_FILE),) \
+		$(if $(KEEP_RUNNING),--keep-running,) \
+		--skip-build
 
 bootstrap-remote-host:
 	@bash scripts/deployment/bootstrap-remote-host.sh \

@@ -3,6 +3,33 @@ const { withContentlayer } = require('next-contentlayer2')
 const { withSentryConfig } = require('@sentry/nextjs')
 
 const ignoreBuildErrors = process.env.NEXT_IGNORE_BUILD_ERRORS === '1'
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
+const sentryOrg = process.env.SENTRY_ORG
+const sentryProject = process.env.SENTRY_PROJECT
+const enableSentryBuildArtifacts = Boolean(sentryAuthToken && sentryOrg && sentryProject)
+
+const sentryBuildOptions = {
+  authToken: sentryAuthToken,
+  org: sentryOrg,
+  project: sentryProject,
+  telemetry: false,
+  silent: !enableSentryBuildArtifacts,
+  sourcemaps: {
+    disable: !enableSentryBuildArtifacts,
+    deleteSourcemapsAfterUpload: enableSentryBuildArtifacts,
+  },
+  release: enableSentryBuildArtifacts
+    ? undefined
+    : {
+        create: false,
+        finalize: false,
+      },
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -235,5 +262,5 @@ if (process.env.EXPORT !== '1') {
 }
 
 module.exports = withContentlayer(
-  withSentryConfig(finalConfig)
+  withSentryConfig(finalConfig, sentryBuildOptions)
 )

@@ -16,11 +16,19 @@ cp .env.production.example .env.production
 # edit secrets and image tags
 make deploy-prod-validate
 make deploy-prod-up
+
+# after the first successful build, reuse local images for fast repeat smoke
+make smoke-prod-compose-fast ENV_FILE=.env.production
 ```
 
 That flow validates configuration, starts infrastructure, runs the migration
 job, starts `api`, `worker`, `frontend`, and optional edge services, then checks
 readiness.
+
+If frontend source maps and Sentry release metadata should be published during
+`next build`, provide `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` in
+the deployment environment. Leaving them unset keeps routine builds quiet and
+skips artifact upload.
 
 ## Remote operator workflow
 

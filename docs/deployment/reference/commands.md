@@ -62,6 +62,9 @@ make generate-ci-prod-env OUTPUT_FILE=.env.production.ci
 # Build and smoke-test the canonical production Compose runtime
 make smoke-prod-compose ENV_FILE=.env.production.ci
 
+# Reuse the current local images for a fast repeat smoke
+make smoke-prod-compose-fast ENV_FILE=.env.production
+
 # Render versioned release assets
 make render-release-assets VERSION=1.8.2
 

@@ -43,12 +43,20 @@ cp .env.production.example .env.production
 make deploy-prod-validate
 make deploy-prod-up
 
+# Fast repeat smoke after images already exist
+make smoke-prod-compose-fast ENV_FILE=.env.production
+
 # Lowest-friction fresh-host deploy
 bash scripts/deployment/provision-compose-host.sh --target ubuntu@203.0.113.10
 
 # Render immutable release assets
 make render-release-assets VERSION=1.8.2
 ```
+
+If you want frontend source maps and Sentry release metadata to be published
+during `next build`, provide `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and
+`SENTRY_PROJECT`. Without those credentials the build stays quiet and skips the
+artifact upload step.
 
 ## What was retired
 
