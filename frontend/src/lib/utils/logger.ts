@@ -14,6 +14,8 @@
  * ```
  */
 
+import * as Sentry from '@sentry/nextjs'
+
 interface Logger {
   log: (message: string, ...args: unknown[]) => void
   warn: (message: string, ...args: unknown[]) => void
@@ -29,6 +31,7 @@ interface Logger {
 }
 
 const isDevelopment = process.env.NODE_ENV === 'development'
+const isSentryEnabled = Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN)
 
 const logger: Logger = {
   log: (message: string, ...args: unknown[]) => {
@@ -47,10 +50,15 @@ const logger: Logger = {
     if (isDevelopment) {
       console.error(message, error, ...args)
     }
-    // TODO: 生产环境可扩展为发送到 Sentry 或其他监控服务
-    // if (!isDevelopment && error) {
-    //   sendToErrorTracking({ message, error, context: args })
-    // }
+    // 生产环境发送到 Sentry
+    if (!isDevelopment && isSentryEnabled) {
+      Sentry.captureException(error instanceof Error ? error : new Error(String(error)), {
+        extra: {
+          message,
+          context: args,
+        },
+      })
+    }
   },
 
   debug: (message: string, ...args: unknown[]) => {
@@ -87,8 +95,15 @@ const logger: Logger = {
     if (isDevelopment) {
       console.log('[AUDIT]', auditLog)
     }
-    // TODO: 生产环境发送到审计服务
-    // sendToAuditService(auditLog)
+    // 生产环境可发送到 Sentry 作为 breadcrumbs 或审计服务
+    if (!isDevelopment && isSentryEnabled) {
+      Sentry.addBreadcrumb({
+        category: 'audit',
+        message: action,
+        data: details,
+        level: 'info',
+      })
+    }
   },
 
   performance: (metric: string, duration: number) => {
@@ -101,8 +116,15 @@ const logger: Logger = {
     if (isDevelopment) {
       console.log(`[PERF] ${metric}: ${duration}ms`, perfLog)
     }
-    // TODO: 生产环境发送到性能监控服务
-    // sendToPerformanceMonitoring(perfLog)
+    // 生产环境可发送到 Sentry 作为 transaction span 或性能监控服务
+    if (!isDevelopment && isSentryEnabled) {
+      Sentry.addBreadcrumb({
+        category: 'performance',
+        message: `${metric}: ${duration}ms`,
+        data: { duration, metric },
+        level: 'info',
+      })
+    }
   },
 }
 

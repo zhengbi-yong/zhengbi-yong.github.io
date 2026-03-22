@@ -2,13 +2,12 @@
 #![type_length_limit = "10000000"]
 
 use axum::Router;
-use tower_http::{
-    trace::TraceLayer,
-    compression::CompressionLayer,
-    cors::CorsLayer,
-};
-use tracing_subscriber::prelude::*;
+use blog_api::middleware::request_id_middleware;
+use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
 use blog_api::state::AppState;
+use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
+use tracing_subscriber::fmt::format::FmtSpan;
+use tracing_subscriber::prelude::*;
 
 // 导入所有路由模块（仅导入需要使用的模块）
 use blog_api::middleware::auth::auth_middleware;
@@ -21,10 +20,18 @@ async fn main() {
         eprintln!("⚠️  无法加载 .env 文件: {}. 将使用系统环境变量。", e);
     }
 
-    // 初始化 tracing
+    // 初始化 OpenTelemetry tracer
+    let _tracer = init_tracer();
+
+    // 初始化 tracing subscriber，包含 request_id 字段
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::from_default_env())
-        .with(tracing_subscriber::fmt::layer())
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_span_events(FmtSpan::CLOSE)
+                .json()
+                .flatten_event(true),
+        )
         .init();
 
     if let Err(e) = run_server().await {
@@ -48,19 +55,18 @@ async fn run_server() -> anyhow::Result<()> {
     tracing::info!("Starting Blog API Server...");
 
     // 加载配置
-    let settings = blog_shared::Settings::from_env()
-        .map_err(|e| {
-            eprintln!("❌ 配置加载失败: {}", e);
-            eprintln!("💡 请确保设置了以下环境变量:");
-            eprintln!("   - DATABASE_URL");
-            eprintln!("   - REDIS_URL");
-            eprintln!("   - JWT_SECRET (至少32个字符)");
-            eprintln!("   - PASSWORD_PEPPER");
-            eprintln!("   - SMTP_USERNAME");
-            eprintln!("   - SMTP_PASSWORD");
-            eprintln!("   - SMTP_FROM");
-            e
-        })?;
+    let settings = blog_shared::Settings::from_env().map_err(|e| {
+        eprintln!("❌ 配置加载失败: {}", e);
+        eprintln!("💡 请确保设置了以下环境变量:");
+        eprintln!("   - DATABASE_URL");
+        eprintln!("   - REDIS_URL");
+        eprintln!("   - JWT_SECRET (至少32个字符)");
+        eprintln!("   - PASSWORD_PEPPER");
+        eprintln!("   - SMTP_USERNAME");
+        eprintln!("   - SMTP_PASSWORD");
+        eprintln!("   - SMTP_FROM");
+        e
+    })?;
     tracing::info!("Configuration loaded successfully");
 
     // 初始化数据库连接池
@@ -83,14 +89,18 @@ async fn run_server() -> anyhow::Result<()> {
             eprintln!("   JWT_SECRET 长度: {} 字符 (需要至少 32 个字符)", settings.jwt_secret.len());
             anyhow::anyhow!("JWT service initialization failed: {:?}. JWT_SECRET must be at least 32 characters long (current length: {})", e, settings.jwt_secret.len())
         })?;
-    
-    let email_service = blog_core::email::EmailService::new(&settings.smtp)
-        .map_err(|e| {
-            eprintln!("❌ Email 服务初始化失败: {:?}", e);
-            eprintln!("   SMTP 配置: host={}, port={}, tls={}, from={}", 
-                settings.smtp.host, settings.smtp.port, settings.smtp.tls, settings.smtp.from);
-            anyhow::anyhow!("Email service initialization failed: {:?}. Check SMTP configuration", e)
-        })?;
+
+    let email_service = blog_core::email::EmailService::new(&settings.smtp).map_err(|e| {
+        eprintln!("❌ Email 服务初始化失败: {:?}", e);
+        eprintln!(
+            "   SMTP 配置: host={}, port={}, tls={}, from={}",
+            settings.smtp.host, settings.smtp.port, settings.smtp.tls, settings.smtp.from
+        );
+        anyhow::anyhow!(
+            "Email service initialization failed: {:?}. Check SMTP configuration",
+            e
+        )
+    })?;
 
     // 初始化指标收集
     let metrics = std::sync::Arc::new(tokio::sync::RwLock::new(blog_api::metrics::Metrics::new()));
@@ -110,7 +120,10 @@ async fn run_server() -> anyhow::Result<()> {
     };
 
     // 提取服务器地址（在移动 state 之前）
-    let addr = format!("{}:{}", state.settings.server_host, state.settings.server_port);
+    let addr = format!(
+        "{}:{}",
+        state.settings.server_host, state.settings.server_port
+    );
 
     // 🔥 最终方案：路由分组 + 高递归限制 + type_length_limit
     // 专家建议：将路由分组到独立的函数中，避免所有路由写在一个文件
@@ -133,8 +146,13 @@ async fn run_server() -> anyhow::Result<()> {
         // API v1 路由（分组）- 添加 /api 前缀
         .nest("/api/v1", v1_routes(state.clone()))
         // 中间件（只在最外层应用）
+        // 1. Request ID 中间件（最先执行，确保所有后续层都能获取 request_id）
+        .layer(axum::middleware::from_fn(request_id_middleware))
+        // 2. HTTP Trace 中间件
         .layer(TraceLayer::new_for_http())
+        // 3. 压缩中间件
         .layer(CompressionLayer::new())
+        // 4. CORS 中间件
         .layer(create_cors_layer(state.settings.cors.allowed_origins.clone()))
         // 添加状态
         .with_state(state);
@@ -205,96 +223,195 @@ fn auth_routes() -> Router<AppState> {
 
 // 文章路由
 fn post_routes() -> Router<AppState> {
-    use axum::routing::{get, post, delete};
+    use axum::routing::{delete, get, post};
     Router::new()
         .route("/posts", get(blog_api::routes::posts::list_posts))
-        .route("/posts/id/{id}", get(blog_api::routes::posts::get_post_by_id))
+        .route(
+            "/posts/id/{id}",
+            get(blog_api::routes::posts::get_post_by_id),
+        )
         .route("/posts/{slug}", get(blog_api::routes::posts::get_post))
-        .route("/posts/{slug}/stats", get(blog_api::routes::posts::get_stats))
+        .route(
+            "/posts/{slug}/stats",
+            get(blog_api::routes::posts::get_stats),
+        )
         .route("/posts/{slug}/view", post(blog_api::routes::posts::view))
-        .route("/posts/{slug}/comments", get(blog_api::routes::comments::list_comments))
-        .route("/posts/{slug}/related", get(blog_api::routes::search::get_related_posts))
+        .route(
+            "/posts/{slug}/comments",
+            get(blog_api::routes::comments::list_comments),
+        )
+        .route(
+            "/posts/{slug}/related",
+            get(blog_api::routes::search::get_related_posts),
+        )
         .route("/posts/{slug}/like", post(blog_api::routes::posts::like))
-        .route("/posts/{slug}/like", delete(blog_api::routes::posts::unlike))
+        .route(
+            "/posts/{slug}/like",
+            delete(blog_api::routes::posts::unlike),
+        )
 }
 
 // 文章管理路由（需要认证）
 fn post_admin_routes() -> Router<AppState> {
-    use axum::routing::{get, post, delete, patch};
+    use axum::routing::{delete, get, patch, post};
     Router::new()
-        .route("/admin/posts", get(blog_api::routes::admin::list_posts_admin))
+        .route(
+            "/admin/posts",
+            get(blog_api::routes::admin::list_posts_admin),
+        )
         .route("/admin/posts", post(blog_api::routes::posts::create_post))
-        .route("/admin/posts/{slug}", patch(blog_api::routes::posts::update_post))
-        .route("/admin/posts/{slug}", delete(blog_api::routes::posts::delete_post))
+        .route(
+            "/admin/posts/{slug}",
+            patch(blog_api::routes::posts::update_post),
+        )
+        .route(
+            "/admin/posts/{slug}",
+            delete(blog_api::routes::posts::delete_post),
+        )
 }
 
 // 分类路由
 fn category_routes() -> Router<AppState> {
-    use axum::routing::{get, post, patch, delete};
+    use axum::routing::{delete, get, patch, post};
     Router::new()
-        .route("/categories", get(blog_api::routes::categories::list_categories))
-        .route("/categories/tree", get(blog_api::routes::categories::get_category_tree))
-        .route("/categories/{slug}", get(blog_api::routes::categories::get_category))
-        .route("/categories/{slug}/posts", get(blog_api::routes::categories::get_category_posts))
-        .route("/admin/categories", post(blog_api::routes::categories::create_category))
-        .route("/admin/categories/{slug}", patch(blog_api::routes::categories::update_category))
-        .route("/admin/categories/{slug}", delete(blog_api::routes::categories::delete_category))
+        .route(
+            "/categories",
+            get(blog_api::routes::categories::list_categories),
+        )
+        .route(
+            "/categories/tree",
+            get(blog_api::routes::categories::get_category_tree),
+        )
+        .route(
+            "/categories/{slug}",
+            get(blog_api::routes::categories::get_category),
+        )
+        .route(
+            "/categories/{slug}/posts",
+            get(blog_api::routes::categories::get_category_posts),
+        )
+        .route(
+            "/admin/categories",
+            post(blog_api::routes::categories::create_category),
+        )
+        .route(
+            "/admin/categories/{slug}",
+            patch(blog_api::routes::categories::update_category),
+        )
+        .route(
+            "/admin/categories/{slug}",
+            delete(blog_api::routes::categories::delete_category),
+        )
 }
 
 // 标签路由
 fn tag_routes() -> Router<AppState> {
-    use axum::routing::{get, post, patch, delete};
+    use axum::routing::{delete, get, patch, post};
     Router::new()
         .route("/tags", get(blog_api::routes::tags::list_tags))
-        .route("/tags/popular", get(blog_api::routes::tags::get_popular_tags))
-        .route("/tags/autocomplete", get(blog_api::routes::tags::autocomplete_tags))
+        .route(
+            "/tags/popular",
+            get(blog_api::routes::tags::get_popular_tags),
+        )
+        .route(
+            "/tags/autocomplete",
+            get(blog_api::routes::tags::autocomplete_tags),
+        )
         .route("/tags/{slug}", get(blog_api::routes::tags::get_tag))
-        .route("/tags/{slug}/posts", get(blog_api::routes::tags::get_tag_posts))
+        .route(
+            "/tags/{slug}/posts",
+            get(blog_api::routes::tags::get_tag_posts),
+        )
         .route("/admin/tags", post(blog_api::routes::tags::create_tag))
-        .route("/admin/tags/{slug}", patch(blog_api::routes::tags::update_tag))
-        .route("/admin/tags/{slug}", delete(blog_api::routes::tags::delete_tag))
+        .route(
+            "/admin/tags/{slug}",
+            patch(blog_api::routes::tags::update_tag),
+        )
+        .route(
+            "/admin/tags/{slug}",
+            delete(blog_api::routes::tags::delete_tag),
+        )
 }
 
 // 搜索路由
 fn search_routes() -> Router<AppState> {
     use axum::routing::get;
     Router::new()
-        .route("/search", get(blog_api::routes::search_optimized::search_posts_optimized))
-        .route("/search/suggest", get(blog_api::routes::search_optimized::search_suggest_optimized))
-        .route("/search/trending", get(blog_api::routes::search_optimized::get_trending_keywords_optimized))
+        .route(
+            "/search",
+            get(blog_api::routes::search_optimized::search_posts_optimized),
+        )
+        .route(
+            "/search/suggest",
+            get(blog_api::routes::search_optimized::search_suggest_optimized),
+        )
+        .route(
+            "/search/trending",
+            get(blog_api::routes::search_optimized::get_trending_keywords_optimized),
+        )
 }
 
 // 评论路由
 fn comment_routes() -> Router<AppState> {
     use axum::routing::post;
     Router::new()
-        .route("/comments/{id}/like", post(blog_api::routes::comments::like_comment))
-        .route("/comments/{id}/unlike", post(blog_api::routes::comments::unlike_comment))
+        .route(
+            "/comments/{id}/like",
+            post(blog_api::routes::comments::like_comment),
+        )
+        .route(
+            "/comments/{id}/unlike",
+            post(blog_api::routes::comments::unlike_comment),
+        )
 }
 
 // 评论管理路由（需要认证）
 fn comment_admin_routes() -> Router<AppState> {
-    use axum::routing::{get, post, delete, put};
+    use axum::routing::{delete, get, post, put};
     Router::new()
-        .route("/admin/comments", get(blog_api::routes::admin::list_comments_admin))
-        .route("/admin/comments/{id}/status", put(blog_api::routes::admin::update_comment_status))
-        .route("/admin/comments/{id}", delete(blog_api::routes::admin::delete_comment_admin))
-        .route("/posts/{slug}/comments", post(blog_api::routes::comments::create_comment))
+        .route(
+            "/admin/comments",
+            get(blog_api::routes::admin::list_comments_admin),
+        )
+        .route(
+            "/admin/comments/{id}/status",
+            put(blog_api::routes::admin::update_comment_status),
+        )
+        .route(
+            "/admin/comments/{id}",
+            delete(blog_api::routes::admin::delete_comment_admin),
+        )
+        .route(
+            "/posts/{slug}/comments",
+            post(blog_api::routes::comments::create_comment),
+        )
 }
 
 // 阅读进度路由
 fn reading_progress_routes() -> Router<AppState> {
-    use axum::routing::{get, post, delete};
+    use axum::routing::{delete, get, post};
     Router::new()
-        .route("/posts/{slug}/reading-progress", get(blog_api::routes::reading_progress::get_reading_progress_handler))
-        .route("/posts/{slug}/reading-progress", post(blog_api::routes::reading_progress::update_reading_progress_handler))
-        .route("/posts/{slug}/reading-progress", delete(blog_api::routes::reading_progress::delete_reading_progress_handler))
-        .route("/reading-progress/history", get(blog_api::routes::reading_progress::get_reading_history_handler))
+        .route(
+            "/posts/{slug}/reading-progress",
+            get(blog_api::routes::reading_progress::get_reading_progress_handler),
+        )
+        .route(
+            "/posts/{slug}/reading-progress",
+            post(blog_api::routes::reading_progress::update_reading_progress_handler),
+        )
+        .route(
+            "/posts/{slug}/reading-progress",
+            delete(blog_api::routes::reading_progress::delete_reading_progress_handler),
+        )
+        .route(
+            "/reading-progress/history",
+            get(blog_api::routes::reading_progress::get_reading_history_handler),
+        )
 }
 
 // 管理员路由（核心管理功能，不包括文章和评论管理）
 fn admin_routes() -> Router<AppState> {
-    use axum::routing::{get, post, delete, put, patch};
+    use axum::routing::{delete, get, patch, post, put};
     Router::new()
         // 统计和用户管理
         .route("/admin/stats", get(blog_api::routes::admin::get_admin_stats))
@@ -390,4 +507,3 @@ fn create_cors_layer(allowed_origins: Vec<String>) -> CorsLayer {
         }
     }
 }
-

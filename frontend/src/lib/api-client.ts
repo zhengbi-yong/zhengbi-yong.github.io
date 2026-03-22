@@ -14,19 +14,30 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor - add auth token
+// Request interceptor - add auth token and request ID
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add request ID for distributed tracing
+    if (!config.headers['x-request-id']) {
+      config.headers['x-request-id'] = generateRequestId();
+    }
+
     return config;
   },
   (error) => {
     return Promise.reject(error);
   }
 );
+
+// Generate unique request ID
+function generateRequestId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+}
 
 // Response interceptor - handle errors
 apiClient.interceptors.response.use(

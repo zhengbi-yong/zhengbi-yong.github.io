@@ -160,10 +160,12 @@ pub async fn blacklist_all_user_tokens(
     use redis::AsyncCommands;
     let now = chrono::Utc::now().timestamp();
     // 有效期 7 天（与 refresh token 有效期相同）
-    conn.set_ex::<_, _, ()>(&key, now, 86400 * 7).await.map_err(|e| {
-        tracing::error!("Failed to invalidate user tokens: {}", e);
-        AuthError::InvalidToken
-    })?;
+    conn.set_ex::<_, _, ()>(&key, now, 86400 * 7)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to invalidate user tokens: {}", e);
+            AuthError::InvalidToken
+        })?;
 
     tracing::info!("All tokens invalidated for user: {}", user_id);
     Ok(())

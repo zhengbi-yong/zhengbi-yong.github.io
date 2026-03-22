@@ -1,3 +1,5 @@
+use crate::utils::ip_extractor::extract_real_ip;
+use crate::AppState;
 use axum::{
     extract::{Request, State},
     http::StatusCode,
@@ -5,8 +7,6 @@ use axum::{
     response::Response,
 };
 use redis::Script;
-use crate::AppState;
-use crate::utils::ip_extractor::extract_real_ip;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
@@ -42,14 +42,17 @@ pub async fn rate_limit_middleware(
 
     // 根据路由设置不同的限流策略
     let (limit, window) = match route.as_str() {
-        "/v1/auth/login" | "/v1/auth/register" => (5, 60),     // 5次/分钟
-        "/v1/posts/*/view" => (100, 60),                         // 100次/分钟
+        "/v1/auth/login" | "/v1/auth/register" => (5, 60), // 5次/分钟
+        "/v1/posts/*/view" => (100, 60),                   // 100次/分钟
         "/v1/posts/*/comments" if request.method().as_str() == "POST" => (10, 60), // 10次/分钟
-        _ => (1000, 60),                                         // 默认
+        _ => (1000, 60),                                   // 默认
     };
 
     // 执行 Redis 脚本
-    let mut conn = state.redis.get().await
+    let mut conn = state
+        .redis
+        .get()
+        .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let result: i32 = Script::new(RATE_LIMIT_SCRIPT)
@@ -61,7 +64,12 @@ pub async fn rate_limit_middleware(
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     if result == 0 {
-        tracing::warn!("Rate limit exceeded for IP: {}, Route: {} (hash: {})", ip, route, route_hash);
+        tracing::warn!(
+            "Rate limit exceeded for IP: {}, Route: {} (hash: {})",
+            ip,
+            route,
+            route_hash
+        );
         return Err(StatusCode::TOO_MANY_REQUESTS);
     }
 
@@ -85,7 +93,10 @@ fn extract_route(request: &Request) -> String {
             m.as_str()
                 .split('/')
                 .map(|segment| {
-                    if segment.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_') {
+                    if segment
+                        .chars()
+                        .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+                    {
                         // 看起来像静态路径
                         segment
                     } else if segment.parse::<uuid::Uuid>().is_ok() {

@@ -53,7 +53,12 @@ time = { version = "0.3", features = ["serde-human-readable"] }
 
 # 日志与监控
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json", "fmt"] }
+tracing-opentelemetry = "0.30"
+opentelemetry = "0.29"
+opentelemetry-otlp = { version = "0.29", features = ["http-proto", "trace", "reqwest-client"] }
+opentelemetry_sdk = { version = "0.29", features = ["rt-tokio", "trace"] }
+http = "1.2"
 prometheus = "0.13"
 sentry = { version = "0.46", features = ["anyhow", "tracing"] }
 
