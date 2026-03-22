@@ -6,8 +6,9 @@
 
 import { DataProvider } from '@refinedev/core'
 import axios from 'axios'
+import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/v1'
+const BACKEND_API_URL = resolveBackendApiBaseUrl()
 
 // 创建自定义的 axios 实例，添加拦截器来处理认证
 const customAxios = axios.create({
@@ -64,7 +65,12 @@ export const dataProvider: DataProvider = {
     // 处理筛选
     if (filters && filters.length > 0) {
       filters.forEach((filter) => {
-        if ('field' in filter && 'value' in filter && filter.value !== undefined && filter.value !== null) {
+        if (
+          'field' in filter &&
+          'value' in filter &&
+          filter.value !== undefined &&
+          filter.value !== null
+        ) {
           if (filter.field === 'status') {
             params.status = String(filter.value)
           } else {
@@ -83,7 +89,7 @@ export const dataProvider: DataProvider = {
     }
 
     try {
-      console.log('[DataProvider] getList called:', { resource, pagination: { current, pageSize }})
+      console.log('[DataProvider] getList called:', { resource, pagination: { current, pageSize } })
       const response = await customAxios.get(`/${resource}`, { params })
       console.log('[DataProvider] Response status:', response.status)
 
@@ -204,9 +210,7 @@ export const dataProvider: DataProvider = {
 
   updateMany: async ({ resource, ids, variables, meta }) => {
     try {
-      await Promise.all(
-        ids.map((id) => customAxios.put(`/${resource}/${id}`, variables))
-      )
+      await Promise.all(ids.map((id) => customAxios.put(`/${resource}/${id}`, variables)))
       return {
         data: ids,
       }
@@ -221,9 +225,7 @@ export const dataProvider: DataProvider = {
 
   deleteMany: async ({ resource, ids, meta }) => {
     try {
-      await Promise.all(
-        ids.map((id) => customAxios.delete(`/${resource}/${id}`))
-      )
+      await Promise.all(ids.map((id) => customAxios.delete(`/${resource}/${id}`)))
       return {
         data: ids,
       }
@@ -289,5 +291,3 @@ export const dataProvider: DataProvider = {
     }
   },
 }
-
-

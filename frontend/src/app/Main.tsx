@@ -1,6 +1,5 @@
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'
-import { Button } from '@/components/shadcn/ui/button'
 import Link from 'next/link'
 import HeroCard from '@/components/home/HeroCard'
 import SocialCard from '@/components/home/SocialCard'
@@ -10,7 +9,6 @@ import BlogSection from '@/components/sections/BlogSection'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import siteMetadata from '@/data/siteMetadata'
 import { AnimatedHeading, AnimatedParagraph } from '@/components/visitor'
-import { ElegantButton } from '@/components/visitor/micro-interactions'
 
 // 导入游客界面主题样式
 import '@/styles/visitor-theme.css'
@@ -39,20 +37,20 @@ export default function Home({ posts }: HomeProps) {
 
             {/* Call to Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <ElegantButton
-                variant="primary"
-                size="lg"
-                onClick={() => window.location.href = siteMetadata.github || '#'}
+              <Link
+                href={siteMetadata.github || '#'}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-visitor-md bg-indigo-600 px-8 py-4 text-lg font-medium text-white shadow-visitor-soft transition-all duration-300 ease-visitor hover:bg-indigo-700 hover:shadow-visitor-glow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
                 View GitHub
-              </ElegantButton>
-              <ElegantButton
-                variant="secondary"
-                size="lg"
-                onClick={() => window.location.href = '/blog'}
+              </Link>
+              <Link
+                href="/blog"
+                className="inline-flex items-center justify-center rounded-visitor-md bg-gray-100 px-8 py-4 text-lg font-medium text-gray-900 transition-all duration-300 ease-visitor hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
               >
                 Read Blog
-              </ElegantButton>
+              </Link>
             </div>
           </div>
         </section>

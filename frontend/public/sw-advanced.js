@@ -96,7 +96,7 @@ const PRECACHE_MANIFEST = [
 /**
  * 获取匹配的缓存策略
  */
-function getCacheStrategy(url: string) {
+function getCacheStrategy(url) {
   const urlObj = new URL(url)
 
   for (const [name, config] of Object.entries(CACHE_STRATEGIES)) {
@@ -111,7 +111,7 @@ function getCacheStrategy(url: string) {
 /**
  * 清理过期缓存
  */
-async function cleanExpiredCache(cacheName: string, maxAge: number) {
+async function cleanExpiredCache(cacheName, maxAge) {
   const cache = await caches.open(cacheName)
   const now = Date.now()
   const requests = await cache.keys()
@@ -135,7 +135,7 @@ async function cleanExpiredCache(cacheName: string, maxAge: number) {
 /**
  * 限制缓存大小（LRU）
  */
-async function limitCacheSize(cacheName: string, maxEntries: number) {
+async function limitCacheSize(cacheName, maxEntries) {
   const cache = await caches.open(cacheName)
   const keys = await cache.keys()
 
@@ -150,7 +150,7 @@ async function limitCacheSize(cacheName: string, maxEntries: number) {
 /**
  * 添加缓存时间戳
  */
-function addCacheTimestamp(response: Response): Response {
+function addCacheTimestamp(response) {
   const headers = new Headers(response.headers)
   headers.set('sw-cache-time', Date.now().toString())
   return new Response(response.body, {
@@ -165,7 +165,7 @@ function addCacheTimestamp(response: Response): Response {
 /**
  * Cache First策略
  */
-async function cacheFirst(request: Request, config: any): Promise<Response> {
+async function cacheFirst(request, config) {
   const cache = await caches.open(config.cacheName)
 
   // 尝试从缓存获取
@@ -185,7 +185,7 @@ async function cacheFirst(request: Request, config: any): Promise<Response> {
 /**
  * Network First策略
  */
-async function networkFirst(request: Request, config: any): Promise<Response> {
+async function networkFirst(request, config) {
   const cache = await caches.open(config.cacheName)
 
   try {
@@ -226,7 +226,7 @@ async function networkFirst(request: Request, config: any): Promise<Response> {
 /**
  * Stale While Revalidate策略
  */
-async function staleWhileRevalidate(request: Request, config: any): Promise<Response> {
+async function staleWhileRevalidate(request, config) {
   const cache = await caches.open(config.cacheName)
 
   // 立即返回缓存（如果存在）
@@ -253,10 +253,10 @@ async function staleWhileRevalidate(request: Request, config: any): Promise<Resp
  * 获取并缓存
  */
 async function fetchAndCache(
-  request: Request,
-  cache: Cache,
-  config: any
-): Promise<Response> {
+  request,
+  cache,
+  config
+) {
   try {
     const response = await fetch(request)
 
@@ -280,7 +280,7 @@ async function fetchAndCache(
 /**
  * 安装事件
  */
-self.addEventListener('install', (event: ExtendableEvent) => {
+self.addEventListener('install', (event) => {
   console.log('[SW] Installing...', CACHE_VERSION)
 
   event.waitUntil(
@@ -305,7 +305,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
 /**
  * 激活事件
  */
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event) => {
   console.log('[SW] Activating...', CACHE_VERSION)
 
   event.waitUntil(
@@ -343,7 +343,7 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
 /**
  * Fetch事件（拦截请求）
  */
-self.addEventListener('fetch', (event: FetchEvent) => {
+self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
@@ -383,7 +383,7 @@ self.addEventListener('fetch', (event: FetchEvent) => {
 /**
  * 消息事件（从客户端接收消息）
  */
-self.addEventListener('message', (event: ExtendableMessageEvent) => {
+self.addEventListener('message', (event) => {
   const { data } = event
 
   if (data && data.type === 'SKIP_WAITING') {
@@ -411,7 +411,7 @@ self.addEventListener('message', (event: ExtendableMessageEvent) => {
 /**
  * 推送事件
  */
-self.addEventListener('push', (event: PushEvent) => {
+self.addEventListener('push', (event) => {
   console.log('[SW] Push received')
 
   let notificationData = {
@@ -447,7 +447,7 @@ self.addEventListener('push', (event: PushEvent) => {
 /**
  * 通知点击事件
  */
-self.addEventListener('notificationclick', (event: NotificationEvent) => {
+self.addEventListener('notificationclick', (event) => {
   event.notification.close()
 
   event.waitUntil(
@@ -458,7 +458,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 /**
  * 后台同步
  */
-self.addEventListener('sync', (event: any) => {
+self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync:', event.tag)
 
   if (event.tag === 'sync-posts') {
@@ -472,7 +472,7 @@ self.addEventListener('sync', (event: any) => {
  * 获取缓存统计
  */
 async function getCacheStats() {
-  const stats: Record<string, any> = {}
+  const stats = {}
 
   for (const [name, cacheName] of Object.entries(CACHE_NAMES)) {
     const cache = await caches.open(cacheName)
@@ -499,14 +499,3 @@ async function syncPosts() {
     console.error('[SW] Posts sync failed:', error)
   }
 }
-
-// ==================== 导出 ====================
-
-declare global {
-  interface ServiceWorkerGlobalScope {
-    skipWaiting: () => Promise<void>
-    clients: Clients
-  }
-}
-
-export {}

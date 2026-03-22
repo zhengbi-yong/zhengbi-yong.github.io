@@ -2,6 +2,7 @@
 // This service handles all communication with the backend API
 
 import { api, apiClient } from './apiClient'
+import { resolveBackendApiBaseUrl } from './resolveBackendApiBaseUrl'
 import type {
   LoginRequest,
   RegisterRequest,
@@ -32,7 +33,7 @@ import type {
 } from '../types/backend'
 
 // Backend API base URL - adjust based on your environment
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1'
+const BACKEND_API_URL = resolveBackendApiBaseUrl()
 
 // Token refresh state management
 let refreshPromise: Promise<string> | null = null
@@ -87,11 +88,9 @@ export const authService = {
    * Login with email and password
    */
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(
-      `${BACKEND_API_URL}/auth/login`,
-      credentials,
-      { cache: false }
-    )
+    const response = await api.post<AuthResponse>(`${BACKEND_API_URL}/auth/login`, credentials, {
+      cache: false,
+    })
     if (response.success && response.data.access_token) {
       // Store token for future requests
       apiClient.setDefaultHeader('Authorization', `Bearer ${response.data.access_token}`)
@@ -108,11 +107,9 @@ export const authService = {
    * Register a new user
    */
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(
-      `${BACKEND_API_URL}/auth/register`,
-      data,
-      { cache: false }
-    )
+    const response = await api.post<AuthResponse>(`${BACKEND_API_URL}/auth/register`, data, {
+      cache: false,
+    })
     if (response.success && response.data.access_token) {
       apiClient.setDefaultHeader('Authorization', `Bearer ${response.data.access_token}`)
       if (typeof window !== 'undefined') {
@@ -182,7 +179,9 @@ export const authService = {
    * Update user profile
    */
   async updateProfile(data: UpdateProfileRequest): Promise<UserInfo> {
-    const response = await api.put<UserInfo>(`${BACKEND_API_URL}/auth/profile`, data, { cache: false })
+    const response = await api.put<UserInfo>(`${BACKEND_API_URL}/auth/profile`, data, {
+      cache: false,
+    })
     // Update localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('user_info', JSON.stringify(response.data))
@@ -221,7 +220,9 @@ export const authService = {
    * Get user reading statistics
    */
   async getReadingStats(): Promise<UserReadingStats> {
-    const response = await api.get<UserReadingStats>(`${BACKEND_API_URL}/auth/reading-stats`, { cache: 60 * 1000 })
+    const response = await api.get<UserReadingStats>(`${BACKEND_API_URL}/auth/reading-stats`, {
+      cache: 60 * 1000,
+    })
     return response.data
   },
 }
@@ -368,12 +369,15 @@ export const searchService = {
   /**
    * Search posts
    */
-  async search(query: string, filters?: {
-    category_slug?: string
-    tag_slug?: string
-    limit?: number
-    offset?: number
-  }): Promise<SearchResponse> {
+  async search(
+    query: string,
+    filters?: {
+      category_slug?: string
+      tag_slug?: string
+      limit?: number
+      offset?: number
+    }
+  ): Promise<SearchResponse> {
     const queryParams = new URLSearchParams()
     queryParams.append('q', query)
 
@@ -526,14 +530,19 @@ export const adminService = {
    * Restore post version
    */
   async restorePostVersion(postId: string, versionNumber: string): Promise<void> {
-    await api.post(`${BACKEND_API_URL}/admin/posts/${postId}/versions/${versionNumber}/restore`, undefined)
+    await api.post(
+      `${BACKEND_API_URL}/admin/posts/${postId}/versions/${versionNumber}/restore`,
+      undefined
+    )
   },
 
   /**
    * Compare post versions
    */
   async comparePostVersions(postId: string, version1: string, version2: string): Promise<any> {
-    const response = await api.get(`${BACKEND_API_URL}/admin/posts/${postId}/versions/compare?v1=${version1}&v2=${version2}`)
+    const response = await api.get(
+      `${BACKEND_API_URL}/admin/posts/${postId}/versions/compare?v1=${version1}&v2=${version2}`
+    )
     return response.data
   },
 
@@ -571,7 +580,9 @@ export const readingProgressService = {
    * Get reading progress for a post
    */
   async getProgress(slug: string): Promise<ReadingProgress> {
-    const response = await api.get<ReadingProgress>(`${BACKEND_API_URL}/posts/${slug}/reading-progress`)
+    const response = await api.get<ReadingProgress>(
+      `${BACKEND_API_URL}/posts/${slug}/reading-progress`
+    )
     return response.data
   },
 
@@ -600,7 +611,9 @@ export const readingProgressService = {
     params.append('page', page.toString())
     params.append('page_size', pageSize.toString())
 
-    const response = await api.get<ReadingHistoryResponse>(`${BACKEND_API_URL}/reading-progress/history?${params.toString()}`)
+    const response = await api.get<ReadingHistoryResponse>(
+      `${BACKEND_API_URL}/reading-progress/history?${params.toString()}`
+    )
     return response.data
   },
 }
@@ -630,7 +643,9 @@ export const bookmarkService = {
    */
   async isBookmarked(postId: string): Promise<boolean> {
     try {
-      const response = await api.get<{ bookmarked: boolean }>(`${BACKEND_API_URL}/bookmarks/${postId}/check`)
+      const response = await api.get<{ bookmarked: boolean }>(
+        `${BACKEND_API_URL}/bookmarks/${postId}/check`
+      )
       return response.data.bookmarked
     } catch (error) {
       return false

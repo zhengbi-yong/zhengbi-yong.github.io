@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useList, useLogout, useApiUrl } from '@refinedev/core'
 import { logger } from '@/lib/utils/logger'
+import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
 export default function AdminTestPage() {
   const [directApiData, setDirectApiData] = useState<any>(null)
@@ -34,15 +35,16 @@ export default function AdminTestPage() {
   const error = query?.isError ? query.error : undefined
 
   const { mutate: logout } = useLogout()
+  const backendApiUrl = resolveBackendApiBaseUrl()
 
   // 直接调用 API 测试
   useEffect(() => {
     const fetchDirect = async () => {
       try {
         const token = localStorage.getItem('access_token')
-        const response = await fetch('http://localhost:3000/v1/admin/posts?page=1&page_size=20', {
+        const response = await fetch(`${backendApiUrl}/admin/posts?page=1&page_size=20`, {
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         })
@@ -55,7 +57,7 @@ export default function AdminTestPage() {
     }
 
     fetchDirect()
-  }, [])
+  }, [backendApiUrl])
 
   // 测试 Refine context
   useEffect(() => {
@@ -75,74 +77,101 @@ export default function AdminTestPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6">
         <h1 className="text-3xl font-bold">Admin Refine 测试页面</h1>
 
         {/* Refine Context 测试 */}
-        <div className="bg-blue-50 rounded-lg shadow p-6 space-y-4">
+        <div className="space-y-4 rounded-lg bg-blue-50 p-6 shadow">
           <h2 className="text-xl font-semibold">Refine Context 测试</h2>
           <div className="space-y-2 font-mono text-sm">
-            <p>hasApiUrl: <span className="font-bold">{String(!!apiUrl)}</span></p>
-            <p>apiUrl: <span className="font-bold">{apiUrl || 'undefined'}</span></p>
+            <p>
+              hasApiUrl: <span className="font-bold">{String(!!apiUrl)}</span>
+            </p>
+            <p>
+              apiUrl: <span className="font-bold">{apiUrl || 'undefined'}</span>
+            </p>
           </div>
         </div>
 
         {/* 直接 API 测试 */}
-        <div className="bg-green-50 rounded-lg shadow p-6 space-y-4">
+        <div className="space-y-4 rounded-lg bg-green-50 p-6 shadow">
           <h2 className="text-xl font-semibold">直接 API 调用测试</h2>
           <div className="space-y-2 font-mono text-sm">
-            <p>hasData: <span className="font-bold">{String(!!directApiData)}</span></p>
+            <p>
+              hasData: <span className="font-bold">{String(!!directApiData)}</span>
+            </p>
             {directApiData && (
               <>
-                <p>posts count: <span className="font-bold">{directApiData.posts?.length || 0}</span></p>
-                <p>total: <span className="font-bold">{directApiData.total || 0}</span></p>
+                <p>
+                  posts count: <span className="font-bold">{directApiData.posts?.length || 0}</span>
+                </p>
+                <p>
+                  total: <span className="font-bold">{directApiData.total || 0}</span>
+                </p>
               </>
             )}
           </div>
         </div>
 
         {/* useList 测试 */}
-        <div className="bg-white rounded-lg shadow p-6 space-y-4">
+        <div className="space-y-4 rounded-lg bg-white p-6 shadow">
           <h2 className="text-xl font-semibold">useList 状态</h2>
           <div className="space-y-2 font-mono text-sm">
-            <p>isLoading: <span className="font-bold">{String(isLoading)}</span></p>
-            <p>hasError: <span className="font-bold">{String(!!error)}</span></p>
-            <p>hasData: <span className="font-bold">{String(!!data)}</span></p>
+            <p>
+              isLoading: <span className="font-bold">{String(isLoading)}</span>
+            </p>
+            <p>
+              hasError: <span className="font-bold">{String(!!error)}</span>
+            </p>
+            <p>
+              hasData: <span className="font-bold">{String(!!data)}</span>
+            </p>
             {data && (
               <>
-                <p>dataKeys: <span className="font-bold">{JSON.stringify(Object.keys(data))}</span></p>
-                <p>data.data: <span className="font-bold">{Array.isArray(data.data) ? `Array(${data.data.length})` : typeof data.data}</span></p>
-                <p>data.total: <span className="font-bold">{data.total}</span></p>
+                <p>
+                  dataKeys: <span className="font-bold">{JSON.stringify(Object.keys(data))}</span>
+                </p>
+                <p>
+                  data.data:{' '}
+                  <span className="font-bold">
+                    {Array.isArray(data.data) ? `Array(${data.data.length})` : typeof data.data}
+                  </span>
+                </p>
+                <p>
+                  data.total: <span className="font-bold">{data.total}</span>
+                </p>
               </>
             )}
             {error && (
-              <p className="text-red-600">error: <span className="font-bold">{String(error)}</span></p>
+              <p className="text-red-600">
+                error: <span className="font-bold">{String(error)}</span>
+              </p>
             )}
           </div>
         </div>
 
         {data?.data && Array.isArray(data.data) && data.data.length > 0 ? (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">前3篇文章 (useList)</h2>
-            <pre className="text-xs overflow-auto">
+          <div className="rounded-lg bg-white p-6 shadow">
+            <h2 className="mb-4 text-xl font-semibold">前3篇文章 (useList)</h2>
+            <pre className="overflow-auto text-xs">
               {JSON.stringify(data.data.slice(0, 3), null, 2)}
             </pre>
           </div>
         ) : null}
 
         {directApiData?.posts && directApiData.posts.length > 0 ? (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">前3篇文章 (Direct API)</h2>
-            <pre className="text-xs overflow-auto">
+          <div className="rounded-lg bg-white p-6 shadow">
+            <h2 className="mb-4 text-xl font-semibold">前3篇文章 (Direct API)</h2>
+            <pre className="overflow-auto text-xs">
               {JSON.stringify(directApiData.posts.slice(0, 3), null, 2)}
             </pre>
           </div>
         ) : null}
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="rounded-lg bg-white p-6 shadow">
           <button
             onClick={() => logout()}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
           >
             退出登录
           </button>

@@ -1,8 +1,9 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios'
+import { resolveBackendApiBaseUrl } from './api/resolveBackendApiBaseUrl'
 // import { OpenAPI } from './types/api-generated';
 
 // Configure OpenAPI base URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/v1';
+const API_URL = resolveBackendApiBaseUrl()
 // OpenAPI.BASE = API_URL;
 
 // Create axios instance
@@ -12,73 +13,73 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-});
+})
 
 // Request interceptor - add auth token and request ID
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('access_token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`
     }
 
     // Add request ID for distributed tracing
     if (!config.headers['x-request-id']) {
-      config.headers['x-request-id'] = generateRequestId();
+      config.headers['x-request-id'] = generateRequestId()
     }
 
-    return config;
+    return config
   },
   (error) => {
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
 // Generate unique request ID
 function generateRequestId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
 }
 
 // Response interceptor - handle errors
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config
 
     // Handle 401 errors
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+      originalRequest._retry = true
 
       // Try to refresh token
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = localStorage.getItem('refresh_token')
       if (refreshToken) {
         try {
           const response = await axios.post(`${API_URL}/auth/refresh`, {
             refresh_token: refreshToken,
-          });
+          })
 
-          const { access_token } = response.data;
-          localStorage.setItem('access_token', access_token);
+          const { access_token } = response.data
+          localStorage.setItem('access_token', access_token)
 
           // Retry original request
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-          return apiClient(originalRequest);
+          originalRequest.headers.Authorization = `Bearer ${access_token}`
+          return apiClient(originalRequest)
         } catch (refreshError) {
           // Refresh failed, redirect to login
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          window.location.href = '/login'
+          return Promise.reject(refreshError)
         }
       } else {
         // No refresh token, redirect to login
-        window.location.href = '/login';
+        window.location.href = '/login'
       }
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error)
   }
-);
+)
 
 // Export configured axios instance for use with generated API
-export default apiClient;
+export default apiClient

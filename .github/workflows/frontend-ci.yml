@@ -1,4 +1,4 @@
-name: Frontend CI/CD
+name: Frontend CI
 
 on:
   push:
@@ -40,6 +40,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: 'frontend/pnpm-lock.yaml'
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
@@ -58,6 +59,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: 'frontend/pnpm-lock.yaml'
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
@@ -65,7 +67,7 @@ jobs:
         working-directory: ./frontend
         run: pnpm build
         env:
-          NEXT_PUBLIC_BACKEND_URL: https://api.example.com/v1
+          NEXT_PUBLIC_SITE_URL: https://blog.example.com
 
   e2e:
     name: E2E Tests
@@ -78,6 +80,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
+          cache-dependency-path: 'frontend/pnpm-lock.yaml'
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
@@ -86,21 +89,4 @@ jobs:
         run: pnpm exec playwright install chromium
       - name: Run E2E tests
         working-directory: ./frontend
-        run: pnpm exec playwright test e2e/abc-notation.spec.ts --project=chromium --reporter=list
-
-  deploy:
-    name: Deploy to Vercel
-    needs: [build, e2e]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          working-directory: ./frontend
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+        run: pnpm exec playwright test e2e/abc-notation.spec.ts e2e/search.spec.ts --project=chromium --reporter=list

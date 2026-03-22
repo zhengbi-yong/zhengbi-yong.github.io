@@ -7,15 +7,21 @@
 
 import { useState } from 'react'
 import { RefreshCw, Activity, Database, Zap, AlertCircle } from 'lucide-react'
-import { parsePrometheusMetrics, getRequestDurationStats, getDatabaseStats, getRedisStats } from '@/lib/utils/prometheus-parser'
+import {
+  parsePrometheusMetrics,
+  getRequestDurationStats,
+  getDatabaseStats,
+  getRedisStats,
+} from '@/lib/utils/prometheus-parser'
 import { Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { resolveBackendBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
 export default function MetricsPage() {
   const [autoRefresh, setAutoRefresh] = useState(true)
 
   // Health check endpoints are at root level, not under /v1
-  const backendBaseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/v1').replace('/v1', '')
+  const backendBaseUrl = resolveBackendBaseUrl()
 
   // 使用 useQuery 获取 Prometheus 指标
   const { data, isLoading, error, refetch } = useQuery<string>({
@@ -41,17 +47,13 @@ export default function MetricsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Prometheus 指标监控
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            实时监控系统性能指标
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Prometheus 指标监控</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">实时监控系统性能指标</p>
         </div>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               autoRefresh
                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
                 : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
@@ -61,10 +63,10 @@ export default function MetricsPage() {
           </button>
           <button
             onClick={() => refetch()}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
             title="手动刷新"
           >
-            <RefreshCw className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            <RefreshCw className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </button>
         </div>
       </div>
@@ -73,7 +75,7 @@ export default function MetricsPage() {
       {isLoading && (
         <div className="flex items-center justify-center p-12">
           <div className="flex flex-col items-center space-y-4">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
             <p className="text-gray-600 dark:text-gray-400">加载中...</p>
           </div>
         </div>
@@ -81,14 +83,14 @@ export default function MetricsPage() {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+        <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-900/20">
           <div className="flex items-center space-x-3">
-            <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+            <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
             <div>
               <h3 className="text-lg font-semibold text-red-900 dark:text-red-400">
                 无法获取指标数据
               </h3>
-              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+              <p className="mt-1 text-sm text-red-700 dark:text-red-300">
                 {error instanceof Error ? error.message : '请检查Prometheus服务是否运行'}
               </p>
             </div>
@@ -98,11 +100,11 @@ export default function MetricsPage() {
 
       {/* Metrics Cards */}
       {metrics && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* HTTP请求统计 */}
           <MetricCard
             title="HTTP请求"
-            icon={<Activity className="w-6 h-6" />}
+            icon={<Activity className="h-6 w-6" />}
             value={metrics.http_requests_total?.length || 0}
             label="总请求数"
           />
@@ -111,7 +113,7 @@ export default function MetricsPage() {
           {durationStats && (
             <MetricCard
               title="请求延迟"
-              icon={<Activity className="w-6 h-6" />}
+              icon={<Activity className="h-6 w-6" />}
               value={`${durationStats.p95}ms`}
               label="P95延迟"
             />
@@ -121,7 +123,7 @@ export default function MetricsPage() {
           {dbStats && (
             <MetricCard
               title="数据库连接"
-              icon={<Database className="w-6 h-6" />}
+              icon={<Database className="h-6 w-6" />}
               value={dbStats.active}
               label="活跃连接数"
             />
@@ -131,7 +133,7 @@ export default function MetricsPage() {
           {redisStats && (
             <MetricCard
               title="Redis连接"
-              icon={<Zap className="w-6 h-6" />}
+              icon={<Zap className="h-6 w-6" />}
               value={redisStats.active}
               label="活跃连接数"
             />
@@ -141,7 +143,7 @@ export default function MetricsPage() {
           {metrics.active_sessions && (
             <MetricCard
               title="活跃会话"
-              icon={<Activity className="w-6 h-6" />}
+              icon={<Activity className="h-6 w-6" />}
               value={metrics.active_sessions.value}
               label="当前在线"
             />
@@ -151,7 +153,7 @@ export default function MetricsPage() {
           {durationStats && (
             <MetricCard
               title="请求速率"
-              icon={<Activity className="w-6 h-6" />}
+              icon={<Activity className="h-6 w-6" />}
               value={durationStats.count}
               label="总请求数"
             />
@@ -161,10 +163,10 @@ export default function MetricsPage() {
 
       {/* 详细统计 */}
       {metrics && durationStats && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* 请求延迟详情 */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
               HTTP请求延迟统计
             </h3>
             <div className="space-y-3">
@@ -179,8 +181,8 @@ export default function MetricsPage() {
 
           {/* 数据库详情 */}
           {dbStats && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                 数据库连接池
               </h3>
               <div className="space-y-3">
@@ -197,8 +199,8 @@ export default function MetricsPage() {
 
           {/* Redis详情 */}
           {redisStats && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
                 Redis缓存
               </h3>
               <div className="space-y-3">
@@ -210,10 +212,8 @@ export default function MetricsPage() {
 
           {/* 活跃会话 */}
           {metrics.active_sessions && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                会话统计
-              </h3>
+            <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">会话统计</h3>
               <div className="space-y-3">
                 <StatRow label="当前活跃" value={metrics.active_sessions.value} />
                 {metrics.active_sessions.labels && (
@@ -241,22 +241,14 @@ interface MetricCardProps {
 
 function MetricCard({ title, icon, value, label }: MetricCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-            {icon}
-          </div>
+          <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/20">{icon}</div>
           <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {title}
-            </p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              {value}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              {label}
-            </p>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
+            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">{label}</p>
           </div>
         </div>
       </div>
@@ -271,11 +263,9 @@ interface StatRowProps {
 
 function StatRow({ label, value }: StatRowProps) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
+    <div className="flex items-center justify-between border-b border-gray-100 py-2 last:border-0 dark:border-gray-700">
       <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
-      <span className="text-sm font-medium text-gray-900 dark:text-white">
-        {value}
-      </span>
+      <span className="text-sm font-medium text-gray-900 dark:text-white">{value}</span>
     </div>
   )
 }

@@ -6,7 +6,6 @@ import { visit } from 'unist-util-visit'
 // import type { Root } from 'hast'
 type Root = any
 import { mhchemParser } from 'mhchemparser'
-import { logger } from './utils/logger'
 
 export default function rehypeMhchem() {
   return (tree: Root) => {
@@ -31,7 +30,7 @@ export default function rehypeMhchem() {
                 return tex
               } catch (e) {
                 // 如果转换失败，返回原始内容
-                logger.warn('Failed to parse mhchem:', content, e)
+                console.warn('Failed to parse mhchem:', content, e)
                 return match
               }
             })
