@@ -1,12 +1,12 @@
 # Visitor API Route (api/visitor)
 
 ## Overview
-Next.js 15 API route for tracking visitor information including IP address and geolocation data. Persists visitor data to a JSON file with visit counting and timestamp tracking.
+Next.js 16 API route for tracking visitor information including IP address and geolocation data. Persists visitor data to a runtime JSON file with visit counting and timestamp tracking.
 
 ## Technology Stack
-- **Framework**: Next.js 15 (App Router API Route)
+- **Framework**: Next.js 16 (App Router API Route)
 - **Runtime**: Node.js (fs module usage)
-- **Storage**: JSON file (visitors.json)
+- **Storage**: JSON file (`.data/visitors.json` by default)
 - **Type**: TypeScript
 - **Logging**: Custom logger utility
 
@@ -26,17 +26,17 @@ frontend/src/app/api/visitor/
 
 ### Route Settings
 ```typescript
-export const dynamic = 'force-static'
+export const dynamic = 'force-dynamic'
 ```
-**Note**: Comment indicates this is for static export compatibility, though API routes are not available in static exports.
+**Note**: The route must execute at runtime because it reads and writes mutable visitor data.
 
 ## Core Implementation
 
 ### 1. Data Storage
 ```typescript
-const VISITORS_FILE = path.join(process.cwd(), 'visitors.json')
+const visitorsFilePath = process.env.VISITORS_FILE || path.join(process.cwd(), '.data', 'visitors.json')
 ```
-- **Location**: Project root (`visitors.json`)
+- **Location**: Runtime data directory (`.data/visitors.json` by default)
 - **Format**: JSON array of `VisitorData` objects
 - **Persistence**: File-based storage (no database)
 
@@ -200,16 +200,14 @@ else {
 ```typescript
 interface VisitorData {
   ip: string                    // IP address
+  country: string               // Country name
+  city: string                  // City name
+  lat: number                   // Latitude
+  lon: number                   // Longitude
+  timezone: string              // IANA timezone
   firstVisit: string            // ISO timestamp
   lastVisit: string             // ISO timestamp
   visitCount: number            // Total visits
-  // Geolocation fields (from getGeolocation):
-  country?: string
-  region?: string
-  city?: string
-  latitude?: number
-  longitude?: number
-  // ... additional geolocation fields
 }
 ```
 
@@ -310,7 +308,7 @@ try {
 **Logging**: Uses `@/lib/utils/logger` with prefix `[Visitor API]`
 
 ### Graceful Degradation
-- Missing `visitors.json` → Returns empty array
+- Missing `visitors.json` → Auto-creates the file and returns an empty array
 - Failed geolocation → Environment-specific response
 - File write errors → Caught by outer try-catch
 
@@ -333,22 +331,22 @@ import type { VisitorData } from '@/lib/types/visitor'
 ## Deployment Considerations
 
 ### File Permissions
-- **Read**: Application must have read access to `visitors.json`
-- **Write**: Application must have write access to project root
-- **Create**: Must be able to create `visitors.json` if it doesn't exist
+- **Read**: Application must have read access to the configured visitors file
+- **Write**: Application must have write access to `VISITOR_DATA_DIR` or the parent directory of `VISITORS_FILE`
+- **Create**: The runtime must be able to create `.data/visitors.json` when the file is absent
 
 ### Production Concerns
 - **Concurrent writes**: File-based storage is not atomic (race conditions possible)
 - **Scalability**: Not suitable for high-traffic sites
-- **Backup**: No automatic backup of `visitors.json`
+- **Backup**: No automatic backup of `.data/visitors.json`
 - **Performance**: File I/O on every request
 
 ### Static Export Limitation
 ```typescript
-export const dynamic = 'force-static'
+export const dynamic = 'force-dynamic'
 ```
-**Issue**: API routes don't work in static exports
-**Purpose**: Prevents build errors when attempting static export
+**Issue**: Visitor tracking is mutable runtime state and cannot be safely frozen at build time
+**Purpose**: Ensures read/write operations always execute on the live server
 **Recommendation**: Use dynamic deployment (Vercel, Node.js server)
 
 ## Security Considerations
@@ -371,7 +369,7 @@ export const dynamic = 'force-static'
 ### Input Validation
 - **IP Format**: Trusted from `getClientIP` utility
 - **Geolocation**: Trusted from `getGeolocation` utility
-- **File Path**: Controlled (project root only)
+- **File Path**: Controlled via `VISITOR_DATA_DIR` / `VISITORS_FILE`
 
 ## Best Practices
 
@@ -430,7 +428,7 @@ useEffect(() => {
 curl -X POST http://localhost:3000/api/visitor
 
 # Check visitors.json
-cat visitors.json
+cat .data/visitors.json
 ```
 
 ### Integration Testing
@@ -495,7 +493,7 @@ logger.error('[Visitor API] Error:', error)
 - `@/lib/utils/ip-geolocation` - IP and geolocation utilities
 - `@/lib/types/visitor` - Type definitions
 - `@/lib/utils/logger` - Logging utility
-- `visitors.json` - Data storage (runtime generated)
+- `.data/visitors.json` - Data storage (runtime generated)
 
 ## Notes
 - **File-based storage**: Not recommended for production use

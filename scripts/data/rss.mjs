@@ -3,7 +3,7 @@ import path from 'path'
 import { slug } from 'github-slugger'
 // eslint-disable-next-line no-redeclare
 import { escape } from 'pliny/utils/htmlEscaper.js'
-import siteMetadata from '../data/siteMetadata.data.js'
+import siteMetadata from '../data/siteMetadata.data.mjs'
 import tagData from '../app/tag-data.json' with { type: 'json' }
 import { allBlogs } from '../.contentlayer/generated/index.mjs'
 import { sortPosts } from 'pliny/utils/contentlayer.js'

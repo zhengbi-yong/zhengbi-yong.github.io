@@ -3,6 +3,7 @@
 FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+ENV HUSKY=0
 
 # 安装pnpm
 RUN npm install -g pnpm
@@ -21,6 +22,7 @@ ARG VCS_REF=local
 ARG BUILD_DATE=unknown
 ARG NEXT_IGNORE_BUILD_ERRORS=0
 ARG NEXT_IGNORE_ESLINT=0
+ENV HUSKY=0
 
 # 安装 pnpm (需要在 builder 阶段使用)
 RUN npm install -g pnpm
@@ -64,10 +66,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # 创建非root用户
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+RUN mkdir -p /app/.data && \
+    touch /app/.data/visitors.json && \
+    chown -R nextjs:nodejs /app/.data
 
 # 复制必要文件
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 # 复制.next构建产物
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./

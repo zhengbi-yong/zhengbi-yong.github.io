@@ -444,6 +444,7 @@ i18n
     resources,
     fallbackLng: 'zh',
     lng: 'zh',
+    showSupportNotice: false,
 
     debug: process.env.NODE_ENV === 'development',
 

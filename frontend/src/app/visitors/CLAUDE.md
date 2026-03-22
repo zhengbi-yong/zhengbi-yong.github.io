@@ -5,7 +5,7 @@ Displays geographical distribution of website visitors on an interactive map wit
 
 ## Files
 - `page.tsx` - Server Component for visitors page
-- `visitors.json` - Stored visitor data (root level)
+- `.data/visitors.json` - Stored visitor data (runtime file by default)
 
 ## Architecture
 
@@ -28,7 +28,7 @@ VisitorsPage (Server Component)
 ### Data Flow
 ```
 Server Component (Async)
-├── Read visitors.json (fs.readFile)
+├── Read .data/visitors.json (runtime helper)
 ├── Parse JSON → VisitorData[]
 ├── Calculate statistics
 └── Pass to VisitorMapClient (props)
@@ -58,7 +58,7 @@ const totalVisits = visitors.reduce((sum, v) => sum + v.visitCount, 0)
 
 ### Development Mode
 ```typescript
-// Fallback test data when visitors.json is empty
+// Fallback test data when the runtime visitors file is empty
 if (process.env.NODE_ENV === 'development' && visitors.length === 0) {
   visitors = [ /* Test data */ ]
 }
@@ -74,8 +74,8 @@ if (process.env.NODE_ENV === 'development' && visitors.length === 0) {
 
 ### Data Storage
 ```typescript
-// File-based storage (root directory)
-const VISITORS_FILE = path.join(process.cwd(), 'visitors.json')
+// File-based storage (runtime data directory)
+const visitorsFilePath = process.env.VISITORS_FILE || path.join(process.cwd(), '.data', 'visitors.json')
 ```
 
 ### Client Component
@@ -91,13 +91,13 @@ import type { VisitorData } from '@/lib/types/visitor'
 
 ### Visitor Tracking
 ```typescript
-// Data populated by /api/visitors endpoint
+// Data populated by POST /api/visitor
 // Called by visitor tracking script
 ```
 
 ## Data Flow
 ```
-visitors.json (file) → Server Component → Statistics → VisitorMapClient → Interactive map
+.data/visitors.json (file) → Server Component → Statistics → VisitorMapClient → Interactive map
 ```
 
 ## Dependencies

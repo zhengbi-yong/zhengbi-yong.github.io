@@ -123,6 +123,11 @@ register_temp_file "${search_file}"
 probe "${public_base_url}/search" "${search_file}"
 grep -q 'Search published posts' "${search_file}" || fail "frontend /search page did not render expected heading"
 
+visitors_file="$(mktemp "${TMPDIR:-/tmp}/blog-platform-visitors.XXXXXX.html")"
+register_temp_file "${visitors_file}"
+probe "${public_base_url}/visitors" "${visitors_file}"
+grep -q '访客地图' "${visitors_file}" || fail "frontend /visitors page did not render expected heading"
+
 echo "[INFO] Probing search API via ${api_base_url}"
 search_json="$(mktemp "${TMPDIR:-/tmp}/blog-platform-search.XXXXXX.json")"
 register_temp_file "${search_json}"
@@ -153,6 +158,21 @@ with open(sys.argv[1], encoding="utf-8") as fh:
     payload = json.load(fh)
 
 assert isinstance(payload, list), "trending response must be a list"
+PY
+
+visitors_json="$(mktemp "${TMPDIR:-/tmp}/blog-platform-visitors.XXXXXX.json")"
+register_temp_file "${visitors_json}"
+probe "${public_base_url}/api/visitors" "${visitors_json}"
+python3 - "${visitors_json}" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as fh:
+    payload = json.load(fh)
+
+assert isinstance(payload, dict), "visitors response must be an object"
+assert "visitors" in payload, "missing key: visitors"
+assert isinstance(payload["visitors"], list), "visitors must be a list"
 PY
 
 echo "[OK] production Compose smoke validation passed"

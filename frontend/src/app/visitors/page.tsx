@@ -1,8 +1,7 @@
 import { Metadata } from 'next'
 import type { VisitorData } from '@/lib/types/visitor'
 import VisitorMapClient from '@/components/VisitorMapClient'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { readVisitorsFile } from '@/lib/server/visitors-file'
 
 export const metadata: Metadata = {
   title: '访客地图',
@@ -13,16 +12,13 @@ export const metadata: Metadata = {
   },
 }
 
-const VISITORS_FILE = path.join(process.cwd(), 'visitors.json')
+export const dynamic = 'force-dynamic'
 
 async function getVisitors(): Promise<VisitorData[]> {
   try {
-    const data = await fs.readFile(VISITORS_FILE, 'utf-8')
-    const visitors: VisitorData[] = JSON.parse(data)
-    return visitors
+    return await readVisitorsFile()
   } catch (error) {
-    // 文件不存在或读取失败，返回空数组
-    console.debug('[Visitors Page] Failed to read visitors file:', error)
+    console.error('[Visitors Page] Failed to load visitor data:', error)
     return []
   }
 }

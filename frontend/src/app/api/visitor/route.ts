@@ -1,34 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getClientIP, getGeolocation } from '@/lib/utils/ip-geolocation'
 import type { VisitorData } from '@/lib/types/visitor'
-import { promises as fs } from 'fs'
-import path from 'path'
 import { logger } from '@/lib/utils/logger'
+import { readVisitorsFile, writeVisitorsFile } from '@/lib/server/visitors-file'
 
-// 允许静态导出（API路由在静态导出时不可用，但需要此配置避免构建错误）
-export const dynamic = 'force-static'
-
-const VISITORS_FILE = path.join(process.cwd(), 'visitors.json')
-
-/**
- * 读取访客数据文件
- */
-async function readVisitors(): Promise<VisitorData[]> {
-  try {
-    const data = await fs.readFile(VISITORS_FILE, 'utf-8')
-    return JSON.parse(data) as VisitorData[]
-  } catch (error) {
-    // 文件不存在或读取失败，返回空数组
-    return []
-  }
-}
-
-/**
- * 写入访客数据文件
- */
-async function writeVisitors(visitors: VisitorData[]): Promise<void> {
-  await fs.writeFile(VISITORS_FILE, JSON.stringify(visitors, null, 2), 'utf-8')
-}
+export const dynamic = 'force-dynamic'
 
 /**
  * 记录访客IP和地理位置
@@ -68,7 +44,7 @@ export async function POST(request: Request) {
     }
 
     // 读取现有访客数据
-    const visitors = await readVisitors()
+    const visitors = await readVisitorsFile()
 
     // 查找是否已存在该IP
     const existingIndex = visitors.findIndex((v) => v.ip === ip)
@@ -100,7 +76,7 @@ export async function POST(request: Request) {
     }
 
     // 写入文件
-    await writeVisitors(visitors)
+    await writeVisitorsFile(visitors)
 
     return NextResponse.json({ success: true, message: '访客记录已保存' })
   } catch (error) {

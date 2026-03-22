@@ -124,12 +124,14 @@ if [[ "${SKIP_MIGRATE}" != "true" ]]; then
 fi
 
 app_services=(api worker frontend)
-if [[ "${edge_enabled}" == "true" ]]; then
-  app_services+=(edge)
-fi
 
 echo "[INFO] Starting application services: ${app_services[*]}"
 "${compose_cmd[@]}" up -d --wait "${app_services[@]}"
+
+if [[ "${edge_enabled}" == "true" ]]; then
+  echo "[INFO] Recreating edge proxy to refresh upstream DNS bindings"
+  "${compose_cmd[@]}" up -d --wait --force-recreate edge
+fi
 
 api_check_url="http://127.0.0.1:${BACKEND_PORT:-3000}/readyz"
 frontend_check_url="http://127.0.0.1:${FRONTEND_PORT:-3001}/"

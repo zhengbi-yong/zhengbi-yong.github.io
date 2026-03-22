@@ -78,6 +78,7 @@ frontend/.contentlayer
 
 # visitor data
 visitors.json
+frontend/.data/
 
 # Slidev
 frontend/slidev/*/dist

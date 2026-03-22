@@ -12,7 +12,7 @@ frontend/data/
 ├── headerNavLinks.ts     # Navigation menu configuration
 ├── musicData.ts          # Music section data
 ├── projectsData.ts       # Projects portfolio data
-├── siteMetadata.data.js  # Site metadata (legacy JS)
+├── siteMetadata.data.mjs # Site metadata (legacy module)
 ├── siteMetadata.ts       # Site metadata (TypeScript)
 ├── socialData.ts         # Social media links
 ├── works.ts              # Works/cv data
@@ -55,7 +55,7 @@ bibliography: references-data.bib
 - Formats: .mdx (Markdown + JSX)
 
 ### 2. Site Metadata
-**Files**: `siteMetadata.ts`, `siteMetadata.data.js`
+**Files**: `siteMetadata.ts`, `siteMetadata.data.mjs`
 
 **Schema**:
 ```typescript
@@ -216,7 +216,7 @@ import headerNavLinks from '@/data/headerNavLinks'
 4. Verify in development server
 
 ### Updating Metadata
-1. Edit `siteMetadata.data.js` (source)
+1. Edit `siteMetadata.data.mjs` (source)
 2. `siteMetadata.ts` imports and validates
 3. Changes reflected on next build
 

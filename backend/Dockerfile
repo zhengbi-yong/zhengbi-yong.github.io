@@ -1,40 +1,3 @@
-# =============================================================================
-# Development Stage
-# =============================================================================
-FROM rust:1.92-slim-bookworm AS development
-
-# 安装开发依赖
-RUN apt-get update && apt-get install -y \
-    pkg-config \
-    libssl-dev \
-    libpq-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# 设置工作目录
-WORKDIR /app
-
-ENV SQLX_OFFLINE=true
-
-# 创建非 root 用户
-RUN useradd -m -u 1000 rustuser && \
-    chown -R rustuser:rustuser /app
-
-# 复制所有源代码
-COPY --chown=rustuser:rustuser . .
-
-# 切换到非 root 用户
-USER rustuser
-
-# 构建所有二进制文件
-RUN cargo build --locked -p blog-api -p blog-worker
-
-# 默认命令：直接运行应用
-CMD ["cargo", "run", "--bin", "api"]
-
-# =============================================================================
-# Builder Stage
-# =============================================================================
 FROM rust:1.92-slim-bookworm AS builder
 
 ARG APP_VERSION=dev
@@ -117,3 +80,32 @@ ENTRYPOINT ["dumb-init", "--"]
 
 # 启动应用
 CMD ["api"]
+
+# =============================================================================
+# Development Stage
+# Keep this stage after production so classic Docker builders don't waste time
+# building it when the target image is production.
+# =============================================================================
+FROM rust:1.92-slim-bookworm AS development
+
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+ENV SQLX_OFFLINE=true
+
+RUN useradd -m -u 1000 rustuser && \
+    chown -R rustuser:rustuser /app
+
+COPY --chown=rustuser:rustuser . .
+
+USER rustuser
+
+RUN cargo build --locked -p blog-api -p blog-worker
+
+CMD ["cargo", "run", "--bin", "api"]

@@ -54,8 +54,6 @@ async function postbuild() {
       console.error('⚠ Slidev 构建失败，但继续执行:', error.message)
       // 不退出，因为主站构建已经成功
     }
-  } else {
-    console.log('⚠ build-slidev.mjs 不存在，跳过 Slidev 构建')
   }
 }
 

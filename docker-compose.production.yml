@@ -252,6 +252,8 @@ services:
         condition: service_healthy
     networks:
       - blog-network
+    volumes:
+      - frontend_data:/app/.data
 
   edge:
     image: ${EDGE_IMAGE:-nginx:1.27-alpine}
@@ -277,6 +279,7 @@ volumes:
   meilisearch_data:
   minio_data:
   uploads_data:
+  frontend_data:
 
 networks:
   blog-network:

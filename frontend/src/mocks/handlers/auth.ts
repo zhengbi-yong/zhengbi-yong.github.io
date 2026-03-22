@@ -1,18 +1,18 @@
 // MSW handlers for Authentication API
 import { http, HttpResponse } from 'msw'
-import { createUserFactory, createAuthToken } from '../../../tests/lib/factories'
+import { createMockAuthToken, createMockAuthUser } from '../factories/auth'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4010'
 
 // Mock user database (in-memory)
 let mockUsers = [
-  createUserFactory({
+  createMockAuthUser({
     id: '1',
     username: 'admin',
     email: 'admin@example.com',
     role: 'admin',
   }),
-  createUserFactory({
+  createMockAuthUser({
     id: '2',
     username: 'user',
     email: 'user@example.com',
@@ -46,7 +46,7 @@ export const authHandlers = [
     }
 
     // Generate token
-    const token = createAuthToken()
+    const token = createMockAuthToken()
 
     return HttpResponse.json(
       {
@@ -91,7 +91,7 @@ export const authHandlers = [
     }
 
     // Create new user
-    const newUser = createUserFactory({
+    const newUser = createMockAuthUser({
       username,
       email,
       role: 'user',
@@ -99,7 +99,7 @@ export const authHandlers = [
 
     mockUsers.push(newUser)
 
-    const token = createAuthToken()
+    const token = createMockAuthToken()
 
     return HttpResponse.json(
       {
@@ -152,7 +152,7 @@ export const authHandlers = [
     }
 
     // Generate new tokens
-    const newToken = createAuthToken()
+    const newToken = createMockAuthToken()
 
     return HttpResponse.json({
       success: true,
@@ -244,13 +244,13 @@ export const authHandlers = [
 export const resetMockUsers = () => {
   mockUsers.length = 0
   mockUsers.push(
-    createUserFactory({
+    createMockAuthUser({
       id: '1',
       username: 'admin',
       email: 'admin@example.com',
       role: 'admin',
     }),
-    createUserFactory({
+    createMockAuthUser({
       id: '2',
       username: 'user',
       email: 'user@example.com',

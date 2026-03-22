@@ -7,7 +7,7 @@ import type { AnalyticsConfig } from 'pliny/analytics'
 import type { SearchConfig } from 'pliny/search'
 import type { CommentsConfig } from 'pliny/comments'
 import type { ReactNode } from 'react'
-import siteMetadataData from './siteMetadata.data.js'
+import siteMetadataData from './siteMetadata.data.mjs'
 
 export type Theme = 'system' | 'dark' | 'light'
 
@@ -123,4 +123,3 @@ export function isValidSiteMetadata(data: unknown): data is SiteMetadata {
 const siteMetadata: SiteMetadata = siteMetadataData as SiteMetadata
 
 export default siteMetadata
-
