@@ -21,6 +21,8 @@ tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
 
 # Internal crates
+blog-api = { path = "../api" }
 blog-core = { path = "../core" }
 blog-db = { path = "../db" }
 blog-shared = { path = "../shared" }
+dotenv = { workspace = true }

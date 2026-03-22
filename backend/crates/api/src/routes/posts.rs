@@ -484,7 +484,11 @@ pub async fn create_post(
 
     // 清除列表缓存
     clear_posts_cache(&state).await;
-    sync_post_search_index(&state, &created_slug).await;
+
+    // 异步写入 outbox，由 worker 处理搜索索引同步
+    if let Err(error) = crate::outbox::add_search_index_upsert(&state.db, &created_slug).await {
+        tracing::warn!("Failed to add search index upsert to outbox: {error:#}");
+    }
 
     Ok((
         StatusCode::CREATED,
@@ -962,7 +966,11 @@ pub async fn update_post(
     // 清除缓存
     clear_post_cache(&state, &slug).await;
     clear_posts_cache(&state).await;
-    sync_post_search_index(&state, &slug).await;
+
+    // 异步写入 outbox，由 worker 处理搜索索引同步
+    if let Err(error) = crate::outbox::add_search_index_upsert(&state.db, &slug).await {
+        tracing::warn!("Failed to add search index upsert to outbox: {error:#}");
+    }
 
     Ok(Json(MessageResponse {
         message: "Post updated successfully".to_string(),
@@ -1006,7 +1014,11 @@ pub async fn delete_post(
     // 清除缓存
     clear_post_cache(&state, &slug).await;
     clear_posts_cache(&state).await;
-    delete_post_search_index(&state, &slug).await;
+
+    // 异步写入 outbox，由 worker 处理搜索索引删除
+    if let Err(error) = crate::outbox::add_search_index_delete(&state.db, &slug).await {
+        tracing::warn!("Failed to add search index delete to outbox: {error:#}");
+    }
 
     Ok(Json(MessageResponse {
         message: "Post deleted successfully".to_string(),
@@ -1165,25 +1177,5 @@ async fn clear_posts_cache(state: &AppState) {
             .query_async(&mut conn)
             .await
             .unwrap_or(());
-    }
-}
-
-async fn sync_post_search_index(state: &AppState, slug: &str) {
-    let Some(search_index) = &state.search_index else {
-        return;
-    };
-
-    if let Err(error) = search_index.sync_post_by_slug(&state.db, slug).await {
-        tracing::warn!("Failed to sync post {slug} to Meilisearch: {error:#}");
-    }
-}
-
-async fn delete_post_search_index(state: &AppState, slug: &str) {
-    let Some(search_index) = &state.search_index else {
-        return;
-    };
-
-    if let Err(error) = search_index.delete_post_by_slug(slug).await {
-        tracing::warn!("Failed to delete post {slug} from Meilisearch: {error:#}");
     }
 }
