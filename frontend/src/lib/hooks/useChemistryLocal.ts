@@ -5,8 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/utils/logger'
 import { useRDKitInit } from '@/lib/hooks/useRDKitInit'
 
-interface UseChemistryLocalOptions {
-}
+interface UseChemistryLocalOptions {}
 
 interface UseChemistryLocalReturn {
   isLoaded: boolean
@@ -17,7 +16,51 @@ interface UseChemistryLocalReturn {
   getMorganFingerprint: (smiles: string, radius?: number, bits?: number) => Promise<string>
 }
 
+function normalizeLineEndings(value: string) {
+  return value.replace(/\r\n?/g, '\n')
+}
+
+function normalizeMolLikeData(molData: string) {
+  let normalized = normalizeLineEndings(molData).trim()
+
+  if (!normalized) {
+    return normalized
+  }
+
+  const lines = normalized.split('\n').map((line) => line.trimEnd())
+  const countsIndex = lines.findIndex((line) => line.includes('V2000') || line.includes('V3000'))
+
+  if (countsIndex > 0) {
+    normalized = ['', '', ...lines.slice(countsIndex)].join('\n')
+  } else {
+    normalized = lines.join('\n')
+  }
+
+  if (!/\bM\s+END\b/.test(normalized)) {
+    normalized = `${normalized}\nM  END`
+  }
+
+  return normalized
+}
+
+function buildMolFromCandidates(activeRDKit: any, candidates: string[]) {
+  const uniqueCandidates = Array.from(
+    new Set(candidates.map((candidate) => candidate.trim()).filter(Boolean))
+  )
+
+  for (const candidate of uniqueCandidates) {
+    const molecule = activeRDKit.get_mol(candidate)
+    if (molecule) {
+      return molecule
+    }
+  }
+
+  return null
+}
+
 export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseChemistryLocalReturn {
+  void options
+
   const [isLoaded, setIsLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [RDKit, setRDKit] = useState<any>(null)
@@ -26,27 +69,44 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
   const { isLoaded: rdKitLoaded, error: rdKitError, RDKit: rdKitInstance } = useRDKitInit()
 
   useEffect(() => {
-    setRDKit(rdKitInstance)
-    setIsLoaded(rdKitLoaded)
+    const activeRDKit =
+      rdKitInstance || (typeof window !== 'undefined' ? (window as any).RDKit : null) || null
+
+    setRDKit(activeRDKit)
+    setIsLoaded(rdKitLoaded || !!activeRDKit)
     setError(rdKitError)
-    rdkitRef.current = rdKitInstance
+    rdkitRef.current = activeRDKit
   }, [rdKitLoaded, rdKitError, rdKitInstance])
 
-  const smilesToSVG = async (smiles: string): Promise<string> => {
-    if (!RDKit) {
+  const getActiveRDKit = () => {
+    const activeRDKit =
+      rdkitRef.current ||
+      RDKit ||
+      (typeof window !== 'undefined' ? (window as any).RDKit : null)
+
+    if (!activeRDKit) {
       throw new Error('RDKit not loaded')
     }
 
+    return activeRDKit
+  }
+
+  const smilesToSVG = async (smiles: string): Promise<string> => {
     try {
-      const mol = RDKit.get_mol(smiles)
+      const activeRDKit = getActiveRDKit()
+      const mol = activeRDKit.get_mol(smiles)
+
       if (!mol) {
         throw new Error('Invalid SMILES string')
       }
+
       const svg = mol.get_svg()
+      mol.delete()
+
       if (!svg) {
         throw new Error('Failed to generate SVG from SMILES')
       }
-      mol.delete()
+
       return svg
     } catch (err) {
       logger.error('SMILES to SVG error:', { smiles, error: err })
@@ -55,12 +115,8 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
   }
 
   const molToSVG = async (molData: string): Promise<string> => {
-    if (!RDKit) {
-      throw new Error('RDKit not loaded')
-    }
-
     try {
-      // First try to identify the molecule and get its SMILES
+      const activeRDKit = getActiveRDKit()
       const { getSMILESFromMOL } = await import('@/lib/molecule-database')
       const smiles = getSMILESFromMOL(molData)
 
@@ -69,47 +125,23 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
         return await smilesToSVG(smiles)
       }
 
-      // Try direct MOL parsing (minimal RDKit might not support it)
-      let processedMolData = molData.trim()
+      const molecule = buildMolFromCandidates(activeRDKit, [
+        normalizeMolLikeData(molData),
+        normalizeLineEndings(molData),
+      ])
 
-      // 检查是否是 MOL 块格式
-      if (processedMolData.includes('V2000') || processedMolData.includes('V3000')) {
-        // 最小化处理 - 只移除 ChemDraw 标题，保持其他不变
-        if (processedMolData.startsWith('ChemDraw')) {
-          const lines = processedMolData.split('\n')
-          const vIndex = lines.findIndex((line) => line.includes('V2000') || line.includes('V3000'))
-          if (vIndex > 0) {
-            // 只保留 V2000 行及其之后的内容
-            processedMolData = lines.slice(vIndex).join('\n')
-          }
-        }
-
-        // 确保 M END 存在
-        if (!processedMolData.includes('M  END')) {
-          processedMolData += '\nM  END'
-        }
-
-        // 直接尝试解析
-        const molecule = RDKit.get_mol(processedMolData)
-
-        if (molecule) {
-          const svg = molecule.get_svg()
-          molecule.delete()
-          if (svg) return svg
-        }
+      if (!molecule) {
+        throw new Error('Invalid MOL data')
       }
 
-      // 如果是 SMILES，直接解析
-      const molecule = RDKit.get_mol(molData)
-      if (molecule) {
-        const svg = molecule.get_svg()
-        molecule.delete()
-        return svg
+      const svg = molecule.get_svg()
+      molecule.delete()
+
+      if (!svg) {
+        throw new Error('Failed to generate SVG from MOL')
       }
 
-      throw new Error(
-        `Unable to identify molecule from MOL data. The RDKit minimal build doesn't support MOL format parsing. Please use SMILES format instead.`
-      )
+      return svg
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)
       throw new Error(`Failed to convert MOL to SVG: ${errorMessage}`)
@@ -117,46 +149,32 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
   }
 
   const getMorganFingerprint = async (input: string, radius = 2, bits = 2048): Promise<string> => {
-    if (!RDKit) {
-      throw new Error('RDKit not loaded')
-    }
-
-    // 检测输入格式
-    const format = detectChemicalFormat(input)
-
     if (!input || input.trim() === '') {
       throw new Error('No chemical data provided')
     }
 
+    const activeRDKit = getActiveRDKit()
+    const format = detectChemicalFormat(input)
+
     try {
       let mol = null
-      let processedInput = input.trim()
+      const normalizedInput = normalizeLineEndings(input).trim()
 
-      // 根据格式处理输入
-      if (format === 'mol') {
-        // First try to identify the molecule and get its SMILES
+      if (format === 'mol' || format === 'sdf') {
         const { getSMILESFromMOL } = await import('@/lib/molecule-database')
-        const smiles = getSMILESFromMOL(input)
+        const smiles = getSMILESFromMOL(normalizedInput)
 
         if (smiles) {
           logger.log(`Identified molecule for fingerprint, using SMILES: ${smiles}`)
-          mol = RDKit.get_mol(smiles)
+          mol = activeRDKit.get_mol(smiles)
         } else {
-          // For MOL format, try direct parsing (won't work with minimal build)
-          mol = RDKit.get_mol(processedInput)
-
-          if (!mol) {
-            // If failed, try cleaning MOL data
-            if (processedInput.startsWith('ChemDraw')) {
-              const lines = processedInput.split('\n')
-              processedInput = lines.slice(2).join('\n') // Skip ChemDraw header
-              mol = RDKit.get_mol(processedInput)
-            }
-          }
+          mol = buildMolFromCandidates(activeRDKit, [
+            normalizeMolLikeData(normalizedInput),
+            normalizedInput,
+          ])
         }
       } else if (format === 'smiles') {
-        // For SMILES format, parse directly
-        mol = RDKit.get_mol(processedInput)
+        mol = activeRDKit.get_mol(normalizedInput)
       } else {
         throw new Error(
           `Unsupported format for fingerprint generation: ${format}. Only SMILES and MOL formats are supported.`
@@ -167,8 +185,6 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
         throw new Error(`Failed to parse chemical data. Format: ${format}`)
       }
 
-      // Generate Morgan fingerprint - use correct RDKit API
-      // RDKit's get_morgan_fp method accepts parameters as JSON string
       const options = JSON.stringify({ radius, nBits: bits })
       const fingerprint = mol.get_morgan_fp(options)
 
@@ -201,22 +217,16 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
   }
 }
 
-/**
- * 检测化学数据格式
- */
 export function detectChemicalFormat(data: string): 'smiles' | 'mol' | 'sdf' | 'pdb' | 'unknown' {
   if (!data || typeof data !== 'string') {
     return 'unknown'
   }
-  const trimmedData = data.trim()
 
-  // 如果数据为空，返回 unknown
+  const trimmedData = data.trim()
   if (!trimmedData) {
     return 'unknown'
   }
 
-  // 检测 SMILES (通常是单行，不含换行符)
-  // SMILES 特征：只包含特定化学符号，不包含空格或数字坐标
   if (
     !trimmedData.includes('\n') &&
     trimmedData.length > 1 &&
@@ -226,8 +236,6 @@ export function detectChemicalFormat(data: string): 'smiles' | 'mol' | 'sdf' | '
     return 'smiles'
   }
 
-  // 检测 MOL/SDF (包含特定标识符)
-  // MOL 文件特征：包含 V2000 或 V3000 版本号，或者包含 M END 标记
   if (
     trimmedData.includes('V2000') ||
     trimmedData.includes('V3000') ||
@@ -237,30 +245,25 @@ export function detectChemicalFormat(data: string): 'smiles' | 'mol' | 'sdf' | '
     return trimmedData.includes('$$$$') ? 'sdf' : 'mol'
   }
 
-  // 检测 PDB (蛋白质数据库格式)
   if (trimmedData.includes('ATOM') || trimmedData.includes('HETATM')) {
     return 'pdb'
   }
 
-  // 检测 XYZ 格式（简单的原子坐标格式）
-  // 第一行是原子数，第二行是注释，后面是原子坐标
   const lines = trimmedData.split('\n').filter((line) => line.trim())
   if (lines.length >= 3) {
     const firstLine = lines[0].trim()
-    // 检查第一行是否为纯数字（原子数）
-    if (/^\d+$/.test(firstLine) && parseInt(firstLine) > 0) {
-      // 检查后续行是否包含原子坐标格式（元素符号 + 数字）
+    if (/^\d+$/.test(firstLine) && parseInt(firstLine, 10) > 0) {
       const hasCoordinates = lines.slice(2).some((line) => {
         const parts = line.trim().split(/\s+/)
         return parts.length >= 4 && /^[A-Z][a-z]?$/.test(parts[0])
       })
+
       if (hasCoordinates) {
-        return 'mol' // XYZ 格式可以按 MOL 处理
+        return 'mol'
       }
     }
   }
 
-  // 如果包含化学元素符号，但格式不明确，尝试进一步分析
   const hasChemicalElements = /[BCNOSPFIPClbr]/.test(trimmedData)
   const hasCoordinates = /\d+\.\d+\s+\d+\.\d+\s+\d+\.\d+/.test(trimmedData)
 
@@ -271,9 +274,6 @@ export function detectChemicalFormat(data: string): 'smiles' | 'mol' | 'sdf' | '
   return 'unknown'
 }
 
-/**
- * 解析化学数据
- */
 export function parseChemicalData(data: string): { format: string; data: string } {
   const format = detectChemicalFormat(data)
 

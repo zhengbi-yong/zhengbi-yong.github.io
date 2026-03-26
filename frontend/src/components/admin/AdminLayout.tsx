@@ -100,6 +100,14 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  return (
+    <KeyboardShortcutProvider>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </KeyboardShortcutProvider>
+  )
+}
+
+function AdminLayoutContent({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [showLoginModal, setShowLoginModal] = useState(false)
@@ -187,7 +195,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <KeyboardShortcutProvider>
       <div className="admin-compact min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Mobile sidebar backdrop */}
         {sidebarOpen && (
@@ -342,6 +349,5 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* 命令面板 */}
         <CommandPalette />
       </div>
-    </KeyboardShortcutProvider>
   )
 }

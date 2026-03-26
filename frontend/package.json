@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "next dev -p 3001 -H 0.0.0.0",
-    "dev": "cross-env INIT_CWD=$PWD next dev -p 3001 -H 0.0.0.0",
+    "start": "pnpm contentlayer && node ./scripts/dev/run-next-dev.js",
+    "dev": "pnpm contentlayer && node ./scripts/dev/run-next-dev.js",
     "contentlayer": "contentlayer2 build",
-    "build": "cross-env INIT_CWD=$PWD pnpm contentlayer && cross-env NODE_OPTIONS='--experimental-json-modules' node ./scripts/generate/generate-search.mjs && cross-env INIT_CWD=$PWD next build && cross-env NODE_OPTIONS='--experimental-json-modules' node ./scripts/build/postbuild.mjs",
+    "build": "pnpm contentlayer && cross-env NODE_OPTIONS=--experimental-json-modules node ./scripts/generate/generate-search.mjs && node ./scripts/build/run-next-build.js && cross-env NODE_OPTIONS=--experimental-json-modules node ./scripts/build/postbuild.mjs",
     "serve": "next start -p 3001 -H 0.0.0.0",
     "analyze": "cross-env ANALYZE=true next build",
     "lint": "eslint . --max-warnings=600",
@@ -24,8 +24,8 @@
     "generate-stories": "node scripts/generate-stories.mjs",
     "check-console": "node scripts/cleanup-console.mjs",
     "cleanup-console": "AUTO_FIX=true node scripts/cleanup-console.mjs",
-    "generate:types": "bash scripts/generate/generate-api-types.sh",
-    "generate:api-types": "bash scripts/generate/generate-api-types.sh",
+    "generate:types": "node ./scripts/generate/generate-api-types.js",
+    "generate:api-types": "node ./scripts/generate/generate-api-types.js",
     "mock": "pnpm exec prism mock openapi.json -p 4010"
   },
   "dependencies": {
@@ -218,7 +218,7 @@
       "prettier --write"
     ]
   },
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.28.2",
   "pnpm": {
     "overrides": {
       "dompurify": "^3.2.4",

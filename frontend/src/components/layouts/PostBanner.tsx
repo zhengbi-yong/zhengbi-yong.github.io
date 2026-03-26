@@ -1,8 +1,6 @@
 import { ReactNode } from 'react'
 import Image from '@/components/Image'
 import Bleed from 'pliny/ui/Bleed'
-import { CoreContent } from 'pliny/utils/contentlayer'
-import type { Blog } from 'contentlayer/generated'
 import Comments from '@/components/Comments'
 import Link from '@/components/Link'
 import PageTitle from '@/components/PageTitle'
@@ -11,9 +9,10 @@ import siteMetadata from '@/data/siteMetadata'
 import FloatingTOC from '@/components/FloatingTOC'
 import type { TOC } from '@/lib/types/toc'
 import { ReadingProgressWithApi } from '@/components/ReadingProgressWithApi'
+import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 
 interface LayoutProps {
-  content: CoreContent<Blog>
+  content: PostLayoutContent
   children: ReactNode
   next?: { path: string; title: string }
   prev?: { path: string; title: string }
@@ -22,14 +21,14 @@ interface LayoutProps {
 }
 
 export default function PostMinimal({ content, next, prev, children, toc, showTOC }: LayoutProps) {
-  const { slug, title, images } = content
+  const { slug, path, title, images } = resolvePostLayoutContent(content)
   const displayImage =
-    images && images.length > 0 ? images[0] : 'https://picsum.photos/seed/picsum/800/400'
+    images.length > 0 ? images[0] : 'https://picsum.photos/seed/picsum/800/400'
 
   return (
     <SectionContainer>
-      {/* 阅读进度条 - 集成后端API */}
-      <ReadingProgressWithApi postSlug={slug} />
+      <ReadingProgressWithApi postSlug={slug || path} />
+
       <article>
         <div>
           <div className="space-y-1 pb-10 text-center dark:border-gray-700">
@@ -44,14 +43,12 @@ export default function PostMinimal({ content, next, prev, children, toc, showTO
               <PageTitle>{title}</PageTitle>
             </div>
           </div>
+
           <div className="md:grid md:grid-cols-[3fr_1fr] md:gap-x-6">
             <div className="md:col-span-1">
               <div className="prose dark:prose-invert max-w-none py-4">{children}</div>
               {siteMetadata.comments && (
-                <div
-                  className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300"
-                  id="comment"
-                >
+                <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300" id="comment">
                   <Comments slug={slug} />
                 </div>
               )}
@@ -82,11 +79,12 @@ export default function PostMinimal({ content, next, prev, children, toc, showTO
                 </div>
               </footer>
             </div>
+
             <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start">
               <FloatingTOC toc={toc} enabled={showTOC} />
             </div>
           </div>
-          {/* 移动端浮动 ToC - 在布局外部渲染，只渲染移动端组件 */}
+
           <div className="md:hidden">
             <FloatingTOC toc={toc} enabled={showTOC} mobileOnly={true} />
           </div>

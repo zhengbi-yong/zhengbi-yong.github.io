@@ -1,7 +1,5 @@
 import { ReactNode } from 'react'
 import { formatDate } from 'pliny/utils/formatDate'
-import { CoreContent } from 'pliny/utils/contentlayer'
-import type { Blog } from 'contentlayer/generated'
 import Comments from '@/components/Comments'
 import Link from '@/components/Link'
 import PageTitle from '@/components/PageTitle'
@@ -10,9 +8,10 @@ import siteMetadata from '@/data/siteMetadata'
 import FloatingTOC from '@/components/FloatingTOC'
 import type { TOC } from '@/lib/types/toc'
 import { ReadingProgressWithApi } from '@/components/ReadingProgressWithApi'
+import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 
 interface LayoutProps {
-  content: CoreContent<Blog>
+  content: PostLayoutContent
   children: ReactNode
   next?: { path: string; title: string }
   prev?: { path: string; title: string }
@@ -21,12 +20,14 @@ interface LayoutProps {
 }
 
 export default function PostLayout({ content, next, prev, children, toc, showTOC }: LayoutProps) {
-  const { path, slug, date, title } = content
+  const { path, slug, date, title } = resolvePostLayoutContent(content)
+  const parsedDate = new Date(date)
+  const hasValidDate = !Number.isNaN(parsedDate.getTime())
 
   return (
     <SectionContainer>
-      {/* 阅读进度条 - 集成后端API */}
       <ReadingProgressWithApi postSlug={slug || path} />
+
       <article>
         <div>
           <header>
@@ -35,7 +36,9 @@ export default function PostLayout({ content, next, prev, children, toc, showTOC
                 <div>
                   <dt className="sr-only">Published on</dt>
                   <dd className="text-base leading-6 font-medium text-gray-500 dark:text-gray-400">
-                    <time dateTime={date}>{formatDate(date, siteMetadata.locale)}</time>
+                    <time dateTime={date}>
+                      {hasValidDate ? formatDate(date, siteMetadata.locale) : date}
+                    </time>
                   </dd>
                 </div>
               </dl>
@@ -44,14 +47,12 @@ export default function PostLayout({ content, next, prev, children, toc, showTOC
               </div>
             </div>
           </header>
+
           <div className="divide-y divide-gray-200 pb-8 md:grid md:grid-cols-[3fr_1fr] md:gap-x-6 md:divide-y-0 dark:divide-gray-700">
             <div className="md:col-span-1">
               <div className="prose dark:prose-invert max-w-none pt-10 pb-8">{children}</div>
               {siteMetadata.comments && (
-                <div
-                  className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300"
-                  id="comment"
-                >
+                <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300" id="comment">
                   <Comments slug={slug} />
                 </div>
               )}
@@ -82,11 +83,12 @@ export default function PostLayout({ content, next, prev, children, toc, showTOC
                 </div>
               </footer>
             </div>
+
             <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start">
               <FloatingTOC toc={toc} enabled={showTOC} />
             </div>
           </div>
-          {/* 移动端浮动 ToC - 在布局外部渲染，只渲染移动端组件 */}
+
           <div className="md:hidden">
             <FloatingTOC toc={toc} enabled={showTOC} mobileOnly={true} />
           </div>

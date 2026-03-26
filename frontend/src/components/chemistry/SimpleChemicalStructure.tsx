@@ -1,10 +1,18 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { applyViewerStyle, load3Dmol, resolveStructureSource } from './threeDmol'
+import {
+  resolveBooleanProp,
+  resolveChemicalTextProp,
+  resolveNumberProp,
+} from './runtimeProps'
 
 interface SimpleChemicalStructureProps {
   file?: string
   data?: string
+  dataBase64?: string
+  format?: string
   width?: number | string
   height?: number | string
   style?: 'stick' | 'cartoon' | 'sphere' | 'surface' | 'line'
@@ -16,6 +24,8 @@ interface SimpleChemicalStructureProps {
 export default function SimpleChemicalStructure({
   file,
   data,
+  dataBase64,
+  format,
   width = '100%',
   height = 400,
   style = 'stick',
@@ -23,6 +33,9 @@ export default function SimpleChemicalStructure({
   className = '',
   autoRotate = false,
 }: SimpleChemicalStructureProps) {
+  const resolvedData = resolveChemicalTextProp(data, dataBase64)
+  const resolvedHeight = resolveNumberProp(height, 400)
+  const resolvedAutoRotate = resolveBooleanProp(autoRotate, false)
   const containerRef = useRef<HTMLDivElement>(null)
   const viewerRef = useRef<any>(null)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +50,8 @@ export default function SimpleChemicalStructure({
   useEffect(() => {
     if (!isClient || !containerRef.current) return undefined
 
+    let isCancelled = false
+
     const initViewer = async () => {
       if (!containerRef.current) return
 
@@ -46,28 +61,50 @@ export default function SimpleChemicalStructure({
         container.style.backgroundColor = backgroundColor
       }
       container.style.width = typeof width === 'number' ? `${width}px` : width
-      container.style.height = typeof height === 'number' ? `${height}px` : height
+      container.style.height =
+        typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight
       container.style.position = 'relative'
       container.style.overflow = 'hidden'
 
       try {
-        const viewer = (window as any).$3Dmol.createViewer(container) as any
+        setError(null)
+        setIsLoading(true)
+
+        const [threeDmol, source] = await Promise.all([
+          load3Dmol(),
+          resolveStructureSource({ file, data: resolvedData, format }),
+        ])
+
+        if (isCancelled || !containerRef.current) {
+          return
+        }
+
+        const viewer = threeDmol.createViewer(container, {
+          backgroundColor: backgroundColor || '#ffffff',
+        }) as any
 
         viewerRef.current = viewer
 
-        if (file) {
-          viewer.addModel(file, file)
-        } else if (data) {
-          viewer.addModel(data, 'data')
-        }
+        viewer.addModel(source.data, source.format)
+        applyViewerStyle(viewer, threeDmol, style)
 
-        if (autoRotate) {
+        if (resolvedAutoRotate) {
           viewer.spin(true)
         }
 
         viewer.zoomTo()
+        viewer.render()
+
+        if (isCancelled) {
+          return
+        }
+
         setIsLoading(false)
       } catch (err) {
+        if (isCancelled) {
+          return
+        }
+
         console.error('Failed to load 3Dmol viewer:', err)
         setError('Failed to load 3D molecular structure')
         setIsLoading(false)
@@ -91,6 +128,8 @@ export default function SimpleChemicalStructure({
         window.removeEventListener('resize', handleResize)
       }
 
+      isCancelled = true
+
       try {
         if (viewerRef.current && typeof viewerRef.current.destroy === 'function') {
           viewerRef.current.destroy()
@@ -100,13 +139,27 @@ export default function SimpleChemicalStructure({
       }
       viewerRef.current = null
     }
-  }, [isClient, file, data, width, height, autoRotate])
+  }, [
+    isClient,
+    file,
+    resolvedData,
+    format,
+    width,
+    resolvedHeight,
+    style,
+    backgroundColor,
+    resolvedAutoRotate,
+  ])
 
   if (!isClient) {
     return (
       <div
         className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 ${className}`}
-        style={{ width, height: typeof height === 'number' ? `${height}px` : height, maxWidth: '100%' }}
+        style={{
+          width,
+          height: typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight,
+          maxWidth: '100%',
+        }}
       >
         <div className="flex flex-col items-center gap-3">
           <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
@@ -120,7 +173,11 @@ export default function SimpleChemicalStructure({
     return (
       <div
         className={`my-6 max-w-full rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 ${className}`}
-        style={{ width, height: typeof height === 'number' ? `${height}px` : height, maxWidth: '100%' }}
+        style={{
+          width,
+          height: typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight,
+          maxWidth: '100%',
+        }}
       >
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       </div>
@@ -133,7 +190,7 @@ export default function SimpleChemicalStructure({
       className={className}
       style={{
         width,
-        height: typeof height === 'number' ? `${height}px` : height,
+        height: typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight,
         maxWidth: '100%',
         position: 'relative',
         overflow: 'hidden',

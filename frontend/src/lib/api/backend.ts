@@ -252,9 +252,12 @@ export const postService = {
    * Get post detail by slug
    */
   async getPost(slug: string): Promise<PostDetail> {
-    const response = await api.get<PostDetail>(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}`, {
-      cache: 5 * 60 * 1000, // 5 minute cache
-    })
+    const response = await api.get<PostDetail>(
+      `${BACKEND_API_URL}/posts/by-slug?slug=${encodeURIComponent(slug)}`,
+      {
+        cache: 5 * 60 * 1000, // 5 minute cache
+      }
+    )
     return response.data
   },
 

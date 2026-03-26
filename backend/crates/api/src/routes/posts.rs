@@ -6,6 +6,7 @@ use axum::{
 };
 use blog_db::{cms::*, PostStatsResponse};
 use blog_shared::{middleware::AuthUser, AppError};
+use serde::Deserialize;
 use utoipa;
 use uuid::Uuid;
 
@@ -504,6 +505,37 @@ pub async fn get_post(
     State(state): State<AppState>,
     Path(slug): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
+    get_post_response(&state, &slug).await
+}
+
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
+pub struct PostSlugQuery {
+    pub slug: String,
+}
+
+#[utoipa::path(
+    get,
+    path = "/posts/by-slug",
+    tag = "posts",
+    params(
+        ("slug" = String, Query, description = "文章 slug，支持多级路径")
+    ),
+    responses(
+        (status = 200, description = "获取成功", body = PostDetail),
+        (status = 404, description = "文章不存在")
+    )
+)]
+pub async fn get_post_by_slug_query(
+    State(state): State<AppState>,
+    Query(params): Query<PostSlugQuery>,
+) -> Result<impl IntoResponse, AppError> {
+    get_post_response(&state, &params.slug).await
+}
+
+async fn get_post_response(
+    state: &AppState,
+    slug: &str,
+) -> Result<axum::response::Response, AppError> {
     // 尝试从缓存获取
     let cache_key = format!("post:{}", slug);
 
@@ -1040,7 +1072,7 @@ pub async fn list_posts(
     Query(params): Query<PostListParams>,
 ) -> Result<impl IntoResponse, AppError> {
     let page = params.page.unwrap_or(1).max(1);
-    let limit = params.limit.unwrap_or(20).min(100);
+    let limit = params.limit.unwrap_or(20).min(500);
     let offset = (page - 1) * limit;
 
     let sort_by = params.sort_by.unwrap_or_else(|| "published_at".to_string());

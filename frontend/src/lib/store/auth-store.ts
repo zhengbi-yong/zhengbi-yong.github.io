@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from './create-store'
 import { persist } from 'zustand/middleware'
 import { authService } from '../api/backend'
 import type { UserInfo } from '../types/backend'

@@ -96,7 +96,8 @@
 
 /* 游客内容容器 - 最佳阅读宽度 */
 .visitor-content {
-  max-width: 800px;
+  width: 100%;
+  max-width: 1440px;
   margin: 0 auto;
   padding-left: var(--spacing-visitor-sm);
   padding-right: var(--spacing-visitor-sm);
@@ -111,8 +112,8 @@
 
 @media (min-width: 1024px) {
   .visitor-content {
-    padding-left: var(--spacing-visitor-lg);
-    padding-right: var(--spacing-visitor-lg);
+    padding-left: var(--spacing-visitor-md);
+    padding-right: var(--spacing-visitor-md);
   }
 }
 

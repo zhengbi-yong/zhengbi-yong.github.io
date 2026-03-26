@@ -2,20 +2,27 @@
 'use client'
 
 import { useEffect } from 'react'
+import { logger } from '@/lib/utils/logger'
 
 /**
- * 访客追踪组件
- * 在页面加载时自动记录访客IP和地理位置
- * 可以放在根布局或需要追踪的页面中
+ * Visitor tracker.
+ * Disabled by default in development because the old file-write path caused
+ * Next.js dev rebuild loops on Windows.
  */
 export default function VisitorTracker() {
   useEffect(() => {
-    // 延迟执行，避免阻塞页面加载
+    const visitorTrackingEnabled =
+      process.env.NODE_ENV === 'production' ||
+      process.env.NEXT_PUBLIC_ENABLE_VISITOR_TRACKING === 'true'
+
+    if (!visitorTrackingEnabled) {
+      return
+    }
+
     const timer = setTimeout(() => {
       fetch('/api/visitor', {
         method: 'POST',
       }).catch((error) => {
-        // 静默失败，不影响用户体验
         logger.debug('[VisitorTracker] Failed to record visitor:', error)
       })
     }, 1000)
@@ -23,5 +30,5 @@ export default function VisitorTracker() {
     return () => clearTimeout(timer)
   }, [])
 
-  return null // 此组件不渲染任何内容
+  return null
 }

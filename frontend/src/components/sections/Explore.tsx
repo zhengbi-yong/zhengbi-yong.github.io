@@ -179,13 +179,15 @@ export default function Explore({ title, description }: ExploreProps) {
                   'absolute top-0 right-[-35%] bottom-0 flex h-auto w-[300px] items-center self-center sm:right-[-50%] sm:w-[320px] md:right-[-58%] md:w-[390px]'
                 )}
               >
-                <Image
-                  src="/assets/tools/keyboard.png"
-                  alt="Keyboard"
-                  width={390}
-                  height={264}
-                  className="h-full w-full object-cover"
-                />
+                <div className="relative aspect-[65/44] w-full">
+                  <Image
+                    src="/assets/tools/keyboard.png"
+                    alt="Keyboard"
+                    fill
+                    sizes="(min-width: 768px) 390px, (min-width: 640px) 320px, 300px"
+                    className="object-cover"
+                  />
+                </div>
               </div>
             </div>
 

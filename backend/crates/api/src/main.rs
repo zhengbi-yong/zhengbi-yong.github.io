@@ -305,6 +305,10 @@ fn post_routes() -> Router<AppState> {
     Router::new()
         .route("/posts", get(blog_api::routes::posts::list_posts))
         .route(
+            "/posts/by-slug",
+            get(blog_api::routes::posts::get_post_by_slug_query),
+        )
+        .route(
             "/posts/id/{id}",
             get(blog_api::routes::posts::get_post_by_id),
         )

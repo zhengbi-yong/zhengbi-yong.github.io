@@ -1,23 +1,41 @@
-/**
- * Service Worker 注册和管理
- * 用于实现页面缓存和离线支持
- */
 import { logger } from './utils/logger'
 
 const SW_URL = '/sw.js'
-const SW_VERSION = 'v1.0.1'
-void SW_VERSION
+const SW_CACHE_PREFIX = 'blog-cache-'
 
-/**
- * 检查浏览器是否支持 Service Worker
- */
 function isServiceWorkerSupported(): boolean {
   return typeof window !== 'undefined' && 'serviceWorker' in navigator
 }
 
-/**
- * 注册 Service Worker
- */
+async function getServiceWorkerRegistrations(): Promise<ServiceWorkerRegistration[]> {
+  if (!isServiceWorkerSupported()) {
+    return []
+  }
+
+  if (typeof navigator.serviceWorker.getRegistrations === 'function') {
+    return Array.from(await navigator.serviceWorker.getRegistrations())
+  }
+
+  const registration = await navigator.serviceWorker.getRegistration()
+  return registration ? [registration] : []
+}
+
+async function clearServiceWorkerCaches(): Promise<void> {
+  if (typeof window === 'undefined' || !('caches' in window)) {
+    return
+  }
+
+  const cacheNames = await caches.keys()
+  const serviceWorkerCaches = cacheNames.filter((cacheName) => cacheName.startsWith(SW_CACHE_PREFIX))
+
+  if (serviceWorkerCaches.length === 0) {
+    return
+  }
+
+  await Promise.all(serviceWorkerCaches.map((cacheName) => caches.delete(cacheName)))
+  logger.log('[SW] Cleared Service Worker caches:', serviceWorkerCaches)
+}
+
 export async function registerServiceWorker(): Promise<void> {
   if (!isServiceWorkerSupported()) {
     logger.debug('[SW] Service Worker not supported')
@@ -31,59 +49,64 @@ export async function registerServiceWorker(): Promise<void> {
 
     logger.log('[SW] Service Worker registered:', registration.scope)
 
-    // 监听更新
     registration.addEventListener('updatefound', () => {
       const newWorker = registration.installing
-      if (!newWorker) return
+      if (!newWorker) {
+        return
+      }
 
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // 新版本已安装，提示用户刷新
           logger.log('[SW] New version available, please refresh the page')
-          // 可以在这里显示更新提示
         }
       })
     })
 
-    // 检查更新
-    await registration.update()
+    if (process.env.NODE_ENV === 'production') {
+      await registration.update()
+    } else {
+      logger.debug('[SW] Skipping registration.update() outside production')
+    }
   } catch (error) {
     logger.error('[SW] Service Worker registration failed:', error)
-    // 注册失败不影响应用功能
   }
 }
 
-/**
- * 取消注册 Service Worker（用于调试）
- */
-export async function unregisterServiceWorker(): Promise<void> {
+export async function unregisterServiceWorker(
+  options: { clearCaches?: boolean } = {}
+): Promise<void> {
   if (!isServiceWorkerSupported()) {
     return
   }
 
   try {
-    const registration = await navigator.serviceWorker.getRegistration()
-    if (registration) {
-      await registration.unregister()
-      logger.log('[SW] Service Worker unregistered')
+    const registrations = await getServiceWorkerRegistrations()
+
+    if (registrations.length > 0) {
+      const results = await Promise.all(
+        registrations.map((registration) => registration.unregister())
+      )
+      const unregisteredCount = results.filter(Boolean).length
+      logger.log(`[SW] Unregistered ${unregisteredCount} Service Worker registration(s)`)
+    }
+
+    if (options.clearCaches) {
+      await clearServiceWorkerCaches()
     }
   } catch (error) {
     logger.error('[SW] Service Worker unregistration failed:', error)
   }
 }
 
-/**
- * 检查 Service Worker 是否已注册
- */
 export async function isServiceWorkerRegistered(): Promise<boolean> {
   if (!isServiceWorkerSupported()) {
     return false
   }
 
   try {
-    const registration = await navigator.serviceWorker.getRegistration()
-    return !!registration
-  } catch (error) {
+    const registrations = await getServiceWorkerRegistrations()
+    return registrations.length > 0
+  } catch {
     return false
   }
 }

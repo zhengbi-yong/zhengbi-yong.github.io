@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { initAuth } from '@/lib/store'
+import { initAuth } from '@/lib/store/auth-store'
 
 /**
  * AuthInitializer - Initialize authentication on app startup

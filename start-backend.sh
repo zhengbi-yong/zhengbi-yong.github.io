@@ -25,4 +25,5 @@ echo "Redis: $REDIS_URL"
 echo ""
 
 # 运行 API 服务器
-cargo run --bin api 2>&1
+cargo run -p blog-migrator
+cargo run -p blog-api --bin api 2>&1

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useAuthStore } from '@/lib/store'
+import { useEffect, useState } from 'react'
+
+import { Button } from '@/components/shadcn/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,10 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/shadcn/ui/dialog'
-import { Button } from '@/components/shadcn/ui/button'
 import { Input } from '@/components/shadcn/ui/input'
 import { Label } from '@/components/shadcn/ui/label'
-import { X } from 'lucide-react'
+import { useAuthStore } from '@/lib/store/auth-store'
+import { checkPasswordStrength, isPasswordValid } from '@/lib/utils/password'
+
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator'
 
 interface AuthModalProps {
@@ -21,29 +23,43 @@ interface AuthModalProps {
   defaultMode?: 'login' | 'register'
 }
 
-export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
+export function AuthModal({
+  isOpen,
+  onClose,
+  defaultMode = 'login',
+}: AuthModalProps) {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode)
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const { login, register, isLoading, error, clearError } = useAuthStore()
+  const { login, register, isLoading, error, clearError, setError } = useAuthStore()
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  useEffect(() => {
+    setMode(defaultMode)
+  }, [defaultMode])
+
+  const resetForm = () => {
+    setEmail('')
+    setUsername('')
+    setPassword('')
+  }
+
+  const handleClose = () => {
+    clearError()
+    resetForm()
+    setMode(defaultMode)
+    onClose()
+  }
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     clearError()
 
-    // 验证密码强度（仅注册时）
     if (mode === 'register') {
-      const strength = password ? { requirements: {
-        minLength: password.length >= 12,
-        hasUppercase: /[A-Z]/.test(password),
-        hasLowercase: /[a-z]/.test(password),
-        hasDigit: /[0-9]/.test(password),
-        hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-      }} : null
+      const strength = checkPasswordStrength(password)
 
-      if (!strength || !Object.values(strength.requirements).every(Boolean)) {
-        useAuthStore.getState().setError('密码不符合要求，请检查密码强度提示')
+      if (!isPasswordValid(strength)) {
+        setError('密码不符合要求，请检查密码强度提示。')
         return
       }
     }
@@ -54,135 +70,119 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
       } else {
         await register(email, username, password)
       }
-      onClose()
-    } catch (err) {
-      // Error is handled by the store - just log for debugging
-      console.log('[AuthModal] Login/Register error:', err)
-      console.log('[AuthModal] Current error state:', useAuthStore.getState().error)
-    }
-  }
 
-  const handleClose = () => {
-    clearError()
-    setEmail('')
-    setUsername('')
-    setPassword('')
-    onClose()
+      handleClose()
+    } catch (submitError) {
+      console.error('[AuthModal] Authentication request failed:', submitError)
+    }
   }
 
   const switchMode = () => {
     clearError()
-    setEmail('')
-    setUsername('')
-    setPassword('')
-    setMode(mode === 'login' ? 'register' : 'login')
+    resetForm()
+    setMode((currentMode) => (currentMode === 'login' ? 'register' : 'login'))
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          handleClose()
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-md" data-testid="auth-modal">
-        <button
-          onClick={handleClose}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-        >
-          <X className="h-4 w-4" />
-          <span className="sr-only">关闭</span>
-        </button>
-
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {mode === 'login' ? '登录' : '注册'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'login'
-              ? '登录以访问更多功能'
-              : '创建账户以开始使用'}
+              ? '登录以访问评论、点赞和更多交互功能。'
+              : '创建账号后即可开始参与互动。'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4" data-testid="auth-form">
-          {error && (
-            <div className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 text-sm p-3 rounded-md border border-red-200 dark:border-red-800" data-testid="auth-error-message">
+        <form onSubmit={handleSubmit} className="mt-4 space-y-4" data-testid="auth-form">
+          {error ? (
+            <div
+              className="rounded-md border border-red-200 bg-red-100 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200"
+              data-testid="auth-error-message"
+            >
               {error}
             </div>
-          )}
+          ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor="email">邮箱</Label>
+            <Label htmlFor="auth-email">邮箱</Label>
             <Input
-              id="email"
+              id="auth-email"
               data-testid="auth-email-input"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
               required
+              autoComplete="email"
               placeholder="your@email.com"
             />
           </div>
 
-          {mode === 'register' && (
+          {mode === 'register' ? (
             <div className="space-y-2">
-              <Label htmlFor="username">用户名</Label>
+              <Label htmlFor="auth-username">用户名</Label>
               <Input
-                id="username"
+                id="auth-username"
                 data-testid="auth-username-input"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(event) => setUsername(event.target.value)}
                 required
                 minLength={3}
-                placeholder="用户名"
+                autoComplete="username"
+                placeholder="请输入用户名"
               />
             </div>
-          )}
+          ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor="password">密码</Label>
+            <Label htmlFor="auth-password">密码</Label>
             <Input
-              id="password"
+              id="auth-password"
               data-testid="auth-password-input"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
               required
               minLength={12}
-              placeholder="••••••••"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              placeholder="至少 12 位，包含大小写、数字和特殊字符"
             />
-            {mode === 'register' && password && (
+
+            {mode === 'register' && password ? (
               <PasswordStrengthIndicator password={password} />
-            )}
+            ) : null}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading} data-testid="auth-submit-button">
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading}
+            data-testid="auth-submit-button"
+          >
             {isLoading ? '处理中...' : mode === 'login' ? '登录' : '注册'}
           </Button>
 
           <div className="text-center text-sm text-muted-foreground">
-            {mode === 'login' ? (
-              <>
-                还没有账户？{' '}
-                <button
-                  type="button"
-                  onClick={switchMode}
-                  data-testid="auth-switch-mode-button"
-                  className="text-primary hover:underline"
-                >
-                  注册
-                </button>
-              </>
-            ) : (
-              <>
-                已有账户？{' '}
-                <button
-                  type="button"
-                  onClick={switchMode}
-                  data-testid="auth-switch-mode-button"
-                  className="text-primary hover:underline"
-                >
-                  登录
-                </button>
-              </>
-            )}
+            {mode === 'login' ? '还没有账号？' : '已经有账号了？'}{' '}
+            <button
+              type="button"
+              onClick={switchMode}
+              data-testid="auth-switch-mode-button"
+              className="text-primary hover:underline"
+            >
+              {mode === 'login' ? '立即注册' : '返回登录'}
+            </button>
           </div>
         </form>
       </DialogContent>

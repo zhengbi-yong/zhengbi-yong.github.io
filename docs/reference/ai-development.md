@@ -49,15 +49,20 @@ node ./scripts/generate-search.mjs
 ### Backend Development
 
 ```bash
+docker compose -f docker-compose.dev.yml up -d
+
 cd backend
 
-# Start development environment (PostgreSQL + Redis)
-./scripts/deployment/deploy.sh dev
+# Run migrations
+cargo run -p blog-migrator
 
 # Build and run the API
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
 export REDIS_URL=redis://localhost:6379
-cargo run --bin blog-api
+cargo run -p blog-api --bin api
+
+# Run the worker
+cargo run -p blog-worker --bin worker
 
 # Production deployment
 ./scripts/deployment/deploy.sh prod
@@ -72,7 +77,7 @@ cargo run --bin blog-api
 cargo test
 
 # Run with debug logging
-RUST_LOG=debug cargo run
+RUST_LOG=debug cargo run -p blog-api --bin api
 ```
 
 ---

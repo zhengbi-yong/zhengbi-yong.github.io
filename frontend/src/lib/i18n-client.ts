@@ -436,6 +436,8 @@ const resources = {
   }
 }
 
+const enableI18nDebug = process.env.NEXT_PUBLIC_I18N_DEBUG === 'true'
+
 i18n
   .use(Backend)
   .use(LanguageDetector)
@@ -446,7 +448,7 @@ i18n
     lng: 'zh',
     showSupportNotice: false,
 
-    debug: process.env.NODE_ENV === 'development',
+    debug: enableI18nDebug,
 
     interpolation: {
       escapeValue: false, // React 已经做了 XSS 防护

@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from './create-store'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { commentService } from '../api/backend'
 import type { CommentResponse, CreateCommentRequest } from '../types/backend'

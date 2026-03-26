@@ -65,10 +65,10 @@ cargo install sqlx-cli --no-default-features --features rustls,postgres
 sqlx database create
 
 # Run migrations
-sqlx migrate run
+cargo run -p blog-migrator
 
 # Verify migrations
-sqly migrate info
+cargo run --bin migrate
 ```
 
 **Time**: ~2 minutes
@@ -112,7 +112,7 @@ In `frontend/.env.local`:
 cd backend
 
 # Run backend server
-cargo run
+cargo run -p blog-api --bin api
 ```
 
 **Time**: ~1-2 minutes (first run compiles dependencies)

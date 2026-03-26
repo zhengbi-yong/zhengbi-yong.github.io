@@ -56,6 +56,7 @@ sha2 = { workspace = true }
 # Internal crates
 blog-core = { path = "../core" }
 blog-db = { path = "../db" }
+blog-migrator = { path = "../migrator" }
 blog-shared = { path = "../shared" }
 
 # Environment variable loading

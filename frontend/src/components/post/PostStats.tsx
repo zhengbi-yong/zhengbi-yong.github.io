@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePostStore } from '@/lib/store'
+import { usePostStore } from '@/lib/store/post-store'
 import { Eye, ThumbsUp, MessageCircle } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 

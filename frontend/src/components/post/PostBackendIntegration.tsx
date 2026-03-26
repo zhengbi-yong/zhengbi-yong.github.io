@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { usePostStore } from '@/lib/store'
+import { useEffect } from 'react'
+import { usePostStore } from '@/lib/store/post-store'
 import { PostStats } from '@/components/post/PostStats'
 import { LikeButton } from '@/components/post/LikeButton'
 
@@ -10,35 +10,63 @@ interface PostBackendIntegrationProps {
   children: React.ReactNode
 }
 
-/**
- * 后端集成组件 - 为博客文章添加后端功能
- * - 记录浏览
- * - 显示统计（浏览、点赞、评论数）
- * - 点赞功能
- * - 评论功能
- */
+const recordedPostViews = new Set<string>()
+const VIEW_SESSION_KEY_PREFIX = 'post-view-recorded:'
+
+function hasRecordedView(slug: string) {
+  if (recordedPostViews.has(slug)) {
+    return true
+  }
+
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  try {
+    const wasRecorded = window.sessionStorage.getItem(`${VIEW_SESSION_KEY_PREFIX}${slug}`) === '1'
+    if (wasRecorded) {
+      recordedPostViews.add(slug)
+    }
+    return wasRecorded
+  } catch {
+    return false
+  }
+}
+
+function markViewRecorded(slug: string) {
+  recordedPostViews.add(slug)
+
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    window.sessionStorage.setItem(`${VIEW_SESSION_KEY_PREFIX}${slug}`, '1')
+  } catch {
+    // Ignore storage failures; the in-memory set still prevents duplicates in this tab.
+  }
+}
+
 export function PostBackendIntegration({ slug, children }: PostBackendIntegrationProps) {
   const { recordView, fetchStats } = usePostStore()
   void fetchStats
-  const [viewRecorded, setViewRecorded] = useState(false)
 
-  // Record view when component mounts
   useEffect(() => {
-    if (!viewRecorded && slug) {
-      recordView(slug)
-      setViewRecorded(true)
+    if (!slug || hasRecordedView(slug)) {
+      return
     }
-  }, [slug, viewRecorded, recordView])
+
+    markViewRecorded(slug)
+    void recordView(slug)
+  }, [slug, recordView])
 
   return (
     <>
-      {/* Stats and Like Button - 可以放在文章标题下方 */}
-      <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-y border-border">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-y border-border py-4">
         <PostStats slug={slug} />
         <LikeButton slug={slug} />
       </div>
 
-      {/* Article Content */}
       {children}
     </>
   )

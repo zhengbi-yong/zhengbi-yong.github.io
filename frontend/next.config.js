@@ -6,6 +6,7 @@ const ignoreBuildErrors = process.env.NEXT_IGNORE_BUILD_ERRORS === '1'
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
 const sentryOrg = process.env.SENTRY_ORG
 const sentryProject = process.env.SENTRY_PROJECT
+const enableSentryClientDebug = process.env.NEXT_PUBLIC_SENTRY_DEBUG === 'true'
 const enableSentryBuildArtifacts = Boolean(sentryAuthToken && sentryOrg && sentryProject)
 
 const sentryBuildOptions = {
@@ -26,7 +27,7 @@ const sentryBuildOptions = {
       },
   webpack: {
     treeshake: {
-      removeDebugLogging: true,
+      removeDebugLogging: !enableSentryClientDebug,
     },
   },
 }
@@ -84,12 +85,19 @@ const nextConfig = {
       'framer-motion',
       '@radix-ui/react-dialog',
       '@radix-ui/react-accordion',
-      '@tanstack/react-query',
       'lucide-react',
     ],
   },
   // Webpack 配置：代码分割和 Bundle 优化
   webpack: (config, { isServer }) => {
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      {
+        module: /@excalidraw[\\/]excalidraw/,
+        message: /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+      },
+    ]
+
     // 仅在客户端构建时优化
     if (!isServer) {
       config.optimization = {

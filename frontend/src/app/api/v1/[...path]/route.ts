@@ -1,51 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
 import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
 const BACKEND_API_URL = resolveBackendApiBaseUrl()
 
 export const dynamic = 'force-dynamic'
 
-export async function proxyRequest(request: NextRequest, path: string): Promise<NextResponse> {
-  revalidatePath(request.nextUrl.pathname)
+function getBackendUrl(request: NextRequest) {
+  const requestUrl = new URL(request.url)
+  const rawPath = requestUrl.pathname.replace(/^\/api\/v1\//, '')
+  const search = requestUrl.search
+  return `${BACKEND_API_URL}/${rawPath}${search}`
+}
 
-  const url = new URL(request.url)
-  const searchParams = url.searchParams.toString()
+function createProxyHeaders(request: NextRequest) {
+  const headers = new Headers()
 
+  request.headers.forEach((value, key) => {
+    const normalizedKey = key.toLowerCase()
+
+    if (['host', 'connection', 'content-length'].includes(normalizedKey)) {
+      return
+    }
+
+    headers.set(key, value)
+  })
+
+  return headers
+}
+
+async function proxyRequest(request: NextRequest): Promise<NextResponse> {
   try {
-    const backendUrl = `${BACKEND_API_URL}/${path}${searchParams ? '?' + searchParams : ''}`
-
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    }
-
-    const authHeader = request.headers.get('Authorization')
-    if (authHeader) {
-      headers['Authorization'] = authHeader
-    }
-
-    const cookieHeader = request.headers.get('Cookie')
-    if (cookieHeader) {
-      headers['Cookie'] = cookieHeader
-    }
+    const backendUrl = getBackendUrl(request)
+    const headers = createProxyHeaders(request)
+    const body =
+      request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.text()
 
     const response = await fetch(backendUrl, {
       method: request.method,
       headers,
+      body,
       cache: 'no-store',
     })
+
+    const responseHeaders = new Headers(response.headers)
+
+    ;['content-encoding', 'content-length', 'transfer-encoding'].forEach((header) => {
+      responseHeaders.delete(header)
+    })
+
+    responseHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    responseHeaders.set('Access-Control-Allow-Origin', '*')
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie')
+
+    if (response.status === 204 || response.status === 205) {
+      return new NextResponse(null, {
+        status: response.status,
+        headers: responseHeaders,
+      })
+    }
 
     const data = await response.text()
 
     return new NextResponse(data, {
       status: response.status,
-      headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
-      },
+      headers: responseHeaders,
     })
   } catch (error) {
     console.error('Proxy error:', error)
@@ -53,49 +72,28 @@ export async function proxyRequest(request: NextRequest, path: string): Promise<
       JSON.stringify({
         error: 'Failed to fetch from backend',
         message: error instanceof Error ? error.message : 'Unknown error',
-        path,
       }),
-      { status: 500 }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path.join('/'))
+export async function GET(request: NextRequest) {
+  return proxyRequest(request)
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path.join('/'))
+export async function POST(request: NextRequest) {
+  return proxyRequest(request)
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path.join('/'))
+export async function PUT(request: NextRequest) {
+  return proxyRequest(request)
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path.join('/'))
+export async function DELETE(request: NextRequest) {
+  return proxyRequest(request)
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
-) {
-  const { path } = await params
-  return proxyRequest(request, path.join('/'))
+export async function PATCH(request: NextRequest) {
+  return proxyRequest(request)
 }

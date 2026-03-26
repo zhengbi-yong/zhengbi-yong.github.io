@@ -1,5 +1,6 @@
-import type { CoreContent } from 'pliny/utils/contentlayer'
-import type { Blog } from 'contentlayer/generated'
+'use client'
+
+import { useMemo } from 'react'
 import Link from 'next/link'
 import HeroCard from '@/components/home/HeroCard'
 import SocialCard from '@/components/home/SocialCard'
@@ -9,34 +10,45 @@ import BlogSection from '@/components/sections/BlogSection'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import siteMetadata from '@/data/siteMetadata'
 import { AnimatedHeading, AnimatedParagraph } from '@/components/visitor'
+import { usePosts } from '@/lib/hooks/useBlogData'
+import { toBlogLikePost } from '@/lib/adapters/backend-posts'
 
-// 导入游客界面主题样式
 import '@/styles/visitor-theme.css'
 
-interface HomeProps {
-  posts: CoreContent<Blog>[]
-}
+export default function Home() {
+  const { data: postsData } = usePosts({
+    status: 'Published',
+    sort_by: 'published_at',
+    sort_order: 'desc',
+    limit: 6,
+    page: 1,
+  })
 
-export default function Home({ posts }: HomeProps) {
+  const posts = useMemo(() => {
+    return (postsData?.posts || []).map(toBlogLikePost)
+  }, [postsData?.posts])
+
   return (
     <div className="relative min-h-screen">
-      {/* 主页内容 - 艺术感和宽松布局 */}
-      <div className="visitor-content">
-        {/* Hero 区域 - 极简主义设计 */}
+      <div className="visitor-content px-4 sm:px-6 lg:px-8 2xl:px-10">
         <section className="min-h-[80vh] flex flex-col justify-center py-visitor-xl">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Title - 衬线字体，优雅动画 */}
-            <AnimatedHeading level={1} delay={0} className="font-visitor-serif text-6xl md:text-7xl lg:text-8xl mb-8">
+          <div className="mx-auto w-full max-w-7xl text-center">
+            <AnimatedHeading
+              level={1}
+              delay={0}
+              className="font-visitor-serif mb-8 text-5xl sm:text-6xl md:text-7xl xl:text-8xl"
+            >
               Zhengbi's Blog
             </AnimatedHeading>
 
-            {/* Subtitle - 优雅的副标题 */}
-            <AnimatedParagraph delay={0.3} className="text-visitor-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12">
+            <AnimatedParagraph
+              delay={0.3}
+              className="text-visitor-lg mx-auto mb-12 max-w-4xl text-gray-600 dark:text-gray-400"
+            >
               探索技术、设计与艺术的交汇点
             </AnimatedParagraph>
 
-            {/* Call to Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href={siteMetadata.github || '#'}
                 target="_blank"
@@ -55,16 +67,14 @@ export default function Home({ posts }: HomeProps) {
           </div>
         </section>
 
-        {/* Social Cards - 优雅的社交链接展示 */}
         <section className="py-visitor-md">
-          <div className="max-w-md mx-auto">
+          <div className="mx-auto w-full max-w-2xl">
             <SocialCard displaySocialIds={[1, 2, 3, 4, 5, 6, 7]} />
           </div>
         </section>
 
-        {/* Hero Card - 精致的卡片展示 */}
         <section className="py-visitor-lg">
-          <div className="max-w-2xl mx-auto">
+          <div className="mx-auto w-full max-w-6xl">
             <HeroCard
               imageUrl="/avatar.png"
               title="Robotics & Multimodal Perception"
@@ -73,12 +83,10 @@ export default function Home({ posts }: HomeProps) {
           </div>
         </section>
 
-        {/* Explore 部分 */}
         <section className="visitor-section">
           <Explore title="Explore" />
         </section>
 
-        {/* Featured Work 部分 */}
         <section className="visitor-section">
           <FeaturedWork
             title="Featured Work"
@@ -87,7 +95,6 @@ export default function Home({ posts }: HomeProps) {
           />
         </section>
 
-        {/* Blog Section 部分 */}
         <section className="visitor-section">
           <BlogSection
             title="Latest Articles"
@@ -98,9 +105,8 @@ export default function Home({ posts }: HomeProps) {
           />
         </section>
 
-        {/* Newsletter 部分 - 优雅的订阅区域 */}
         <section className="visitor-section pb-visitor-xl">
-          <div className="max-w-2xl mx-auto">
+          <div className="mx-auto w-full max-w-4xl">
             <NewsletterSignup />
           </div>
         </section>

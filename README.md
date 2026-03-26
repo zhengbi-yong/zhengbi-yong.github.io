@@ -43,17 +43,33 @@ docker compose -f docker-compose.dev.yml up -d
 Recommended entrypoints:
 
 ```bash
+# Unix-like shells
 ./start-dev.sh
 ./start-backend.sh
 ./start-frontend.sh
 ```
 
+```powershell
+# Windows PowerShell
+powershell -ExecutionPolicy Bypass -File .\start-dev.ps1
+powershell -ExecutionPolicy Bypass -File .\start-backend.ps1
+powershell -ExecutionPolicy Bypass -File .\start-frontend.ps1
+powershell -ExecutionPolicy Bypass -File .\start-worker.ps1
+```
+
 Or run services directly:
 
 ```bash
+cd backend && cargo run -p blog-migrator
 cd backend && cargo run --bin api
+cd backend && cargo run -p blog-worker --bin worker
 cd frontend && pnpm dev
 ```
+
+For native Windows day-to-day development, prefer the PowerShell entrypoints
+above or the direct `cargo` / `pnpm` commands. The release, deployment, and
+Compose validation helpers remain Bash-first and are still best run from WSL2
+or another Unix-like shell.
 
 ## Testing and quality
 
@@ -62,7 +78,8 @@ make test
 make verify-api-contract
 make smoke-prod-compose
 make smoke-prod-compose-fast
-cd backend && cargo check && cargo test
+cd backend && cargo check
+cd backend && cargo test
 cd frontend && pnpm test
 cd frontend && pnpm test:e2e
 ```
@@ -117,6 +134,7 @@ make validate-k8s-apply RELEASE_VERSION=1.8.2
 
 ## Canonical documentation
 
+- [Developer Handoff](README_DEV.md)
 - [Documentation Hub](/home/Sisyphus/zhengbi-yong.github.io/docs/README.md)
 - [Feature Index](/home/Sisyphus/zhengbi-yong.github.io/docs/features/README.md)
 - [Deployment Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/README.md)

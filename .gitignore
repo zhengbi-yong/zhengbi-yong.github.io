@@ -64,6 +64,10 @@ backend/*.log
 # Test artifacts
 playwright-report/
 frontend/playwright-report/
+.playwright-cli/
+output/
+frontend/output/
+frontend/output-home-1440.png
 
 # local env files
 .env.local

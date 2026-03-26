@@ -55,7 +55,8 @@ case $choice in
         echo ""
         echo "启动后端（在后台）..."
         cd "$PROJECT_ROOT/backend"
-        cargo run --bin api
+        cargo run -p blog-migrator
+        cargo run -p blog-api --bin api
         ;;
     2)
         echo ""
@@ -70,7 +71,8 @@ case $choice in
         
         # 启动后端（后台）
         cd "$PROJECT_ROOT/backend"
-        cargo run --bin api > /tmp/backend.log 2>&1 &
+        cargo run -p blog-migrator
+        cargo run -p blog-api --bin api > /tmp/backend.log 2>&1 &
         BACKEND_PID=$!
         echo "   后端 PID: $BACKEND_PID"
         

@@ -2,32 +2,46 @@
 'use client'
 
 import { useEffect } from 'react'
+import { logger } from '@/lib/utils/logger'
 
-/**
- * Service Worker 注册组件
- * 在客户端注册 Service Worker，实现页面缓存和离线支持
- * 延迟注册，不阻塞首屏渲染
- *
- * 使用动态导入避免 Next.js 16 + Turbopack HMR 问题
- */
 export default function ServiceWorkerRegister() {
   useEffect(() => {
-    // 只在客户端注册
     if (typeof window === 'undefined') {
       return
     }
 
-    // 开发环境下可以通过环境变量禁用 Service Worker
-    if (process.env.NEXT_PUBLIC_DISABLE_SW === 'true') {
-      logger.debug('[SW] Service Worker disabled by NEXT_PUBLIC_DISABLE_SW')
+    const isDevelopment = process.env.NODE_ENV !== 'production'
+    const isServiceWorkerExplicitlyDisabled = process.env.NEXT_PUBLIC_DISABLE_SW === 'true'
+    const isServiceWorkerExplicitlyEnabled = process.env.NEXT_PUBLIC_ENABLE_SW === 'true'
+    const shouldRegisterServiceWorker =
+      !isServiceWorkerExplicitlyDisabled &&
+      (!isDevelopment || isServiceWorkerExplicitlyEnabled)
+
+    let isCancelled = false
+    let timeoutId
+    let idleCallbackId
+
+    const cleanupServiceWorker = async () => {
+      try {
+        const { unregisterServiceWorker } = await import('@/lib/sw-register')
+        await unregisterServiceWorker({ clearCaches: true })
+      } catch (error) {
+        logger.error('[SW] Failed to clean up Service Worker registrations:', error)
+      }
+    }
+
+    if (!shouldRegisterServiceWorker) {
+      logger.debug('[SW] Service Worker is disabled for this session')
+      void cleanupServiceWorker()
       return
     }
 
-    // 延迟注册 Service Worker，不阻塞首屏渲染
-    // 使用 requestIdleCallback 在浏览器空闲时执行，降级到 setTimeout
     const registerSW = async () => {
+      if (isCancelled) {
+        return
+      }
+
       try {
-        // 使用动态导入避免 HMR 模块工厂问题
         const { registerServiceWorker } = await import('@/lib/sw-register')
         await registerServiceWorker()
       } catch (error) {
@@ -35,15 +49,28 @@ export default function ServiceWorkerRegister() {
       }
     }
 
-    // 优先使用 requestIdleCallback，降级到 setTimeout
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(registerSW, { timeout: 2000 })
+      idleCallbackId = window.requestIdleCallback(() => {
+        void registerSW()
+      }, { timeout: 2000 })
     } else {
-      // 降级方案：2秒后执行
-      setTimeout(registerSW, 2000)
+      timeoutId = window.setTimeout(() => {
+        void registerSW()
+      }, 2000)
+    }
+
+    return () => {
+      isCancelled = true
+
+      if (idleCallbackId !== undefined && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleCallbackId)
+      }
+
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId)
+      }
     }
   }, [])
 
-  // 此组件不渲染任何内容
   return null
 }

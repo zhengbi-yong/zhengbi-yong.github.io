@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from './create-store'
 import { persist } from 'zustand/middleware'
 import type { CoreContent } from 'pliny/utils/contentlayer'
 import type { Blog } from 'contentlayer/generated'

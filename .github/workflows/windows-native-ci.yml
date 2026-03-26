@@ -1,0 +1,139 @@
+name: Windows Native CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'start-backend.ps1'
+      - 'start-dev.ps1'
+      - 'start-frontend.ps1'
+      - 'start-worker.ps1'
+      - 'docs/quick-start.md'
+      - 'docs/getting-started/local-development-windows.md'
+      - '.github/workflows/windows-native-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'start-backend.ps1'
+      - 'start-dev.ps1'
+      - 'start-frontend.ps1'
+      - 'start-worker.ps1'
+      - 'docs/quick-start.md'
+      - 'docs/getting-started/local-development-windows.md'
+      - '.github/workflows/windows-native-ci.yml'
+
+jobs:
+  frontend-native:
+    name: Frontend Native Smoke
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'frontend/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate API types from the checked-in spec
+        run: pnpm generate:types
+
+      - name: Run a stable frontend smoke test
+        run: pnpm exec vitest run tests/lib/api/resolveBackendApiBaseUrl.test.ts
+
+      - name: Build
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://blog.example.com
+
+  backend-native:
+    name: Backend Native Smoke
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: ./
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Start shared infrastructure
+        run: docker compose -f .\docker-compose.dev.yml up -d
+
+      - name: Run backend migrations
+        run: |
+          . .\backend\scripts\load-env.ps1 -RepoRoot (Resolve-Path .).Path
+          Set-Location backend
+          cargo run -p blog-migrator
+
+      - name: Check backend workspace
+        run: |
+          . .\backend\scripts\load-env.ps1 -RepoRoot (Resolve-Path .).Path
+          Set-Location backend
+          cargo check --workspace
+
+      - name: Smoke start the backend entrypoint
+        run: powershell -ExecutionPolicy Bypass -File .\backend\scripts\smoke-backend-start.ps1 -SkipMigrations
+
+      - name: Smoke start the worker entrypoint
+        run: powershell -ExecutionPolicy Bypass -File .\backend\scripts\smoke-worker-start.ps1 -SkipMigrations
+
+      - name: Stop shared infrastructure
+        if: always()
+        run: docker compose -f .\docker-compose.dev.yml down -v
+
+  powershell-entrypoints:
+    name: PowerShell Entrypoints
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: ./
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse PowerShell scripts
+        run: |
+          $scripts = @(
+            'start-dev.ps1',
+            'start-backend.ps1',
+            'start-frontend.ps1',
+            'start-worker.ps1',
+            'backend/scripts/load-env.ps1',
+            'backend/scripts/smoke-backend-start.ps1',
+            'backend/scripts/smoke-worker-start.ps1',
+            'backend/scripts/run-dev.ps1'
+          )
+
+          foreach ($script in $scripts) {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $script),
+              [ref]$null,
+              [ref]$errors
+            ) | Out-Null
+
+            if ($errors) {
+              $errors | ForEach-Object { $_.Message }
+              exit 1
+            }
+          }
+
+      - name: Smoke test the root Windows entrypoint
+        run: powershell -ExecutionPolicy Bypass -File .\start-dev.ps1 -Mode infra -NoInfra

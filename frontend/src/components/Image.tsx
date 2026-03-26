@@ -3,7 +3,9 @@
 import { memo, useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import NextImage, { ImageProps } from 'next/image'
+
 import { ImageSkeleton } from '@/components/loaders'
+import { cn } from '@/components/lib/utils'
 import { preloadImage } from '@/lib/utils/image-optimization'
 
 interface EnhancedImageProps extends ImageProps {
@@ -95,7 +97,10 @@ const Image = memo(function Image({
           setIsLoading(false)
           setHasError(true)
         }}
-        className={isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'}
+        className={cn(
+          rest.className,
+          isLoading ? 'opacity-0' : 'opacity-100 transition-opacity duration-300'
+        )}
         style={{ ...rest.style, ...imageStyle }}
       />
     </div>

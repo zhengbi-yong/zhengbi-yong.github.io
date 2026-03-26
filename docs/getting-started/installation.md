@@ -163,8 +163,7 @@ docker compose version
 ### 3. 启动数据库
 
 ```bash
-cd backend
-./scripts/deployment/deploy.sh dev
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 这将启动：
@@ -181,7 +180,7 @@ docker ps
 
 ```bash
 cd backend
-sqlx migrate run
+cargo run -p blog-migrator
 ```
 
 或使用 Cargo：
@@ -208,7 +207,7 @@ pnpm dev
 cd backend
 export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
 export REDIS_URL=redis://localhost:6379
-cargo run
+cargo run -p blog-api --bin api
 ```
 
 打开浏览器访问 http://localhost:3000/health

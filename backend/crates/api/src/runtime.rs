@@ -1,10 +1,9 @@
 use anyhow::{anyhow, Context, Result};
+use blog_migrator::MIGRATOR;
 use blog_shared::{DatabasePoolConfig, RedisPoolConfig};
-use sqlx::{migrate::Migrator, PgPool};
+use sqlx::PgPool;
 use std::collections::HashMap;
 use std::time::Duration;
-
-pub static MIGRATOR: Migrator = sqlx::migrate!("../../migrations");
 
 pub async fn create_postgres_pool(
     database_url: &str,
@@ -40,10 +39,7 @@ pub fn create_redis_pool(
 }
 
 pub async fn run_migrations(db: &PgPool) -> Result<()> {
-    MIGRATOR
-        .run(db)
-        .await
-        .context("Failed to run database migrations")?;
+    blog_migrator::run_migrations(db).await?;
 
     tracing::info!(
         applied = MIGRATOR

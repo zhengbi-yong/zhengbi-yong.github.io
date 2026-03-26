@@ -16,8 +16,8 @@ import routerProvider from '@refinedev/nextjs-router/app'
 import { dataProvider } from './refine-data-provider'
 import { authProvider } from './refine-auth-provider'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useState } from 'react'
+import ReactQueryDevtoolsLoader from '@/components/dev/ReactQueryDevtoolsLoader'
 
 interface RefineProviderProps {
   children: React.ReactNode
@@ -136,11 +136,10 @@ export function RefineProvider({ children }: RefineProviderProps) {
           {children}
         </RefineKbarProvider>
       </Refine>
-      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+      <ReactQueryDevtoolsLoader />
     </QueryClientProvider>
   )
 }
 
 // 导出缓存实例供外部使用（可选）
 export { cache }
-

@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useCommentStore, useAuthStore, usePostStore } from '@/lib/store'
+import { useAuthStore } from '@/lib/store/auth-store'
+import { useCommentStore } from '@/lib/store/comment-store'
+import { usePostStore } from '@/lib/store/post-store'
 import { Button } from '@/components/shadcn/ui/button'
 import { MessageCircle, ThumbsUp, Send, LogIn } from 'lucide-react'
 import { cn } from '@/components/lib/utils'

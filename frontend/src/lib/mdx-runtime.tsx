@@ -1,25 +1,14 @@
-/**
- * MDX Runtime Configuration
- *
- * 配置MDX运行时编译，支持所有Contentlayer已有的插件功能
- * 包括：数学公式、化学公式、代码高亮、GitHub警告块等
- */
-
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote'
-import { components as mdxComponents } from '@/components/MDXComponents'
-import Script from 'next/script'
 import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
+import { components as mdxComponents } from '@/components/MDXComponents'
 import { AnimationSkeleton } from '@/components/loaders/AnimationSkeleton'
 import { AnimationErrorBoundary } from '@/components/AnimationErrorBoundary'
+import { normalizeRuntimeMdxContent } from './mdx-runtime-normalize'
 
-// Import chemistry components directly for MDXRemote usage
-// Dynamic imports from MDXComponents don't work properly with MDXRemote
-// We need to import them here to ensure they're available at runtime
 const ChemicalStructure = dynamic(
   () => import('@/components/chemistry/ChemicalStructure').then((mod) => mod.default),
   {
@@ -27,7 +16,7 @@ const ChemicalStructure = dynamic(
       <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
           <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载3D结构查看器...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading 3D structure viewer...</p>
         </div>
       </div>
     ),
@@ -41,7 +30,7 @@ const SimpleChemicalStructure = dynamic(
       <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
           <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载3D结构查看器...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading 3D structure viewer...</p>
         </div>
       </div>
     ),
@@ -55,7 +44,7 @@ const RDKitStructure = dynamic(
       <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
           <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载2D结构查看器...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading 2D structure viewer...</p>
         </div>
       </div>
     ),
@@ -69,14 +58,13 @@ const MoleculeFingerprint = dynamic(
       <div className="my-6 items-center justify-center rounded-lg border border-dashed border-gray-200 p-4 dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
           <div className="border-t-primary-500 h-6 w-6 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载分子指纹...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading molecular fingerprint...</p>
         </div>
       </div>
     ),
   }
 )
 
-// Wrap chemistry components with error boundary and suspense
 const WrappedChemicalStructure = (props: any) => (
   <AnimationErrorBoundary>
     <Suspense fallback={<AnimationSkeleton />}>
@@ -109,10 +97,8 @@ const WrappedMoleculeFingerprint = (props: any) => (
   </AnimationErrorBoundary>
 )
 
-// Create runtime components object with chemistry components
 const components = {
   ...mdxComponents,
-  // Override chemistry components with wrapped versions for MDXRemote
   ChemicalStructure: WrappedChemicalStructure,
   SimpleChemicalStructure: WrappedSimpleChemicalStructure,
   RDKitStructure: WrappedRDKitStructure,
@@ -126,20 +112,11 @@ export async function serializeMDX(content: string) {
     },
   })
 }
+
 export type MDXRuntimeProps = {
   content: string
 } & Partial<Omit<MDXRemoteProps, 'source'>>
 
-/**
- * MDX运行时渲染器组件
- *
- * 在客户端动态渲染从API获取的MDX内容
- *
- * @example
- * ```tsx
- * <MDXRuntime content={post.content} />
- * ```
- */
 export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
   const [mdxSource, setMdxSource] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -152,7 +129,7 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
       try {
         setIsLoading(true)
         setError(null)
-        const source = await serialize(content)
+        const source = await serialize(normalizeRuntimeMdxContent(content))
         if (!cancelled) {
           setMdxSource(source)
         }
@@ -167,7 +144,7 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
       }
     }
 
-    loadMDX()
+    void loadMDX()
 
     return () => {
       cancelled = true
@@ -188,46 +165,33 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
 
   return (
     <>
-      {/* RDKit初始化脚本 - 确保化学组件在动态渲染时可用 */}
-      <Script
-        src="/chemistry/rdkit-init.js"
-        strategy="beforeInteractive"
-      />
-      {/* 化学公式初始化 */}
       <MhchemInit />
-      {/* MDX渲染 */}
       <MDXRemote {...mdxSource} components={components} {...props} />
     </>
   )
 }
 
-/**
- * MDX加载骨架屏
- */
 function MDXLoadingSkeleton() {
   return (
     <div className="animate-pulse space-y-4">
-      <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+      <div className="h-8 w-3/4 rounded bg-gray-200 dark:bg-gray-700"></div>
       <div className="space-y-2">
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+        <div className="h-4 rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div className="h-4 rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div className="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700"></div>
       </div>
     </div>
   )
 }
 
-/**
- * MDX错误消息
- */
 function MDXErrorMessage({ error }: { error: Error }) {
   return (
-    <div className="text-red-600 dark:text-red-400 p-4 border border-red-300 dark:border-red-700 rounded-lg">
-      <h3 className="font-bold text-lg mb-2">文章内容加载失败</h3>
+    <div className="rounded-lg border border-red-300 p-4 text-red-600 dark:border-red-700 dark:text-red-400">
+      <h3 className="mb-2 text-lg font-bold">Failed to load article content</h3>
       <p className="text-sm">{error.message}</p>
       <details className="mt-2">
-        <summary className="cursor-pointer text-sm">查看详细错误</summary>
-        <pre className="mt-2 text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-auto">
+        <summary className="cursor-pointer text-sm">Show stack trace</summary>
+        <pre className="mt-2 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">
           {error.stack}
         </pre>
       </details>
@@ -235,22 +199,14 @@ function MDXErrorMessage({ error }: { error: Error }) {
   )
 }
 
-/**
- * MDX空状态
- */
 function MDXEmptyState() {
   return (
-    <div className="text-gray-500 dark:text-gray-400 p-4 border border-gray-300 dark:border-gray-700 rounded-lg">
-      文章内容为空
+    <div className="rounded-lg border border-gray-300 p-4 text-gray-500 dark:border-gray-700 dark:text-gray-400">
+      Article content is empty.
     </div>
   )
 }
 
-/**
- * 化学公式初始化组件
- */
 function MhchemInit() {
   return null
-  // TODO: 如果需要mhchem支持，可以在这里初始化
-  // 当前项目中mhchem已经在rehype-mhchem插件中处理
 }

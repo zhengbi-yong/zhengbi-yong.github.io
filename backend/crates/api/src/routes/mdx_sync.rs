@@ -7,14 +7,13 @@ use axum::{
 use blog_shared::AppError;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use sqlx::PgPool;
+use std::collections::HashSet;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use utoipa::ToSchema;
-
-// ============================================
-// 请求和响应模型
-// ============================================
+use uuid::Uuid;
 
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct MdxSyncRequest {
@@ -22,7 +21,7 @@ pub struct MdxSyncRequest {
     pub force: Option<bool>,
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, ToSchema, Default)]
 pub struct SyncStats {
     pub total: usize,
     pub updated: usize,
@@ -32,29 +31,11 @@ pub struct SyncStats {
     pub errors: Vec<String>,
 }
 
-impl Default for SyncStats {
-    fn default() -> Self {
-        Self {
-            total: 0,
-            updated: 0,
-            created: 0,
-            unchanged: 0,
-            failed: 0,
-            errors: Vec::new(),
-        }
-    }
-}
-
 #[derive(Debug, Serialize, ToSchema)]
 pub struct MessageResponse {
     pub message: String,
 }
 
-// ============================================
-// API处理函数
-// ============================================
-
-/// 同步MDX文件到数据库
 #[utoipa::path(
     post,
     path = "/v1/admin/sync/mdx",
@@ -74,46 +55,43 @@ pub async fn sync_mdx_to_db(
     Json(req): Json<MdxSyncRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let force = req.force.unwrap_or(false);
-
-    // 获取MDX文件目录
     let blog_dir =
         env::var("FRONTEND_BLOG_DIR").unwrap_or_else(|_| "../frontend/data/blog".to_string());
-
-    // 扫描MDX文件
+    let blog_root = PathBuf::from(&blog_dir);
     let mdx_files = scan_mdx_files(&blog_dir)
-        .map_err(|e| AppError::BadRequest(format!("扫描MDX文件失败: {}", e)))?;
+        .map_err(|error| AppError::BadRequest(format!("扫描 MDX 文件失败: {error}")))?;
 
     let mut stats = SyncStats::default();
     stats.total = mdx_files.len();
 
-    // 处理每个MDX文件
     for file_path in mdx_files {
-        match process_mdx_file(&state.db, &file_path, force).await {
-            Ok(ProcessResult::Created) => {
-                stats.created += 1;
-            }
-            Ok(ProcessResult::Updated) => {
-                stats.updated += 1;
-            }
-            Ok(ProcessResult::Unchanged) => {
-                stats.unchanged += 1;
-            }
-            Err(e) => {
+        match process_mdx_file(&state.db, &blog_root, &file_path, force).await {
+            Ok(ProcessResult::Created) => stats.created += 1,
+            Ok(ProcessResult::Updated) => stats.updated += 1,
+            Ok(ProcessResult::Unchanged) => stats.unchanged += 1,
+            Err(error) => {
                 stats.failed += 1;
-                stats.errors.push(format!("{}: {}", file_path.display(), e));
+                stats
+                    .errors
+                    .push(format!("{}: {}", file_path.display(), error));
             }
         }
     }
 
-    // 清除缓存
+    refresh_taxonomy_counts(&state.db)
+        .await
+        .map_err(|error| AppError::BadRequest(format!("刷新分类或标签统计失败: {error}")))?;
+
     clear_cache(&state).await?;
+
+    if stats.created + stats.updated > 0 {
+        crate::outbox::add_search_index_rebuild(&state.db)
+            .await
+            .map_err(|_| AppError::InternalError)?;
+    }
 
     Ok((StatusCode::OK, Json(stats)))
 }
-
-// ============================================
-// 内部辅助函数
-// ============================================
 
 enum ProcessResult {
     Created,
@@ -128,10 +106,23 @@ struct MdxFrontmatter {
     date: chrono::DateTime<chrono::Utc>,
     category: Option<String>,
     summary: Option<String>,
-    #[allow(dead_code)]
     tags: Vec<String>,
     draft: bool,
     show_toc: bool,
+    layout: Option<String>,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct ExistingPost {
+    id: Uuid,
+    title: String,
+    summary: Option<String>,
+    content_hash: Option<String>,
+    status: String,
+    published_at: Option<chrono::DateTime<chrono::Utc>>,
+    category_id: Option<Uuid>,
+    show_toc: bool,
+    layout: String,
 }
 
 fn scan_mdx_files(dir: &str) -> Result<Vec<PathBuf>, String> {
@@ -139,7 +130,7 @@ fn scan_mdx_files(dir: &str) -> Result<Vec<PathBuf>, String> {
     let blog_path = Path::new(dir);
 
     if !blog_path.exists() {
-        return Err(format!("目录不存在: {}", dir));
+        return Err(format!("目录不存在: {dir}"));
     }
 
     fn visit_dirs(dir: &Path, files: &mut Vec<PathBuf>) {
@@ -149,7 +140,7 @@ fn scan_mdx_files(dir: &str) -> Result<Vec<PathBuf>, String> {
                     let path = entry.path();
                     if path.is_dir() {
                         visit_dirs(&path, files);
-                    } else if path.extension().and_then(|s| s.to_str()) == Some("mdx") {
+                    } else if path.extension().and_then(|ext| ext.to_str()) == Some("mdx") {
                         files.push(path);
                     }
                 }
@@ -163,97 +154,127 @@ fn scan_mdx_files(dir: &str) -> Result<Vec<PathBuf>, String> {
 }
 
 async fn process_mdx_file(
-    pool: &sqlx::PgPool,
+    pool: &PgPool,
+    blog_root: &Path,
     file_path: &Path,
     force: bool,
 ) -> Result<ProcessResult, String> {
-    // 读取文件内容
-    let content = fs::read_to_string(file_path).map_err(|e| format!("读取文件失败: {}", e))?;
-
-    // 解析frontmatter和内容
-    let (frontmatter, body) = parse_mdx_content(&content, file_path)?;
-
-    // 计算content_hash
+    let content =
+        fs::read_to_string(file_path).map_err(|error| format!("读取文件失败: {error}"))?;
+    let (frontmatter, body) = parse_mdx_content(&content, file_path, blog_root)?;
     let content_hash = compute_content_hash(&body);
+    let published_at = if frontmatter.draft {
+        None
+    } else {
+        Some(frontmatter.date)
+    };
+    let status = if frontmatter.draft {
+        "draft"
+    } else {
+        "published"
+    };
+    let layout = frontmatter
+        .layout
+        .clone()
+        .unwrap_or_else(|| "PostLayout".to_string());
+    let category_id =
+        resolve_category_id(pool, frontmatter.category.as_deref(), &frontmatter.slug).await?;
+    let desired_tag_slugs = normalize_tag_slugs(&frontmatter.tags);
 
-    // 检查文章是否已存在
-    let existing_post: Option<(String, Option<String>)> =
-        sqlx::query_as("SELECT id, content_hash FROM posts WHERE slug = $1 AND deleted_at IS NULL")
-            .bind(&frontmatter.slug)
-            .fetch_optional(pool)
-            .await
-            .map_err(|e| format!("查询数据库失败: {}", e))?;
+    let existing_post = sqlx::query_as::<_, ExistingPost>(
+        r#"
+        SELECT
+            id,
+            title,
+            summary,
+            content_hash,
+            status::text AS status,
+            published_at,
+            category_id,
+            show_toc,
+            layout
+        FROM posts
+        WHERE slug = $1
+        LIMIT 1
+        "#,
+    )
+    .bind(&frontmatter.slug)
+    .fetch_optional(pool)
+    .await
+    .map_err(|error| format!("查询文章失败: {error}"))?;
 
     match existing_post {
-        Some((post_id, existing_hash)) => {
-            // 文章已存在，检查是否需要更新
-            if !force && existing_hash.as_ref() == Some(&content_hash) {
+        Some(existing) => {
+            let current_tag_slugs = fetch_tag_slugs(pool, existing.id).await?;
+            let metadata_matches = existing.title == frontmatter.title
+                && existing.summary == frontmatter.summary
+                && existing.status == status
+                && existing.published_at == published_at
+                && existing.category_id == category_id
+                && existing.show_toc == frontmatter.show_toc
+                && existing.layout == layout
+                && current_tag_slugs == desired_tag_slugs;
+
+            if !force
+                && existing.content_hash.as_deref() == Some(content_hash.as_str())
+                && metadata_matches
+            {
                 return Ok(ProcessResult::Unchanged);
             }
 
-            // 更新文章
             sqlx::query(
                 r#"
                 UPDATE posts
                 SET title = $1,
                     content = $2,
                     summary = $3,
-                    content_hash = $4,
+                    status = $4::post_status,
+                    published_at = $5,
+                    category_id = $6,
+                    show_toc = $7,
+                    layout = $8,
+                    deleted_at = NULL,
                     updated_at = NOW()
-                WHERE id = $5
+                WHERE id = $9
                 "#,
             )
             .bind(&frontmatter.title)
             .bind(&body)
             .bind(&frontmatter.summary)
-            .bind(&content_hash)
-            .bind(&post_id)
+            .bind(status)
+            .bind(published_at)
+            .bind(category_id)
+            .bind(frontmatter.show_toc)
+            .bind(&layout)
+            .bind(existing.id)
             .execute(pool)
             .await
-            .map_err(|e| format!("更新文章失败: {}", e))?;
+            .map_err(|error| format!("更新文章失败: {error}"))?;
+
+            sync_tags(pool, existing.id, &frontmatter.tags).await?;
+            ensure_post_stats(pool, &frontmatter.slug).await?;
+            create_post_version(
+                pool,
+                existing.id,
+                &frontmatter.title,
+                &body,
+                frontmatter.summary.as_deref(),
+            )
+            .await?;
 
             Ok(ProcessResult::Updated)
         }
         None => {
-            // 创建新文章
-            let published_at = if !frontmatter.draft {
-                Some(frontmatter.date)
-            } else {
-                None
-            };
-
-            // 计算阅读时间（基于内容长度）
+            let post_id = Uuid::new_v4();
             let reading_time = calculate_reading_time(&body);
-
-            // 获取分类ID
-            let category_id: Option<uuid::Uuid> = if let Some(category_slug) = &frontmatter.category
-            {
-                sqlx::query_scalar::<_, uuid::Uuid>(
-                    "SELECT id FROM categories WHERE slug = $1 OR name = $1 LIMIT 1",
-                )
-                .bind(category_slug)
-                .fetch_optional(pool)
-                .await
-                .map_err(|e| format!("查询分类失败: {}", e))?
-            } else {
-                None
-            };
-
-            let post_id = uuid::Uuid::new_v4();
-
-            let status_str = if frontmatter.draft {
-                "draft"
-            } else {
-                "published"
-            };
 
             sqlx::query(
                 r#"
                 INSERT INTO posts (
                     id, slug, title, content, summary, status,
-                    published_at, category_id, show_toc, reading_time,
-                    view_count, like_count, comment_count, content_hash
-                ) VALUES ($1, $2, $3, $4, $5, $6::post_status, $7, $8, $9, $10, 0, 0, 0, $11)
+                    published_at, category_id, show_toc, layout,
+                    reading_time
+                ) VALUES ($1, $2, $3, $4, $5, $6::post_status, $7, $8, $9, $10, $11)
                 "#,
             )
             .bind(post_id)
@@ -261,31 +282,60 @@ async fn process_mdx_file(
             .bind(&frontmatter.title)
             .bind(&body)
             .bind(&frontmatter.summary)
-            .bind(status_str)
+            .bind(status)
             .bind(published_at)
             .bind(category_id)
             .bind(frontmatter.show_toc)
-            .bind(reading_time as i32)
-            .bind(&content_hash)
+            .bind(&layout)
+            .bind(reading_time)
             .execute(pool)
             .await
-            .map_err(|e| format!("创建文章失败: {}", e))?;
+            .map_err(|error| format!("创建文章失败: {error}"))?;
+
+            sync_tags(pool, post_id, &frontmatter.tags).await?;
+            ensure_post_stats(pool, &frontmatter.slug).await?;
+            create_post_version(
+                pool,
+                post_id,
+                &frontmatter.title,
+                &body,
+                frontmatter.summary.as_deref(),
+            )
+            .await?;
 
             Ok(ProcessResult::Created)
         }
     }
 }
 
-fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, String), String> {
-    let mut lines = content.lines().peekable();
+fn parse_mdx_content(
+    content: &str,
+    path: &Path,
+    blog_root: &Path,
+) -> Result<(MdxFrontmatter, String), String> {
+    let mut lines = content.lines();
 
-    // 检查frontmatter分隔符
-    if lines.peek() != Some(&"---") {
-        return Err("缺少frontmatter分隔符".to_string());
+    match lines.next() {
+        Some(line) if line.trim() == "---" => {}
+        _ => return Err("缺少 frontmatter 分隔符".to_string()),
     }
-    lines.next();
 
-    // 解析frontmatter
+    let mut frontmatter_lines = Vec::new();
+    let mut found_end = false;
+
+    for line in lines.by_ref() {
+        if line.trim() == "---" {
+            found_end = true;
+            break;
+        }
+
+        frontmatter_lines.push(line.to_string());
+    }
+
+    if !found_end {
+        return Err("frontmatter 未正确关闭".to_string());
+    }
+
     let mut title = String::new();
     let mut date_str = String::new();
     let mut category = None;
@@ -293,90 +343,97 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
     let mut tags = Vec::new();
     let mut draft = false;
     let mut show_toc = true;
+    let mut layout = None;
+    let mut pending_list_key: Option<String> = None;
 
-    loop {
-        match lines.next() {
-            Some("---") => break,
-            Some(line) => {
-                if line.starts_with("title:") {
-                    title = line
-                        .replacen("title:", "", 1)
-                        .trim()
-                        .trim_matches('"')
-                        .trim_matches('\'')
-                        .to_string();
-                } else if line.starts_with("date:") {
-                    date_str = line.replacen("date:", "", 1).trim().to_string();
-                } else if line.starts_with("category:") {
-                    category = Some(
-                        line.replacen("category:", "", 1)
-                            .trim()
-                            .trim_matches('"')
-                            .trim_matches('\'')
-                            .to_string(),
-                    );
-                } else if line.starts_with("summary:") {
-                    summary = Some(
-                        line.replacen("summary:", "", 1)
-                            .trim()
-                            .trim_matches('"')
-                            .trim_matches('\'')
-                            .to_string(),
-                    );
-                } else if line.starts_with("tags:") {
-                    let tags_str = line.replacen("tags:", "", 1).trim().to_string();
-                    if !tags_str.is_empty() && tags_str.starts_with('[') {
-                        let cleaned = tags_str
-                            .replace('[', "")
-                            .replace(']', "")
-                            .replace('\"', "")
-                            .replace('\'', "");
-                        tags = cleaned
-                            .split(',')
-                            .map(|s| s.trim().to_string())
-                            .filter(|s| !s.is_empty())
-                            .collect();
+    for raw_line in frontmatter_lines {
+        let line = raw_line.trim();
+        if line.is_empty() {
+            pending_list_key = None;
+            continue;
+        }
+
+        if let Some(key) = pending_list_key.as_deref() {
+            if let Some(value) = line.strip_prefix("- ") {
+                if key == "tags" {
+                    let value = strip_quotes(value.trim());
+                    if !value.is_empty() {
+                        tags.push(value.to_string());
                     }
-                } else if line.starts_with("draft:") {
-                    let draft_str = line.replacen("draft:", "", 1).trim().to_lowercase();
-                    draft = draft_str == "true" || draft_str == "yes";
-                } else if line.starts_with("showTOC:") || line.starts_with("show_toc:") {
-                    let show_str = line
-                        .replacen("showTOC:", "", 1)
-                        .replacen("show_toc:", "", 1)
-                        .trim()
-                        .to_lowercase();
-                    show_toc = show_str != "false" && show_str != "no";
+                }
+                continue;
+            }
+            pending_list_key = None;
+        }
+
+        let Some((key, value)) = line.split_once(':') else {
+            continue;
+        };
+
+        let key = key.trim();
+        let value = value.trim();
+
+        match key {
+            "title" => {
+                title = strip_quotes(value).to_string();
+            }
+            "date" => {
+                date_str = strip_quotes(value).to_string();
+            }
+            "category" => {
+                let parsed = strip_quotes(value);
+                if !parsed.is_empty() {
+                    category = Some(parsed.to_string());
                 }
             }
-            None => return Err("Frontmatter未正确关闭".to_string()),
+            "summary" => {
+                let parsed = strip_quotes(value);
+                if !parsed.is_empty() {
+                    summary = Some(parsed.to_string());
+                }
+            }
+            "description" => {
+                if summary.is_none() {
+                    let parsed = strip_quotes(value);
+                    if !parsed.is_empty() {
+                        summary = Some(parsed.to_string());
+                    }
+                }
+            }
+            "tags" => {
+                if value.is_empty() {
+                    pending_list_key = Some("tags".to_string());
+                } else {
+                    tags = parse_list_value(value);
+                }
+            }
+            "draft" => {
+                draft = matches!(value.to_ascii_lowercase().as_str(), "true" | "yes");
+            }
+            "showTOC" | "show_toc" => {
+                show_toc = !matches!(value.to_ascii_lowercase().as_str(), "false" | "no");
+            }
+            "layout" => {
+                let parsed = strip_quotes(value);
+                if !parsed.is_empty() {
+                    layout = Some(parsed.to_string());
+                }
+            }
+            _ => {}
         }
     }
 
-    // 生成默认值
     if title.is_empty() {
         title = path
             .file_stem()
-            .and_then(|s| s.to_str())
+            .and_then(|value| value.to_str())
             .unwrap_or("untitled")
             .to_string();
     }
 
-    let slug = generate_slug(&title);
-
-    let date = if date_str.is_empty() {
-        chrono::Utc::now()
-    } else {
-        chrono::DateTime::parse_from_rfc3339(&format!("{}T00:00:00Z", date_str))
-            .or_else(|_| {
-                chrono::DateTime::parse_from_rfc3339(&format!("{}T00:00:00+00:00", date_str))
-            })
-            .map(|dt| dt.with_timezone(&chrono::Utc))
-            .unwrap_or_else(|_| chrono::Utc::now())
-    };
-
-    // 收集正文内容
-    let body = lines.collect::<Vec<&str>>().join("\n");
+    let slug = slug_from_path(blog_root, path)?;
+    let date = parse_frontmatter_date(&date_str);
+    let body = lines.collect::<Vec<_>>().join("\n");
 
     Ok((
         MdxFrontmatter {
@@ -388,30 +445,312 @@ fn parse_mdx_content(content: &str, path: &Path) -> Result<(MdxFrontmatter, Stri
             tags,
             draft,
             show_toc,
+            layout,
         },
         body,
     ))
 }
 
-fn generate_slug(title: &str) -> String {
-    title
-        .to_lowercase()
-        .replace(' ', "-")
-        .replace('/', "-")
-        .replace('?', "")
-        .replace('!', "")
-        .replace('，', "-")
-        .replace('。', "")
-        .chars()
-        .filter(|c| c.is_alphanumeric() || *c == '-' || *c == '_')
-        .collect::<String>()
+fn slug_from_path(blog_root: &Path, path: &Path) -> Result<String, String> {
+    let relative = path
+        .strip_prefix(blog_root)
+        .map_err(|error| format!("无法计算 slug 相对路径: {error}"))?;
+    let without_extension = relative.with_extension("");
+    let slug = without_extension
+        .components()
+        .map(|component| component.as_os_str().to_string_lossy().to_string())
+        .collect::<Vec<_>>()
+        .join("/");
+
+    if slug.is_empty() {
+        return Err("生成的 slug 为空".to_string());
+    }
+
+    Ok(slug)
+}
+
+fn parse_frontmatter_date(value: &str) -> chrono::DateTime<chrono::Utc> {
+    if value.is_empty() {
+        return chrono::Utc::now();
+    }
+
+    chrono::DateTime::parse_from_rfc3339(value)
+        .map(|date| date.with_timezone(&chrono::Utc))
+        .or_else(|_| {
+            chrono::NaiveDate::parse_from_str(value, "%Y-%m-%d").map(|date| {
+                chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+                    date.and_hms_opt(0, 0, 0).unwrap(),
+                    chrono::Utc,
+                )
+            })
+        })
+        .unwrap_or_else(|_| chrono::Utc::now())
+}
+
+fn parse_list_value(value: &str) -> Vec<String> {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        return Vec::new();
+    }
+
+    if trimmed.starts_with('[') && trimmed.ends_with(']') {
+        return trimmed[1..trimmed.len() - 1]
+            .split(',')
+            .map(|item| strip_quotes(item.trim()).to_string())
+            .filter(|item| !item.is_empty())
+            .collect();
+    }
+
+    vec![strip_quotes(trimmed).to_string()]
+}
+
+fn strip_quotes(value: &str) -> &str {
+    value
+        .strip_prefix('"')
+        .and_then(|inner| inner.strip_suffix('"'))
+        .or_else(|| {
+            value
+                .strip_prefix('\'')
+                .and_then(|inner| inner.strip_suffix('\''))
+        })
+        .unwrap_or(value)
 }
 
 fn compute_content_hash(content: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(content.as_bytes());
-    let hash = hasher.finalize();
-    format!("{:x}", hash)
+    format!("{:x}", hasher.finalize())
+}
+
+fn slugify_text(value: &str) -> String {
+    value
+        .trim()
+        .to_lowercase()
+        .replace(' ', "-")
+        .replace('/', "-")
+        .replace('\\', "-")
+        .chars()
+        .filter(|character| character.is_alphanumeric() || *character == '-' || *character == '_')
+        .collect::<String>()
+}
+
+fn normalize_tag_slugs(tags: &[String]) -> Vec<String> {
+    let mut normalized = tags
+        .iter()
+        .map(|tag| slugify_text(tag))
+        .filter(|tag| !tag.is_empty())
+        .collect::<Vec<_>>();
+    normalized.sort();
+    normalized.dedup();
+    normalized
+}
+
+async fn resolve_category_id(
+    pool: &PgPool,
+    frontmatter_category: Option<&str>,
+    slug: &str,
+) -> Result<Option<Uuid>, String> {
+    let mut candidates = Vec::new();
+
+    if let Some(category) = frontmatter_category {
+        let trimmed = category.trim();
+        if !trimmed.is_empty() {
+            candidates.push(trimmed.to_string());
+            if let Some(alias) = map_category_alias(trimmed) {
+                candidates.push(alias.to_string());
+            }
+        }
+    }
+
+    if let Some(path_category) = slug.split('/').next() {
+        candidates.push(path_category.to_string());
+        if let Some(alias) = map_category_alias(path_category) {
+            candidates.push(alias.to_string());
+        }
+    }
+
+    for candidate in unique_strings(candidates) {
+        if let Some(category_id) = sqlx::query_scalar::<_, Uuid>(
+            "SELECT id FROM categories WHERE slug = $1 OR name = $1 LIMIT 1",
+        )
+        .bind(&candidate)
+        .fetch_optional(pool)
+        .await
+        .map_err(|error| format!("查询分类失败: {error}"))?
+        {
+            return Ok(Some(category_id));
+        }
+    }
+
+    Ok(None)
+}
+
+fn map_category_alias(value: &str) -> Option<&'static str> {
+    match value.trim().to_lowercase().as_str() {
+        "computer" | "computer science" | "computer-science" | "计算机科学" => {
+            Some("computer-science")
+        }
+        "robotics" | "机器人学" => Some("robotics"),
+        "mathematics" | "math" | "数学" => Some("mathematics"),
+        "chemistry" | "化学" => Some("chemistry"),
+        "music" | "音乐" => Some("music"),
+        "photography" | "摄影" => Some("photography"),
+        "motor" | "motor-control" | "电机控制" => Some("motor-control"),
+        "economics" | "social" | "社交" => Some("social"),
+        "tactile" | "tactile-sensing" | "触觉传感" => Some("tactile-sensing"),
+        _ => None,
+    }
+}
+
+async fn fetch_tag_slugs(pool: &PgPool, post_id: Uuid) -> Result<Vec<String>, String> {
+    let mut slugs = sqlx::query_scalar::<_, String>(
+        r#"
+        SELECT t.slug
+        FROM tags t
+        JOIN post_tags pt ON pt.tag_id = t.id
+        WHERE pt.post_id = $1
+        ORDER BY t.slug
+        "#,
+    )
+    .bind(post_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|error| format!("查询标签失败: {error}"))?;
+
+    slugs.sort();
+    slugs.dedup();
+    Ok(slugs)
+}
+
+async fn sync_tags(pool: &PgPool, post_id: Uuid, tags: &[String]) -> Result<(), String> {
+    sqlx::query("DELETE FROM post_tags WHERE post_id = $1")
+        .bind(post_id)
+        .execute(pool)
+        .await
+        .map_err(|error| format!("清理旧标签失败: {error}"))?;
+
+    let mut seen = HashSet::new();
+
+    for tag_name in tags
+        .iter()
+        .map(|tag| tag.trim())
+        .filter(|tag| !tag.is_empty())
+    {
+        let tag_slug = slugify_text(tag_name);
+        if tag_slug.is_empty() || !seen.insert(tag_slug.clone()) {
+            continue;
+        }
+
+        let tag_id = sqlx::query_scalar::<_, Uuid>(
+            r#"
+            INSERT INTO tags (slug, name, post_count)
+            VALUES ($1, $2, 0)
+            ON CONFLICT (slug) DO UPDATE
+            SET name = EXCLUDED.name
+            RETURNING id
+            "#,
+        )
+        .bind(&tag_slug)
+        .bind(tag_name)
+        .fetch_one(pool)
+        .await
+        .map_err(|error| format!("创建或更新标签失败: {error}"))?;
+
+        sqlx::query(
+            "INSERT INTO post_tags (post_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+        )
+        .bind(post_id)
+        .bind(tag_id)
+        .execute(pool)
+        .await
+        .map_err(|error| format!("关联标签失败: {error}"))?;
+    }
+
+    Ok(())
+}
+
+async fn ensure_post_stats(pool: &PgPool, slug: &str) -> Result<(), String> {
+    sqlx::query(
+        r#"
+        INSERT INTO post_stats (slug, view_count, like_count, comment_count, updated_at)
+        VALUES ($1, 0, 0, 0, NOW())
+        ON CONFLICT (slug) DO NOTHING
+        "#,
+    )
+    .bind(slug)
+    .execute(pool)
+    .await
+    .map_err(|error| format!("初始化文章统计失败: {error}"))?;
+
+    Ok(())
+}
+
+async fn create_post_version(
+    pool: &PgPool,
+    post_id: Uuid,
+    title: &str,
+    content: &str,
+    summary: Option<&str>,
+) -> Result<(), String> {
+    sqlx::query(
+        r#"
+        INSERT INTO post_versions (post_id, version_number, title, content, summary, created_by)
+        VALUES (
+            $1,
+            COALESCE((SELECT MAX(version_number) + 1 FROM post_versions WHERE post_id = $1), 1),
+            $2,
+            $3,
+            $4,
+            NULL
+        )
+        "#,
+    )
+    .bind(post_id)
+    .bind(title)
+    .bind(content)
+    .bind(summary)
+    .execute(pool)
+    .await
+    .map_err(|error| format!("创建文章版本失败: {error}"))?;
+
+    Ok(())
+}
+
+async fn refresh_taxonomy_counts(pool: &PgPool) -> Result<(), String> {
+    sqlx::query(
+        r#"
+        UPDATE categories AS category
+        SET post_count = (
+            SELECT COUNT(*)
+            FROM posts AS post
+            WHERE post.category_id = category.id
+              AND post.status = 'published'
+              AND post.deleted_at IS NULL
+        )
+        "#,
+    )
+    .execute(pool)
+    .await
+    .map_err(|error| format!("刷新分类统计失败: {error}"))?;
+
+    sqlx::query(
+        r#"
+        UPDATE tags AS tag
+        SET post_count = (
+            SELECT COUNT(*)
+            FROM post_tags AS post_tag
+            JOIN posts AS post ON post.id = post_tag.post_id
+            WHERE post_tag.tag_id = tag.id
+              AND post.status = 'published'
+              AND post.deleted_at IS NULL
+        )
+        "#,
+    )
+    .execute(pool)
+    .await
+    .map_err(|error| format!("刷新标签统计失败: {error}"))?;
+
+    Ok(())
 }
 
 async fn clear_cache(state: &AppState) -> Result<(), AppError> {
@@ -421,75 +760,74 @@ async fn clear_cache(state: &AppState) -> Result<(), AppError> {
         .await
         .map_err(|_| AppError::InternalError)?;
 
-    // 清除所有文章列表缓存
     let keys: Vec<String> = redis::cmd("KEYS")
         .arg("posts:list:*")
         .query_async(&mut conn)
         .await
         .map_err(|_| AppError::InternalError)?;
 
-    if !keys.is_empty() {
-        for key in keys {
-            let _: () = redis::cmd("DEL")
-                .arg(&key)
-                .query_async(&mut conn)
-                .await
-                .map_err(|_| AppError::InternalError)?;
-        }
+    for key in keys {
+        let _: () = redis::cmd("DEL")
+            .arg(&key)
+            .query_async(&mut conn)
+            .await
+            .map_err(|_| AppError::InternalError)?;
     }
+
+    let _: () = redis::cmd("DEL")
+        .arg("categories")
+        .query_async(&mut conn)
+        .await
+        .unwrap_or(());
 
     Ok(())
 }
 
-/// 计算阅读时间（分钟）
-/// 假设：中文400字/分钟，英文200词/分钟
 fn calculate_reading_time(content: &str) -> i32 {
-    // 移除markdown语法和代码块
     let clean_content = content
         .lines()
-        .filter(|line| {
-            // 跳过代码块
-            !line.trim_start().starts_with("```")
-        })
+        .filter(|line| !line.trim_start().starts_with("```"))
         .collect::<Vec<_>>()
         .join("\n");
 
-    // 统计中文字符和英文单词
     let mut chinese_chars = 0;
     let mut english_words = 0;
 
     for line in clean_content.lines() {
-        // 跳过标题行
         let trimmed = line.trim();
         if trimmed.starts_with('#') {
             continue;
         }
 
-        // 简单统计：中文字符 vs 英文单词
         let words: Vec<&str> = trimmed.split_whitespace().collect();
         for word in words {
-            if word.chars().any(|c| c.is_alphabetic() && (c as u32) > 0x7F) {
-                // 包含非ASCII字符，算作中文
+            if word
+                .chars()
+                .any(|character| character.is_alphabetic() && (character as u32) > 0x7F)
+            {
                 chinese_chars += word
                     .chars()
-                    .filter(|c| c.is_alphabetic() && (*c as u32) > 0x7F)
+                    .filter(|character| character.is_alphabetic() && (*character as u32) > 0x7F)
                     .count();
             } else if word
                 .chars()
-                .all(|c| c.is_alphabetic() || c == '\'' || c == '-')
+                .all(|character| character.is_alphabetic() || character == '\'' || character == '-')
             {
-                // 纯英文单词
                 english_words += 1;
             }
         }
     }
 
-    // 计算阅读时间（分钟）
     let chinese_minutes = (chinese_chars as f64 / 400.0).ceil() as i32;
     let english_minutes = (english_words as f64 / 200.0).ceil() as i32;
+    (chinese_minutes + english_minutes).max(1)
+}
 
-    let total_minutes = chinese_minutes + english_minutes;
-
-    // 至少1分钟
-    total_minutes.max(1)
+fn unique_strings(values: Vec<String>) -> Vec<String> {
+    let mut seen = HashSet::new();
+    values
+        .into_iter()
+        .filter(|value| !value.trim().is_empty())
+        .filter(|value| seen.insert(value.clone()))
+        .collect()
 }

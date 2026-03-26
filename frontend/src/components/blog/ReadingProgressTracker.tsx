@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react'
-import { useAuthStore } from '@/lib/store'
+import { useAuthStore } from '@/lib/store/auth-store'
 import { readingProgressService } from '@/lib/api/backend'
 import { useTranslation } from 'react-i18next'
 

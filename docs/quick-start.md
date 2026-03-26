@@ -22,14 +22,31 @@ This starts PostgreSQL, Redis, Meilisearch, and MinIO for local development.
 Recommended:
 
 ```bash
+# Unix-like shells
 ./start-dev.sh
+```
+
+```powershell
+# Windows PowerShell
+powershell -ExecutionPolicy Bypass -File .\start-dev.ps1
+powershell -ExecutionPolicy Bypass -File .\start-dev.ps1 -IncludeWorker
 ```
 
 Or run the services directly:
 
 ```bash
+cd backend && cargo run -p blog-migrator
 cd backend && cargo run --bin api
+cd backend && cargo run -p blog-worker --bin worker
 cd frontend && pnpm dev
+```
+
+Windows-specific entrypoints are also available if you prefer separate shells:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\start-backend.ps1
+powershell -ExecutionPolicy Bypass -File .\start-frontend.ps1
+powershell -ExecutionPolicy Bypass -File .\start-worker.ps1
 ```
 
 ## 4. Open the app
@@ -50,6 +67,9 @@ cd backend && cargo check
 
 # frontend tests
 cd frontend && pnpm test
+
+# frontend OpenAPI type generation
+cd frontend && pnpm generate:types
 ```
 
 ## Next steps

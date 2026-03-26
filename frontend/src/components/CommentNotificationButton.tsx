@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/lib/store'
+import { useAuthStore } from '@/lib/store/auth-store'
 import { commentNotificationService } from '@/lib/api/backend'
 import { useTranslation } from 'react-i18next'
 

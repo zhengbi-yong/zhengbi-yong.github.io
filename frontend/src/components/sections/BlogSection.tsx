@@ -1,16 +1,15 @@
 'use client'
 
-import type { CoreContent } from 'pliny/utils/contentlayer'
-import type { Blog } from 'contentlayer/generated'
 import BlogCard from './BlogCard'
 import SectionHeader from './SectionHeader'
 import { Button } from '@/components/shadcn/ui/button'
 import Link from 'next/link'
 import AnimatedText from '@/components/home/AnimatedText'
 import { cn } from '@/components/lib/utils'
+import type { BlogLikePost } from '@/lib/adapters/backend-posts'
 
 // Extended blog type with optional featured field
-interface BlogWithFeatured extends CoreContent<Blog> {
+interface BlogWithFeatured extends BlogLikePost {
   featured?: boolean
 }
 

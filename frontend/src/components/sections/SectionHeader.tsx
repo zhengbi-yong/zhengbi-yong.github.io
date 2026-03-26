@@ -22,7 +22,7 @@ export default function SectionHeader({ title, description, className = '' }: Se
       </h2>
 
       {description && (
-        <div className="m-auto mt-3 max-w-full text-sm leading-6 text-neutral-700 sm:mt-4 sm:text-base sm:leading-7 lg:mt-6 lg:max-w-3xl lg:text-lg lg:leading-8 dark:text-neutral-300">
+        <div className="m-auto mt-3 max-w-full text-sm leading-6 text-neutral-700 sm:mt-4 sm:text-base sm:leading-7 lg:mt-6 lg:max-w-4xl lg:text-lg lg:leading-8 dark:text-neutral-300">
           <AnimatedText delay={0.6} stagger={0.03} content={description} />
         </div>
       )}

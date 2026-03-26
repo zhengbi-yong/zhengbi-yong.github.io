@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '@/lib/store'
+import { useAuthStore } from '@/lib/store/auth-store'
 import { readingProgressService } from '@/lib/api/backend'
 import type { ReadingProgress } from '@/lib/types/backend'
 import { useTranslation } from 'react-i18next'

@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from './create-store'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { postService } from '../api/backend'
 import type { PostStats } from '../types/backend'

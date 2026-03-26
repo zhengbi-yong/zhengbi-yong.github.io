@@ -2,13 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { useChemistryLocal, detectChemicalFormat } from '@/lib/hooks/useChemistryLocal'
+import {
+  resolveBooleanProp,
+  resolveChemicalTextProp,
+  resolveNumberProp,
+} from './runtimeProps'
 
 interface MoleculeFingerprintProps {
-  data: string
+  data?: string
+  dataBase64?: string
   type?: 'morgan' | 'maccs' | 'rdkit'
-  radius?: number
-  bits?: number
-  showDetails?: boolean
+  radius?: number | string
+  bits?: number | string
+  showDetails?: boolean | string
   className?: string
 }
 
@@ -18,6 +24,7 @@ interface MoleculeFingerprintProps {
  */
 export default function MoleculeFingerprint({
   data,
+  dataBase64,
   // Prefixing with underscore to acknowledge unused prop in this component
   _type = 'morgan',
   radius = 2,
@@ -27,6 +34,10 @@ export default function MoleculeFingerprint({
 }: MoleculeFingerprintProps & { _type?: 'morgan' | 'maccs' | 'rdkit' }) {
   // acknowledge unused prop to satisfy TS6133
   void _type
+  const resolvedData = resolveChemicalTextProp(data, dataBase64)
+  const resolvedRadius = resolveNumberProp(radius, 2)
+  const resolvedBits = resolveNumberProp(bits, 2048)
+  const resolvedShowDetails = resolveBooleanProp(showDetails, true)
   const [fingerprint, setFingerprint] = useState<string>('')
   const [error, setError] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
@@ -36,7 +47,7 @@ export default function MoleculeFingerprint({
 
   useEffect(() => {
     const generateFingerprint = async () => {
-      if (!data.trim()) {
+      if (!resolvedData.trim()) {
         setError('No chemical data provided')
         setIsLoading(false)
         return
@@ -50,12 +61,12 @@ export default function MoleculeFingerprint({
         setIsLoading(true)
         setError('')
 
-        const format = detectChemicalFormat(data)
+        const format = detectChemicalFormat(resolvedData)
         if (!format || format === 'unknown') {
           throw new Error('Unable to detect chemical data format')
         }
 
-        const fp = await getMorganFingerprint(data, radius, bits)
+        const fp = await getMorganFingerprint(resolvedData, resolvedRadius, resolvedBits)
         setFingerprint(fp)
 
         // 计算1的位数
@@ -74,7 +85,7 @@ export default function MoleculeFingerprint({
     }
 
     generateFingerprint()
-  }, [data, isLoaded, getMorganFingerprint, radius, bits])
+  }, [resolvedData, isLoaded, getMorganFingerprint, resolvedRadius, resolvedBits])
 
   const getBitDensity = () => {
     if (!fingerprint) return 0
@@ -107,7 +118,7 @@ export default function MoleculeFingerprint({
     )
   }
 
-  if (!showDetails) {
+  if (!resolvedShowDetails) {
     return (
       <div className={`rounded bg-gray-50 p-2 font-mono text-xs break-all ${className}`}>
         {fingerprint}
@@ -123,7 +134,7 @@ export default function MoleculeFingerprint({
           <div>
             <span className="font-semibold">Morgan Fingerprint</span>
             <span className="ml-2 text-sm text-gray-500">
-              (radius: {radius}, bits: {bits})
+              (radius: {resolvedRadius}, bits: {resolvedBits})
             </span>
           </div>
           <div className="text-sm text-gray-600">Bit Density: {getBitDensity()}%</div>

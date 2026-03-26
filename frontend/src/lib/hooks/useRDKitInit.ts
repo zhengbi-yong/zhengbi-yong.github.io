@@ -1,8 +1,7 @@
-// RDKit Initialization Hook
-// Listens for rdkit-loaded and rdkit-error events
+// RDKit initialization hook backed by a shared single-flight loader.
 
-import { useEffect, useState } from 'react';
-import { logger } from '@/lib/utils/logger';
+import { useEffect, useState } from 'react'
+import { loadRDKit } from '@/lib/chemistry/loadRDKit'
 
 interface UseRDKitInitReturn {
   isLoaded: boolean
@@ -11,52 +10,44 @@ interface UseRDKitInitReturn {
 }
 
 export function useRDKitInit(): UseRDKitInitReturn {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [RDKit, setRDKit] = useState<any>(null);
+  const [isLoaded, setIsLoaded] = useState(
+    typeof window !== 'undefined' && typeof (window as any).RDKit !== 'undefined' && !!(window as any).RDKit
+  )
+  const [error, setError] = useState<string | null>(null)
+  const [RDKit, setRDKit] = useState<any>(
+    typeof window !== 'undefined' && typeof (window as any).RDKit !== 'undefined' ? (window as any).RDKit : null
+  )
 
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false
 
-    // Check if already loaded (only on client)
-    if (typeof window !== 'undefined' && typeof (window as any).RDKit !== 'undefined' && (window as any).RDKit) {
-      logger.log('[RDKit] Already loaded');
-      setRDKit((window as any).RDKit);
-      setIsLoaded(true);
-      setError(null);
-      return undefined;
-    }
+    void loadRDKit()
+      .then((instance) => {
+        if (cancelled) {
+          return
+        }
 
-    const handleRDKitLoaded = (event: CustomEvent) => {
-      if (!mounted) return;
+        setRDKit(instance)
+        setIsLoaded(true)
+        setError(null)
+      })
+      .catch((err) => {
+        if (cancelled) {
+          return
+        }
 
-      logger.log('[RDKit] Load event received:', event.detail);
-      setRDKit(event.detail);
-      setIsLoaded(true);
-      setError(null);
-    };
-
-    const handleRDKitError = (event: CustomEvent) => {
-      if (!mounted) return;
-
-      logger.error('[RDKit] Error event received:', event.detail);
-      setError(event.detail instanceof Error ? event.detail.message : String(event.detail));
-      setIsLoaded(false);
-    };
-
-    window.addEventListener('rdkit-loaded', handleRDKitLoaded as EventListener);
-    window.addEventListener('rdkit-error', handleRDKitError as EventListener);
+        setError(err instanceof Error ? err.message : String(err))
+        setIsLoaded(false)
+      })
 
     return () => {
-      mounted = false;
-      window.removeEventListener('rdkit-loaded', handleRDKitLoaded as EventListener);
-      window.removeEventListener('rdkit-error', handleRDKitError as EventListener);
-    };
-  }, []);
+      cancelled = true
+    }
+  }, [])
 
   return {
     isLoaded,
     error,
     RDKit,
-  };
+  }
 }

@@ -39,5 +39,5 @@ echo "📦 运行后端服务..."
 echo ""
 
 # 运行后端
-cargo run
-
+cargo run -p blog-migrator
+cargo run --bin api

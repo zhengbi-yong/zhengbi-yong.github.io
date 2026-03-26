@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePostStore, useAuthStore } from '@/lib/store'
+import { useAuthStore } from '@/lib/store/auth-store'
+import { usePostStore } from '@/lib/store/post-store'
 import { Button } from '@/components/shadcn/ui/button'
 import { ThumbsUp } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
