@@ -14,6 +14,9 @@ MODE="auto"
 VERIFY_PATH="/readyz"
 SKIP_HEALTHCHECK=false
 EXTRA_SERVER_NAMES=()
+SSH_CONNECT_TIMEOUT="${SSH_CONNECT_TIMEOUT:-15}"
+SSH_SERVER_ALIVE_INTERVAL="${SSH_SERVER_ALIVE_INTERVAL:-15}"
+SSH_SERVER_ALIVE_COUNT_MAX="${SSH_SERVER_ALIVE_COUNT_MAX:-3}"
 
 usage() {
   cat <<'EOF'
@@ -114,6 +117,11 @@ case "${MODE}" in
 esac
 
 ssh_opts=(-p "${SSH_PORT}" -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+ssh_opts+=(
+  -o ConnectTimeout="${SSH_CONNECT_TIMEOUT}"
+  -o ServerAliveInterval="${SSH_SERVER_ALIVE_INTERVAL}"
+  -o ServerAliveCountMax="${SSH_SERVER_ALIVE_COUNT_MAX}"
+)
 if [[ -n "${IDENTITY_FILE}" ]]; then
   ssh_opts+=(-i "${IDENTITY_FILE}")
 fi
@@ -484,7 +492,19 @@ if [[ "${SKIP_HEALTHCHECK:-false}" != "true" ]]; then
     curl_args=(-k "${curl_args[@]}")
   fi
 
-  public_code="$(curl "${curl_args[@]}" "${public_scheme}://127.0.0.1${VERIFY_PATH}" || true)"
+  public_check_attempts="${PUBLIC_CHECK_ATTEMPTS:-10}"
+  public_check_delay_secs="${PUBLIC_CHECK_DELAY_SECS:-2}"
+  public_code=""
+  for ((attempt=1; attempt<=public_check_attempts; attempt++)); do
+    public_code="$(curl "${curl_args[@]}" "${public_scheme}://127.0.0.1${VERIFY_PATH}" || true)"
+    if [[ "${public_code}" == "200" ]]; then
+      break
+    fi
+    if [[ "${attempt}" -lt "${public_check_attempts}" ]]; then
+      sleep "${public_check_delay_secs}"
+    fi
+  done
+
   if [[ "${public_code}" != "200" ]]; then
     fail "public cutover health check failed (${public_code}) at ${public_scheme}://127.0.0.1${VERIFY_PATH}"
   fi

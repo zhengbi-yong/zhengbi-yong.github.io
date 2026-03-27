@@ -10,6 +10,7 @@ This directory contains the maintained deployment automation surface.
 - `bootstrap-remote-host.sh`
 - `deploy-remote-compose.sh`
 - `provision-compose-host.sh`
+- `refresh-remote-compose.sh`
 - `stream-local-images.sh`
 - `cutover-system-nginx.sh`
 - `rollback-system-nginx.sh`

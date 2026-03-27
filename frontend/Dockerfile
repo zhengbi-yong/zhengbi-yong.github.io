@@ -1,19 +1,13 @@
-# 多阶段构建：Next.js 16 前端应用
-# Stage 1: 依赖安装
 FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 ENV HUSKY=0
 
-# 安装pnpm
 RUN npm install -g pnpm
 
-# 复制依赖文件
 COPY package.json pnpm-lock.yaml ./
-# 安装依赖
 RUN pnpm install --frozen-lockfile
 
-# Stage 2: 构建应用
 FROM node:22-alpine AS builder
 WORKDIR /app
 
@@ -22,28 +16,23 @@ ARG VCS_REF=local
 ARG BUILD_DATE=unknown
 ARG NEXT_IGNORE_BUILD_ERRORS=0
 ARG NEXT_IGNORE_ESLINT=0
+
 ENV HUSKY=0
-
-# 安装 pnpm (需要在 builder 阶段使用)
-RUN npm install -g pnpm
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-
-# 清理 contentlayer 缓存以避免依赖问题
-RUN rm -rf .contentlayer/.cache
-
-# 安装contentlayer（需要生成内容）
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NEXT_IGNORE_BUILD_ERRORS=${NEXT_IGNORE_BUILD_ERRORS}
 ENV NEXT_IGNORE_ESLINT=${NEXT_IGNORE_ESLINT}
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# 构建应用
+COPY --from=deps /usr/local/bin/pnpm /usr/local/bin/pnpm
+COPY --from=deps /usr/local/bin/pnpx /usr/local/bin/pnpx
+COPY --from=deps /usr/local/lib/node_modules/pnpm /usr/local/lib/node_modules/pnpm
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+RUN rm -rf .contentlayer/.cache
 RUN pnpm build
 
-# Stage 3: 生产运行
-FROM node:22-alpine AS runner
+FROM node:22-alpine AS runner-base
 WORKDIR /app
 
 ARG APP_VERSION=dev
@@ -56,40 +45,56 @@ LABEL org.opencontainers.image.title="blog-frontend" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.created="${BUILD_DATE}"
 
-# 安装 curl 用于健康检查
-RUN apk add --no-cache curl
-
 ENV NODE_ENV=production
-# 禁用遥测
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3001
+ENV HOSTNAME=0.0.0.0
 
-# 创建非root用户
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-RUN mkdir -p /app/.data && \
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    mkdir -p /app/.data && \
     touch /app/.data/visitors.json && \
-    chown -R nextjs:nodejs /app/.data
+    chown -R nextjs:nodejs /app
 
-# 复制必要文件
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "const net=require('net');const s=net.createConnection({host:'127.0.0.1',port:3001},()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>{s.destroy();process.exit(1)},5000)"
+
+FROM runner-base AS runner
+
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-
-# 复制.next构建产物
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# 复制contentlayer生成的文件（如果使用静态导出）
 COPY --from=builder --chown=nextjs:nodejs /app/.contentlayer ./.contentlayer
 
 USER nextjs
 
-EXPOSE 3001
+CMD ["node", "server.js"]
 
-ENV PORT 3001
-ENV HOSTNAME "0.0.0.0"
+FROM runner-base AS prebuilt-runner
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3001/ || exit 1
+COPY --chown=nextjs:nodejs public ./public
+COPY --chown=nextjs:nodejs package.json ./package.json
+COPY --chown=nextjs:nodejs .next/standalone ./
+COPY --chown=nextjs:nodejs .next/static ./.next/static
+COPY --chown=nextjs:nodejs .contentlayer ./.contentlayer
 
-# 启动应用
+RUN set -eux; \
+    if [ -d /app/node_modules/.pnpm ]; then \
+      find /app/node_modules -type l | while read -r link_path; do \
+        link_target="$(readlink "$link_path")"; \
+        case "$link_target" in \
+          *"/node_modules/.pnpm/"*) \
+            suffix="${link_target##*node_modules/.pnpm/}"; \
+            rm "$link_path"; \
+            ln -s "/app/node_modules/.pnpm/$suffix" "$link_path"; \
+            ;; \
+        esac; \
+      done; \
+    fi
+
+USER nextjs
+
 CMD ["node", "server.js"]

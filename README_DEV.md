@@ -2,7 +2,7 @@
 
 Developer handoff and current work summary for this repository.
 
-Last updated: 2026-03-26
+Last updated: 2026-03-27
 
 ## Purpose
 
@@ -13,7 +13,9 @@ current branch state.
 ## Current Focus
 
 The current workstream is improving native Windows development without breaking
-the existing Unix-like workflows.
+the existing Unix-like workflows, and hardening the canonical Compose
+deployment path so the same workspace can publish stable local images from
+Windows.
 
 ## Completed In This Workstream
 
@@ -118,6 +120,77 @@ the existing Unix-like workflows.
 - home page content width was widened for laptop-sized viewports by increasing
   the main hero, social, hero-card, and newsletter container widths
 
+### Compose deployment hardening
+
+- frontend Docker now has a Windows-friendly `prebuilt-runner` target in
+  [frontend/Dockerfile](frontend/Dockerfile) that packages an already-built
+  `.next/standalone` output instead of re-running `pnpm install` inside Docker
+- the `prebuilt-runner` image rewrites pnpm junction targets inside the image
+  from Windows absolute paths such as `C:\\...\\node_modules\\.pnpm\\...` to
+  container-local `/app/node_modules/.pnpm/...` symlinks, which fixes the
+  previous `Cannot find module 'next'` and `Cannot find module
+  'styled-jsx/package.json'` startup failures
+- [frontend/.dockerignore](frontend/.dockerignore) now includes
+  `.next/standalone`, `.next/static`, and `.contentlayer` so the prebuilt image
+  path sends only the required runtime artifacts instead of the whole frontend
+  workspace
+- [scripts/deployment/build-all.sh](scripts/deployment/build-all.sh) now
+  validates the frontend prebuilt runtime artifacts when
+  `FRONTEND_DOCKER_TARGET=prebuilt-runner`
+- [scripts/deployment/build-all.sh](scripts/deployment/build-all.sh) now
+  auto-selects `FRONTEND_DOCKER_TARGET=prebuilt-runner` when host-built
+  artifacts exist, and otherwise falls back to `runner`
+- on Windows machines where `bash` resolves to an unavailable WSL install, run
+  the canonical deployment scripts through Git Bash, for example
+  `C:\Program Files\Git\bin\bash.exe`
+- [scripts/deployment/build-all.sh](scripts/deployment/build-all.sh) now uses a
+  local Swagger UI zip cache for backend builds only when
+  `backend/swagger-ui-cache/v5.17.14.zip` is actually present; otherwise it
+  falls back to the crate default download behavior instead of assuming the
+  cache exists
+- MinIO-backed backend startup now requires AWS Rust SDK behavior-version
+  initialization; [backend/crates/api/src/storage.rs](backend/crates/api/src/storage.rs)
+  now sets `aws_sdk_s3::config::BehaviorVersion::latest()` when constructing
+  the S3/MinIO client
+- backend Docker now has an explicit `local-runtime` stage that reuses the
+  slim production runtime instead of packaging the full Rust builder toolchain;
+  local `blog-backend:local` size dropped from about `1.59GB` to about `56.8MB`
+- backend Docker Swagger UI handling now only exports
+  `SWAGGER_UI_DOWNLOAD_URL` when it is non-empty, which avoids the previous
+  `invalid SWAGGER_UI_DOWNLOAD_URL` panic path
+- backend Docker apt source rewriting is now optional via
+  `DEBIAN_APT_FORCE_HTTPS` (surfaced in build wrapper as
+  `BACKEND_DEBIAN_APT_FORCE_HTTPS`), so unstable networks can keep default
+  Debian sources
+- backend Docker apt retry loops now self-heal transient broken package states
+  with `apt-get -f install` and `dpkg --configure -a` before retrying
+- [scripts/deployment/stream-local-images.sh](scripts/deployment/stream-local-images.sh)
+  now compares local/remote image IDs and streams only changed images; unchanged
+  images are skipped
+- [scripts/deployment/deploy-compose-stack.sh](scripts/deployment/deploy-compose-stack.sh)
+  now supports `--skip-infra` and `--services` for targeted app refreshes
+- [scripts/deployment/deploy-remote-compose.sh](scripts/deployment/deploy-remote-compose.sh)
+  now supports `--use-existing-env`, `--skip-infra`, and `--services`, enabling
+  update deploys that reuse the existing remote `.env.production`
+- added [scripts/deployment/refresh-remote-compose.sh](scripts/deployment/refresh-remote-compose.sh),
+  a fast update path for existing servers that:
+  - reuses remote `shared/.env.production`
+  - streams only changed local images
+  - restarts only affected services
+  - defaults migration behavior to auto (run when backend image changed)
+  - optionally cleans stale non-live compose projects on the remote host with
+    `--cleanup-stale-projects` to avoid memory pressure from historical test
+    stacks
+- [scripts/deployment/cutover-system-nginx.sh](scripts/deployment/cutover-system-nginx.sh)
+  now retries post-cutover public health checks before failing, which avoids
+  false negatives during short warm-up windows
+- deployment SSH flows now set explicit connect and keepalive timeouts, so
+  hosts that accept TCP 22 but never return an SSH banner fail fast instead of
+  hanging for a long time
+- [.gitignore](.gitignore) now ignores
+  `frontend/.docker-runtime` and `backend/swagger-ui-cache/` so deployment cache
+  artifacts do not keep the worktree dirty
+
 ### Documentation updates
 
 - updated:
@@ -135,6 +208,14 @@ pnpm generate:types
 pnpm exec vitest run tests/lib/api/resolveBackendApiBaseUrl.test.ts
 pnpm build
 pnpm exec tsc --noEmit --pretty false
+
+docker build --build-arg APP_VERSION=1.8.2 --build-arg VCS_REF=local --build-arg BUILD_DATE=2026-03-27T00:00:00Z --build-arg NEXT_IGNORE_BUILD_ERRORS=1 --build-arg NEXT_IGNORE_ESLINT=1 --target prebuilt-runner -t blog-frontend:local -f frontend/Dockerfile frontend
+docker run -d --name blog-frontend-smoke -p 13001:3001 -e NEXT_PUBLIC_BACKEND_URL=http://host.docker.internal:3000 -e NEXT_PUBLIC_API_URL=http://host.docker.internal:3000 blog-frontend:local
+Invoke-WebRequest http://127.0.0.1:13001/
+
+cargo check -p blog-api
+docker build --build-arg APP_VERSION=1.8.2 --build-arg VCS_REF=local --build-arg BUILD_DATE=2026-03-27T00:00:00Z --build-arg SQLX_OFFLINE=false --build-arg DATABASE_URL=postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db --build-arg SWAGGER_UI_DOWNLOAD_URL=file:///app/swagger-ui-cache/v5.17.14.zip --target local-runtime -t blog-backend:local -f backend/Dockerfile backend
+docker image inspect blog-backend:local blog-frontend:local --format "{{.RepoTags}} {{.Id}} {{.Size}}"
 
 powershell -ExecutionPolicy Bypass -File .\start-dev.ps1 -Mode infra -NoInfra
 powershell -ExecutionPolicy Bypass -File .\start-dev.ps1 -IncludeWorker -Detached
@@ -174,6 +255,10 @@ Browser-level verification in this workstream included:
   `chemistry/rdkit-visualization` opens successfully with no runtime console
   errors; the previous `path.split(...)`, `zustand create(...)`, `204 proxy`,
   and MDX chemistry rendering regressions were all cleared
+- the `blog-frontend:local` prebuilt image now starts successfully on Windows
+  and returns `200` on `http://127.0.0.1:13001/`
+- the `blog-backend:local` image rebuilt successfully after the MinIO/S3
+  behavior-version fix
 
 ## Recommended Local Workflows
 
@@ -236,6 +321,20 @@ MinIO API:       http://localhost:9000
 MinIO console:   http://localhost:9001
 ```
 
+Build Windows-local deployment images without re-installing frontend
+dependencies inside Docker:
+
+```powershell
+$env:FRONTEND_DOCKER_TARGET='prebuilt-runner'
+& 'C:\Program Files\Git\bin\bash.exe' scripts/deployment/build-all.sh
+```
+
+Fast update deploy to an already-provisioned remote Compose host:
+
+```powershell
+& 'C:\Program Files\Git\bin\bash.exe' scripts/deployment/refresh-remote-compose.sh --target ubuntu@152.136.43.194 --remote-dir /home/ubuntu/blog-platform-live --identity-file /c/Users/Sisyphus/.ssh/zhengbi_prod_ed25519
+```
+
 ### Direct Rust commands
 
 ```powershell
@@ -256,6 +355,9 @@ cargo run -p blog-worker --bin worker
 - development still shows some framework-level warnings unrelated to the core
   blog flow, mainly the current Sentry App Router setup warnings and the Next.js
   `allowedDevOrigins` heads-up
+- on low-memory hosts (for example 4GB RAM), stale parallel compose projects
+  can still cause avoidable instability unless they are cleaned regularly; use
+  `refresh-remote-compose.sh --cleanup-stale-projects` during maintenance
 
 ## Recommended Next Steps
 
@@ -263,13 +365,22 @@ cargo run -p blog-worker --bin worker
    `cargo run`, or legacy backend env variable names.
 2. Add a lightweight frontend smoke assertion for `/`, `/search`, and `/admin`
    so CI catches route regressions after the Windows startup path succeeds.
-3. Add worker startup smoke coverage to any non-Windows validation path if the
+3. Prefer the fast remote update path for day-2 changes:
+   `C:\Program Files\Git\bin\bash.exe scripts/deployment/refresh-remote-compose.sh --target ubuntu@152.136.43.194 --remote-dir /home/ubuntu/blog-platform-live --identity-file /c/Users/Sisyphus/.ssh/zhengbi_prod_ed25519`
+4. Use `--build-local-images` for one-command local-build + remote-update
+   refreshes, and `--image blog-frontend:local` for frontend-only updates.
+5. For resource-constrained servers, include stale stack cleanup during refresh:
+   `C:\Program Files\Git\bin\bash.exe scripts/deployment/refresh-remote-compose.sh --target ubuntu@152.136.43.194 --remote-dir /home/ubuntu/blog-platform-live --identity-file /c/Users/Sisyphus/.ssh/zhengbi_prod_ed25519 --cleanup-stale-projects`
+6. Keep system nginx aligned with the active compose edge after major env/port
+   changes:
+   `C:\Program Files\Git\bin\bash.exe scripts/deployment/cutover-system-nginx.sh --target ubuntu@152.136.43.194 --remote-dir /home/ubuntu/blog-platform-live --identity-file /c/Users/Sisyphus/.ssh/zhengbi_prod_ed25519`
+7. Add worker startup smoke coverage to any non-Windows validation path if the
    team wants parity across platforms.
-4. Decide whether to keep both root `.env` and `backend/.env` long-term, or
+8. Decide whether to keep both root `.env` and `backend/.env` long-term, or
    consolidate around one canonical local runtime env file.
-5. Triage the existing frontend test failures so native Windows CI can grow from
+9. Triage the existing frontend test failures so native Windows CI can grow from
    smoke coverage to broader test coverage.
-6. Clean up the remaining Sentry and `allowedDevOrigins` development warnings so
+10. Clean up the remaining Sentry and `allowedDevOrigins` development warnings so
    the console stays focused on real regressions during manual QA.
 
 ## Change Hotspots
@@ -294,10 +405,534 @@ If you continue this work, the most relevant files are:
 - [frontend/scripts/build/run-next-build.js](frontend/scripts/build/run-next-build.js)
 - [backend/crates/migrator/src/lib.rs](backend/crates/migrator/src/lib.rs)
 - [backend/crates/api/src/runtime.rs](backend/crates/api/src/runtime.rs)
+- [backend/crates/api/src/storage.rs](backend/crates/api/src/storage.rs)
+- [backend/Dockerfile](backend/Dockerfile)
 - [backend/scripts/load-env.ps1](backend/scripts/load-env.ps1)
 - [backend/scripts/smoke-backend-start.ps1](backend/scripts/smoke-backend-start.ps1)
 - [backend/scripts/smoke-worker-start.ps1](backend/scripts/smoke-worker-start.ps1)
 - [start-dev.ps1](start-dev.ps1)
 - [start-worker.ps1](start-worker.ps1)
 - [check-dev-stack.ps1](check-dev-stack.ps1)
+- [scripts/deployment/build-all.sh](scripts/deployment/build-all.sh)
+- [scripts/deployment/stream-local-images.sh](scripts/deployment/stream-local-images.sh)
+- [scripts/deployment/deploy-remote-compose.sh](scripts/deployment/deploy-remote-compose.sh)
+- [scripts/deployment/deploy-compose-stack.sh](scripts/deployment/deploy-compose-stack.sh)
+- [scripts/deployment/refresh-remote-compose.sh](scripts/deployment/refresh-remote-compose.sh)
 - [.github/workflows/windows-native-ci.yml](.github/workflows/windows-native-ci.yml)
+
+## Complete New Server Deployment Guide
+
+This section provides a complete, end-to-end guide for deploying the blog platform to a new server. Follow these steps to ensure a successful deployment with all content accessible.
+
+### Prerequisites
+
+**Local Machine:**
+- Git repository cloned
+- SSH access to target server
+- Docker and Docker Compose installed (for building images locally)
+
+**Target Server:**
+- Ubuntu 20.04+ or similar Linux distribution
+- Docker and Docker Compose installed
+- SSH key access configured
+- Minimum 2GB RAM, 10GB disk space
+- Ports 80, 443 available (for web traffic)
+
+### Step-by-Step Deployment Process
+
+#### Step 1: Prepare Local Environment
+
+```bash
+# Navigate to project directory
+cd C:/Users/Sisyphus/Documents/private/zhengbi-yong.github.io
+
+# Ensure you're on the correct branch
+git checkout main
+git pull origin main
+
+# Verify docker-compose.production.yml has FRONTEND_BLOG_DIR configured
+grep -q "FRONTEND_BLOG_DIR" docker-compose.production.yml && echo "✓ Configured" || echo "✗ Missing FRONTEND_BLOG_DIR"
+```
+
+#### Step 2: Build Docker Images Locally
+
+**Option A: Using Build Script (Recommended)**
+
+```bash
+# On Windows, use Git Bash
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/build-all.sh
+
+# This will:
+# - Build backend with production target
+# - Build frontend with prebuilt-runner target
+# - Tag images as blog-backend:local and blog-frontend:local
+```
+
+**Option B: Manual Build**
+
+```bash
+# Build backend
+docker build --target production -t blog-backend:local -f backend/Dockerfile backend
+
+# Build frontend (first build the Next.js app)
+cd frontend
+pnpm build
+
+# Then build the Docker image
+cd ..
+docker build --target prebuilt-runner -t blog-frontend:local -f frontend/Dockerfile frontend
+```
+
+#### Step 3: Bootstrap Remote Server
+
+```bash
+# Run the bootstrap script
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/bootstrap-remote-host.sh \
+  --target ubuntu@<SERVER_IP> \
+  --remote-dir /home/ubuntu/blog-platform-live
+
+# For production server:
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/bootstrap-remote-host.sh \
+  --target ubuntu@152.136.43.194 \
+  --remote-dir /home/ubuntu/blog-platform-live
+
+# This will:
+# - Create directory structure
+# - Set up environment files
+# - Configure SSH access
+# - Prepare Docker Compose configuration
+```
+
+#### Step 4: Stream Images to Remote Server
+
+```bash
+# Stream all local images to remote
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/stream-local-images.sh \
+  --target ubuntu@<SERVER_IP>
+
+# For production server:
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/stream-local-images.sh \
+  --target ubuntu@152.136.43.194
+
+# This will:
+# - Transfer blog-backend:local and blog-frontend:local
+# - Load images into remote Docker daemon
+# - Verify image integrity
+```
+
+#### Step 5: Deploy Stack to Remote Server
+
+```bash
+# Deploy the complete stack
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/deploy-remote-compose.sh \
+  --target ubuntu@<SERVER_IP> \
+  --use-existing-env
+
+# For production server:
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/deploy-remote-compose.sh \
+  --target ubuntu@152.136.43.194 \
+  --use-existing-env
+
+# This will:
+# - Start all services (postgres, redis, api, worker, frontend, etc.)
+# - Run database migrations
+# - Wait for health checks
+# - Verify deployment success
+```
+
+#### Step 6: Sync Blog Content to Database
+
+**CRITICAL STEP**: Without this, your blog will have no posts!
+
+```bash
+# Run the automated blog sync script
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/sync-remote-blog.sh \
+  --target ubuntu@<SERVER_IP> \
+  --force
+
+# For production server:
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/sync-remote-blog.sh \
+  --target ubuntu@152.136.43.194 \
+  --force
+
+# This will:
+# - Copy blog files from frontend/data/blog to remote server
+# - Copy files into API container at /app/data/blog
+# - Trigger MDX sync API to import posts into database
+# - Verify posts are imported successfully
+# - Clean up temporary files
+```
+
+**Manual Sync Alternative** (if script fails):
+
+```bash
+# 1. Copy blog files to remote
+cd frontend
+scp -i ~/.ssh/zhengbi_prod_ed25519 -r data/blog ubuntu@<SERVER_IP>:/tmp/blog-sync/
+
+# 2. Copy into API container
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@<SERVER_IP> \
+  "docker cp /tmp/blog-sync/blog blog-platform-live-api-1:/app/data/"
+
+# 3. Trigger sync
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@<SERVER_IP> \
+  'docker exec blog-platform-live-api-1 curl -s -X POST http://localhost:3000/api/v1/sync/mdx/public \
+  -H "Content-Type: application/json" -d "{\"force\": true}"'
+
+# 4. Verify posts
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@<SERVER_IP> \
+  "docker exec blog-platform-live-api-1 curl -s http://localhost:3000/api/v1/posts | \
+  python3 -c 'import sys, json; data=json.load(sys.stdin); print(f\"Posts: {data.get(\"total\", 0)}\")'"
+
+# 5. Clean up
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@<SERVER_IP> "rm -rf /tmp/blog-sync"
+```
+
+#### Step 7: Configure Nginx Reverse Proxy (Optional but Recommended)
+
+If you want Nginx as the front-end reverse proxy:
+
+```bash
+# Run the Nginx cutover script
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/cutover-system-nginx.sh \
+  --target ubuntu@<SERVER_IP> \
+  --edge-port 18082
+
+# For production server:
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/cutover-system-nginx.sh \
+  --target ubuntu@152.136.43.194 \
+  --edge-port 18082
+
+# This will:
+# - Configure Nginx as reverse proxy
+# - Set up SSL certificates (if certbot is available)
+# - Configure proper routing
+# - Restart Nginx service
+```
+
+#### Step 8: Verify Deployment
+
+```bash
+# Check all containers are running
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@<SERVER_IP> \
+  "docker ps --format 'table {{.Names}}\t{{.Status}}'"
+
+# Check backend health
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@<SERVER_IP> \
+  "docker exec blog-platform-live-api-1 curl -s http://localhost:3000/livez"
+
+# Check frontend is serving
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@<SERVER_IP> \
+  "curl -s -I http://localhost:3001/ | head -5"
+
+# Verify posts in database
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@<SERVER_IP> \
+  "docker exec blog-platform-live-api-1 curl -s http://localhost:3000/api/v1/posts | \
+  python3 -c 'import sys, json; data=json.load(sys.stdin); print(f\"Total posts: {data.get(\"total\", 0)}\")'"
+
+# Test from local machine
+curl -I http://<SERVER_IP>/
+```
+
+### Quick Reference: One-Command Deployment
+
+For experienced users, here's the complete deployment in one go:
+
+```bash
+# Set your server IP
+export SERVER_IP="152.136.43.194"
+
+# Complete deployment pipeline
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/build-all.sh && \
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/bootstrap-remote-host.sh --target ubuntu@${SERVER_IP} && \
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/stream-local-images.sh --target ubuntu@${SERVER_IP} && \
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/deploy-remote-compose.sh --target ubuntu@${SERVER_IP} --use-existing-env && \
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/sync-remote-blog.sh --target ubuntu@${SERVER_IP} --force && \
+echo "✓ Deployment complete! Verify at http://${SERVER_IP}/"
+```
+
+### Troubleshooting New Server Deployment
+
+**Issue: Containers fail to start**
+```bash
+# Check logs
+ssh ubuntu@<SERVER_IP> "cd /home/ubuntu/blog-platform-live/current && docker compose logs"
+
+# Verify images exist
+ssh ubuntu@<SERVER_IP> "docker images | grep blog-"
+
+# Check environment variables
+ssh ubuntu@<SERVER_IP> "cat /home/ubuntu/blog-platform-live/shared/.env.production"
+```
+
+**Issue: Database migrations fail**
+```bash
+# Re-run migrations manually
+ssh ubuntu@<SERVER_IP> \
+  "cd /home/ubuntu/blog-platform-live/current && \
+  docker compose --env-file /home/ubuntu/blog-platform-live/shared/.env.production \
+  run --rm migrate"
+```
+
+**Issue: Blog sync fails with "Directory not found"**
+```bash
+# Verify FRONTEND_BLOG_DIR is set
+ssh ubuntu@<SERVER_IP> \
+  "docker exec blog-platform-live-api-1 env | grep FRONTEND_BLOG_DIR"
+
+# Should output: FRONTEND_BLOG_DIR=/app/data/blog
+
+# If not set, add to docker-compose.production.yml and restart API
+```
+
+**Issue: Frontend shows "Loading..." but no posts**
+```bash
+# Check if posts exist in database
+ssh ubuntu@<SERVER_IP> \
+  "docker exec blog-platform-live-postgres-1 psql -U blog_user -d blog_db -c 'SELECT COUNT(*) FROM posts;'"
+
+# If count is 0, re-run blog sync (Step 6)
+```
+
+### Post-Deployment Checklist
+
+- [ ] All 9 containers running (postgres, redis, api, worker, frontend, meilisearch, minio, mailpit, edge)
+- [ ] All health checks passing
+- [ ] Backend API responding: `curl http://<SERVER_IP>:14100/healthz`
+- [ ] Frontend serving: `curl -I http://<SERVER_IP>:14101/`
+- [ ] Posts in database: Check count > 0
+- [ ] Blog page accessible: http://<SERVER_IP>/blog
+- [ ] Individual posts load without errors
+- [ ] No chunk load errors in browser console
+- [ ] Nginx reverse proxy configured (if applicable)
+- [ ] SSL certificates valid (if applicable)
+
+### Rolling Back
+
+If deployment fails, you can quickly rollback:
+
+```bash
+# Stop all services
+ssh ubuntu@<SERVER_IP> \
+  "cd /home/ubuntu/blog-platform-live/current && \
+  docker compose --env-file /home/ubuntu/blog-platform-live/shared/.env.production down"
+
+# Remove containers and volumes (CAUTION: This deletes data!)
+ssh ubuntu@<SERVER_IP> \
+  "cd /home/ubuntu/blog-platform-live/current && \
+  docker compose --env-file /home/ubuntu/blog-platform-live/shared/.env.production down -v"
+
+# Re-deploy previous version
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/deploy-remote-compose.sh \
+  --target ubuntu@<SERVER_IP> \
+  --use-existing-env
+```
+
+## Remote Deployment Verification
+
+### Prerequisites
+- SSH access configured (key: `~/.ssh/zhengbi_prod_ed25519`)
+- Target server: `ubuntu@152.136.43.194`
+- Remote directory: `/home/ubuntu/blog-platform-live`
+
+### Quick Service Status Check
+
+```bash
+# Check all container statuses
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 "docker ps --format 'table {{.Names}}\t{{.Status}}'"
+
+# Check system resources
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 "free -h && df -h / | tail -1"
+
+# Check service health endpoints
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 "curl -s http://localhost:14100/healthz && echo 'Backend: OK'"
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 "curl -s http://localhost:14101/ | head -5 && echo 'Frontend: OK'"
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 "curl -s http://localhost:18082/ | head -5 && echo 'Edge: OK'"
+```
+
+### Blog Content Synchronization
+
+**Important**: After deploying to a new server or after database reset, you must sync blog content from `frontend/data/blog` to the database.
+
+#### Manual Sync Process (Recommended for Production)
+
+```bash
+# 1. Copy blog files to remote server
+cd frontend
+scp -i ~/.ssh/zhengbi_prod_ed25519 -r -o StrictHostKeyChecking=no \
+  data/blog ubuntu@152.136.43.194:/tmp/blog-sync/
+
+# 2. Copy files into API container
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "docker cp /tmp/blog-sync/blog blog-platform-live-api-1:/app/data/"
+
+# 3. Trigger MDX sync API
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  'docker exec blog-platform-live-api-1 curl -s -X POST http://localhost:3000/api/v1/sync/mdx/public \
+  -H "Content-Type: application/json" -d "{\"force\": true}"'
+
+# 4. Verify posts in database
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "docker exec blog-platform-live-api-1 curl -s http://localhost:3000/api/v1/posts | \
+  python3 -c 'import sys, json; data=json.load(sys.stdin); print(f\"Posts: {data.get(\"total\", 0)}\")'"
+
+# 5. Clean up temporary files
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 "rm -rf /tmp/blog-sync"
+```
+
+#### Automated Sync Script
+
+```bash
+# Run the automated sync script
+cd C:/Users/Sisyphus/Documents/private/zhengbi-yong.github.io
+"C:\Program Files\Git\bin\bash.exe" scripts/deployment/sync-remote-blog.sh
+```
+
+### Required Configuration for Blog Sync
+
+**1. Environment Variable (docker-compose.production.yml)**
+```yaml
+x-backend-environment: &backend-environment
+  # ... other variables ...
+  FRONTEND_BLOG_DIR: ${FRONTEND_BLOG_DIR:-/app/data/blog}
+```
+
+**2. Container Volume Mount**
+The blog files must be copied into the container at `/app/data/blog` since the production deployment does not mount this directory by default.
+
+**3. API Permissions**
+The sync endpoint `/api/v1/sync/mdx/public` must be accessible without authentication for initial setup.
+
+### Deployment Verification Checklist
+
+After deployment, verify all services:
+
+```bash
+# Container Status
+- [ ] All containers running (9 services)
+- [ ] All health checks passing
+- [ ] No containers restarting frequently
+
+# Backend API
+- [ ] Health check: `curl http://localhost:14100/healthz`
+- [ ] Posts API: `curl http://localhost:14100/api/v1/posts` returns posts
+- [ ] No errors in backend logs: `docker logs blog-platform-live-api-1 --tail 50`
+
+# Frontend
+- [ ] Home page loads: `curl -I http://localhost:14101/`
+- [ ] Blog page loads: `curl -I http://localhost:14101/blog`
+- [ ] No chunk load errors in browser console
+- [ ] All static assets accessible
+
+# Database
+- [ ] PostgreSQL healthy: `docker exec blog-platform-live-postgres-1 pg_isready -U blog_user`
+- [ ] Posts table populated: `docker exec blog-platform-live-postgres-1 psql -U blog_user -d blog_db -c 'SELECT COUNT(*) FROM posts'`
+- [ ] All migrations applied: Check backend logs for "Database migrations verified successfully"
+
+# Infrastructure
+- [ ] Nginx running: `sudo systemctl status nginx`
+- [ ] System resources adequate: Free memory > 1GB, disk < 80%
+- [ ] No error logs in `/var/log/nginx/error.log`
+
+### Common Issues and Solutions
+
+**1. Chunk Load Error (Frontend)**
+- **Symptom**: Browser console shows `Failed to load chunk ...js` 404 errors
+- **Cause**: Frontend build is outdated or mismatched
+- **Solution**: Rebuild frontend locally and redeploy
+  ```bash
+  cd frontend
+  pnpm build
+  # Then redeploy using refresh-remote-compose.sh
+  ```
+
+**2. No Posts in Database**
+- **Symptom**: Blog list page is empty or shows "Loading..."
+- **Cause**: Blog content not synced to database
+- **Solution**: Run the blog sync process (see above)
+
+**3. API Returns 500/502 Errors**
+- **Symptom**: Backend API returns errors
+- **Cause**: Database connection issues or missing migrations
+- **Solution**:
+  - Check database connectivity: `docker exec blog-platform-live-postgres-1 pg_isready -U blog_user`
+  - Restart API container: `docker restart blog-platform-live-api-1`
+  - Check logs: `docker logs blog-platform-live-api-1 --tail 100`
+
+**4. Environment Variable Not Set**
+- **Symptom**: Sync API returns "Directory not found: ../frontend/data/blog"
+- **Cause**: `FRONTEND_BLOG_DIR` not set in environment
+- **Solution**:
+  - Add to `docker-compose.production.yml`: `FRONTEND_BLOG_DIR: ${FRONTEND_BLOG_DIR:-/app/data/blog}`
+  - Restart API container
+
+### Monitoring Commands
+
+```bash
+# Real-time container monitoring
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "docker stats --no-stream"
+
+# Container resource usage
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "docker ps --format '{{.Names}}: {{.Status}}'"
+
+# Recent logs from all services
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "docker ps -q | xargs -I {} sh -c 'echo {} && docker logs --tail 20 {}'"
+
+# System load average
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 "uptime"
+
+# Disk usage
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 "df -h / | tail -1"
+```
+
+### Emergency Procedures
+
+**Restart All Services**
+```bash
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "cd /home/ubuntu/blog-platform-live/current && \
+  docker compose --env-file /home/ubuntu/blog-platform-live/shared/.env.production restart"
+```
+
+**View Container Logs**
+```bash
+# All services
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "cd /home/ubuntu/blog-platform-live/current && \
+  docker compose --env-file /home/ubuntu/blog-platform-live/shared/.env.production logs --tail=100"
+
+# Specific service
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "docker logs blog-platform-live-api-1 --tail 100 -f"
+```
+
+**Rollback to Previous Deployment**
+```bash
+# List available releases
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "ls -lht /home/ubuntu/blog-platform-live/releases/ | head -5"
+
+# Switch to previous release
+ssh -i ~/.ssh/zhengbi_prod_ed25519 ubuntu@152.136.43.194 \
+  "cd /home/ubuntu/blog-platform-live && \
+  ln -sfn releases/<PREVIOUS_RELEASE> current && \
+  cd current && \
+  docker compose --env-file /home/ubuntu/blog-platform-live/shared/.env.production up -d"
+```
+
+### Service URLs
+
+**Local (development):**
+- Frontend: http://localhost:3001
+- Backend API: http://localhost:3000
+- Meilisearch: http://localhost:7700
+- MinIO Console: http://localhost:9001
+
+**Production (remote):**
+- Frontend: http://152.136.43.194 (via Nginx)
+- Backend API: http://152.136.43.194:14100
+- Frontend Direct: http://152.136.43.194:14101
+- Edge Proxy: http://152.136.43.194:18082

@@ -1,4 +1,4 @@
-.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env generate-ci-prod-env verify-api-contract smoke-prod-compose smoke-prod-compose-fast bootstrap-remote-host deploy-remote-compose provision-remote-compose
+.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env generate-ci-prod-env verify-api-contract smoke-prod-compose smoke-prod-compose-fast bootstrap-remote-host deploy-remote-compose refresh-remote-compose provision-remote-compose
 
 # 默认目标
 help:
@@ -23,6 +23,7 @@ help:
 	@echo "  make smoke-prod-compose-fast - 复用当前镜像快速冒烟验证 production Compose 栈"
 	@echo "  make bootstrap-remote-host - 远程安装 Docker/Compose 部署前置条件"
 	@echo "  make deploy-remote-compose - 通过 SSH 将 Compose 运行时发布到服务器"
+	@echo "  make refresh-remote-compose - 复用远端 env 并只重启受影响服务的快速更新部署"
 	@echo "  make provision-remote-compose - 一条命令生成 env、引导服务器并部署"
 	@echo "  make deploy-prod-validate - 校验生产环境变量"
 	@echo "  make deploy-prod-up - 按标准生产栈部署"
@@ -252,6 +253,16 @@ deploy-remote-compose:
 		$(if $(BOOTSTRAP),--bootstrap,) \
 		$(if $(SKIP_MIGRATE),--skip-migrate,) \
 		$(if $(DRY_RUN),--dry-run,)
+
+refresh-remote-compose:
+	@bash scripts/deployment/refresh-remote-compose.sh \
+		$(if $(TARGET),--target $(TARGET),) \
+		$(if $(REMOTE_DIR),--remote-dir $(REMOTE_DIR),) \
+		$(if $(SSH_PORT),--ssh-port $(SSH_PORT),) \
+		$(if $(SSH_KEY),--identity-file $(SSH_KEY),) \
+		$(if $(BUILD_LOCAL_IMAGES),--build-local-images,) \
+		$(if $(SKIP_MIGRATE),--skip-migrate,) \
+		$(if $(RUN_MIGRATE),--run-migrate,)
 
 provision-remote-compose:
 	@bash scripts/deployment/provision-compose-host.sh \

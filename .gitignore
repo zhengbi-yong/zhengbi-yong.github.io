@@ -79,6 +79,7 @@ frontend/output-home-1440.png
 # Contentlayer
 .contentlayer
 frontend/.contentlayer
+frontend/.docker-runtime
 
 # visitor data
 visitors.json
@@ -111,6 +112,7 @@ frontend/diagnose-*.js
 # Backend environment
 backend/.env
 backend/.env.local
+backend/swagger-ui-cache/
 
 # SQLx query cache
 backend/.sqlx/

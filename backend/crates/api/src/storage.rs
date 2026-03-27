@@ -184,6 +184,7 @@ impl MinioStorage {
         let credentials = Credentials::new(access_key, secret_key, None, None, "static");
 
         let config = aws_sdk_s3::Config::builder()
+            .behavior_version(aws_sdk_s3::config::BehaviorVersion::latest())
             .endpoint_url(endpoint)
             .credentials_provider(credentials)
             .region(aws_sdk_s3::config::Region::new(region.to_string()))

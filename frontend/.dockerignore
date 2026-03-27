@@ -1,45 +1,47 @@
-# 依赖
 node_modules
 **/node_modules
 npm-debug.log
 yarn-error.log
 .pnpm-store
 
-# 构建输出
 .next
+!.next
+.next/*
+!.next/standalone
+!.next/standalone/**
+!.next/static
+!.next/static/**
+
+.contentlayer
+!.contentlayer
+!.contentlayer/**
+
 out
 dist
 build
-.contentlayer
 
-# 开发文件
 .env.development
 .env.local
 .env.*.local
 
-# Git
 .git
 .gitignore
 
-# Docker
 Dockerfile
 .dockerignore
 docker-compose*.yml
 
-# 文档
 README.md
 *.md
 CLAUDE.md
 **/CLAUDE.md
 
-# IDE
 .vscode
 .idea
 *.swp
 *.swo
 *~
 
-# 测试
 coverage
 .nyc_output
 tests
@@ -51,9 +53,9 @@ storybook-static
 vitest.config.ts
 playwright.config.ts
 
-# 其他
 .DS_Store
 *.log
 *.pid
 *.tsbuildinfo
 slidev
+.docker-runtime

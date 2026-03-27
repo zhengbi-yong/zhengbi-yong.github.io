@@ -7,6 +7,9 @@ SSH_PORT="22"
 IDENTITY_FILE=""
 REMOTE_DIR="/opt/blog-platform"
 BACKUP_PATH=""
+SSH_CONNECT_TIMEOUT="${SSH_CONNECT_TIMEOUT:-15}"
+SSH_SERVER_ALIVE_INTERVAL="${SSH_SERVER_ALIVE_INTERVAL:-15}"
+SSH_SERVER_ALIVE_COUNT_MAX="${SSH_SERVER_ALIVE_COUNT_MAX:-3}"
 
 usage() {
   cat <<'EOF'
@@ -66,6 +69,11 @@ done
 [[ -n "${TARGET}" ]] || fail "--target is required"
 
 ssh_opts=(-p "${SSH_PORT}" -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+ssh_opts+=(
+  -o ConnectTimeout="${SSH_CONNECT_TIMEOUT}"
+  -o ServerAliveInterval="${SSH_SERVER_ALIVE_INTERVAL}"
+  -o ServerAliveCountMax="${SSH_SERVER_ALIVE_COUNT_MAX}"
+)
 if [[ -n "${IDENTITY_FILE}" ]]; then
   ssh_opts+=(-i "${IDENTITY_FILE}")
 fi

@@ -7,6 +7,9 @@ SSH_PORT="22"
 IDENTITY_FILE=""
 CONFIGURE_FIREWALL=false
 ALLOW_PORTS=()
+SSH_CONNECT_TIMEOUT="${SSH_CONNECT_TIMEOUT:-15}"
+SSH_SERVER_ALIVE_INTERVAL="${SSH_SERVER_ALIVE_INTERVAL:-15}"
+SSH_SERVER_ALIVE_COUNT_MAX="${SSH_SERVER_ALIVE_COUNT_MAX:-3}"
 
 usage() {
   cat <<'EOF'
@@ -63,6 +66,11 @@ done
 [[ -n "${TARGET}" ]] || fail "--target is required"
 
 ssh_opts=(-p "${SSH_PORT}" -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+ssh_opts+=(
+  -o ConnectTimeout="${SSH_CONNECT_TIMEOUT}"
+  -o ServerAliveInterval="${SSH_SERVER_ALIVE_INTERVAL}"
+  -o ServerAliveCountMax="${SSH_SERVER_ALIVE_COUNT_MAX}"
+)
 if [[ -n "${IDENTITY_FILE}" ]]; then
   ssh_opts+=(-i "${IDENTITY_FILE}")
 fi
@@ -124,7 +132,7 @@ run_apt_update() {
 }
 
 run_apt_update
-${SUDO} apt-get install -y ca-certificates curl gnupg lsb-release rsync
+${SUDO} apt-get install -y ca-certificates curl gnupg lsb-release pigz rsync
 
 if ! command -v docker >/dev/null 2>&1; then
   ${SUDO} install -m 0755 -d /etc/apt/keyrings

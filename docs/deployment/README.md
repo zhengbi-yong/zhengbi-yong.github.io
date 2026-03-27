@@ -49,6 +49,12 @@ make smoke-prod-compose-fast ENV_FILE=.env.production
 # Lowest-friction fresh-host deploy
 bash scripts/deployment/provision-compose-host.sh --target ubuntu@203.0.113.10
 
+# Fast update for an existing host that already has shared/.env.production
+bash scripts/deployment/refresh-remote-compose.sh --target ubuntu@203.0.113.10
+
+# Same fast update via Makefile wrapper
+make refresh-remote-compose TARGET=ubuntu@203.0.113.10
+
 # Render immutable release assets
 make render-release-assets VERSION=1.8.2
 ```

@@ -43,6 +43,20 @@ bash scripts/deployment/deploy-remote-compose.sh \
   --target ubuntu@203.0.113.10 \
   --env-file .env.production
 
+# Fast update using the existing remote env and only changed local images
+bash scripts/deployment/refresh-remote-compose.sh \
+  --target ubuntu@203.0.113.10 \
+  --build-local-images
+
+# Fast update + stale test-stack cleanup on small-memory hosts
+bash scripts/deployment/refresh-remote-compose.sh \
+  --target ubuntu@203.0.113.10 \
+  --build-local-images \
+  --cleanup-stale-projects
+
+# Same fast update via Makefile wrapper
+make refresh-remote-compose TARGET=ubuntu@203.0.113.10 BUILD_LOCAL_IMAGES=1
+
 # Switch public traffic to the new Compose edge behind system nginx
 bash scripts/deployment/cutover-system-nginx.sh \
   --target ubuntu@203.0.113.10 \

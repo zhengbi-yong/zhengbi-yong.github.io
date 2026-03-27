@@ -92,7 +92,8 @@ bash scripts/deployment/provision-compose-host.sh \
 Local mode will:
 
 - build `blog-backend:local` and `blog-frontend:local` locally unless `--skip-local-build` is set
-- stream those images to the host over SSH
+- auto-reuse host-built frontend `.next/standalone` artifacts when available
+- stream only changed images to the host over SSH
 - deploy with `BACKEND_IMAGE=blog-backend:local` and `FRONTEND_IMAGE=blog-frontend:local`
 
 For the current repository, local mode defaults to `NEXT_IGNORE_BUILD_ERRORS=1` and `NEXT_IGNORE_ESLINT=1` during image builds. Override them with:
@@ -155,7 +156,8 @@ Current support:
 - Ubuntu
 - Debian
 
-The bootstrap installs Docker Engine, Docker Compose, `curl`, and `rsync`, then enables Docker.
+The bootstrap installs Docker Engine, Docker Compose, `curl`, `pigz`, and
+`rsync`, then enables Docker.
 
 ### 3. Deploy the runtime package
 
@@ -185,6 +187,36 @@ Releases are uploaded into:
 ```
 
 This keeps runtime files versioned while preserving a stable env file path.
+
+## Fast updates for an existing host
+
+After the first successful deploy, use
+[refresh-remote-compose.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/refresh-remote-compose.sh)
+instead of re-running the full bootstrap flow:
+
+```bash
+bash scripts/deployment/refresh-remote-compose.sh \
+  --target ubuntu@203.0.113.10 \
+  --build-local-images
+```
+
+This fast path:
+
+- reuses the existing remote `shared/.env.production`
+- builds local images only when you ask it to
+- skips streaming unchanged images by comparing local and remote image IDs
+- uploads the latest runtime package
+- restarts only the affected services instead of the whole stack
+- uses explicit SSH connect/keepalive timeouts so hosts that stop returning the
+  SSH banner fail fast instead of hanging for a long period
+
+For frontend-only updates that already have fresh local images:
+
+```bash
+bash scripts/deployment/refresh-remote-compose.sh \
+  --target ubuntu@203.0.113.10 \
+  --image blog-frontend:local
+```
 
 ## Optional bundled services
 
