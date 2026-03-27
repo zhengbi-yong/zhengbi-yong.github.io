@@ -15,6 +15,7 @@ import dynamic from 'next/dynamic'
 import { ArticleMetadata } from '@/components/editor/ArticleMetadata'
 import { Loader2, Save, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/lib/store'
 
 // 动态导入编辑器，避免 SSR 问题
 const TiptapEditor = dynamic(
@@ -31,6 +32,7 @@ const TiptapEditor = dynamic(
 
 export default function NewPostPage() {
   const router = useRouter()
+  const { token } = useAuthStore()
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishStatus, setPublishStatus] = useState<{
     type: 'success' | 'error' | null
@@ -42,7 +44,7 @@ export default function NewPostPage() {
   const [summary, setSummary] = useState('')
   const [category, setCategory] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [content, setContent] = useState('<p>开始写作...</p>')
+  const [content, setContent] = useState('开始写作...')  // 改为 Markdown 格式
 
   // 验证表单
   const validateForm = (): boolean => {
@@ -58,7 +60,7 @@ export default function NewPostPage() {
       setPublishStatus({ type: 'error', message: '请至少选择一个标签' })
       return false
     }
-    if (!content || content === '<p>开始写作...</p>') {
+    if (!content || content === '开始写作...') {
       setPublishStatus({ type: 'error', message: '请输入文章内容' })
       return false
     }
@@ -76,36 +78,49 @@ export default function NewPostPage() {
 
     try {
       // 生成 slug（从标题转换）
-      const slug = title
+      // 如果标题包含中文，使用时间戳 + 简化的英文单词
+      // 否则使用标题的英文版本
+      let slug = title
         .toLowerCase()
         .trim()
         .replace(/[^\w\s-]/g, '')
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '')
 
-      // 获取 token
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token')
+      // 如果slug为空（比如全是中文），生成一个基于时间戳的唯一slug
+      if (!slug) {
+        const timestamp = Date.now()
+        const randomStr = Math.random().toString(36).substring(2, 8)
+        slug = `post-${timestamp}-${randomStr}`
+      }
 
+      // token 从 useAuthStore hook 获取
       if (!token) {
         throw new Error('未登录，请先登录')
       }
 
-      const response = await fetch('http://localhost:3000/api/v1/posts', {
+      const requestBody = {
+        title,
+        slug,
+        summary,
+        content,
+        status,
+        category_id: category || null,
+        tag_ids: tags.length > 0 ? tags : null,
+      }
+
+      console.log('[NewPostPage] 发送文章创建请求:', JSON.stringify(requestBody, null, 2))
+
+      const response = await fetch('http://localhost:3000/api/v1/admin/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          title,
-          slug,
-          summary,
-          content,
-          status,
-          category_id: category,
-          tag_ids: tags,
-        }),
+        body: JSON.stringify(requestBody),
       })
+
+      console.log('[NewPostPage] 响应状态:', response.status, response.statusText)
 
       // 检查响应是否为空
       const contentType = response.headers.get('content-type')
@@ -113,12 +128,14 @@ export default function NewPostPage() {
 
       if (!response.ok) {
         // 尝试解析错误信息
-        let errorMessage = '发布失败'
+        let errorMessage = `发布失败 (HTTP ${response.status})`
         if (hasJsonBody) {
           try {
             const error = await response.json()
+            console.error('[NewPostPage] 错误响应:', error)
             errorMessage = error.message || error.error || errorMessage
-          } catch {
+          } catch (e) {
+            console.error('[NewPostPage] 解析错误响应失败:', e)
             // 如果解析失败，使用状态码作为错误信息
             errorMessage = `发布失败 (HTTP ${response.status})`
           }
@@ -163,12 +180,19 @@ export default function NewPostPage() {
     }
 
     // 生成临时 slug
-    const slug = title
+    let slug = title
       .toLowerCase()
       .trim()
       .replace(/[^\w\s-]/g, '')
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '')
+
+    // 如果slug为空，生成一个临时的
+    if (!slug) {
+      const timestamp = Date.now()
+      const randomStr = Math.random().toString(36).substring(2, 8)
+      slug = `preview-${timestamp}-${randomStr}`
+    }
 
     // 在新窗口打开预览
     window.open(`/admin/posts/preview/${slug}`, '_blank')

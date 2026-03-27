@@ -247,8 +247,16 @@ async fn run_server() -> anyhow::Result<()> {
 // 🔥 关键修复：使用路由分组 + .boxed() 避免栈溢出
 // 专家建议：大型路由应使用 router.merge() 或 .nest()，并在必要时使用 .boxed()
 fn v1_routes(state: AppState) -> Router<AppState> {
-    use axum::routing::post;
+    use axum::routing::{get, post};
     // 使用 merge 组合各个路由组，每个组已使用 .boxed()
+    // /auth/me 需要认证，单独定义并应用中间件
+    let auth_me_route = Router::new()
+        .route("/auth/me", get(blog_api::routes::auth::me))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            auth_middleware,
+        ));
+
     auth_routes()
         .merge(post_routes())
         .merge(category_routes())
@@ -256,6 +264,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .merge(search_routes())
         .merge(comment_routes())
         .merge(reading_progress_routes())
+        .merge(auth_me_route)
         // admin路由需要添加认证中间件
         .merge(
             admin_routes()
@@ -296,7 +305,7 @@ fn auth_routes() -> Router<AppState> {
         .route("/auth/login", post(blog_api::routes::auth::login))
         .route("/auth/refresh", post(blog_api::routes::auth::refresh))
         .route("/auth/logout", post(blog_api::routes::auth::logout))
-        .route("/auth/me", get(blog_api::routes::auth::me))
+        // /auth/me 需要认证，在 v1_routes 中单独定义并应用中间件
 }
 
 // 文章路由

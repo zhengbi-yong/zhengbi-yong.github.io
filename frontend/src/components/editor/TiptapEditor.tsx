@@ -9,6 +9,7 @@
  * - 数学公式渲染
  * - 任务列表、图片、链接等富文本功能
  * - Notion 风格的极简 UI
+ * - 输出 Markdown 格式（而非 HTML）
  */
 
 import { useEditor, EditorContent } from '@tiptap/react'
@@ -27,9 +28,29 @@ import { cn } from '@/lib/utils'
 import { EditorToolbar } from './EditorToolbar'
 import { FloatingMenu } from './FloatingMenu'
 import { useEffect, useState } from 'react'
+import TurndownService from 'turndown'
 
 // 创建代码高亮实例（按需加载常用语言）
 const lowlight = createLowlight(common)
+
+// 初始化 Turndown 服务（HTML → Markdown）
+const turndownService = new TurndownService({
+  codeBlockStyle: 'fenced',
+  emDelimiter: '*',
+  strongDelimiter: '**',
+  headingStyle: 'atx',
+})
+
+// 保留数学公式不被转义
+turndownService.addRule('mathFormula', {
+  filter: (node: any) => {
+    if (node.nodeType === 3) {
+      return node.nodeValue?.includes('$') || false
+    }
+    return false
+  },
+  replacement: (content: string) => content,
+})
 
 interface TiptapEditorProps {
   content?: string
@@ -98,7 +119,16 @@ export function TiptapEditor({
     content,
     editable,
     onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML())
+      // 将 HTML 转换为 Markdown 后输出
+      const html = editor.getHTML()
+      try {
+        const markdown = turndownService.turndown(html)
+        onChange?.(markdown)
+      } catch (error) {
+        console.error('Failed to convert HTML to Markdown:', error)
+        // 如果转换失败，回退到 HTML
+        onChange?.(html)
+      }
     },
     editorProps: {
       attributes: {

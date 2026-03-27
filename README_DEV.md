@@ -4,6 +4,77 @@ Developer handoff and current work summary for this repository.
 
 Last updated: 2026-03-27
 
+## Recent Changes (2026-03-27)
+
+### Dynamic Article & Math Formula Rendering Fixes
+
+**问题概述**：
+- 动态创建的文章中数学公式无法渲染
+- Tiptap 编辑器输出 HTML 而非 Markdown
+- 静态 MDX 文件使用 remark/rehype 插件，但不兼容 next-mdx-remote 客户端渲染
+- 评论系统配置缺失时显示空白
+
+**解决方案**：
+采用自定义数学公式渲染方案，而非 remark/rehype 插件。
+
+**修改的文件**：
+
+1. **frontend/src/lib/mdx-runtime.tsx**
+   - 移除了 remark/rehype 插件（在客户端不兼容）
+   - 添加 KatexRenderer 组件到 MDX 组件映射
+   - 简化配置，避免 acorn 解析错误
+
+2. **frontend/src/components/KatexRenderer.tsx** (新建)
+   - 自定义数学公式渲染组件
+   - 使用 KaTeX 直接渲染
+   - 处理 HTML 实体解码
+   - 支持行内和块级公式
+
+3. **frontend/src/lib/mdx-runtime-normalize.ts**
+   - 添加 convertMathFormulas 函数：将 `$...$` 和 `$$...$$` 转换为 `<KatexRenderer>` 组件
+   - HTML 转义：避免公式中的引号破坏 HTML 属性
+   - 保护代码块：避免处理代码块中的 `$` 符号
+   - 支持跨行块级公式
+
+4. **frontend/src/components/editor/TiptapEditor.tsx**
+   - 添加 turndown 服务（HTML → Markdown 转换）
+   - 在 onUpdate 回调中将 HTML 转换为 Markdown
+   - 保留数学公式语法不被转义
+
+5. **frontend/src/app/admin/posts/new/page.tsx**
+   - 初始内容从 `'<p>开始写作...</p>'` 改为 `'开始写作...'`（Markdown 格式）
+
+6. **frontend/src/components/Comments.tsx**
+   - 添加 Giscus 配置验证
+   - 配置缺失时显示友好的提示信息
+   - 提供配置说明和链接
+
+**数据库更改**：
+- 文章内容现在保存为 Markdown 格式而非 HTML
+- 示例：`行内公式测试：$E=mc^2$`
+
+**测试验证**：
+- ✅ 动态文章数学公式渲染正常
+- ✅ 静态文章（从数据库）数学公式渲染正常
+- ✅ 支持行内公式 `$...$` 和块级公式 `$$...$$`
+- ✅ 代码块中的 `$` 符号不会被误转换
+- ✅ 公式中包含引号也能正确渲染
+
+**安装的新依赖**：
+- `turndown@7.2.2` - HTML 到 Markdown 转换
+- `@types/turndown@5.0.6` - TypeScript 类型定义
+
+**环境变量**（可选）：
+```bash
+# Giscus 评论系统配置
+NEXT_PUBLIC_GISCUS_REPO=zhengbi-yong/zhengbi-yong.github.io
+NEXT_PUBLIC_GISCUS_REPOSITORY_ID=R_kgDOJ_xpA
+NEXT_PUBLIC_GISCUS_CATEGORY=Announcements
+NEXT_PUBLIC_GISCUS_CATEGORY_ID=DIC_kwDOJ_xpM4CJuJs
+```
+
+---
+
 ## Purpose
 
 This file tracks the current optimization work, the verified local development

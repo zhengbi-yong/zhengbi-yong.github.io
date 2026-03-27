@@ -8,6 +8,10 @@ import { components as mdxComponents } from '@/components/MDXComponents'
 import { AnimationSkeleton } from '@/components/loaders/AnimationSkeleton'
 import { AnimationErrorBoundary } from '@/components/AnimationErrorBoundary'
 import { normalizeRuntimeMdxContent } from './mdx-runtime-normalize'
+import { KatexRenderer } from '@/components/KatexRenderer'
+
+// Import KaTeX CSS
+import 'katex/dist/katex.min.css'
 
 const ChemicalStructure = dynamic(
   () => import('@/components/chemistry/ChemicalStructure').then((mod) => mod.default),
@@ -103,14 +107,24 @@ const components = {
   SimpleChemicalStructure: WrappedSimpleChemicalStructure,
   RDKitStructure: WrappedRDKitStructure,
   MoleculeFingerprint: WrappedMoleculeFingerprint,
+  KatexRenderer: KatexRenderer,  // 数学公式渲染组件
 }
 
 export async function serializeMDX(content: string) {
-  return await serialize(content, {
+  console.log('[serializeMDX] Input content:', content.substring(0, 100))
+
+  // 暂时移除 KaTeX 插件，先让基本功能工作
+  const result = await serialize(content, {
     mdxOptions: {
       format: 'mdx',
+      // 暂时不使用插件
+      remarkPlugins: [],
+      rehypePlugins: [],
     },
   })
+
+  console.log('[serializeMDX] Serialized successfully')
+  return result
 }
 
 export type MDXRuntimeProps = {

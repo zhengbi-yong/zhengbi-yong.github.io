@@ -365,7 +365,7 @@ fn compute_etag(stats: &PostStatsResponse) -> String {
 )]
 pub async fn create_post(
     State(state): State<AppState>,
-    Extension(auth_user): Extension<Option<AuthUser>>, // Allow None for migration
+    Extension(auth_user): Extension<AuthUser>,
     Json(req): Json<CreatePostRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let created_slug = req.slug.clone();
@@ -418,10 +418,7 @@ pub async fn create_post(
         req.meta_description,
         req.canonical_url,
         req.category_id,
-        auth_user.as_ref().map(|u| u.id).unwrap_or_else(|| {
-            // For migration: use a default system user if no auth
-            uuid::Uuid::new_v4()
-        }),
+        auth_user.id,
         req.show_toc.unwrap_or(true),
         req.layout.unwrap_or_else(|| "PostSimple".to_string()),
         reading_time as i32
@@ -452,10 +449,7 @@ pub async fn create_post(
         req.title,
         req.content,
         req.summary,
-        auth_user
-            .as_ref()
-            .map(|u| u.id)
-            .unwrap_or_else(|| uuid::Uuid::new_v4())
+        auth_user.id
     )
     .execute(&mut *tx)
     .await?;

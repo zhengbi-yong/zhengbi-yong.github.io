@@ -195,14 +195,15 @@ const generateSecurityHeaders = () => {
         // 开发环境：允许 unsafe-inline 和 unsafe-eval 用于开发工具
         // 化学可视化需要的外部CDN: cdn.jsdelivr.net (KaTeX/mhchem), unpkg.com (3Dmol), rdkit.org (RDKit)
         // WebAssembly需要 'wasm-unsafe-eval' 或 'unsafe-eval' 才能运行
+        // 评论系统需要 giscus.app
         'default-src': "'self'",
-        'script-src': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' https://cloud.umami.is",
-        'script-src-elem': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' https://cloud.umami.is",
+        'script-src': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app https://cloud.umami.is",
+        'script-src-elem': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app https://cloud.umami.is",
         'style-src': "'self' 'unsafe-inline'",
-        'img-src': "'self' data: https:",
+        'img-src': "'self' data: https: avatars.githubusercontent.com",
         'font-src': "'self' data: blob: https:",
-        'connect-src': "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 https://cloud.umami.is",
-        'frame-src': 'excalidraw.com',
+        'connect-src': "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
+        'frame-src': 'giscus.app excalidraw.com',
       }
 
   // 将 CSP 对象转换为字符串
