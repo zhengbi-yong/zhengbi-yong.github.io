@@ -98,7 +98,7 @@ export default function NewPostPage() {
 
       console.log('[NewPostPage] 发送文章创建请求:', JSON.stringify(requestBody, null, 2))
 
-      const response = await fetch('http://localhost:3000/api/v1/admin/posts', {
+      const response = await fetch('/api/v1/admin/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
