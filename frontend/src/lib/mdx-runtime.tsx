@@ -9,9 +9,17 @@ import { AnimationSkeleton } from '@/components/loaders/AnimationSkeleton'
 import { AnimationErrorBoundary } from '@/components/AnimationErrorBoundary'
 import { normalizeRuntimeMdxContent } from './mdx-runtime-normalize'
 import { KatexRenderer } from '@/components/KatexRenderer'
+import remarkGfm from 'remark-gfm'
 
 // Import KaTeX CSS
 import 'katex/dist/katex.min.css'
+
+// Get the default export which is the actual plugin function
+// remark-gfm is a direct CommonJS export, handle both ESM and CJS module formats
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+ import * as remarkGfmModule from 'remark-gfm'
+const remarkGfmPlugin = (remarkGfmModule as any).default || remarkGfmModule
+
 
 const ChemicalStructure = dynamic(
   () => import('@/components/chemistry/ChemicalStructure').then((mod) => mod.default),
@@ -110,23 +118,6 @@ const components = {
   KatexRenderer: KatexRenderer,  // 数学公式渲染组件
 }
 
-export async function serializeMDX(content: string) {
-  console.log('[serializeMDX] Input content:', content.substring(0, 100))
-
-  // 暂时移除 KaTeX 插件，先让基本功能工作
-  const result = await serialize(content, {
-    mdxOptions: {
-      format: 'mdx',
-      // 暂时不使用插件
-      remarkPlugins: [],
-      rehypePlugins: [],
-    },
-  })
-
-  console.log('[serializeMDX] Serialized successfully')
-  return result
-}
-
 export type MDXRuntimeProps = {
   content: string
 } & Partial<Omit<MDXRemoteProps, 'source'>>
@@ -143,7 +134,13 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
       try {
         setIsLoading(true)
         setError(null)
-        const source = await serialize(normalizeRuntimeMdxContent(content))
+        const source = await serialize(normalizeRuntimeMdxContent(content), {
+          mdxOptions: {
+            remarkPlugins: [remarkGfmPlugin],
+            rehypePlugins: [],
+            format: 'mdx',
+          },
+        })
         if (!cancelled) {
           setMdxSource(source)
         }
@@ -177,12 +174,7 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
     return <MDXEmptyState />
   }
 
-  return (
-    <>
-      <MhchemInit />
-      <MDXRemote {...mdxSource} components={components} {...props} />
-    </>
-  )
+  return <MDXRemote {...mdxSource} components={components} {...props} />
 }
 
 function MDXLoadingSkeleton() {
@@ -221,6 +213,3 @@ function MDXEmptyState() {
   )
 }
 
-function MhchemInit() {
-  return null
-}

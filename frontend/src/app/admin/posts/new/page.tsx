@@ -77,9 +77,9 @@ export default function NewPostPage() {
     setPublishStatus({ type: null, message: '' })
 
     try {
-      // 生成 slug（从标题转换）
-      // 如果标题包含中文，使用时间戳 + 简化的英文单词
-      // 否则使用标题的英文版本
+      // 生成 slug
+      // 英文标题：使用 kebab-case
+      // 非英文标题（如中文）：使用长 ID（UUID v4），保证全局唯一且可扩展
       let slug = title
         .toLowerCase()
         .trim()
@@ -87,11 +87,9 @@ export default function NewPostPage() {
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '')
 
-      // 如果slug为空（比如全是中文），生成一个基于时间戳的唯一slug
+      // 如果 slug 为空（比如全是中文/特殊字符），生成 UUID 作为唯一标识
       if (!slug) {
-        const timestamp = Date.now()
-        const randomStr = Math.random().toString(36).substring(2, 8)
-        slug = `post-${timestamp}-${randomStr}`
+        slug = crypto.randomUUID()
       }
 
       // token 从 useAuthStore hook 获取
@@ -187,11 +185,9 @@ export default function NewPostPage() {
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '')
 
-    // 如果slug为空，生成一个临时的
+    // 如果slug为空（比如全是中文），使用长 ID
     if (!slug) {
-      const timestamp = Date.now()
-      const randomStr = Math.random().toString(36).substring(2, 8)
-      slug = `preview-${timestamp}-${randomStr}`
+      slug = crypto.randomUUID()
     }
 
     // 在新窗口打开预览

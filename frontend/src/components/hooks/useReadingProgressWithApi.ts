@@ -84,7 +84,7 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
       try {
         setIsLoading(true)
         const response = await api.get<BackendReadingProgress>(
-          `/v1/posts/${encodeURIComponent(postSlug)}/reading-progress`,
+          `/api/v1/posts/${encodeURIComponent(postSlug)}/reading-progress`,
           { cache: false }
         )
 
@@ -124,7 +124,7 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
         setError(undefined)
 
         await api.post(
-          `/v1/posts/${encodeURIComponent(postSlug)}/reading-progress`,
+          `/api/v1/posts/${encodeURIComponent(postSlug)}/reading-progress`,
           {
             progress: Math.round(currentProgress * 100),
             scroll_percentage: currentScrollPercentage,
@@ -239,7 +239,7 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
         })
 
         navigator.sendBeacon(
-          `/v1/posts/${encodeURIComponent(postSlug)}/reading-progress`,
+          `/api/v1/posts/${encodeURIComponent(postSlug)}/reading-progress`,
           new Blob([data], { type: 'application/json' })
         )
       }

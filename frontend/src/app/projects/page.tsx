@@ -48,8 +48,7 @@ export default function Projects() {
                           </CardTitle>
                           <CardDescription>{d.description}</CardDescription>
                         </CardHeader>
-                        <Link
-                          href={d.href}
+                        <span
                           className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 group/link inline-flex items-center gap-2 text-base leading-6 font-medium transition-all duration-200"
                         >
                           <span className="relative">
@@ -59,7 +58,7 @@ export default function Projects() {
                           <span className="transition-transform duration-300 group-hover/link:translate-x-1">
                             →
                           </span>
-                        </Link>
+                        </span>
                       </CardContent>
                     </Card>
                   </Link>

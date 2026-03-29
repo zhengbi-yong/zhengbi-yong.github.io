@@ -12,7 +12,6 @@ import Pre from 'pliny/ui/Pre'
 import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm'
 import Image from './Image'
 import CustomLink from './Link'
-import TableWrapper from './TableWrapper'
 import AnimatedSection from './AnimatedSection'
 import AnimatedList from './AnimatedList'
 import { AnimationSkeleton } from './loaders/AnimationSkeleton'
@@ -330,7 +329,6 @@ export const components = {
   TOCInline,
   a: CustomLink,
   pre: PreWithABC,
-  table: TableWrapper,
   BlogNewsletterForm,
   // 第一阶段动画组件（向后兼容）
   AnimatedSection,
