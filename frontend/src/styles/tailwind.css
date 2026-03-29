@@ -958,3 +958,184 @@ html.cursor-hidden .case-go {
 .dark .mdx-content table tbody tr:hover {
   background-color: oklch(0.22 0.02 264);
 }
+
+/* ===== Art-Level Typography Foundation ===== */
+
+/* Body text optimization for CJK/Latin mixed content */
+.prose p {
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+/* CJK content needs more line-height */
+.prose :lang(zh) p,
+.prose .cjk-content p {
+  line-height: 1.8;
+}
+
+/* Heading typography scale */
+.prose h1 {
+  font-size: 2.25rem;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.prose h2 {
+  font-size: 1.75rem;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.prose h3 {
+  font-size: 1.375rem;
+  line-height: 1.4;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose h4 {
+  font-size: 1.125rem;
+  line-height: 1.45;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Content width constraint for optimal reading */
+.prose {
+  max-width: 680px;
+}
+
+/* Paragraph spacing */
+.prose p + p {
+  margin-top: 1.25em;
+}
+
+/* Blockquote styling */
+.prose blockquote {
+  border-left: 3px solid var(--accent-color, hsl(250, 70%, 60%));
+  padding-left: 1.25rem;
+  margin-left: 0;
+  margin-right: 0;
+  font-style: italic;
+  color: var(--muted-foreground, #6b7280);
+}
+
+/* List spacing */
+.prose ul, .prose ol {
+  padding-left: 1.5rem;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose li {
+  margin-top: 0.375em;
+  margin-bottom: 0.375em;
+}
+
+/* Link styling */
+.prose a {
+  color: var(--accent-color, hsl(250, 70%, 60%));
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  transition: color 150ms ease, text-decoration-color 150ms ease;
+}
+
+.prose a:hover {
+  color: var(--accent-color, hsl(250, 70%, 70%));
+}
+
+/* Horizontal rule */
+.prose hr {
+  border: none;
+  height: 1px;
+  background: var(--border);
+  margin: 2.5rem 0;
+}
+
+/* Image in prose */
+.prose img {
+  border-radius: 0.5rem;
+  margin: 2rem 0;
+}
+
+/* Selection color */
+::selection {
+  background: hsl(250, 70%, 85%);
+  color: hsl(250, 70%, 20%);
+}
+
+.dark ::selection {
+  background: hsl(250, 70%, 35%);
+  color: hsl(250, 70%, 95%);
+}
+
+/* ===== Code Block Styling ===== */
+
+/* Code blocks always dark theme */
+.code-block pre {
+  margin: 0;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  tab-size: 2;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.code-block code {
+  font-family: inherit;
+  color: #cdd6f4; /* Catppuccin Mocha Text */
+}
+
+/* Syntax highlighting colors (Catppuccin Mocha inspired) */
+.code-block .token.comment,
+.code-block .token.prolog,
+.code-block .token.doctype,
+.code-block .token.cdata { color: #6c7086; }
+.code-block .token.punctuation { color: #9399b2; }
+.code-block .token.property,
+.code-block .token.tag,
+.code-block .token.boolean,
+.code-block .token.number,
+.code-block .token.constant,
+.code-block .token.symbol { color: #fab387; }
+.code-block .token.selector,
+.code-block .token.attr-name,
+.code-block .token.string,
+.code-block .token.char,
+.code-block .token.builtin { color: #a6e3a1; }
+.code-block .token.operator,
+.code-block .token.entity,
+.code-block .token.url { color: #89dceb; }
+.code-block .token.atrule,
+.code-block .token.attr-value,
+.code-block .token.keyword { color: #cba6f7; }
+.code-block .token.function,
+.code-block .token.class-name { color: #89b4fa; }
+.code-block .token.regex,
+.code-block .token.important,
+.code-block .token.variable { color: #f38ba8; }
+
+/* Inline code */
+.prose code:not(pre code) {
+  background: var(--muted);
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  color: var(--foreground);
+}
+
+.prose pre {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+}

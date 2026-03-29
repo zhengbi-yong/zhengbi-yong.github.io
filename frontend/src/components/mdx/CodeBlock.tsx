@@ -1,0 +1,157 @@
+'use client'
+
+import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
+import { Check, Copy, Terminal } from 'lucide-react'
+import { cn } from '@/components/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
+
+interface CodeBlockProps {
+  children: ReactNode
+  className?: string
+  title?: string
+}
+
+function extractLanguage(className?: string): string {
+  if (!className) return ''
+  const match = className.match(/language-(\w+)/)
+  return match ? match[1] : ''
+}
+
+function extractTextContent(children: ReactNode): string {
+  if (typeof children === 'string') return children
+  if (typeof children === 'number') return String(children)
+  if (Array.isArray(children)) return children.map(extractTextContent).join('')
+  if (children && typeof children === 'object' && 'props' in children) {
+    return extractTextContent((children as { props: { children: ReactNode } }).props.children)
+  }
+  return ''
+}
+
+export function CodeBlock({ children, className, title }: CodeBlockProps) {
+  const [copied, setCopied] = useState(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const language = extractLanguage(className)
+
+  const codeText = extractTextContent(children)
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(codeText)
+      setCopied(true)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      timeoutRef.current = setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea')
+      textarea.value = codeText
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+      setCopied(true)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      timeoutRef.current = setTimeout(() => setCopied(false), 2000)
+    }
+  }, [codeText])
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
+
+  return (
+    <div className="code-block group relative my-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700/50 bg-[#1e293b] dark:bg-gray-900/95">
+      {/* Header bar */}
+      <div className="flex items-center justify-between border-b border-gray-700/50 px-4 py-2 bg-[#1a2332] dark:bg-gray-800/80">
+        <div className="flex items-center gap-2">
+          {/* Traffic lights */}
+          <div className="flex items-center gap-1.5">
+            <span className="h-3 w-3 rounded-full bg-red-500/80" />
+            <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
+            <span className="h-3 w-3 rounded-full bg-green-500/80" />
+          </div>
+          {title && (
+            <span className="ml-2 text-xs text-gray-400 font-mono truncate max-w-[200px]">
+              {title}
+            </span>
+          )}
+          {!title && language && (
+            <span className="ml-2 text-xs text-gray-400 font-mono uppercase tracking-wide">
+              {language}
+            </span>
+          )}
+        </div>
+
+        {/* Copy button */}
+        <motion.button
+          onClick={handleCopy}
+          className={cn(
+            'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-200',
+            copied
+              ? 'bg-green-500/20 text-green-400'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700/50'
+          )}
+          whileTap={{ scale: 0.92 }}
+          aria-label={copied ? 'Copied!' : 'Copy code'}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {copied ? (
+              <motion.span
+                key="check"
+                initial={{ scale: 0, rotate: -90 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 90 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-1.5"
+              >
+                <Check size={14} />
+                Copied!
+              </motion.span>
+            ) : (
+              <motion.span
+                key="copy"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center gap-1.5"
+              >
+                <Copy size={14} />
+                Copy
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
+      </div>
+
+      {/* Code content */}
+      <div className="relative">
+        {language ? (
+          <div className="flex">
+            {/* Line numbers */}
+            <div className="hidden sm:flex flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
+              {codeText.split('\n').map((_, i) => (
+                <div key={i}>{i + 1}</div>
+              ))}
+            </div>
+            <div className="flex-1 overflow-x-auto">
+              {children}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-4 py-3">
+            <Terminal size={14} className="text-gray-500 flex-shrink-0" />
+            <div className="overflow-x-auto flex-1">
+              {children}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default CodeBlock

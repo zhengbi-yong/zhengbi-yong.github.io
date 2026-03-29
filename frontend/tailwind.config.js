@@ -21,6 +21,10 @@ module.exports = {
         'visitor-md': '3rem',      // 48px
         'visitor-lg': '5rem',      // 80px
         'visitor-xl': '8rem',      // 128px
+        // Fibonacci-based spacing additions
+        '13': '3.25rem',
+        '21': '5.25rem',
+        '34': '8.5rem',
       },
       // 管理界面专用字体大小系统
       fontSize: {
@@ -38,6 +42,8 @@ module.exports = {
         'visitor-serif': ['Playfair Display', 'Georgia', 'Times New Roman', 'serif'],
         'visitor-sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         'visitor-mono': ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+        sans: ['var(--font-inter)', '"PingFang SC"', '"Noto Sans SC"', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
       },
       // 游客界面专用缓动函数
       transitionTimingFunction: {

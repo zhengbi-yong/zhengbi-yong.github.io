@@ -18,7 +18,20 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
 import VisitorTracker from '@/components/VisitorTracker'
 import I18nProvider from '@/components/I18nProvider'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import { Metadata } from 'next'
+
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-inter',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
+})
 import Script from 'next/script'
 import { AuthInitializer } from '@/components/auth/AuthInitializer'
 import { Toaster } from '@/components/shadcn/ui/sonner'
@@ -78,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={siteMetadata.language}
-      className="scroll-smooth"
+      className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
