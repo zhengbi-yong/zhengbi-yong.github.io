@@ -2,7 +2,33 @@
 
 Developer handoff and current work summary for this repository.
 
-Last updated: 2026-03-27
+Last updated: 2026-03-29
+
+## v2.0.0 Release (2026-03-29)
+
+This release consolidates all work since v1.8.2 into a stable baseline.
+
+### Key Features Completed Since v1.8.2
+
+- **Table Rendering**: Full table styling with dark mode support in both prose and non-prose contexts
+- **Math Formula Rendering**: Custom KaTeX-based rendering for dynamic articles with HTML entity decoding, code block protection, and inline/block formula support
+- **Admin Panel**: Post management with Tiptap editor, HTML-to-Markdown conversion, Giscus comment integration
+- **UUID-based Article Slugs**: Unified slug format with title lookup index
+- **API-backed Blog Runtime**: All blog pages (home, list, category, detail) use backend API as canonical source
+- **Windows Native Dev Workflow**: PowerShell entrypoints, Contentlayer prebuild, Docker prebuilt-runner target
+- **Backend Migrator**: Dedicated migration crate solving SQLx compile-time bootstrap issues
+- **Docker Deployment**: Prebuilt-runner frontend image (~56.8MB backend), image streaming, fast remote refresh
+- **Chemistry Visualization**: 3Dmol.js, RDKit.js with lazy loading and shared client-side loader
+- **Monitoring**: Prometheus metrics, Grafana dashboards, Meilisearch search backend
+- **Production Deployment**: Complete deployment pipeline with Nginx cutover, SSL, blog content sync
+
+### Current Version
+
+- VERSION file: `2.0.0`
+- Frontend package: `2.0.0`
+- Backend workspace: `2.0.0`
+
+---
 
 ## Recent Changes (2026-03-27)
 
