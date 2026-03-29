@@ -8,7 +8,7 @@
 
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { Suspense } from 'react'
 import { MDXRuntime } from '@/lib/mdx-runtime'
 
 interface DynamicPostRendererProps {
@@ -35,21 +35,7 @@ export function DynamicPostRenderer({ content }: DynamicPostRendererProps) {
  * MDX内容组件（内部使用）
  */
 function MDXContent({ content }: { content: string }) {
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return <PostContentSkeleton />
-  }
-
-  return (
-    <>
-      <MDXRuntime content={content} />
-    </>
-  )
+  return <MDXRuntime content={content} />
 }
 
 /**
