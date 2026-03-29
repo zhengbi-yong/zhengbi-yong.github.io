@@ -130,6 +130,7 @@ deploy_keyn
 posts.jsonn
 schema.sqln
 users_export.csvn
+# Windows device artifactsnul
 
 # Temporary and garbage files
 *.pid
