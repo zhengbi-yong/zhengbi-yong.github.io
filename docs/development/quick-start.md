@@ -255,7 +255,7 @@ cargo test
 cargo check
 
 # Run database migration / 运行数据库迁移
-sqlx migrate run
+cargo run -p blog-migrator
 
 # Create new migration / 创建新迁移
 sqlx migrate add <migration_name>
@@ -339,7 +339,7 @@ netstat -ano | findstr :3000
 
 ### Database migration fails / 数据库迁移失败
 
-**Problem**: `sqlx migrate run` fails
+**Problem**: `cargo run -p blog-migrator` fails
 
 **Solution**:
 1. Verify DATABASE_URL is correct
@@ -348,7 +348,7 @@ netstat -ano | findstr :3000
    ```bash
    sqlx database drop
    sqlx database create
-   sqlx migrate run
+   cargo run -p blog-migrator
    ```
 
 ---
@@ -445,7 +445,7 @@ Choose your learning path above and dive in! / 选择上面的学习路径，开
 │  COMMON COMMANDS:                                          │
 │  • cargo test              (backend tests)                  │
 │  • pnpm test              (frontend tests)                  │
-│  • sqlx migrate run       (database migrations)            │
+│  • cargo run -p blog-migrator (database migrations)        │
 │  • pnpm lint              (frontend linting)                │
 │                                                             │
 │  GET HELP:                                                 │

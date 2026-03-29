@@ -1018,7 +1018,7 @@ curl -X POST http://localhost:3000/v1/auth/login \
 **验证迁移**:
 ```bash
 # 运行所有迁移
-sqlx migrate run
+cargo run -p blog-migrator
 
 # 检查迁移状态
 sqlx migrate info

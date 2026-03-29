@@ -663,7 +663,7 @@ cargo build --release
 
 ```bash
 # 运行迁移
-sqlx migrate run
+cargo run -p blog-migrator
 
 # 回滚迁移
 sqlx migrate revert

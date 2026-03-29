@@ -176,7 +176,7 @@ sqlx::query_as!(Category, "SELECT * FROM categories WHERE id = $1", id)
 sqlx migrate add create_categories_table
 
 # Run migrations
-sqlx migrate run
+cargo run -p blog-migrator
 
 # Build with offline mode
 cargo build --features sqlx/offline

@@ -112,7 +112,7 @@ cargo run
 
 ```bash
 cd backend
-sqlx migrate run --database-url "postgresql://blog_user:blog_password@localhost:5432/blog_db"
+cargo run -p blog-migrator
 ```
 
 ### 4. 测试同步功能

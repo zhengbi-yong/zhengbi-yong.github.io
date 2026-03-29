@@ -260,21 +260,21 @@ CREATE TABLE reading_progress (
 ### Development
 
 ```bash
-# Run all pending migrations
-sqlx migrate run
+# Run all pending migrations (preferred)
+cargo run -p blog-migrator
 
 # Run with custom database URL
-sqlx migrate run --database-url=postgresql://...
+cargo run -p blog-migrator
 
-# Run specific migration
-sqlx migrate run --source=backend/migrations
+# Run specific migration (advanced)
+sqlx migrate run --source=backend/migrations  # legacy, use cargo run -p blog-migrator instead
 ```
 
 ### Production
 
 ```bash
-# Run migrations (use transaction!)
-sqlx migrate run
+# Run migrations (preferred)
+cargo run -p blog-migrator
 
 # Verify migration status
 sqlx migrate info
@@ -284,10 +284,10 @@ sqlx migrate info
 
 ```bash
 # In Dockerfile
-RUN sqlx migrate run --database-url=$DATABASE_URL
+RUN cargo run -p blog-migrator
 
 # In docker-compose
-command: ["sh", "-c", "sqlx migrate run && ./blog-backend"]
+command: ["sh", "-c", "cargo run -p blog-migrator && ./blog-backend"]
 ```
 
 ## Creating New Migrations

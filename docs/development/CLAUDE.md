@@ -180,7 +180,7 @@ cargo fmt           # Format code
 **Migrations**:
 ```bash
 # Run migrations
-sqlx migrate run
+cargo run -p blog-migrator
 
 # Create new migration
 sqlx migrate add add_new_feature

@@ -424,7 +424,7 @@ Error: migration failed
 ```bash
 # 重置数据库
 sqlx migrate revert
-sqlx migrate run
+cargo run -p blog-migrator
 ```
 
 ---

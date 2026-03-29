@@ -73,7 +73,7 @@ ENVIRONMENT=development
 ## Database
 
 **Migrations**: `./migrations/`
-- Run via SQLx: `sqlx migrate run`
+- Run via migrator: `cargo run -p blog-migrator`
 - Automatically tracked in `.sqlx/`
 
 **Schema**:

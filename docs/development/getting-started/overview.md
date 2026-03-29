@@ -464,7 +464,7 @@ docker compose up -d postgres redis
 # 3. Setup backend
 cd backend
 sqlx database create
-sqlx migrate run
+cargo run -p blog-migrator
 
 # 4. Start backend (in terminal 1)
 cd backend

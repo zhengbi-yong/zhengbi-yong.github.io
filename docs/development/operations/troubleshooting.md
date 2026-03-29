@@ -389,7 +389,7 @@ Error: migration conflict detected
 sqlx migrate revert
 
 # 重新运行
-sqlx migrate run
+cargo run -p blog-migrator
 
 # 如果还是失败，手动修复
 sqlx migrate info

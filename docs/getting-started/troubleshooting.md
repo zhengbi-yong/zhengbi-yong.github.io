@@ -190,13 +190,13 @@ Error: migration failed
 cd backend
 docker compose down -v
 ./scripts/deployment/deploy.sh dev
-sqlx migrate run
+cargo run -p blog-migrator
 ```
 
 2. **手动运行迁移**:
 ```bash
 cd backend
-sqlx migrate run
+cargo run -p blog-migrator
 ```
 
 3. **检查迁移状态**:

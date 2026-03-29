@@ -50,7 +50,7 @@ docs/appendix/
 - Comment moderation bugs
 
 ### Migration
-- Run migrations: `sqlx migrate run`
+- Run migrations: `cargo run -p blog-migrator`
 ```
 
 ### faq.md
@@ -269,7 +269,7 @@ Markdown + JSX format that allows using React components in Markdown.
 **From Changelog**:
 ```markdown
 ### Migration
-- Run migrations: `sqlx migrate run`
+- Run migrations: `cargo run -p blog-migrator`
 - See [数据库迁移](../development/backend/database-migrations.md) for details.
 ```
 
