@@ -59,12 +59,12 @@ export function ArticleMetadata({
       setLoading(true)
       try {
         // 获取分类
-        const catRes = await fetch('http://localhost:3000/api/v1/categories')
+        const catRes = await fetch('/api/v1/categories')
         const catData = await catRes.json()
         setCategories(catData || [])
 
         // 获取标签
-        const tagRes = await fetch('http://localhost:3000/api/v1/tags')
+        const tagRes = await fetch('/api/v1/tags')
         const tagData = await tagRes.json()
         setAllTags(tagData || [])
       } catch (error) {
