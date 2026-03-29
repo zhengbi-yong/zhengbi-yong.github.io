@@ -889,3 +889,72 @@ html.cursor-hidden .case-go {
   background-color: var(--accent-color);
   box-shadow: 0 4px 12px rgba(192, 132, 252, 0.3);
 }
+
+/* Markdown 表格样式 */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+}
+
+.prose th,
+.prose td {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.prose th {
+  background-color: var(--muted);
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.prose tr:hover {
+  background-color: var(--muted);
+}
+
+.dark .prose th {
+  background-color: oklch(0.25 0.02 264);
+  color: var(--foreground);
+}
+
+.dark .prose tr:hover {
+  background-color: oklch(0.22 0.02 264);
+}
+
+.dark .prose th,
+.dark .prose td {
+  border-color: var(--border);
+}
+
+/* 全局表格样式（适用于非 prose 容器中的表格） */
+table th,
+table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+table th {
+  background-color: var(--muted);
+  font-weight: 600;
+}
+
+table thead {
+  border-bottom: 2px solid var(--border);
+}
+
+table tbody tr:hover {
+  background-color: var(--muted);
+}
+
+.dark table th {
+  background-color: oklch(0.25 0.02 264);
+}
+
+.dark table tbody tr:hover {
+  background-color: oklch(0.22 0.02 264);
+}

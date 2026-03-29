@@ -41,7 +41,7 @@ function normalizeSegment(segment: string) {
  * 支持：$...$ (行内) 和 $$...$$ (块级)
  *
  * 注意：需要对公式内容进行 HTML 转义，避免破坏属性值
- * 并且避免转换代码块中的 $ 符号
+ * 并且避免转换代码块和表格中的内容
  */
 function convertMathFormulas(content: string): string {
   // HTML 转义函数
@@ -54,12 +54,17 @@ function convertMathFormulas(content: string): string {
       .replace(/'/g, '&#039;')
   }
 
-  // 首先保护代码块，避免处理其中的 $ 符号
-  const codeBlocks: string[] = []
+  // 保护代码块，避免处理其中的特殊字符
+  const protectedBlocks: string[] = []
+
+  // 保护代码块
   content = content.replace(/```[\s\S]*?```/g, (match) => {
-    codeBlocks.push(match)
-    return `__CODE_BLOCK_${codeBlocks.length - 1}__`
+    protectedBlocks.push(match)
+    return `__PROTECTED_BLOCK_${protectedBlocks.length - 1}__`
   })
+
+  // 注意：不需要保护表格，MDX 原生支持 Markdown 表格
+  // 表格行中的 | 符号不会被数学公式转换误处理，因为我们的正则不会匹配它们
 
   // 转换块级公式 $$...$$ (支持跨行)
   content = content.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => {
@@ -73,9 +78,9 @@ function convertMathFormulas(content: string): string {
     return `<KatexRenderer math="${escapedMath}" display={false} />`
   })
 
-  // 恢复代码块
-  content = content.replace(/__CODE_BLOCK_(\d+)__/g, (_, index) => {
-    return codeBlocks[parseInt(index)]
+  // 恢复被保护的内容
+  content = content.replace(/__PROTECTED_BLOCK_(\d+)__/g, (_, index) => {
+    return protectedBlocks[parseInt(index)]
   })
 
   return content
