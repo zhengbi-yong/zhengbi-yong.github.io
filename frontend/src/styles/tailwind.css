@@ -929,32 +929,32 @@ html.cursor-hidden .case-go {
   border-color: var(--border);
 }
 
-/* 全局表格样式（适用于非 prose 容器中的表格） */
-table th,
-table td {
+/* MDX 渲染表格样式（适用于非 prose 容器中的 MDX 表格） */
+.mdx-content table th,
+.mdx-content table td {
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   text-align: left;
   font-size: 0.875rem;
 }
 
-table th {
+.mdx-content table th {
   background-color: var(--muted);
   font-weight: 600;
 }
 
-table thead {
+.mdx-content table thead {
   border-bottom: 2px solid var(--border);
 }
 
-table tbody tr:hover {
+.mdx-content table tbody tr:hover {
   background-color: var(--muted);
 }
 
-.dark table th {
+.dark .mdx-content table th {
   background-color: oklch(0.25 0.02 264);
 }
 
-.dark table tbody tr:hover {
+.dark .mdx-content table tbody tr:hover {
   background-color: oklch(0.22 0.02 264);
 }
