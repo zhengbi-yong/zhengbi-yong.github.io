@@ -77,20 +77,9 @@ export default function NewPostPage() {
     setPublishStatus({ type: null, message: '' })
 
     try {
-      // 生成 slug
-      // 英文标题：使用 kebab-case
-      // 非英文标题（如中文）：使用长 ID（UUID v4），保证全局唯一且可扩展
-      let slug = title
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-
-      // 如果 slug 为空（比如全是中文/特殊字符），生成 UUID 作为唯一标识
-      if (!slug) {
-        slug = crypto.randomUUID()
-      }
+      // 生成 slug：统一使用长 ID（UUID v4），保证全局唯一、可扩展
+      // 无论中英文标题，一律使用 UUID，确保 URL 格式统一美观
+      const slug = crypto.randomUUID()
 
       // token 从 useAuthStore hook 获取
       if (!token) {
@@ -177,18 +166,8 @@ export default function NewPostPage() {
       return
     }
 
-    // 生成临时 slug
-    let slug = title
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-
-    // 如果slug为空（比如全是中文），使用长 ID
-    if (!slug) {
-      slug = crypto.randomUUID()
-    }
+    // 生成临时 slug：统一使用 UUID 格式
+    const slug = crypto.randomUUID()
 
     // 在新窗口打开预览
     window.open(`/admin/posts/preview/${slug}`, '_blank')

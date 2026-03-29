@@ -14,12 +14,6 @@ import remarkGfm from 'remark-gfm'
 // Import KaTeX CSS
 import 'katex/dist/katex.min.css'
 
-// Get the default export which is the actual plugin function
-// remark-gfm is a direct CommonJS export, handle both ESM and CJS module formats
-// eslint-disable-next-line @typescript-eslint/no-require-imports
- import * as remarkGfmModule from 'remark-gfm'
-const remarkGfmPlugin = (remarkGfmModule as any).default || remarkGfmModule
-
 
 const ChemicalStructure = dynamic(
   () => import('@/components/chemistry/ChemicalStructure').then((mod) => mod.default),
@@ -136,7 +130,7 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
         setError(null)
         const source = await serialize(normalizeRuntimeMdxContent(content), {
           mdxOptions: {
-            remarkPlugins: [remarkGfmPlugin],
+            remarkPlugins: [remarkGfm],
             rehypePlugins: [],
             format: 'mdx',
           },
