@@ -1,6 +1,7 @@
 'use client'
 
-import { ReactNode, useRef, useCallback, useState } from 'react'
+import { ReactNode } from 'react'
+import { motion } from 'framer-motion'
 import siteMetadata from '@/data/siteMetadata'
 import { CoreContent } from 'pliny/utils/contentlayer'
 import type { Authors } from 'contentlayer/generated'
@@ -14,6 +15,8 @@ import ArticleAnalytics from '@/components/ArticleAnalytics'
 import { PostBackendIntegration } from '@/components/post/PostBackendIntegration'
 import { RecentArticles } from '@/components/RecentArticles'
 import { CommentDrawer } from '@/components/post/CommentDrawer'
+import { BackendComments } from '@/components/post/BackendComments'
+import type { TOC } from '@/lib/types/toc'
 import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 
 import '@/styles/visitor-theme.css'
@@ -111,10 +114,6 @@ export default function PostLayout({
     ],
   }
 
-  // Golden ratio: 1/ phi = 0.618 (small) | 1 / phi = 1.618 (large)
-  const PHI = 0.618 // golden ratio constant
- const ASyMM_PHI = 1.618 // golden ratio small padding
-
   return (
     <SectionContainer>
       <JsonLd data={articleSchema} />
@@ -140,7 +139,9 @@ export default function PostLayout({
           >
             <dt className="sr-only">Published on</dt>
             <motion.dd
-              whileInView={{ once: true }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
               className="text-sm leading-6 font-medium text-gray-500 dark:text-gray-400 transition-colors duration-200"
             >
               <time dateTime={isoDate || date}>
@@ -148,8 +149,8 @@ export default function PostLayout({
                   ? parsedDate.toLocaleDateString(siteMetadata.locale, postDateTemplate)
                   : date}
               </time>
-            </dd>
-          </dl>
+            </motion.dd>
+          </motion.div>
 
           {/* Title with stagger animation */}
           <motion.div
@@ -188,7 +189,7 @@ export default function PostLayout({
                 </motion.span>
               ))}
             </motion.div>
-          </div>
+          </motion.div>
         </header>
 
         {/* Golden-ratio asymmetric layout */}

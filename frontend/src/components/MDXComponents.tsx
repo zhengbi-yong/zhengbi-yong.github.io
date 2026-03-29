@@ -18,8 +18,6 @@ import { AnimationSkeleton } from './loaders/AnimationSkeleton'
 import { AnimationErrorBoundary } from './AnimationErrorBoundary'
 import { ExcalidrawEmbed } from './MDXComponents/ExcalidrawEmbed'
 import SheetMusic, { ABCCodeBlock } from './SheetMusic'
-import TableWrapper from './TableWrapper'
-import { CodeBlock } from './mdx/CodeBlock'
 
 // 动态导入动画组件，减少初始 bundle 大小
 // 注意：在 Server Component 中不能使用 ssr: false，但这些组件本身已经是 Client Components
