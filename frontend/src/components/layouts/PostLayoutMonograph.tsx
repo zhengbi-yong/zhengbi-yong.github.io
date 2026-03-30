@@ -296,7 +296,7 @@ export default function PostLayoutMonograph({
                     const isActive = activeSection === id
                     return (
                       <button
-                        key={item.url}
+                        key={`toc-${index}-${item.url}`}
                         onClick={() => {
                           const element = document.getElementById(id)
                           if (element) {
