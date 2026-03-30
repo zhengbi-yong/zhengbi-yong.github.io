@@ -327,10 +327,15 @@ export default function PostLayoutMonograph({
                           let element: HTMLElement | null = null
                           const normalizedItemValue = item.value.trim().toLowerCase()
 
+                          console.log('=== TOC Click Debug ===')
+                          console.log('Looking for:', JSON.stringify(item.value))
+                          console.log('Normalized:', JSON.stringify(normalizedItemValue))
+
                           for (const h of allHeadings) {
                             const normalizedHeadingText = h.textContent?.trim().toLowerCase() || ''
                             if (normalizedHeadingText === normalizedItemValue) {
                               element = h as HTMLElement
+                              console.log('FOUND by text:', JSON.stringify(h.textContent), 'id:', h.id)
                               break
                             }
                           }
@@ -338,17 +343,36 @@ export default function PostLayoutMonograph({
                           // Fallback: try ID match if text match fails
                           if (!element) {
                             element = document.getElementById(id)
+                            console.log('FOUND by exact ID:', id)
                           }
 
                           // Last fallback: try prefix match
                           if (!element) {
                             element = document.querySelector(`[id^="${id}"]`)
+                            console.log('FOUND by prefix:', id)
+                          }
+
+                          // Extra fallback: try contains (partial text match)
+                          if (!element) {
+                            for (const h of allHeadings) {
+                              const headingText = h.textContent?.trim().toLowerCase() || ''
+                              if (headingText.includes(normalizedItemValue) || normalizedItemValue.includes(headingText)) {
+                                element = h as HTMLElement
+                                console.log('FOUND by contains:', JSON.stringify(h.textContent))
+                                break
+                              }
+                            }
                           }
 
                           if (element) {
                             const offset = 80
                             const top = element.getBoundingClientRect().top + window.scrollY - offset
                             window.scrollTo({ top, behavior: 'smooth' })
+                          } else {
+                            console.log('NOT FOUND - checking all headings:')
+                            allHeadings.forEach((h, i) => {
+                              console.log(`  ${i}: "${h.textContent?.trim()}"`)
+                            })
                           }
                         }}
                         className={`block w-full text-left text-sm py-1 px-2 rounded transition-colors ${
