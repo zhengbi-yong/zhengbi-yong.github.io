@@ -73,7 +73,7 @@ const navItems: NavItem[] = [
     id: 'posts',
     label: '文章管理',
     icon: FileText,
-    href: '/admin/posts',
+    href: '/admin/posts-manage',
   },
   {
     id: 'analytics',

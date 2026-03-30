@@ -4,6 +4,36 @@ Developer handoff and current work summary for this repository.
 
 Last updated: 2026-03-30
 
+## v2.1.3 Release (2026-03-30)
+
+This release adds a Team page and improves blog management analysis.
+
+### Changes
+
+1. **Team page** — New `/team` page at the same level as Blog, Projects, and Music:
+   - Advisor section: 2-column grid with avatar/initial + info (Newsreader serif name, amber accent role, research tags, contact links)
+   - Team members section: 3-column responsive card grid (1 col mobile, 2 col tablet, 3 col desktop)
+   - Round avatar with first-character fallback for missing images
+   - Full dark mode support (zinc backgrounds, amber accents)
+   - Research interest tags with border style
+
+   New files:
+   - `frontend/data/teamData.ts` — Team member data with 4 members (1 advisor, 1 lead, 2 members)
+   - `frontend/src/app/team/page.tsx` — Team page component
+
+   Modified files:
+   - `frontend/data/headerNavLinks.ts` — Added `{ href: '/team', title: '团队' }` between projects and music
+   - `frontend/src/components/Footer.tsx` — Added 团队 navigation link between 项目 and 音乐
+
+### Technical Notes
+
+- Team data is a static TypeScript array (not API-backed). To add/remove members, edit `frontend/data/teamData.ts`.
+- The `TeamMember` interface supports optional fields: `nameEn`, `title`, `avatar`, `email`, `github`, `website`, `affiliation`, `research`.
+- Avatar images use Next.js `Image` component with fixed dimensions (112px for advisor, 64px for members).
+- The page uses `genPageMetadata` for SEO metadata.
+
+---
+
 ## v2.1.2 Release (2026-03-30)
 
 This release unifies site-wide header/footer branding and removes redundant hero headers from list pages.

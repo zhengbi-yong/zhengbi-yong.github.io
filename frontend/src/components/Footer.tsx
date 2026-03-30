@@ -227,6 +227,15 @@ const Footer = memo(() => {
             项目
           </Link>
           <Link
+            href="/team"
+            className={cn(
+              'font-inter text-[9px] uppercase tracking-[0.2rem] transition-colors duration-500',
+              isDark ? 'text-slate-600 hover:text-slate-200' : 'text-gray-500 hover:text-gray-800'
+            )}
+          >
+            团队
+          </Link>
+          <Link
             href="/music"
             className={cn(
               'font-inter text-[9px] uppercase tracking-[0.2rem] transition-colors duration-500',

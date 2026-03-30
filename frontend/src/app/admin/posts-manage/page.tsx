@@ -34,12 +34,17 @@ export default function AdminPostsManagePage() {
   const loadPosts = async () => {
     setLoading(true)
     try {
-      const response = await fetch(
-        `/api/v1/posts?page=${page}&page_size=${pageSize}${statusFilter !== 'all' ? `&status=${statusFilter}` : ''}${searchQuery ? `&search=${searchQuery}` : ''}`
-      )
-      const data = await response.json()
-      setPosts(data.data || [])
-      setTotal(data.meta?.total || 0)
+      const data = await adminService.listAdminPosts({
+        page,
+        page_size: pageSize,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        search: searchQuery || undefined,
+      })
+      // Handle both public and admin response shapes
+      const postsList = (data as any).posts || (data as any).data || []
+      const totalCount = (data as any).total || (data as any).meta?.total || 0
+      setPosts(postsList)
+      setTotal(totalCount)
     } catch (error) {
       console.error('Failed to load posts:', error)
     } finally {
@@ -113,12 +118,7 @@ export default function AdminPostsManagePage() {
   const handleToggleStatus = async (slug: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Published' ? 'Draft' : 'Published'
     try {
-      // 这里需要调用更新状态的API
-      await fetch(`/api/v1/admin/posts/${slug}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
+      await adminService.updatePost(slug, { status: newStatus })
       loadPosts()
     } catch (error) {
       alert('更新状态失败')

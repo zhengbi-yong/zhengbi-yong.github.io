@@ -515,6 +515,60 @@ export const adminService = {
   },
 
   /**
+   * List admin posts (with stats)
+   */
+  async listAdminPosts(params?: {
+    page?: number
+    page_size?: number
+    status?: string
+    search?: string
+  }): Promise<PostListResponse> {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+    if (params?.status) queryParams.append('status', params.status)
+    if (params?.search) queryParams.append('search', params.search)
+
+    const url = `${BACKEND_API_URL}/admin/posts${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+    const response = await api.get<PostListResponse>(url, { cache: false })
+    return response.data
+  },
+
+  /**
+   * Create post
+   */
+  async createPost(data: {
+    title: string
+    slug: string
+    content: string
+    summary?: string
+    status?: string
+    category_id?: string | null
+    tag_ids?: string[] | null
+  }): Promise<PostDetail> {
+    const response = await api.post<PostDetail>(`${BACKEND_API_URL}/admin/posts`, data, { cache: false })
+    return response.data
+  },
+
+  /**
+   * Update post
+   */
+  async updatePost(
+    slug: string,
+    data: {
+      title?: string
+      content?: string
+      summary?: string
+      status?: string
+      category_id?: string | null
+      tag_ids?: string[] | null
+    }
+  ): Promise<PostDetail> {
+    const response = await api.patch<PostDetail>(`${BACKEND_API_URL}/admin/posts/${slug}`, data, { cache: false })
+    return response.data
+  },
+
+  /**
    * Delete post
    */
   async deletePost(slug: string): Promise<void> {
