@@ -63,7 +63,11 @@ export default function PostLayoutMonograph({
       let current = ''
 
       sections.forEach((section) => {
-        const element = document.getElementById(section)
+        // Try exact ID first, then fallback to prefix match
+        let element = document.getElementById(section)
+        if (!element) {
+          element = document.querySelector(`[id^="${section}"]`)
+        }
         if (element) {
           const rect = element.getBoundingClientRect()
           if (rect.top <= 120) {
@@ -298,7 +302,22 @@ export default function PostLayoutMonograph({
                       <button
                         key={`toc-${index}-${item.url}`}
                         onClick={() => {
-                          const element = document.getElementById(id)
+                          // Try exact ID first, then fallback to finding heading by text
+                          let element = document.getElementById(id)
+                          if (!element) {
+                            // Fallback: find heading that starts with this ID (handles rehype-slug duplicates)
+                            element = document.querySelector(`[id^="${id}"]`)
+                          }
+                          if (!element) {
+                            // Last resort: find heading by text content
+                            const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+                            for (const h of headings) {
+                              if (h.textContent?.trim() === item.value) {
+                                element = h as HTMLElement
+                                break
+                              }
+                            }
+                          }
                           if (element) {
                             const offset = 80
                             const top = element.getBoundingClientRect().top + window.scrollY - offset
