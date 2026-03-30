@@ -25,7 +25,7 @@ export default function PostVersionsPage() {
   const { t } = useTranslation()
   const params = useParams()
   const router = useRouter()
-  const postId = params.id as string
+  const postId = params.slug as string
 
   const [versions, setVersions] = useState<PostVersion[]>([])
   const [loading, setLoading] = useState(true)
