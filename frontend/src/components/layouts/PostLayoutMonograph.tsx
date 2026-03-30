@@ -60,14 +60,33 @@ export default function PostLayoutMonograph({
 
     if (toc && toc.length > 0) {
       const sections = toc.map((item) => item.url.replace('#', ''))
+      const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
       let current = ''
 
-      sections.forEach((section) => {
-        // Try exact ID first, then fallback to prefix match
-        let element = document.getElementById(section)
+      sections.forEach((section, idx) => {
+        const item = toc[idx]
+        let element: HTMLElement | null = null
+
+        // Try exact ID first
+        element = document.getElementById(section)
+
+        // Fallback: prefix match
         if (!element) {
           element = document.querySelector(`[id^="${section}"]`)
         }
+
+        // Last fallback: text match
+        if (!element && item) {
+          const normalizedItemValue = item.value.trim().toLowerCase()
+          for (const h of allHeadings) {
+            const normalizedHeadingText = h.textContent?.trim().toLowerCase() || ''
+            if (normalizedHeadingText === normalizedItemValue) {
+              element = h as HTMLElement
+              break
+            }
+          }
+        }
+
         if (element) {
           const rect = element.getBoundingClientRect()
           if (rect.top <= 120) {
@@ -302,39 +321,34 @@ export default function PostLayoutMonograph({
                       <button
                         key={`toc-${index}-${item.url}`}
                         onClick={() => {
-                          // Debug: log all headings and their IDs
-                          console.log('TOC item clicked:', item.value, 'ID:', id)
                           const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
-                          console.log('All headings in DOM:')
-                          allHeadings.forEach((h, i) => {
-                            console.log(`  ${i}: "${h.textContent?.trim()}" id="${h.id}"`)
-                          })
 
-                          // Try exact ID first
-                          let element = document.getElementById(id)
-                          console.log('Exact ID match:', element ? 'found' : 'not found')
+                          // Primary strategy: find heading by text content match
+                          let element: HTMLElement | null = null
+                          const normalizedItemValue = item.value.trim().toLowerCase()
 
-                          if (!element) {
-                            // Fallback: find heading that starts with this ID (handles rehype-slug)
-                            element = document.querySelector(`[id^="${id}"]`)
-                            console.log('Prefix match result:', element ? 'found' : 'not found')
-                          }
-                          if (!element) {
-                            // Last resort: find heading by text content
-                            for (const h of allHeadings) {
-                              if (h.textContent?.trim() === item.value) {
-                                element = h as HTMLElement
-                                console.log('Text match found:', h.id)
-                                break
-                              }
+                          for (const h of allHeadings) {
+                            const normalizedHeadingText = h.textContent?.trim().toLowerCase() || ''
+                            if (normalizedHeadingText === normalizedItemValue) {
+                              element = h as HTMLElement
+                              break
                             }
                           }
+
+                          // Fallback: try ID match if text match fails
+                          if (!element) {
+                            element = document.getElementById(id)
+                          }
+
+                          // Last fallback: try prefix match
+                          if (!element) {
+                            element = document.querySelector(`[id^="${id}"]`)
+                          }
+
                           if (element) {
                             const offset = 80
                             const top = element.getBoundingClientRect().top + window.scrollY - offset
                             window.scrollTo({ top, behavior: 'smooth' })
-                          } else {
-                            console.log('No matching element found for:', item.value)
                           }
                         }}
                         className={`block w-full text-left text-sm py-1 px-2 rounded transition-colors ${
