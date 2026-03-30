@@ -302,18 +302,29 @@ export default function PostLayoutMonograph({
                       <button
                         key={`toc-${index}-${item.url}`}
                         onClick={() => {
-                          // Try exact ID first, then fallback to finding heading by text
+                          // Debug: log all headings and their IDs
+                          console.log('TOC item clicked:', item.value, 'ID:', id)
+                          const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+                          console.log('All headings in DOM:')
+                          allHeadings.forEach((h, i) => {
+                            console.log(`  ${i}: "${h.textContent?.trim()}" id="${h.id}"`)
+                          })
+
+                          // Try exact ID first
                           let element = document.getElementById(id)
+                          console.log('Exact ID match:', element ? 'found' : 'not found')
+
                           if (!element) {
-                            // Fallback: find heading that starts with this ID (handles rehype-slug duplicates)
+                            // Fallback: find heading that starts with this ID (handles rehype-slug)
                             element = document.querySelector(`[id^="${id}"]`)
+                            console.log('Prefix match result:', element ? 'found' : 'not found')
                           }
                           if (!element) {
                             // Last resort: find heading by text content
-                            const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
-                            for (const h of headings) {
+                            for (const h of allHeadings) {
                               if (h.textContent?.trim() === item.value) {
                                 element = h as HTMLElement
+                                console.log('Text match found:', h.id)
                                 break
                               }
                             }
@@ -322,6 +333,8 @@ export default function PostLayoutMonograph({
                             const offset = 80
                             const top = element.getBoundingClientRect().top + window.scrollY - offset
                             window.scrollTo({ top, behavior: 'smooth' })
+                          } else {
+                            console.log('No matching element found for:', item.value)
                           }
                         }}
                         className={`block w-full text-left text-sm py-1 px-2 rounded transition-colors ${
