@@ -11,7 +11,6 @@ import { BackendComments } from '@/components/post/BackendComments'
 import type { TOC } from '@/lib/types/toc'
 import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 import { usePosts } from '@/lib/hooks/useBlogData'
-import { useRouter } from 'next/navigation'
 
 import '@/styles/monograph-theme.css'
 
@@ -34,7 +33,6 @@ export default function PostLayoutMonograph({
   toc,
   showTOC,
 }: LayoutProps) {
-  const router = useRouter()
   const { slug, urlPath, date, title, tags, summary, images, categorySegment } =
     resolvePostLayoutContent(content)
   const parsedDate = new Date(date)
@@ -126,45 +124,14 @@ export default function PostLayoutMonograph({
       }} />
 
       {/* 阅读进度条 */}
-      <div className="fixed top-0 left-0 right-0 h-0.5 bg-border z-50">
+      <div className="fixed top-0 left-0 right-0 h-0.5 bg-border z-40">
         <div
           className="h-full bg-primary transition-all duration-150"
           style={{ width: `${readingProgress}%` }}
         />
       </div>
 
-      {/* 顶部导航 */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <Link href="/" className="font-semibold text-foreground hover:text-primary transition-colors">
-              {siteMetadata.title}
-            </Link>
-            <nav className="flex items-center gap-6">
-              <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                博客
-              </Link>
-              <Link href="/projects" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                项目
-              </Link>
-              <Link href="/music" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                音乐
-              </Link>
-              <button
-                onClick={() => router.push('/search')}
-                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="搜索"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="pt-24 md:pt-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* 文章头部 */}
         <header className="mb-8 pb-8 border-b border-border">
           <div className="max-w-3xl">
@@ -250,7 +217,7 @@ export default function PostLayoutMonograph({
           </aside>
 
           {/* 中栏：文章内容 */}
-          <article className="min-w-0">
+          <article className="min-w-0 w-full">
             {/* 封面图 */}
             {images && images.length > 0 && (
               <figure className="mb-8 rounded-lg overflow-hidden">
@@ -265,7 +232,7 @@ export default function PostLayoutMonograph({
 
             {/* 文章正文 */}
             <PostBackendIntegration slug={slug}>
-              <div className="prose prose-lg dark:prose-invert max-w-none">
+              <div className="monograph-content prose prose-lg dark:prose-invert max-w-none w-full">
                 {children}
               </div>
             </PostBackendIntegration>
@@ -355,22 +322,6 @@ export default function PostLayoutMonograph({
           </aside>
         </div>
       </main>
-
-      {/* 页脚 */}
-      <footer className="border-t border-border mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} {siteMetadata.author}
-            </div>
-            <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-              <Link href="/blog" className="hover:text-foreground transition-colors">博客</Link>
-              <Link href="/projects" className="hover:text-foreground transition-colors">项目</Link>
-              <Link href="/music" className="hover:text-foreground transition-colors">音乐</Link>
-            </nav>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

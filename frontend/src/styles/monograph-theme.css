@@ -264,10 +264,11 @@
 
 /* 中栏 - 文章内容 */
 .monograph-content {
-  max-width: 720px;
+  max-width: 100%;
+  width: 100%;
 }
 
-.monograph-content :global(p) {
+.monograph-content p {
   line-height: 1.8;
   margin-bottom: 2rem;
   font-size: 1.125rem;
@@ -275,7 +276,7 @@
 }
 
 /* 首字下沉 */
-.monograph-content :global(p:first-of-type::first-letter) {
+.monograph-content p:first-of-type::first-letter {
   float: left;
   font-size: 4.5rem;
   line-height: 0.8;
@@ -298,7 +299,7 @@
   background-color: rgba(26, 28, 28, 0.05);
 }
 
-.monograph-figure-image :global(img) {
+.monograph-figure-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -401,7 +402,7 @@
   transform: scale(1.05);
 }
 
-.monograph-curation-image :global(img) {
+.monograph-curation-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -409,7 +410,7 @@
   transition: filter 0.7s ease, brightness 0.7s ease;
 }
 
-.monograph-curation-item:hover .monograph-curation-image :global(img) {
+.monograph-curation-item:hover .monograph-curation-image img {
   filter: grayscale(0%) brightness(1.1);
 }
 

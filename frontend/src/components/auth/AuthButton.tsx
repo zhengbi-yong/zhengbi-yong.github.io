@@ -2,10 +2,9 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
-import { LogIn, LogOut, User } from 'lucide-react'
-
-import { Button } from '@/components/shadcn/ui/button'
+import { LogIn, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/lib/store/auth-store'
+import { cn } from '@/components/lib/utils'
 
 const LazyAuthModal = dynamic(
   () => import('./AuthModal').then((module) => module.AuthModal),
@@ -15,11 +14,12 @@ const LazyAuthModal = dynamic(
   }
 )
 
-const glassEffect =
-  'glass-effect relative border border-white/30 bg-white/40 backdrop-blur-sm hover:bg-white/50 dark:border-white/10 dark:bg-neutral-900/40 dark:hover:bg-neutral-900/50'
+interface AuthButtonProps {
+  isDark?: boolean
+}
 
-export function AuthButton() {
-  const { user, isAuthenticated, logout } = useAuthStore()
+export function AuthButton({ isDark = true }: AuthButtonProps) {
+  const { isAuthenticated, logout } = useAuthStore()
   const [isMounted, setIsMounted] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -31,33 +31,34 @@ export function AuthButton() {
     await logout()
   }
 
+  const iconClass = isDark ? 'text-[#c6c7c6]' : 'text-gray-700'
+
   if (!isMounted) {
     return (
-      <Button
-        variant="outline"
-        className={glassEffect}
+      <button
+        className={cn(
+          'flex items-center opacity-60 transition-opacity duration-300 cursor-pointer'
+        )}
         disabled
         aria-hidden="true"
-        data-testid="auth-loading-button"
       >
-        <LogIn className="mr-2 h-4 w-4" />
-        <span className="text-sm font-medium">登录</span>
-      </Button>
+        <LogIn className={cn('w-5 h-5', iconClass)} />
+      </button>
     )
   }
 
   if (!isAuthenticated) {
     return (
       <>
-        <Button
-          variant="outline"
+        <button
           onClick={() => setIsModalOpen(true)}
-          className={glassEffect}
-          data-testid="auth-login-button"
+          className={cn(
+            'flex items-center opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer'
+          )}
+          aria-label="登录"
         >
-          <LogIn className="mr-2 h-4 w-4" />
-          <span className="text-sm font-medium">登录</span>
-        </Button>
+          <LogIn className={cn('w-5 h-5', iconClass)} />
+        </button>
 
         {isModalOpen ? (
           <LazyAuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
@@ -67,23 +68,16 @@ export function AuthButton() {
   }
 
   return (
-    <div className="flex items-center gap-3" data-testid="auth-user-info">
-      <div className="flex items-center gap-2 text-sm">
-        <User className="h-4 w-4 text-neutral-600 dark:text-neutral-300" />
-        <span className="font-medium text-neutral-700 dark:text-neutral-200">
-          {user?.username}
-        </span>
-      </div>
-
-      <Button
-        variant="outline"
+    <div className="flex items-center gap-4">
+      <button
         onClick={handleLogout}
-        className={glassEffect}
-        data-testid="auth-logout-button"
+        className={cn(
+          'flex items-center opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer'
+        )}
+        aria-label="退出登录"
       >
-        <LogOut className="mr-2 h-4 w-4" />
-        <span className="text-sm font-medium">退出</span>
-      </Button>
+        <LogOut className={cn('w-5 h-5', iconClass)} />
+      </button>
     </div>
   )
 }

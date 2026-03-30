@@ -2,8 +2,6 @@
 
 import { memo, useMemo, useState, useEffect } from 'react'
 import Link from './Link'
-import Logo from './Logo'
-import BackToTop from './BackToTop'
 import siteMetadata from '@/data/siteMetadata'
 import {
   Mail,
@@ -19,8 +17,8 @@ import {
   Medium,
   Bluesky,
 } from '@/components/social-icons/icons'
+import { useTheme } from 'next-themes'
 import { cn } from './lib/utils'
-import styles from './Footer.module.css'
 
 type SocialLink = {
   kind:
@@ -71,21 +69,22 @@ const socialNames: Record<string, string> = {
 }
 
 /**
- * Footer - 页脚组件
- * 基于提供的 Astro Footer 组件转换而来
+ * Footer - 艺术风格页脚组件
+ * 设计要点：
+ * 1. 深色背景 (#05080F)
+ * 2. Newsreader 斜体标题
+ * 3. Inter 超小号文字
+ * 4. Material Symbols Outlined 图标
  */
 const Footer = memo(() => {
-  // 使用 state 和 useEffect 确保 SSR/CSR 一致
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear())
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   useEffect(() => {
-    // 客户端挂载后更新年份（处理跨年情况）
     setCurrentYear(new Date().getFullYear())
   }, [])
 
-  // 社交链接配置（使用useMemo缓存，避免每次渲染创建）
-  // 注意：虽然siteMetadata是静态的，但为了确保SSR/CSR一致性，我们不在依赖项中包含它
-  // 因为siteMetadata在构建时就已经确定，不会在运行时改变
   const socialLinks = useMemo(
     () => {
       const links: (SocialLink | null)[] = [
@@ -178,80 +177,104 @@ const Footer = memo(() => {
       ]
       return links.filter((link): link is SocialLink => link !== null)
     },
-    // 空依赖数组是安全的，因为siteMetadata在构建时确定，不会在运行时改变
     []
   )
 
   return (
-    <>
-      <section
-        className="relative z-20 mt-20 text-gray-700 md:mt-48"
-        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-      >
-        <div className="container mx-auto flex max-w-7xl flex-col items-center px-7 py-8 sm:flex-row">
-          <Logo />
+    <footer className={cn(
+        'w-full py-16 md:py-24 px-6 md:px-12 border-t',
+        isDark ? 'border-white/5 bg-[#05080F]' : 'border-black/5 bg-gray-100'
+      )}>
+      <div className="max-w-[1920px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        {/* Logo 和版权 */}
+        <div className="flex flex-col gap-2 text-center md:text-left">
+          <Link
+            href="/"
+            className={cn(
+              'font-newsreader italic text-lg md:text-xl lowercase tracking-tight transition-colors duration-300',
+              isDark ? 'text-slate-200 hover:text-white' : 'text-gray-800 hover:text-gray-600'
+            )}
+          >
+            {siteMetadata.title}
+          </Link>
+          <p className={cn(
+            'font-inter text-[9px] uppercase tracking-[0.2rem]',
+            isDark ? 'text-slate-600' : 'text-gray-500'
+          )}>
+            © {currentYear} The Silent Curator. All rights reserved.
+          </p>
+        </div>
 
-          <div className="mt-4 text-sm text-neutral-700 sm:mt-0 sm:ml-4 sm:border-l sm:border-neutral-300 sm:pl-4 dark:text-neutral-100 dark:sm:border-neutral-700">
-            <p>
-              © {currentYear}{' '}
+        {/* 导航链接 */}
+        <nav className="flex gap-8 md:gap-12">
+          <Link
+            href="/blog"
+            className={cn(
+              'font-inter text-[9px] uppercase tracking-[0.2rem] transition-colors duration-500',
+              isDark ? 'text-slate-600 hover:text-slate-200' : 'text-gray-500 hover:text-gray-800'
+            )}
+          >
+            博客
+          </Link>
+          <Link
+            href="/projects"
+            className={cn(
+              'font-inter text-[9px] uppercase tracking-[0.2rem] transition-colors duration-500',
+              isDark ? 'text-slate-600 hover:text-slate-200' : 'text-gray-500 hover:text-gray-800'
+            )}
+          >
+            项目
+          </Link>
+          <Link
+            href="/music"
+            className={cn(
+              'font-inter text-[9px] uppercase tracking-[0.2rem] transition-colors duration-500',
+              isDark ? 'text-slate-600 hover:text-slate-200' : 'text-gray-500 hover:text-gray-800'
+            )}
+          >
+            音乐
+          </Link>
+        </nav>
+
+        {/* 社交图标 */}
+        <div className="flex gap-4">
+          {socialLinks.map((social) => {
+            const Icon = social.Icon
+            return (
               <a
-                href={siteMetadata.siteUrl || ' '}
+                key={social.kind}
+                href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+                className="w-8 h-8 flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity duration-300"
+                title={social.name}
               >
-                {siteMetadata.author || ' '}
+                <span className="sr-only">{social.name}</span>
+                <Icon className={cn('w-4 h-4', isDark ? 'text-slate-200' : 'text-gray-700')} />
               </a>
-            </p>
-            <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-              <Link
-                href="https://beian.miit.gov.cn/"
-                className="hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
-              >
-                京ICP备2025110798号-1
-              </Link>
-            </p>
-          </div>
-
-          <span
-            className="mt-4 inline-flex justify-center space-x-5 overflow-hidden sm:mt-0 sm:ml-auto sm:justify-start"
-            style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-          >
-            {socialLinks.map((social) => {
-              const Icon = social.Icon
-              // 根据平台设置不同的类名以支持 hover 颜色
-              const iconClassName = cn(
-                social.kind === 'twitter' || social.kind === 'x' ? 'icTwitter' : '',
-                social.kind === 'github' ? 'icGithub' : ''
-              )
-
-              return (
-                <a
-                  key={social.kind}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    styles.footerSocialIconLink,
-                    'text-neutral-500 dark:text-neutral-300'
-                  )}
-                  title={social.name}
-                  style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-                >
-                  <span className="sr-only">{social.name}</span>
-                  <div className={styles.footerSocialIcon}>
-                    <Icon className={iconClassName} />
-                  </div>
-                </a>
-              )
-            })}
-          </span>
+            )
+          })}
         </div>
-      </section>
+      </div>
 
-      {/* 返回顶部按钮 */}
-      <BackToTop />
-    </>
+      {/* 备案信息 */}
+      <div className={cn(
+        'max-w-[1920px] mx-auto mt-8 pt-8 border-t text-center',
+        isDark ? 'border-white/5' : 'border-black/5'
+      )}>
+        <Link
+          href="https://beian.miit.gov.cn/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            'font-inter text-[9px] uppercase tracking-[0.1rem] transition-colors duration-300',
+            isDark ? 'text-slate-700 hover:text-slate-500' : 'text-gray-400 hover:text-gray-600'
+          )}
+        >
+          京ICP备2025110798号-1
+        </Link>
+      </div>
+    </footer>
   )
 })
 
