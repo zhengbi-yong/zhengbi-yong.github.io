@@ -4,9 +4,25 @@ Developer handoff and current work summary for this repository.
 
 Last updated: 2026-03-30
 
+## v2.1.4 Release (2026-03-30)
+
+Fix route conflict in admin posts that caused 500 errors.
+
+### Changes
+
+1. **Fixed [id] vs [slug] route conflict** — Next.js 16 does not allow different dynamic segment names at the same route level. `admin/posts/[id]/versions` and `admin/posts/[slug]/edit` coexisted, causing `Error: You cannot use different slug names for the same dynamic path ('id' !== 'slug')`.
+
+   - Merged `[id]/versions` into `[slug]/versions`
+   - Updated `versions/page.tsx` to use `params.slug` instead of `params.id`
+
+   Modified files:
+   - `frontend/src/app/admin/posts/[id]/versions/page.tsx` → `frontend/src/app/admin/posts/[slug]/versions/page.tsx` (renamed, param fix)
+
+---
+
 ## v2.1.3 Release (2026-03-30)
 
-This release adds a Team page and improves blog management analysis.
+This release adds a Team page, blog admin consolidation, and blog edit functionality.
 
 ### Changes
 
@@ -25,12 +41,32 @@ This release adds a Team page and improves blog management analysis.
    - `frontend/data/headerNavLinks.ts` — Added `{ href: '/team', title: '团队' }` between projects and music
    - `frontend/src/components/Footer.tsx` — Added 团队 navigation link between 项目 and 音乐
 
+2. **Blog admin consolidation** — Removed 2 duplicate post management pages and fixed the main management page:
+   - Deleted `frontend/src/app/admin/posts-refine/` (Refine-based read-only view with `@ts-nocheck`)
+   - Deleted `frontend/src/app/admin/posts-simple/` (hardcoded localhost URL)
+   - Replaced `frontend/src/app/admin/posts/page.tsx` with redirect to `/admin/posts-manage`
+   - Fixed `posts-manage/page.tsx` to use `adminService` API methods instead of raw `fetch`
+   - Fixed admin sidebar to link to `/admin/posts-manage` instead of `/admin/posts`
+   - Added `listAdminPosts()`, `createPost()`, `updatePost()` methods to `adminService` in `backend.ts`
+
+3. **Blog edit page** — New `/admin/posts/[slug]/edit` page for editing existing posts:
+   - Loads post data via `postService.getPost(slug)`
+   - Rich text editing with TiptapEditor (dynamic import, SSR disabled)
+   - Metadata editing via `ArticleMetadata` component (title, summary, category, tags)
+   - Save as draft or publish directly
+   - Current status indicator and last-updated timestamp
+
+   New files:
+   - `frontend/src/app/admin/posts/[slug]/edit/page.tsx`
+
 ### Technical Notes
 
 - Team data is a static TypeScript array (not API-backed). To add/remove members, edit `frontend/data/teamData.ts`.
 - The `TeamMember` interface supports optional fields: `nameEn`, `title`, `avatar`, `email`, `github`, `website`, `affiliation`, `research`.
 - Avatar images use Next.js `Image` component with fixed dimensions (112px for advisor, 64px for members).
 - The page uses `genPageMetadata` for SEO metadata.
+- Blog admin now uses the canonical `adminService` (from `@/lib/api/backend`) for all API calls, eliminating raw `fetch` usage.
+- The edit page uses Next.js 16 `use(params)` pattern for accessing params (params is a `Promise` in Next.js 16).
 
 ---
 
