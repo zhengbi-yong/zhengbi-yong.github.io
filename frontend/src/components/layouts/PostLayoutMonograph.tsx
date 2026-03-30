@@ -290,7 +290,7 @@ export default function PostLayoutMonograph({
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
                   目录
                 </h3>
-                <nav className="space-y-1">
+                <nav className="max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide space-y-1">
                   {toc.map((item, index) => {
                     const id = item.url.replace('#', '')
                     const isActive = activeSection === id
