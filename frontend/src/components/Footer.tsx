@@ -191,9 +191,10 @@ const Footer = memo(() => {
           <Link
             href="/"
             className={cn(
-              'font-newsreader italic text-lg md:text-xl lowercase tracking-tight transition-colors duration-300',
+              'text-lg md:text-xl tracking-tight transition-colors duration-300',
               isDark ? 'text-slate-200 hover:text-white' : 'text-gray-800 hover:text-gray-600'
             )}
+            style={{ fontFamily: 'var(--font-great-vibes)' }}
           >
             {siteMetadata.title}
           </Link>

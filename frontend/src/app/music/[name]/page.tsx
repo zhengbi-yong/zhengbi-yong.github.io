@@ -18,5 +18,12 @@ export default async function MusicPage(props: { params: Promise<{ name: string 
     notFound()
   }
 
-  return <FullscreenMusicSheet src={musicSheet.src} title={musicSheet.title} />
+  return (
+    <FullscreenMusicSheet
+      src={musicSheet.src}
+      title={musicSheet.title}
+      composer={musicSheet.composer}
+      description={musicSheet.description}
+    />
+  )
 }

@@ -149,9 +149,10 @@ export default function Header() {
             <Link
               href="/"
               className={cn(
-                'font-newsreader italic text-xl md:text-2xl tracking-tighter transition-colors duration-300',
+                'text-2xl md:text-[28px] tracking-tight transition-colors duration-300',
                 isDark ? 'text-[#c6c7c6] hover:text-white' : 'text-gray-800 hover:text-gray-600'
               )}
+              style={{ fontFamily: 'var(--font-great-vibes)' }}
             >
               {siteMetadata.title}
             </Link>

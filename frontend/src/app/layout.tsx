@@ -18,7 +18,7 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
 import VisitorTracker from '@/components/VisitorTracker'
 import I18nProvider from '@/components/I18nProvider'
-import { Inter, JetBrains_Mono, Newsreader } from 'next/font/google'
+import { Inter, JetBrains_Mono, Newsreader, Great_Vibes } from 'next/font/google'
 import { Metadata } from 'next'
 
 const inter = Inter({
@@ -39,6 +39,13 @@ const newsreader = Newsreader({
   variable: '--font-newsreader',
   style: ['normal', 'italic'],
   weight: ['200', '300', '400', '500', '600', '700', '800'],
+})
+
+const greatVibes = Great_Vibes({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-great-vibes',
+  weight: '400',
 })
 import Script from 'next/script'
 import { AuthInitializer } from '@/components/auth/AuthInitializer'
@@ -99,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={siteMetadata.language}
-      className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} scroll-smooth`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} ${greatVibes.variable} scroll-smooth`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

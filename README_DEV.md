@@ -4,6 +4,83 @@ Developer handoff and current work summary for this repository.
 
 Last updated: 2026-03-30
 
+## v2.1.2 Release (2026-03-30)
+
+This release unifies site-wide header/footer branding and removes redundant hero headers from list pages.
+
+### Changes
+
+1. **Great Vibes font for site logo** — Header and footer "Zhengbi Yong" logo text now uses the `Great Vibes` decorative script font instead of `Newsreader italic`.
+
+   Modified files:
+   - `frontend/src/app/layout.tsx` — Added `Great_Vibes` font via `next/font/google` with CSS variable `--font-great-vibes`
+   - `frontend/src/components/header/HeaderOptimized.tsx` — Logo uses `style={{ fontFamily: 'var(--font-great-vibes)' }}` inline style (Tailwind arbitrary class doesn't work because Next.js hashes CSS variable names)
+   - `frontend/src/components/Footer.tsx` — Footer logo uses `style={{ fontFamily: 'var(--font-great-vibes)' }}` inline style (same as header)
+
+2. **Removed duplicate header from blog listing page** — `ApiBlogPage.tsx` previously rendered its own complete dark-mode header with navigation, duplicating the site-wide `HeaderOptimized` component already rendered by the root layout. Removed ~160 lines of redundant header code.
+
+3. **Removed hero headers from list pages** — Blog list, Projects, and Music pages each had a large title/subtitle hero section (e.g., "技术博客" / "记录技术见解、学术思考与项目实践"). These are now removed. The site-wide header navigation already highlights the current page link, making the hero text redundant.
+
+   Modified files:
+   - `frontend/src/components/blog/ApiBlogPage.tsx` — Removed `<header>` hero block with "博客" / "技术博客" / category title and subtitle
+   - `frontend/src/app/projects/page.tsx` — Removed `<PageTitle>` hero with "项目" / "研究和学术项目"
+   - `frontend/src/app/music/page.tsx` — Removed `<PageTitle>` hero with "音乐" / "探索我的音乐作品和乐谱收藏"
+
+### Technical Notes
+
+- The Great Vibes font is loaded as a Google Font via `next/font/google` and registered as a CSS custom property on the `<html>` element.
+- The header logo requires an inline `style` attribute because Next.js 16 hashes CSS variable class names (e.g., `--font-great-vibes` becomes `--font-great-vibes__variable_a10525` in Tailwind), making the Tailwind arbitrary value `font-[var(--font-great-vibes)]` unreliable. The inline `fontFamily` style resolves correctly because the CSS variable is registered at the DOM level.
+- The header `getNavLinkClass(isActive)` function already handles current-page highlighting via `currentPath.startsWith(menu.href)`.
+- The footer logo also requires the same inline `style` workaround as the header (Tailwind arbitrary class fails for the same reason).
+
+4. **Redesigned music score detail page** — `FullscreenMusicSheet` component completely redesigned with a gallery-style UI inspired by high-end sheet music viewers:
+   - Dark/light mode support via MutationObserver on DOM (portal renders outside React context)
+   - Asymmetric metadata header with title (Newsreader serif), composer, and description
+   - Score canvas with paper-like shadow (multi-layer box-shadow)
+   - Thin vertical sidebar with zoom tool SVG icons
+   - Minimal top bar with back navigation and zoom controls
+   - New props: `composer`, `description` passed through from music detail page
+   - Background gradient for light mode, dark surface for dark mode
+
+   Modified files:
+   - `frontend/src/components/FullscreenMusicSheet.tsx` — Complete UI rewrite, MutationObserver-based theme detection, new props
+   - `frontend/src/app/music/[name]/page.tsx` — Pass `composer` and `description` from musicData
+
+5. **Redesigned projects list page** — Editorial gallery layout inspired by high-end portfolio showcases:
+   - Staggered 2-column grid (even items offset with `md:mt-24`)
+   - Large aspect-[4/5] portrait images with hover zoom
+   - Category/year labels in small uppercase tracking
+   - Serif headlines with Newsreader font
+   - Full dark mode support with amber accent colors
+   - Hover state transitions on card backgrounds
+   - "查看详情" links with underline hover animation
+   - Added `category` and `year` fields to projectsData
+
+   Modified files:
+   - `frontend/src/app/projects/page.tsx` — Complete layout redesign
+   - `frontend/data/projectsData.ts` — Added `category` and `year` fields, improved descriptions
+
+6. **Redesigned music list page** — Gallery-style score library layout inspired by "The Great Hall" music score viewers:
+   - 3-column responsive card grid (1 col mobile, 2 col tablet, 3 col desktop)
+   - Aspect-[3/4] score preview areas with decorative staff lines and centered music note SVG icon
+   - Category badge overlays (amber background) and difficulty badges (border style)
+   - Composer and year metadata with separator
+   - Instrument type labels in small uppercase amber tracking
+   - Serif titles with Newsreader font
+   - Full dark mode support with amber accent colors
+   - Hover effects: shadow glow with amber tint, music note icon color transition
+   - Bottom gradient overlay for depth
+   - "查看乐谱 →" links in amber accent
+   - Added `category`, `instrument`, `difficulty`, and `year` fields to musicData
+   - Removed dependency on `MusicCard` component (layout now inline)
+   - Improved descriptions for all three music entries
+
+   Modified files:
+   - `frontend/src/app/music/page.tsx` — Complete layout redesign, removed MusicCard import
+   - `frontend/data/musicData.ts` — Added `category`, `instrument`, `difficulty` fields, enriched descriptions and added year data
+
+---
+
 ## v2.1.1 Release (2026-03-30)
 
 This release fixes TOC navigation issues in PostLayoutMonograph.
