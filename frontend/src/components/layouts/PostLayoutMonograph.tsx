@@ -23,6 +23,31 @@ interface LayoutProps {
 }
 
 /**
+ * 从DOM中提取TOC
+ */
+function extractTocFromDOM(): TOC {
+  const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+  const toc: TOC = []
+
+  headings.forEach((heading) => {
+    const tagName = heading.tagName.toLowerCase()
+    const depth = parseInt(tagName.replace('h', ''), 10)
+    const text = heading.textContent?.trim() || ''
+    const id = heading.id || ''
+
+    if (text && depth <= 2) {
+      toc.push({
+        value: text,
+        url: id ? `#${id}` : '#',
+        depth,
+      })
+    }
+  })
+
+  return toc
+}
+
+/**
  * 文章详情页布局
  * 简洁三栏布局：左侧目录 | 中间文章内容 | 右侧元数据
  */
@@ -30,8 +55,8 @@ export default function PostLayoutMonograph({
   content,
   authorDetails,
   children,
-  toc,
-  showTOC,
+  toc: tocProp,
+  showTOC: _showTOC,
 }: LayoutProps) {
   const { slug, urlPath, date, title, tags, summary, images, categorySegment } =
     resolvePostLayoutContent(content)
@@ -41,6 +66,8 @@ export default function PostLayoutMonograph({
 
   const [readingProgress, setReadingProgress] = useState(0)
   const [activeSection, setActiveSection] = useState('')
+  const [domToc, setDomToc] = useState<TOC>([])
+  const [isTocReady, setIsTocReady] = useState(false)
 
   // 获取相关文章推荐
   const { data: relatedPostsData } = usePosts({
@@ -52,52 +79,57 @@ export default function PostLayoutMonograph({
     ?.filter((p) => p.slug !== slug && p.status === 'Published')
     ?.slice(0, 2) || []
 
+  // 从DOM中提取TOC
+  useEffect(() => {
+    // 等待MDX内容渲染完成
+    const timeoutId = setTimeout(() => {
+      const extractedToc = extractTocFromDOM()
+      if (extractedToc.length > 0) {
+        setDomToc(extractedToc)
+        setIsTocReady(true)
+      } else {
+        // 如果DOM提取失败，使用传入的toc作为fallback
+        setIsTocReady(true)
+      }
+    }, 500) // 等待500ms让MDX渲染完成
+
+    return () => clearTimeout(timeoutId)
+  }, [tocProp])
+
   // 处理阅读进度
   const handleScroll = useCallback(() => {
     const totalHeight = document.body.scrollHeight - window.innerHeight
     const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0
     setReadingProgress(Math.min(100, Math.max(0, progress)))
 
-    if (toc && toc.length > 0) {
-      const sections = toc.map((item) => item.url.replace('#', ''))
-      const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
-      let current = ''
+    // 使用DOM提取的TOC来追踪active section
+    const toc = isTocReady && domToc.length > 0 ? domToc : tocProp || []
+    if (toc.length === 0) return
 
-      sections.forEach((section, idx) => {
-        const item = toc[idx]
-        let element: HTMLElement | null = null
+    const sections = toc.map((item) => item.url.replace('#', ''))
+    let current = ''
 
-        // Try exact ID first
-        element = document.getElementById(section)
+    sections.forEach((section) => {
+      let element: HTMLElement | null = null
 
-        // Fallback: prefix match
-        if (!element) {
-          element = document.querySelector(`[id^="${section}"]`)
+      // Try exact ID first
+      element = document.getElementById(section)
+
+      // Fallback: prefix match
+      if (!element) {
+        element = document.querySelector(`[id^="${section}"]`)
+      }
+
+      if (element) {
+        const rect = element.getBoundingClientRect()
+        if (rect.top <= 120) {
+          current = section
         }
+      }
+    })
 
-        // Last fallback: text match
-        if (!element && item) {
-          const normalizedItemValue = item.value.trim().toLowerCase()
-          for (const h of allHeadings) {
-            const normalizedHeadingText = h.textContent?.trim().toLowerCase() || ''
-            if (normalizedHeadingText === normalizedItemValue) {
-              element = h as HTMLElement
-              break
-            }
-          }
-        }
-
-        if (element) {
-          const rect = element.getBoundingClientRect()
-          if (rect.top <= 120) {
-            current = section
-          }
-        }
-      })
-
-      setActiveSection(current)
-    }
-  }, [toc])
+    setActiveSection(current)
+  }, [domToc, isTocReady, tocProp])
 
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -308,71 +340,38 @@ export default function PostLayoutMonograph({
 
           {/* 右栏：目录 */}
           <aside className="hidden lg:block">
-            {toc && toc.length > 0 && (
+            {(isTocReady ? domToc : tocProp) && (isTocReady ? domToc : tocProp)!.length > 0 ? (
               <div className="sticky top-20">
                 <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
                   目录
                 </h3>
                 <nav className="max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide space-y-1">
-                  {toc.map((item, index) => {
+                  {(isTocReady ? domToc : tocProp)!.map((item, index) => {
                     const id = item.url.replace('#', '')
                     const isActive = activeSection === id
                     return (
                       <button
                         key={`toc-${index}-${item.url}`}
                         onClick={() => {
-                          const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
-
-                          // Primary strategy: find heading by text content match
-                          let element: HTMLElement | null = null
-                          const normalizedItemValue = item.value.trim().toLowerCase()
-
-                          console.log('=== TOC Click Debug ===')
-                          console.log('Looking for:', JSON.stringify(item.value))
-                          console.log('Normalized:', JSON.stringify(normalizedItemValue))
-
-                          for (const h of allHeadings) {
-                            const normalizedHeadingText = h.textContent?.trim().toLowerCase() || ''
-                            if (normalizedHeadingText === normalizedItemValue) {
-                              element = h as HTMLElement
-                              console.log('FOUND by text:', JSON.stringify(h.textContent), 'id:', h.id)
-                              break
-                            }
-                          }
-
-                          // Fallback: try ID match if text match fails
-                          if (!element) {
-                            element = document.getElementById(id)
-                            console.log('FOUND by exact ID:', id)
-                          }
-
-                          // Last fallback: try prefix match
-                          if (!element) {
-                            element = document.querySelector(`[id^="${id}"]`)
-                            console.log('FOUND by prefix:', id)
-                          }
-
-                          // Extra fallback: try contains (partial text match)
-                          if (!element) {
-                            for (const h of allHeadings) {
-                              const headingText = h.textContent?.trim().toLowerCase() || ''
-                              if (headingText.includes(normalizedItemValue) || normalizedItemValue.includes(headingText)) {
-                                element = h as HTMLElement
-                                console.log('FOUND by contains:', JSON.stringify(h.textContent))
-                                break
-                              }
-                            }
-                          }
+                          // TOC条目来自DOM，直接使用ID查找
+                          const element = id ? document.getElementById(id) : null
 
                           if (element) {
                             const offset = 80
                             const top = element.getBoundingClientRect().top + window.scrollY - offset
                             window.scrollTo({ top, behavior: 'smooth' })
-                          } else {
-                            console.log('NOT FOUND - checking all headings:')
-                            allHeadings.forEach((h, i) => {
-                              console.log(`  ${i}: "${h.textContent?.trim()}"`)
-                            })
+                          } else if (item.value) {
+                            // Fallback: 通过文本查找
+                            const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+                            const normalizedText = item.value.trim().toLowerCase()
+                            for (const h of allHeadings) {
+                              if (h.textContent?.trim().toLowerCase() === normalizedText) {
+                                const offset = 80
+                                const top = h.getBoundingClientRect().top + window.scrollY - offset
+                                window.scrollTo({ top, behavior: 'smooth' })
+                                break
+                              }
+                            }
                           }
                         }}
                         className={`block w-full text-left text-sm py-1 px-2 rounded transition-colors ${
@@ -388,7 +387,7 @@ export default function PostLayoutMonograph({
                   })}
                 </nav>
               </div>
-            )}
+            ) : null}
           </aside>
         </div>
       </main>

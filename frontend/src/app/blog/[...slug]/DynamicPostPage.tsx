@@ -40,12 +40,6 @@ const layouts = {
   PostBanner,
 } as unknown as Record<string, React.ComponentType<LayoutProps>>
 
-const defaultLayout: keyof typeof layouts = 'PostLayoutMonograph'
-
-function isLayoutKey(key: string): key is keyof typeof layouts {
-  return key in layouts
-}
-
 interface DynamicPostPageProps {
   slug: string
 }

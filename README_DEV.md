@@ -4,6 +4,47 @@ Developer handoff and current work summary for this repository.
 
 Last updated: 2026-03-30
 
+## v2.1.1 Release (2026-03-30)
+
+This release fixes TOC navigation issues in PostLayoutMonograph.
+
+### Problem
+
+The TOC navigation was unreliable because:
+- TOC was extracted from raw markdown text using `extractTocFromContent()`
+- MDX rendering may transform heading text (e.g., via custom components, KaTeX processing)
+- This caused mismatches between TOC entries and actual DOM headings
+- Some TOC entries like "制定固件版本" (half-sentences) couldn't match any DOM heading
+
+### Solution
+
+Changed PostLayoutMonograph to extract TOC directly from the rendered DOM:
+
+1. Added `extractTocFromDOM()` function that:
+   - Queries all h1-h6 headings from DOM after MDX rendering
+   - Extracts heading text and ID (from rehype-slug)
+   - Only includes h1 and h2 headings (depth <= 2)
+
+2. TOC extraction happens 500ms after component mount to ensure MDX has rendered
+
+3. Simplified click handling now uses direct ID lookup (no complex text matching needed)
+
+4. Falls back to original `tocProp` if DOM extraction yields no results
+
+### Modified Files
+
+1. **frontend/src/components/layouts/PostLayoutMonograph.tsx**
+   - Added `extractTocFromDOM()` helper function
+   - Added `domToc` and `isTocReady` state
+   - TOC now rendered from DOM-based extraction
+   - Simplified click handler (ID-first lookup, text fallback)
+   - Removed complex fuzzy matching strategies
+
+2. **frontend/src/app/blog/[...slug]/DynamicPostPage.tsx**
+   - Removed unused `defaultLayout` and `isLayoutKey`
+
+---
+
 ## v2.1.0 Release (2026-03-30)
 
 This release adds a new article detail page layout with improved TOC navigation.
