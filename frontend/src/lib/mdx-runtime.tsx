@@ -10,6 +10,7 @@ import { AnimationErrorBoundary } from '@/components/AnimationErrorBoundary'
 import { normalizeRuntimeMdxContent } from './mdx-runtime-normalize'
 import { KatexRenderer } from '@/components/KatexRenderer'
 import remarkGfm from 'remark-gfm'
+import rehypeSlug from 'rehype-slug'
 
 // Import KaTeX CSS
 import 'katex/dist/katex.min.css'
@@ -131,7 +132,7 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
         const source = await serialize(normalizeRuntimeMdxContent(content), {
           mdxOptions: {
             remarkPlugins: [remarkGfm],
-            rehypePlugins: [],
+            rehypePlugins: [rehypeSlug],
             format: 'mdx',
           },
         })

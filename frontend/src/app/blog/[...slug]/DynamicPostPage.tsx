@@ -12,6 +12,7 @@ import { usePost } from '@/lib/hooks/useBlogData'
 import { DynamicPostRenderer } from '@/components/DynamicPostRenderer'
 import { notFound } from 'next/navigation'
 import PostSimple from '@/components/layouts/PostSimple'
+import PostLayoutMonograph from '@/components/layouts/PostLayoutMonograph'
 import PostLayout from '@/components/layouts/PostLayout'
 import PostBanner from '@/components/layouts/PostBanner'
 import type { CoreContent } from 'pliny/utils/contentlayer'
@@ -20,6 +21,7 @@ import type { ReactNode } from 'react'
 import type { TOC } from '@/lib/types/toc'
 import type { PostDetail } from '@/lib/types/backend'
 import { RDKitLoader } from '@/components/RDKitLoader'
+import { extractTocFromContent } from '@/lib/utils/extract-toc'
 
 interface LayoutProps {
   content: CoreContent<Blog> | PostDetail // Accept both static and dynamic post types
@@ -33,11 +35,12 @@ interface LayoutProps {
 
 const layouts = {
   PostSimple,
+  PostLayoutMonograph,
   PostLayout,
   PostBanner,
 } as unknown as Record<string, React.ComponentType<LayoutProps>>
 
-const defaultLayout: keyof typeof layouts = 'PostLayout'
+const defaultLayout: keyof typeof layouts = 'PostLayoutMonograph'
 
 function isLayoutKey(key: string): key is keyof typeof layouts {
   return key in layouts
@@ -78,11 +81,14 @@ interface DynamicPostPageProps {
     return notFound()
   }
 
-  // 确定使用的布局
-  const layoutKey = post.layout && isLayoutKey(post.layout) ? post.layout : defaultLayout
+  // 确定使用的布局 - 强制使用 PostLayoutMonograph
+  const layoutKey = 'PostLayoutMonograph'
   const Layout = layouts[layoutKey]
 
   const showTOC = post.show_toc === true
+
+  // 从内容中提取 TOC
+  const toc: TOC = extractTocFromContent(post.content || '')
 
   return (
     <>
@@ -109,6 +115,7 @@ interface DynamicPostPageProps {
       <Layout
         content={post}
         authorDetails={[]}
+        toc={toc}
         showTOC={showTOC}
       >
         <DynamicPostRenderer content={post.content} slug={slug} />

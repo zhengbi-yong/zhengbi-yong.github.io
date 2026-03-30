@@ -18,7 +18,7 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
 import VisitorTracker from '@/components/VisitorTracker'
 import I18nProvider from '@/components/I18nProvider'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono, Newsreader } from 'next/font/google'
 import { Metadata } from 'next'
 
 const inter = Inter({
@@ -31,6 +31,14 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-jetbrains-mono',
+})
+
+const newsreader = Newsreader({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-newsreader',
+  style: ['normal', 'italic'],
+  weight: ['200', '300', '400', '500', '600', '700', '800'],
 })
 import Script from 'next/script'
 import { AuthInitializer } from '@/components/auth/AuthInitializer'
@@ -91,33 +99,39 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={siteMetadata.language}
-      className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} scroll-smooth`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      {/* The 'apple-touch-icon' link must be specified inside <head>, not here */}
-      <link
-        rel="icon"
-        type="image/png"
-        sizes="32x32"
-        href={`${basePath}/static/favicons/favicon-32x32.png`}
-      />
-      <link
-        rel="icon"
-        type="image/png"
-        sizes="16x16"
-        href={`${basePath}/static/favicons/favicon-16x16.png`}
-      />
-      <link rel="manifest" href={`${basePath}/static/favicons/site.webmanifest`} />
-      <link
-        rel="mask-icon"
-        href={`${basePath}/static/favicons/safari-pinned-tab.svg`}
-        color="#7c1823"
-      />
-      <meta name="msapplication-TileColor" content="#1E3A5F" />
-      <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F3F0" />
-      <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1E3A5F" />
-      <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
+      <head>
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href={`${basePath}/static/favicons/favicon-32x32.png`}
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href={`${basePath}/static/favicons/favicon-16x16.png`}
+        />
+        <link rel="manifest" href={`${basePath}/static/favicons/site.webmanifest`} />
+        <link
+          rel="mask-icon"
+          href={`${basePath}/static/favicons/safari-pinned-tab.svg`}
+          color="#7c1823"
+        />
+        <meta name="msapplication-TileColor" content="#1E3A5F" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F5F3F0" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1E3A5F" />
+        <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          precedence="default"
+        />
+      </head>
       <body
         className="pl-[calc(100vw-100%)] antialiased"
         style={{ backgroundColor: 'var(--site-bg)', color: 'var(--text-primary)' }}

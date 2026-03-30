@@ -1,0 +1,716 @@
+/**
+ * Monograph 主题 - 艺术馆/学术期刊风格
+ *
+ * 设计原则：
+ * - 极度克制的极简主义
+ * - Newsreader 衬线字体用于标题和正文
+ * - Inter 无衬线字体用于标签和元数据
+ * - 超细 1px 阅读进度条
+ * - 大量留白
+ * - 学术期刊式元数据侧边栏
+ */
+
+/* Monograph 字体变量 */
+:root {
+  /* Monograph 配色 - 温暖米白 + 深炭灰 + 酒红强调 */
+  --monograph-bg: #FAFAF9;
+  --monograph-charcoal: #1a1c1c;
+  --monograph-accent-red: #4B0B0E;
+  --monograph-surface-border: rgba(26, 28, 28, 0.08);
+
+  /* 间距系统 */
+  --monograph-spacing-xs: 1rem;
+  --monograph-spacing-sm: 2rem;
+  --monograph-spacing-md: 3rem;
+  --monograph-spacing-lg: 5rem;
+  --monograph-spacing-xl: 8rem;
+
+  /* 字体 */
+  --monograph-font-headline: var(--font-newsreader), Georgia, serif;
+  --monograph-font-body: var(--font-newsreader), Georgia, serif;
+  --monograph-font-label: var(--font-inter), system-ui, sans-serif;
+
+  /* 动画 */
+  --monograph-ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+/* Monograph 文章容器 */
+.monograph-article {
+  background-color: var(--monograph-bg);
+  color: var(--monograph-charcoal);
+  font-family: var(--monograph-font-body);
+  line-height: 1.8;
+}
+
+/* 超细阅读进度条 */
+.monograph-reading-progress {
+  position: fixed;
+  top: 61px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  z-index: 51;
+  pointer-events: none;
+  background-color: var(--monograph-surface-border);
+}
+
+.monograph-reading-progress-bar {
+  height: 100%;
+  background-color: var(--monograph-accent-red);
+  width: 0;
+  transition: width 0.1s ease-out;
+}
+
+/* 导航栏 */
+.monograph-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 3rem;
+  background-color: rgba(250, 250, 249, 0.9);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  border-bottom: 1px solid var(--monograph-surface-border);
+}
+
+.monograph-nav-brand {
+  font-family: var(--monograph-font-label);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--monograph-charcoal);
+}
+
+.monograph-nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.monograph-nav-link {
+  font-family: var(--monograph-font-label);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15rem;
+  color: var(--monograph-charcoal);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.monograph-nav-link:hover {
+  color: var(--monograph-charcoal);
+}
+
+.monograph-nav-link.active {
+  border-bottom: 1px solid var(--monograph-charcoal);
+  padding-bottom: 2px;
+}
+
+.monograph-nav-link.muted {
+  color: rgba(26, 28, 28, 0.4);
+}
+
+/* 英雄文章头部 */
+.monograph-hero {
+  max-width: 5xl;
+  margin-bottom: 5rem;
+}
+
+.monograph-hero-volume {
+  font-family: var(--monograph-font-label);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(26, 28, 28, 0.4);
+  margin-bottom: 1.5rem;
+}
+
+.monograph-hero-title {
+  font-family: var(--monograph-font-headline);
+  font-size: 3rem;
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--monograph-charcoal);
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .monograph-hero-title {
+    font-size: 5rem;
+  }
+}
+
+.monograph-hero-title-line {
+  display: block;
+}
+
+.monograph-hero-subtitle {
+  font-family: var(--monograph-font-body);
+  font-size: 1.25rem;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.5;
+  color: rgba(26, 28, 28, 0.6);
+  max-width: 2xl;
+}
+
+@media (min-width: 768px) {
+  .monograph-hero-subtitle {
+    font-size: 1.5rem;
+  }
+}
+
+/* 三栏布局 */
+.monograph-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+@media (min-width: 1024px) {
+  .monograph-grid {
+    grid-template-columns: 200px 1fr 200px;
+    gap: 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .monograph-grid {
+    grid-template-columns: 200px 1fr 200px;
+    gap: 6rem;
+  }
+}
+
+/* 左栏 - 元数据 */
+.monograph-meta {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .monograph-meta {
+    display: block;
+    position: sticky;
+    top: 120px;
+    height: fit-content;
+  }
+}
+
+.monograph-meta-section {
+  margin-bottom: 2.5rem;
+}
+
+.monograph-meta-label {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(26, 28, 28, 0.4);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--monograph-surface-border);
+}
+
+.monograph-meta-contributor {
+  font-family: var(--monograph-font-body);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--monograph-charcoal);
+}
+
+.monograph-meta-role {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(26, 28, 28, 0.5);
+  margin-top: 0.25rem;
+}
+
+.monograph-meta-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.monograph-meta-metric-label {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(26, 28, 28, 0.4);
+}
+
+.monograph-meta-metric-value {
+  font-family: var(--monograph-font-label);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--monograph-charcoal);
+}
+
+.monograph-meta-keyword {
+  font-family: var(--monograph-font-body);
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(26, 28, 28, 0.7);
+  margin-bottom: 0.25rem;
+}
+
+/* 中栏 - 文章内容 */
+.monograph-content {
+  max-width: 720px;
+}
+
+.monograph-content :global(p) {
+  line-height: 1.8;
+  margin-bottom: 2rem;
+  font-size: 1.125rem;
+  color: rgba(26, 28, 28, 0.9);
+}
+
+/* 首字下沉 */
+.monograph-content :global(p:first-of-type::first-letter) {
+  float: left;
+  font-size: 4.5rem;
+  line-height: 0.8;
+  font-family: var(--monograph-font-headline);
+  font-weight: 400;
+  color: var(--monograph-charcoal);
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* 英雄图片 */
+.monograph-figure {
+  margin-bottom: 4rem;
+}
+
+.monograph-figure-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: rgba(26, 28, 28, 0.05);
+}
+
+.monograph-figure-image :global(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%) contrast(1.1) brightness(1.05);
+}
+
+.monograph-figure-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--monograph-surface-border);
+}
+
+.monograph-figure-caption-label {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(26, 28, 28, 0.4);
+}
+
+.monograph-figure-caption-num {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(26, 28, 28, 0.6);
+  font-style: italic;
+}
+
+/* 引用块 */
+.monograph-blockquote {
+  margin: 5rem 0;
+  padding: 3rem 0;
+  border-top: 1px solid var(--monograph-surface-border);
+  border-bottom: 1px solid var(--monograph-surface-border);
+  text-align: center;
+}
+
+.monograph-blockquote-text {
+  font-family: var(--monograph-font-body);
+  font-size: 1.75rem;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--monograph-charcoal);
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .monograph-blockquote-text {
+    font-size: 2rem;
+  }
+}
+
+/* 推荐精选 */
+.monograph-curations {
+  margin-top: 6rem;
+  padding-top: 4rem;
+  border-top: 1px solid var(--monograph-surface-border);
+}
+
+.monograph-curations-title {
+  font-family: var(--monograph-font-label);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(26, 28, 28, 0.4);
+  margin-bottom: 2.5rem;
+}
+
+.monograph-curations-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .monograph-curations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.monograph-curation-item {
+  cursor: pointer;
+}
+
+.monograph-curation-image {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background-color: rgba(26, 28, 28, 0.05);
+  margin-bottom: 1rem;
+  transition: transform 0.7s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.monograph-curation-item:hover .monograph-curation-image {
+  transform: scale(1.05);
+}
+
+.monograph-curation-image :global(img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%);
+  transition: filter 0.7s ease, brightness 0.7s ease;
+}
+
+.monograph-curation-item:hover .monograph-curation-image :global(img) {
+  filter: grayscale(0%) brightness(1.1);
+}
+
+.monograph-curation-label {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(26, 28, 28, 0.4);
+  margin-bottom: 0.25rem;
+}
+
+.monograph-curation-title {
+  font-family: var(--monograph-font-body);
+  font-size: 1.25rem;
+  color: var(--monograph-charcoal);
+}
+
+/* 反思/留言区 */
+.monograph-reflections {
+  margin-top: 8rem;
+  padding-top: 4rem;
+  border-top: 1px solid var(--monograph-surface-border);
+  margin-bottom: 5rem;
+}
+
+.monograph-reflections-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 3rem;
+}
+
+.monograph-reflections-title {
+  font-family: var(--monograph-font-label);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(26, 28, 28, 0.4);
+}
+
+.monograph-reflections-count {
+  font-family: var(--monograph-font-body);
+  font-size: 14px;
+  font-style: italic;
+  color: rgba(26, 28, 28, 0.5);
+}
+
+.monograph-reflection {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.monograph-reflection-meta {
+  min-width: 80px;
+  padding-top: 0.25rem;
+  border-top: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.monograph-reflection:hover .monograph-reflection-meta {
+  border-top-color: rgba(26, 28, 28, 0.1);
+}
+
+.monograph-reflection-author {
+  font-family: var(--monograph-font-label);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--monograph-charcoal);
+  display: block;
+}
+
+.monograph-reflection-date {
+  font-family: var(--monograph-font-label);
+  font-size: 8px;
+  color: rgba(26, 28, 28, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+.monograph-reflection-text {
+  font-family: var(--monograph-font-body);
+  font-size: 1.125rem;
+  font-style: italic;
+  line-height: 1.6;
+  color: rgba(26, 28, 28, 0.8);
+}
+
+/* 提交表单 */
+.monograph-submit-form {
+  margin-top: 4rem;
+  padding: 2rem;
+  background-color: rgba(26, 28, 28, 0.02);
+  border: 1px solid var(--monograph-surface-border);
+}
+
+.monograph-submit-label {
+  display: block;
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(26, 28, 28, 0.4);
+  margin-bottom: 1.5rem;
+}
+
+.monograph-submit-textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-family: var(--monograph-font-body);
+  font-size: 1.25rem;
+  font-style: italic;
+  color: var(--monograph-charcoal);
+  resize: none;
+  outline: none;
+  margin-bottom: 2rem;
+}
+
+.monograph-submit-textarea::placeholder {
+  color: rgba(26, 28, 28, 0.2);
+}
+
+.monograph-submit-button {
+  font-family: var(--monograph-font-label);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  padding: 1rem 3rem;
+  background-color: var(--monograph-charcoal);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.monograph-submit-button:hover {
+  background-color: var(--monograph-accent-red);
+}
+
+.monograph-submit-button:active {
+  transform: scale(0.98);
+}
+
+/* 右栏 - 目录导航 */
+.monograph-toc {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .monograph-toc {
+    display: block;
+    position: sticky;
+    top: 120px;
+    height: fit-content;
+    padding-left: 2rem;
+    border-left: 1px solid var(--monograph-surface-border);
+  }
+}
+
+.monograph-toc-title {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(26, 28, 28, 0.4);
+  margin-bottom: 2rem;
+}
+
+.monograph-toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.monograph-toc-item {
+  margin-bottom: 1.5rem;
+}
+
+.monograph-toc-link {
+  font-family: var(--monograph-font-label);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(26, 28, 28, 0.4);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  display: block;
+  padding-left: 12px;
+  margin-left: -1px;
+  border-left: 1px solid transparent;
+}
+
+.monograph-toc-link:hover {
+  color: var(--monograph-charcoal);
+}
+
+.monograph-toc-link.active {
+  color: var(--monograph-charcoal);
+  font-weight: 500;
+  border-left-color: var(--monograph-charcoal);
+}
+
+/* 页脚 */
+.monograph-footer {
+  background-color: var(--monograph-bg);
+  color: var(--monograph-charcoal);
+  border-top: 1px solid var(--monograph-surface-border);
+  margin-top: 3rem;
+  padding: 4rem 0;
+}
+
+.monograph-footer-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .monograph-footer-inner {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.monograph-footer-brand {
+  font-family: var(--monograph-font-body);
+  font-size: 14px;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+.monograph-footer-links {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.monograph-footer-link {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--monograph-charcoal);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.monograph-footer-link:hover {
+  color: var(--monograph-accent-red);
+}
+
+.monograph-footer-copyright {
+  font-family: var(--monograph-font-label);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(26, 28, 28, 0.3);
+}
+
+/* 滚动条样式 - 极简 */
+.monograph-article::-webkit-scrollbar {
+  width: 4px;
+}
+
+.monograph-article::-webkit-scrollbar-track {
+  background: var(--monograph-bg);
+}
+
+.monograph-article::-webkit-scrollbar-thumb {
+  background: rgba(26, 28, 28, 0.12);
+}
+
+.monograph-article::-webkit-scrollbar-thumb:hover {
+  background: rgba(26, 28, 28, 0.25);
+}
+
+/* 选中样式 */
+.monograph-article ::selection {
+  background: rgba(75, 11, 14, 0.1);
+  color: var(--monograph-charcoal);
+}
+
+/* 动画 */
+@keyframes monograph-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.monograph-animate-fade-in {
+  animation: monograph-fade-in 0.5s var(--monograph-ease-out) forwards;
+}
