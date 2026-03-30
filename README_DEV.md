@@ -2,7 +2,52 @@
 
 Developer handoff and current work summary for this repository.
 
-Last updated: 2026-03-29
+Last updated: 2026-03-30
+
+## v2.1.0 Release (2026-03-30)
+
+This release adds a new article detail page layout with improved TOC navigation.
+
+### Key Features
+
+- **PostLayoutMonograph**: New 3-column article detail layout with golden ratio proportions
+  - Left column (16%): Metadata (author, date, reading time, tags)
+  - Center column (68%): Article content with real BackendComments integration
+  - Right column (16%): TOC navigation with active section highlighting
+- **Real TOC Navigation**: Extracts h1/h2 headings from MDX content, adds rehype-slug for anchor IDs
+- **Real Backend Integration**: Replaces template data with actual comments and related posts
+
+### New Files
+
+1. **frontend/src/components/layouts/PostLayoutMonograph.tsx**
+   - 3-column layout with golden ratio proportions (16% | 68% | 16%)
+   - Sticky TOC navigation with scroll-based active section highlighting
+   - Reading progress bar
+   - Real BackendComments integration
+   - Related posts section
+
+2. **frontend/src/lib/utils/extract-toc.ts**
+   - Extracts TOC from MDX content
+   - Filters to only h1 and h2 headings
+   - Generates URL-safe anchor IDs
+
+3. **frontend/src/styles/monograph-theme.css**
+   - Monograph-style CSS variables and classes
+   - Custom styling for article layout
+
+### Modified Files
+
+1. **frontend/src/lib/mdx-runtime.tsx**
+   - Added rehype-slug plugin for heading anchor IDs
+
+2. **frontend/src/app/layout.tsx**
+   - Fixed `<link>` tag precedence error for Google Fonts
+
+3. **frontend/src/app/blog/[...slug]/DynamicPostPage.tsx**
+   - Force use PostLayoutMonograph layout
+   - Extract TOC from article content
+
+---
 
 ## v2.0.0 Release (2026-03-29)
 
