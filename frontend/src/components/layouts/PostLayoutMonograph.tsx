@@ -1,6 +1,7 @@
 'use client'
 
-import { ReactNode, useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import siteMetadata from '@/data/siteMetadata'
 import { CoreContent } from 'pliny/utils/contentlayer'
@@ -11,6 +12,7 @@ import { BackendComments } from '@/components/post/BackendComments'
 import type { TOC } from '@/lib/types/toc'
 import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 import { usePosts } from '@/lib/hooks/useBlogData'
+import { MonographTOC } from './MonographTOC'
 
 import '@/styles/monograph-theme.css'
 
@@ -23,33 +25,9 @@ interface LayoutProps {
 }
 
 /**
- * 从DOM中提取TOC
- */
-function extractTocFromDOM(): TOC {
-  const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
-  const toc: TOC = []
-
-  headings.forEach((heading) => {
-    const tagName = heading.tagName.toLowerCase()
-    const depth = parseInt(tagName.replace('h', ''), 10)
-    const text = heading.textContent?.trim() || ''
-    const id = heading.id || ''
-
-    if (text && depth <= 2) {
-      toc.push({
-        value: text,
-        url: id ? `#${id}` : '#',
-        depth,
-      })
-    }
-  })
-
-  return toc
-}
-
-/**
- * 文章详情页布局
- * 简洁三栏布局：左侧目录 | 中间文章内容 | 右侧元数据
+ * Monograph article detail layout
+ * Asymmetric editorial grid: gutter | content (~65ch) | sidenote (220px)
+ * Metadata in header row, TOC in right sidenote column
  */
 export default function PostLayoutMonograph({
   content,
@@ -65,11 +43,8 @@ export default function PostLayoutMonograph({
   const isoDate = hasValidDate ? parsedDate.toISOString() : undefined
 
   const [readingProgress, setReadingProgress] = useState(0)
-  const [activeSection, setActiveSection] = useState('')
-  const [domToc, setDomToc] = useState<TOC>([])
-  const [isTocReady, setIsTocReady] = useState(false)
 
-  // 获取相关文章推荐
+  // Related posts
   const { data: relatedPostsData } = usePosts({
     limit: 6,
     tag_slug: tags[0],
@@ -79,75 +54,29 @@ export default function PostLayoutMonograph({
     ?.filter((p) => p.slug !== slug && p.status === 'Published')
     ?.slice(0, 2) || []
 
-  // 从DOM中提取TOC
+  // Reading progress
   useEffect(() => {
-    // 等待MDX内容渲染完成
-    const timeoutId = setTimeout(() => {
-      const extractedToc = extractTocFromDOM()
-      if (extractedToc.length > 0) {
-        setDomToc(extractedToc)
-        setIsTocReady(true)
-      } else {
-        // 如果DOM提取失败，使用传入的toc作为fallback
-        setIsTocReady(true)
-      }
-    }, 500) // 等待500ms让MDX渲染完成
-
-    return () => clearTimeout(timeoutId)
-  }, [tocProp])
-
-  // 处理阅读进度
-  const handleScroll = useCallback(() => {
-    const totalHeight = document.body.scrollHeight - window.innerHeight
-    const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0
-    setReadingProgress(Math.min(100, Math.max(0, progress)))
-
-    // 使用DOM提取的TOC来追踪active section
-    const toc = isTocReady && domToc.length > 0 ? domToc : tocProp || []
-    if (toc.length === 0) return
-
-    const sections = toc.map((item) => item.url.replace('#', ''))
-    let current = ''
-
-    sections.forEach((section) => {
-      let element: HTMLElement | null = null
-
-      // Try exact ID first
-      element = document.getElementById(section)
-
-      // Fallback: prefix match
-      if (!element) {
-        element = document.querySelector(`[id^="${section}"]`)
-      }
-
-      if (element) {
-        const rect = element.getBoundingClientRect()
-        if (rect.top <= 120) {
-          current = section
-        }
-      }
-    })
-
-    setActiveSection(current)
-  }, [domToc, isTocReady, tocProp])
-
-  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.body.scrollHeight - window.innerHeight
+      const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0
+      setReadingProgress(Math.min(100, Math.max(0, progress)))
+    }
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [handleScroll])
+  }, [])
 
-  // 计算阅读时间
   const wordCount = typeof children === 'string' ? children.split(/\s+/).length : 1000
   const readingTime = Math.max(1, Math.ceil(wordCount / 200))
 
-  // 格式化日期
   const formattedDate = hasValidDate
     ? parsedDate.toLocaleDateString(siteMetadata.locale, { month: 'short', day: 'numeric', year: 'numeric' })
     : date
 
+  const toc = tocProp || []
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="monograph-article min-h-screen">
       <JsonLd data={{
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
@@ -178,128 +107,146 @@ export default function PostLayoutMonograph({
         inLanguage: siteMetadata.locale,
       }} />
 
-      {/* 阅读进度条 */}
-      <div className="fixed top-0 left-0 right-0 h-0.5 bg-border z-40">
+      {/* Reading progress bar */}
+      <div className="monograph-reading-progress">
         <div
-          className="h-full bg-primary transition-all duration-150"
+          className="monograph-reading-progress-bar"
           style={{ width: `${readingProgress}%` }}
         />
       </div>
 
-      <main className="pt-24 md:pt-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 文章头部 */}
-        <header className="mb-8 pb-8 border-b border-border">
-          <div className="max-w-3xl">
-            {categorySegment && (
-              <Link
-                href={`/blog/category/${categorySegment}`}
-                className="inline-block text-xs font-medium text-primary mb-3 hover:underline"
-              >
-                {categorySegment}
-              </Link>
-            )}
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-4">
-              {title}
-            </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
+      <main style={{ maxWidth: 'var(--mono-grid-max)', margin: '0 auto', padding: '6rem 1rem 0' }}>
+        {/* Article Header */}
+        <header style={{ maxWidth: '65ch', marginBottom: 'var(--space-3)' }}>
+          {categorySegment && (
+            <Link
+              href={`/blog/category/${categorySegment}`}
+              style={{
+                fontFamily: 'var(--mono-font-sans)',
+                fontSize: 'var(--font-size-xs)',
+                textTransform: 'uppercase' as const,
+                letterSpacing: '0.15em',
+                color: 'var(--mono-accent)',
+                textDecoration: 'none',
+                display: 'inline-block',
+                marginBottom: '0.75rem',
+              }}
+            >
+              {categorySegment}
+            </Link>
+          )}
+          <h1 style={{
+            fontFamily: 'var(--mono-font-serif)',
+            fontSize: 'var(--font-size-h1)',
+            fontWeight: 400,
+            lineHeight: 'var(--line-height-heading)',
+            letterSpacing: '-0.02em',
+            color: 'var(--mono-text)',
+            marginBottom: 'var(--space-1)',
+          }}>
+            {title}
+          </h1>
+          {summary && (
+            <p style={{
+              fontFamily: 'var(--mono-font-serif)',
+              fontSize: 'var(--font-size-h3)',
+              fontStyle: 'italic',
+              fontWeight: 300,
+              lineHeight: 'var(--line-height-body)',
+              color: 'var(--mono-text-muted)',
+              marginBottom: 'var(--space-2)',
+            }}>
               {summary}
             </p>
-            <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
-              <span>{authorDetails[0]?.name || siteMetadata.author}</span>
-              <span className="text-border">·</span>
-              <span>{formattedDate}</span>
-              <span className="text-border">·</span>
-              <span>{readingTime} 分钟阅读</span>
-            </div>
+          )}
+          {/* Metadata row */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontFamily: 'var(--mono-font-sans)',
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--mono-text-muted)',
+            paddingBottom: 'var(--space-2)',
+            borderBottom: '1px solid var(--mono-border)',
+          }}>
+            <span>{authorDetails[0]?.name || siteMetadata.author}</span>
+            <span style={{ color: 'var(--mono-border)' }}>·</span>
+            <span>{formattedDate}</span>
+            <span style={{ color: 'var(--mono-border)' }}>·</span>
+            <span>{readingTime} 分钟阅读</span>
+            {tags.length > 0 && (
+              <>
+                <span style={{ color: 'var(--mono-border)' }}>·</span>
+                <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                  {tags.slice(0, 3).map((tag) => (
+                    <span
+                      key={tag}
+                      style={{
+                        fontSize: 'var(--font-size-xs)',
+                        padding: '0.15em 0.5em',
+                        border: '1px solid var(--mono-border)',
+                        borderRadius: '2px',
+                        color: 'var(--mono-text-muted)',
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </header>
 
-        {/* 三栏布局 - 黄金比例 */}
-        <div className="lg:grid lg:grid-cols-[16%_68%_16%] lg:gap-8">
-          {/* 左栏：元数据 */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-20 space-y-6">
-              {/* 作者信息 */}
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                  作者
-                </h3>
-                <p className="text-sm font-medium text-foreground">
-                  {authorDetails[0]?.name || siteMetadata.author}
-                </p>
-              </div>
-
-              {/* 发布信息 */}
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                  发布于
-                </h3>
-                <p className="text-sm text-foreground">
-                  {formattedDate}
-                </p>
-              </div>
-
-              {/* 阅读时间 */}
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                  阅读时长
-                </h3>
-                <p className="text-sm text-foreground">
-                  约 {readingTime} 分钟
-                </p>
-              </div>
-
-              {/* 关键词 */}
-              {tags.length > 0 && (
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    标签
-                  </h3>
-                  <div className="flex flex-wrap gap-1">
-                    {tags.slice(0, 5).map((tag) => (
-                      <Link
-                        key={tag}
-                        href={`/tags/${tag}`}
-                        className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
-                      >
-                        {tag}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </aside>
-
-          {/* 中栏：文章内容 */}
-          <article className="min-w-0 w-full">
-            {/* 封面图 */}
+        {/* Asymmetric Editorial Grid */}
+        <div className="monograph-grid">
+          {/* Main content column */}
+          <article className="monograph-content">
+            {/* Cover image */}
             {images && images.length > 0 && (
-              <figure className="mb-8 rounded-lg overflow-hidden">
+              <figure style={{ marginBottom: 'var(--space-2)' }}>
                 <img
                   src={images[0]}
                   alt={title}
-                  className="w-full h-auto object-cover"
+                  style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '4px' }}
                   loading="eager"
                 />
               </figure>
             )}
 
-            {/* 文章正文 */}
+            {/* Article body */}
             <PostBackendIntegration slug={slug}>
-              <div className="monograph-content prose prose-lg dark:prose-invert max-w-none w-full">
+              <div className="prose max-w-none w-full" style={{ color: 'var(--mono-text)' }}>
                 {children}
               </div>
             </PostBackendIntegration>
 
-            {/* 标签 */}
+            {/* Tags footer */}
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-8 pt-8 border-t border-border">
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '0.5rem',
+                marginTop: 'var(--space-2)',
+                paddingTop: 'var(--space-2)',
+                borderTop: '1px solid var(--mono-border)',
+              }}>
                 {tags.map((tag) => (
                   <Link
                     key={tag}
                     href={`/tags/${tag}`}
-                    className="text-xs px-2.5 py-1 rounded-full bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                    style={{
+                      fontFamily: 'var(--mono-font-sans)',
+                      fontSize: 'var(--font-size-xs)',
+                      padding: '0.25em 0.75em',
+                      border: '1px solid var(--mono-border)',
+                      borderRadius: '2px',
+                      color: 'var(--mono-text-muted)',
+                      textDecoration: 'none',
+                      transition: 'border-color 0.2s, color 0.2s',
+                    }}
                   >
                     {tag}
                   </Link>
@@ -307,22 +254,55 @@ export default function PostLayoutMonograph({
               </div>
             )}
 
-            {/* 推荐文章 */}
+            {/* Recommended posts */}
             {recommendedPosts.length > 0 && (
-              <section className="mt-12">
-                <h3 className="text-sm font-semibold text-foreground mb-4">相关推荐</h3>
-                <div className="grid gap-4 sm:grid-cols-2">
+              <section style={{ marginTop: 'var(--space-3)' }}>
+                <h3 style={{
+                  fontFamily: 'var(--mono-font-sans)',
+                  fontSize: 'var(--font-size-xs)',
+                  textTransform: 'uppercase' as const,
+                  letterSpacing: '0.15em',
+                  color: 'var(--mono-text-muted)',
+                  marginBottom: 'var(--space-1)',
+                }}>
+                  相关推荐
+                </h3>
+                <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
                   {recommendedPosts.map((post) => (
                     <Link
                       key={post.slug}
                       href={`/blog/${post.slug}`}
-                      className="group block p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-muted/30 transition-all"
+                      style={{
+                        display: 'block',
+                        padding: 'var(--space-1)',
+                        border: '1px solid var(--mono-border)',
+                        borderRadius: '4px',
+                        textDecoration: 'none',
+                        transition: 'border-color 0.2s',
+                      }}
                     >
-                      <h4 className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                      <h4 style={{
+                        fontFamily: 'var(--mono-font-serif)',
+                        fontSize: 'var(--font-size-base)',
+                        fontWeight: 600,
+                        color: 'var(--mono-text)',
+                        marginBottom: '0.25rem',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical' as const,
+                        overflow: 'hidden',
+                      }}>
                         {post.title}
                       </h4>
                       {post.summary && (
-                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                        <p style={{
+                          fontSize: 'var(--font-size-sm)',
+                          color: 'var(--mono-text-muted)',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical' as const,
+                          overflow: 'hidden',
+                        }}>
                           {post.summary}
                         </p>
                       )}
@@ -332,63 +312,18 @@ export default function PostLayoutMonograph({
               </section>
             )}
 
-            {/* 评论 */}
-            <section className="mt-12 pt-8 border-t border-border" id="comments">
+            {/* Comments */}
+            <section style={{
+              marginTop: 'var(--space-3)',
+              paddingTop: 'var(--space-2)',
+              borderTop: '1px solid var(--mono-border)',
+            }} id="comments">
               <BackendComments slug={slug} />
             </section>
           </article>
 
-          {/* 右栏：目录 */}
-          <aside className="hidden lg:block">
-            {(isTocReady ? domToc : tocProp) && (isTocReady ? domToc : tocProp)!.length > 0 ? (
-              <div className="sticky top-20">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
-                  目录
-                </h3>
-                <nav className="max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide space-y-1">
-                  {(isTocReady ? domToc : tocProp)!.map((item, index) => {
-                    const id = item.url.replace('#', '')
-                    const isActive = activeSection === id
-                    return (
-                      <button
-                        key={`toc-${index}-${item.url}`}
-                        onClick={() => {
-                          // TOC条目来自DOM，直接使用ID查找
-                          const element = id ? document.getElementById(id) : null
-
-                          if (element) {
-                            const offset = 80
-                            const top = element.getBoundingClientRect().top + window.scrollY - offset
-                            window.scrollTo({ top, behavior: 'smooth' })
-                          } else if (item.value) {
-                            // Fallback: 通过文本查找
-                            const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
-                            const normalizedText = item.value.trim().toLowerCase()
-                            for (const h of allHeadings) {
-                              if (h.textContent?.trim().toLowerCase() === normalizedText) {
-                                const offset = 80
-                                const top = h.getBoundingClientRect().top + window.scrollY - offset
-                                window.scrollTo({ top, behavior: 'smooth' })
-                                break
-                              }
-                            }
-                          }
-                        }}
-                        className={`block w-full text-left text-sm py-1 px-2 rounded transition-colors ${
-                          isActive
-                            ? 'text-primary font-medium bg-primary/5'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                        }`}
-                      >
-                        <span className="text-xs text-muted-foreground/50 mr-1">{index + 1}.</span>
-                        {item.value}
-                      </button>
-                    )
-                  })}
-                </nav>
-              </div>
-            ) : null}
-          </aside>
+          {/* Sidenote column: TOC (desktop) + floating FAB (mobile/tablet) */}
+          <MonographTOC toc={toc} />
         </div>
       </main>
     </div>
