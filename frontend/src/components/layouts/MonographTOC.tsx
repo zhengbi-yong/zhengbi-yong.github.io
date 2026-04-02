@@ -20,7 +20,7 @@ export function MonographTOC({ toc }: MonographTOCProps) {
 
   // IntersectionObserver for heading tracking
   useEffect(() => {
-    if (!toc || toc.length === 0) return
+    if (!toc || toc.length === 0) return undefined
 
     const initObserver = () => {
       const selectors = [
