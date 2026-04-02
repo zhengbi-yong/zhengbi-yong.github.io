@@ -1,564 +1,215 @@
 /**
- * Monograph 主题 - 艺术馆/学术期刊风格
+ * Monograph Theme - Editorial/Academic Journal Style
  *
- * 设计原则：
- * - 极度克制的极简主义
- * - Newsreader 衬线字体用于标题和正文
- * - Inter 无衬线字体用于标签和元数据
- * - 超细 1px 阅读进度条
- * - 大量留白
- * - 学术期刊式元数据侧边栏
+ * Design tokens with fluid typography, vertical rhythm, and dark mode.
+ * Uses --mono-* namespaced variables for isolation from the main theme.
  */
 
-/* Monograph 字体变量 */
+/* ========================================
+   Design Tokens
+   ======================================== */
 :root {
-  /* Monograph 配色 - 温暖米白 + 深炭灰 + 酒红强调 */
-  --monograph-bg: #FAFAF9;
-  --monograph-charcoal: #1a1c1c;
-  --monograph-accent-red: #4B0B0E;
-  --monograph-surface-border: rgba(26, 28, 28, 0.08);
+  /* --- Color System --- */
+  --mono-bg:           #FAFAF9;
+  --mono-surface:      #FFFFFF;
+  --mono-text:         #1a1c1c;
+  --mono-text-muted:   #5c5c5c;
+  --mono-accent:       #8B2500;
+  --mono-border:       rgba(26, 28, 28, 0.08);
+  --mono-code-bg:      #F5F3F0;
+  --mono-selection:    rgba(139, 37, 0, 0.08);
 
-  /* 间距系统 */
-  --monograph-spacing-xs: 1rem;
-  --monograph-spacing-sm: 2rem;
-  --monograph-spacing-md: 3rem;
-  --monograph-spacing-lg: 5rem;
-  --monograph-spacing-xl: 8rem;
+  /* --- Fluid Typography Scale (ratio 1.25 / Major Third) --- */
+  --font-size-base:    clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --font-size-h1:      clamp(2rem, 1.6rem + 2vw, 3.5rem);
+  --font-size-h2:      clamp(1.5rem, 1.3rem + 1vw, 2.25rem);
+  --font-size-h3:      clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem);
+  --font-size-h4:      clamp(1.1rem, 1rem + 0.5vw, 1.375rem);
+  --font-size-sm:      clamp(0.8125rem, 0.8rem + 0.06vw, 0.875rem);
+  --font-size-xs:      clamp(0.6875rem, 0.67rem + 0.08vw, 0.75rem);
 
-  /* 字体 */
-  --monograph-font-headline: var(--font-newsreader), Georgia, serif;
-  --monograph-font-body: var(--font-newsreader), Georgia, serif;
-  --monograph-font-label: var(--font-inter), system-ui, sans-serif;
+  /* --- Vertical Rhythm --- */
+  --line-height-body:    1.65;
+  --line-height-heading: 1.2;
+  --rhythm-unit:         calc(var(--font-size-base) * var(--line-height-body));
+  --space-half:          calc(var(--rhythm-unit) * 0.5);
+  --space-1:             calc(var(--rhythm-unit) * 1);
+  --space-2:             calc(var(--rhythm-unit) * 2);
+  --space-3:             calc(var(--rhythm-unit) * 3);
 
-  /* 动画 */
-  --monograph-ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  /* --- Font Families --- */
+  --mono-font-serif:  var(--font-newsreader), Georgia, 'Times New Roman', serif;
+  --mono-font-sans:   var(--font-inter), system-ui, -apple-system, sans-serif;
+  --mono-font-mono:   var(--font-jetbrains-mono), ui-monospace, 'Cascadia Code', monospace;
+
+  /* --- Grid --- */
+  --mono-grid-sidenote:  220px;
+  --mono-grid-gap:       clamp(1.5rem, 4vw, 4rem);
+  --mono-grid-max:       1400px;
+
+  /* --- Transitions --- */
+  --mono-ease: cubic-bezier(0.33, 1, 0.68, 1);
 }
 
-/* Monograph 文章容器 */
+/* --- Dark Mode --- */
+.dark {
+  --mono-bg:           #0D0D0D;
+  --mono-surface:      #1A1A1A;
+  --mono-text:         #E8E4DF;
+  --mono-text-muted:   #8A8580;
+  --mono-accent:       #D4A574;
+  --mono-border:       rgba(255, 255, 255, 0.06);
+  --mono-code-bg:      #1E1E1E;
+  --mono-selection:    rgba(212, 165, 116, 0.12);
+}
+
+/* ========================================
+   Base Article Container
+   ======================================== */
 .monograph-article {
-  background-color: var(--monograph-bg);
-  color: var(--monograph-charcoal);
-  font-family: var(--monograph-font-body);
-  line-height: 1.8;
+  background-color: var(--mono-bg);
+  color: var(--mono-text);
+  font-family: var(--mono-font-serif);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
+  transition: background-color 0.3s var(--mono-ease), color 0.3s var(--mono-ease);
 }
 
-/* 超细阅读进度条 */
+/* Reading Progress Bar */
 .monograph-reading-progress {
-  position: fixed;
-  top: 61px;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  z-index: 51;
-  pointer-events: none;
-  background-color: var(--monograph-surface-border);
-}
-
-.monograph-reading-progress-bar {
-  height: 100%;
-  background-color: var(--monograph-accent-red);
-  width: 0;
-  transition: width 0.1s ease-out;
-}
-
-/* 导航栏 */
-.monograph-nav {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 3rem;
-  background-color: rgba(250, 250, 249, 0.9);
-  backdrop-filter: blur(8px);
+  height: 3px;
   z-index: 50;
-  border-bottom: 1px solid var(--monograph-surface-border);
+  pointer-events: none;
+  background-color: var(--mono-border);
 }
 
-.monograph-nav-brand {
-  font-family: var(--monograph-font-label);
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  color: var(--monograph-charcoal);
+.monograph-reading-progress-bar {
+  height: 100%;
+  background-color: var(--mono-accent);
+  width: 0;
+  transition: width 0.1s ease-out;
 }
 
-.monograph-nav-links {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-}
-
-.monograph-nav-link {
-  font-family: var(--monograph-font-label);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.15rem;
-  color: var(--monograph-charcoal);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.monograph-nav-link:hover {
-  color: var(--monograph-charcoal);
-}
-
-.monograph-nav-link.active {
-  border-bottom: 1px solid var(--monograph-charcoal);
-  padding-bottom: 2px;
-}
-
-.monograph-nav-link.muted {
-  color: rgba(26, 28, 28, 0.4);
-}
-
-/* 英雄文章头部 */
-.monograph-hero {
-  max-width: 5xl;
-  margin-bottom: 5rem;
-}
-
-.monograph-hero-volume {
-  font-family: var(--monograph-font-label);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  color: rgba(26, 28, 28, 0.4);
-  margin-bottom: 1.5rem;
-}
-
-.monograph-hero-title {
-  font-family: var(--monograph-font-headline);
-  font-size: 3rem;
-  font-weight: 400;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-  color: var(--monograph-charcoal);
-  margin-bottom: 2.5rem;
-}
-
-@media (min-width: 768px) {
-  .monograph-hero-title {
-    font-size: 5rem;
-  }
-}
-
-.monograph-hero-title-line {
-  display: block;
-}
-
-.monograph-hero-subtitle {
-  font-family: var(--monograph-font-body);
-  font-size: 1.25rem;
-  font-style: italic;
-  font-weight: 300;
-  line-height: 1.5;
-  color: rgba(26, 28, 28, 0.6);
-  max-width: 2xl;
-}
-
-@media (min-width: 768px) {
-  .monograph-hero-subtitle {
-    font-size: 1.5rem;
-  }
-}
-
-/* 三栏布局 */
+/* ========================================
+   Asymmetric Editorial Grid
+   ======================================== */
 .monograph-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
+  gap: var(--mono-grid-gap);
 }
 
-@media (min-width: 1024px) {
+/* Tablet: centered single column */
+@media (min-width: 768px) {
   .monograph-grid {
-    grid-template-columns: 200px 1fr 200px;
-    gap: 3rem;
+    grid-template-columns: 1fr;
+    max-width: 65ch;
+    margin: 0 auto;
   }
 }
 
+/* Desktop: asymmetric editorial grid */
 @media (min-width: 1280px) {
   .monograph-grid {
-    grid-template-columns: 200px 1fr 200px;
-    gap: 6rem;
+    grid-template-columns: 1fr minmax(0, 65ch) var(--mono-grid-sidenote);
+    max-width: var(--mono-grid-max);
+    margin: 0 auto;
   }
 }
 
-/* 左栏 - 元数据 */
-.monograph-meta {
-  display: none;
-}
-
-@media (min-width: 1024px) {
-  .monograph-meta {
-    display: block;
-    position: sticky;
-    top: 120px;
-    height: fit-content;
-  }
-}
-
-.monograph-meta-section {
-  margin-bottom: 2.5rem;
-}
-
-.monograph-meta-label {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(26, 28, 28, 0.4);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--monograph-surface-border);
-}
-
-.monograph-meta-contributor {
-  font-family: var(--monograph-font-body);
-  font-size: 14px;
-  font-style: italic;
-  color: var(--monograph-charcoal);
-}
-
-.monograph-meta-role {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(26, 28, 28, 0.5);
-  margin-top: 0.25rem;
-}
-
-.monograph-meta-metric {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.5rem;
-}
-
-.monograph-meta-metric-label {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(26, 28, 28, 0.4);
-}
-
-.monograph-meta-metric-value {
-  font-family: var(--monograph-font-label);
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--monograph-charcoal);
-}
-
-.monograph-meta-keyword {
-  font-family: var(--monograph-font-body);
-  font-size: 13px;
-  font-style: italic;
-  color: rgba(26, 28, 28, 0.7);
-  margin-bottom: 0.25rem;
-}
-
-/* 中栏 - 文章内容 */
+/* ========================================
+   Article Content - Typography
+   ======================================== */
 .monograph-content {
-  max-width: 100%;
+  max-width: none;
   width: 100%;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-body);
 }
 
 .monograph-content p {
-  line-height: 1.8;
-  margin-bottom: 2rem;
-  font-size: 1.125rem;
-  color: rgba(26, 28, 28, 0.9);
+  line-height: var(--line-height-body);
+  margin-block: var(--space-1);
+  font-size: inherit;
+  color: var(--mono-text);
 }
 
-/* 首字下沉 */
-.monograph-content p:first-of-type::first-letter {
-  float: left;
-  font-size: 4.5rem;
-  line-height: 0.8;
-  font-family: var(--monograph-font-headline);
-  font-weight: 400;
-  color: var(--monograph-charcoal);
-  margin-right: 1rem;
-  margin-top: 0.5rem;
+.monograph-content h1,
+.monograph-content h2,
+.monograph-content h3,
+.monograph-content h4 {
+  font-family: var(--mono-font-serif);
+  line-height: var(--line-height-heading);
+  color: var(--mono-text);
+  margin-block-start: var(--space-2);
+  margin-block-end: var(--space-half);
 }
 
-/* 英雄图片 */
-.monograph-figure {
-  margin-bottom: 4rem;
+.monograph-content h1 { font-size: var(--font-size-h2); font-weight: 700; }
+.monograph-content h2 { font-size: var(--font-size-h2); font-weight: 700; }
+.monograph-content h3 { font-size: var(--font-size-h3); font-weight: 600; }
+.monograph-content h4 { font-size: var(--font-size-h4); font-weight: 600; }
+
+.monograph-content a {
+  color: var(--mono-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s var(--mono-ease);
 }
 
-.monograph-figure-image {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background-color: rgba(26, 28, 28, 0.05);
+.monograph-content a:hover {
+  opacity: 0.8;
 }
 
-.monograph-figure-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(100%) contrast(1.1) brightness(1.05);
-}
-
-.monograph-figure-caption {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--monograph-surface-border);
-}
-
-.monograph-figure-caption-label {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(26, 28, 28, 0.4);
-}
-
-.monograph-figure-caption-num {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(26, 28, 28, 0.6);
+.monograph-content blockquote {
+  margin-block: var(--space-2);
+  padding-inline-start: var(--space-1);
+  border-left: 2px solid var(--mono-accent);
+  color: var(--mono-text-muted);
   font-style: italic;
 }
 
-/* 引用块 */
-.monograph-blockquote {
-  margin: 5rem 0;
-  padding: 3rem 0;
-  border-top: 1px solid var(--monograph-surface-border);
-  border-bottom: 1px solid var(--monograph-surface-border);
-  text-align: center;
+.monograph-content code {
+  font-family: var(--mono-font-mono);
+  font-size: var(--font-size-sm);
+  background-color: var(--mono-code-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
 }
 
-.monograph-blockquote-text {
-  font-family: var(--monograph-font-body);
-  font-size: 1.75rem;
-  font-style: italic;
-  font-weight: 300;
-  line-height: 1.2;
-  color: var(--monograph-charcoal);
-  max-width: 36rem;
-  margin: 0 auto;
+.monograph-content pre {
+  background-color: var(--mono-code-bg);
+  padding: var(--space-1);
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-block: var(--space-1);
 }
 
-@media (min-width: 768px) {
-  .monograph-blockquote-text {
-    font-size: 2rem;
-  }
-}
-
-/* 推荐精选 */
-.monograph-curations {
-  margin-top: 6rem;
-  padding-top: 4rem;
-  border-top: 1px solid var(--monograph-surface-border);
-}
-
-.monograph-curations-title {
-  font-family: var(--monograph-font-label);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  color: rgba(26, 28, 28, 0.4);
-  margin-bottom: 2.5rem;
-}
-
-.monograph-curations-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2.5rem;
-}
-
-@media (min-width: 768px) {
-  .monograph-curations-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.monograph-curation-item {
-  cursor: pointer;
-}
-
-.monograph-curation-image {
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background-color: rgba(26, 28, 28, 0.05);
-  margin-bottom: 1rem;
-  transition: transform 0.7s cubic-bezier(0.33, 1, 0.68, 1);
-}
-
-.monograph-curation-item:hover .monograph-curation-image {
-  transform: scale(1.05);
-}
-
-.monograph-curation-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(100%);
-  transition: filter 0.7s ease, brightness 0.7s ease;
-}
-
-.monograph-curation-item:hover .monograph-curation-image img {
-  filter: grayscale(0%) brightness(1.1);
-}
-
-.monograph-curation-label {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: rgba(26, 28, 28, 0.4);
-  margin-bottom: 0.25rem;
-}
-
-.monograph-curation-title {
-  font-family: var(--monograph-font-body);
-  font-size: 1.25rem;
-  color: var(--monograph-charcoal);
-}
-
-/* 反思/留言区 */
-.monograph-reflections {
-  margin-top: 8rem;
-  padding-top: 4rem;
-  border-top: 1px solid var(--monograph-surface-border);
-  margin-bottom: 5rem;
-}
-
-.monograph-reflections-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 3rem;
-}
-
-.monograph-reflections-title {
-  font-family: var(--monograph-font-label);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.3em;
-  color: rgba(26, 28, 28, 0.4);
-}
-
-.monograph-reflections-count {
-  font-family: var(--monograph-font-body);
-  font-size: 14px;
-  font-style: italic;
-  color: rgba(26, 28, 28, 0.5);
-}
-
-.monograph-reflection {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 3rem;
-}
-
-.monograph-reflection-meta {
-  min-width: 80px;
-  padding-top: 0.25rem;
-  border-top: 1px solid transparent;
-  transition: border-color 0.2s ease;
-}
-
-.monograph-reflection:hover .monograph-reflection-meta {
-  border-top-color: rgba(26, 28, 28, 0.1);
-}
-
-.monograph-reflection-author {
-  font-family: var(--monograph-font-label);
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--monograph-charcoal);
-  display: block;
-}
-
-.monograph-reflection-date {
-  font-family: var(--monograph-font-label);
-  font-size: 8px;
-  color: rgba(26, 28, 28, 0.4);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-}
-
-.monograph-reflection-text {
-  font-family: var(--monograph-font-body);
-  font-size: 1.125rem;
-  font-style: italic;
-  line-height: 1.6;
-  color: rgba(26, 28, 28, 0.8);
-}
-
-/* 提交表单 */
-.monograph-submit-form {
-  margin-top: 4rem;
-  padding: 2rem;
-  background-color: rgba(26, 28, 28, 0.02);
-  border: 1px solid var(--monograph-surface-border);
-}
-
-.monograph-submit-label {
-  display: block;
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(26, 28, 28, 0.4);
-  margin-bottom: 1.5rem;
-}
-
-.monograph-submit-textarea {
-  width: 100%;
-  background: transparent;
-  border: none;
+.monograph-content pre code {
+  background: none;
   padding: 0;
-  font-family: var(--monograph-font-body);
-  font-size: 1.25rem;
-  font-style: italic;
-  color: var(--monograph-charcoal);
-  resize: none;
-  outline: none;
-  margin-bottom: 2rem;
+  border-radius: 0;
 }
 
-.monograph-submit-textarea::placeholder {
-  color: rgba(26, 28, 28, 0.2);
+/* Drop cap on first paragraph */
+.monograph-content > p:first-of-type::first-letter {
+  float: left;
+  font-size: 4rem;
+  line-height: 0.8;
+  font-family: var(--mono-font-serif);
+  font-weight: 400;
+  color: var(--mono-accent);
+  margin-right: 0.75rem;
+  margin-top: 0.35rem;
 }
 
-.monograph-submit-button {
-  font-family: var(--monograph-font-label);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  padding: 1rem 3rem;
-  background-color: var(--monograph-charcoal);
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.1s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.monograph-submit-button:hover {
-  background-color: var(--monograph-accent-red);
-}
-
-.monograph-submit-button:active {
-  transform: scale(0.98);
-}
-
-/* 右栏 - 目录导航 */
+/* ========================================
+   TOC - Sidenote Navigation
+   ======================================== */
 .monograph-toc {
   display: none;
 }
@@ -567,20 +218,35 @@
   .monograph-toc {
     display: block;
     position: sticky;
-    top: 120px;
+    top: 5rem;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
     height: fit-content;
-    padding-left: 2rem;
-    border-left: 1px solid var(--monograph-surface-border);
   }
 }
 
-.monograph-toc-title {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
+.monograph-toc::-webkit-scrollbar {
+  width: 3px;
+}
+
+.monograph-toc::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.monograph-toc::-webkit-scrollbar-thumb {
+  background: var(--mono-border);
+  border-radius: 3px;
+}
+
+.monograph-toc-label {
+  font-family: var(--mono-font-sans);
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(26, 28, 28, 0.4);
-  margin-bottom: 2rem;
+  letter-spacing: 0.15em;
+  color: var(--mono-text-muted);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--mono-border);
 }
 
 .monograph-toc-list {
@@ -590,128 +256,161 @@
 }
 
 .monograph-toc-item {
-  margin-bottom: 1.5rem;
-}
-
-.monograph-toc-link {
-  font-family: var(--monograph-font-label);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(26, 28, 28, 0.4);
-  text-decoration: none;
-  transition: color 0.2s ease;
-  display: block;
+  position: relative;
   padding-left: 12px;
-  margin-left: -1px;
-  border-left: 1px solid transparent;
+  margin-bottom: 0.75rem;
 }
 
-.monograph-toc-link:hover {
-  color: var(--monograph-charcoal);
+.monograph-toc-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 0.2s var(--mono-ease);
 }
 
-.monograph-toc-link.active {
-  color: var(--monograph-charcoal);
-  font-weight: 500;
-  border-left-color: var(--monograph-charcoal);
+.monograph-toc-item:hover::before {
+  background: var(--mono-border);
 }
 
-/* 页脚 */
-.monograph-footer {
-  background-color: var(--monograph-bg);
-  color: var(--monograph-charcoal);
-  border-top: 1px solid var(--monograph-surface-border);
-  margin-top: 3rem;
-  padding: 4rem 0;
+.monograph-toc-item.active::before {
+  background: var(--mono-accent);
 }
 
-.monograph-footer-inner {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 0 3rem;
+.monograph-toc-btn {
+  font-family: var(--mono-font-serif);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  color: var(--mono-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  transition: color 0.2s var(--mono-ease);
+  display: block;
+}
+
+.monograph-toc-item:hover .monograph-toc-btn {
+  color: var(--mono-text);
+}
+
+.monograph-toc-item.active .monograph-toc-btn {
+  color: var(--mono-text);
+  font-weight: 700;
+}
+
+/* ========================================
+   Mobile/Tablet Floating TOC
+   ======================================== */
+.monograph-toc-fab {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--mono-accent);
+  color: var(--mono-bg);
+  border: none;
+  cursor: pointer;
+  z-index: 45;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s var(--mono-ease), box-shadow 0.2s var(--mono-ease);
+}
+
+.monograph-toc-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.monograph-toc-fab:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 1279px) {
+  .monograph-toc-fab {
+    display: flex;
+  }
+}
+
+.monograph-toc-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  animation: mono-fade-in 0.2s ease-out;
+}
+
+.monograph-toc-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(320px, 85vw);
+  background-color: var(--mono-surface);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+  z-index: 51;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 2rem;
 }
 
-@media (min-width: 768px) {
-  .monograph-footer-inner {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-}
-
-.monograph-footer-brand {
-  font-family: var(--monograph-font-body);
-  font-size: 14px;
-  font-style: italic;
-  opacity: 0.6;
-}
-
-.monograph-footer-links {
+.monograph-toc-drawer-header {
   display: flex;
-  gap: 2.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--mono-border);
 }
 
-.monograph-footer-link {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
+.monograph-toc-drawer-title {
+  font-family: var(--mono-font-sans);
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--monograph-charcoal);
-  text-decoration: none;
-  transition: color 0.2s ease;
+  letter-spacing: 0.15em;
+  color: var(--mono-text-muted);
 }
 
-.monograph-footer-link:hover {
-  color: var(--monograph-accent-red);
+.monograph-toc-drawer-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--mono-text-muted);
+  border-radius: 6px;
+  transition: color 0.2s, background-color 0.2s;
 }
 
-.monograph-footer-copyright {
-  font-family: var(--monograph-font-label);
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(26, 28, 28, 0.3);
+.monograph-toc-drawer-close:hover {
+  color: var(--mono-text);
+  background-color: var(--mono-border);
 }
 
-/* 滚动条样式 - 极简 */
-.monograph-article::-webkit-scrollbar {
-  width: 4px;
+.monograph-toc-drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
 }
 
-.monograph-article::-webkit-scrollbar-track {
-  background: var(--monograph-bg);
+@keyframes mono-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.monograph-article::-webkit-scrollbar-thumb {
-  background: rgba(26, 28, 28, 0.12);
-}
-
-.monograph-article::-webkit-scrollbar-thumb:hover {
-  background: rgba(26, 28, 28, 0.25);
-}
-
-/* 选中样式 */
+/* ========================================
+   Selection
+   ======================================== */
 .monograph-article ::selection {
-  background: rgba(75, 11, 14, 0.1);
-  color: var(--monograph-charcoal);
-}
-
-/* 动画 */
-@keyframes monograph-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.monograph-animate-fade-in {
-  animation: monograph-fade-in 0.5s var(--monograph-ease-out) forwards;
+  background: var(--mono-selection);
+  color: var(--mono-text);
 }
