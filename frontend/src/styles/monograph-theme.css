@@ -124,6 +124,12 @@
 /* ========================================
    Article Content - Typography
    ======================================== */
+@media (min-width: 1280px) {
+  .monograph-content {
+    grid-column: 2;
+  }
+}
+
 .monograph-content {
   max-width: none;
   width: 100%;
@@ -210,6 +216,20 @@
 /* ========================================
    TOC - Sidenote Navigation
    ======================================== */
+
+/* The slot wrapper occupies the sidenote grid cell */
+.monograph-toc-slot {
+  display: contents;
+}
+
+@media (min-width: 1280px) {
+  .monograph-toc-slot {
+    grid-column: 3;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 .monograph-toc {
   display: none;
 }

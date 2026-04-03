@@ -114,7 +114,7 @@ export function MonographTOC({ toc }: MonographTOCProps) {
   )
 
   return (
-    <>
+    <div className="monograph-toc-slot">
       {/* Desktop: sidenote TOC (visible >= 1280px via CSS) */}
       <nav className="monograph-toc" aria-label="Table of contents">
         <div className="monograph-toc-label">目 录</div>
@@ -159,6 +159,6 @@ export function MonographTOC({ toc }: MonographTOCProps) {
           </div>
         </>
       )}
-    </>
+    </div>
   )
 }
