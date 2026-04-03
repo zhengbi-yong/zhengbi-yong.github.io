@@ -48,8 +48,8 @@ export default function MegaFooter() {
           transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
         >
           <h2
-            className={`font-visitor-serif leading-[0.95] tracking-tight ${textPrimary}`}
-            style={{ fontSize: 'clamp(2.5rem, 7vw, 8rem)' }}
+            className={`leading-[1.2] tracking-widest ${textPrimary}`}
+            style={{ fontSize: 'clamp(2.5rem, 7vw, 8rem)', fontFamily: 'var(--font-ma-shan-zheng)' }}
           >
             远离颠倒梦想，
             <br />

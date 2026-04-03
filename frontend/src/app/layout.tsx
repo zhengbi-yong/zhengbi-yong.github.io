@@ -5,11 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import 'katex/dist/katex.min.css' // KaTeX 数学公式样式
 import 'abcjs/abcjs-audio.css'
 
-import { SearchProvider, SearchConfig } from 'pliny/search'
 import type { AnalyticsConfig } from 'pliny/analytics'
-import Header from '@/components/Header'
-import SectionContainer from '@/components/SectionContainer'
-import Footer from '@/components/Footer'
 import SkipLink from '@/components/SkipLink'
 import siteMetadata from '@/data/siteMetadata'
 import { ThemeProviders } from './theme-providers'
@@ -18,7 +14,7 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
 import VisitorTracker from '@/components/VisitorTracker'
 import I18nProvider from '@/components/I18nProvider'
-import { Inter, JetBrains_Mono, Newsreader, Great_Vibes } from 'next/font/google'
+import { Inter, JetBrains_Mono, Newsreader, Great_Vibes, Ma_Shan_Zheng } from 'next/font/google'
 import { Metadata } from 'next'
 
 const inter = Inter({
@@ -45,6 +41,13 @@ const greatVibes = Great_Vibes({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-great-vibes',
+  weight: '400',
+})
+
+const maShanZheng = Ma_Shan_Zheng({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-ma-shan-zheng',
   weight: '400',
 })
 import Script from 'next/script'
@@ -106,7 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={siteMetadata.language}
-      className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} ${greatVibes.variable} scroll-smooth`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} ${greatVibes.variable} ${maShanZheng.variable} scroll-smooth`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
@@ -156,15 +159,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <ErrorBoundary>
                 {/* 延迟加载的组件（Analytics、KeyboardNavigation、FocusManager） */}
                 <LazyLoadedComponents analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
-                <SectionContainer>
-                  <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
-                    <Header />
-                    <main id="main-content" tabIndex={-1} className="mb-auto focus:outline-none">
-                      {children}
-                    </main>
-                  </SearchProvider>
-                  <Footer />
-                </SectionContainer>
+                {children}
               </ErrorBoundary>
             </ThemeProviders>
           </I18nProvider>
