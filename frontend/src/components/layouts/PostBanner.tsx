@@ -9,6 +9,7 @@ import siteMetadata from '@/data/siteMetadata'
 import FloatingTOC from '@/components/FloatingTOC'
 import type { TOC } from '@/lib/types/toc'
 import { ReadingProgressWithApi } from '@/components/ReadingProgressWithApi'
+import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 
 interface LayoutProps {
@@ -23,7 +24,7 @@ interface LayoutProps {
 export default function PostMinimal({ content, next, prev, children, toc, showTOC }: LayoutProps) {
   const { slug, path, title, images } = resolvePostLayoutContent(content)
   const displayImage =
-    images.length > 0 ? images[0] : 'https://picsum.photos/seed/picsum/800/400'
+    images.length > 0 ? images[0] : DEFAULT_COVER_IMAGE
 
   return (
     <SectionContainer>

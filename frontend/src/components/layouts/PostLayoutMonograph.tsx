@@ -8,6 +8,7 @@ import { CoreContent } from 'pliny/utils/contentlayer'
 import type { Authors } from 'contentlayer/generated'
 import JsonLd from '@/components/seo/JsonLd'
 import { PostBackendIntegration } from '@/components/post/PostBackendIntegration'
+import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 import { BackendComments } from '@/components/post/BackendComments'
 import type { TOC } from '@/lib/types/toc'
 import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
@@ -211,16 +212,14 @@ export default function PostLayoutMonograph({
           {/* Main content column */}
           <article className="monograph-content">
             {/* Cover image */}
-            {images && images.length > 0 && (
-              <figure style={{ marginBottom: 'var(--space-2)' }}>
-                <img
-                  src={images[0]}
-                  alt={title}
-                  style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '4px' }}
-                  loading="eager"
-                />
-              </figure>
-            )}
+            <figure style={{ marginBottom: 'var(--space-2)' }}>
+              <img
+                src={(images && images.length > 0) ? images[0] : DEFAULT_COVER_IMAGE}
+                alt={title}
+                style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '4px' }}
+                loading="eager"
+              />
+            </figure>
 
             {/* Article body */}
             <PostBackendIntegration slug={slug}>
