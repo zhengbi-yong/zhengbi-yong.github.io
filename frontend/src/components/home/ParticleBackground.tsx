@@ -5,17 +5,18 @@ import { useFrame } from '@react-three/fiber'
 import { useTheme } from 'next-themes'
 import * as THREE from 'three'
 
-// Inline shader source (importing .vert/.frag requires webpack loader config)
 const vertexShader = `
 uniform float uTime;
 uniform float uMouseX;
 uniform float uMouseY;
 uniform float uScroll;
 uniform float uReducedMotion;
+uniform float uThemeBlend; // 0.0 = dark, 1.0 = light
 
 attribute float aScale;
 attribute float aRandomness;
-attribute vec3 aColor;
+attribute vec3 aColorDark;
+attribute vec3 aColorLight;
 
 varying vec3 vColor;
 varying float vAlpha;
@@ -81,7 +82,10 @@ void main() {
   float sizeFactor = aScale * (200.0 / -mvPosition.z);
   gl_PointSize = sizeFactor;
   gl_Position = projectionMatrix * mvPosition;
-  vColor = aColor;
+
+  // Interpolate between dark and light color palettes
+  vColor = mix(aColorDark, aColorLight, uThemeBlend);
+
   float dist = length(pos) / 5.0;
   vAlpha = smoothstep(1.0, 0.3, dist) * 0.8;
   vAlpha *= smoothstep(1.5, 0.0, uScroll * 0.3);
@@ -92,7 +96,7 @@ void main() {
 `
 
 const fragmentShader = `
-uniform float uIsDark;
+uniform float uThemeBlend; // 0.0 = dark, 1.0 = light
 varying vec3 vColor;
 varying float vAlpha;
 
@@ -101,16 +105,17 @@ void main() {
   float dist = length(center);
   if (dist > 0.5) discard;
 
-  if (uIsDark > 0.5) {
-    // Dark mode: luminous glow with additive blending
-    float alpha = smoothstep(0.5, 0.1, dist) * vAlpha;
-    float glow = exp(-dist * 4.0) * 0.3;
-    gl_FragColor = vec4(vColor + glow, alpha);
-  } else {
-    // Light mode: soft bokeh with normal blending
-    float alpha = smoothstep(0.5, 0.15, dist) * vAlpha * 0.45;
-    gl_FragColor = vec4(vColor, alpha);
-  }
+  // Dark mode: luminous glow with additive blending
+  float darkAlpha = smoothstep(0.5, 0.1, dist) * vAlpha;
+  float glow = exp(-dist * 4.0) * 0.3;
+  vec4 darkColor = vec4(vColor + glow, darkAlpha);
+
+  // Light mode: warm rich bokeh
+  float lightAlpha = smoothstep(0.5, 0.08, dist) * vAlpha * 0.55;
+  float lightGlow = exp(-dist * 3.0) * 0.15;
+  vec4 lightColor = vec4(vColor + lightGlow, lightAlpha);
+
+  gl_FragColor = mix(darkColor, lightColor, uThemeBlend);
 }
 `
 
@@ -119,8 +124,8 @@ interface ParticleBackgroundProps {
   scrollProgress?: number
 }
 
-// Color palette: indigo -> purple -> amber
-const COLORS = [
+// Dark mode: vivid luminous palette for additive blending
+const COLORS_DARK = [
   new THREE.Color('#818cf8'), // indigo-400
   new THREE.Color('#a78bfa'), // violet-400
   new THREE.Color('#c084fc'), // purple-400
@@ -128,9 +133,19 @@ const COLORS = [
   new THREE.Color('#6366f1'), // indigo-500
 ]
 
+// Light mode: deeper, richer tones that pop on white
+const COLORS_LIGHT = [
+  new THREE.Color('#4f46e5'), // indigo-600
+  new THREE.Color('#7c3aed'), // violet-600
+  new THREE.Color('#9333ea'), // purple-600
+  new THREE.Color('#d97706'), // amber-600
+  new THREE.Color('#4338ca'), // indigo-700
+]
+
 export default function ParticleBackground({ count = 2000, scrollProgress = 0 }: ParticleBackgroundProps) {
   const meshRef = useRef<THREE.Points>(null)
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
+  const themeBlendRef = useRef(0.0) // 0 = dark, 1 = light, smoothly animated
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
 
@@ -140,15 +155,15 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
 
   const effectiveCount = reducedMotion ? Math.min(count, 500) : count
 
-  const { positions, scales, randomness, colors: colorAttrib } = useMemo(() => {
+  const { positions, scales, randomness, colorsDark, colorsLight } = useMemo(() => {
     const positions = new Float32Array(effectiveCount * 3)
     const scales = new Float32Array(effectiveCount)
     const randomness = new Float32Array(effectiveCount)
-    const colorAttrib = new Float32Array(effectiveCount * 3)
+    const colorsDark = new Float32Array(effectiveCount * 3)
+    const colorsLight = new Float32Array(effectiveCount * 3)
 
     for (let i = 0; i < effectiveCount; i++) {
       const i3 = i * 3
-      // Distribute in a sphere-like volume
       const theta = Math.random() * Math.PI * 2
       const phi = Math.acos(2 * Math.random() - 1)
       const r = 3 + Math.random() * 4
@@ -160,14 +175,20 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
       scales[i] = Math.random() * 2 + 0.5
       randomness[i] = Math.random()
 
-      // Pick a random color from palette
-      const color = COLORS[Math.floor(Math.random() * COLORS.length)]
-      colorAttrib[i3] = color.r
-      colorAttrib[i3 + 1] = color.g
-      colorAttrib[i3 + 2] = color.b
+      // Each particle gets a random palette index, used for both dark & light
+      const colorIdx = Math.floor(Math.random() * COLORS_DARK.length)
+      const cd = COLORS_DARK[colorIdx]
+      colorsDark[i3] = cd.r
+      colorsDark[i3 + 1] = cd.g
+      colorsDark[i3 + 2] = cd.b
+
+      const cl = COLORS_LIGHT[colorIdx]
+      colorsLight[i3] = cl.r
+      colorsLight[i3 + 1] = cl.g
+      colorsLight[i3 + 2] = cl.b
     }
 
-    return { positions, scales, randomness, colors: colorAttrib }
+    return { positions, scales, randomness, colorsDark, colorsLight }
   }, [effectiveCount])
 
   const uniforms = useMemo(() => ({
@@ -176,7 +197,7 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
     uMouseY: { value: 0 },
     uScroll: { value: 0 },
     uReducedMotion: { value: reducedMotion ? 1.0 : 0.0 },
-    uIsDark: { value: 1.0 },
+    uThemeBlend: { value: 0.0 },
   }), [])
 
   // Mouse tracking
@@ -185,7 +206,6 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
     mouseRef.current.targetY = -(e.clientY / window.innerHeight) * 2 + 1
   }, [])
 
-  // Set up event listener
   useMemo(() => {
     if (typeof window !== 'undefined') {
       window.addEventListener('mousemove', handleMouseMove)
@@ -199,8 +219,16 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
     const material = meshRef.current.material as THREE.ShaderMaterial
     material.uniforms.uTime.value = state.clock.elapsedTime
     material.uniforms.uScroll.value = scrollProgress
-    material.uniforms.uIsDark.value = isDark ? 1.0 : 0.0
-    material.blending = isDark ? THREE.AdditiveBlending : THREE.NormalBlending
+
+    // Smooth theme blend transition
+    const targetBlend = isDark ? 0.0 : 1.0
+    themeBlendRef.current += (targetBlend - themeBlendRef.current) * 0.04
+    material.uniforms.uThemeBlend.value = themeBlendRef.current
+
+    // Switch blending mode once blend passes midpoint
+    material.blending = themeBlendRef.current < 0.5
+      ? THREE.AdditiveBlending
+      : THREE.NormalBlending
     material.needsUpdate = true
 
     // Smooth mouse interpolation
@@ -238,9 +266,15 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
           itemSize={1}
         />
         <bufferAttribute
-          attach="attributes-aColor"
+          attach="attributes-aColorDark"
           count={effectiveCount}
-          array={colorAttrib}
+          array={colorsDark}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-aColorLight"
+          count={effectiveCount}
+          array={colorsLight}
           itemSize={3}
         />
       </bufferGeometry>
