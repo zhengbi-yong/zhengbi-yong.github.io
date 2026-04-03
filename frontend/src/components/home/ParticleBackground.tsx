@@ -120,15 +120,7 @@ interface ParticleBackgroundProps {
 }
 
 // Color palette: indigo -> purple -> amber
-const COLORS_DARK = [
-  new THREE.Color('#818cf8'), // indigo-400
-  new THREE.Color('#a78bfa'), // violet-400
-  new THREE.Color('#c084fc'), // purple-400
-  new THREE.Color('#f59e0b'), // amber-500
-  new THREE.Color('#6366f1'), // indigo-500
-]
-
-const COLORS_LIGHT = [
+const COLORS = [
   new THREE.Color('#818cf8'), // indigo-400
   new THREE.Color('#a78bfa'), // violet-400
   new THREE.Color('#c084fc'), // purple-400
@@ -141,7 +133,6 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 })
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
-  const colors = isDark ? COLORS_DARK : COLORS_LIGHT
 
   const reducedMotion = typeof window !== 'undefined'
     ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -170,14 +161,14 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
       randomness[i] = Math.random()
 
       // Pick a random color from palette
-      const color = colors[Math.floor(Math.random() * colors.length)]
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)]
       colorAttrib[i3] = color.r
       colorAttrib[i3 + 1] = color.g
       colorAttrib[i3 + 2] = color.b
     }
 
     return { positions, scales, randomness, colors: colorAttrib }
-  }, [effectiveCount, isDark])
+  }, [effectiveCount])
 
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
@@ -185,8 +176,8 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
     uMouseY: { value: 0 },
     uScroll: { value: 0 },
     uReducedMotion: { value: reducedMotion ? 1.0 : 0.0 },
-    uIsDark: { value: isDark ? 1.0 : 0.0 },
-  }), [isDark])
+    uIsDark: { value: 1.0 },
+  }), [])
 
   // Mouse tracking
   const handleMouseMove = useCallback((e: MouseEvent) => {
