@@ -75,6 +75,18 @@
   transition: background-color 0.3s var(--mono-ease), color 0.3s var(--mono-ease);
 }
 
+/* Desktop: break out of parent section padding so grid fills viewport */
+@media (min-width: 1280px) {
+  .monograph-article {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+  }
+}
+
 /* Reading Progress Bar */
 .monograph-reading-progress {
   position: fixed;
@@ -112,12 +124,12 @@
   }
 }
 
-/* Desktop: asymmetric editorial grid */
+/* Desktop: asymmetric editorial grid — overrides tablet centering */
 @media (min-width: 1280px) {
   .monograph-grid {
     grid-template-columns: 1fr minmax(0, 65ch) var(--mono-grid-sidenote);
-    max-width: var(--mono-grid-max);
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
   }
 }
 

@@ -115,7 +115,7 @@ export default function PostLayoutMonograph({
         />
       </div>
 
-      <main style={{ maxWidth: 'var(--mono-grid-max)', margin: '0 auto', padding: '6rem 1rem 0' }}>
+      <main style={{ padding: '6rem 1rem 0' }}>
         {/* Article Header */}
         <header style={{ maxWidth: '65ch', marginBottom: 'var(--space-3)' }}>
           {categorySegment && (
