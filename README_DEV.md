@@ -2,7 +2,111 @@
 
 Developer handoff and current work summary for this repository.
 
-Last updated: 2026-03-30
+Last updated: 2026-04-03
+
+## v2.3.0 Release (2026-04-03)
+
+Homepage light/dark mode adaptation, footer unification, and bug fixes.
+
+### Changes
+
+1. **Light mode particle background** — ParticleBackground GLSL fragment shader now has dual rendering paths: additive blending with luminous glow in dark mode, normal blending with soft bokeh in light mode. Added `uIsDark` uniform and dynamic blending mode switching via `useFrame`.
+
+   Modified files:
+   - `frontend/src/components/home/ParticleBackground.tsx` — Added `uIsDark` uniform, conditional fragment shader, dynamic `THREE.AdditiveBlending` / `THREE.NormalBlending`
+
+2. **Light mode custom cursor** — `mix-blend-difference` makes the cursor ring invisible on white backgrounds. Now conditionally applied only in dark mode.
+
+   Modified files:
+   - `frontend/src/components/home/CustomCursor.tsx` — `mix-blend-difference` class only when `isDark`
+
+3. **MegaFooter light/dark mode** — Full-screen footer was always black (`bg-[#050508]`). Now adapts all colors (background, text, borders, separators) to the current theme.
+
+   Modified files:
+   - `frontend/src/components/home/MegaFooter.tsx` — Theme-aware background (`bg-[#fafafa]` light / `bg-[#050508]` dark), text colors, borders, separator gradients
+
+4. **Homepage footer unification** — Homepage previously rendered both MegaFooter (from `Main.tsx`) and the default Footer (from layout). Layout now hides the default Footer when `pathname === '/'`, keeping only the full-screen MegaFooter.
+
+   Modified files:
+   - `frontend/src/app/(public)/layout.tsx` — Converted to client component, uses `usePathname()` to conditionally render `<Footer />`
+
+5. **ICP filing in MegaFooter** — Added 备案信息 link (`京ICP备2025110798号-1`) to the MegaFooter bottom bar. Consolidated into the existing bottom bar section to maintain exact full-screen fit.
+
+   Modified files:
+   - `frontend/src/components/home/MegaFooter.tsx` — ICP link in bottom bar
+
+6. **OSMD music sheet rendering fixes** — Music data file had bare filenames without `/musicxml/` prefix, causing 404s. `.mxl` files now pass URL directly to OSMD for internal fetch+decompress.
+
+   Modified files:
+   - `frontend/data/musicData.ts` — Fixed `src` paths to include `/musicxml/` prefix, reordered `.xml` tracks first
+   - `frontend/src/components/home/MusicOSMDRenderer.tsx` — `.mxl` files use `osmd.load(url)` directly
+
+7. **Latest Thoughts article link fix** — Article links had doubled `/blog/blog/...` paths because `toBlogLikePost()` already includes `blog/` prefix in `path`.
+
+   Modified files:
+   - `frontend/src/components/home/LatestWriting.tsx` — Changed `href={`/blog/${post.path}`}` to `href={`/${post.path}`}`
+
+### Technical Notes
+
+- ParticleBackground uses `THREE.NormalBlending` for light mode because `AdditiveBlending` makes particles invisible on white backgrounds (white + any color = white)
+- Custom cursor uses `mix-blend-difference` only in dark mode because it inverts black to white, making the ring invisible on light backgrounds
+- The `(public)/layout.tsx` was converted from server to client component to use `usePathname()`; this is a minimal change that only adds the `'use client'` directive and the pathname hook
+- MegaFooter ICP filing is merged into the bottom bar (not a separate section) to maintain `min-h-screen` fit — footer height matches viewport exactly
+
+---
+
+## v2.2.0 Release (in progress — 2026-03-31)
+
+Admin panel media library, types/API client foundation, and chemistry media support. Remaining phases (editor enhancement, user management, integration) tracked in `NEXT.md`.
+
+### Changes
+
+1. **Frontend types expanded** — Updated `MediaItem` with `original_filename`, `size_bytes`, `media_type`. Added types: `MediaDetail`, `MediaPresignUploadRequest`, `MediaPresignUploadResponse`, `FinalizeMediaUploadRequest`, `UpdateMediaRequest`, `MediaDownloadUrlResponse`, `MediaType` union. Added user types: `CreateUserRequest`, `UpdateUserRequest`, `UserDetail`. Added post fields: `is_featured`, `is_pinned`, `cover_image_id`, `layout`, `show_toc` to `PostDetail`/`PostListItem`.
+
+   Modified files:
+   - `frontend/src/lib/types/backend.ts`
+
+2. **Admin API client expanded** — Added media methods: `uploadMedia()`, `presignUpload()`, `finalizeUpload()`, `getMediaById()`, `updateMedia()`, `getMediaDownloadUrl()`. Added user methods: `createUser()`, `getUserDetail()`, `updateUser()`, `suspendUser()`, `batchUpdateUserRoles()`, `batchDeleteUsers()`. Updated post methods to accept full field set.
+
+   Modified files:
+   - `frontend/src/lib/api/backend.ts`
+
+3. **Backend: special media MIME types** — Extended `get_media_type()` classification to return `chemistry`, `3d-model`, `music-score` for new MIME types (`application/json`, `model/gltf-binary`, `model/gltf+json`, `application/xml`, `text/xml`).
+
+   Modified files:
+   - `backend/crates/api/src/routes/media.rs`
+
+4. **Backend: chemistry media endpoint** — New `POST /admin/media/chemistry` handler accepting `{ smiles, name, description? }`. Stores SMILES JSON data as a file, creates media record with `media_type='chemistry'`.
+
+   Modified files:
+   - `backend/crates/api/src/routes/media.rs` — Added `ChemistryUploadRequest` struct and `create_chemistry_media` handler
+   - `backend/crates/api/src/main.rs` — Added chemistry route
+
+5. **Media library page rewrite** — Complete rewrite of `/admin/media` with:
+   - Filter bar: media type dropdown, search input, upload button, grid/list toggle, "Show unused only" toggle
+   - Drag-drop upload zone (direct for ≤10MB, presigned URL for >10MB) with progress bars
+   - Responsive grid/list view with thumbnails for images, icons for non-image types
+   - Detail dialog with preview, metadata editing (alt_text, caption), download URL, delete
+   - Pagination with per-page selector
+   - Batch select with bulk delete
+   - Chemistry upload dialog (SMILES input + name/description)
+
+   Modified files:
+   - `frontend/src/app/admin/media/page.tsx` — Complete rewrite (~945 lines)
+
+6. **MediaPickerModal component** — Reusable modal for selecting media from the library. Two tabs: "Library" (browse existing) and "Upload" (inline upload). Supports single and multi-select, type pre-filtering via `acceptTypes` prop, search and pagination.
+
+   New files:
+   - `frontend/src/components/media/MediaPickerModal.tsx`
+
+### Technical Notes
+
+- Backend compiles cleanly: `cargo check -p blog-api` passes
+- TypeScript has known errors in `media/page.tsx` (unused imports, `alt_text`/`caption` not on `MediaItem`) and `MediaPickerModal.tsx` (unused import) — tracked in `NEXT.md`
+- The `is_featured` column already exists in posts table (added in migration `20260116_enhance_posts_schema.sql`)
+- Files >10MB use presigned URL flow: `presignUpload()` -> PUT to presigned URL -> `finalizeUpload()`
+
+---
 
 ## v2.1.4 Release (2026-03-30)
 
