@@ -133,13 +133,13 @@ const COLORS_DARK = [
   new THREE.Color('#6366f1'), // indigo-500
 ]
 
-// Light mode: deeper, richer tones that pop on white
+// Light mode: cool oceanic tones that pop on white
 const COLORS_LIGHT = [
-  new THREE.Color('#4f46e5'), // indigo-600
-  new THREE.Color('#7c3aed'), // violet-600
-  new THREE.Color('#9333ea'), // purple-600
-  new THREE.Color('#d97706'), // amber-600
-  new THREE.Color('#4338ca'), // indigo-700
+  new THREE.Color('#0891b2'), // cyan-600
+  new THREE.Color('#0d9488'), // teal-600
+  new THREE.Color('#059669'), // emerald-600
+  new THREE.Color('#0284c7'), // sky-700
+  new THREE.Color('#2563eb'), // blue-600
 ]
 
 export default function ParticleBackground({ count = 2000, scrollProgress = 0 }: ParticleBackgroundProps) {
