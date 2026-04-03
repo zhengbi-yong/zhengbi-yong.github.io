@@ -51,10 +51,10 @@ export default function MegaFooter() {
             className={`font-visitor-serif leading-[0.95] tracking-tight ${textPrimary}`}
             style={{ fontSize: 'clamp(2.5rem, 7vw, 8rem)' }}
           >
-            Let&apos;s Create
+            远离颠倒梦想，
             <br />
             <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-amber-400 bg-clip-text text-transparent">
-              Together
+              究竟涅槃。
             </span>
           </h2>
         </motion.div>
