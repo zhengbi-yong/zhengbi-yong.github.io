@@ -43,7 +43,7 @@
   --mono-font-mono:   var(--font-jetbrains-mono), ui-monospace, 'Cascadia Code', monospace;
 
   /* --- Grid --- */
-  --mono-grid-sidenote:  220px;
+  --mono-grid-sidenote:  clamp(160px, 15vw, 260px);
   --mono-grid-gap:       clamp(1.5rem, 4vw, 4rem);
   --mono-grid-max:       1400px;
 
@@ -124,10 +124,10 @@
   }
 }
 
-/* Desktop: asymmetric editorial grid — overrides tablet centering */
+/* Desktop: proportional editorial grid — equal outer margins via 1fr on both sides */
 @media (min-width: 1280px) {
   .monograph-grid {
-    grid-template-columns: 1fr minmax(0, 65ch) var(--mono-grid-sidenote);
+    grid-template-columns: 1fr minmax(0, 65ch) var(--mono-grid-sidenote) 1fr;
     max-width: none;
     margin: 0;
   }
