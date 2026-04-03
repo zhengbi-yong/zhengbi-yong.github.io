@@ -79,8 +79,9 @@ export default function Header() {
   }, [])
 
   const isDark = useMemo(() => {
+    if (!state.mounted) return true // SSR default to avoid hydration mismatch
     return resolvedTheme === 'dark'
-  }, [resolvedTheme])
+  }, [state.mounted, resolvedTheme])
 
   const menuItems = useMemo(() => {
     return headerNavLinks.filter((link) => link.href !== '/')
@@ -191,7 +192,10 @@ export default function Header() {
                 className="flex items-center opacity-60 hover:opacity-100 transition-opacity duration-300"
                 aria-label="切换主题"
               >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {state.mounted
+                  ? (isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)
+                  : <span className="w-5 h-5 block" />
+                }
               </button>
 
               <AuthButton isDark={isDark} />
@@ -281,7 +285,10 @@ export default function Header() {
                 className="opacity-60 hover:opacity-100 transition-opacity duration-300"
                 aria-label="切换主题"
               >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {state.mounted
+                  ? (isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)
+                  : <span className="w-5 h-5 block" />
+                }
               </button>
               <AuthButton isDark={isDark} />
             </div>
