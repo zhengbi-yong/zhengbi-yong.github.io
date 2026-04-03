@@ -117,7 +117,12 @@ export default function PostLayoutMonograph({
 
       <main style={{ padding: '6rem 1rem 0' }}>
         {/* Article Header */}
-        <header style={{ maxWidth: '65ch', marginBottom: 'var(--space-3)' }}>
+        <header style={{
+          maxWidth: 'min(80ch, 90%)',
+          margin: '0 auto',
+          textAlign: 'center',
+          marginBottom: 'var(--space-3)',
+        }}>
           {categorySegment && (
             <Link
               href={`/blog/category/${categorySegment}`}
@@ -164,6 +169,7 @@ export default function PostLayoutMonograph({
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: '0.75rem',
             fontFamily: 'var(--mono-font-sans)',
             fontSize: 'var(--font-size-sm)',
