@@ -17,7 +17,7 @@ interface OptimizedImageProps extends Omit<ImageProps, 'src' | 'alt'> {
 export default function OptimizedImage({
   src,
   alt,
-  fallbackSrc = '/placeholder.png',
+  fallbackSrc = '/images/default-cover.svg',
   blurDataURL,
   lazy = true,
   priority = false,

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Calendar, Clock, ArrowRight } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
+import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 
 /**
  * 文章数据结构
@@ -62,22 +63,20 @@ export default function ArticleCard({
 
       <div className={cn(isHorizontal ? 'md:flex' : '')}>
         {/* 图片区域 */}
-        {article.image && (
-          <div
-            className={cn(
-              'relative overflow-hidden bg-gray-100 dark:bg-gray-900',
-              isHorizontal ? 'md:w-2/5' : 'aspect-[16/9]'
-            )}
-          >
-            <Image
-              src={article.image}
-              alt={article.title}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </div>
-        )}
+        <div
+          className={cn(
+            'relative overflow-hidden bg-gray-100 dark:bg-gray-900',
+            isHorizontal ? 'md:w-2/5' : 'aspect-[16/9]'
+          )}
+        >
+          <Image
+            src={article.image || DEFAULT_COVER_IMAGE}
+            alt={article.title}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
 
         {/* 内容区域 */}
         <div className={cn('flex flex-col p-5', isHorizontal && 'md:w-3/5')}>

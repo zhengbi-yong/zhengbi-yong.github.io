@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
+import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 
 /**
  * 内容项数据结构
@@ -99,24 +100,22 @@ function MasonryCell({ item, size, index, onClick }: MasonryCellProps) {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* 图片 */}
-        {item.image && (
-          <div
-            className={`
+        <div
+          className={`
             relative overflow-hidden bg-gray-100 dark:bg-gray-900
             ${size === 'tall' ? 'aspect-[3/8]' : size === 'large' ? 'aspect-square' : size === 'wide' ? 'aspect-[2/1]' : 'aspect-[3/4]'}
           `}
-          >
-            <img
-              src={item.image}
-              alt={item.title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-              loading="lazy"
-            />
+        >
+          <img
+            src={item.image || DEFAULT_COVER_IMAGE}
+            alt={item.title}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+          />
 
-            {/* 悬停遮罩 */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-          </div>
-        )}
+          {/* 悬停遮罩 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        </div>
 
         {/* 内容覆盖层 */}
         <div

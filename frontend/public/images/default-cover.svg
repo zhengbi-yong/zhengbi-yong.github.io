@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="50%" stop-color="#0f1029"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <radialGradient id="g1" cx="30%" cy="40%" r="35%">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="70%" cy="55%" r="30%">
+      <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g3" cx="50%" cy="30%" r="25%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g4" cx="80%" cy="25%" r="20%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#c084fc" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g5" cx="20%" cy="70%" r="28%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#g1)"/>
+  <rect width="1200" height="630" fill="url(#g2)"/>
+  <rect width="1200" height="630" fill="url(#g3)"/>
+  <rect width="1200" height="630" fill="url(#g4)"/>
+  <rect width="1200" height="630" fill="url(#g5)"/>
+  <!-- Scattered particles -->
+  <circle cx="150" cy="120" r="2" fill="#818cf8" opacity="0.6"/>
+  <circle cx="280" cy="200" r="1.5" fill="#a78bfa" opacity="0.5"/>
+  <circle cx="420" cy="80" r="2.5" fill="#c084fc" opacity="0.4"/>
+  <circle cx="560" cy="350" r="1.8" fill="#818cf8" opacity="0.5"/>
+  <circle cx="700" cy="150" r="2" fill="#f59e0b" opacity="0.4"/>
+  <circle cx="850" cy="280" r="1.5" fill="#6366f1" opacity="0.6"/>
+  <circle cx="950" cy="100" r="2.2" fill="#a78bfa" opacity="0.5"/>
+  <circle cx="1050" cy="400" r="1.8" fill="#c084fc" opacity="0.4"/>
+  <circle cx="200" cy="450" r="2" fill="#6366f1" opacity="0.5"/>
+  <circle cx="380" cy="520" r="1.5" fill="#818cf8" opacity="0.4"/>
+  <circle cx="600" cy="500" r="2.5" fill="#f59e0b" opacity="0.3"/>
+  <circle cx="780" cy="480" r="1.8" fill="#a78bfa" opacity="0.5"/>
+  <circle cx="1000" cy="550" r="2" fill="#818cf8" opacity="0.4"/>
+  <circle cx="100" cy="300" r="1.5" fill="#c084fc" opacity="0.5"/>
+  <circle cx="500" cy="180" r="2" fill="#6366f1" opacity="0.4"/>
+  <circle cx="900" cy="420" r="1.8" fill="#f59e0b" opacity="0.35"/>
+  <circle cx="350" cy="380" r="2.2" fill="#a78bfa" opacity="0.45"/>
+  <circle cx="680" cy="550" r="1.5" fill="#818cf8" opacity="0.5"/>
+  <circle cx="1100" cy="250" r="2" fill="#c084fc" opacity="0.4"/>
+  <circle cx="50" cy="550" r="1.8" fill="#6366f1" opacity="0.5"/>
+  <!-- Soft glow spots -->
+  <circle cx="400" cy="315" r="60" fill="#818cf8" opacity="0.06"/>
+  <circle cx="800" cy="200" r="50" fill="#c084fc" opacity="0.05"/>
+  <circle cx="600" cy="450" r="45" fill="#f59e0b" opacity="0.04"/>
+</svg>

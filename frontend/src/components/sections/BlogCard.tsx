@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { Badge } from '@/components/shadcn/ui/badge'
 import { Button } from '@/components/shadcn/ui/button'
 import { ArrowRight, Calendar } from 'lucide-react'
+import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 
 interface BlogCardProps {
   content: {
@@ -60,7 +61,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
           )}
         >
           <Image
-            src={img || '/assets/blog/cover-dreamcore.jpg'}
+            src={img || DEFAULT_COVER_IMAGE}
             alt={img_alt || (img ? `Related to ${title}` : `Default blog image for ${title}`)}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"

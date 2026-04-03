@@ -13,7 +13,7 @@ interface OptimizedImageProps extends Omit<ImageProps, 'alt'> {
 
 export function OptimizedImage({
   alt,
-  fallbackSrc = '/images/placeholder.png',
+  fallbackSrc = '/images/default-cover.svg',
   wrapperClassName,
   className,
   onError,

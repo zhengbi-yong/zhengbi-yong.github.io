@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Calendar, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 
 interface Article {
   slug: string
@@ -47,26 +48,24 @@ export function ArtisticArticleCard({ article, className = '' }: ArtisticArticle
       }}
     >
       {/* 封面图 */}
-      {article.coverImage && (
-        <Link href={`/blog/${article.slug}`} className="block overflow-hidden">
-          <motion.div
-            className="relative w-full h-64 bg-gray-200 dark:bg-gray-700"
-            whileHover={{ scale: 1.05 }}
-            transition={{
-              duration: 0.6,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-          >
-            <Image
-              src={article.coverImage}
-              alt={article.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </motion.div>
-        </Link>
-      )}
+      <Link href={`/blog/${article.slug}`} className="block overflow-hidden">
+        <motion.div
+          className="relative w-full h-64 bg-gray-200 dark:bg-gray-700"
+          whileHover={{ scale: 1.05 }}
+          transition={{
+            duration: 0.6,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+        >
+          <Image
+            src={article.coverImage || DEFAULT_COVER_IMAGE}
+            alt={article.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </motion.div>
+      </Link>
 
       {/* 内容区域 */}
       <div className="p-6 space-y-4">
@@ -135,26 +134,24 @@ export function CompactArticleCard({ article, className = '' }: ArtisticArticleC
       }}
     >
       {/* 封面图缩略图 */}
-      {article.coverImage && (
-        <Link
-          href={`/blog/${article.slug}`}
-          className="flex-shrink-0 w-32 h-24 rounded-visitor-md overflow-hidden"
+      <Link
+        href={`/blog/${article.slug}`}
+        className="flex-shrink-0 w-32 h-24 rounded-visitor-md overflow-hidden"
+      >
+        <motion.div
+          className="relative w-full h-full bg-gray-200 dark:bg-gray-700"
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.4 }}
         >
-          <motion.div
-            className="relative w-full h-full bg-gray-200 dark:bg-gray-700"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.4 }}
-          >
-            <Image
-              src={article.coverImage}
-              alt={article.title}
-              fill
-              className="object-cover"
-              sizes="128px"
-            />
-          </motion.div>
-        </Link>
-      )}
+          <Image
+            src={article.coverImage || DEFAULT_COVER_IMAGE}
+            alt={article.title}
+            fill
+            className="object-cover"
+            sizes="128px"
+          />
+        </motion.div>
+      </Link>
 
       {/* 内容区域 */}
       <div className="flex-1 min-w-0 flex flex-col justify-between">

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ContentItem } from './MasonryGrid'
 import { generateRecommendations } from '@/lib/utils/recommendation-algorithm'
+import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 
 /**
  * RecommendedSection 组件属性
@@ -71,19 +72,17 @@ export default function RecommendedSection({
               <Link href={item.slug} className="block">
                 <div className="group relative overflow-hidden rounded-2xl border-2 bg-white shadow-md transition-all duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
                   {/* 图片 */}
-                  {item.image && (
-                    <div className="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-900">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        sizes="(max-width: 768px) 100vw, 320px"
-                      />
-                      {/* 悬停遮罩 */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                    </div>
-                  )}
+                  <div className="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-900">
+                    <Image
+                      src={item.image || DEFAULT_COVER_IMAGE}
+                      alt={item.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      sizes="(max-width: 768px) 100vw, 320px"
+                    />
+                    {/* 悬停遮罩 */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
 
                   {/* 内容 */}
                   <div className="p-5">

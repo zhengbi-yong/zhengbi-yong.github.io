@@ -5,6 +5,7 @@ import { motion, useMotionValue, useTransform } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/components/lib/utils'
+import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 
 /**
  * 书籍数据结构（简化版，兼容现有数据）
@@ -149,19 +150,13 @@ export default function BookCard({
             >
               {/* 书籍图片 */}
               <div className={cn('relative overflow-hidden bg-gray-100 dark:bg-gray-900', cardSizeStyles)}>
-                {book.image ? (
-                  <Image
-                    src={book.image}
-                    alt={book.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <span className="text-6xl">📚</span>
-                  </div>
-                )}
+                <Image
+                  src={book.image || DEFAULT_COVER_IMAGE}
+                  alt={book.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
 
                 {/* 悬停遮罩 */}
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-900/80 via-primary-900/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
