@@ -14,7 +14,7 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
 import VisitorTracker from '@/components/VisitorTracker'
 import I18nProvider from '@/components/I18nProvider'
-import { Inter, JetBrains_Mono, Newsreader, Great_Vibes, Liu_Jian_Mao_Cao } from 'next/font/google'
+import { Inter, JetBrains_Mono, Newsreader, Great_Vibes } from 'next/font/google'
 import { Metadata } from 'next'
 
 const inter = Inter({
@@ -44,12 +44,6 @@ const greatVibes = Great_Vibes({
   weight: '400',
 })
 
-const liuJianMaoCao = Liu_Jian_Mao_Cao({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-liu-jian-mao-cao',
-  weight: '400',
-})
 import Script from 'next/script'
 import { AuthInitializer } from '@/components/auth/AuthInitializer'
 import { Toaster } from '@/components/shadcn/ui/sonner'
@@ -109,7 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={siteMetadata.language}
-      className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} ${greatVibes.variable} ${liuJianMaoCao.variable} scroll-smooth`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} ${greatVibes.variable} scroll-smooth`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
