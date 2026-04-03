@@ -49,7 +49,7 @@ export default function MegaFooter() {
         >
           <h2
             className={`leading-[1.2] tracking-widest ${textPrimary}`}
-            style={{ fontSize: 'clamp(2.5rem, 7vw, 8rem)', fontFamily: 'var(--font-ma-shan-zheng)' }}
+            style={{ fontSize: 'clamp(2.5rem, 7vw, 8rem)', fontFamily: 'var(--font-long-cang)' }}
           >
             远离颠倒梦想，
             <br />
