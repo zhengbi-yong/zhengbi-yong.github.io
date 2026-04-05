@@ -3,6 +3,7 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct AppState {
     pub db: sqlx::PgPool,
+    pub db_read: sqlx::PgPool,
     pub redis: deadpool_redis::Pool,
     pub jwt: blog_core::JwtService,
     pub settings: blog_shared::Settings,

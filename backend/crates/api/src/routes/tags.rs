@@ -84,7 +84,7 @@ pub async fn get_tag(
         "#,
         slug
     )
-    .fetch_optional(&state.db)
+    .fetch_optional(&state.db_read)
     .await?
     .ok_or_else(|| AppError::NotFound("Tag not found".to_string()))?;
 
@@ -245,7 +245,7 @@ pub async fn list_tags(
         sort_by, sort_order
     );
 
-    let tags: Vec<Tag> = sqlx::query_as(&query).fetch_all(&state.db).await?;
+    let tags: Vec<Tag> = sqlx::query_as(&query).fetch_all(&state.db_read).await?;
 
     Ok((
         [(
@@ -286,7 +286,7 @@ pub async fn autocomplete_tags(
         "#,
         search_term
     )
-    .fetch_all(&state.db)
+    .fetch_all(&state.db_read)
     .await?;
 
     Ok((
@@ -322,7 +322,7 @@ pub async fn get_tag_posts(
     // 检查标签是否存在
     let tag_id: Uuid = sqlx::query_scalar("SELECT id FROM tags WHERE slug = $1")
         .bind(&slug)
-        .fetch_optional(&state.db)
+        .fetch_optional(&state.db_read)
         .await?
         .ok_or_else(|| AppError::NotFound("Tag not found".to_string()))?;
 
@@ -340,7 +340,7 @@ pub async fn get_tag_posts(
         "#,
     )
     .bind(tag_id)
-    .fetch_one(&state.db)
+    .fetch_one(&state.db_read)
     .await?;
 
     // 查询文章列表
@@ -422,7 +422,7 @@ pub async fn get_popular_tags(
         "#,
         limit as i64
     )
-    .fetch_all(&state.db)
+    .fetch_all(&state.db_read)
     .await?;
 
     Ok((

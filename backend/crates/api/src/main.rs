@@ -5,7 +5,8 @@ use axum::Router;
 use blog_api::middleware::{rate_limit_middleware, request_id_middleware, REQUEST_ID_HEADER};
 use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
 use blog_api::runtime::{
-    create_postgres_pool, create_redis_pool, shutdown_signal, verify_migrations,
+    create_postgres_pool, create_replica_pool, create_redis_pool, shutdown_signal,
+    verify_migrations,
 };
 use blog_api::state::AppState;
 use opentelemetry::trace::TracerProvider as _;
@@ -88,6 +89,18 @@ async fn run_server() -> anyhow::Result<()> {
         "Database connection pool established"
     );
 
+    // 初始化只读副本连接池（如果配置了 DATABASE_REPLICA_URL）
+    let db_read = if let Some(ref replica_url) = settings.database_replica_url {
+        let pool = create_replica_pool(replica_url, &settings.database_pool).await?;
+        tracing::info!("Database replica connection pool established");
+        pool
+    } else {
+        tracing::warn!(
+            "DATABASE_REPLICA_URL not configured, read queries will use primary database"
+        );
+        db.clone()
+    };
+
     // 检查迁移是否已应用（不自动运行，由单独的 migrate job 执行）
     verify_migrations(&db).await?;
     tracing::info!("Database migrations verified");
@@ -155,6 +168,7 @@ async fn run_server() -> anyhow::Result<()> {
 
     let state = AppState {
         db,
+        db_read,
         redis,
         jwt,
         settings,
@@ -263,6 +277,14 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .merge(tag_routes())
         .merge(search_routes())
         .merge(comment_routes())
+        // 评论操作需要认证（like/unlike）
+        .merge(
+            comment_auth_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+        )
         .merge(reading_progress_routes())
         .merge(auth_me_route)
         // admin路由需要添加认证中间件
@@ -439,8 +461,18 @@ fn search_routes() -> Router<AppState> {
         )
 }
 
-// 评论路由
+// 评论路由（公开 - 仅创建评论，支持匿名）
 fn comment_routes() -> Router<AppState> {
+    use axum::routing::post;
+    Router::new()
+        .route(
+            "/posts/{slug}/comments",
+            post(blog_api::routes::comments::create_comment),
+        )
+}
+
+// 评论路由（需要认证 - 点赞/取消点赞）
+fn comment_auth_routes() -> Router<AppState> {
     use axum::routing::post;
     Router::new()
         .route(
@@ -455,7 +487,7 @@ fn comment_routes() -> Router<AppState> {
 
 // 评论管理路由（需要认证）
 fn comment_admin_routes() -> Router<AppState> {
-    use axum::routing::{delete, get, post, put};
+    use axum::routing::{delete, get, put};
     Router::new()
         .route(
             "/admin/comments",
@@ -468,10 +500,6 @@ fn comment_admin_routes() -> Router<AppState> {
         .route(
             "/admin/comments/{id}",
             delete(blog_api::routes::admin::delete_comment_admin),
-        )
-        .route(
-            "/posts/{slug}/comments",
-            post(blog_api::routes::comments::create_comment),
         )
 }
 
@@ -503,9 +531,11 @@ fn admin_routes() -> Router<AppState> {
     Router::new()
         // 统计和用户管理
         .route("/admin/stats", get(blog_api::routes::admin::get_admin_stats))
-        .route("/admin/users", get(blog_api::routes::admin::list_users))
+        .route("/admin/users", get(blog_api::routes::admin::list_users).post(blog_api::routes::admin::create_user))
+        .route("/admin/users/batch/role", post(blog_api::routes::admin::batch_update_roles))
+        .route("/admin/users/batch/delete", post(blog_api::routes::admin::batch_delete_users))
+        .route("/admin/users/{id}", get(blog_api::routes::admin::get_user).put(blog_api::routes::admin::update_user).delete(blog_api::routes::admin::delete_user))
         .route("/admin/users/{id}/role", put(blog_api::routes::admin::update_user_role))
-        .route("/admin/users/{id}", delete(blog_api::routes::admin::delete_user))
         .route("/admin/users/growth", get(blog_api::routes::admin::get_user_growth))
         // 媒体管理
         .route("/admin/media", get(blog_api::routes::media::list_media))
@@ -518,6 +548,10 @@ fn admin_routes() -> Router<AppState> {
             post(blog_api::routes::media::finalize_media_upload),
         )
         .route("/admin/media/upload", post(blog_api::routes::media::upload_media))
+        .route(
+            "/admin/media/chemistry",
+            post(blog_api::routes::media::create_chemistry_media),
+        )
         .route("/admin/media/unused", get(blog_api::routes::media::get_unused_media))
         .route("/admin/media/{id}", get(blog_api::routes::media::get_media))
         .route(

@@ -20,6 +20,19 @@ pub async fn create_postgres_pool(
         .context("Failed to create PostgreSQL connection pool")
 }
 
+/// Create a PostgreSQL connection pool for read replica
+///
+/// Uses the same pool configuration as the primary database.
+/// The replica URL should point to a PostgreSQL instance configured
+/// with streaming replication or logical replication from the primary.
+pub async fn create_replica_pool(
+    database_replica_url: &str,
+    config: &DatabasePoolConfig,
+) -> Result<PgPool> {
+    tracing::info!("Creating database replica connection pool");
+    create_postgres_pool(database_replica_url, config).await
+}
+
 pub fn create_redis_pool(
     redis_url: &str,
     config: &RedisPoolConfig,

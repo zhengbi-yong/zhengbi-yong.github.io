@@ -172,6 +172,8 @@ pub struct CreatePostRequest {
     pub category_id: Option<Uuid>,
     pub show_toc: Option<bool>,
     pub layout: Option<String>,
+    pub is_featured: Option<bool>,
+    pub content_format: Option<String>,
     pub tag_ids: Option<Vec<Uuid>>,
 }
 
@@ -192,6 +194,8 @@ pub struct UpdatePostRequest {
     pub category_id: Option<Uuid>,
     pub show_toc: Option<bool>,
     pub layout: Option<String>,
+    pub is_featured: Option<bool>,
+    pub content_format: Option<String>,
     pub tag_ids: Option<Vec<Uuid>>,
 }
 

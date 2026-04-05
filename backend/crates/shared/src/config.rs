@@ -4,6 +4,7 @@ use std::env;
 #[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
     pub database_url: String,
+    pub database_replica_url: Option<String>,
     pub redis_url: String,
     pub jwt_secret: String,
     pub password_pepper: String,
@@ -152,6 +153,7 @@ impl Settings {
         let settings = Self {
             database_url: env::var("DATABASE_URL")
                 .map_err(|_| anyhow::anyhow!("DATABASE_URL must be set"))?,
+            database_replica_url: env::var("DATABASE_REPLICA_URL").ok(),
             redis_url: env::var("REDIS_URL")
                 .map_err(|_| anyhow::anyhow!("REDIS_URL must be set"))?,
             jwt_secret: env::var("JWT_SECRET")
@@ -342,6 +344,8 @@ SERVER_PORT=3000
 
 # Database
 DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
+# Optional: replica for read-write splitting (uses same DB if not set)
+DATABASE_REPLICA_URL=postgresql://blog_user:blog_password@localhost:5433/blog_db
 REDIS_URL=redis://localhost:6379
 
 # Database pool

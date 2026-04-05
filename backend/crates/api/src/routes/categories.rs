@@ -107,7 +107,7 @@ pub async fn get_category(
         "#,
         slug
     )
-    .fetch_optional(&state.db)
+    .fetch_optional(&state.db_read)
     .await?
     .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
 
@@ -344,7 +344,7 @@ pub async fn list_categories(State(state): State<AppState>) -> Result<impl IntoR
         ORDER BY display_order ASC, name ASC
         "#
     )
-    .fetch_all(&state.db)
+    .fetch_all(&state.db_read)
     .await?;
 
     Ok((
@@ -397,7 +397,7 @@ pub async fn get_category_tree(
         }
     }
 
-    // 从数据库获取所有分类
+    // 从数据库获取所有分类（使用读副本）
     let categories: Vec<Category> = sqlx::query_as!(
         Category,
         r#"
@@ -409,7 +409,7 @@ pub async fn get_category_tree(
         ORDER BY display_order ASC, name ASC
         "#
     )
-    .fetch_all(&state.db)
+    .fetch_all(&state.db_read)
     .await?;
 
     // 构建树形结构
@@ -458,7 +458,7 @@ pub async fn get_category_posts(
     // 检查分类是否存在
     let category_id: Uuid = sqlx::query_scalar("SELECT id FROM categories WHERE slug = $1")
         .bind(&slug)
-        .fetch_optional(&state.db)
+        .fetch_optional(&state.db_read)
         .await?
         .ok_or_else(|| AppError::NotFound("Category not found".to_string()))?;
 
@@ -471,7 +471,7 @@ pub async fn get_category_posts(
         "SELECT COUNT(*) FROM posts WHERE category_id = $1 AND deleted_at IS NULL",
     )
     .bind(category_id)
-    .fetch_one(&state.db)
+    .fetch_one(&state.db_read)
     .await?;
 
     // 查询文章列表

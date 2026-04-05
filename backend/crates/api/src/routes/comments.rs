@@ -54,7 +54,7 @@ fn extract_user_agent() -> String {
 )]
 pub async fn create_comment(
     State(state): State<AppState>,
-    Extension(auth_user): Extension<AuthUser>,
+    auth_user: Option<Extension<AuthUser>>,
     Path(slug): Path<String>,
     Json(payload): Json<CreateCommentRequest>,
 ) -> Result<Json<CommentResponse>, AppError> {
@@ -103,20 +103,23 @@ pub async fn create_comment(
     // 使用事务确保原子性
     let mut tx = state.db.begin().await?;
 
+    // 获取 user_id（已登录用户用其 ID，匿名用户为 NULL）
+    let user_id: Option<uuid::Uuid> = auth_user.as_ref().map(|ext| ext.0.id);
+
     // 创建评论
     let comment_row = sqlx::query(
         r#"
         INSERT INTO comments (
             slug, user_id, parent_id, content, html_sanitized,
             path, depth, status, created_ip, user_agent
-        ) VALUES ($1, $2, $3, $4, $5, $6::ltree, $7, 'pending', $8::inet, $9)
+        ) VALUES ($1, $2, $3, $4, $5, $6::ltree, $7, 'approved', $8::inet, $9)
         RETURNING id, slug, user_id, parent_id, content, html_sanitized, status,
                  path::text, depth, like_count, created_at, updated_at, deleted_at,
                  created_ip, user_agent, moderation_reason
         "#
     )
     .bind(&slug)
-    .bind(&auth_user.id)
+    .bind(&user_id)
     .bind(payload.parent_id)
     .bind(&payload.content)
     .bind(&html_content)
@@ -134,7 +137,7 @@ pub async fn create_comment(
         parent_id: comment_row.get("parent_id"),
         content: comment_row.get("content"),
         html_sanitized: comment_row.get("html_sanitized"),
-        status: blog_db::CommentStatus::Pending,
+        status: blog_db::CommentStatus::Approved,
         path: comment_row.get::<String, _>("path"),
         depth: comment_row.get("depth"),
         like_count: comment_row.get::<Option<i32>, _>("like_count").unwrap_or(0),
@@ -158,22 +161,30 @@ pub async fn create_comment(
 
     tx.commit().await?;
 
-    // 获取用户信息
-    let user = sqlx::query!(
-        "SELECT username, profile FROM users WHERE id = $1",
-        auth_user.id
-    )
-    .fetch_one(&state.db)
-    .await?;
+    // 获取用户信息（已登录用户从数据库获取，匿名用户使用默认信息）
+    let comment_user = if let Some(Extension(user)) = auth_user {
+        let user_info = sqlx::query!(
+            "SELECT username, profile FROM users WHERE id = $1",
+            user.id
+        )
+        .fetch_one(&state.db)
+        .await?;
+        blog_db::CommentUser {
+            username: user_info.username,
+            profile: user_info.profile,
+        }
+    } else {
+        blog_db::CommentUser {
+            username: "匿名用户".to_string(),
+            profile: serde_json::Value::Null,
+        }
+    };
 
     Ok(Json(CommentResponse {
         id: comment.id,
         content: comment.content,
         html_sanitized: comment.html_sanitized,
-        user: blog_db::CommentUser {
-            username: user.username,
-            profile: user.profile,
-        },
+        user: comment_user,
         created_at: comment.created_at,
         like_count: comment.like_count,
         replies: vec![], // 创建时不包含回复
@@ -213,9 +224,9 @@ pub async fn list_comments(
                 c.id, c.slug, c.user_id, c.parent_id, c.content, c.html_sanitized,
                 c.status as status, c.path::text, c.depth, c.like_count, c.created_at,
                 c.updated_at, c.deleted_at, c.created_ip, c.user_agent, c.moderation_reason,
-                u.username, u.profile
+                COALESCE(u.username, '匿名用户') as username, COALESCE(u.profile, 'null'::jsonb) as profile
             FROM comments c
-            JOIN users u ON c.user_id = u.id
+            LEFT JOIN users u ON c.user_id = u.id
             WHERE c.slug = $1 AND c.status = 'approved'
             AND c.created_at < (SELECT created_at FROM comments WHERE id = $2)
             ORDER BY c.created_at DESC
@@ -225,7 +236,7 @@ pub async fn list_comments(
         .bind(&slug)
         .bind(&cursor_uuid)
         .bind(limit as i64)
-        .fetch_all(&state.db)
+        .fetch_all(&state.db_read)
         .await?;
 
         let comments: Vec<blog_db::CommentWithUser> = rows
@@ -265,9 +276,9 @@ pub async fn list_comments(
                 c.id, c.slug, c.user_id, c.parent_id, c.content, c.html_sanitized,
                 c.status as status, c.path::text, c.depth, c.like_count, c.created_at,
                 c.updated_at, c.deleted_at, c.created_ip, c.user_agent, c.moderation_reason,
-                u.username, u.profile
+                COALESCE(u.username, '匿名用户') as username, COALESCE(u.profile, 'null'::jsonb) as profile
             FROM comments c
-            JOIN users u ON c.user_id = u.id
+            LEFT JOIN users u ON c.user_id = u.id
             WHERE c.slug = $1 AND c.status = 'approved'
             ORDER BY c.created_at DESC
             LIMIT $2
@@ -334,7 +345,7 @@ pub async fn list_comments(
     }))
 }
 
-/// 点赞评论
+/// 点赞评论（幂等：已点赞时不报错）
 #[utoipa::path(
     post,
     path = "/comments/{id}/like",
@@ -343,10 +354,9 @@ pub async fn list_comments(
         ("id" = uuid::Uuid, Path, description = "评论ID")
     ),
     responses(
-        (status = 200, description = "点赞成功"),
+        (status = 204, description = "点赞成功"),
         (status = 401, description = "未认证"),
-        (status = 404, description = "评论不存在"),
-        (status = 409, description = "已经点赞过")
+        (status = 404, description = "评论不存在")
     ),
     security(
         ("BearerAuth" = [])
@@ -372,31 +382,22 @@ pub async fn like_comment(
         return Err(AppError::CommentNotFound);
     }
 
-    // 检查是否已经点赞过
-    let already_liked: bool = sqlx::query_scalar(
-        "SELECT EXISTS(SELECT 1 FROM comment_likes WHERE comment_id = $1 AND user_id = $2)",
+    // 幂等插入：已存在时不报错，仅在新插入时增加计数
+    let rows_affected = sqlx::query(
+        "INSERT INTO comment_likes (comment_id, user_id) VALUES ($1, $2) ON CONFLICT (comment_id, user_id) DO NOTHING",
     )
     .bind(&id)
     .bind(&user_id)
-    .fetch_one(&state.db)
-    .await?;
+    .execute(&state.db)
+    .await?
+    .rows_affected();
 
-    if already_liked {
-        return Err(AppError::AlreadyLiked);
+    if rows_affected > 0 {
+        sqlx::query("UPDATE comments SET like_count = like_count + 1 WHERE id = $1")
+            .bind(&id)
+            .execute(&state.db)
+            .await?;
     }
-
-    // 添加点赞记录
-    sqlx::query("INSERT INTO comment_likes (comment_id, user_id) VALUES ($1, $2)")
-        .bind(&id)
-        .bind(&user_id)
-        .execute(&state.db)
-        .await?;
-
-    // 更新评论的点赞计数
-    sqlx::query("UPDATE comments SET like_count = like_count + 1 WHERE id = $1")
-        .bind(&id)
-        .execute(&state.db)
-        .await?;
 
     Ok(StatusCode::NO_CONTENT)
 }

@@ -11,6 +11,7 @@ x-backend-build: &backend-build
 
 x-backend-environment: &backend-environment
   DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  DATABASE_REPLICA_URL: ${DATABASE_REPLICA_URL}
   REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
   JWT_SECRET: ${JWT_SECRET}
   PASSWORD_PEPPER: ${PASSWORD_PEPPER}

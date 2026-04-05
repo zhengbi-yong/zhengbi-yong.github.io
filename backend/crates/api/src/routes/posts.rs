@@ -64,12 +64,12 @@ pub async fn get_stats(
         }
     }
 
-    // 从数据库获取
+    // 从数据库获取（使用读副本）
     let stats_row = sqlx::query!(
         "SELECT slug, view_count, like_count, comment_count, updated_at FROM post_stats WHERE slug = $1",
         slug
     )
-    .fetch_optional(&state.db)
+    .fetch_optional(&state.db_read)
     .await?;
 
     if let Some(stats_row) = stats_row {
@@ -396,13 +396,13 @@ pub async fn create_post(
             status, published_at, scheduled_at,
             meta_title, meta_description, canonical_url,
             category_id, author_id, show_toc, layout,
-            reading_time
+            is_featured, content_format, reading_time
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8,
             $9, $10, $11,
             $12, $13, $14, $15,
-            $16
+            $16, $17, $18
         )
         RETURNING id
         "#,
@@ -421,6 +421,8 @@ pub async fn create_post(
         auth_user.id,
         req.show_toc.unwrap_or(true),
         req.layout.unwrap_or_else(|| "PostSimple".to_string()),
+        req.is_featured.unwrap_or(false),
+        req.content_format,
         reading_time as i32
     )
     .fetch_one(&mut *tx)
@@ -465,6 +467,19 @@ pub async fn create_post(
     )
     .execute(&mut *tx)
     .await?;
+
+    // 同步 post_media 关联
+    sync_post_media(&mut *tx, post_id, &req.content).await?;
+
+    if let Some(cover_id) = req.cover_image_id {
+        sqlx::query(
+            "INSERT INTO post_media (post_id, media_id, position) VALUES ($1, $2, 0) ON CONFLICT (post_id, media_id) DO NOTHING"
+        )
+        .bind(post_id)
+        .bind(cover_id)
+        .execute(&mut *tx)
+        .await?;
+    }
 
     tx.commit().await?;
 
@@ -558,7 +573,7 @@ async fn get_post_response(
         }
     }
 
-    // 从数据库获取
+    // 从数据库获取（使用读副本）
     let post_row = sqlx::query!(
         r#"
         SELECT
@@ -581,7 +596,7 @@ async fn get_post_response(
         "#,
         slug
     )
-    .fetch_optional(&state.db)
+    .fetch_optional(&state.db_read)
     .await?;
 
     match post_row {
@@ -617,7 +632,7 @@ async fn get_post_response(
                 reading_time: row.reading_time,
                 tags: Vec::new(), // 将在下面填充
             };
-            // 获取标签
+            // 获取标签（使用读副本）
             let tags = sqlx::query_as!(
                 TagBasic,
                 r#"
@@ -629,7 +644,7 @@ async fn get_post_response(
                 "#,
                 slug
             )
-            .fetch_all(&state.db)
+            .fetch_all(&state.db_read)
             .await?;
 
             post_detail.tags = tags;
@@ -704,7 +719,7 @@ pub async fn get_post_by_id(
         }
     }
 
-    // 从数据库获取
+    // 从数据库获取（使用读副本）
     let post_row = sqlx::query!(
         r#"
         SELECT
@@ -727,7 +742,7 @@ pub async fn get_post_by_id(
         "#,
         id
     )
-    .fetch_optional(&state.db)
+    .fetch_optional(&state.db_read)
     .await?;
 
     match post_row {
@@ -764,7 +779,7 @@ pub async fn get_post_by_id(
                 tags: Vec::new(), // 将在下面填充
             };
 
-            // 获取标签
+            // 获取标签（使用读副本）
             let tags = sqlx::query_as!(
                 TagBasic,
                 r#"
@@ -776,7 +791,7 @@ pub async fn get_post_by_id(
                 "#,
                 id
             )
-            .fetch_all(&state.db)
+            .fetch_all(&state.db_read)
             .await?;
 
             post_detail.tags = tags;
@@ -896,6 +911,14 @@ pub async fn update_post(
     }
     if req.layout.is_some() {
         update_fields.push(format!("layout = ${}", param_index));
+        param_index += 1;
+    }
+    if req.is_featured.is_some() {
+        update_fields.push(format!("is_featured = ${}", param_index));
+        param_index += 1;
+    }
+    if req.content_format.is_some() {
+        update_fields.push(format!("content_format = ${}", param_index));
     }
 
     if update_fields.is_empty() {
@@ -916,7 +939,7 @@ pub async fn update_post(
     if let Some(title) = req.title {
         query_builder = query_builder.bind(title);
     }
-    if let Some(content) = req.content {
+    if let Some(ref content) = req.content {
         query_builder = query_builder.bind(content);
     }
     if let Some(content_html) = req.content_html {
@@ -955,6 +978,12 @@ pub async fn update_post(
     if let Some(layout) = req.layout {
         query_builder = query_builder.bind(layout);
     }
+    if let Some(is_featured) = req.is_featured {
+        query_builder = query_builder.bind(is_featured);
+    }
+    if let Some(content_format) = req.content_format {
+        query_builder = query_builder.bind(content_format);
+    }
 
     query_builder.fetch_one(&mut *tx).await?;
 
@@ -975,6 +1004,11 @@ pub async fn update_post(
             .execute(&mut *tx)
             .await?;
         }
+    }
+
+    // 同步媒体关联
+    if req.content.is_some() {
+        sync_post_media(&mut *tx, post_id, req.content.as_deref().unwrap_or("")).await?;
     }
 
     tx.commit().await?;
@@ -1099,13 +1133,13 @@ pub async fn list_posts(
 
     let where_clause = where_conditions.join(" AND ");
 
-    // 查询总数
+    // 查询总数（使用读副本）
     let count_query = format!("SELECT COUNT(*) FROM posts p WHERE {}", where_clause);
     let total: i64 = sqlx::query_scalar(&count_query)
-        .fetch_one(&state.db)
+        .fetch_one(&state.db_read)
         .await?;
 
-    // 查询列表
+    // 查询列表（使用读副本）
     let list_query = format!(
         r#"
         SELECT
@@ -1131,7 +1165,7 @@ pub async fn list_posts(
     );
 
     use sqlx::Row;
-    let rows = sqlx::query(&list_query).fetch_all(&state.db).await?;
+    let rows = sqlx::query(&list_query).fetch_all(&state.db_read).await?;
 
     let posts: Vec<PostListItem> = rows
         .into_iter()
@@ -1194,4 +1228,48 @@ async fn clear_posts_cache(state: &AppState) {
             .await
             .unwrap_or(());
     }
+}
+
+
+/// Extract media references from post content and sync post_media associations.
+async fn sync_post_media(
+    conn: &mut sqlx::PgConnection,
+    post_id: Uuid,
+    content: &str,
+) -> Result<(), AppError> {
+    // Delete existing post_media for this post
+    sqlx::query("DELETE FROM post_media WHERE post_id = $1")
+        .bind(post_id)
+        .execute(&mut *conn)
+        .await?;
+
+    // Find media items whose storage_path or filename appears in the content
+    let media_rows: Vec<(Uuid,)> = sqlx::query_as::<sqlx::Postgres, (Uuid,)>(
+        "SELECT id FROM media WHERE $1 LIKE '%' || storage_path || '%' OR $1 LIKE '%' || filename || '%'"
+    )
+    .bind(content)
+    .fetch_all(&mut *conn)
+    .await
+    .unwrap_or_default();
+
+    for (idx, (media_id,)) in media_rows.iter().enumerate() {
+        sqlx::query(
+            "INSERT INTO post_media (post_id, media_id, position) VALUES ($1, $2, $3) ON CONFLICT (post_id, media_id) DO NOTHING"
+        )
+        .bind(post_id)
+        .bind(media_id)
+        .bind(idx as i32)
+        .execute(&mut *conn)
+        .await
+        .ok();
+    }
+
+    // Recalculate usage_count for all media
+    sqlx::query(
+        "UPDATE media SET usage_count = (SELECT COUNT(*) FROM post_media WHERE media_id = media.id)"
+    )
+    .execute(&mut *conn)
+    .await?;
+
+    Ok(())
 }
