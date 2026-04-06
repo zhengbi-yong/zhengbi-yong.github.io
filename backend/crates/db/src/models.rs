@@ -275,3 +275,133 @@ impl From<PostStats> for PostStatsResponse {
         }
     }
 }
+
+// ============================================
+// Team Member Models
+// ============================================
+
+/// Team member database model
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct TeamMember {
+    pub id: Uuid,
+    pub user_id: Option<Uuid>,
+    pub name: String,
+    pub name_en: Option<String>,
+    pub team_role: String,
+    pub display_order: i32,
+    pub is_active: bool,
+    pub title: Option<String>,
+    pub bio: Option<String>,
+    pub affiliation: Option<String>,
+    pub research_tags: Option<Vec<String>>,
+    pub email: Option<String>,
+    pub github: Option<String>,
+    pub website: Option<String>,
+    pub avatar_media_id: Option<Uuid>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Team member list item (smaller payload for listing)
+#[derive(Debug, Clone, Serialize, FromRow, ToSchema)]
+pub struct TeamMemberListItem {
+    pub id: Uuid,
+    pub name: String,
+    pub name_en: Option<String>,
+    pub team_role: String,
+    pub title: Option<String>,
+    pub affiliation: Option<String>,
+    pub avatar_media_id: Option<Uuid>,
+    pub display_order: i32,
+}
+
+/// Create team member request
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct CreateTeamMemberRequest {
+    pub user_id: Option<Uuid>,
+    pub name: String,
+    pub name_en: Option<String>,
+    pub team_role: Option<String>,
+    pub display_order: Option<i32>,
+    pub title: Option<String>,
+    pub bio: Option<String>,
+    pub affiliation: Option<String>,
+    pub research_tags: Option<Vec<String>>,
+    pub email: Option<String>,
+    pub github: Option<String>,
+    pub website: Option<String>,
+    pub avatar_media_id: Option<Uuid>,
+}
+
+/// Update team member request
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct UpdateTeamMemberRequest {
+    pub user_id: Option<Uuid>,
+    pub name: Option<String>,
+    pub name_en: Option<String>,
+    pub team_role: Option<String>,
+    pub display_order: Option<i32>,
+    pub is_active: Option<bool>,
+    pub title: Option<String>,
+    pub bio: Option<String>,
+    pub affiliation: Option<String>,
+    pub research_tags: Option<Vec<String>>,
+    pub email: Option<String>,
+    pub github: Option<String>,
+    pub website: Option<String>,
+    pub avatar_media_id: Option<Uuid>,
+}
+
+/// Team member detail with media URL
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct TeamMemberDetail {
+    pub id: Uuid,
+    pub user_id: Option<Uuid>,
+    pub name: String,
+    pub name_en: Option<String>,
+    pub team_role: String,
+    pub display_order: i32,
+    pub is_active: bool,
+    pub title: Option<String>,
+    pub bio: Option<String>,
+    pub affiliation: Option<String>,
+    pub research_tags: Option<Vec<String>>,
+    pub email: Option<String>,
+    pub github: Option<String>,
+    pub website: Option<String>,
+    pub avatar_url: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl From<TeamMember> for TeamMemberDetail {
+    fn from(m: TeamMember) -> Self {
+        Self {
+            id: m.id,
+            user_id: m.user_id,
+            name: m.name,
+            name_en: m.name_en,
+            team_role: m.team_role,
+            display_order: m.display_order,
+            is_active: m.is_active,
+            title: m.title,
+            bio: m.bio,
+            affiliation: m.affiliation,
+            research_tags: m.research_tags,
+            email: m.email,
+            github: m.github,
+            website: m.website,
+            avatar_url: None,
+            created_at: m.created_at,
+            updated_at: m.updated_at,
+        }
+    }
+}
+
+/// Gallery image for team member
+#[derive(Debug, Clone, Serialize, FromRow, ToSchema)]
+pub struct TeamMemberGalleryImage {
+    pub id: Uuid,
+    pub media_id: Uuid,
+    pub url: String,
+}
