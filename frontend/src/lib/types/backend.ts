@@ -16,8 +16,9 @@ export interface PostListItem {
   like_count: number
   comment_count: number
   created_at: string
-  reading_time: any | null
+  reading_time: number | null
   tag_count: number
+  is_featured?: boolean
 }
 
 export interface PostDetail {
@@ -27,6 +28,7 @@ export interface PostDetail {
   content: string
   content_html: string | null
   summary: string | null
+  cover_image_id: string | null
   cover_image_url: string | null
   status: 'Draft' | 'Published' | 'Archived'
   published_at: string | null
@@ -41,6 +43,9 @@ export interface PostDetail {
   author_name: string | null
   show_toc: boolean
   layout: string
+  is_featured?: boolean
+  content_format?: string
+  language?: string
   view_count: number
   like_count: number
   comment_count: number
@@ -146,7 +151,7 @@ export interface UserInfo {
   role?: 'user' | 'admin' | 'moderator'
 }
 
-// ==================== Post Types ====================
+// ==================== Post Stats ====================
 export interface PostStats {
   slug: string
   view_count: number
@@ -196,13 +201,29 @@ export interface AdminStats {
   rejected_comments: number
 }
 
+// ==================== User Types ====================
+export type UserStatus = 'active' | 'suspended' | 'banned'
+
 export interface UserListItem {
   id: string
   email: string
   username: string
   role: string
   email_verified: boolean
+  status?: UserStatus
   created_at: string
+}
+
+export interface UserDetail {
+  id: string
+  email: string
+  username: string
+  role: string
+  email_verified: boolean
+  status: UserStatus
+  profile: Record<string, unknown> | null
+  created_at: string
+  updated_at: string
 }
 
 export interface UserListResponse {
@@ -212,10 +233,43 @@ export interface UserListResponse {
   page_size: number
 }
 
+export interface UserListParams {
+  page?: number
+  page_size?: number
+  search?: string
+  status?: UserStatus | ''
+  role?: string | ''
+}
+
+export interface CreateUserRequest {
+  email: string
+  username: string
+  password: string
+  role?: string
+}
+
+export interface UpdateUserRequest {
+  username?: string
+  email?: string
+  role?: string
+  email_verified?: boolean
+  status?: UserStatus
+}
+
 export interface UpdateUserRoleRequest {
   role: string
 }
 
+export interface BatchUpdateRoleRequest {
+  user_ids: string[]
+  role: string
+}
+
+export interface BatchDeleteUsersRequest {
+  user_ids: string[]
+}
+
+// ==================== Comment Admin Types ====================
 export interface CommentAdminItem {
   id: string
   slug: string
@@ -254,7 +308,6 @@ export interface ServiceHealth {
   details?: Record<string, any>
 }
 
-// 后端实际返回的详细健康检查结构
 export interface DetailedHealthStatus {
   status: 'healthy' | 'unhealthy'
   timestamp: string
@@ -293,7 +346,7 @@ export interface PrometheusMetrics {
   db_connections: GaugeMetric
   redis_connections: GaugeMetric
   active_sessions: GaugeMetric
-  [key: string]: any // Allow additional metrics
+  [key: string]: any
 }
 
 export interface Metric {
@@ -419,7 +472,7 @@ export interface ReadingProgress {
   post_id: string
   post_slug: string
   post_title: string
-  progress: number  // 0-100
+  progress: number
   last_read_at: string
   completed_at?: string
 }
@@ -462,31 +515,91 @@ export interface VersionComparison {
 }
 
 // ==================== Media Types ====================
+export type MediaType = 'image' | 'video' | 'document' | 'chemistry' | '3d-model' | 'music-score' | 'other'
+
 export interface MediaItem {
   id: string
   filename: string
-  url: string
+  original_filename: string
   mime_type: string
-  size: number
-  width?: number
-  height?: number
-  alt_text?: string
-  uploaded_at: string
-  uploaded_by: string
-  unused?: boolean
-  usage_count?: number
+  size_bytes: number
+  width?: number | null
+  height?: number | null
+  url: string
+  media_type: MediaType
+  usage_count: number
+  created_at: string
+}
+
+export interface MediaDetail {
+  id: string
+  filename: string
+  original_filename: string
+  mime_type: string
+  size_bytes: number
+  width?: number | null
+  height?: number | null
+  storage_path: string
+  cdn_url?: string | null
+  alt_text?: string | null
+  caption?: string | null
+  uploaded_by?: string | null
+  media_type: MediaType
+  usage_count: number
+  created_at: string
+  updated_at: string
+  deleted_at?: string | null
 }
 
 export interface MediaListResponse {
   media: MediaItem[]
   total: number
   page: number
-  per_page: number
+  limit: number
   total_pages: number
 }
 
-// ==================== Bookmark Types ====================
+export interface MediaListParams {
+  page?: number
+  limit?: number
+  media_type?: MediaType | ''
+  search?: string
+}
 
+export interface MediaPresignUploadRequest {
+  filename: string
+  content_type?: string
+  expires_secs?: number
+}
+
+export interface MediaPresignUploadResponse {
+  object_key: string
+  upload_url: string
+  asset_url: string
+  upload_method: string
+  content_type: string
+  expires_in_secs: number
+  required_headers: Record<string, string>
+}
+
+export interface FinalizeMediaUploadRequest {
+  object_key: string
+  original_filename: string
+  alt_text?: string
+  caption?: string
+}
+
+export interface UpdateMediaRequest {
+  alt_text?: string
+  caption?: string
+}
+
+export interface MediaDownloadUrlResponse {
+  url: string
+  expires_in_secs?: number | null
+}
+
+// ==================== Bookmark Types ====================
 export interface Bookmark {
   id: string
   user_id: string
@@ -520,7 +633,6 @@ export interface UpdateBookmarkRequest {
 }
 
 // ==================== User Profile Types ====================
-
 export interface UpdateProfileRequest {
   username?: string
   email?: string
@@ -539,11 +651,11 @@ export interface ChangePasswordRequest {
 
 export interface UserReadingStats {
   total_posts_read: number
-  total_reading_time: number  // in minutes
+  total_reading_time: number
   posts_completed: number
   posts_in_progress: number
   favorite_tags: string[]
-  reading_streak: number  // days
+  reading_streak: number
   this_week_posts: number
   this_month_posts: number
 }
@@ -559,7 +671,6 @@ export interface UserProfile extends UserInfo {
 }
 
 // ==================== Comment Notification Types ====================
-
 export interface CommentNotificationSubscription {
   id: string
   user_id: string
@@ -600,3 +711,88 @@ export interface CommentNotificationListResponse {
   total_pages: number
 }
 
+// ==================== Team Member Types ====================
+export type TeamRole = 'advisor' | 'lead' | 'member'
+
+export interface TeamMemberListItem {
+  id: string
+  name: string
+  name_en?: string
+  team_role: TeamRole
+  title?: string
+  affiliation?: string
+  avatar_media_id?: string
+  display_order: number
+}
+
+export interface TeamMemberDetail {
+  id: string
+  user_id?: string
+  name: string
+  name_en?: string
+  team_role: TeamRole
+  display_order: number
+  is_active: boolean
+  title?: string
+  bio?: string
+  affiliation?: string
+  research_tags?: string[]
+  email?: string
+  github?: string
+  website?: string
+  avatar_url?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface TeamMemberListResponse {
+  data: TeamMemberListItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export interface TeamMemberListParams {
+  page?: number
+  page_size?: number
+  team_role?: TeamRole
+  is_active?: boolean
+  search?: string
+}
+
+export interface CreateTeamMemberRequest {
+  user_id?: string
+  name: string
+  name_en?: string
+  team_role?: TeamRole
+  display_order?: number
+  title?: string
+  bio?: string
+  affiliation?: string
+  research_tags?: string[]
+  email?: string
+  github?: string
+  website?: string
+  avatar_media_id?: string
+}
+
+export interface UpdateTeamMemberRequest {
+  user_id?: string
+  name?: string
+  name_en?: string
+  team_role?: TeamRole
+  display_order?: number
+  is_active?: boolean
+  title?: string
+  bio?: string
+  affiliation?: string
+  research_tags?: string[]
+  email?: string
+  github?: string
+  website?: string
+  avatar_media_id?: string
+}
+
+export interface BatchDeleteTeamMembersRequest {
+  member_ids: string[]
+}
