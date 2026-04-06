@@ -14,7 +14,12 @@ import type {
   CreateCommentRequest,
   AdminStats,
   UserListResponse,
+  UserDetail,
+  CreateUserRequest,
+  UpdateUserRequest,
   UpdateUserRoleRequest,
+  BatchUpdateRoleRequest,
+  BatchDeleteUsersRequest,
   CommentAdminListResponse,
   UpdateCommentStatusRequest,
   PostDetail,
@@ -30,6 +35,15 @@ import type {
   UserReadingStats,
   CommentNotificationSubscription,
   CommentNotificationPreferences,
+  MediaItem,
+  MediaDetail,
+  MediaListResponse,
+  MediaListParams,
+  MediaPresignUploadRequest,
+  MediaPresignUploadResponse,
+  FinalizeMediaUploadRequest,
+  UpdateMediaRequest,
+  MediaDownloadUrlResponse,
 } from '../types/backend'
 
 // Backend API base URL - adjust based on your environment
@@ -443,6 +457,38 @@ export const commentService = {
   async likeComment(commentId: string): Promise<void> {
     await api.post(`${BACKEND_API_URL}/comments/${commentId}/like`, undefined, { cache: false })
   },
+
+  /**
+   * Unlike a comment
+   */
+  async unlikeComment(commentId: string): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/comments/${commentId}/unlike`, undefined, { cache: false })
+  },
+}
+
+// ==================== Team Member Service ====================
+export const teamService = {
+  /**
+   * Get list of public team members (active only)
+   */
+  async getTeamMembers(): Promise<import('../types/backend').TeamMemberListItem[]> {
+    const response = await api.get<import('../types/backend').TeamMemberListItem[]>(
+      `${BACKEND_API_URL}/team-members`,
+      { cache: 5 * 60 * 1000 } // 5 minute cache
+    )
+    return response.data
+  },
+
+  /**
+   * Get single public team member detail
+   */
+  async getTeamMember(id: string): Promise<import('../types/backend').TeamMemberDetail> {
+    const response = await api.get<import('../types/backend').TeamMemberDetail>(
+      `${BACKEND_API_URL}/team-members/${id}`,
+      { cache: 5 * 60 * 1000 } // 5 minute cache
+    )
+    return response.data
+  },
 }
 
 // ==================== Admin Service ====================
@@ -456,25 +502,84 @@ export const adminService = {
   },
 
   /**
-   * Get list of users
+   * Get list of users (with search and filter support)
    */
-  async getUsers(page = 1, pageSize = 20): Promise<UserListResponse> {
-    const params = new URLSearchParams()
-    params.append('page', page.toString())
-    params.append('page_size', pageSize.toString())
+  async getUsers(params?: { page?: number; page_size?: number; search?: string; status?: string; role?: string }): Promise<UserListResponse> {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+    if (params?.search) queryParams.append('search', params.search)
+    if (params?.status) queryParams.append('status', params.status)
+    if (params?.role) queryParams.append('role', params.role)
 
     const response = await api.get<UserListResponse>(
-      `${BACKEND_API_URL}/admin/users?${params.toString()}`,
+      `${BACKEND_API_URL}/admin/users?${queryParams.toString()}`,
       { cache: false }
     )
     return response.data
   },
 
   /**
-   * Update user role
+   * Get user detail
+   */
+  async getUserDetail(userId: string): Promise<UserDetail> {
+    const response = await api.get<UserDetail>(
+      `${BACKEND_API_URL}/admin/users/${userId}`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Create a new user
+   */
+  async createUser(data: CreateUserRequest): Promise<UserDetail> {
+    const response = await api.post<UserDetail>(
+      `${BACKEND_API_URL}/admin/users`,
+      data,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Update user (profile, role, status)
+   */
+  async updateUser(userId: string, data: UpdateUserRequest): Promise<UserDetail> {
+    const response = await api.put<UserDetail>(
+      `${BACKEND_API_URL}/admin/users/${userId}`,
+      data,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Update user role (legacy)
    */
   async updateUserRole(userId: string, data: UpdateUserRoleRequest): Promise<void> {
     await api.put(`${BACKEND_API_URL}/admin/users/${userId}/role`, data, { cache: false })
+  },
+
+  /**
+   * Suspend user
+   */
+  async suspendUser(userId: string): Promise<void> {
+    await api.put(`${BACKEND_API_URL}/admin/users/${userId}`, { status: 'suspended' }, { cache: false })
+  },
+
+  /**
+   * Ban user
+   */
+  async banUser(userId: string): Promise<void> {
+    await api.put(`${BACKEND_API_URL}/admin/users/${userId}`, { status: 'banned' }, { cache: false })
+  },
+
+  /**
+   * Reactivate user
+   */
+  async reactivateUser(userId: string): Promise<void> {
+    await api.put(`${BACKEND_API_URL}/admin/users/${userId}`, { status: 'active' }, { cache: false })
   },
 
   /**
@@ -482,6 +587,20 @@ export const adminService = {
    */
   async deleteUser(userId: string): Promise<void> {
     await api.delete(`${BACKEND_API_URL}/admin/users/${userId}`, { cache: false })
+  },
+
+  /**
+   * Batch update user roles
+   */
+  async batchUpdateRoles(data: BatchUpdateRoleRequest): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/admin/users/batch/role`, data, { cache: false })
+  },
+
+  /**
+   * Batch delete users
+   */
+  async batchDeleteUsers(data: BatchDeleteUsersRequest): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/admin/users/batch/delete`, data, { cache: false })
   },
 
   /**
@@ -541,9 +660,18 @@ export const adminService = {
     title: string
     slug: string
     content: string
+    status: string
     summary?: string
-    status?: string
+    cover_image_id?: string | null
+    published_at?: string | null
+    scheduled_at?: string | null
+    meta_title?: string
+    meta_description?: string
+    canonical_url?: string
     category_id?: string | null
+    show_toc?: boolean
+    is_featured?: boolean
+    layout?: string
     tag_ids?: string[] | null
   }): Promise<PostDetail> {
     const response = await api.post<PostDetail>(`${BACKEND_API_URL}/admin/posts`, data, { cache: false })
@@ -558,9 +686,19 @@ export const adminService = {
     data: {
       title?: string
       content?: string
+      content_html?: string
       summary?: string
+      cover_image_id?: string | null
       status?: string
+      published_at?: string | null
+      scheduled_at?: string | null
+      meta_title?: string
+      meta_description?: string
+      canonical_url?: string
       category_id?: string | null
+      show_toc?: boolean
+      layout?: string
+      is_featured?: boolean
       tag_ids?: string[] | null
     }
   ): Promise<PostDetail> {
@@ -604,22 +742,127 @@ export const adminService = {
   },
 
   /**
-   * Get all media
+   * Get all media (typed, paginated, filterable)
    */
-  async getMedia(page = 1, pageSize = 20): Promise<any> {
-    const params = new URLSearchParams()
-    params.append('page', page.toString())
-    params.append('page_size', pageSize.toString())
+  async getMedia(params?: MediaListParams): Promise<MediaListResponse> {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.limit) queryParams.append('limit', params.limit.toString())
+    if (params?.media_type) queryParams.append('media_type', params.media_type)
+    if (params?.search) queryParams.append('search', params.search)
 
-    const response = await api.get(`${BACKEND_API_URL}/admin/media?${params.toString()}`)
+    const response = await api.get<MediaListResponse>(
+      `${BACKEND_API_URL}/admin/media?${queryParams.toString()}`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Get single media item detail
+   */
+  async getMediaById(mediaId: string): Promise<MediaDetail> {
+    const response = await api.get<MediaDetail>(
+      `${BACKEND_API_URL}/admin/media/${mediaId}`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Upload media file (direct, for files <= 10MB)
+   */
+  async uploadMedia(file: File, altText?: string, caption?: string): Promise<MediaItem> {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (altText) formData.append('alt_text', altText)
+    if (caption) formData.append('caption', caption)
+
+    const response = await api.post<MediaItem>(
+      `${BACKEND_API_URL}/admin/media/upload`,
+      formData,
+      {
+        cache: false,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    )
+    return response.data
+  },
+
+  /**
+   * Get presigned upload URL (for large files)
+   */
+  async presignUpload(data: MediaPresignUploadRequest): Promise<MediaPresignUploadResponse> {
+    const response = await api.post<MediaPresignUploadResponse>(
+      `${BACKEND_API_URL}/admin/media/presign-upload`,
+      data,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Finalize presigned upload
+   */
+  async finalizeUpload(data: FinalizeMediaUploadRequest): Promise<MediaItem> {
+    const response = await api.post<MediaItem>(
+      `${BACKEND_API_URL}/admin/media/finalize`,
+      data,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Create chemistry media (SMILES molecule)
+   */
+  async createChemistry(data: {
+    smiles: string
+    name: string
+    description?: string
+  }): Promise<MediaItem> {
+    const response = await api.post<MediaItem>(
+      `${BACKEND_API_URL}/admin/media/chemistry`,
+      data,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Update media metadata
+   */
+  async updateMedia(mediaId: string, data: UpdateMediaRequest): Promise<MediaDetail> {
+    const response = await api.patch<MediaDetail>(
+      `${BACKEND_API_URL}/admin/media/${mediaId}`,
+      data,
+      { cache: false }
+    )
     return response.data
   },
 
   /**
    * Get unused media
    */
-  async getUnusedMedia(): Promise<any> {
-    const response = await api.get(`${BACKEND_API_URL}/admin/media/unused`)
+  async getUnusedMedia(): Promise<MediaItem[]> {
+    const response = await api.get<MediaItem[]>(
+      `${BACKEND_API_URL}/admin/media/unused`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Get media download URL
+   */
+  async getMediaDownloadUrl(mediaId: string, expiresSecs?: number): Promise<MediaDownloadUrlResponse> {
+    const params = new URLSearchParams()
+    if (expiresSecs) params.append('expires_secs', expiresSecs.toString())
+
+    const response = await api.get<MediaDownloadUrlResponse>(
+      `${BACKEND_API_URL}/admin/media/${mediaId}/download-url?${params.toString()}`,
+      { cache: false }
+    )
     return response.data
   },
 
@@ -627,7 +870,104 @@ export const adminService = {
    * Delete media
    */
   async deleteMedia(mediaId: string): Promise<void> {
-    await api.delete(`${BACKEND_API_URL}/admin/media/${mediaId}`)
+    await api.delete(`${BACKEND_API_URL}/admin/media/${mediaId}`, { cache: false })
+  },
+
+  // ==================== Team Members ====================
+
+  /**
+   * Get list of team members (admin view)
+   */
+  async getTeamMembers(params?: {
+    page?: number
+    page_size?: number
+    team_role?: string
+    is_active?: boolean
+    search?: string
+  }): Promise<{
+    data: import('../types/backend').TeamMemberListItem[]
+    total: number
+    page: number
+    page_size: number
+  }> {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+    if (params?.team_role) queryParams.append('team_role', params.team_role)
+    if (params?.is_active !== undefined) queryParams.append('is_active', String(params.is_active))
+    if (params?.search) queryParams.append('search', params.search)
+
+    const response = await api.get<{
+      data: import('../types/backend').TeamMemberListItem[]
+      total: number
+      page: number
+      page_size: number
+    }>(
+      `${BACKEND_API_URL}/admin/team-members?${queryParams.toString()}`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Get single team member detail (admin view)
+   */
+  async getTeamMemberDetail(id: string): Promise<import('../types/backend').TeamMemberDetail> {
+    const response = await api.get<import('../types/backend').TeamMemberDetail>(
+      `${BACKEND_API_URL}/admin/team-members/${id}`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Create a new team member
+   */
+  async createTeamMember(data: import('../types/backend').CreateTeamMemberRequest): Promise<{ id: string }> {
+    const response = await api.post<{ id: string }>(
+      `${BACKEND_API_URL}/admin/team-members`,
+      data,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Update team member
+   */
+  async updateTeamMember(
+    id: string,
+    data: import('../types/backend').UpdateTeamMemberRequest
+  ): Promise<{ message: string }> {
+    const response = await api.put<{ message: string }>(
+      `${BACKEND_API_URL}/admin/team-members/${id}`,
+      data,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Delete team member (soft delete)
+   */
+  async deleteTeamMember(id: string): Promise<{ message: string }> {
+    const response = await api.delete<{ message: string }>(
+      `${BACKEND_API_URL}/admin/team-members/${id}`,
+      { cache: false }
+    )
+    return response.data
+  },
+
+  /**
+   * Batch delete team members
+   */
+  async batchDeleteTeamMembers(data: import('../types/backend').BatchDeleteTeamMembersRequest): Promise<{ message: string }> {
+    const response = await api.post<{ message: string }>(
+      `${BACKEND_API_URL}/admin/team-members/batch/delete`,
+      data,
+      { cache: false }
+    )
+    return response.data
   },
 }
 
