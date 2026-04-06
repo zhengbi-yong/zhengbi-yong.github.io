@@ -1,4 +1,5 @@
 use crate::state::AppState;
+use crate::utils::ip_extractor::RealIp;
 use ammonia::Builder;
 use axum::{
     extract::{Extension, Path, Query, State},
@@ -22,9 +23,6 @@ fn sanitize_comment_html(input: &str) -> String {
         .clean(input)
         .to_string()
 }
-
-// 注意：真实 IP 提取需要添加 Request 参数
-// TODO: 添加 Request 参数并使用 crate::utils::ip_extractor::extract_real_ip
 
 // 提取 User-Agent
 fn extract_user_agent() -> String {
@@ -54,10 +52,12 @@ fn extract_user_agent() -> String {
 )]
 pub async fn create_comment(
     State(state): State<AppState>,
-    auth_user: Option<Extension<AuthUser>>,
+    RealIp(real_ip): RealIp,
     Path(slug): Path<String>,
+    auth_user: Option<Extension<AuthUser>>,
     Json(payload): Json<CreateCommentRequest>,
 ) -> Result<Json<CommentResponse>, AppError> {
+    let client_ip = real_ip.to_string();
     // 检查文章是否存在
     let exists: bool =
         sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM post_stats WHERE slug = $1)")
@@ -125,7 +125,7 @@ pub async fn create_comment(
     .bind(&html_content)
     .bind(&path as &str)
     .bind(&depth)
-    .bind("127.0.0.1") // TODO: 从 Request 中提取真实 IP
+    .bind(&client_ip)
     .bind(&extract_user_agent())
     .fetch_one(&mut *tx)
     .await?;

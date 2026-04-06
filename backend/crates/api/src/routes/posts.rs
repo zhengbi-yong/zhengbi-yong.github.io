@@ -1103,41 +1103,63 @@ pub async fn list_posts(
     let limit = params.limit.unwrap_or(20).min(500);
     let offset = (page - 1) * limit;
 
-    let sort_by = params.sort_by.unwrap_or_else(|| "published_at".to_string());
-    let sort_order = params.sort_order.unwrap_or_else(|| "desc".to_string());
+    // 白名单验证 sort_by 和 sort_order 防止 SQL 注入
+    let sort_by = match params.sort_by.as_deref() {
+        Some("published_at") | Some("created_at") | Some("view_count") | Some("title") => {
+            params.sort_by.unwrap()
+        }
+        _ => "published_at".to_string(),
+    };
+    let sort_order = match params.sort_order.as_deref() {
+        Some("asc") | Some("desc") => params.sort_order.unwrap(),
+        _ => "desc".to_string(),
+    };
 
-    // 构建查询
-    let mut where_conditions = vec!["p.deleted_at IS NULL".to_string()];
+    // 使用参数化查询防止 SQL 注入
+    let mut query_args: Vec<String> = Vec::new();
+    let mut param_idx = 1;
 
-    if let Some(status) = params.status {
-        where_conditions.push(format!("p.status = '{}'", status.as_str()));
+    let mut where_clause = "p.deleted_at IS NULL".to_string();
+
+    if let Some(ref status) = params.status {
+        where_clause.push_str(&format!(" AND p.status = ${}", param_idx));
+        query_args.push(status.as_str().to_string());
+        param_idx += 1;
     }
-    if let Some(category_id) = params.category_id {
-        where_conditions.push(format!("p.category_id = '{}'", category_id));
+    if let Some(ref category_id) = params.category_id {
+        where_clause.push_str(&format!(" AND p.category_id = ${}", param_idx));
+        query_args.push(category_id.to_string());
+        param_idx += 1;
     }
-    if let Some(tag_id) = params.tag_id {
-        where_conditions.push(format!(
-            "EXISTS (SELECT 1 FROM post_tags pt WHERE pt.post_id = p.id AND pt.tag_id = '{}')",
-            tag_id
+    if let Some(ref tag_id) = params.tag_id {
+        where_clause.push_str(&format!(
+            " AND EXISTS (SELECT 1 FROM post_tags pt WHERE pt.post_id = p.id AND pt.tag_id = ${})",
+            param_idx
         ));
+        query_args.push(tag_id.to_string());
+        param_idx += 1;
     }
-    if let Some(author_id) = params.author_id {
-        where_conditions.push(format!("p.author_id = '{}'", author_id));
+    if let Some(ref author_id) = params.author_id {
+        where_clause.push_str(&format!(" AND p.author_id = ${}", param_idx));
+        query_args.push(author_id.to_string());
+        param_idx += 1;
     }
-    if let Some(search) = params.search {
-        where_conditions.push(format!(
-            "p.search_vector @@ plainto_tsquery('simple', '{}')",
-            search.replace('\'', "''")
+    if let Some(ref search) = params.search {
+        where_clause.push_str(&format!(
+            " AND p.search_vector @@ plainto_tsquery('simple', ${})",
+            param_idx
         ));
+        query_args.push(search.to_string());
+        param_idx += 1;
     }
-
-    let where_clause = where_conditions.join(" AND ");
 
     // 查询总数（使用读副本）
     let count_query = format!("SELECT COUNT(*) FROM posts p WHERE {}", where_clause);
-    let total: i64 = sqlx::query_scalar(&count_query)
-        .fetch_one(&state.db_read)
-        .await?;
+    let mut count_q = sqlx::query_scalar::<_, i64>(&count_query);
+    for arg in &query_args {
+        count_q = count_q.bind(arg);
+    }
+    let total = count_q.fetch_one(&state.db_read).await?;
 
     // 查询列表（使用读副本）
     let list_query = format!(
@@ -1164,9 +1186,13 @@ pub async fn list_posts(
         where_clause, sort_by, sort_order, limit, offset
     );
 
-    use sqlx::Row;
-    let rows = sqlx::query(&list_query).fetch_all(&state.db_read).await?;
+    let mut list_q = sqlx::query(&list_query);
+    for arg in &query_args {
+        list_q = list_q.bind(arg);
+    }
+    let rows = list_q.fetch_all(&state.db_read).await?;
 
+    use sqlx::Row;
     let posts: Vec<PostListItem> = rows
         .into_iter()
         .map(|row| PostListItem {
