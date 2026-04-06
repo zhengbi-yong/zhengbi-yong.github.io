@@ -16,6 +16,7 @@ use tracing_subscriber::prelude::*;
 
 // 导入所有路由模块（仅导入需要使用的模块）
 use blog_api::middleware::auth::auth_middleware;
+use blog_api::routes::{admin_team_members_routes, team_members_routes};
 
 #[tokio::main]
 async fn main() {
@@ -287,6 +288,8 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         )
         .merge(reading_progress_routes())
         .merge(auth_me_route)
+        // 团队成员公开路由
+        .merge(team_members_routes())
         // admin路由需要添加认证中间件
         .merge(
             admin_routes()
@@ -305,6 +308,14 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         )
         .merge(
             comment_admin_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+        )
+        // 团队成员管理路由（需要认证）
+        .merge(
+            admin_team_members_routes()
                 .layer(axum::middleware::from_fn_with_state(
                     state.clone(),
                     auth_middleware,
