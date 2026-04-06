@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 
 import { Component, ReactNode } from 'react'
@@ -30,11 +29,11 @@ export class AnimationErrorBoundary extends Component<
     return { hasError: true }
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     logger.error('Animation component error:', error, errorInfo)
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return this.props.fallback || <div className="opacity-50">动画加载失败</div>
     }

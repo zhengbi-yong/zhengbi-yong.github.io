@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 
 import { useEffect } from 'react'
@@ -7,7 +6,7 @@ import { logger } from '@/lib/utils/logger'
 export default function ServiceWorkerRegister() {
   useEffect(() => {
     if (typeof window === 'undefined') {
-      return
+      return undefined
     }
 
     const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -18,10 +17,10 @@ export default function ServiceWorkerRegister() {
       (!isDevelopment || isServiceWorkerExplicitlyEnabled)
 
     let isCancelled = false
-    let timeoutId
-    let idleCallbackId
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    let idleCallbackId: number | undefined
 
-    const cleanupServiceWorker = async () => {
+    const cleanupServiceWorker = async (): Promise<void> => {
       try {
         const { unregisterServiceWorker } = await import('@/lib/sw-register')
         await unregisterServiceWorker({ clearCaches: true })
@@ -33,10 +32,10 @@ export default function ServiceWorkerRegister() {
     if (!shouldRegisterServiceWorker) {
       logger.debug('[SW] Service Worker is disabled for this session')
       void cleanupServiceWorker()
-      return
+      return undefined
     }
 
-    const registerSW = async () => {
+    const registerSW = async (): Promise<void> => {
       if (isCancelled) {
         return
       }
@@ -54,7 +53,7 @@ export default function ServiceWorkerRegister() {
         void registerSW()
       }, { timeout: 2000 })
     } else {
-      timeoutId = window.setTimeout(() => {
+      timeoutId = setTimeout(() => {
         void registerSW()
       }, 2000)
     }

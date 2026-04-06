@@ -1,9 +1,9 @@
-// @ts-nocheck
 'use client'
 
 import React from 'react'
 import { ErrorBoundaryV2 } from './ErrorBoundaryV2'
 import ErrorReportButton from './ErrorReportButton'
+import { logger } from '@/lib/utils/logger'
 
 interface GlobalErrorHandlerProps {
   children: React.ReactNode
@@ -19,12 +19,12 @@ export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
         // 可以在这里添加其他全局错误处理逻辑
         // 例如：显示全局通知、发送到分析服务等
       }}
-      fallback={({ error, retry, reset }) => (
+      fallback={({ error: _error, retry, reset }) => (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <div className="flex min-h-[400px] items-center justify-center p-4">
             <div className="w-full max-w-2xl">
               <ErrorBoundaryV2
-                fallback={({ error, retry }) => (
+                fallback={({ error: _error, retry }) => (
                   <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
                     <h1 className="mb-4 text-2xl font-bold text-red-600 dark:text-red-400">
                       Application Error

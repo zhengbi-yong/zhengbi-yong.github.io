@@ -1,11 +1,11 @@
-// @ts-nocheck
 /**
  * Refine Data Provider
  * 适配现有的后端 API 结构
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { DataProvider } from '@refinedev/core'
-import axios from 'axios'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
 const BACKEND_API_URL = resolveBackendApiBaseUrl()
@@ -19,9 +19,9 @@ const customAxios = axios.create({
 const createHttpError = (
   statusCode: number,
   message: string,
-  errors?: any
-): { message: string; statusCode: number; errors?: any } => {
-  const error: any = new Error(message)
+  errors?: Record<string, unknown>
+): { message: string; statusCode: number; errors?: Record<string, unknown> } => {
+  const error = new Error(message) as Error & { statusCode: number; errors?: Record<string, unknown> }
   error.statusCode = statusCode
   if (errors) {
     error.errors = errors
@@ -31,40 +31,51 @@ const createHttpError = (
 
 // 请求拦截器 - 添加 Authorization header
 customAxios.interceptors.request.use(
-  (config: any) => {
-    // 从 localStorage 获取 token
+  (config) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
-  (error: any) => {
+  (error) => {
     return Promise.reject(error)
   }
 )
 
+// API 响应数据接口
+interface ApiResponse {
+  data?: unknown
+  users?: unknown[]
+  comments?: unknown[]
+  posts?: unknown[]
+  total?: number
+  [key: string]: unknown
+}
+
 // 创建 dataProvider 对象
 export const dataProvider: DataProvider = {
-  getList: async ({ resource, pagination, filters, sorters, meta }) => {
+  getList: async ({ resource, pagination, filters, sorters }) => {
     // 特殊处理 admin/stats
     if (resource === 'admin/stats') {
-      const response = await customAxios.get(`/admin/stats`)
+      const response = await customAxios.get<ApiResponse>('/admin/stats')
       return {
-        data: [response.data],
+        data: [response.data.data] as any,
         total: 1,
       }
     }
 
-    const { current = 1, pageSize = 10 } = pagination ?? {}
+    const current = (pagination as any)?.current ?? 1
+    const pageSize = (pagination as any)?.pageSize ?? 10
 
-    const params: any = {}
-    params.page = current
-    params.page_size = pageSize
+    const params: Record<string, string | number> = {
+      page: current,
+      page_size: pageSize,
+    }
 
     // 处理筛选
     if (filters && filters.length > 0) {
-      filters.forEach((filter) => {
+      for (const filter of filters) {
         if (
           'field' in filter &&
           'value' in filter &&
@@ -77,7 +88,7 @@ export const dataProvider: DataProvider = {
             params[filter.field] = String(filter.value)
           }
         }
-      })
+      }
     }
 
     // 处理排序
@@ -89,151 +100,146 @@ export const dataProvider: DataProvider = {
     }
 
     try {
-      console.log('[DataProvider] getList called:', { resource, pagination: { current, pageSize } })
-      const response = await customAxios.get(`/${resource}`, { params })
-      console.log('[DataProvider] Response status:', response.status)
+      const response = await customAxios.get<ApiResponse>(`/${resource}`, { params })
 
       // 处理不同的响应格式
-      let data: any[] = []
+      let data: unknown[] = []
       if (response.data.data) {
-        data = response.data.data
+        data = response.data.data as unknown[]
       } else if (response.data.users) {
-        data = response.data.users
+        data = response.data.users as unknown[]
       } else if (response.data.comments) {
-        data = response.data.comments
+        data = response.data.comments as unknown[]
       } else if (response.data.posts) {
-        data = response.data.posts
+        data = response.data.posts as unknown[]
       } else if (Array.isArray(response.data)) {
-        data = response.data
+        data = response.data as unknown[]
       }
 
-      const result = {
-        data,
-        total: response.data.total || data.length,
-      }
-
-      console.log('[DataProvider] Returning:', { dataCount: data.length, total: result.total })
-
-      return result
-    } catch (error: any) {
-      console.error('[DataProvider] Error:', error)
-      throw createHttpError(
-        error?.response?.status || 500,
-        error?.response?.statusText || 'Unknown Error',
-        error?.response?.data
-      )
-    }
-  },
-
-  getOne: async ({ resource, id, meta }) => {
-    try {
-      const response = await customAxios.get(`/${resource}/${id}`)
       return {
-        data: response.data,
+        data: data as any,
+        total: response.data.total ?? data.length,
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
       throw createHttpError(
-        error?.response?.status || 500,
-        error?.response?.statusText || 'Unknown Error',
-        error?.response?.data
+        err.response?.status || 500,
+        err.response?.statusText || 'Unknown Error',
+        err.response?.data as Record<string, unknown>
       )
     }
   },
 
-  create: async ({ resource, variables, meta }) => {
+  getOne: async ({ resource, id }) => {
     try {
-      const response = await customAxios.post(`/${resource}`, variables)
+      const response = await customAxios.get<ApiResponse>(`/${resource}/${id}`)
       return {
-        data: response.data,
+        data: response.data as any,
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
       throw createHttpError(
-        error?.response?.status || 500,
-        error?.response?.statusText || 'Unknown Error',
-        error?.response?.data
+        err.response?.status || 500,
+        err.response?.statusText || 'Unknown Error',
+        err.response?.data as Record<string, unknown>
       )
     }
   },
 
-  update: async ({ resource, id, variables, meta }) => {
+  create: async ({ resource, variables }) => {
+    try {
+      const response = await customAxios.post<ApiResponse>(`/${resource}`, variables as any)
+      return {
+        data: response.data as any,
+      }
+    } catch (error) {
+      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+      throw createHttpError(
+        err.response?.status || 500,
+        err.response?.statusText || 'Unknown Error',
+        err.response?.data as Record<string, unknown>
+      )
+    }
+  },
+
+  update: async ({ resource, id, variables }) => {
     try {
       // 对于 admin/users/{id}/role 这样的特殊端点
-      if (resource === 'admin/users' && variables.role) {
-        await customAxios.put(`/${resource}/${id}/role`, { role: variables.role })
-        const userResponse = await customAxios.get(`/${resource}/${id}`)
+      if (resource === 'admin/users' && variables && 'role' in (variables as any)) {
+        await customAxios.put(`/${resource}/${id}/role`, { role: (variables as any).role })
+        const userResponse = await customAxios.get<ApiResponse>(`/${resource}/${id}`)
         return {
-          data: userResponse.data,
+          data: userResponse.data as any,
         }
       }
 
       // 对于 admin/comments/{id}/status 这样的特殊端点
-      if (resource === 'admin/comments' && variables.status) {
-        // 调用更新状态 API
-        await customAxios.put(`/${resource}/${id}/status`, { status: variables.status })
-        // 返回更新的数据（因为后端没有 GET /admin/comments/{id} 端点，我们手动构造返回数据）
+      if (resource === 'admin/comments' && variables && 'status' in (variables as any)) {
+        await customAxios.put(`/${resource}/${id}/status`, { status: (variables as any).status })
         return {
-          data: {
-            id,
-            status: variables.status,
-          },
+          data: { id, status: (variables as any).status } as any,
         }
       }
 
       // 标准更新
-      const response = await customAxios.put(`/${resource}/${id}`, variables)
+      const response = await customAxios.put<ApiResponse>(`/${resource}/${id}`, variables as any)
       return {
-        data: response.data,
+        data: response.data as any,
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
       throw createHttpError(
-        error?.response?.status || 500,
-        error?.response?.statusText || 'Unknown Error',
-        error?.response?.data
+        err.response?.status || 500,
+        err.response?.statusText || 'Unknown Error',
+        err.response?.data as Record<string, unknown>
       )
     }
   },
 
-  deleteOne: async ({ resource, id, meta }) => {
+  deleteOne: async ({ resource, id }) => {
     try {
       await customAxios.delete(`/${resource}/${id}`)
       return {
-        data: { id },
+        data: { id } as any,
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
       throw createHttpError(
-        error?.response?.status || 500,
-        error?.response?.statusText || 'Unknown Error',
-        error?.response?.data
+        err.response?.status || 500,
+        err.response?.statusText || 'Unknown Error',
+        err.response?.data as Record<string, unknown>
       )
     }
   },
 
-  updateMany: async ({ resource, ids, variables, meta }) => {
+  updateMany: async ({ resource, ids, variables }) => {
     try {
-      await Promise.all(ids.map((id) => customAxios.put(`/${resource}/${id}`, variables)))
+      await Promise.all(ids.map((id) => customAxios.put(`/${resource}/${id}`, variables as any)))
       return {
-        data: ids,
+        data: ids as any,
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
       throw createHttpError(
-        error?.response?.status || 500,
-        error?.response?.statusText || 'Unknown Error',
-        error?.response?.data
+        err.response?.status || 500,
+        err.response?.statusText || 'Unknown Error',
+        err.response?.data as Record<string, unknown>
       )
     }
   },
 
-  deleteMany: async ({ resource, ids, meta }) => {
+  deleteMany: async ({ resource, ids }) => {
     try {
       await Promise.all(ids.map((id) => customAxios.delete(`/${resource}/${id}`)))
       return {
-        data: ids,
+        data: ids as any,
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
       throw createHttpError(
-        error?.response?.status || 500,
-        error?.response?.statusText || 'Unknown Error',
-        error?.response?.data
+        err.response?.status || 500,
+        err.response?.statusText || 'Unknown Error',
+        err.response?.data as Record<string, unknown>
       )
     }
   },
@@ -242,7 +248,7 @@ export const dataProvider: DataProvider = {
     return BACKEND_API_URL
   },
 
-  custom: async ({ url, method, payload, query, headers, meta }) => {
+  custom: async ({ url, method, payload, query, headers }) => {
     let requestUrl = url.startsWith('http') ? url : `${BACKEND_API_URL}${url}`
 
     if (query) {
@@ -258,35 +264,36 @@ export const dataProvider: DataProvider = {
     }
 
     try {
-      let response
-      switch (method) {
-        case 'GET':
-          response = await customAxios.get(requestUrl, { headers })
+      let response: AxiosResponse<ApiResponse>
+      switch (method?.toLowerCase()) {
+        case 'get':
+          response = await customAxios.get<ApiResponse>(requestUrl, { headers } as AxiosRequestConfig)
           break
-        case 'POST':
-          response = await customAxios.post(requestUrl, payload, { headers })
+        case 'post':
+          response = await customAxios.post<ApiResponse>(requestUrl, payload, { headers } as AxiosRequestConfig)
           break
-        case 'PUT':
-          response = await customAxios.put(requestUrl, payload, { headers })
+        case 'put':
+          response = await customAxios.put<ApiResponse>(requestUrl, payload, { headers } as AxiosRequestConfig)
           break
-        case 'PATCH':
-          response = await customAxios.patch(requestUrl, payload, { headers })
+        case 'patch':
+          response = await customAxios.patch<ApiResponse>(requestUrl, payload, { headers } as AxiosRequestConfig)
           break
-        case 'DELETE':
-          response = await customAxios.delete(requestUrl, { headers })
+        case 'delete':
+          response = await customAxios.delete<ApiResponse>(requestUrl, { headers } as AxiosRequestConfig)
           break
         default:
           throw new Error(`Unsupported method: ${method}`)
       }
 
       return {
-        data: response.data,
+        data: response.data as any,
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
       throw createHttpError(
-        error?.response?.status || 500,
-        error?.response?.statusText || 'Unknown Error',
-        error?.response?.data
+        err.response?.status || 500,
+        err.response?.statusText || 'Unknown Error',
+        err.response?.data as Record<string, unknown>
       )
     }
   },

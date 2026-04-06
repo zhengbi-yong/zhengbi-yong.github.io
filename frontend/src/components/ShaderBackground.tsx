@@ -1,7 +1,7 @@
-// @ts-nocheck
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { logger } from '@/lib/utils/logger'
 
 interface ShaderBackgroundProps {
   className?: string
@@ -29,7 +29,7 @@ export default function ShaderBackground({
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) return undefined
 
     // 获取 WebGL 上下文
     const gl = canvas.getContext('webgl', {
@@ -40,7 +40,7 @@ export default function ShaderBackground({
     })
 
     if (!gl) {
-      return
+      return undefined
     }
 
     glRef.current = gl
@@ -184,14 +184,14 @@ export default function ShaderBackground({
 
     if (!vertexShader || !fragmentShader) {
       logger.error('Failed to create shaders')
-      return
+      return undefined
     }
 
     // 创建程序
     const program = createProgram(gl, vertexShader, fragmentShader)
     if (!program) {
       logger.error('Failed to create program')
-      return
+      return undefined
     }
 
     programRef.current = program

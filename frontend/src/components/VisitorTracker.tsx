@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client'
 
 import { useEffect } from 'react'
@@ -16,7 +15,7 @@ export default function VisitorTracker() {
       process.env.NEXT_PUBLIC_ENABLE_VISITOR_TRACKING === 'true'
 
     if (!visitorTrackingEnabled) {
-      return
+      return undefined
     }
 
     const timer = setTimeout(() => {
