@@ -95,7 +95,8 @@ pre code::-webkit-scrollbar {
 }
 
 .highlight-line {
-  @apply border-primary-500 -mx-4 border-l-4 bg-gray-700/50;
+  @apply -mx-4 border-l-4 bg-gray-700/50;
+  border-left-color: var(--color-primary-500, var(--color-primary));
 }
 
 .line-number::before {

@@ -2,20 +2,28 @@
 
 import Link from 'next/link'
 import { useMemo, useState, useEffect } from 'react'
+import {
+  Search,
+  BookOpen,
+  Terminal,
+  Calculator,
+  Bot,
+  Atom,
+  Book,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react'
 import { useCategories, usePosts } from '@/lib/hooks/useBlogData'
-import { Search, BookOpen, Terminal, Calculator, Bot, Atom, Book, ChevronLeft, ChevronRight } from 'lucide-react'
-import siteMetadata from '@/data/siteMetadata'
 
 const POSTS_PER_PAGE = 9
 
-// Category icon mapping
 const categoryIcons: Record<string, React.ReactNode> = {
-  'computer-science': <Terminal className="w-4 h-4" />,
-  'mathematics': <Calculator className="w-4 h-4" />,
-  'robotics': <Bot className="w-4 h-4" />,
-  'physics': <Atom className="w-4 h-4" />,
-  'philosophy': <Book className="w-4 h-4" />,
-  default: <BookOpen className="w-4 h-4" />,
+  'computer-science': <Terminal className="h-4 w-4" />,
+  mathematics: <Calculator className="h-4 w-4" />,
+  robotics: <Bot className="h-4 w-4" />,
+  physics: <Atom className="h-4 w-4" />,
+  philosophy: <Book className="h-4 w-4" />,
+  default: <BookOpen className="h-4 w-4" />,
 }
 
 function getCategoryIcon(slug: string) {
@@ -49,17 +57,18 @@ export default function ApiBlogPage() {
 
   const { data: categoriesData, isLoading: categoriesLoading } = useCategories()
   const categories = Array.isArray(categoriesData) ? categoriesData : []
+  const posts = postsData?.posts
 
   const postsByCategory = useMemo(() => {
-    if (!postsData?.posts) {
+    if (!posts) {
       return {}
     }
 
-    const grouped: Record<string, typeof postsData.posts> = {
-      all: postsData.posts,
+    const grouped: Record<string, typeof posts> = {
+      all: posts,
     }
 
-    postsData.posts.forEach((post) => {
+    posts.forEach((post) => {
       const categorySlug = post.category_slug || 'uncategorized'
       if (!grouped[categorySlug]) {
         grouped[categorySlug] = []
@@ -68,7 +77,7 @@ export default function ApiBlogPage() {
     })
 
     return grouped
-  }, [postsData?.posts])
+  }, [posts])
 
   const filteredPosts = useMemo(() => {
     const posts = postsByCategory[selectedCategory || 'all'] || []
@@ -85,16 +94,12 @@ export default function ApiBlogPage() {
 
   const displayPosts = filteredPosts
 
-  // Reset page when category or search changes
   useEffect(() => {
     setPage(1)
   }, [selectedCategory, searchQuery])
 
-  // Calculate posts for current page
   const paginatedPosts = useMemo(() => {
-    const startIndex = 0
-    const endIndex = POSTS_PER_PAGE
-    return displayPosts.slice(startIndex, endIndex)
+    return displayPosts.slice(0, POSTS_PER_PAGE)
   }, [displayPosts])
 
   const hasNextPage = page < totalPages
@@ -116,10 +121,10 @@ export default function ApiBlogPage() {
 
   if (postsLoading || categoriesLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background dark:bg-[#05080F]">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-2 border-primary border-r-transparent" />
-          <p className="mt-6 text-sm text-muted-foreground">加载中...</p>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-2 border-amber-700 border-r-transparent dark:border-amber-500" />
+          <p className="mt-6 text-sm text-zinc-500 dark:text-zinc-400">加载中...</p>
         </div>
       </div>
     )
@@ -127,10 +132,10 @@ export default function ApiBlogPage() {
 
   if (postsError || !postsData) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background dark:bg-[#05080F]">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
           <h2 className="mb-4 text-3xl font-bold text-red-600 dark:text-red-400">加载失败</h2>
-          <p className="text-muted-foreground">
+          <p className="text-zinc-500 dark:text-zinc-400">
             {postsError instanceof Error ? postsError.message : '无法加载文章列表，请稍后重试。'}
           </p>
         </div>
@@ -139,34 +144,34 @@ export default function ApiBlogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[#05080F]">
-      <div className="flex">
-        {/* Sidebar - Category Navigation */}
-        <aside className="hidden md:flex flex-col h-[calc(100vh-80px)] w-64 bg-background dark:bg-[#05080F] sticky top-20 py-8 px-6 shrink-0 border-r border-border dark:border-[#31353d]/20">
-          <div className="mb-8">
-            <h2 className="font-newsreader italic text-xl text-foreground dark:text-slate-100">分类</h2>
+    <div className="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-14">
+      <aside className="space-y-6 border border-zinc-200/70 bg-zinc-50/80 p-5 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.28)] dark:border-zinc-800/80 dark:bg-zinc-900/40 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.9)] lg:sticky lg:top-28 lg:self-start">
+          <div>
+            <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-amber-700 dark:text-amber-500">
+              分类
+            </h2>
           </div>
 
-          <nav className="flex-1 space-y-4">
+          <nav className="space-y-3">
             <button
               onClick={() => setSelectedCategory(null)}
-              className={`flex items-center gap-3 w-full text-left font-inter text-xs uppercase tracking-[0.15rem] transition-all duration-300 ${
+              className={`flex w-full items-center gap-3 text-left text-xs font-medium uppercase tracking-[0.15rem] transition-all ${
                 selectedCategory === null
-                  ? 'text-foreground dark:text-slate-100 pl-2 opacity-100'
-                  : 'text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:text-slate-300 hover:pl-2 opacity-80 hover:opacity-100'
+                  ? 'translate-x-1 text-zinc-900 dark:text-zinc-100'
+                  : 'text-zinc-500 hover:translate-x-1 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
               }`}
             >
-              <BookOpen className="w-4 h-4" />
+              <BookOpen className="h-4 w-4" />
               全部文章
             </button>
             {categories.map((category) => (
               <button
                 key={category.slug}
                 onClick={() => setSelectedCategory(category.slug)}
-                className={`flex items-center gap-3 w-full text-left font-inter text-xs uppercase tracking-[0.15rem] transition-all duration-300 ${
-                selectedCategory === category.slug
-                  ? 'text-foreground dark:text-slate-100 pl-2 opacity-100'
-                  : 'text-muted-foreground hover:text-foreground dark:text-slate-400 dark:hover:text-slate-300 hover:pl-2 opacity-80 hover:opacity-100'
+                className={`flex w-full items-center gap-3 text-left text-xs font-medium uppercase tracking-[0.15rem] transition-all ${
+                  selectedCategory === category.slug
+                    ? 'translate-x-1 text-zinc-900 dark:text-zinc-100'
+                    : 'text-zinc-500 hover:translate-x-1 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                 }`}
               >
                 {getCategoryIcon(category.slug)}
@@ -175,122 +180,111 @@ export default function ApiBlogPage() {
             ))}
           </nav>
 
-          <div className="mt-auto pt-8 border-t border-border dark:border-[#31353d]/20">
-            <div className="font-inter text-[10px] uppercase tracking-[0.15rem] text-muted-foreground">
+          <div className="border-t border-zinc-200/80 pt-5 dark:border-zinc-700/60">
+            <div className="text-[10px] font-medium uppercase tracking-[0.15rem] text-zinc-500 dark:text-zinc-400">
               共 {displayPosts.length} 篇文章
             </div>
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 px-6 md:px-12 py-8 bg-background dark:bg-[#10131b]">
-          {/* Search Bar */}
-          <div className="mb-8 max-w-xl">
+        <div className="space-y-8">
+          <div className="max-w-xl">
             <div className="relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="搜索文章..."
-                className="w-full bg-muted/50 dark:bg-[#181c23] border border-border dark:border-[#31353d]/50 rounded-lg px-4 py-3 pl-10 text-sm text-foreground dark:text-[#e0e2ed] placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                className="w-full border border-zinc-200/70 bg-zinc-50/90 px-4 py-3 pl-10 text-sm text-zinc-900 shadow-[0_20px_60px_-52px_rgba(15,23,42,0.3)] transition-all placeholder:text-zinc-400 focus:border-amber-700/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-amber-500/20 dark:focus:bg-zinc-900"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
             </div>
           </div>
 
-          {/* Search Results Count */}
           {searchQuery && (
-            <div className="mb-6 font-inter text-xs uppercase tracking-[0.15rem] text-muted-foreground">
-              找到 <span className="text-primary">{filteredPosts.length}</span> 篇关于 "{searchQuery}" 的文章
+            <div className="text-xs font-medium uppercase tracking-[0.15rem] text-zinc-500 dark:text-zinc-400">
+              找到 <span className="text-amber-700 dark:text-amber-500">{filteredPosts.length}</span>{' '}
+              篇关于 “{searchQuery}” 的文章
             </div>
           )}
 
-          {/* Bento Grid */}
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedPosts.map((post, index) => {
-              const categoryColor = post.category_slug?.includes('robotics') || post.category_slug?.includes('robot')
-                ? 'border-t-primary'
-                : post.category_slug?.includes('math')
-                ? 'border-t-[#c8c6c5]'
-                : 'border-t-[#c6c7c6]'
-
+          <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {paginatedPosts.map((post) => {
               return (
                 <Link
                   key={post.id}
                   href={`/blog/${post.slug}`}
-                  className={`group relative bg-muted/30 dark:bg-[#181c23] p-6 transition-all duration-500 hover:bg-muted/50 dark:hover:bg-[#262a32] hover:-translate-y-1 ${categoryColor} border-t-2`}
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  className="group relative block border border-zinc-200/70 bg-zinc-50/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 hover:-translate-y-1 hover:border-amber-700/30 hover:bg-white dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:hover:border-amber-500/20 dark:hover:bg-zinc-900/90"
                 >
-                  {/* Category Tag */}
                   {post.category_name && (
                     <div className="mb-3">
-                      <span className="font-inter text-[10px] uppercase tracking-[0.15rem] text-muted-foreground">
+                      <span className="text-[10px] font-medium uppercase tracking-[0.15rem] text-amber-700 dark:text-amber-500">
                         {post.category_name}
                       </span>
                     </div>
                   )}
 
-                  {/* Title */}
-                  <h2 className="font-newsreader text-xl text-foreground dark:text-slate-100 leading-tight mb-3 group-hover:text-primary transition-colors">
+                  <h2
+                    className="text-xl font-semibold leading-tight text-zinc-900 transition-colors group-hover:text-amber-700 dark:text-zinc-100 dark:group-hover:text-amber-400"
+                    style={{ fontFamily: 'var(--font-newsreader)' }}
+                  >
                     {post.title}
                   </h2>
 
-                  {/* Summary */}
                   {post.summary && (
-                    <p className="font-inter text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
                       {post.summary}
                     </p>
                   )}
 
-                  {/* Meta */}
-                  <div className="mt-5 flex items-center justify-between font-inter text-[10px] uppercase tracking-[0.1rem] text-muted-foreground/60">
+                  <div className="mt-5 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.1rem] text-zinc-400 dark:text-zinc-500">
                     <div className="flex items-center gap-4">
                       <span>
                         {post.published_at
-                          ? new Date(post.published_at).toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' })
+                          ? new Date(post.published_at).toLocaleDateString('zh-CN', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })
                           : '未发布'}
                       </span>
                       <span>{post.reading_time || 1} 分钟阅读</span>
                     </div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity text-primary">
-                      →
-                    </div>
+                    <span className="opacity-0 transition-opacity group-hover:opacity-100">→</span>
                   </div>
-
-                  {/* Hover Accent Line */}
-                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-500 group-hover:w-full" />
                 </Link>
               )
             })}
           </section>
 
-          {/* Empty State */}
           {displayPosts.length === 0 && (
             <div className="py-24 text-center">
-              <p className="font-newsreader text-2xl italic text-muted-foreground">
-                {searchQuery ? `没有找到关于 "${searchQuery}" 的文章` : '该分类下暂无文章'}
+              <p
+                className="text-2xl italic text-zinc-500 dark:text-zinc-400"
+                style={{ fontFamily: 'var(--font-newsreader)' }}
+              >
+                {searchQuery ? `没有找到关于 “${searchQuery}” 的文章` : '该分类下暂无文章'}
               </p>
             </div>
           )}
 
-          {/* Pagination */}
           {displayPosts.length > 0 && (
-            <div className="mt-12 flex items-center justify-center gap-8">
+            <div className="flex items-center justify-center gap-8 pt-4">
               <button
                 onClick={goToPrevPage}
                 disabled={!hasPrevPage}
-                className={`flex items-center gap-2 font-inter text-xs uppercase tracking-[0.2rem] transition-all border px-6 py-3 ${
+                className={`flex items-center gap-2 border px-6 py-3 text-xs font-medium uppercase tracking-[0.2rem] transition-all ${
                   hasPrevPage
-                    ? 'text-muted-foreground border-border hover:text-foreground hover:border-primary'
-                    : 'text-muted-foreground/50 border-border/50 cursor-not-allowed opacity-50'
+                    ? 'border-zinc-300 bg-zinc-50/80 text-zinc-500 hover:border-amber-700 hover:bg-white hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:border-amber-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200'
+                    : 'cursor-not-allowed border-zinc-200 bg-zinc-100/70 text-zinc-300 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-600'
                 }`}
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
                 上一页
               </button>
 
-              <div className="font-inter text-xs uppercase tracking-[0.2rem] text-muted-foreground">
-                <span className="text-foreground">{page}</span>
+              <div className="text-xs font-medium uppercase tracking-[0.2rem] text-zinc-500 dark:text-zinc-400">
+                <span className="text-zinc-900 dark:text-zinc-100">{page}</span>
                 <span className="mx-2">/</span>
                 <span>{totalPages}</span>
               </div>
@@ -298,26 +292,18 @@ export default function ApiBlogPage() {
               <button
                 onClick={goToNextPage}
                 disabled={!hasNextPage}
-                className={`flex items-center gap-2 font-inter text-xs uppercase tracking-[0.2rem] transition-all border px-6 py-3 ${
+                className={`flex items-center gap-2 border px-6 py-3 text-xs font-medium uppercase tracking-[0.2rem] transition-all ${
                   hasNextPage
-                    ? 'text-muted-foreground border-border hover:text-foreground hover:border-primary'
-                    : 'text-muted-foreground/50 border-border/50 cursor-not-allowed opacity-50'
+                    ? 'border-zinc-300 bg-zinc-50/80 text-zinc-500 hover:border-amber-700 hover:bg-white hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:border-amber-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200'
+                    : 'cursor-not-allowed border-zinc-200 bg-zinc-100/70 text-zinc-300 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-600'
                 }`}
               >
                 下一页
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           )}
-
-          {/* Footer */}
-          <footer className="mt-20 pt-8 border-t border-border dark:border-[#31353d]/20">
-            <p className="font-inter text-[10px] uppercase tracking-[0.15rem] text-muted-foreground">
-              {siteMetadata.author} · {siteMetadata.description}
-            </p>
-          </footer>
-        </main>
+        </div>
       </div>
-    </div>
   )
 }

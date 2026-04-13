@@ -10,11 +10,28 @@ import {
 } from './hooks/useArticleAnalytics'
 import { Eye, Clock, BarChart3, TrendingUp, Award } from 'lucide-react'
 import Link from './Link'
+import { cn } from '@/lib/utils'
 
 interface ArticleAnalyticsProps {
   articleId: string
   showDetails?: boolean
   compact?: boolean
+}
+
+type EngagementTier = 'strong' | 'subtle'
+
+const engagementBadgeClasses: Record<EngagementTier, string> = {
+  strong: 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+  subtle: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+}
+
+const engagementBarClasses: Record<EngagementTier, string> = {
+  strong: 'bg-gradient-to-r from-gray-500 to-gray-600',
+  subtle: 'bg-gradient-to-r from-gray-400 to-gray-500',
+}
+
+function getEngagementTier(score: number): EngagementTier {
+  return score >= 60 ? 'strong' : 'subtle'
 }
 
 export default function ArticleAnalytics({
@@ -284,15 +301,10 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
                 <div className="flex-shrink-0">
                   <div className="flex flex-col items-end gap-1.5">
                     <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        analytics.engagementScore >= 80
-                          ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                          : analytics.engagementScore >= 60
-                            ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                            : analytics.engagementScore >= 40
-                              ? 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                              : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                      }`}
+                      className={cn(
+                        'rounded-full px-2.5 py-1 text-xs font-semibold',
+                        engagementBadgeClasses[getEngagementTier(analytics.engagementScore)]
+                      )}
                       suppressHydrationWarning
                     >
                       {analytics.engagementScore}
@@ -300,15 +312,10 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
                     {/* 进度条 */}
                     <div className="w-12 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                       <div
-                        className={`h-full transition-all duration-300 ${
-                          analytics.engagementScore >= 80
-                            ? 'bg-gradient-to-r from-gray-500 to-gray-600'
-                            : analytics.engagementScore >= 60
-                              ? 'bg-gradient-to-r from-gray-500 to-gray-600'
-                              : analytics.engagementScore >= 40
-                                ? 'bg-gradient-to-r from-gray-400 to-gray-500'
-                                : 'bg-gradient-to-r from-gray-400 to-gray-500'
-                        }`}
+                        className={cn(
+                          'h-full transition-all duration-300',
+                          engagementBarClasses[getEngagementTier(analytics.engagementScore)]
+                        )}
                         style={{ width: `${analytics.engagementScore}%` }}
                         suppressHydrationWarning
                       />

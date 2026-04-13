@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { api } from '@/lib/api/apiClient'
+import { useAuthStore } from '@/lib/store/auth-store'
 
 interface ReadingProgressOptions {
   postSlug: string
@@ -29,6 +30,8 @@ interface BackendReadingProgress {
 
 /**
  * 增强版阅读进度Hook - 集成后端API
+ *
+ * GOLDEN_RULES 1.1: 认证通过 HttpOnly Cookie 处理，不再检查 localStorage token
  *
  * 功能：
  * 1. 自动从后端加载上次阅读进度
@@ -65,12 +68,25 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
   const totalTimerRef = useRef<NodeJS.Timeout | null>(null)
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  // 检查用户是否已登录
+  // 检查用户是否已登录 - 优先复用全局认证状态，仅在未初始化时兜底请求
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token')
-      setIsAuthenticated(!!token)
+    const { isInitialized, isAuthenticated: authFromStore } = useAuthStore.getState()
+
+    if (isInitialized) {
+      setIsAuthenticated(authFromStore)
+      return
     }
+
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    // 兜底：在全局认证未初始化前，尝试调用一次 /auth/me
+    // 401 表示未登录，属于正常情况
+    api
+      .get('/api/v1/auth/me', { cache: false })
+      .then(() => setIsAuthenticated(true))
+      .catch(() => setIsAuthenticated(false))
   }, [])
 
   // 加载已保存的阅读进度
@@ -144,7 +160,7 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
   )
 
   // 防抖函数
-  const debounce = useCallback((func: Function, delay: number) => {
+  const debounce = useCallback((func: (...args: unknown[]) => void, delay: number) => {
     let timeoutId: NodeJS.Timeout
     return (...args: any[]) => {
       clearTimeout(timeoutId)
@@ -171,8 +187,11 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
 
   // 处理滚动事件
   const handleScroll = useCallback(() => {
-    const { progress: newProgress, scrollPercentage: newScrollPercentage, position: newPosition } =
-      calculateProgress()
+    const {
+      progress: newProgress,
+      scrollPercentage: newScrollPercentage,
+      position: newPosition,
+    } = calculateProgress()
 
     setProgress(newProgress)
     setScrollPercentage(newScrollPercentage)

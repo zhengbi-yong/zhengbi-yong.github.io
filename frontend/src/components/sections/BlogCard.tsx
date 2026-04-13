@@ -43,7 +43,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
   return (
     <Card
       className={cn(
-        'group relative overflow-hidden transition-all duration-500 border-2 hover:shadow-lg',
+        'group relative overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]',
         isHorizontal && 'md:flex md:items-center',
         className
       )}
@@ -56,7 +56,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
         {/* Image container */}
         <div
           className={cn(
-            'relative overflow-hidden',
+            'relative overflow-hidden bg-[var(--surface-muted)]',
             isHorizontal ? 'md:w-1/2' : 'aspect-[3/2]'
           )}
         >
@@ -69,18 +69,18 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
           />
 
           {/* Overlay effect on hover */}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-all duration-500 group-hover:opacity-100">
-            <span className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white opacity-0 shadow-lg transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110 dark:bg-gray-800">
-              <ArrowRight className="h-6 w-6 text-primary" />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 transition-all duration-500 group-hover:opacity-100">
+            <span className="surface-elevated flex h-14 w-14 translate-y-8 items-center justify-center rounded-full opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 hover:scale-110">
+              <ArrowRight className="h-6 w-6 text-[var(--brand-color)]" />
             </span>
           </div>
         </div>
 
         {/* Content area */}
-        <CardContent className={cn('flex flex-col p-6', isHorizontal && 'md:w-1/2')}>
+        <CardContent className={cn('flex flex-col p-5 sm:p-6', isHorizontal && 'md:w-1/2')}>
           {/* Date and tags */}
           <div className="mb-4 flex items-center gap-2 text-sm">
-            <time className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <time className="inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.08em] text-[var(--text-soft)] uppercase">
               <Calendar className="h-3.5 w-3.5" />
               {formattedDate}
             </time>
@@ -98,7 +98,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
           <Link href={postLink} className="relative z-20">
             <h2
               className={cn(
-                'group-hover:text-primary mb-3 line-clamp-2 leading-tight font-bold text-foreground transition-colors duration-300',
+                'mb-3 line-clamp-2 leading-tight font-semibold tracking-[-0.03em] text-[var(--text-primary)] transition-colors duration-[var(--motion-fast)] group-hover:text-[var(--brand-color)]',
                 isHorizontal ? 'text-3xl' : 'text-2xl'
               )}
             >
@@ -108,7 +108,7 @@ export default function BlogCard({ content, layout = 'vertical', className = '' 
 
           {/* Description */}
           {description && (
-            <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+            <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-[var(--text-soft)]">
               {description}
             </p>
           )}

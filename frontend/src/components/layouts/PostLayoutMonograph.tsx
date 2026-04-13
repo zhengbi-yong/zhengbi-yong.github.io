@@ -14,6 +14,7 @@ import type { TOC } from '@/lib/types/toc'
 import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 import { usePosts } from '@/lib/hooks/useBlogData'
 import { MonographTOC } from './MonographTOC'
+import SectionContainer from '@/components/SectionContainer'
 
 import '@/styles/monograph-theme.css'
 
@@ -116,14 +117,15 @@ export default function PostLayoutMonograph({
         />
       </div>
 
-      <main style={{ padding: '6rem 1rem 0' }}>
+      <main className="section-space-md px-4 sm:px-6">
+        <SectionContainer variant="reading">
         {/* Article Header */}
         <header style={{
           maxWidth: 'min(80ch, 90%)',
           margin: '0 auto',
           textAlign: 'center',
           marginBottom: 'var(--space-3)',
-        }}>
+        }} className="surface-elevated rounded-[var(--radius-panel)] px-5 py-8 shadow-[var(--shadow-soft)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
           {categorySegment && (
             <Link
               href={`/blog/category/${categorySegment}`}
@@ -208,7 +210,7 @@ export default function PostLayoutMonograph({
         </header>
 
         {/* Asymmetric Editorial Grid */}
-        <div className="monograph-grid">
+        <div className="surface-elevated monograph-grid rounded-[var(--radius-panel)] px-5 py-8 shadow-[var(--shadow-soft)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
           {/* Main content column */}
           <article className="monograph-content">
             {/* Cover image */}
@@ -330,6 +332,7 @@ export default function PostLayoutMonograph({
           {/* Sidenote column: TOC (desktop) + floating FAB (mobile/tablet) */}
           <MonographTOC toc={toc} />
         </div>
+        </SectionContainer>
       </main>
     </div>
   )

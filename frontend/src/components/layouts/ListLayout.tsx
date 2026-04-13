@@ -34,11 +34,11 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
   const nextPage = currentPage + 1 <= totalPages
 
   return (
-    <div className="space-y-2 pt-8 pb-8 md:space-y-5">
-      <nav className="flex items-center justify-between gap-4">
+    <div className="section-space-sm pt-8 pb-8 md:pt-10 md:pb-10">
+      <nav className="flex items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] px-4 py-3 shadow-[var(--shadow-soft)]">
         {!prevPage && (
           <button
-            className="cursor-not-allowed rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 transition-all duration-200 dark:bg-gray-800 dark:text-gray-600"
+            className="cursor-not-allowed rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-faint)] opacity-70"
             disabled={!prevPage}
           >
             上一页
@@ -48,17 +48,17 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
           <Link
             href={currentPage - 1 === 1 ? `/${basePath}/` : `/${basePath}/page/${currentPage - 1}`}
             rel="prev"
-            className="hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-300 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg border border-gray-200 bg-white/60 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300"
+            className="rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-fast)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:text-[var(--brand-color)]"
           >
             上一页
           </Link>
         )}
-        <span className="bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 border-primary-200 dark:border-primary-800 rounded-lg border px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span className="rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)]">
           {currentPage} / {totalPages} 页
         </span>
         {!nextPage && (
           <button
-            className="cursor-not-allowed rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-400 transition-all duration-200 dark:bg-gray-800 dark:text-gray-600"
+            className="cursor-not-allowed rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-faint)] opacity-70"
             disabled={!nextPage}
           >
             下一页
@@ -68,7 +68,7 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
           <Link
             href={`/${basePath}/page/${currentPage + 1}`}
             rel="next"
-            className="hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-300 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400 rounded-lg border border-gray-200 bg-white/60 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/60 dark:text-gray-300"
+            className="rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-fast)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:text-[var(--brand-color)]"
           >
             下一页
           </Link>
@@ -279,19 +279,20 @@ export default function ListLayout({
 
   return (
     <>
-      <div className="divide-y divide-gray-200 dark:divide-gray-700">
-        <div className="pt-8 pb-10 md:pt-12 md:pb-12">
-          {/* 标题区域 - 居中 */}
+      <div className="section-space-md mx-auto max-w-[var(--container-reading)]">
+        <div className="border-b border-[var(--border-subtle)] pb-10 sm:pb-12">
           <div className="mb-8 text-center md:mb-10">
-            <h1 className="mx-auto mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
+            <p className="mb-3 text-[11px] font-medium tracking-[0.28em] text-[var(--text-soft)] uppercase">
+              Writing Archive
+            </p>
+            <h1 className="mx-auto mb-4 text-4xl leading-tight font-semibold tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl md:text-6xl lg:text-7xl">
               {title}
             </h1>
-            <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
+            <p className="mx-auto max-w-2xl text-base text-[var(--text-soft)] sm:text-lg">
               探索我的技术见解和创作内容
             </p>
           </div>
 
-          {/* 搜索区域 - 居中 */}
           <div className="flex flex-col items-center space-y-4">
             <div className="relative mx-auto w-full max-w-2xl">
               <label className="block">
@@ -302,12 +303,11 @@ export default function ListLayout({
                   onChange={(e) => setSearchValue(e.target.value)}
                   placeholder="搜索文章标题、内容或标签..."
                   value={searchValue}
-                  className="focus:border-primary-500 focus:ring-primary-500/20 block w-full rounded-xl border border-gray-300 bg-white/90 px-4 py-3.5 pr-12 pl-12 text-gray-900 shadow-md backdrop-blur-sm transition-all duration-200 placeholder:text-gray-400 hover:border-gray-400 hover:shadow-lg focus:ring-2 dark:border-gray-700 dark:bg-gray-800/90 dark:text-gray-100 dark:placeholder:text-gray-500 dark:hover:border-gray-600"
+                  className="block w-full rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] px-4 py-3.5 pr-12 pl-12 text-[var(--text-primary)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-fast)] placeholder:text-[var(--text-faint)] hover:border-[var(--border-strong)] focus:border-[var(--brand-color)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--brand-color)_18%,transparent)] focus:outline-none"
                 />
               </label>
-              {/* 搜索图标 */}
               <svg
-                className="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-gray-400 dark:text-gray-500"
+                className="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-[var(--text-faint)]"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -320,11 +320,10 @@ export default function ListLayout({
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              {/* 清除按钮 */}
               {searchValue && (
                 <button
                   onClick={clearSearch}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 rounded-lg p-1.5 text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1.5 text-[var(--text-faint)] transition-all duration-[var(--motion-fast)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text-primary)]"
                   aria-label="清除搜索"
                 >
                   <svg
@@ -344,33 +343,33 @@ export default function ListLayout({
                 </button>
               )}
             </div>
-            {/* 搜索结果计数 - 居中 */}
             {searchValue && (
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center justify-center gap-2 text-sm text-[var(--text-soft)]">
                 <span>
                   找到{' '}
-                  <span className="text-primary-600 dark:text-primary-400 font-semibold">
+                  <span className="font-semibold text-[var(--brand-color)]">
                     {filteredBlogPosts.length}
                   </span>{' '}
                   篇文章
                 </span>
                 {filteredBlogPosts.length !== effectivePosts.length && (
-                  <span className="text-gray-400 dark:text-gray-600">
-                    （共 {effectivePosts.length} 篇）
-                  </span>
+                  <span className="text-[var(--text-faint)]">（共 {effectivePosts.length} 篇）</span>
                 )}
               </div>
             )}
           </div>
         </div>
-        <ul>
+
+        <ul className="mt-8 space-y-3 sm:space-y-4">
           {!filteredBlogPosts.length && posts.length === 0 && (
             <li>
               <ListSkeleton itemCount={3} />
             </li>
           )}
           {!filteredBlogPosts.length && posts.length > 0 && (
-            <li className="py-8 text-center text-gray-500 dark:text-gray-400">No posts found.</li>
+            <li className="rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] px-6 py-8 text-center text-[var(--text-soft)] shadow-[var(--shadow-soft)]">
+              No posts found.
+            </li>
           )}
           {visiblePosts.map((post, index) => {
             const { path, date, title, summary, tags } = post
@@ -378,29 +377,29 @@ export default function ListLayout({
               <SlideIn
                 key={path}
                 direction="up"
-                delay={Math.min(index * 0.05, 1)} // 减少延迟，避免过长动画
-                className="py-2"
+                delay={Math.min(index * 0.05, 1)}
+                className="py-0"
                 whileInView={true}
               >
                 <li>
-                  <article className="group hover:border-primary-300/50 dark:hover:border-primary-600/50 rounded-lg border border-gray-200/50 bg-white/60 p-3 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-gray-200/50 dark:border-gray-700/50 dark:bg-gray-900/60 dark:hover:shadow-gray-900/50">
-                    <div className="space-y-2">
+                  <article className="group rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-4 shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)] sm:p-5">
+                    <div className="space-y-3">
                       <div>
-                        <div className="mb-1 flex flex-wrap items-baseline gap-2">
-                          <h3 className="text-lg leading-6 font-bold tracking-tight">
+                        <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-2">
+                          <h3 className="text-xl leading-7 font-semibold tracking-[-0.03em] text-[var(--text-primary)]">
                             <Link
                               href={`/${path}`}
-                              className="hover:text-primary-600 dark:hover:text-primary-400 group/link relative text-gray-900 transition-colors duration-200 dark:text-gray-100"
+                              className="group/link relative transition-colors duration-[var(--motion-fast)] hover:text-[var(--brand-color)]"
                             >
                               <span className="relative">
                                 {title}
-                                <span className="bg-primary-500 dark:bg-primary-400 absolute bottom-0 left-0 h-0.5 w-0 transition-all duration-300 group-hover/link:w-full"></span>
+                                <span className="absolute bottom-0 left-0 h-px w-0 bg-current transition-all duration-[var(--motion-base)] group-hover/link:w-full"></span>
                               </span>
                             </Link>
                           </h3>
                           <time
                             dateTime={date}
-                            className="flex-shrink-0 text-xs font-medium whitespace-nowrap text-gray-500 dark:text-gray-400"
+                            className="flex-shrink-0 text-xs font-medium tracking-[0.08em] whitespace-nowrap text-[var(--text-soft)] uppercase"
                           >
                             {formatDate(date, siteMetadata.locale)}
                           </time>
@@ -411,7 +410,7 @@ export default function ListLayout({
                           ))}
                         </div>
                       </div>
-                      <div className="prose max-w-none text-sm leading-snug text-gray-600 dark:text-gray-300">
+                      <div className="prose max-w-none text-sm leading-relaxed text-[var(--text-soft)]">
                         {summary}
                       </div>
                     </div>
@@ -420,10 +419,9 @@ export default function ListLayout({
               </SlideIn>
             )
           })}
-          {/* 加载更多触发器 */}
           {!searchValue && visibleCount < displayPosts.length && (
             <li ref={loadMoreRef} className="py-4 text-center">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="text-sm text-[var(--text-soft)]">
                 加载更多文章... ({visibleCount} / {displayPosts.length})
               </div>
             </li>

@@ -1,20 +1,12 @@
-import { writeFileSync, readFileSync, readdirSync } from 'fs'
+import { writeFileSync, readFileSync } from 'fs'
 import { join } from 'path'
 
-// 读取 contentlayer 生成的数据
+// 读取 Velite 生成的博客数据
 function loadBlogData() {
   try {
-    const blogDir = join(process.cwd(), '.contentlayer', 'generated', 'Blog')
-    const files = readdirSync(blogDir).filter((f) => f.endsWith('.json'))
-
-    const blogs = []
-    for (const file of files) {
-      const filePath = join(blogDir, file)
-      const data = JSON.parse(readFileSync(filePath, 'utf8'))
-      blogs.push(data)
-    }
-
-    return blogs
+    const blogFile = join(process.cwd(), '.velite', 'blog.json')
+    const data = JSON.parse(readFileSync(blogFile, 'utf8'))
+    return data
   } catch (error) {
     console.error('无法加载博客数据:', error)
     return []
@@ -31,7 +23,7 @@ function generateSearchDocuments() {
     documents.push({
       id: post.slug,
       title: post.title,
-      url: post.url,
+      url: `/${post.path}`,
       content: post.summary || '', // 使用摘要作为内容
       tags: post.tags || [],
       category: post.category || '',

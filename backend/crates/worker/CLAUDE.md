@@ -1,9 +1,9 @@
 # Worker Crate (backend/crates/worker)
 
 ## Overview
-Background job processing system for async tasks.
+Background job processing system for async tasks with CDC (Change Data Capture) support for Meilisearch synchronization.
 
-**Purpose**: Asynchronous task execution
+**Purpose**: Asynchronous task execution and real-time search index synchronization
 **Language**: Rust
 **Layer**: Layer 3 - Background Processing
 **Runtime**: Tokio async runtime
@@ -12,15 +12,75 @@ Background job processing system for async tasks.
 
 ```
 src/
-└── main.rs    # Worker entry point
+├── main.rs       # Standard worker entry point
+└── cdc_main.rs   # CDC worker for Meilisearch sync (Phase 6.1)
 ```
+
+## Binaries
+
+### Worker (`worker`)
+Standard outbox-based worker for background job processing.
+
+**Usage**:
+```bash
+# Standard mode (5s polling)
+cargo run -p blog-worker
+
+# CDC mode (500ms polling)
+CDC_POLL_INTERVAL_MS=500 cargo run -p blog-worker
+```
+
+### CDC Worker (`cdc-worker`)
+PostgreSQL WAL → Meilisearch sub-second sync with exactly-once delivery.
+
+**Usage**:
+```bash
+# Poll mode (default, 500ms interval)
+cargo run -p blog-worker --bin cdc-worker
+
+# WAL streaming mode (requires PostgreSQL logical replication)
+CDC_USE_WAL=true cargo run -p blog-worker --bin cdc-worker
+```
+
+## Phase 6: MeiliBridge CDC
+
+### Architecture
+```
+PostgreSQL (WAL) → CDC Worker (Rust) → Meilisearch
+                      ↓
+                   Redis (LSN persistence for crash recovery)
+```
+
+### Exactly-Once Delivery
+
+The CDC worker maintains LSN (Log Sequence Number) persistence in Redis:
+1. On startup, reads last committed LSN from Redis
+2. Resumes processing from that LSN
+3. After each event, updates LSN in Redis
+4. On crash, restarts from last persisted LSN
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CDC_POLL_INTERVAL_MS` | 500 | Poll interval for CDC mode |
+| `CDC_SLOT_NAME` | meilibridge_slot | PostgreSQL replication slot name |
+| `CDC_USE_WAL` | false | Enable WAL streaming mode (requires `wal_level=logical`) |
+
+### Redis Keys
+
+| Key | Description |
+|-----|-------------|
+| `meilibridge:lsn` | Last processed LSN |
+| `meilibridge:slot` | Replication slot name |
 
 ## Job Types
 
-### Email Jobs
-- Send verification emails
-- Send password reset emails
-- Send notification emails
+### Outbox Events
+- `SearchIndexUpsert { slug }` - Sync post to Meilisearch
+- `SearchIndexDelete { slug }` - Delete post from Meilisearch
+- `SearchIndexRebuild` - Full index rebuild
+- `PostViewed { slug, increment }` - Batched view count updates
 
 ### Content Jobs
 - Generate post thumbnails
@@ -32,34 +92,40 @@ src/
 - Cache warming
 - Statistics aggregation
 
-## Worker Loop
+## Worker Loop (Standard)
 
 ```rust
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Connect to Redis
-    // Subscribe to job queue
-    // Process jobs
+    // Initialize PostgreSQL pool
+    let db = create_postgres_pool(&settings).await?;
+
+    // Optional: Initialize Meilisearch
+    let search_index = SearchIndexService::new(&config).await?;
+
+    // Poll outbox table every N seconds
+    let mut ticker = interval(Duration::from_secs(5));
+
     loop {
-        let job = redis.blpop("jobs:queue", 0).await?;
-        process_job(job).await?;
+        let events = claim_pending_events(&db, worker_id, batch_size).await?;
+        for event in events {
+            process_event(&db, &search_index, event).await?;
+        }
+        ticker.tick().await;
     }
 }
 ```
 
-## Job Queue
+## CDC Worker Loop
 
-**Backend**: Redis lists
+```rust
+async fn run_poll_mode(&self, poll_interval: Duration) -> Result<()> {
+    let mut ticker = interval(poll_interval);
 
-**Job Format** (JSON):
-```json
-{
-  "type": "email",
-  "data": {
-    "to": "user@example.com",
-    "template": "verification",
-    "context": { "code": "123456" }
-  }
+    loop {
+        ticker.tick().await;
+        self.process_pending_events().await?;
+    }
 }
 ```
 
@@ -67,43 +133,39 @@ async fn main() -> Result<()> {
 
 **Retry Strategy**:
 - Exponential backoff
-- Max retry attempts
+- Max retry attempts (3)
 - Dead letter queue for failed jobs
 
 **Logging**:
 - Structured logging (tracing)
-- Job IDs for tracking
+- Event IDs for tracking
 - Error context capture
 
 ## Scaling
 
 **Horizontal Scaling**:
 - Multiple worker processes
-- Redis queue distribution
-- Idempotent job handlers
-
-## Monitoring
-
-**Metrics**:
-- Jobs processed
-- Job duration
-- Error rate
-- Queue depth
+- Outbox locking prevents duplicate processing
+- Redis LSN for exactly-once delivery
 
 ## Dependencies
 
 ```toml
 [dependencies]
-tokio = { version = "1", features = ["full"] }
-redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
-tracing = "0.1"
-tracing-subscriber = "0.3"
-blog_core = { path = "../core" }
-blog_shared = { path = "../shared" }
+tokio = { workspace = true }
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json"] }
+deadpool-redis = { workspace = true }
+redis = { workspace = true }
+tracing = { workspace = true }
+blog-api = { path = "../api" }
+blog-core = { path = "../core" }
+blog-db = { path = "../db" }
+blog-shared = { path = "../shared" }
 ```
 
 ## Related
 
-- `blog_api` - Job enqueueing
-- `blog_core` - Email service
-- Redis - Queue backend
+- `blog_api::outbox` - Outbox pattern implementation
+- `blog_api::search_index` - Meilisearch integration
+- `blog_shared::Settings` - Configuration management
+- Redis - LSN persistence and queue backend

@@ -24,14 +24,14 @@ export default function MusicCard({
 }: MusicCardProps) {
   return (
     <Link href={`/music/${id}`} className={cn('group block h-full', className)}>
-      <article className="hover:border-primary-300/50 dark:hover:border-primary-600/50 h-full rounded-2xl border border-gray-200/50 bg-white/60 p-6 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-gray-200/50 dark:border-gray-700/50 dark:bg-gray-900/60 dark:hover:shadow-gray-900/50">
+      <article className="h-full rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-6 shadow-[var(--shadow-soft)] backdrop-blur-sm transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]">
         {/* 标题区域 */}
         <div className="mb-4">
-          <h3 className="group-hover:text-primary-600 dark:group-hover:text-primary-400 mb-2 text-xl font-bold text-gray-900 transition-colors duration-200 dark:text-gray-100">
+          <h3 className="mb-2 text-xl font-semibold tracking-[-0.02em] text-[var(--text-primary)] transition-colors duration-[var(--motion-fast)] group-hover:text-[var(--brand-color)]">
             {title}
           </h3>
           {(composer || year) && (
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-soft)]">
               {composer && <span>{composer}</span>}
               {composer && year && <span>·</span>}
               {year && <span>{year}</span>}
@@ -41,13 +41,13 @@ export default function MusicCard({
 
         {/* 描述 */}
         {description && (
-          <p className="mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
+          <p className="mb-4 text-sm leading-relaxed text-[var(--text-soft)]">
             {description}
           </p>
         )}
 
         {/* 操作提示 */}
-        <div className="text-primary-500 dark:text-primary-400 mt-auto flex items-center gap-2 border-t border-gray-200/50 pt-4 text-sm font-medium dark:border-gray-700/50">
+        <div className="text-primary-500 dark:text-primary-400 mt-auto flex items-center gap-2 border-t border-[var(--border-subtle)] pt-4 text-sm font-medium">
           <span>查看乐谱</span>
           <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
         </div>

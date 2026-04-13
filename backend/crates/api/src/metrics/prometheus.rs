@@ -36,6 +36,12 @@ pub struct Metrics {
     pub outbox_oldest_pending_age_seconds: Gauge,
 }
 
+impl Default for Metrics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Metrics {
     pub fn new() -> Self {
         let registry = Registry::new();
@@ -320,6 +326,12 @@ impl Metrics {
 // 中间件用于收集指标
 pub struct MetricsMiddleware {
     metrics: Arc<RwLock<Metrics>>,
+}
+
+impl Default for MetricsMiddleware {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl MetricsMiddleware {

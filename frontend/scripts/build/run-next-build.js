@@ -23,6 +23,7 @@ if (process.platform === 'win32') {
 const result = spawnSync(process.execPath, [nextCli, ...args], {
   cwd: frontendRoot,
   stdio: 'inherit',
+  env: { ...process.env, NODE_NO_WARNINGS: '1' },
 });
 
 if (result.error) {

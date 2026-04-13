@@ -15,7 +15,6 @@ import dynamic from 'next/dynamic'
 import { ArticleMetadata } from '@/components/editor/ArticleMetadata'
 import { Loader2, Save, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useAuthStore } from '@/lib/store'
 
 // 动态导入编辑器，避免 SSR 问题
 const TiptapEditor = dynamic(
@@ -23,8 +22,8 @@ const TiptapEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex items-center justify-center h-[600px] bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+      <div className="flex h-[600px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     ),
   }
@@ -32,7 +31,6 @@ const TiptapEditor = dynamic(
 
 export default function NewPostPage() {
   const router = useRouter()
-  const { token } = useAuthStore()
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishStatus, setPublishStatus] = useState<{
     type: 'success' | 'error' | null
@@ -44,7 +42,7 @@ export default function NewPostPage() {
   const [summary, setSummary] = useState('')
   const [category, setCategory] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [content, setContent] = useState('开始写作...')  // 改为 Markdown 格式
+  const [content, setContent] = useState('开始写作...') // 改为 Markdown 格式
 
   // 验证表单
   const validateForm = (): boolean => {
@@ -81,11 +79,6 @@ export default function NewPostPage() {
       // 无论中英文标题，一律使用 UUID，确保 URL 格式统一美观
       const slug = crypto.randomUUID()
 
-      // token 从 useAuthStore hook 获取
-      if (!token) {
-        throw new Error('未登录，请先登录')
-      }
-
       const requestBody = {
         title,
         slug,
@@ -98,12 +91,14 @@ export default function NewPostPage() {
 
       console.log('[NewPostPage] 发送文章创建请求:', JSON.stringify(requestBody, null, 2))
 
+      // GOLDEN_RULES 1.1: 使用 credentials: 'include' 自动发送 HttpOnly Cookie
+      // 不手动设置 Authorization 头
       const response = await fetch('/api/v1/admin/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
+        credentials: 'include',
         body: JSON.stringify(requestBody),
       })
 
@@ -176,13 +171,11 @@ export default function NewPostPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 页面头部 */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              创建新文章
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">创建新文章</h1>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               使用 Markdown 语法，享受流畅的写作体验
             </p>
           </div>
@@ -193,15 +186,15 @@ export default function NewPostPage() {
               onClick={handlePreview}
               disabled={isPublishing || !title}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-md',
+                'flex items-center gap-2 rounded-md px-4 py-2',
                 'bg-gray-100 dark:bg-gray-700',
                 'text-gray-700 dark:text-gray-300',
                 'hover:bg-gray-200 dark:hover:bg-gray-600',
-                'disabled:opacity-50 disabled:cursor-not-allowed',
+                'disabled:cursor-not-allowed disabled:opacity-50',
                 'transition-colors'
               )}
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="h-4 w-4" />
               预览
             </button>
 
@@ -209,15 +202,15 @@ export default function NewPostPage() {
               onClick={() => handlePublish('Draft')}
               disabled={isPublishing}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-md',
+                'flex items-center gap-2 rounded-md px-4 py-2',
                 'bg-gray-200 dark:bg-gray-600',
                 'text-gray-700 dark:text-gray-300',
                 'hover:bg-gray-300 dark:hover:bg-gray-500',
-                'disabled:opacity-50 disabled:cursor-not-allowed',
+                'disabled:cursor-not-allowed disabled:opacity-50',
                 'transition-colors'
               )}
             >
-              <Save className="w-4 h-4" />
+              <Save className="h-4 w-4" />
               保存草稿
             </button>
 
@@ -225,22 +218,22 @@ export default function NewPostPage() {
               onClick={() => handlePublish('Published')}
               disabled={isPublishing}
               className={cn(
-                'flex items-center gap-2 px-6 py-2 rounded-md',
+                'flex items-center gap-2 rounded-md px-6 py-2',
                 'bg-blue-600 text-white',
                 'hover:bg-blue-700',
-                'disabled:opacity-50 disabled:cursor-not-allowed',
+                'disabled:cursor-not-allowed disabled:opacity-50',
                 'transition-colors',
                 'font-medium'
               )}
             >
               {isPublishing ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   发布中...
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4" />
+                  <Save className="h-4 w-4" />
                   发布文章
                 </>
               )}
@@ -250,15 +243,15 @@ export default function NewPostPage() {
       </div>
 
       {/* 主内容区 */}
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="mx-auto max-w-5xl px-4 py-8">
         {/* 状态消息 */}
         {publishStatus.type && (
           <div
             className={cn(
-              'mb-6 p-4 rounded-md',
+              'mb-6 rounded-md p-4',
               publishStatus.type === 'success'
-                ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300'
-                : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300'
+                ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+                : 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300'
             )}
           >
             {publishStatus.message}
@@ -266,7 +259,7 @@ export default function NewPostPage() {
         )}
 
         {/* 元数据编辑区 */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <ArticleMetadata
             title={title}
             summary={summary}
@@ -280,7 +273,7 @@ export default function NewPostPage() {
         </div>
 
         {/* 富文本编辑器 */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <TiptapEditor
             content={content}
             onChange={setContent}
@@ -292,14 +285,33 @@ export default function NewPostPage() {
 
         {/* 底部提示 */}
         <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <h3 className="font-semibold mb-2">快速开始：</h3>
-            <ul className="space-y-1 list-disc list-inside">
-              <li>输入 <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded"># 标题</code> 创建标题</li>
-              <li>输入 <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">- 列表项</code> 创建列表</li>
-              <li>输入 <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">```代码</code> 创建代码块</li>
-              <li>输入 <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">$公式$</code> 插入数学公式</li>
-              <li>输入 <code className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded">/</code> 打开快捷菜单</li>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+            <h3 className="mb-2 font-semibold">快速开始：</h3>
+            <ul className="list-inside list-disc space-y-1">
+              <li>
+                输入{' '}
+                <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700"># 标题</code>{' '}
+                创建标题
+              </li>
+              <li>
+                输入{' '}
+                <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">- 列表项</code>{' '}
+                创建列表
+              </li>
+              <li>
+                输入{' '}
+                <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">```代码</code>{' '}
+                创建代码块
+              </li>
+              <li>
+                输入{' '}
+                <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">$公式$</code>{' '}
+                插入数学公式
+              </li>
+              <li>
+                输入 <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">/</code>{' '}
+                打开快捷菜单
+              </li>
             </ul>
           </div>
         </div>

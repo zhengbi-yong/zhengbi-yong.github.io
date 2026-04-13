@@ -122,6 +122,13 @@
   --z-admin-modal: 1050;
   --z-admin-popover: 1060;
   --z-admin-tooltip: 1070;
+
+  /* Batch-1 alias tokens */
+  --admin-shell-bg: var(--shell-bg, var(--admin-bg-primary));
+  --admin-surface-elevated: var(--surface-elevated, var(--admin-bg-secondary));
+  --admin-border-subtle: var(--border-subtle, var(--admin-border-light));
+  --admin-shadow-soft: var(--shadow-soft, var(--shadow-sm));
+  --admin-motion-fast: var(--motion-fast, 160ms);
 }
 
 /* ===== 暗色模式 ===== */

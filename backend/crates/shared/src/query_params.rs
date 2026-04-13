@@ -61,10 +61,10 @@ impl ResourceQuery {
     pub fn parse_sort(&self) -> Option<(String, bool)> {
         self.sort.as_ref().map(|s| {
             let s = s.trim();
-            if s.starts_with('+') {
-                (s[1..].to_string(), true)
-            } else if s.starts_with('-') {
-                (s[1..].to_string(), false)
+            if let Some(stripped) = s.strip_prefix('+') {
+                (stripped.to_string(), true)
+            } else if let Some(stripped) = s.strip_prefix('-') {
+                (stripped.to_string(), false)
             } else {
                 (s.to_string(), true)
             }

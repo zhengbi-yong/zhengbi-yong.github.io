@@ -286,7 +286,6 @@ export function VirtualList<T extends Record<string, any>>({
       case 'auto':
         if (targetScrollTop < scrollTop) {
           // 目标在当前视图上方，滚动到顶部
-          targetScrollTop = targetScrollTop
         } else if (targetScrollTop + itemHeight > scrollTop + containerHeight) {
           // 目标在当前视图下方，滚动到底部
           targetScrollTop = targetScrollTop - containerHeight + itemHeight

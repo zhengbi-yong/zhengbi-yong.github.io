@@ -37,17 +37,38 @@ interface BookCardProps {
   className?: string
 }
 
+const cardSizeStyles: Record<CardSize, string> = {
+  large: 'aspect-[2/2]',
+  tall: 'aspect-[1/2]',
+  wide: 'aspect-[2/1]',
+  small: 'aspect-[1/1]',
+}
+
+const titleSizeClasses: Record<CardSize, string> = {
+  large: 'text-2xl',
+  tall: 'text-xl',
+  wide: 'text-xl',
+  small: 'text-lg',
+}
+
+const descriptionSizeClasses: Record<CardSize, string> = {
+  large: 'text-sm line-clamp-3',
+  tall: 'text-xs line-clamp-2',
+  wide: 'text-xs line-clamp-2',
+  small: 'text-xs line-clamp-2',
+}
+
+const bottomTitleSizeClasses: Record<Exclude<CardSize, 'large'>, string> = {
+  tall: 'text-base',
+  wide: 'text-base',
+  small: 'text-sm',
+}
+
 /**
  * 获取卡片尺寸样式
  */
 function getCardSizeStyles(size: CardSize) {
-  const styles = {
-    large: 'aspect-[2/2]', // 2x2
-    tall: 'aspect-[1/2]', // 1x2
-    wide: 'aspect-[2/1]', // 2x1
-    small: 'aspect-[1/1]', // 1x1
-  }
-  return styles[size]
+  return cardSizeStyles[size]
 }
 
 /**
@@ -122,15 +143,14 @@ export default function BookCard({
       <Link href={linkUrl} className="block">
         <motion.div
           className={cn(
-            'group relative overflow-hidden rounded-2xl border-2 bg-white shadow-md transition-all duration-300',
-            'hover:shadow-xl dark:border-gray-700 dark:bg-gray-800',
-            isHovered && 'border-primary-400 dark:border-primary-600',
+            'group relative overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]',
+            isHovered && 'border-[var(--border-strong)]',
             cardSizeStyles
           )}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={() => onClick?.(book)}
-          whileHover={isMobile ? {} : { y: -4 }}
+          whileHover={isMobile ? {} : { y: -2 }}
           whileTap={{ scale: 0.98 }}
         >
           {/* 3D透视容器 */}
@@ -149,7 +169,7 @@ export default function BookCard({
               transition={{ duration: 0.2 }}
             >
               {/* 书籍图片 */}
-              <div className={cn('relative overflow-hidden bg-gray-100 dark:bg-gray-900', cardSizeStyles)}>
+              <div className={cn('relative overflow-hidden bg-[var(--surface-muted)]', cardSizeStyles)}>
                 <Image
                   src={book.image || DEFAULT_COVER_IMAGE}
                   alt={book.name}
@@ -159,25 +179,19 @@ export default function BookCard({
                 />
 
                 {/* 悬停遮罩 */}
-                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/80 via-primary-900/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                 {/* 悬停内容 */}
                 <div className="absolute inset-0 p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                   <div className="flex h-full flex-col justify-end">
                     <h3
-                      className={cn(
-                        'font-bold text-white drop-shadow-lg',
-                        size === 'large' ? 'text-2xl' : size === 'tall' || size === 'wide' ? 'text-xl' : 'text-lg'
-                      )}
+                      className={cn('font-semibold tracking-[-0.02em] text-white drop-shadow-lg', titleSizeClasses[size])}
                     >
                       {book.name}
                     </h3>
                     {book.description && (
                       <p
-                        className={cn(
-                          'mt-2 text-gray-100 drop-shadow',
-                          size === 'large' ? 'text-sm line-clamp-3' : 'text-xs line-clamp-2'
-                        )}
+                        className={cn('mt-2 text-[13px] leading-relaxed text-gray-100 drop-shadow', descriptionSizeClasses[size])}
                       >
                         {book.description}
                       </p>
@@ -192,7 +206,7 @@ export default function BookCard({
                   {book.tags.slice(0, 3).map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-900 backdrop-blur-sm dark:bg-gray-800/90 dark:text-white"
+                      className="rounded-full border border-white/20 bg-white/85 px-2.5 py-1 text-xs font-semibold text-slate-900 backdrop-blur-sm dark:bg-slate-900/75 dark:text-white"
                     >
                       {tag}
                     </span>
@@ -208,8 +222,8 @@ export default function BookCard({
             {size !== 'large' && (
               <h3
                 className={cn(
-                  'font-bold text-white drop-shadow-lg line-clamp-2',
-                  size === 'tall' || size === 'wide' ? 'text-base' : 'text-sm'
+                  'font-semibold tracking-[-0.02em] text-white drop-shadow-lg line-clamp-2',
+                  bottomTitleSizeClasses[size as Exclude<CardSize, 'large'>]
                 )}
               >
                 {book.name}

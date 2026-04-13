@@ -200,7 +200,19 @@ pub async fn list_users(
         conditions.push(format!("u.status = ${}", idx));
     }
     if let Some(ref role) = query.role {
-        let idx = if search_like.is_some() { if status_filter.is_some() { 4 } else { 3 } } else { if status_filter.is_some() { 2 } else { 1 } };
+        let idx = if search_like.is_some() {
+            if status_filter.is_some() {
+                4
+            } else {
+                3
+            }
+        } else {
+            if status_filter.is_some() {
+                2
+            } else {
+                1
+            }
+        };
         role_filter = Some(role.clone());
         conditions.push(format!("u.role = ${}", idx));
     }
@@ -623,7 +635,6 @@ pub async fn update_user(
     }
     if req.email_verified.is_some() {
         set_clauses.push(format!("email_verified = ${}", bind_idx));
-        bind_idx += 1;
     }
 
     if set_clauses.is_empty() {
@@ -666,8 +677,14 @@ pub async fn update_user(
     // 如果用户被停用或封禁，使其所有 token 失效
     if let Some(ref status) = new_status {
         if status == "suspended" || status == "banned" {
-            if let Err(e) = crate::middleware::auth::blacklist_all_user_tokens(&state, target_user_id).await {
-                tracing::warn!("Failed to invalidate tokens for user {}: {}", target_user_id, e);
+            if let Err(e) =
+                crate::middleware::auth::blacklist_all_user_tokens(&state, target_user_id).await
+            {
+                tracing::warn!(
+                    "Failed to invalidate tokens for user {}: {}",
+                    target_user_id,
+                    e
+                );
             }
         }
     }
@@ -707,7 +724,9 @@ pub async fn batch_update_roles(
 
     // 不能修改自己的角色
     if req.user_ids.contains(&uid) {
-        return Err(AppError::BadRequest("Cannot change your own role".to_string()));
+        return Err(AppError::BadRequest(
+            "Cannot change your own role".to_string(),
+        ));
     }
 
     sqlx::query("UPDATE users SET role = $1, updated_at = NOW() WHERE id = ANY($2)")
@@ -793,7 +812,7 @@ pub async fn list_comments_admin(
     let offset = (page - 1) * page_size;
 
     // 使用参数化查询防止 SQL 注入
-    let (count_query, list_query, has_status_filter) = if let Some(ref status) = query.status {
+    let (count_query, list_query, has_status_filter) = if let Some(ref _status) = query.status {
         let cq = "SELECT COUNT(*) FROM comments c WHERE c.status = $1";
         let lq = format!(
             r#"

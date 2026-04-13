@@ -3,7 +3,7 @@
 ## Layer 1: Module Overview
 
 ### Purpose
-3D rendering component using Three.js library for WebGL content.
+3D rendering component using Three.js library for WebGL content, with Activity-aware lifecycle management.
 
 ### Scope
 - Three.js scene initialization
@@ -11,6 +11,8 @@
 - Auto-rotation animation
 - SSR-safe rendering
 - Responsive canvas sizing
+- Activity visibility transitions (pause/resume)
+- WebGL context LRU management
 
 ## Layer 2: Component Architecture
 
@@ -19,9 +21,11 @@
 **Responsibilities**:
 - Initialize Three.js scene, camera, renderer
 - Render 3D geometry with materials
-- Handle animation loop
-- Manage cleanup on unmount
+- Handle animation loop (when active)
+- Manage cleanup on unmount (pause, not destroy)
 - Support client-side only rendering
+- Activity visibility transitions via `isActive` prop
+- WebGL context management via WebGLContextManager
 
 **Props Interface**:
 ```typescript
@@ -33,10 +37,65 @@ interface ThreeViewerProps {
   width?: number          // Canvas width (default: 800)
   height?: number         // Canvas height (default: 600)
   cameraPosition?: [number, number, number]  // Camera placement
+  isActive?: boolean      // Activity visibility (default: true)
 }
 ```
 
 ## Layer 3: Implementation Details
+
+### WebGLContextManager Integration
+
+ThreeViewer uses the singleton `WebGLContextManager` for:
+- Context acquisition with LRU eviction
+- Pause/resume for Activity transitions
+- Snapshot saving when hidden
+- Context lost event handling
+
+```typescript
+// Context acquired through manager (LRU managed)
+const gl = webGLContextManager.acquire(id, canvas)
+
+// On Activity hidden - save snapshot, pause rendering
+const snapshot = webGLContextManager.pause(id)
+
+// On Activity visible - resume rendering
+webGLContextManager.resume(id)
+```
+
+### GOLDEN_RULES 2.3 Compliance
+
+**Effect cleanup is idempotent** (pause, not destroy):
+
+```typescript
+// CORRECT: pause() can be called multiple times safely
+return () => {
+  webGLContextManager.pause(id)  // Idempotent
+  // Canvas remains attached, context stays alive
+}
+
+// WRONG: release() would destroy context
+return () => {
+  webGLContextManager.release(id)  // NOT idempotent!
+  // Context destroyed, Activity restore would fail
+}
+```
+
+### GOLDEN_RULES 2.4 Compliance
+
+**Max 6 WebGL contexts with LRU eviction**:
+
+```typescript
+class WebGLContextManager {
+  private static readonly MAX_CONTEXTS = 6
+
+  acquire(id, canvas) {
+    if (this.contexts.size >= MAX_CONTEXTS) {
+      this.evictLeastRecentlyUsed()  // LRU eviction
+    }
+    // ... create context
+  }
+}
+```
 
 ### Scene Setup
 
@@ -60,10 +119,12 @@ camera.position.z = 5  // Move camera back
 ### Renderer Initialization
 
 ```typescript
-const renderer = new THREE.WebGLRenderer({ antialias: true })
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  context: gl  // Use managed context
+})
 renderer.setSize(width, height)
-renderer.setPixelRatio(window.devicePixelRatio)  // Sharp rendering on retina displays
-mountRef.current.appendChild(renderer.domElement)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))  // Cap at 2x for performance
 ```
 
 ### Lighting Setup
@@ -92,24 +153,39 @@ const cube = new THREE.Mesh(geometry, material)
 scene.add(cube)
 ```
 
-### Animation Loop
+### Activity-Aware Animation Loop
 
 ```typescript
 const animate = () => {
   requestAnimationFrame(animate)
 
-  if (autoRotate) {
-    cube.rotation.x += 0.01
-    cube.rotation.y += 0.01
+  // Only animate when active to save resources
+  if (isActive && cubeRef.current) {
+    cubeRef.current.rotation.x += 0.01
+    cubeRef.current.rotation.y += 0.01
   }
 
-  renderer.render(scene, camera)
+  if (rendererRef.current && sceneRef.current && cameraRef.current) {
+    rendererRef.current.render(sceneRef.current, cameraRef.current)
+  }
 }
 
 animate()
 ```
 
-**Purpose**: Continuous rotation animation at 60 FPS
+### Snapshot Display
+
+When Activity is hidden, show snapshot instead of black canvas:
+
+```tsx
+if (snapshot && !isActive) {
+  return (
+    <div className={className} style={{ width, height }}>
+      <img src={snapshot} alt="3D viewer paused" />
+    </div>
+  )
+}
+```
 
 ### SSR Safety Pattern
 
@@ -127,28 +203,24 @@ if (!isClient) {
 
 **Why**: Three.js requires browser APIs (WebGL) not available during SSR
 
-### Cleanup Strategy
+### Cleanup Strategy (GOLDEN_RULES 2.3)
 
 ```typescript
 return () => {
   window.removeEventListener('resize', handleResize)
 
+  // Pause context (keeps it alive for potential restore)
+  webGLContextManager.pause(id)
+
   // Remove canvas from DOM
-  if (mountRef.current && renderer.domElement) {
-    mountRef.current.removeChild(renderer.domElement)
+  if (mountRef.current && canvas.parentNode === mountRef.current) {
+    mountRef.current.removeChild(canvas)
   }
 
-  // Dispose Three.js resources
-  geometry.dispose()
-  material.dispose()
-  renderer.dispose()
+  // Note: Don't dispose renderer - context is managed by manager
+  // This allows Activity restore without context recreation
 }
 ```
-
-**Memory Management**:
-- Event listeners removed
-- DOM nodes cleaned up
-- GPU resources freed
 
 ### Responsive Handling
 
@@ -162,55 +234,39 @@ const handleResize = () => {
 window.addEventListener('resize', handleResize)
 ```
 
-**Note**: Currently updates to fixed `width`/`height` props, not viewport size
-
 ## Architecture Context
 
 ### Integration Points
 - **Location**: `@/components/three` → 3D content
 - **Library**: `three` (Three.js)
+- **Manager**: `@/lib/webgl/WebGLContextManager`
 - **Used In**: Product showcases, interactive demos
 
 ### Design Patterns
 - **SSR-Safe Component**: Client detection pattern
-- **Resource Cleanup**: Proper disposal of GPU resources
-- **Effect Dependency Array**: Re-initialize on prop changes
+- **WebGL LRU Management**: Centralized context pooling
+- **Activity-Aware Rendering**: Pause/Resume with snapshots
+- **Idempotent Cleanup**: pause() not destroy()
 
 ### Usage Example
 
 ```tsx
 import { ThreeViewer } from '@/components/three'
 
+// Basic usage
 <ThreeViewer
   width={800}
   height={600}
   autoRotate={true}
   className="rounded-lg shadow-lg"
 />
-```
 
-### Future Enhancements
-
-**Model Loading** (currently stubbed):
-```typescript
-// Props exist but not implemented
-modelUrl?: string
-
-// Would use:
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
-
-const loader = new GLTFLoader()
-loader.load(modelUrl, (gltf) => {
-  scene.add(gltf.scene)
-})
-```
-
-**Camera Control** (could add):
-```typescript
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-
-const controls = new OrbitControls(camera, renderer.domElement)
-controls.enableDamping = true
+// With Activity visibility control
+<ThreeViewer
+  isActive={isVisible}
+  width={800}
+  height={600}
+/>
 ```
 
 ## Performance Considerations
@@ -221,17 +277,19 @@ controls.enableDamping = true
 3. Reuse geometries/materials when creating multiple meshes
 4. Implement frustum culling for complex scenes
 5. Use LOD (Level of Detail) for distant objects
+6. Pause animation when `isActive=false` to save CPU
 
-**Common Issues**:
-- **Memory leaks**: Always dispose geometries/materials
-- **Blurry rendering**: Check `pixelRatio` and antialiasing
-- **Dark scene**: Adjust light intensity
-- **Poor performance**: Reduce polygon count, disable shadows
+**Context Management**:
+1. Max 6 contexts enforced by WebGLContextManager
+2. LRU eviction frees GPU memory for oldest context
+3. Snapshots stored as PNG data URLs (~100KB each)
+4. Context preserved during pause for fast resume
 
 ## Dependencies
 
 - `three`: Three.js library
-- React hooks: `useRef`, `useEffect`, `useState`
+- `@/lib/webgl/WebGLContextManager`: Context LRU management
+- React hooks: `useRef`, `useEffect`, `useState`, `useCallback`
 
 ## Alternatives
 
@@ -243,3 +301,8 @@ controls.enableDamping = true
 - GLTFLoader (Three.js example)
 - FBXLoader (for Autodesk files)
 - OBJLoader (for Wavefront files)
+
+## Related Documentation
+
+- `@/lib/webgl/WebGLContextManager` - Full context manager docs
+- `GOLDEN_RULES.md` - WebGL management requirements (2.3, 2.4)

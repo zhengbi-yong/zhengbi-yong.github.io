@@ -1,0 +1,255 @@
+/*
+ * Geist Design Tokens
+ * Vercel Geist design system CSS variables
+ * Minimal, clean, high-contrast, developer-focused aesthetic
+ */
+
+/* Geist Font Stack */
+@font-face {
+  font-family: 'Geist Sans';
+  src: local('Geist Sans'), local('Inter'), local('system-ui');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: local('Geist Mono'), local('JetBrains Mono'), local('ui-monospace');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Geist Design Tokens - CSS Custom Properties */
+:root,
+[data-theme='light'] {
+  /* Background */
+  --geist-bg: #ffffff;
+  --geist-bg-secondary: #f4f4f4;
+  --geist-bg-tertiary: #e4e4e4;
+
+  /* Foreground */
+  --geist-fg: #171717;
+  --geist-fg-secondary: #6b6b6b;
+  --geist-fg-tertiary: #a3a3a3;
+
+  /* Primary - solid black/white for maximum contrast */
+  --geist-primary: #171717;
+  --geist-primary-foreground: #ffffff;
+
+  /* Secondary */
+  --geist-secondary: #f4f4f4;
+  --geist-secondary-foreground: #171717;
+
+  /* Accent */
+  --geist-accent: #f4f4f4;
+  --geist-accent-foreground: #171717;
+
+  /* Border */
+  --geist-border: #e4e4e4;
+  --geist-border-strong: #a3a3a3;
+
+  /* Destructive / Error */
+  --geist-destructive: #dc2626;
+  --geist-destructive-foreground: #ffffff;
+
+  /* Success */
+  --geist-success: #16a34a;
+  --geist-success-foreground: #ffffff;
+
+  /* Warning */
+  --geist-warning: #ca8a04;
+  --geist-warning-foreground: #171717;
+
+  /* Muted */
+  --geist-muted: #f4f4f4;
+  --geist-muted-foreground: #6b6b6b;
+
+  /* Ring */
+  --geist-ring: #171717;
+
+  /* Focus */
+  --geist-focus: rgba(23, 23, 23, 0.1);
+
+  /* Shadow */
+  --geist-shadow: rgba(0, 0, 0, 0.08);
+  --geist-shadow-md: rgba(0, 0, 0, 0.12);
+  --geist-shadow-lg: rgba(0, 0, 0, 0.16);
+
+  /* Radius */
+  --geist-radius-sm: 0.375rem;
+  --geist-radius-md: 0.5rem;
+  --geist-radius-lg: 0.75rem;
+  --geist-radius-full: 9999px;
+
+  /* Transition */
+  --geist-transition: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --geist-transition-fast: 100ms cubic-bezier(0.16, 1, 0.3, 1);
+  --geist-transition-slow: 300ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Header */
+  --geist-header-height: 64px;
+  --geist-header-bg: rgba(255, 255, 255, 0.8);
+  --geist-header-border: var(--geist-border);
+
+  /* Footer */
+  --geist-footer-bg: transparent;
+  --geist-footer-border: var(--geist-border);
+}
+
+[data-theme='dark'],
+.dark {
+  /* Background - deep black */
+  --geist-bg: #0a0a0a;
+  --geist-bg-secondary: #171717;
+  --geist-bg-tertiary: #262626;
+
+  /* Foreground */
+  --geist-fg: #fafafa;
+  --geist-fg-secondary: #a3a3a3;
+  --geist-fg-tertiary: #6b6b6b;
+
+  /* Primary - inverted for dark mode */
+  --geist-primary: #fafafa;
+  --geist-primary-foreground: #0a0a0a;
+
+  /* Secondary */
+  --geist-secondary: #262626;
+  --geist-secondary-foreground: #fafafa;
+
+  /* Accent */
+  --geist-accent: #262626;
+  --geist-accent-foreground: #fafafa;
+
+  /* Border */
+  --geist-border: #2e2e2e;
+  --geist-border-strong: #525252;
+
+  /* Destructive / Error */
+  --geist-destructive: #f87171;
+  --geist-destructive-foreground: #0a0a0a;
+
+  /* Success */
+  --geist-success: #4ade80;
+  --geist-success-foreground: #0a0a0a;
+
+  /* Warning */
+  --geist-warning: #fbbf24;
+  --geist-warning-foreground: #0a0a0a;
+
+  /* Muted */
+  --geist-muted: #262626;
+  --geist-muted-foreground: #a3a3a3;
+
+  /* Ring */
+  --geist-ring: #fafafa;
+
+  /* Focus */
+  --geist-focus: rgba(250, 250, 250, 0.1);
+
+  /* Shadow */
+  --geist-shadow: rgba(0, 0, 0, 0.3);
+  --geist-shadow-md: rgba(0, 0, 0, 0.4);
+  --geist-shadow-lg: rgba(0, 0, 0, 0.5);
+
+  /* Header */
+  --geist-header-bg: rgba(10, 10, 10, 0.8);
+  --geist-header-border: var(--geist-border);
+}
+
+[data-theme='system'],
+.system {
+  /* System theme follows prefers-color-scheme */
+}
+
+/* Typography Classes */
+.font-geist-sans {
+  font-family: 'Geist Sans', 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+}
+
+.font-geist-mono {
+  font-family: 'Geist Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+/* Text Sizes - Geist Scale */
+.text-geist-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.text-geist-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.text-geist-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  letter-spacing: -0.01em;
+}
+
+.text-geist-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  letter-spacing: -0.02em;
+}
+
+.text-geist-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  letter-spacing: -0.02em;
+}
+
+.text-geist-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  letter-spacing: -0.03em;
+}
+
+.text-geist-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  letter-spacing: -0.03em;
+}
+
+.text-geist-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  letter-spacing: -0.04em;
+}
+
+/* Utility Classes */
+.geist-no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.geist-focus-ring {
+  outline: 2px solid var(--geist-ring);
+  outline-offset: 2px;
+}
+
+.geist-transition {
+  transition: all var(--geist-transition);
+}
+
+/* Skeleton Animation */
+@keyframes geist-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.geist-skeleton {
+  background-color: var(--geist-muted);
+  animation: geist-skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: var(--geist-radius-sm);
+}

@@ -102,15 +102,14 @@ pub async fn search_posts_optimized(
     let escaped_category = params.category.as_ref().map(|c| c.replace('\'', "''"));
 
     // 使用数据库函数进行全文搜索（带高亮）
-    let search_query = format!(
-        r#"
+    let search_query = r#"
         SELECT * FROM search_posts_with_highlights(
             $1::text,
             $2::integer,
             $3::integer
         )
         "#
-    );
+    .to_string();
 
     let rows = sqlx::query(&search_query)
         .bind(&escaped_query)
@@ -259,22 +258,20 @@ pub async fn get_trending_keywords_optimized(
     let cache_key = "search:trending:v2";
 
     if let Ok(mut conn) = state.redis.get().await {
-        if let Ok(cached) = redis::cmd("GET")
+        if let Ok(Some(cached_str)) = redis::cmd("GET")
             .arg(cache_key)
             .query_async::<Option<String>>(&mut conn)
             .await
         {
-            if let Some(cached_str) = cached {
-                if let Ok(keywords) = serde_json::from_str::<Vec<TrendingKeyword>>(&cached_str) {
-                    return Ok((
-                        [(
-                            header::CACHE_CONTROL,
-                            "public, s-maxage=300, stale-while-revalidate=600",
-                        )],
-                        Json(keywords),
-                    )
-                        .into_response());
-                }
+            if let Ok(keywords) = serde_json::from_str::<Vec<TrendingKeyword>>(&cached_str) {
+                return Ok((
+                    [(
+                        header::CACHE_CONTROL,
+                        "public, s-maxage=300, stale-while-revalidate=600",
+                    )],
+                    Json(keywords),
+                )
+                    .into_response());
             }
         }
     }

@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { Canvas } from '@react-three/fiber'
 import { motion } from 'framer-motion'
 import { useTheme } from 'next-themes'
+import { cn } from '@/lib/utils'
 
 // Dynamic import for Three.js particle content (hooks run inside Canvas)
 const ParticleScene = dynamic(
@@ -16,10 +17,36 @@ interface HeroSectionProps {
   scrollProgress: number
 }
 
+const themeSlots = {
+  dark: {
+    overlay: 'bg-gradient-to-b from-[#0A0A0F]/60 via-transparent to-[#0A0A0F]/80',
+    title: 'text-white',
+    robotics: 'text-indigo-300/80',
+    separator: 'text-gray-600',
+    multimodal: 'text-purple-300/80',
+    music: 'text-amber-300/80',
+    subtitle: 'text-gray-400',
+    scrollLabel: 'text-gray-500',
+    scrollBar: 'bg-gradient-to-b from-indigo-400 to-transparent',
+  },
+  light: {
+    overlay: 'bg-gradient-to-b from-white/50 via-transparent to-white/70',
+    title: 'text-gray-900',
+    robotics: 'text-cyan-700/80',
+    separator: 'text-gray-300',
+    multimodal: 'text-teal-700/80',
+    music: 'text-sky-700/80',
+    subtitle: 'text-gray-500',
+    scrollLabel: 'text-gray-400',
+    scrollBar: 'bg-gradient-to-b from-indigo-600 to-transparent',
+  },
+} as const
+
 export default function HeroSection({ scrollProgress }: HeroSectionProps) {
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const [mounted, setMounted] = useState(false)
+  const theme = themeSlots[isDark ? 'dark' : 'light']
 
   useEffect(() => {
     setMounted(true)
@@ -46,11 +73,7 @@ export default function HeroSection({ scrollProgress }: HeroSectionProps) {
 
       {/* Gradient overlay for text readability */}
       <div
-        className={`absolute inset-0 ${
-          isDark
-            ? 'bg-gradient-to-b from-[#0A0A0F]/60 via-transparent to-[#0A0A0F]/80'
-            : 'bg-gradient-to-b from-white/50 via-transparent to-white/70'
-        }`}
+        className={cn('absolute inset-0', theme.overlay)}
         style={{ zIndex: 1 }}
       />
 
@@ -58,9 +81,7 @@ export default function HeroSection({ scrollProgress }: HeroSectionProps) {
       <div className="relative z-10 text-center px-4 sm:px-6 max-w-6xl mx-auto">
         {/* Main Title */}
         <motion.h1
-          className={`font-visitor-serif mb-6 leading-[0.9] tracking-tight ${
-            isDark ? 'text-white' : 'text-gray-900'
-          }`}
+          className={cn('font-visitor-serif mb-6 leading-[0.9] tracking-tight', theme.title)}
           style={{
             fontSize: 'clamp(3rem, 8vw, 8rem)',
             mixBlendMode: 'difference',
@@ -79,40 +100,26 @@ export default function HeroSection({ scrollProgress }: HeroSectionProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
-          <span
-            className={`text-sm sm:text-base tracking-[0.3em] uppercase ${
-              isDark ? 'text-indigo-300/80' : 'text-cyan-700/80'
-            }`}
-          >
+          <span className={cn('text-sm sm:text-base tracking-[0.3em] uppercase', theme.robotics)}>
             Robotics
           </span>
-          <span className={`hidden sm:block ${isDark ? 'text-gray-600' : 'text-gray-300'}`}>
+          <span className={cn('hidden sm:block', theme.separator)}>
             ·
           </span>
-          <span
-            className={`text-sm sm:text-base tracking-[0.3em] uppercase ${
-              isDark ? 'text-purple-300/80' : 'text-teal-700/80'
-            }`}
-          >
+          <span className={cn('text-sm sm:text-base tracking-[0.3em] uppercase', theme.multimodal)}>
             Multimodal Perception
           </span>
-          <span className={`hidden sm:block ${isDark ? 'text-gray-600' : 'text-gray-300'}`}>
+          <span className={cn('hidden sm:block', theme.separator)}>
             ·
           </span>
-          <span
-            className={`text-sm sm:text-base tracking-[0.3em] uppercase ${
-              isDark ? 'text-amber-300/80' : 'text-sky-700/80'
-            }`}
-          >
+          <span className={cn('text-sm sm:text-base tracking-[0.3em] uppercase', theme.music)}>
             Music
           </span>
         </motion.div>
 
         {/* Chinese subtitle */}
         <motion.p
-          className={`text-base sm:text-lg tracking-wider ${
-            isDark ? 'text-gray-400' : 'text-gray-500'
-          }`}
+          className={cn('text-base sm:text-lg tracking-wider', theme.subtitle)}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.8 }}
@@ -128,18 +135,12 @@ export default function HeroSection({ scrollProgress }: HeroSectionProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 1 }}
       >
-        <span
-          className={`text-[10px] tracking-[0.3em] uppercase ${
-            isDark ? 'text-gray-500' : 'text-gray-400'
-          }`}
-        >
+        <span className={cn('text-[10px] tracking-[0.3em] uppercase', theme.scrollLabel)}>
           Scroll
         </span>
         <div className="w-px h-12 relative overflow-hidden">
           <motion.div
-            className={`w-full h-full ${
-              isDark ? 'bg-gradient-to-b from-indigo-400 to-transparent' : 'bg-gradient-to-b from-indigo-600 to-transparent'
-            }`}
+            className={cn('w-full h-full', theme.scrollBar)}
             animate={{ y: ['-100%', '100%'] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
           />

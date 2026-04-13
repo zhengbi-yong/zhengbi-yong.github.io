@@ -52,7 +52,7 @@ export default function ArticleCard({
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        'group overflow-hidden rounded-xl border-2 bg-white shadow-md transition-all hover:shadow-lg dark:border-gray-700 dark:bg-gray-800',
+        'group overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]',
         isHorizontal && 'md:flex',
         className
       )}
@@ -65,7 +65,7 @@ export default function ArticleCard({
         {/* 图片区域 */}
         <div
           className={cn(
-            'relative overflow-hidden bg-gray-100 dark:bg-gray-900',
+            'relative overflow-hidden bg-[var(--surface-muted)]',
             isHorizontal ? 'md:w-2/5' : 'aspect-[16/9]'
           )}
         >
@@ -86,7 +86,7 @@ export default function ArticleCard({
               {article.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700 dark:bg-primary-900/50 dark:text-primary-300"
+                  className="rounded-full border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--brand-color)_10%,transparent)] px-2.5 py-0.5 text-xs font-medium text-[var(--brand-color)]"
                 >
                   {tag}
                 </span>
@@ -95,19 +95,19 @@ export default function ArticleCard({
           )}
 
           {/* 标题 */}
-          <h3 className="mb-2 text-xl font-bold leading-tight text-gray-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
+          <h3 className="mb-2 text-xl font-semibold leading-tight tracking-[-0.03em] text-[var(--text-primary)] transition-colors duration-[var(--motion-fast)] group-hover:text-[var(--brand-color)]">
             {article.title}
           </h3>
 
           {/* 摘要 */}
           {article.summary && (
-            <p className="mb-4 line-clamp-2 flex-1 text-sm text-gray-600 dark:text-gray-300">
+            <p className="mb-4 line-clamp-2 flex-1 text-sm text-[var(--text-soft)]">
               {article.summary}
             </p>
           )}
 
           {/* 元信息 */}
-          <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex flex-wrap items-center gap-4 text-xs font-medium tracking-[0.06em] text-[var(--text-soft)]">
             <div className="flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
               <time>{formattedDate}</time>
@@ -121,8 +121,11 @@ export default function ArticleCard({
           </div>
 
           {/* 阅读更多 */}
-          <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-primary-600 dark:text-primary-400">
-            <span>阅读更多</span>
+          <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[var(--brand-color)]">
+            <span className="relative">
+              阅读更多
+              <span className="absolute bottom-0 left-0 h-px w-0 bg-current transition-all duration-[var(--motion-fast)] group-hover:w-full" />
+            </span>
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </div>
         </div>

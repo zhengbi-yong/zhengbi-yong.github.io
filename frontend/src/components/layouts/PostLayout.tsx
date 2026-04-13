@@ -115,7 +115,7 @@ export default function PostLayout({
   }
 
   return (
-    <SectionContainer>
+    <SectionContainer variant="reading" className="section-space-md">
       <JsonLd data={articleSchema} />
       <JsonLd data={breadcrumbSchema} />
 
@@ -127,9 +127,10 @@ export default function PostLayout({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="visitor-article"
+        className="visitor-article section-space-md"
       >
-        <header className="pt-visitor-md pb-visitor-sm xl:pb-visitor-md">
+        <div className="surface-elevated overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] px-5 py-8 shadow-[var(--shadow-soft)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+          <header className="border-b border-[var(--border-subtle)] pb-8 xl:pb-10">
           {/* Date badge with micro-interaction */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -142,7 +143,7 @@ export default function PostLayout({
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              className="text-sm leading-6 font-medium text-gray-500 dark:text-gray-400 transition-colors duration-200"
+              className="text-sm leading-6 font-medium tracking-[0.08em] text-[var(--text-soft)] uppercase transition-colors duration-200"
             >
               <time dateTime={isoDate || date}>
                 {hasValidDate
@@ -179,10 +180,9 @@ export default function PostLayout({
                   whileHover={{ scale: 1.05 }}
                   className={`
                     visitor-tag cursor-pointer
-                    inline-flex items-center px-3 py-1 text-sm font-medium
-                    text-gray-600 dark:text-gray-400
-                    bg-gray-100 dark:bg-gray-800 rounded-full
-                    transition-all duration-150
+                    inline-flex items-center rounded-full px-3 py-1 text-sm font-medium
+                    border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--surface-subtle)_88%,transparent)] text-[var(--text-soft)]
+                    transition-all duration-150 hover:border-[var(--border-strong)] hover:text-[var(--brand-color)]
                   `}
                 >
                   {tag}
@@ -194,7 +194,7 @@ export default function PostLayout({
 
         {/* Golden-ratio asymmetric layout */}
         {/* Left column (38.2%) - TOC | Content (61.8%) - Right column (recent + comments FAB) */}
-        <div className="divide-y divide-gray-200 pb-visitor-lg md:grid md:grid-cols-1 xl:grid-cols-[382fr_618fr_618fr_191fr] md:gap-x-4 xl:gap-x-10 md:divide-y-0 dark:divide-gray-700">
+        <div className="mt-8 divide-y divide-[var(--border-subtle)] pb-visitor-lg md:grid md:grid-cols-1 md:gap-x-4 md:divide-y-0 xl:grid-cols-[382fr_618fr_618fr_191fr] xl:gap-x-10">
           {/* Left: Sticky TOC (38.2% = golden ratio small) */}
           <div className="hidden xl:flex xl:col-span-1 flex-shrink-0 flex-col">
             <div
@@ -206,7 +206,7 @@ export default function PostLayout({
           </div>
 
           {/* Center: Article content (61.8% = golden ratio large) */}
-          <div className="md:col-span-1 xl:col-span-1 dark:divide-gray-700 xl:px-4">
+          <div className="md:col-span-1 xl:col-span-1 xl:px-4">
             <FadeIn delay={0.2} duration={0.6} whileInView={true}>
               <PostBackendIntegration slug={slug}>
                 <div className="prose prose-lg dark:prose-invert visitor-article prose-headings:font-visitor-serif prose-headings:font-semibold prose-p:text-visitor-base prose-p:leading-relaxed prose-a:no-underline hover:prose-a:underline prose-img:rounded-visitor-lg prose-img:shadow-visitor-soft mx-auto w-full max-w-full min-w-0 pt-visitor-md pb-visitor-md sm:max-w-2xl md:max-w-none">
@@ -234,7 +234,7 @@ export default function PostLayout({
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.2 }}
           id="comments-section"
-          className="mt-visitor-lg pt-visitor-lg border-t border-gray-200 dark:border-gray-700 md:hidden xl:hidden"
+          className="mt-visitor-lg border-t border-[var(--border-subtle)] pt-visitor-lg md:hidden xl:hidden"
         >
           <BackendComments slug={slug} />
         </motion.div>
@@ -246,6 +246,7 @@ export default function PostLayout({
 
         {/* Comment FAB - Always visible */}
         <CommentDrawer slug={slug} />
+      </div>
       </motion.article>
     </SectionContainer>
   )

@@ -170,17 +170,17 @@ export default function HeroCard({
       data-href={link}
       suppressHydrationWarning
     >
-      <div className="case-solid border-primary dark:border-primary relative h-full w-full border-[3px] border-solid p-3">
+      <div className="case-solid relative h-full w-full rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-3 shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]">
         {/* 四个角落的小方块 */}
-        <div className="case-square border-primary dark:border-primary absolute top-[-5px] left-[-5px] h-3 w-3 border-2 border-solid bg-white" />
-        <div className="case-square border-primary dark:border-primary absolute top-[-5px] right-[-5px] h-3 w-3 border-2 border-solid bg-white" />
-        <div className="case-square border-primary dark:border-primary absolute bottom-[-5px] left-[-5px] h-3 w-3 border-2 border-solid bg-white" />
-        <div className="case-square border-primary dark:border-primary absolute right-[-5px] bottom-[-5px] h-3 w-3 border-2 border-solid bg-white" />
+        <div className="case-square absolute top-[-5px] left-[-5px] h-3 w-3 border-2 border-[var(--border-strong)] bg-[var(--surface-elevated)]" />
+        <div className="case-square absolute top-[-5px] right-[-5px] h-3 w-3 border-2 border-[var(--border-strong)] bg-[var(--surface-elevated)]" />
+        <div className="case-square absolute bottom-[-5px] left-[-5px] h-3 w-3 border-2 border-[var(--border-strong)] bg-[var(--surface-elevated)]" />
+        <div className="case-square absolute right-[-5px] bottom-[-5px] h-3 w-3 border-2 border-[var(--border-strong)] bg-[var(--surface-elevated)]" />
 
         <div className="relative z-20 w-full">
           <div
             ref={caseGoRef}
-            className="case-go relative top-0 left-0 aspect-[6/7] w-full overflow-hidden rounded-xl"
+            className="case-go relative top-0 left-0 aspect-[6/7] w-full overflow-hidden rounded-[calc(var(--radius-panel)-6px)] border border-[var(--border-subtle)]"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onMouseMove={handleCaseGoMouseMove}
@@ -330,7 +330,7 @@ export default function HeroCard({
       {/* 自定义光标指示器 */}
       <div
         ref={cursorIndicatorRef}
-        className="cursor-indicator pointer-events-none absolute top-0 left-0 z-[1000] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 scale-50 transform items-center justify-center rounded-full bg-white opacity-0 shadow-lg transition-opacity transition-transform duration-300 duration-500"
+        className="cursor-indicator pointer-events-none absolute top-0 left-0 z-[1000] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 scale-50 transform items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--surface-elevated)] opacity-0 shadow-[var(--shadow-medium)] transition-opacity transition-transform duration-300 duration-500"
         style={{
           opacity: isHovering ? 1 : 0,
           transform: `translate(-50%, -50%) scale(${isHovering ? 1 : 0.5})`,

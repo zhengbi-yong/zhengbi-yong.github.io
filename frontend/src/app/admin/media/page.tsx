@@ -13,7 +13,7 @@
 
 import { useState, useEffect } from 'react'
 import { adminService } from '@/lib/api/backend'
-import type { MediaItem } from '@/lib/types/backend'
+import type { MediaItem, MediaDetail } from '@/lib/types/backend'
 import { useTranslation } from 'react-i18next'
 
 export default function AdminMediaPage() {
@@ -26,17 +26,17 @@ export default function AdminMediaPage() {
   const [showUnused, setShowUnused] = useState(false)
   const [selectedMedia, setSelectedMedia] = useState<Set<string>>(new Set())
   const [deleting, setDeleting] = useState<Set<string>>(new Set())
-  const [previewMedia, setPreviewMedia] = useState<MediaItem | null>(null)
+  const [previewMedia, setPreviewMedia] = useState<MediaDetail | null>(null)
 
   const loadMedia = async () => {
     setLoading(true)
     try {
       if (showUnused) {
         const response = await adminService.getUnusedMedia()
-        setMedia(response.media || [])
-        setTotal(response.media?.length || 0)
+        setMedia(response || [])
+        setTotal(response?.length || 0)
       } else {
-        const response = await adminService.getMedia(page, pageSize)
+        const response = await adminService.getMedia({ page, limit: pageSize })
         setMedia(response.media || [])
         setTotal(response.total || 0)
       }
@@ -56,18 +56,27 @@ export default function AdminMediaPage() {
       return
     }
 
-    setDeleting(prev => new Set(prev).add(mediaId))
+    setDeleting((prev) => new Set(prev).add(mediaId))
     try {
       await adminService.deleteMedia(mediaId)
       // 重新加载列表
       loadMedia()
     } catch (error) {
       alert('删除失败')
-      setDeleting(prev => {
+      setDeleting((prev) => {
         const newSet = new Set(prev)
         newSet.delete(mediaId)
         return newSet
       })
+    }
+  }
+
+  const handlePreview = async (mediaId: string) => {
+    try {
+      const detail = await adminService.getMediaById(mediaId)
+      setPreviewMedia(detail)
+    } catch (error) {
+      console.error('Failed to load media detail:', error)
     }
   }
 
@@ -95,8 +104,8 @@ export default function AdminMediaPage() {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
   }
 
-  const totalSize = media.reduce((sum, item) => sum + item.size, 0)
-  const unusedCount = media.filter(item => item.unused).length
+  const totalSize = media.reduce((sum, item) => sum + item.size_bytes, 0)
+  const unusedCount = media.filter((item) => item.usage_count === 0).length
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -155,9 +164,7 @@ export default function AdminMediaPage() {
             {showUnused ? '没有未使用的媒体文件' : '没有媒体文件'}
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {showUnused
-              ? '太好了！所有媒体文件都在使用中'
-              : '上传第一个媒体文件开始使用'}
+            {showUnused ? '太好了！所有媒体文件都在使用中' : '上传第一个媒体文件开始使用'}
           </p>
         </div>
       ) : (
@@ -171,10 +178,10 @@ export default function AdminMediaPage() {
                   selectedMedia.has(item.id)
                     ? 'border-blue-500'
                     : 'border-gray-200 dark:border-gray-700'
-                } ${item.unused ? 'opacity-60' : ''}`}
+                } ${item.usage_count === 0 ? 'opacity-60' : ''}`}
               >
                 {/* 选择复选框 */}
-                <div className="absolute left-2 top-2 z-10">
+                <div className="absolute top-2 left-2 z-10">
                   <input
                     type="checkbox"
                     checked={selectedMedia.has(item.id)}
@@ -192,8 +199,8 @@ export default function AdminMediaPage() {
                 </div>
 
                 {/* 未使用标记 */}
-                {item.unused && (
-                  <div className="absolute right-2 top-2 rounded-full bg-yellow-400 px-2 py-0.5 text-xs font-medium text-yellow-900">
+                {item.usage_count === 0 && (
+                  <div className="absolute top-2 right-2 rounded-full bg-yellow-400 px-2 py-0.5 text-xs font-medium text-yellow-900">
                     未使用
                   </div>
                 )}
@@ -201,7 +208,7 @@ export default function AdminMediaPage() {
                 {/* 媒体预览 */}
                 <div
                   className="aspect-square cursor-pointer overflow-hidden bg-gray-100"
-                  onClick={() => setPreviewMedia(item)}
+                  onClick={() => handlePreview(item.id)}
                 >
                   {item.mime_type.startsWith('image/') ? (
                     <img
@@ -222,7 +229,7 @@ export default function AdminMediaPage() {
                     {item.filename}
                   </p>
                   <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                    {formatFileSize(item.size)}
+                    {formatFileSize(item.size_bytes)}
                   </p>
                   {item.usage_count !== undefined && (
                     <p className="text-xs text-gray-500 dark:text-gray-500">
@@ -233,7 +240,7 @@ export default function AdminMediaPage() {
                   {/* 操作按钮 */}
                   <div className="mt-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
-                      onClick={() => setPreviewMedia(item)}
+                      onClick={() => handlePreview(item.id)}
                       className="flex-1 rounded bg-blue-500 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-600"
                     >
                       预览
@@ -255,9 +262,9 @@ export default function AdminMediaPage() {
           {!showUnused && total > pageSize && (
             <div className="mt-6 flex items-center justify-center gap-2">
               <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 {t('previous') || '上一页'}
               </button>
@@ -265,9 +272,9 @@ export default function AdminMediaPage() {
                 第 {page} / {Math.ceil(total / pageSize)} 页
               </span>
               <button
-                onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize), p + 1))}
+                onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
                 disabled={page >= Math.ceil(total / pageSize)}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 {t('next') || '下一页'}
               </button>
@@ -279,7 +286,7 @@ export default function AdminMediaPage() {
       {/* 预览模态框 */}
       {previewMedia && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4"
+          className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black p-4"
           onClick={() => setPreviewMedia(null)}
         >
           <div
@@ -292,7 +299,7 @@ export default function AdminMediaPage() {
                   {previewMedia.filename}
                 </h3>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  {formatFileSize(previewMedia.size)} • {previewMedia.mime_type}
+                  {formatFileSize(previewMedia.size_bytes)} • {previewMedia.mime_type}
                 </p>
               </div>
               <button
@@ -305,7 +312,7 @@ export default function AdminMediaPage() {
 
             {previewMedia.mime_type.startsWith('image/') ? (
               <img
-                src={previewMedia.url}
+                src={previewMedia.cdn_url || previewMedia.storage_path}
                 alt={previewMedia.filename}
                 className="max-h-[70vh] w-auto rounded-lg"
               />
@@ -317,7 +324,7 @@ export default function AdminMediaPage() {
                     此文件类型不支持预览
                   </p>
                   <a
-                    href={previewMedia.url}
+                    href={previewMedia.cdn_url || previewMedia.storage_path}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-4 inline-block rounded bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600"
@@ -331,7 +338,9 @@ export default function AdminMediaPage() {
             {previewMedia.alt_text && (
               <div className="mt-4 rounded-lg bg-gray-50 p-3 dark:bg-gray-900">
                 <p className="text-xs font-medium text-gray-700 dark:text-gray-300">替代文本:</p>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{previewMedia.alt_text}</p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  {previewMedia.alt_text}
+                </p>
               </div>
             )}
 

@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import { usePosts } from '@/lib/hooks/useBlogData'
 import { toBlogLikePost } from '@/lib/adapters/backend-posts'
+import { cn } from '@/lib/utils'
 
 export default function LatestWriting() {
   const { resolvedTheme } = useTheme()
@@ -23,9 +24,19 @@ export default function LatestWriting() {
     return (postsData?.posts || []).map(toBlogLikePost)
   }, [postsData?.posts])
 
-  const mutedColor = isDark ? 'text-gray-500' : 'text-gray-400'
-  const textColor = isDark ? 'text-gray-100' : 'text-gray-800'
-  const accentColor = isDark ? 'text-indigo-300' : 'text-indigo-600'
+  const themeClasses = isDark
+    ? {
+        muted: 'text-gray-500',
+        text: 'text-gray-100',
+        accent: 'text-indigo-300',
+        featuredCard: 'border-white/[0.06] hover:border-indigo-400/20 bg-gradient-to-br from-indigo-950/30 to-transparent',
+      }
+    : {
+        muted: 'text-gray-400',
+        text: 'text-gray-800',
+        accent: 'text-indigo-600',
+        featuredCard: 'border-black/[0.06] hover:border-indigo-400/20 bg-gradient-to-br from-indigo-50/50 to-transparent',
+      }
 
   const featured = posts[0]
   const rest = posts.slice(1)
@@ -41,10 +52,10 @@ export default function LatestWriting() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <span className={`text-xs tracking-[0.3em] uppercase ${mutedColor} block mb-2`}>
+          <span className={cn('mb-2 block text-xs tracking-[0.3em] uppercase', themeClasses.muted)}>
             Writing
           </span>
-          <h2 className={`font-visitor-serif text-3xl sm:text-4xl ${textColor}`}>
+          <h2 className={cn('font-visitor-serif text-3xl sm:text-4xl', themeClasses.text)}>
             Latest Thoughts
           </h2>
         </motion.div>
@@ -62,28 +73,25 @@ export default function LatestWriting() {
             >
               <Link href={`/${featured.path}`} className="group block">
                 <div
-                  className={`
-                    rounded-3xl p-8 sm:p-10 min-h-[300px] flex flex-col justify-end
-                    border transition-all duration-500
-                    ${isDark
-                      ? 'border-white/[0.06] hover:border-indigo-400/20 bg-gradient-to-br from-indigo-950/30 to-transparent'
-                      : 'border-black/[0.06] hover:border-indigo-400/20 bg-gradient-to-br from-indigo-50/50 to-transparent'
-                    }
-                  `}
+                  className={cn(
+                    'min-h-[300px] rounded-3xl border bg-gradient-to-br p-8 transition-all duration-500 sm:p-10',
+                    'flex flex-col justify-end',
+                    themeClasses.featuredCard
+                  )}
                 >
-                  <span className={`text-xs tracking-[0.2em] uppercase ${accentColor} block mb-4`}>
+                  <span className={cn('mb-4 block text-xs tracking-[0.2em] uppercase', themeClasses.accent)}>
                     Featured
                   </span>
-                  <h3 className={`font-visitor-serif text-2xl sm:text-3xl ${textColor} mb-3 leading-tight`}>
+                  <h3 className={cn('mb-3 font-visitor-serif text-2xl leading-tight sm:text-3xl', themeClasses.text)}>
                     {featured.title}
                   </h3>
                   {featured.summary && (
-                    <p className={`text-sm sm:text-base ${mutedColor} line-clamp-3 mb-4`}>
+                    <p className={cn('mb-4 line-clamp-3 text-sm sm:text-base', themeClasses.muted)}>
                       {featured.summary}
                     </p>
                   )}
                   <div className="flex items-center gap-3">
-                    <span className={`text-xs ${mutedColor}`}>
+                    <span className={cn('text-xs', themeClasses.muted)}>
                       {featured.date ? new Date(featured.date).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -92,8 +100,8 @@ export default function LatestWriting() {
                     </span>
                     {featured.tags[0] && (
                       <>
-                        <span className={mutedColor}>·</span>
-                        <span className={`text-xs ${accentColor}`}>{featured.tags[0]}</span>
+                        <span className={themeClasses.muted}>·</span>
+                        <span className={cn('text-xs', themeClasses.accent)}>{featured.tags[0]}</span>
                       </>
                     )}
                   </div>
@@ -117,11 +125,11 @@ export default function LatestWriting() {
                   className="group flex items-start gap-4 p-5 rounded-2xl transition-all duration-300 hover:translate-x-2"
                 >
                   <div className="flex-1 min-w-0">
-                    <h4 className={`font-visitor-serif text-base sm:text-lg ${textColor} mb-1 line-clamp-2 group-hover:translate-x-1 transition-transform duration-300`}>
+                    <h4 className={cn('mb-1 font-visitor-serif text-base transition-transform duration-300 group-hover:translate-x-1 line-clamp-2 sm:text-lg', themeClasses.text)}>
                       {post.title}
                     </h4>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs ${mutedColor}`}>
+                      <span className={cn('text-xs', themeClasses.muted)}>
                         {post.date ? new Date(post.date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -129,13 +137,13 @@ export default function LatestWriting() {
                       </span>
                       {post.tags[0] && (
                         <>
-                          <span className={mutedColor}>·</span>
-                          <span className={`text-xs ${accentColor}`}>{post.tags[0]}</span>
+                          <span className={themeClasses.muted}>·</span>
+                          <span className={cn('text-xs', themeClasses.accent)}>{post.tags[0]}</span>
                         </>
                       )}
                     </div>
                   </div>
-                  <span className={`text-lg transition-all duration-300 group-hover:translate-x-1 ${mutedColor}`}>
+                  <span className={cn('text-lg transition-all duration-300 group-hover:translate-x-1', themeClasses.muted)}>
                     →
                   </span>
                 </Link>
@@ -144,7 +152,7 @@ export default function LatestWriting() {
 
             {/* Empty state */}
             {posts.length === 0 && (
-              <div className={`text-center py-12 ${mutedColor}`}>
+              <div className={cn('py-12 text-center', themeClasses.muted)}>
                 <p className="text-sm">No articles yet</p>
               </div>
             )}
@@ -161,7 +169,7 @@ export default function LatestWriting() {
         >
           <Link
             href="/blog"
-            className={`group inline-flex items-center gap-2 text-sm tracking-[0.15em] uppercase ${accentColor} transition-all duration-300`}
+            className={cn('group inline-flex items-center gap-2 text-sm tracking-[0.15em] uppercase transition-all duration-300', themeClasses.accent)}
           >
             View All Articles
             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>

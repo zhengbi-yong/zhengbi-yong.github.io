@@ -2,10 +2,13 @@
 #![type_length_limit = "10000000"]
 
 use axum::Router;
-use blog_api::middleware::{rate_limit_middleware, request_id_middleware, REQUEST_ID_HEADER};
+use blog_api::middleware::{
+    rate_limit_middleware, request_id_middleware, trace_context_middleware, REQUEST_ID_HEADER,
+    TRACEPARENT_HEADER,
+};
 use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
 use blog_api::runtime::{
-    create_postgres_pool, create_replica_pool, create_redis_pool, shutdown_signal,
+    create_postgres_pool, create_redis_pool, create_replica_pool, shutdown_signal,
     verify_migrations,
 };
 use blog_api::state::AppState;
@@ -16,6 +19,7 @@ use tracing_subscriber::prelude::*;
 
 // 导入所有路由模块（仅导入需要使用的模块）
 use blog_api::middleware::auth::auth_middleware;
+use blog_api::middleware::csrf::csrf_middleware;
 use blog_api::routes::{admin_team_members_routes, team_members_routes};
 
 #[tokio::main]
@@ -44,12 +48,12 @@ async fn main() {
         .init();
 
     if let Err(e) = run_server().await {
-        eprintln!("");
+        eprintln!();
         eprintln!("❌ 服务器启动失败: {}", e);
-        eprintln!("");
+        eprintln!();
         eprintln!("错误详情:");
         eprintln!("{:?}", e);
-        eprintln!("");
+        eprintln!();
         eprintln!("💡 故障排查建议:");
         eprintln!("   1. 检查所有必需的环境变量是否已设置");
         eprintln!("   2. 确保数据库和 Redis 服务正在运行");
@@ -201,12 +205,10 @@ async fn run_server() -> anyhow::Result<()> {
 
     let app = Router::new()
         // 健康检查（无状态）
-        .route("/health", axum::routing::get(blog_api::metrics::health))
-        .route("/healthz", axum::routing::get(blog_api::metrics::health))
-        .route("/livez", axum::routing::get(blog_api::metrics::health))
         .route("/health/detailed", axum::routing::get(blog_api::metrics::health_detailed))
-        .route("/readyz", axum::routing::get(blog_api::metrics::readyz))
-        .route("/ready", axum::routing::get(blog_api::metrics::readyz))
+        // Kubernetes-style 健康检查路径 (无外部依赖)
+        .route("/.well-known/live", axum::routing::get(liveness))
+        .route("/.well-known/ready", axum::routing::get(blog_api::metrics::readyz))
         .route("/metrics", axum::routing::get(blog_api::metrics::metrics_endpoint))
         // OpenAPI 文档 - TEMPORARILY DISABLED TO TEST STACK OVERFLOW
         // .merge(blog_api::routes::openapi::swagger_ui())
@@ -217,7 +219,7 @@ async fn run_server() -> anyhow::Result<()> {
         .layer(create_cors_layer(state.settings.cors.allowed_origins.clone()))
         // 3. 压缩中间件
         .layer(CompressionLayer::new())
-        // 2. HTTP Trace 中间件（包含 request_id 在 span 中）
+        // 2. HTTP Trace 中间件（包含 request_id 和 trace_id 在 span 中）
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|request: &axum::extract::Request| {
@@ -228,11 +230,24 @@ async fn run_server() -> anyhow::Result<()> {
                         .map(|s| s.to_string())
                         .unwrap_or_else(|| "unknown".to_string());
 
+                    // Extract W3C trace_id from traceparent header
+                    let trace_id = request
+                        .headers()
+                        .get(TRACEPARENT_HEADER)
+                        .and_then(|v| v.to_str().ok())
+                        .and_then(|tp| {
+                            tp.split('-')
+                                .nth(1)
+                                .map(|s| s.to_string())
+                        })
+                        .unwrap_or_else(|| "none".to_string());
+
                     tracing::info_span!(
                         "http_request",
                         method = %request.method(),
                         uri = %request.uri(),
                         request_id = %request_id,
+                        trace_id = %trace_id,
                     )
                 })
         )
@@ -241,7 +256,9 @@ async fn run_server() -> anyhow::Result<()> {
             state.clone(),
             blog_api::metrics::http_metrics_middleware,
         ))
-        // 1. Request ID 中间件（最后执行，但最先进入请求处理）
+        // 0. W3C Trace Context 中间件（最先执行，提取/生成 trace context）
+        .layer(axum::middleware::from_fn(trace_context_middleware))
+        // 1. Request ID 中间件
         .layer(axum::middleware::from_fn(request_id_middleware))
         // 添加状态
         .with_state(state);
@@ -297,6 +314,10 @@ fn v1_routes(state: AppState) -> Router<AppState> {
                     state.clone(),
                     auth_middleware,
                 ))
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    csrf_middleware,
+                ))
         )
         // 文章和评论管理路由也需要认证
         .merge(
@@ -305,12 +326,20 @@ fn v1_routes(state: AppState) -> Router<AppState> {
                     state.clone(),
                     auth_middleware,
                 ))
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    csrf_middleware,
+                ))
         )
         .merge(
             comment_admin_routes()
                 .layer(axum::middleware::from_fn_with_state(
                     state.clone(),
                     auth_middleware,
+                ))
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    csrf_middleware,
                 ))
         )
         // 团队成员管理路由（需要认证）
@@ -319,6 +348,10 @@ fn v1_routes(state: AppState) -> Router<AppState> {
                 .layer(axum::middleware::from_fn_with_state(
                     state.clone(),
                     auth_middleware,
+                ))
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    csrf_middleware,
                 ))
         )
         // TEMPORARY: 公开的MDX同步端点用于测试（生产环境应该移除或添加认证）
@@ -332,13 +365,13 @@ fn v1_routes(state: AppState) -> Router<AppState> {
 
 // 认证路由
 fn auth_routes() -> Router<AppState> {
-    use axum::routing::{get, post};
+    use axum::routing::post;
     Router::new()
         .route("/auth/register", post(blog_api::routes::auth::register))
         .route("/auth/login", post(blog_api::routes::auth::login))
         .route("/auth/refresh", post(blog_api::routes::auth::refresh))
         .route("/auth/logout", post(blog_api::routes::auth::logout))
-        // /auth/me 需要认证，在 v1_routes 中单独定义并应用中间件
+    // /auth/me 需要认证，在 v1_routes 中单独定义并应用中间件
 }
 
 // 文章路由
@@ -475,11 +508,10 @@ fn search_routes() -> Router<AppState> {
 // 评论路由（公开 - 仅创建评论，支持匿名）
 fn comment_routes() -> Router<AppState> {
     use axum::routing::post;
-    Router::new()
-        .route(
-            "/posts/{slug}/comments",
-            post(blog_api::routes::comments::create_comment),
-        )
+    Router::new().route(
+        "/posts/{slug}/comments",
+        post(blog_api::routes::comments::create_comment),
+    )
 }
 
 // 评论路由（需要认证 - 点赞/取消点赞）
@@ -543,11 +575,11 @@ fn admin_routes() -> Router<AppState> {
         // 统计和用户管理
         .route("/admin/stats", get(blog_api::routes::admin::get_admin_stats))
         .route("/admin/users", get(blog_api::routes::admin::list_users).post(blog_api::routes::admin::create_user))
-        .route("/admin/users/batch/role", post(blog_api::routes::admin::batch_update_roles))
-        .route("/admin/users/batch/delete", post(blog_api::routes::admin::batch_delete_users))
+        .route("/admin/users:batchUpdateRole", post(blog_api::routes::admin::batch_update_roles))
+        .route("/admin/users:batchDelete", post(blog_api::routes::admin::batch_delete_users))
         .route("/admin/users/{id}", get(blog_api::routes::admin::get_user).put(blog_api::routes::admin::update_user).delete(blog_api::routes::admin::delete_user))
         .route("/admin/users/{id}/role", put(blog_api::routes::admin::update_user_role))
-        .route("/admin/users/growth", get(blog_api::routes::admin::get_user_growth))
+        .route("/admin/users:growth", get(blog_api::routes::admin::get_user_growth))
         // 媒体管理
         .route("/admin/media", get(blog_api::routes::media::list_media))
         .route(
@@ -559,10 +591,6 @@ fn admin_routes() -> Router<AppState> {
             post(blog_api::routes::media::finalize_media_upload),
         )
         .route("/admin/media/upload", post(blog_api::routes::media::upload_media))
-        .route(
-            "/admin/media/chemistry",
-            post(blog_api::routes::media::create_chemistry_media),
-        )
         .route("/admin/media/unused", get(blog_api::routes::media::get_unused_media))
         .route("/admin/media/{id}", get(blog_api::routes::media::get_media))
         .route(
@@ -581,6 +609,14 @@ fn admin_routes() -> Router<AppState> {
         // MDX同步
         .route("/admin/sync/mdx", post(blog_api::routes::mdx_sync::sync_mdx_to_db))
         .route("/admin/search/reindex", post(blog_api::routes::search::reindex_posts))
+}
+
+/// Kubernetes liveness probe handler
+///
+/// 简单的存活探针，不执行任何外部依赖检查（无 DB/Redis I/O）
+/// 用于 Kubernetes 判断容器是否需要重启
+async fn liveness() -> axum::http::StatusCode {
+    axum::http::StatusCode::OK
 }
 
 /// 创建安全的 CORS 层

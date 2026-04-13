@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/shadcn/ui/button'
+import { cn } from '@/lib/utils'
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -86,7 +87,10 @@ export default function LanguageSwitch() {
             <button
               key={language.code}
               onClick={() => changeLanguage(language.code)}
-              className={`w-full px-4 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 ${(i18n?.language || 'en') === language.code ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' : ''} `}
+              className={cn(
+                'w-full px-4 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-700',
+                (i18n?.language || 'en') === language.code && 'bg-blue-50 text-blue-600 dark:bg-blue-900/20'
+              )}
             >
               <span className="mr-2">{language.flag}</span>
               {language.name}

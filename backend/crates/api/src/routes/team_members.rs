@@ -204,13 +204,11 @@ pub async fn get_admin_team_member(
     Extension(_auth_user): Extension<AuthUser>,
     Path(id): Path<Uuid>,
 ) -> Result<impl IntoResponse, AppError> {
-    let member = sqlx::query_as::<_, TeamMember>(
-        "SELECT * FROM team_members WHERE id = $1",
-    )
-    .bind(id)
-    .fetch_optional(&state.db)
-    .await?
-    .ok_or_else(|| AppError::NotFound("Team member not found".to_string()))?;
+    let member = sqlx::query_as::<_, TeamMember>("SELECT * FROM team_members WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Team member not found".to_string()))?;
 
     let avatar_url = if let Some(media_id) = member.avatar_media_id {
         sqlx::query_scalar::<_, String>("SELECT url FROM media WHERE id = $1")
@@ -253,7 +251,7 @@ pub async fn create_team_member(
         RETURNING id
         "#,
     )
-    .bind(&req.user_id)
+    .bind(req.user_id)
     .bind(&req.name)
     .bind(&req.name_en)
     .bind(req.team_role.as_deref().unwrap_or("member"))
@@ -265,7 +263,7 @@ pub async fn create_team_member(
     .bind(&req.email)
     .bind(&req.github)
     .bind(&req.website)
-    .bind(&req.avatar_media_id)
+    .bind(req.avatar_media_id)
     .fetch_one(&state.db)
     .await?;
 
@@ -294,12 +292,11 @@ pub async fn update_team_member(
     Json(req): Json<UpdateTeamMemberRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // Check exists
-    let exists: bool = sqlx::query_scalar::<_, bool>(
-        "SELECT EXISTS(SELECT 1 FROM team_members WHERE id = $1)",
-    )
-    .bind(id)
-    .fetch_one(&state.db)
-    .await?;
+    let exists: bool =
+        sqlx::query_scalar::<_, bool>("SELECT EXISTS(SELECT 1 FROM team_members WHERE id = $1)")
+            .bind(id)
+            .fetch_one(&state.db)
+            .await?;
 
     if !exists {
         return Err(AppError::NotFound("Team member not found".to_string()));
@@ -331,6 +328,7 @@ pub async fn update_team_member(
     add_field!(github, req.github);
     add_field!(website, req.website);
     add_field!(avatar_media_id, req.avatar_media_id);
+    let _ = param_idx; // suppress unused_assignments warning
 
     if !updates.is_empty() {
         updates.push("updated_at = NOW()".to_string());
@@ -491,10 +489,7 @@ pub fn admin_team_members_routes() -> Router<AppState> {
             "/api/v1/admin/team-members/{id}",
             get(get_admin_team_member),
         )
-        .route(
-            "/api/v1/admin/team-members/{id}",
-            put(update_team_member),
-        )
+        .route("/api/v1/admin/team-members/{id}", put(update_team_member))
         .route(
             "/api/v1/admin/team-members/{id}",
             delete(delete_team_member),

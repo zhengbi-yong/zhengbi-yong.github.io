@@ -1,12 +1,11 @@
 import axios, { AxiosInstance } from 'axios'
 import { resolveBackendApiBaseUrl } from './api/resolveBackendApiBaseUrl'
-// import { OpenAPI } from './types/api-generated';
 
 // Configure OpenAPI base URL
 const API_URL = resolveBackendApiBaseUrl()
-// OpenAPI.BASE = API_URL;
 
 // Create axios instance
+// GOLDEN_RULES 1.1: 使用 withCredentials 发送 HttpOnly Cookie，不再从 localStorage 读取 token
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
   withCredentials: true,
@@ -15,14 +14,9 @@ export const apiClient: AxiosInstance = axios.create({
   },
 })
 
-// Request interceptor - add auth token and request ID
+// Request interceptor - add request ID for distributed tracing
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-
     // Add request ID for distributed tracing
     if (!config.headers['x-request-id']) {
       config.headers['x-request-id'] = generateRequestId()
@@ -41,42 +35,14 @@ function generateRequestId(): string {
 }
 
 // Response interceptor - handle errors
+// GOLDEN_RULES 1.1: 不再处理 token 刷新，认证状态由后端通过 HttpOnly Cookie 管理
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-
-    // Handle 401 errors
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      // Try to refresh token
-      const refreshToken = localStorage.getItem('refresh_token')
-      if (refreshToken) {
-        try {
-          const response = await axios.post(`${API_URL}/auth/refresh`, {
-            refresh_token: refreshToken,
-          })
-
-          const { access_token } = response.data
-          localStorage.setItem('access_token', access_token)
-
-          // Retry original request
-          originalRequest.headers.Authorization = `Bearer ${access_token}`
-          return apiClient(originalRequest)
-        } catch (refreshError) {
-          // Refresh failed, redirect to login
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          window.location.href = '/login'
-          return Promise.reject(refreshError)
-        }
-      } else {
-        // No refresh token, redirect to login
-        window.location.href = '/login'
-      }
+  (error) => {
+    // 401 errors indicate invalid/expired session - redirect to login
+    if (error.response?.status === 401) {
+      window.location.href = '/login'
     }
-
     return Promise.reject(error)
   }
 )

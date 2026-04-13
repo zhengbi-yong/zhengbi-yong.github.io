@@ -112,16 +112,20 @@ getList: async (resource, params) => {
 **Login**:
 ```typescript
 login: async ({ username, password }) => {
-  const { access_token } = await backend.login({ username, password })
-  localStorage.setItem('access_token', access_token)
+  await backend.login({ username, password })
+  // 认证通过 HttpOnly Cookie 自动处理
 }
 ```
 
 **Check Auth**:
 ```typescript
 checkAuth: async () => {
-  const token = localStorage.getItem('access_token')
-  if (!token) {
+  // GOLDEN_RULES 1.1: 通过 API 调用检查认证状态
+  // HttpOnly Cookie 会自动随请求发送
+  try {
+    await authService.getCurrentUser()
+    return Promise.resolve()
+  } catch {
     return Promise.reject(new Error('Not authenticated'))
   }
 }
@@ -131,7 +135,7 @@ checkAuth: async () => {
 ```typescript
 logout: async () => {
   await backend.logout()
-  localStorage.removeItem('access_token')
+  // Cookie 清除由后端处理
   // Redirect to login
 }
 ```

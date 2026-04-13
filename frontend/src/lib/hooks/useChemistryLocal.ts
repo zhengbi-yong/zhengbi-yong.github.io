@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/utils/logger'
 import { useRDKitInit } from '@/lib/hooks/useRDKitInit'
 
-interface UseChemistryLocalOptions {}
+type UseChemistryLocalOptions = Record<string, never>
 
 interface UseChemistryLocalReturn {
   isLoaded: boolean

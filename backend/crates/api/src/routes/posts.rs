@@ -39,28 +39,26 @@ pub async fn get_stats(
         .await
         .map_err(|_| AppError::InternalError)?;
 
-    if let Ok(cached) = redis::cmd("GET")
+    if let Ok(Some(cached_str)) = redis::cmd("GET")
         .arg(&cache_key)
         .query_async::<Option<String>>(&mut conn)
         .await
     {
-        if let Some(cached_str) = &cached {
-            if let Ok(stats) = serde_json::from_str::<PostStatsResponse>(cached_str) {
-                return Ok((
-                    [
-                        (
-                            header::CACHE_CONTROL,
-                            "public, s-maxage=5, stale-while-revalidate=60",
-                        ),
-                        (
-                            header::ETAG,
-                            format!("\"{}\"", compute_etag(&stats)).as_str(),
-                        ),
-                    ],
-                    Json(stats),
-                )
-                    .into_response());
-            }
+        if let Ok(stats) = serde_json::from_str::<PostStatsResponse>(&cached_str) {
+            return Ok((
+                [
+                    (
+                        header::CACHE_CONTROL,
+                        "public, s-maxage=5, stale-while-revalidate=60",
+                    ),
+                    (
+                        header::ETAG,
+                        format!("\"{}\"", compute_etag(&stats)).as_str(),
+                    ),
+                ],
+                Json(stats),
+            )
+                .into_response());
         }
     }
 
@@ -218,7 +216,7 @@ pub async fn like(
         "SELECT EXISTS(SELECT 1 FROM post_likes WHERE slug = $1 AND user_id = $2)",
     )
     .bind(&slug)
-    .bind(&auth_user.id)
+    .bind(auth_user.id)
     .fetch_one(&mut *tx)
     .await?;
 
@@ -292,7 +290,7 @@ pub async fn unlike(
         "SELECT EXISTS(SELECT 1 FROM post_likes WHERE slug = $1 AND user_id = $2)",
     )
     .bind(&slug)
-    .bind(&auth_user.id)
+    .bind(auth_user.id)
     .fetch_one(&mut *tx)
     .await?;
 
@@ -469,7 +467,7 @@ pub async fn create_post(
     .await?;
 
     // 同步 post_media 关联
-    sync_post_media(&mut *tx, post_id, &req.content).await?;
+    sync_post_media(&mut tx, post_id, &req.content).await?;
 
     if let Some(cover_id) = req.cover_image_id {
         sqlx::query(
@@ -554,22 +552,20 @@ async fn get_post_response(
         .await
         .map_err(|_| AppError::InternalError)?;
 
-    if let Ok(cached) = redis::cmd("GET")
+    if let Ok(Some(cached_str)) = redis::cmd("GET")
         .arg(&cache_key)
         .query_async::<Option<String>>(&mut conn)
         .await
     {
-        if let Some(cached_str) = cached {
-            if let Ok(post) = serde_json::from_str::<PostDetail>(&cached_str) {
-                return Ok((
-                    [(
-                        header::CACHE_CONTROL,
-                        "public, s-maxage=300, stale-while-revalidate=600",
-                    )],
-                    Json(post),
-                )
-                    .into_response());
-            }
+        if let Ok(post) = serde_json::from_str::<PostDetail>(&cached_str) {
+            return Ok((
+                [(
+                    header::CACHE_CONTROL,
+                    "public, s-maxage=300, stale-while-revalidate=600",
+                )],
+                Json(post),
+            )
+                .into_response());
         }
     }
 
@@ -700,22 +696,20 @@ pub async fn get_post_by_id(
         .await
         .map_err(|_| AppError::InternalError)?;
 
-    if let Ok(cached) = redis::cmd("GET")
+    if let Ok(Some(cached_str)) = redis::cmd("GET")
         .arg(&cache_key)
         .query_async::<Option<String>>(&mut conn)
         .await
     {
-        if let Some(cached_str) = cached {
-            if let Ok(post) = serde_json::from_str::<PostDetail>(&cached_str) {
-                return Ok((
-                    [(
-                        header::CACHE_CONTROL,
-                        "public, s-maxage=300, stale-while-revalidate=600",
-                    )],
-                    Json(post),
-                )
-                    .into_response());
-            }
+        if let Ok(post) = serde_json::from_str::<PostDetail>(&cached_str) {
+            return Ok((
+                [(
+                    header::CACHE_CONTROL,
+                    "public, s-maxage=300, stale-while-revalidate=600",
+                )],
+                Json(post),
+            )
+                .into_response());
         }
     }
 
@@ -1008,7 +1002,7 @@ pub async fn update_post(
 
     // 同步媒体关联
     if req.content.is_some() {
-        sync_post_media(&mut *tx, post_id, req.content.as_deref().unwrap_or("")).await?;
+        sync_post_media(&mut tx, post_id, req.content.as_deref().unwrap_or("")).await?;
     }
 
     tx.commit().await?;
@@ -1122,7 +1116,8 @@ pub async fn list_posts(
     let mut where_clause = "p.deleted_at IS NULL".to_string();
 
     if let Some(ref status) = params.status {
-        where_clause.push_str(&format!(" AND p.status = ${}", param_idx));
+        // Cast to post_status enum type since p.status is an enum but we're binding a string
+        where_clause.push_str(&format!(" AND p.status = ${}::post_status", param_idx));
         query_args.push(status.as_str().to_string());
         param_idx += 1;
     }
@@ -1150,7 +1145,6 @@ pub async fn list_posts(
             param_idx
         ));
         query_args.push(search.to_string());
-        param_idx += 1;
     }
 
     // 查询总数（使用读副本）
@@ -1255,7 +1249,6 @@ async fn clear_posts_cache(state: &AppState) {
             .unwrap_or(());
     }
 }
-
 
 /// Extract media references from post content and sync post_media associations.
 async fn sync_post_media(

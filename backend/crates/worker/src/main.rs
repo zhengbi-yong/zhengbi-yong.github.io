@@ -62,7 +62,21 @@ async fn main() -> anyhow::Result<()> {
     let search_index = Arc::new(search_index);
 
     // 启动 outbox 事件处理器
-    let mut ticker = interval(Duration::from_secs(settings.worker.poll_interval_secs));
+    // 支持 CDC 模式: 可以通过 CDC_POLL_INTERVAL_MS 环境变量覆盖默认轮询间隔
+    // CDC 模式使用 500ms 间隔实现亚秒级同步，默认模式使用 settings.worker.poll_interval_secs
+    let poll_interval_ms = std::env::var("CDC_POLL_INTERVAL_MS")
+        .map(|v| {
+            v.parse::<u64>()
+                .unwrap_or_else(|_| settings.worker.poll_interval_secs * 1000)
+        })
+        .unwrap_or(settings.worker.poll_interval_secs * 1000);
+
+    tracing::info!(
+        poll_interval_ms = poll_interval_ms,
+        "CDC poll interval configured"
+    );
+
+    let mut ticker = interval(Duration::from_millis(poll_interval_ms));
 
     tracing::info!(
         poll_interval_secs = settings.worker.poll_interval_secs,

@@ -1,3 +1,5 @@
+import { cn } from '@/lib/utils'
+
 interface AdminStatsCardProps {
   title: string
   value: number
@@ -21,22 +23,24 @@ const bgColorClasses = {
   red: 'bg-red-50 dark:bg-red-900/20',
 }
 
+const cardBaseClassName =
+  'overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]'
+const iconBaseClassName = 'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[calc(var(--radius-panel)-6px)] text-2xl shadow-sm'
+
 export default function AdminStatsCard({ title, value, icon, color }: AdminStatsCardProps) {
   return (
-    <div className={`${bgColorClasses[color]} overflow-hidden shadow rounded-lg`}>
+    <div className={cn(cardBaseClassName, bgColorClasses[color])}>
       <div className="p-5">
         <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <div className={`${colorClasses[color]} w-12 h-12 rounded-lg flex items-center justify-center text-2xl`}>
-              {icon}
-            </div>
+          <div className={cn(iconBaseClassName, colorClasses[color])}>
+            {icon}
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
-              <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+              <dt className="truncate text-xs font-semibold tracking-[0.12em] text-[var(--text-soft)] uppercase">
                 {title}
               </dt>
-              <dd className="text-lg font-semibold text-gray-900 dark:text-white">
+              <dd className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-[var(--text-primary)]">
                 {value.toLocaleString()}
               </dd>
             </dl>

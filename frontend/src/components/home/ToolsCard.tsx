@@ -56,7 +56,7 @@ export default function ToolsCard({
   return (
     <div
       className={cn(
-        'relative flex h-[180px] w-[198px] items-start justify-center overflow-hidden rounded-3xl',
+        'relative flex h-[180px] w-[198px] items-start justify-center overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]',
         className
       )}
       style={{
@@ -71,7 +71,7 @@ export default function ToolsCard({
           {finalTools.map((tool, index) => (
             <div
               key={index}
-              className="tool-item relative flex h-[32px] w-[32px] items-center justify-center"
+              className="tool-item relative flex h-[32px] w-[32px] items-center justify-center rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-elevated)]/65"
               style={{
                 backgroundImage: `url(${iconBackgroundImage})`,
                 backgroundSize: 'cover',
@@ -93,7 +93,7 @@ export default function ToolsCard({
           {Array.from({ length: Math.max(0, 8 - finalTools.length) }).map((_, index) => (
             <div
               key={`empty-${index}`}
-              className="tool-item relative flex h-[32px] w-[32px] items-center justify-center"
+              className="tool-item relative flex h-[32px] w-[32px] items-center justify-center rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-elevated)]/65"
               style={{
                 backgroundImage: `url(${iconBackgroundImage})`,
                 backgroundSize: 'cover',
@@ -106,7 +106,7 @@ export default function ToolsCard({
 
       {/* 底部旋转动画条 */}
       <div
-        className="bar absolute right-[18px] bottom-[24px] left-[18px] flex h-[39px] w-[calc(100%-36px)] items-center justify-center overflow-hidden rounded-[10px] bg-cover"
+        className="bar absolute right-[18px] bottom-[24px] left-[18px] flex h-[39px] w-[calc(100%-36px)] items-center justify-center overflow-hidden rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-cover shadow-[var(--shadow-soft)]"
         style={{
           backgroundImage: `url(${spinBarImage})`,
           backgroundSize: 'cover',

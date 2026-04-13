@@ -70,7 +70,7 @@ fn extract_real_ip_from_parts(headers: &HeaderMap, extensions: &axum::http::Exte
         // 最后一个 IP 是最接近服务器的
         let last_ip = forwarded
             .split(',')
-            .last()
+            .next_back()
             .map(|s| s.trim())
             .and_then(|s| s.parse::<IpAddr>().ok());
 

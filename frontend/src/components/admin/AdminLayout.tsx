@@ -112,27 +112,23 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const pathname = usePathname()
-  const { user, logout, isAuthenticated, checkAuth } = useAuthStore()
+  const { user, logout, isAuthenticated, isInitialized, checkAuth } = useAuthStore()
   const { toggle: toggleCommandPalette } = useKeyboardShortcuts()
 
   useEffect(() => {
-    const verifyAuth = async () => {
-      setIsCheckingAuth(true)
-      try {
-        const isAuth = await checkAuth()
-        if (!isAuth) {
-          setShowLoginModal(true)
-        }
-      } catch (error) {
-        console.error('Auth check failed:', error)
-        setShowLoginModal(true)
-      } finally {
-        setIsCheckingAuth(false)
-      }
+    if (!isInitialized) {
+      return
     }
 
-    verifyAuth()
-  }, [checkAuth])
+    const verifyAuth = async () => {
+      setIsCheckingAuth(true)
+      const isAuth = await checkAuth()
+      setShowLoginModal(!isAuth)
+      setIsCheckingAuth(false)
+    }
+
+    void verifyAuth()
+  }, [checkAuth, isInitialized])
 
   const handleLogout = async () => {
     await logout()
@@ -141,21 +137,26 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
   const handleLoginSuccess = async () => {
     setShowLoginModal(false)
-    // Re-check auth after login
-    try {
-      await checkAuth()
-    } catch (error) {
-      console.error('Failed to refresh auth after login:', error)
-    }
+    setIsCheckingAuth(true)
+    const isAuth = await checkAuth()
+    setShowLoginModal(!isAuth)
+    setIsCheckingAuth(false)
   }
 
   // Show loading state while checking auth
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-600 dark:text-gray-400">检查认证状态...</p>
+      <div className="min-h-screen bg-[var(--shell-bg)] px-4">
+        <div className="mx-auto flex min-h-screen max-w-[32rem] items-center justify-center">
+          <div className="surface-elevated flex w-full flex-col items-center gap-4 rounded-[var(--radius-panel)] border border-[var(--border-subtle)] px-8 py-10 text-center shadow-[var(--shadow-soft)]">
+            <div className="h-9 w-9 animate-spin rounded-full border-4 border-[var(--brand-color)]/30 border-t-[var(--brand-color)]" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold tracking-[0.08em] text-[var(--text-secondary)] uppercase">
+                Admin Shell
+              </p>
+              <p className="text-sm text-[var(--text-tertiary)]">检查认证状态...</p>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -164,30 +165,35 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   // Show login modal if not authenticated
   if (!isAuthenticated || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <LayoutDashboard className="w-10 h-10 text-white" />
+      <div className="min-h-screen bg-[var(--shell-bg)] px-4 py-10">
+        <div className="mx-auto flex min-h-screen max-w-[32rem] items-center justify-center">
+          <div className="w-full space-y-5">
+            <div className="surface-elevated rounded-[var(--radius-panel)] border border-[var(--border-subtle)] p-8 shadow-[var(--shadow-medium)] sm:p-10">
+              <div className="mb-8 text-center">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[calc(var(--radius-panel)-6px)] border border-[var(--border-strong)] bg-[color-mix(in_srgb,var(--brand-color)_16%,var(--surface-elevated))] text-[var(--brand-color)] shadow-[var(--shadow-soft)]">
+                  <LayoutDashboard className="h-8 w-8" />
+                </div>
+                <p className="text-xs font-semibold tracking-[0.18em] text-[var(--text-secondary)] uppercase">
+                  Admin Access
+                </p>
+                <h1 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[var(--text-primary)]">
+                  管理后台登录
+                </h1>
+                <p className="mt-2 text-sm leading-6 text-[var(--text-tertiary)]">
+                  请登录以访问管理后台
+                </p>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                管理后台登录
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                请登录以访问管理后台
-              </p>
+              <AuthModal
+                isOpen={showLoginModal}
+                onClose={handleLoginSuccess}
+                defaultMode="login"
+              />
             </div>
-            <AuthModal
-              isOpen={showLoginModal}
-              onClose={handleLoginSuccess}
-              defaultMode="login"
-            />
-          </div>
-          <div className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>默认管理员账号：</p>
-            <p className="font-mono mt-1">邮箱: demo2024@test.com</p>
-            <p className="font-mono">密码: demo123456</p>
+            <div className="rounded-[calc(var(--radius-panel)-6px)] border border-dashed border-[var(--border-subtle)] bg-[var(--surface-elevated)]/70 px-4 py-3 text-center text-sm text-[var(--text-tertiary)]">
+              <p>默认管理员账号：</p>
+              <p className="mt-1 font-mono text-[var(--text-secondary)]">邮箱: demo2024@test.com</p>
+              <p className="font-mono text-[var(--text-secondary)]">密码: demo123456</p>
+            </div>
           </div>
         </div>
       </div>
@@ -195,159 +201,141 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
   }
 
   return (
-      <div className="admin-compact min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Mobile sidebar backdrop */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
+    <div className="admin-compact min-h-screen bg-[var(--shell-bg)] text-[var(--text-primary)]">
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-[2px] lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="关闭侧边栏"
+        />
+      )}
 
-        {/* Sidebar - 紧凑模式：200px 宽度 */}
-        <aside
-          className={cn(
-            'admin-sidebar fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0',
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          )}
-        >
-          <div className="flex flex-col h-full">
-            {/* Logo - 紧凑间距 */}
-            <div className="flex items-center justify-between h-14 px-admin-md border-b border-gray-200 dark:border-gray-700">
-              <Link href="/admin" className="flex items-center space-x-2">
-                <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center">
-                  <LayoutDashboard className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg font-bold text-gray-900 dark:text-white">
+      <aside
+        className={cn(
+          'admin-sidebar fixed inset-y-0 left-0 z-50 border-r border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--surface-elevated)_92%,transparent)] shadow-[var(--shadow-soft)] backdrop-blur-xl transition-transform duration-300 ease-out lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex h-16 items-center justify-between border-b border-[var(--admin-border-subtle)] px-admin-md">
+            <Link href="/admin" className="flex min-w-0 items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-[calc(var(--radius-panel)-8px)] border border-[var(--border-strong)] bg-[color-mix(in_srgb,var(--brand-color)_16%,var(--surface-elevated))] text-[var(--brand-color)] shadow-[var(--shadow-soft)]">
+                <LayoutDashboard className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-[11px] font-semibold tracking-[0.16em] text-[var(--text-secondary)] uppercase">
+                  Console
+                </p>
+                <span className="block truncate text-sm font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
                   管理后台
                 </span>
-              </Link>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+              </div>
+            </Link>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-[calc(var(--radius-panel)-10px)] text-[var(--text-secondary)] transition-colors duration-[var(--motion-fast)] hover:bg-black/5 hover:text-[var(--text-primary)] dark:hover:bg-white/10 lg:hidden"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-            {/* Navigation - 紧凑间距 */}
-            <nav className="flex-1 px-admin-sm py-admin-md space-y-0.5 overflow-y-auto">
-              {navItems.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          <nav className="flex-1 space-y-1 overflow-y-auto px-admin-sm py-admin-md">
+            {navItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
 
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      'admin-sidebar-item group',
-                      isActive && 'active'
-                    )}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="text-admin-sm font-medium">{item.label}</span>
-                    {item.badge && (
-                      <span className="px-1.5 py-0.5 text-admin-xs font-semibold text-white bg-red-500 rounded">
-                        {item.badge}
-                      </span>
-                    )}
-                    {isActive && <ChevronRight className="w-3.5 h-3.5" />}
-                  </Link>
-                )
-              })}
-            </nav>
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    'admin-sidebar-item group relative rounded-[calc(var(--radius-panel)-10px)] border border-transparent px-3 py-2.5',
+                    isActive
+                      ? 'active border-[var(--border-strong)] bg-[color-mix(in_srgb,var(--brand-color)_14%,var(--surface-elevated))] text-[var(--text-primary)] shadow-[var(--shadow-soft)]'
+                      : 'hover:border-[var(--admin-border-subtle)] hover:bg-[color-mix(in_srgb,var(--surface-elevated)_82%,transparent)]'
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="flex-1 truncate text-admin-sm font-medium">{item.label}</span>
+                  {item.badge && (
+                    <span className="rounded-full bg-red-500 px-1.5 py-0.5 text-admin-xs font-semibold text-white">
+                      {item.badge}
+                    </span>
+                  )}
+                  {isActive && <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[var(--brand-color)]" />}
+                </Link>
+              )
+            })}
+          </nav>
 
-            {/* User section - 紧凑间距 */}
-            <div className="px-admin-sm py-admin-md border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-2 mb-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-admin-xs font-semibold text-white">
-                    {user?.username?.[0]?.toUpperCase() || 'A'}
-                  </span>
+          <div className="border-t border-[var(--admin-border-subtle)] px-admin-sm py-admin-md">
+            <div className="rounded-[calc(var(--radius-panel)-8px)] border border-[var(--admin-border-subtle)] bg-[var(--surface-elevated)]/80 p-3 shadow-[var(--shadow-soft)]">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--brand-color)_18%,var(--surface-elevated))] text-sm font-semibold text-[var(--brand-color)]">
+                  {user?.username?.[0]?.toUpperCase() || 'A'}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-admin-sm font-medium text-gray-900 dark:text-white truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-admin-sm font-medium text-[var(--text-primary)]">
                     {user?.username || '管理员'}
                   </p>
-                  <p className="text-admin-xs text-gray-500 dark:text-gray-400 truncate">
-                    {user?.email || ''}
-                  </p>
+                  <p className="truncate text-admin-xs text-[var(--text-tertiary)]">{user?.email || ''}</p>
                 </div>
               </div>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center space-x-2 px-admin-sm py-2 text-admin-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[calc(var(--radius-panel)-10px)] border border-[var(--admin-border-subtle)] px-3 py-2 text-admin-sm font-medium text-[var(--text-secondary)] transition-all duration-[var(--motion-fast)] hover:border-[var(--border-strong)] hover:bg-black/5 hover:text-[var(--text-primary)] dark:hover:bg-white/10"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="h-3.5 w-3.5" />
                 <span>退出登录</span>
               </button>
             </div>
           </div>
-        </aside>
+        </div>
+      </aside>
 
-        {/* Main content - 侧边栏宽度偏移 */}
-        <div className="lg:pl-[200px]">
-          {/* Top bar - 紧凑间距 */}
-          <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between h-14 px-admin-sm sm:px-admin-md lg:px-admin-lg">
-              <div className="flex items-center flex-1">
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className="lg:hidden mr-3 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                >
-                  <Menu className="w-5 h-5" />
-                </button>
-                <div className="flex-1">
-                  <BreadcrumbNav />
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                {/* 命令面板按钮 */}
-                <button
-                  onClick={toggleCommandPalette}
-                  className={cn(
-                    'relative group',
-                    'px-2 py-1.5 rounded',
-                    'flex items-center gap-2',
-                    'text-admin-sm text-gray-600 dark:text-gray-400',
-                    'hover:bg-gray-100 dark:hover:bg-gray-700',
-                    'hover:text-gray-900 dark:hover:text-gray-200',
-                    'transition-all duration-150'
-                  )}
-                  title="命令面板 (Cmd+K)"
-                >
-                  <Search className="w-4 h-4" />
-                  <span className="hidden sm:inline text-admin-xs">搜索</span>
-                  <kbd
-                    className={cn(
-                      'hidden sm:inline-block',
-                      'px-1.5 py-0.5',
-                      'text-admin-xs font-medium',
-                      'bg-gray-100 dark:bg-gray-700',
-                      'text-gray-500 dark:text-gray-400',
-                      'rounded',
-                      'group-hover:bg-gray-200 dark:group-hover:bg-gray-600'
-                    )}
-                  >
-                    ⌘K
-                  </kbd>
-                </button>
-                <ThemeToggle />
-                {/* 可以在这里添加通知中心等其他功能 */}
+      <div className="lg:pl-[200px]">
+        <header className="sticky top-0 z-30 border-b border-[var(--admin-border-subtle)] bg-[color-mix(in_srgb,var(--shell-bg)_82%,transparent)] backdrop-blur-xl">
+          <div className="flex min-h-16 items-center justify-between gap-3 px-admin-sm sm:px-admin-md lg:px-admin-lg">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-[calc(var(--radius-panel)-8px)] border border-[var(--admin-border-subtle)] bg-[var(--surface-elevated)]/80 text-[var(--text-secondary)] transition-all duration-[var(--motion-fast)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] hover:shadow-[var(--shadow-soft)] lg:hidden"
+              >
+                <Menu className="h-4 w-4" />
+              </button>
+              <div className="min-w-0 flex-1">
+                <BreadcrumbNav />
               </div>
             </div>
-          </header>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleCommandPalette}
+                className={cn(
+                  'group relative inline-flex h-10 items-center gap-2 rounded-[calc(var(--radius-panel)-8px)] border border-[var(--admin-border-subtle)] bg-[var(--surface-elevated)]/80 px-3 text-admin-sm text-[var(--text-secondary)] shadow-none backdrop-blur-sm transition-all duration-[var(--motion-fast)]',
+                  'hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] hover:shadow-[var(--shadow-soft)]',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)]/40'
+                )}
+                title="命令面板 (Cmd+K)"
+              >
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">搜索</span>
+                <kbd className="hidden rounded-full border border-[var(--admin-border-subtle)] bg-black/5 px-2 py-0.5 text-[11px] font-medium tracking-[0.08em] text-[var(--text-tertiary)] sm:inline-block dark:bg-white/10">
+                  ⌘K
+                </kbd>
+              </button>
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
 
-          {/* Page content - 紧凑间距 */}
-          <main className="p-admin-sm sm:p-admin-md lg:p-admin-lg admin-compact">
-            {children}
-          </main>
-        </div>
-
-        {/* 命令面板 */}
-        <CommandPalette />
+        <main className="admin-compact p-admin-sm sm:p-admin-md lg:p-admin-lg">
+          <div className="mx-auto w-full max-w-[var(--container-shell)]">{children}</div>
+        </main>
       </div>
+
+      <CommandPalette />
+    </div>
   )
 }

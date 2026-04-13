@@ -29,12 +29,11 @@ Zustand-based client-side state management for authentication, blog data, commen
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
-  accessToken: string | null
+  // GOLDEN_RULES 1.1: 不再存储 token，认证通过 HttpOnly Cookie 处理
 
   // Actions
   login: (credentials: LoginRequest) => Promise<void>
   logout: () => Promise<void>
-  refreshToken: () => Promise<void>
   updateUser: (user: User) => void
 }
 ```

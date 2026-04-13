@@ -4,15 +4,37 @@ import React, { useRef, useEffect } from 'react'
 import * as echarts from 'echarts'
 import 'echarts-gl'
 
+type FormatterValue = (...args: unknown[]) => unknown
+
+type FormatterMap = Record<string, FormatterValue>
+
+type EChartsAxis = {
+  axisLabel?: {
+    formatter?: FormatterValue
+  }
+}
+
+type EChartsSeries = {
+  label?: {
+    formatter?: FormatterValue
+  }
+}
+
+type EChartsOptionWithFormatters = {
+  tooltip?: {
+    formatter?: FormatterValue
+  }
+  series?: EChartsSeries[]
+  yAxis?: EChartsAxis | EChartsAxis[]
+}
+
 interface EChartsComponentProps {
-  option: any
+  option: unknown
   width?: string | number
   height?: string | number
   className?: string
   theme?: string
-  formatters?: {
-    [key: string]: Function
-  }
+  formatters?: FormatterMap
 }
 
 export const EChartsComponent: React.FC<EChartsComponentProps> = ({
@@ -33,14 +55,14 @@ export const EChartsComponent: React.FC<EChartsComponentProps> = ({
     chartInstance.current = echarts.init(chartRef.current, theme)
 
     // 深度克隆option并应用formatters
-    const processedOption = JSON.parse(JSON.stringify(option))
+    const processedOption = JSON.parse(JSON.stringify(option)) as EChartsOptionWithFormatters
 
     // 应用formatter函数
     if (formatters.tooltip && processedOption.tooltip) {
       processedOption.tooltip.formatter = formatters.tooltip
     }
     if (formatters.label && processedOption.series) {
-      processedOption.series.forEach((series: any) => {
+      processedOption.series.forEach((series) => {
         if (series.label) {
           series.label.formatter = formatters.label
         }
@@ -48,7 +70,7 @@ export const EChartsComponent: React.FC<EChartsComponentProps> = ({
     }
     if (formatters.axisLabel && processedOption.yAxis) {
       if (Array.isArray(processedOption.yAxis)) {
-        processedOption.yAxis.forEach((axis: any) => {
+        processedOption.yAxis.forEach((axis) => {
           if (axis.axisLabel) {
             axis.axisLabel.formatter = formatters.axisLabel
           }

@@ -293,7 +293,6 @@ const apiErrorHandler: ErrorHandler = (error) => {
 
 **State**:
 - `user: UserInfo | null` - Current user profile
-- `token: string | null` - JWT access token
 - `isAuthenticated: boolean` - Auth status flag
 - `isLoading: boolean` - Async operation status
 - `error: string | null` - Error message
@@ -303,10 +302,9 @@ const apiErrorHandler: ErrorHandler = (error) => {
 - `register(email, username, password)` - New user registration
 - `logout()` - Session termination
 - `getCurrentUser()` - Fetch user profile
-- `refreshToken()` - Token refresh
 - `checkAuth()` - Verify authentication status
 
-**Persistence**: User data and token persisted to localStorage
+**Persistence**: User data only persisted (no token - GOLDEN_RULES 1.1)
 
 ### Blog Store (`frontend/src/lib/store/blog-store.ts`)
 

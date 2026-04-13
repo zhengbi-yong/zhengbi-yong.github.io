@@ -8,6 +8,7 @@ import { Button } from '@/components/shadcn/ui/button'
 import { MessageCircle, ThumbsUp, Send, LogIn } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 import { AuthModal } from '@/components/auth/AuthModal'
+import { AppError } from '@/lib/error-handler'
 
 interface BackendCommentsProps {
   slug: string
@@ -75,7 +76,9 @@ export function BackendComments({ slug, className }: BackendCommentsProps) {
     try {
       await likeComment(commentId)
     } catch (error) {
-      // Error is handled silently
+      if (error instanceof AppError && error.statusCode === 401) {
+        setIsAuthModalOpen(true)
+      }
     }
   }
 

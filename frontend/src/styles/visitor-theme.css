@@ -79,6 +79,11 @@
   --duration-visitor-fast: 300ms;
   --duration-visitor-base: 450ms;
   --duration-visitor-slow: 600ms;
+
+  --visitor-shell-bg: var(--shell-bg, var(--visitor-bg-secondary));
+  --visitor-surface-elevated: var(--surface-elevated, rgba(255, 255, 255, 0.9));
+  --visitor-border-subtle: var(--border-subtle, rgba(15, 23, 42, 0.08));
+  --visitor-shadow-soft: var(--shadow-soft, var(--shadow-visitor-soft));
 }
 
 /* 暗色模式覆盖 */

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './geist-tokens.css';
 
 @plugin 'tailwindcss-animate';
 @config '../../tailwind.config.js';
@@ -7,38 +8,33 @@
 
 /* Core theme configuration */
 @theme {
-  /* Font families - 使用系统字体栈，避免 Google Fonts 的 Turbopack 问题 */
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'SFMono-Regular', ui-monospace, monospace;
 
-  /* Colors - 靛蓝紫配色方案：米白+靛蓝 / 深紫+紫色 */
-  /* Primary color - 靛蓝色 (Indigo) #6366f1 - 白天模式强调色 */
-  --color-primary-50: oklch(0.95 0.02 264);
-  --color-primary-100: oklch(0.90 0.04 264);
-  --color-primary-200: oklch(0.82 0.08 264);
-  --color-primary-300: oklch(0.72 0.12 264);
-  --color-primary-400: oklch(0.62 0.18 264);
-  --color-primary-500: oklch(0.55 0.22 264); /* #6366f1 - 靛蓝色 */
-  --color-primary-600: oklch(0.50 0.24 264); /* #4f46e5 */
-  --color-primary-700: oklch(0.43 0.22 264); /* #4338ca */
-  --color-primary-800: oklch(0.37 0.18 264); /* #3730a3 */
-  --color-primary-900: oklch(0.31 0.16 264); /* #312e81 */
-  --color-primary-950: oklch(0.25 0.12 264); /* 深靛蓝 */
+  --color-background: var(--geist-bg);
+  --color-foreground: var(--geist-fg);
+  --color-card: var(--geist-bg);
+  --color-card-foreground: var(--geist-fg);
+  --color-popover: var(--geist-bg);
+  --color-popover-foreground: var(--geist-fg);
+  --color-primary: var(--geist-fg);
+  --color-primary-foreground: var(--geist-bg);
+  --color-secondary: var(--geist-secondary);
+  --color-secondary-foreground: var(--geist-secondary-foreground);
+  --color-muted: var(--geist-muted);
+  --color-muted-foreground: var(--geist-muted-foreground);
+  --color-accent: var(--geist-accent);
+  --color-accent-foreground: var(--geist-accent-foreground);
+  --color-destructive: var(--geist-destructive);
+  --color-destructive-foreground: var(--geist-destructive-foreground);
+  --color-border: var(--geist-border);
+  --color-input: var(--geist-border);
+  --color-ring: var(--geist-ring);
 
-  /* Accent color - 紫色 (Purple) #a855f7 - 辅助强调色 */
-  --color-accent-50: oklch(0.97 0.02 300);
-  --color-accent-100: oklch(0.93 0.05 300);
-  --color-accent-200: oklch(0.87 0.10 300);
-  --color-accent-300: oklch(0.80 0.15 300);
-  --color-accent-400: oklch(0.72 0.20 300);
-  --color-accent-500: oklch(0.65 0.25 300); /* #a855f7 - 紫色 */
-  --color-accent-600: oklch(0.58 0.28 300); /* #9333ea */
-  --color-accent-700: oklch(0.50 0.30 300); /* #7e22ce */
-  --color-accent-800: oklch(0.42 0.28 300); /* #6b21a8 */
-  --color-accent-900: oklch(0.35 0.25 300); /* #581c87 */
-  --color-accent-950: oklch(0.28 0.20 300); /* 深紫 */
+  --radius-sm: var(--geist-radius-sm);
+  --radius-md: var(--geist-radius-md);
+  --radius-lg: var(--geist-radius-lg);
 
   --color-gray-50: oklch(0.985 0.002 247.839);
   --color-gray-100: oklch(0.967 0.003 264.542);
@@ -52,28 +48,11 @@
   --color-gray-900: oklch(0.21 0.034 264.665);
   --color-gray-950: oklch(0.13 0.028 261.692);
 
-  /* TOC (Table of Contents) Colors - 统一使用 primary/accent 颜色系列（靛蓝/紫色） */
-  --color-toc-active-text-light: var(--color-primary-600);
-  --color-toc-active-text-dark: var(--color-accent-400); /* 紫色 */
-  --color-toc-active-bg-light: oklch(0.98 0.01 264); /* 极浅靛蓝背景 */
-  --color-toc-active-bg-dark: oklch(0.20 0.02 240); /* 深紫背景 */
-  --color-toc-active-indicator-light: var(--color-primary-600);
-  --color-toc-active-indicator-dark: var(--color-accent-400); /* 紫色 */
-  --color-toc-hover-light: var(--color-primary-600);
-  --color-toc-hover-dark: var(--color-accent-400); /* 紫色 */
-  /* 阴影颜色 */
-  --color-toc-shadow-light: rgba(45, 41, 38, 0.06);
-  --color-toc-shadow-dark: rgba(0, 0, 0, 0.3);
-  --color-toc-indicator-shadow-light: rgba(99, 102, 241, 0.2); /* 靛蓝阴影 */
-  --color-toc-indicator-shadow-dark: rgba(168, 85, 247, 0.3); /* 紫色阴影 */
-
-  /* Line heights */
   --line-height-11: 2.75rem;
   --line-height-12: 3rem;
   --line-height-13: 3.25rem;
   --line-height-14: 3.5rem;
 
-  /* Z-index values */
   --z-60: 60;
   --z-70: 70;
   --z-80: 80;
@@ -98,14 +77,24 @@
 
   a,
   button {
-    outline-color: var(--color-primary-500);
+    outline-color: var(--geist-ring);
+  }
+
+  html,
+  body {
+    background: var(--geist-bg);
+    color: var(--geist-fg);
+  }
+
+  body {
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
 
   a:focus-visible,
   button:focus-visible {
     outline: 2px solid;
-    border-radius: var(--radius-sm);
-    outline-color: var(--color-primary-500);
+    border-radius: var(--geist-radius-sm);
+    outline-color: var(--geist-ring);
   }
 }
 
@@ -171,32 +160,32 @@ input:-webkit-autofill:focus {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   /* 代码块背景色 - 白天模式 */
-  background-color: #f6f8fa;
+  background-color: var(--code-bg);
   border-radius: 0.5rem;
   padding: 1rem;
   /* 代码文字颜色 - 白天模式（深色） */
-  color: #24292e;
+  color: var(--code-fg);
 }
 
 /* 夜间模式代码块背景色 */
 .dark .prose pre {
-  background-color: #1e293b;
-  color: #e1e4e8;
+  background-color: var(--code-bg);
+  color: var(--code-fg);
 }
 
 /* 白天模式 - 代码高亮颜色（深色系，适合浅色背景） */
 .prose pre .token.comment,
 .prose pre .token.prolog,
 .prose pre .token.cdata {
-  color: #6a737d;
+  color: var(--code-comment);
 }
 
 .prose pre .token.punctuation {
-  color: #24292e;
+  color: var(--code-punctuation);
 }
 
 .prose pre .namespace {
-  color: #24292e;
+  color: var(--code-punctuation);
 }
 
 .prose pre .token.deleted {
@@ -205,38 +194,38 @@ input:-webkit-autofill:focus {
 
 .prose pre .token.symbol,
 .prose pre .token.property {
-  color: #005cc5;
+  color: var(--code-symbol);
 }
 
 .prose pre .token.tag,
 .prose pre .token.operator,
 .prose pre .token.keyword {
-  color: #d73a49;
+  color: var(--code-keyword);
 }
 
 .prose pre .token.boolean {
-  color: #005cc5;
+  color: var(--code-boolean);
 }
 
 .prose pre .token.number {
-  color: #005cc5;
+  color: var(--code-number);
 }
 
 .prose pre .token.constant,
 .prose pre .token.function,
 .prose pre .token.builtin,
 .prose pre .token.char {
-  color: #6f42c1;
+  color: var(--code-function);
 }
 
 .prose pre .token.selector,
 .prose pre .token.doctype {
-  color: #22863a;
+  color: var(--code-selector);
 }
 
 .prose pre .token.attr-name,
 .prose pre .token.inserted {
-  color: #22863a;
+  color: var(--code-attr-name);
 }
 
 .prose pre .token.string,
@@ -244,30 +233,30 @@ input:-webkit-autofill:focus {
 .prose pre .token.entity,
 .prose pre .language-css .token.string,
 .prose pre .style .token.string {
-  color: #032f62;
+  color: var(--code-string);
 }
 
 .prose pre .token.class-name,
 .prose pre .token.atrule,
 .prose pre .token.attr-value {
-  color: #e36209;
+  color: var(--code-class-name);
 }
 
 .prose pre .token.regex,
 .prose pre .token.important,
 .prose pre .token.variable {
-  color: #005cc5;
+  color: var(--code-variable);
 }
 
 /* 夜间模式 - 代码高亮颜色（浅色系，适合深色背景 - Night Owl主题） */
 .dark .prose pre .token.comment,
 .dark .prose pre .token.prolog,
 .dark .prose pre .token.cdata {
-  color: rgb(99, 119, 119);
+  color: var(--code-comment);
 }
 
 .dark .prose pre .token.punctuation {
-  color: rgb(199, 146, 234);
+  color: var(--code-punctuation);
 }
 
 .dark .prose pre .namespace {
@@ -470,6 +459,49 @@ input:-webkit-autofill:focus {
   --shadow-tinted-md: rgba(26, 26, 46, 0.08);
   --shadow-tinted-lg: rgba(26, 26, 46, 0.12);
   --shadow-tinted-xl: rgba(26, 26, 46, 0.16);
+
+  /* Shared appearance aliases for batch-1 refresh */
+  --shell-bg: color-mix(in oklab, var(--site-bg) 92%, white 8%);
+  --shell-elevated: rgba(255, 255, 255, 0.78);
+  --shell-border: rgba(15, 23, 42, 0.08);
+  --surface-subtle: rgba(255, 255, 255, 0.72);
+  --surface-elevated: rgba(255, 255, 255, 0.9);
+  --surface-strong: #ffffff;
+  --text-soft: color-mix(in oklab, var(--text-secondary) 88%, white 12%);
+  --text-faint: color-mix(in oklab, var(--text-secondary) 66%, white 34%);
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.14);
+  --shadow-soft: 0 18px 48px -28px rgba(15, 23, 42, 0.18);
+  --shadow-medium: 0 24px 64px -36px rgba(15, 23, 42, 0.24);
+  --radius-pill: 9999px;
+  --radius-panel: 1.5rem;
+  --motion-fast: 160ms;
+  --motion-base: 220ms;
+  --motion-slow: 320ms;
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --container-shell: 80rem;
+  --container-content: 72rem;
+  --container-reading: 72ch;
+  --space-section-sm: clamp(2.5rem, 4vw, 4rem);
+  --space-section-md: clamp(3.5rem, 6vw, 5.5rem);
+  --space-section-lg: clamp(4.5rem, 8vw, 7rem);
+  --header-height: 4.5rem;
+  --header-height-compact: 4rem;
+  --footer-padding-y: clamp(3.5rem, 6vw, 5rem);
+  --code-bg: #f6f8fa;
+  --code-fg: #24292e;
+  --code-comment: #6a737d;
+  --code-punctuation: #24292e;
+  --code-symbol: #005cc5;
+  --code-keyword: #d73a49;
+  --code-boolean: #005cc5;
+  --code-number: #005cc5;
+  --code-function: #6f42c1;
+  --code-selector: #22863a;
+  --code-attr-name: #22863a;
+  --code-string: #032f62;
+  --code-class-name: #e36209;
+  --code-variable: #005cc5;
 }
 
 .dark {
@@ -543,6 +575,33 @@ input:-webkit-autofill:focus {
   --shadow-tinted-md: rgba(0, 0, 0, 0.3);
   --shadow-tinted-lg: rgba(0, 0, 0, 0.4);
   --shadow-tinted-xl: rgba(0, 0, 0, 0.5);
+
+  --shell-bg: color-mix(in oklab, var(--site-bg) 94%, black 6%);
+  --shell-elevated: rgba(15, 23, 42, 0.76);
+  --shell-border: rgba(226, 232, 240, 0.1);
+  --surface-subtle: rgba(15, 23, 42, 0.72);
+  --surface-elevated: rgba(15, 23, 42, 0.88);
+  --surface-strong: rgba(15, 23, 42, 0.96);
+  --text-soft: color-mix(in oklab, var(--text-secondary) 84%, white 16%);
+  --text-faint: color-mix(in oklab, var(--text-secondary) 62%, white 38%);
+  --border-subtle: rgba(226, 232, 240, 0.12);
+  --border-strong: rgba(226, 232, 240, 0.18);
+  --shadow-soft: 0 20px 56px -32px rgba(2, 6, 23, 0.56);
+  --shadow-medium: 0 28px 72px -36px rgba(2, 6, 23, 0.68);
+  --code-bg: #1e293b;
+  --code-fg: #e1e4e8;
+  --code-comment: rgb(99, 119, 119);
+  --code-punctuation: rgb(199, 146, 234);
+  --code-symbol: rgb(128, 203, 196);
+  --code-keyword: rgb(127, 219, 202);
+  --code-boolean: rgb(255, 88, 116);
+  --code-number: rgb(247, 140, 108);
+  --code-function: rgb(130, 170, 255);
+  --code-selector: rgb(199, 146, 234);
+  --code-attr-name: rgb(173, 219, 103);
+  --code-string: rgb(173, 219, 103);
+  --code-class-name: rgb(255, 203, 139);
+  --code-variable: rgb(214, 222, 235);
 }
 
 @theme inline {
@@ -599,6 +658,54 @@ input:-webkit-autofill:focus {
     background-color: var(--site-bg);
     color: var(--text-primary);
     transition: background-color var(--transition-speed, 0.4s) ease, color var(--transition-speed, 0.4s) ease;
+  }
+
+  body::selection {
+    background: var(--brand-color);
+    color: var(--surface-strong);
+  }
+}
+
+@layer components {
+  .container-shell {
+    width: min(100%, var(--container-shell));
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .container-content {
+    width: min(100%, var(--container-content));
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .container-reading {
+    width: min(100%, var(--container-reading));
+    margin-inline: auto;
+  }
+
+  .surface-shell {
+    background: var(--shell-bg);
+    color: var(--text-primary);
+  }
+
+  .surface-elevated {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(18px);
+  }
+
+  .section-space-sm {
+    padding-block: var(--space-section-sm);
+  }
+
+  .section-space-md {
+    padding-block: var(--space-section-md);
+  }
+
+  .section-space-lg {
+    padding-block: var(--space-section-lg);
   }
 }
 

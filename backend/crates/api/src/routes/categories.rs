@@ -378,22 +378,20 @@ pub async fn get_category_tree(
         .await
         .map_err(|_| AppError::InternalError)?;
 
-    if let Ok(cached) = redis::cmd("GET")
+    if let Ok(Some(cached_str)) = redis::cmd("GET")
         .arg(cache_key)
         .query_async::<Option<String>>(&mut conn)
         .await
     {
-        if let Some(cached_str) = cached {
-            if let Ok(tree) = serde_json::from_str::<Vec<CategoryTreeNode>>(&cached_str) {
-                return Ok((
-                    [(
-                        header::CACHE_CONTROL,
-                        "public, s-maxage=300, stale-while-revalidate=600",
-                    )],
-                    Json(tree),
-                )
-                    .into_response());
-            }
+        if let Ok(tree) = serde_json::from_str::<Vec<CategoryTreeNode>>(&cached_str) {
+            return Ok((
+                [(
+                    header::CACHE_CONTROL,
+                    "public, s-maxage=300, stale-while-revalidate=600",
+                )],
+                Json(tree),
+            )
+                .into_response());
         }
     }
 

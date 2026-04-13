@@ -49,7 +49,7 @@ Admin dashboard page for viewing individual post performance metrics and user en
 ```
 Layer 5 (Foundation)
   ├─ Axios HTTP client (via customAxios in dataProvider)
-  ├─ JWT authentication (Bearer token from localStorage)
+  ├─ HttpOnly Cookie authentication (via withCredentials)
   └─ Backend API endpoints
 
 Layer 4 (Integration)

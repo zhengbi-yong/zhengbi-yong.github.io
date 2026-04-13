@@ -9,6 +9,7 @@
  * exporter shape in userland.
  */
 
+import * as Sentry from '@sentry/nextjs'
 import { registerOTel } from '@vercel/otel'
 
 const DEFAULT_SERVICE_NAME = 'blog-frontend'
@@ -31,6 +32,8 @@ function shouldRegisterOTel() {
     Boolean(process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)
   )
 }
+
+export const onRequestError = Sentry.captureRequestError
 
 export function register() {
   if (!shouldRegisterOTel()) {

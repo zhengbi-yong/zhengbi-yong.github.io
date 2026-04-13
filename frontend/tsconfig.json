@@ -67,10 +67,16 @@
         "./src/config/*"
       ],
       "contentlayer/generated": [
-        "./.contentlayer/generated"
+        "./src/lib/contentlayer/generated.ts"
       ],
       "pliny/*": [
         "node_modules/pliny/*"
+      ],
+      "pliny/utils/contentlayer": [
+        "./src/lib/pliny/utils/contentlayer.ts"
+      ],
+      "pliny/mdx-components": [
+        "./src/lib/pliny/mdx-components.tsx"
       ],
       "three/examples/jsm/*": [
         "node_modules/three/examples/jsm/*"
@@ -90,8 +96,7 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.json",
-    ".contentlayer/generated",
-    ".contentlayer/generated/**/*.json",
+    ".velite/**/*.json",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     ".next/dev/dev/types/**/*.ts"

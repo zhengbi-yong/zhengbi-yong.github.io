@@ -1,0 +1,166 @@
+# K3s Network Policy for Blog Namespace
+# Enforces network segmentation and zero-trust networking
+#
+# Default deny all ingress and egress
+# Only explicitly allowed communication is permitted
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: blog
+spec:
+  # Deny all ingress traffic by default
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# Allow DNS resolution
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: blog
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+---
+# Allow backend API to connect to PostgreSQL
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-to-postgres
+  namespace: blog
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: blog-backend
+  policyTypes:
+    - Egress
+  egress:
+    # Allow PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: blog-postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+
+---
+# Allow backend API to connect to Redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-to-redis
+  namespace: blog
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: blog-backend
+  policyTypes:
+    - Egress
+  egress:
+    # Allow Redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: blog-redis
+      ports:
+        - protocol: TCP
+          port: 6379
+
+---
+# Allow ingress to backend API from frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+  namespace: blog
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: blog-backend
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from frontend namespace (assumes frontend is deployed separately)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/name: frontend
+      ports:
+        - protocol: TCP
+          port: 3000
+    # Allow from ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: traefik
+      ports:
+        - protocol: TCP
+          port: 3000
+
+---
+# Prometheus metrics scraping
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: blog-backend-monitor
+  namespace: blog
+  labels:
+    app.kubernetes.io/name: blog-backend
+    monitoring: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: blog-backend
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+      - blog
+
+---
+# Prometheus PodMonitor for backend
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: blog-backend-pod-monitor
+  namespace: blog
+  labels:
+    app.kubernetes.io/name: blog-backend
+    monitoring: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: blog-backend
+  podMetricsEndpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+  namespaceSelector:
+    matchNames:
+      - blog

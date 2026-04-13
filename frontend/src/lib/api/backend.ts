@@ -1,7 +1,13 @@
 // Backend API Service
 // This service handles all communication with the backend API
+//
+// GOLDEN_RULES 1.1: 认证令牌必须仅存在于 HttpOnly Cookie 中
+// - 前端不存储、不读取、不操作任何认证令牌
+// - 所有请求通过 credentials: 'include' 自动携带 Cookie
+// - 不再使用 Authorization Bearer Token
 
-import { api, apiClient } from './apiClient'
+import { api } from './apiClient'
+import { AppError } from '../error-handler'
 import { resolveBackendApiBaseUrl } from './resolveBackendApiBaseUrl'
 import type {
   LoginRequest,
@@ -30,9 +36,6 @@ import type {
   SearchResponse,
   ReadingProgress,
   ReadingHistoryResponse,
-  UpdateProfileRequest,
-  ChangePasswordRequest,
-  UserReadingStats,
   CommentNotificationSubscription,
   CommentNotificationPreferences,
   MediaItem,
@@ -49,44 +52,6 @@ import type {
 // Backend API base URL - adjust based on your environment
 const BACKEND_API_URL = resolveBackendApiBaseUrl()
 
-// Token refresh state management
-let refreshPromise: Promise<string> | null = null
-
-/**
- * Refresh access token using refresh token from cookie
- */
-export const refreshAccessToken = async (): Promise<string> => {
-  // Prevent multiple simultaneous refresh attempts
-  if (refreshPromise) {
-    return refreshPromise
-  }
-
-  refreshPromise = (async () => {
-    try {
-      const response = await api.post<{ access_token: string }>(
-        `${BACKEND_API_URL}/auth/refresh`,
-        undefined,
-        { cache: false }
-      )
-      const newToken = response.data.access_token
-
-      // Update the default header
-      apiClient.setDefaultHeader('Authorization', `Bearer ${newToken}`)
-
-      // Update localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('access_token', newToken)
-      }
-
-      return newToken
-    } finally {
-      refreshPromise = null
-    }
-  })()
-
-  return refreshPromise
-}
-
 // ==================== Helper Functions ====================
 /**
  * Encode slug for URL - handles slashes and special characters
@@ -100,20 +65,12 @@ function encodeSlug(slug: string): string {
 export const authService = {
   /**
    * Login with email and password
+   * GOLDEN_RULES 1.1: 响应中的 token 被忽略, 只使用 HttpOnly Cookie
    */
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>(`${BACKEND_API_URL}/auth/login`, credentials, {
       cache: false,
     })
-    if (response.success && response.data.access_token) {
-      // Store token for future requests
-      apiClient.setDefaultHeader('Authorization', `Bearer ${response.data.access_token}`)
-      // Store in localStorage for persistence
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('access_token', response.data.access_token)
-        localStorage.setItem('user_info', JSON.stringify(response.data.user))
-      }
-    }
     return response.data
   },
 
@@ -124,18 +81,12 @@ export const authService = {
     const response = await api.post<AuthResponse>(`${BACKEND_API_URL}/auth/register`, data, {
       cache: false,
     })
-    if (response.success && response.data.access_token) {
-      apiClient.setDefaultHeader('Authorization', `Bearer ${response.data.access_token}`)
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('access_token', response.data.access_token)
-        localStorage.setItem('user_info', JSON.stringify(response.data.user))
-      }
-    }
     return response.data
   },
 
   /**
    * Get current user info
+   * 认证通过 HttpOnly Cookie 自动处理
    */
   async getCurrentUser(): Promise<UserInfo> {
     const response = await api.get<UserInfo>(`${BACKEND_API_URL}/auth/me`, { cache: false })
@@ -147,97 +98,24 @@ export const authService = {
    */
   async logout(): Promise<void> {
     await api.post(`${BACKEND_API_URL}/auth/logout`, undefined, { cache: false })
-    // Clear auth data
-    apiClient.removeDefaultHeader('Authorization')
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('user_info')
-    }
   },
 
   /**
-   * Initialize auth from localStorage
+   * Initialize auth - attempt to restore session using HttpOnly cookie
+   * Returns user if session is valid, null if not authenticated
+   * GOLDEN_RULES 1.1: 不再返回 token, 只通过 Cookie 自动处理认证
    */
-  initAuth(): { token: string | null; user: UserInfo | null } {
-    if (typeof window === 'undefined') {
-      return { token: null, user: null }
-    }
-    const token = localStorage.getItem('access_token')
-    const userInfo = localStorage.getItem('user_info')
-    if (token) {
-      apiClient.setDefaultHeader('Authorization', `Bearer ${token}`)
-    }
-    return {
-      token,
-      user: userInfo ? JSON.parse(userInfo) : null,
-    }
-  },
-
-  /**
-   * Check if user is authenticated
-   */
-  isAuthenticated(): boolean {
-    if (typeof window === 'undefined') return false
-    return !!localStorage.getItem('access_token')
-  },
-
-  /**
-   * Refresh access token
-   */
-  async refreshToken(): Promise<{ access_token: string }> {
-    const newToken = await refreshAccessToken()
-    return { access_token: newToken }
-  },
-
-  /**
-   * Update user profile
-   */
-  async updateProfile(data: UpdateProfileRequest): Promise<UserInfo> {
-    const response = await api.put<UserInfo>(`${BACKEND_API_URL}/auth/profile`, data, {
-      cache: false,
-    })
-    // Update localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('user_info', JSON.stringify(response.data))
-    }
-    return response.data
-  },
-
-  /**
-   * Change password
-   */
-  async changePassword(data: ChangePasswordRequest): Promise<void> {
-    await api.post(`${BACKEND_API_URL}/auth/change-password`, data, { cache: false })
-  },
-
-  /**
-   * Upload avatar
-   */
-  async uploadAvatar(file: File): Promise<{ avatar_url: string }> {
-    const formData = new FormData()
-    formData.append('avatar', file)
-
-    const response = await api.post<{ avatar_url: string }>(
-      `${BACKEND_API_URL}/auth/avatar`,
-      formData,
-      {
-        cache: false,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+  async initAuth(): Promise<{ user: UserInfo | null }> {
+    try {
+      const user = await this.getCurrentUser()
+      return { user }
+    } catch (error) {
+      if (error instanceof AppError && error.statusCode === 401) {
+        return { user: null }
       }
-    )
-    return response.data
-  },
 
-  /**
-   * Get user reading statistics
-   */
-  async getReadingStats(): Promise<UserReadingStats> {
-    const response = await api.get<UserReadingStats>(`${BACKEND_API_URL}/auth/reading-stats`, {
-      cache: 60 * 1000,
-    })
-    return response.data
+      throw error
+    }
   },
 }
 
@@ -435,7 +313,7 @@ export const commentService = {
     if (limit !== 20) params.append('limit', limit.toString())
 
     const url = `${BACKEND_API_URL}/posts/${encodeSlug(slug)}/comments${params.toString() ? '?' + params.toString() : ''}`
-    const response = await api.get<CommentListResponse>(url)
+    const response = await api.get<CommentListResponse>(url, { cache: false })
     return response.data
   },
 
@@ -504,7 +382,13 @@ export const adminService = {
   /**
    * Get list of users (with search and filter support)
    */
-  async getUsers(params?: { page?: number; page_size?: number; search?: string; status?: string; role?: string }): Promise<UserListResponse> {
+  async getUsers(params?: {
+    page?: number
+    page_size?: number
+    search?: string
+    status?: string
+    role?: string
+  }): Promise<UserListResponse> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
     if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
@@ -523,10 +407,9 @@ export const adminService = {
    * Get user detail
    */
   async getUserDetail(userId: string): Promise<UserDetail> {
-    const response = await api.get<UserDetail>(
-      `${BACKEND_API_URL}/admin/users/${userId}`,
-      { cache: false }
-    )
+    const response = await api.get<UserDetail>(`${BACKEND_API_URL}/admin/users/${userId}`, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -534,11 +417,9 @@ export const adminService = {
    * Create a new user
    */
   async createUser(data: CreateUserRequest): Promise<UserDetail> {
-    const response = await api.post<UserDetail>(
-      `${BACKEND_API_URL}/admin/users`,
-      data,
-      { cache: false }
-    )
+    const response = await api.post<UserDetail>(`${BACKEND_API_URL}/admin/users`, data, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -546,11 +427,9 @@ export const adminService = {
    * Update user (profile, role, status)
    */
   async updateUser(userId: string, data: UpdateUserRequest): Promise<UserDetail> {
-    const response = await api.put<UserDetail>(
-      `${BACKEND_API_URL}/admin/users/${userId}`,
-      data,
-      { cache: false }
-    )
+    const response = await api.put<UserDetail>(`${BACKEND_API_URL}/admin/users/${userId}`, data, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -565,21 +444,33 @@ export const adminService = {
    * Suspend user
    */
   async suspendUser(userId: string): Promise<void> {
-    await api.put(`${BACKEND_API_URL}/admin/users/${userId}`, { status: 'suspended' }, { cache: false })
+    await api.put(
+      `${BACKEND_API_URL}/admin/users/${userId}`,
+      { status: 'suspended' },
+      { cache: false }
+    )
   },
 
   /**
    * Ban user
    */
   async banUser(userId: string): Promise<void> {
-    await api.put(`${BACKEND_API_URL}/admin/users/${userId}`, { status: 'banned' }, { cache: false })
+    await api.put(
+      `${BACKEND_API_URL}/admin/users/${userId}`,
+      { status: 'banned' },
+      { cache: false }
+    )
   },
 
   /**
    * Reactivate user
    */
   async reactivateUser(userId: string): Promise<void> {
-    await api.put(`${BACKEND_API_URL}/admin/users/${userId}`, { status: 'active' }, { cache: false })
+    await api.put(
+      `${BACKEND_API_URL}/admin/users/${userId}`,
+      { status: 'active' },
+      { cache: false }
+    )
   },
 
   /**
@@ -674,7 +565,9 @@ export const adminService = {
     layout?: string
     tag_ids?: string[] | null
   }): Promise<PostDetail> {
-    const response = await api.post<PostDetail>(`${BACKEND_API_URL}/admin/posts`, data, { cache: false })
+    const response = await api.post<PostDetail>(`${BACKEND_API_URL}/admin/posts`, data, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -702,7 +595,9 @@ export const adminService = {
       tag_ids?: string[] | null
     }
   ): Promise<PostDetail> {
-    const response = await api.patch<PostDetail>(`${BACKEND_API_URL}/admin/posts/${slug}`, data, { cache: false })
+    const response = await api.patch<PostDetail>(`${BACKEND_API_URL}/admin/posts/${slug}`, data, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -762,10 +657,9 @@ export const adminService = {
    * Get single media item detail
    */
   async getMediaById(mediaId: string): Promise<MediaDetail> {
-    const response = await api.get<MediaDetail>(
-      `${BACKEND_API_URL}/admin/media/${mediaId}`,
-      { cache: false }
-    )
+    const response = await api.get<MediaDetail>(`${BACKEND_API_URL}/admin/media/${mediaId}`, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -778,14 +672,10 @@ export const adminService = {
     if (altText) formData.append('alt_text', altText)
     if (caption) formData.append('caption', caption)
 
-    const response = await api.post<MediaItem>(
-      `${BACKEND_API_URL}/admin/media/upload`,
-      formData,
-      {
-        cache: false,
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }
-    )
+    const response = await api.post<MediaItem>(`${BACKEND_API_URL}/admin/media/upload`, formData, {
+      cache: false,
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return response.data
   },
 
@@ -805,11 +695,9 @@ export const adminService = {
    * Finalize presigned upload
    */
   async finalizeUpload(data: FinalizeMediaUploadRequest): Promise<MediaItem> {
-    const response = await api.post<MediaItem>(
-      `${BACKEND_API_URL}/admin/media/finalize`,
-      data,
-      { cache: false }
-    )
+    const response = await api.post<MediaItem>(`${BACKEND_API_URL}/admin/media/finalize`, data, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -821,11 +709,9 @@ export const adminService = {
     name: string
     description?: string
   }): Promise<MediaItem> {
-    const response = await api.post<MediaItem>(
-      `${BACKEND_API_URL}/admin/media/chemistry`,
-      data,
-      { cache: false }
-    )
+    const response = await api.post<MediaItem>(`${BACKEND_API_URL}/admin/media/chemistry`, data, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -845,17 +731,19 @@ export const adminService = {
    * Get unused media
    */
   async getUnusedMedia(): Promise<MediaItem[]> {
-    const response = await api.get<MediaItem[]>(
-      `${BACKEND_API_URL}/admin/media/unused`,
-      { cache: false }
-    )
+    const response = await api.get<MediaItem[]>(`${BACKEND_API_URL}/admin/media/unused`, {
+      cache: false,
+    })
     return response.data
   },
 
   /**
    * Get media download URL
    */
-  async getMediaDownloadUrl(mediaId: string, expiresSecs?: number): Promise<MediaDownloadUrlResponse> {
+  async getMediaDownloadUrl(
+    mediaId: string,
+    expiresSecs?: number
+  ): Promise<MediaDownloadUrlResponse> {
     const params = new URLSearchParams()
     if (expiresSecs) params.append('expires_secs', expiresSecs.toString())
 
@@ -902,10 +790,7 @@ export const adminService = {
       total: number
       page: number
       page_size: number
-    }>(
-      `${BACKEND_API_URL}/admin/team-members?${queryParams.toString()}`,
-      { cache: false }
-    )
+    }>(`${BACKEND_API_URL}/admin/team-members?${queryParams.toString()}`, { cache: false })
     return response.data
   },
 
@@ -923,12 +808,12 @@ export const adminService = {
   /**
    * Create a new team member
    */
-  async createTeamMember(data: import('../types/backend').CreateTeamMemberRequest): Promise<{ id: string }> {
-    const response = await api.post<{ id: string }>(
-      `${BACKEND_API_URL}/admin/team-members`,
-      data,
-      { cache: false }
-    )
+  async createTeamMember(
+    data: import('../types/backend').CreateTeamMemberRequest
+  ): Promise<{ id: string }> {
+    const response = await api.post<{ id: string }>(`${BACKEND_API_URL}/admin/team-members`, data, {
+      cache: false,
+    })
     return response.data
   },
 
@@ -961,7 +846,9 @@ export const adminService = {
   /**
    * Batch delete team members
    */
-  async batchDeleteTeamMembers(data: import('../types/backend').BatchDeleteTeamMembersRequest): Promise<{ message: string }> {
+  async batchDeleteTeamMembers(
+    data: import('../types/backend').BatchDeleteTeamMembersRequest
+  ): Promise<{ message: string }> {
     const response = await api.post<{ message: string }>(
       `${BACKEND_API_URL}/admin/team-members/batch/delete`,
       data,

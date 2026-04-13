@@ -5,6 +5,7 @@ import HeroSection from '@/components/magazine/HeroSection'
 import MasonryGrid, { ContentItem } from '@/components/magazine/MasonryGrid'
 import FilterBar, { FilterState } from '@/components/magazine/FilterBar'
 import RecommendedSection from '@/components/magazine/RecommendedSection'
+import SectionContainer from '@/components/SectionContainer'
 import { isFeatureEnabled } from '@/lib/feature-flags'
 
 /**
@@ -108,7 +109,8 @@ export default function MagazineLayout({
   }, [allItems, filter])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950" data-testid="magazine-layout">
+    <SectionContainer variant="shell" className="surface-shell section-space-md">
+      <div data-testid="magazine-layout">
       {/* Hero Section */}
       {featuredArticle && isFeatureEnabled('magazineLayout') && (
         <HeroSection
@@ -127,8 +129,8 @@ export default function MagazineLayout({
       )}
 
       {/* Masonry Grid */}
-      <section className="py-12" data-testid="magazine-masonry-section">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="section-space-sm" data-testid="magazine-masonry-section">
+        <div className="container-content">
           {isFeatureEnabled('masonryGrid') ? (
             <MasonryGrid
               items={filteredItems}
@@ -142,13 +144,13 @@ export default function MagazineLayout({
               {filteredItems.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-xl border-2 border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800"
+                  className="surface-elevated rounded-[var(--radius-panel)] p-6"
                 >
-                  <h3 className="font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-lg font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
                     {item.title}
                   </h3>
                   {item.summary && (
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                    <p className="mt-2 text-sm leading-relaxed text-[var(--text-soft)]">
                       {item.summary}
                     </p>
                   )}
@@ -167,6 +169,7 @@ export default function MagazineLayout({
           allItems={allItems}
         />
       )}
-    </div>
+      </div>
+    </SectionContainer>
   )
 }

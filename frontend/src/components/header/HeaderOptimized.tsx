@@ -113,53 +113,57 @@ export default function Header() {
 
   const getNavLinkClass = (isActive: boolean) => {
     return cn(
-      'font-inter text-sm md:text-xs lg:text-sm uppercase tracking-[0.2rem] transition-all duration-300',
+      'inline-flex items-center border-b pb-1 text-sm font-medium tracking-[0.08em] transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
       isActive
         ? isDark
-          ? 'text-[#c6c7c6] underline decoration-[1px] underline-offset-8 opacity-100'
-          : 'text-gray-800 underline decoration-[1px] underline-offset-8 opacity-100'
+          ? 'border-white/70 text-white'
+          : 'border-zinc-900 text-zinc-950'
         : isDark
-          ? 'text-slate-400 hover:text-[#c6c7c6] opacity-80 hover:opacity-100'
-          : 'text-gray-500 hover:text-gray-800 opacity-80 hover:opacity-100'
+          ? 'border-transparent text-zinc-400 hover:border-white/20 hover:text-zinc-100'
+          : 'border-transparent text-zinc-500 hover:border-black/10 hover:text-zinc-900'
     )
   }
 
+  const actionButtonClass = cn(
+    'inline-flex h-10 w-10 items-center justify-center rounded-full border text-current transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97]',
+    isDark
+      ? 'border-white/10 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.08]'
+      : 'border-black/8 bg-white/75 hover:border-black/12 hover:bg-black/[0.04]'
+  )
+
+  const actionIconClass = 'h-[18px] w-[18px]'
+
   return (
     <>
-      {/* 占位 div - 保持页面布局一致 */}
-      <div className="pointer-events-none relative h-20 w-full opacity-0" />
+      <div className="pointer-events-none relative h-[var(--header-height)] w-full opacity-0" />
 
-      {/* 艺术风格页眉 */}
       <header
         id="header"
         style={{
           transform: state.transformY ? `translateY(${state.transformY}%)` : undefined,
-          transition: 'transform 0.3s ease-out',
+          transition: 'transform var(--motion-slow) var(--ease-standard)',
         }}
         className={cn(
           styles.header,
-          'fixed top-0 left-0 right-0 z-50 backdrop-blur-xl shadow-[0px_60px_64px_-12px_rgba(0,0,0,0.04)]',
+          'fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl',
           isDark
-            ? 'bg-[#05080F]/80 text-[#c6c7c6]'
-            : 'bg-white/80 dark:bg-[#05080F]/80 text-gray-700 dark:text-[#c6c7c6]'
+            ? 'border-[var(--border-subtle)] bg-[var(--shell-elevated)] text-zinc-100 shadow-[var(--shadow-soft)]'
+            : 'border-[var(--border-subtle)] bg-[var(--shell-elevated)] text-zinc-700 shadow-[var(--shadow-soft)]'
         )}
       >
-        <div className="max-w-[1920px] mx-auto px-6 md:px-12 py-6 md:py-8">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link
-              href="/"
-              className={cn(
-                'text-2xl md:text-[28px] tracking-tight transition-colors duration-300',
-                isDark ? 'text-[#c6c7c6] hover:text-white' : 'text-gray-800 hover:text-gray-600'
-              )}
-              style={{ fontFamily: 'var(--font-great-vibes)' }}
-            >
-              {siteMetadata.title}
-            </Link>
+        <div className="container-shell flex min-h-[var(--header-height)] items-center justify-between gap-6 py-3">
+          <Link
+            href="/"
+            className={cn(
+              'shrink-0 text-[15px] font-semibold tracking-[-0.02em] transition-colors duration-[var(--motion-fast)] md:text-base',
+              isDark ? 'text-zinc-100 hover:text-zinc-300' : 'text-zinc-950 hover:text-zinc-600'
+            )}
+          >
+            {siteMetadata.author}
+          </Link>
 
-            {/* 桌面端导航 - 仅在 md+ 显示 */}
-            <nav className="hidden md:flex items-center gap-10 lg:gap-14">
+          <div className="hidden min-w-0 items-center justify-end gap-6 md:flex lg:gap-8">
+            <nav className="flex items-center gap-5 lg:gap-7">
               {menuItems.map((menu) => {
                 const isActive = currentPath.startsWith(menu.href)
                 return (
@@ -174,65 +178,67 @@ export default function Header() {
               })}
             </nav>
 
-            {/* 桌面端操作按钮 - 仅在 md+ 显示 */}
-            <div className={cn(
-              'hidden md:flex items-center gap-8',
-              isDark ? 'text-[#c6c7c6]' : 'text-gray-700'
-            )}>
+            <div
+              className={cn(
+                'flex items-center gap-2.5 border-l pl-5',
+                isDark ? 'border-white/10 text-zinc-300' : 'border-zinc-200 text-zinc-600'
+              )}
+            >
               <Link
                 href="/search"
-                className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-300"
+                className={actionButtonClass}
                 aria-label="搜索"
               >
-                <Search className="w-5 h-5" />
+                <Search className={actionIconClass} />
               </Link>
 
               <button
                 onClick={toggleTheme}
-                className="flex items-center opacity-60 hover:opacity-100 transition-opacity duration-300"
+                className={actionButtonClass}
                 aria-label="切换主题"
               >
                 {state.mounted
-                  ? (isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)
-                  : <span className="w-5 h-5 block" />
-                }
+                  ? isDark
+                    ? <Sun className={actionIconClass} />
+                    : <Moon className={actionIconClass} />
+                  : <span className="block h-[18px] w-[18px]" />}
               </button>
 
               <AuthButton isDark={isDark} />
             </div>
+          </div>
 
-            {/* 移动端操作按钮 - 仅在 < md 显示 */}
-            <div className={cn(
-              'flex items-center gap-4 md:hidden',
-              isDark ? 'text-[#c6c7c6]' : 'text-gray-700'
-            )}>
-              <Link
-                href="/search"
-                className="opacity-60 hover:opacity-100 transition-opacity duration-300"
-                aria-label="搜索"
-              >
-                <Search className="w-5 h-5" />
-              </Link>
+          <div
+            className={cn(
+              'flex items-center gap-3 md:hidden',
+              isDark ? 'text-zinc-300' : 'text-zinc-600'
+            )}
+          >
+            <Link
+              href="/search"
+              className={actionButtonClass}
+              aria-label="搜索"
+            >
+              <Search className={actionIconClass} />
+            </Link>
 
-              <MobileMenuButton
-                isOpen={state.isMobileMenuOpen}
-                onOpen={openMobileMenu}
-                onClose={closeMobileMenu}
-                onKeyDown={handleKeyDown}
-                isDark={isDark}
-              />
-            </div>
+            <MobileMenuButton
+              isOpen={state.isMobileMenuOpen}
+              onOpen={openMobileMenu}
+              onClose={closeMobileMenu}
+              onKeyDown={handleKeyDown}
+              isDark={isDark}
+            />
           </div>
         </div>
 
-        {/* 移动端菜单遮罩 - 仅在 < md 显示 */}
         {state.isMobileMenuOpen && (
           <div
             role="button"
             tabIndex={0}
             className={cn(
               'fixed inset-0 z-20 h-screen w-screen backdrop-blur-sm md:hidden',
-              isDark ? 'bg-[#05080F]/95' : 'bg-white/95'
+              isDark ? 'bg-[#05080F]/78' : 'bg-zinc-50/78'
             )}
             onClick={closeMobileMenu}
             onKeyDown={(e) => handleKeyDown(e, closeMobileMenu)}
@@ -240,25 +246,24 @@ export default function Header() {
           />
         )}
 
-        {/* 移动端菜单 - 仅在 < md 显示 */}
         <div
           id="menu"
           className={cn(
             styles.menu,
-            'fixed top-[68px] right-3 left-3 z-40 h-auto w-auto flex-col items-center justify-start pt-6 pb-5 text-sm duration-300 ease-out md:hidden',
+            'fixed top-[calc(var(--header-height)-0.25rem)] right-3 left-3 z-40 h-auto w-auto flex-col items-center justify-start pt-4 pb-4 text-sm duration-[var(--motion-slow)] ease-[var(--ease-standard)] md:hidden',
             state.isMobileMenuOpen ? 'flex' : 'hidden'
           )}
         >
-          {/* 移动端菜单背景 */}
-          <div className={cn(
-            'absolute inset-0 top-0 right-0 block h-full w-full rounded-2xl border shadow-lg backdrop-blur-md',
-            isDark
-              ? 'border-white/10 bg-[#0a0e16]/95'
-              : 'border-gray-200 bg-white/95'
-          )} />
+          <div
+            className={cn(
+              'absolute inset-0 top-0 right-0 block h-full w-full rounded-[var(--radius-panel)] border shadow-[var(--shadow-soft)] backdrop-blur-xl',
+              isDark
+                ? 'border-white/10 bg-[var(--surface-elevated)]'
+                : 'border-black/8 bg-[var(--surface-elevated)]'
+            )}
+          />
 
-          {/* 移动端菜单链接 */}
-          <div className="relative z-10 flex w-full flex-col items-center gap-1">
+          <div className="relative z-10 flex w-full flex-col items-center gap-1 px-2">
             {menuItems.map((menu) => {
               const isActive = currentPath.startsWith(menu.href)
               return (
@@ -266,10 +271,14 @@ export default function Header() {
                   key={menu.href}
                   href={menu.href}
                   className={cn(
-                    'relative flex w-full items-center justify-center rounded-lg px-5 py-2.5 text-center font-inter text-sm uppercase tracking-[0.2rem] transition-all duration-200 ease-out active:scale-[0.98]',
+                    'relative flex min-h-11 w-full items-center justify-center rounded-2xl px-5 py-3 text-center font-inter text-sm uppercase tracking-[0.18rem] transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] active:scale-[0.98]',
                     isActive
-                      ? isDark ? 'text-[#c6c7c6] opacity-100' : 'text-gray-800 opacity-100'
-                      : isDark ? 'text-slate-400' : 'text-gray-500'
+                      ? isDark
+                        ? 'bg-white/10 text-zinc-100 opacity-100'
+                        : 'bg-black/5 text-zinc-900 opacity-100'
+                      : isDark
+                        ? 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100'
+                        : 'text-zinc-500 hover:bg-black/[0.03] hover:text-zinc-900'
                   )}
                   onClick={closeMobileMenu}
                 >
@@ -278,17 +287,17 @@ export default function Header() {
               )
             })}
 
-            {/* 移动端操作按钮 */}
-            <div className="mt-4 flex items-center gap-6">
+            <div className="mt-4 flex items-center gap-4 border-t border-white/10 pt-4 dark:border-white/10">
               <button
                 onClick={toggleTheme}
-                className="opacity-60 hover:opacity-100 transition-opacity duration-300"
+                className={actionButtonClass}
                 aria-label="切换主题"
               >
                 {state.mounted
-                  ? (isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />)
-                  : <span className="w-5 h-5 block" />
-                }
+                  ? isDark
+                    ? <Sun className={actionIconClass} />
+                    : <Moon className={actionIconClass} />
+                  : <span className="block h-[18px] w-[18px]" />}
               </button>
               <AuthButton isDark={isDark} />
             </div>

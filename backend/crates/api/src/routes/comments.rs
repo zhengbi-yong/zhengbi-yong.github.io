@@ -116,17 +116,17 @@ pub async fn create_comment(
         RETURNING id, slug, user_id, parent_id, content, html_sanitized, status,
                  path::text, depth, like_count, created_at, updated_at, deleted_at,
                  created_ip, user_agent, moderation_reason
-        "#
+        "#,
     )
     .bind(&slug)
-    .bind(&user_id)
+    .bind(user_id)
     .bind(payload.parent_id)
     .bind(&payload.content)
     .bind(&html_content)
     .bind(&path as &str)
-    .bind(&depth)
+    .bind(depth)
     .bind(&client_ip)
-    .bind(&extract_user_agent())
+    .bind(extract_user_agent())
     .fetch_one(&mut *tx)
     .await?;
 
@@ -163,12 +163,9 @@ pub async fn create_comment(
 
     // 获取用户信息（已登录用户从数据库获取，匿名用户使用默认信息）
     let comment_user = if let Some(Extension(user)) = auth_user {
-        let user_info = sqlx::query!(
-            "SELECT username, profile FROM users WHERE id = $1",
-            user.id
-        )
-        .fetch_one(&state.db)
-        .await?;
+        let user_info = sqlx::query!("SELECT username, profile FROM users WHERE id = $1", user.id)
+            .fetch_one(&state.db)
+            .await?;
         blog_db::CommentUser {
             username: user_info.username,
             profile: user_info.profile,
@@ -234,8 +231,8 @@ pub async fn list_comments(
             "#,
         )
         .bind(&slug)
-        .bind(&cursor_uuid)
-        .bind(limit as i64)
+        .bind(cursor_uuid)
+        .bind(limit)
         .fetch_all(&state.db_read)
         .await?;
 
@@ -285,7 +282,7 @@ pub async fn list_comments(
             "#,
         )
         .bind(&slug)
-        .bind(limit as i64)
+        .bind(limit)
         .fetch_all(&state.db)
         .await?;
 
@@ -373,7 +370,7 @@ pub async fn like_comment(
     let exists: bool = sqlx::query_scalar(
         "SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1 AND status = $2::comment_status)",
     )
-    .bind(&id)
+    .bind(id)
     .bind("approved")
     .fetch_one(&state.db)
     .await?;
@@ -386,15 +383,15 @@ pub async fn like_comment(
     let rows_affected = sqlx::query(
         "INSERT INTO comment_likes (comment_id, user_id) VALUES ($1, $2) ON CONFLICT (comment_id, user_id) DO NOTHING",
     )
-    .bind(&id)
-    .bind(&user_id)
+    .bind(id)
+    .bind(user_id)
     .execute(&state.db)
     .await?
     .rows_affected();
 
     if rows_affected > 0 {
         sqlx::query("UPDATE comments SET like_count = like_count + 1 WHERE id = $1")
-            .bind(&id)
+            .bind(id)
             .execute(&state.db)
             .await?;
     }
@@ -427,7 +424,7 @@ pub async fn unlike_comment(
 
     // 检查评论是否存在
     let exists: bool = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM comments WHERE id = $1)")
-        .bind(&id)
+        .bind(id)
         .fetch_one(&state.db)
         .await?;
 
@@ -438,8 +435,8 @@ pub async fn unlike_comment(
     // 删除点赞记录
     let rows_affected =
         sqlx::query("DELETE FROM comment_likes WHERE comment_id = $1 AND user_id = $2")
-            .bind(&id)
-            .bind(&user_id)
+            .bind(id)
+            .bind(user_id)
             .execute(&state.db)
             .await?
             .rows_affected();
@@ -447,7 +444,7 @@ pub async fn unlike_comment(
     // 如果找到了点赞记录，更新评论的点赞计数
     if rows_affected > 0 {
         sqlx::query("UPDATE comments SET like_count = GREATEST(like_count - 1, 0) WHERE id = $1")
-            .bind(&id)
+            .bind(id)
             .execute(&state.db)
             .await?;
     }

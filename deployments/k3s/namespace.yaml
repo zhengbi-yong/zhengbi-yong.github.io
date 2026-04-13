@@ -1,0 +1,209 @@
+# K3s Backup Configuration using Restic
+# Automated backups for PostgreSQL and Redis data
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backup
+  labels:
+    app.kubernetes.io/managed-by: kubectl
+
+---
+# Restic Repository Configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: restic-repo
+  namespace: backup
+type: Opaque
+stringData:
+  # Configure your S3-compatible storage or local path
+  RESTIC_REPOSITORY: "${RESTIC_REPOSITORY}"
+  RESTIC_PASSWORD: "${RESTIC_PASSWORD}"
+  AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+  AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: blog-postgres-backup
+  namespace: backup
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: blog-postgres-backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            fsGroup: 999
+
+          containers:
+            - name: backup
+              image: restic/restic:0.16
+              imagePullPolicy: Always
+
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  restic backup \
+                    --host blog-postgres \
+                    --tag k8s \
+                    --tag postgres \
+                    --tag daily \
+                    /var/lib/postgresql/data
+
+              envFrom:
+                - secretRef:
+                    name: restic-repo
+
+              env:
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+
+              volumeMounts:
+                - name: postgres-backup-volume
+                  mountPath: /var/lib/postgresql/data
+
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+                requests:
+                  cpu: 100m
+                  memory: 64Mi
+
+          volumes:
+            - name: postgres-backup-volume
+              persistentVolumeClaim:
+                claimName: blog-postgres-pvc
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: blog-redis-backup
+  namespace: backup
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: blog-redis-backup
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            fsGroup: 999
+
+          containers:
+            - name: backup
+              image: restic/restic:0.16
+              imagePullPolicy: Always
+
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  restic backup \
+                    --host blog-redis \
+                    --tag k8s \
+                    --tag redis \
+                    --tag daily \
+                    /data
+
+              envFrom:
+                - secretRef:
+                    name: restic-repo
+
+              volumeMounts:
+                - name: redis-backup-volume
+                  mountPath: /data
+
+              resources:
+                limits:
+                  cpu: 250m
+                  memory: 128Mi
+                requests:
+                  cpu: 50m
+                  memory: 32Mi
+
+          volumes:
+            - name: redis-backup-volume
+              persistentVolumeClaim:
+                claimName: blog-redis-pvc
+
+---
+# Retention policy job (runs weekly)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: restic-forget
+  namespace: backup
+spec:
+  schedule: "0 4 * * 0"  # Weekly on Sunday at 4 AM
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+
+          containers:
+            - name: retention
+              image: restic/restic:0.16
+              imagePullPolicy: Always
+
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  # Keep daily backups for 7 days
+                  # Keep weekly backups for 4 weeks
+                  # Keep monthly backups for 6 months
+                  restic forget \
+                    --host blog-postgres \
+                    --host blog-redis \
+                    --keep-daily 7 \
+                    --keep-weekly 4 \
+                    --keep-monthly 6 \
+                    --prune
+
+              envFrom:
+                - secretRef:
+                    name: restic-repo
+
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
+                requests:
+                  cpu: 100m
+                  memory: 64Mi

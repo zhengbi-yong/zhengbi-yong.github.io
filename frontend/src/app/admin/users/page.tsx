@@ -16,7 +16,12 @@ import { useList, useUpdate, useDelete } from '@refinedev/core'
 import type { UserListItem } from '@/lib/types/backend'
 import { Loader2, Trash2 } from 'lucide-react'
 import { logger } from '@/lib/utils/logger'
-import { EnhancedDataTable, DataTableToolbar, DataTablePagination } from '@/components/admin/data-table'
+import { cn } from '@/lib/utils'
+import {
+  EnhancedDataTable,
+  DataTableToolbar,
+  DataTablePagination,
+} from '@/components/admin/data-table'
 import type { Column } from '@/components/admin/data-table'
 
 export default function UserManagementPage() {
@@ -102,9 +107,7 @@ export default function UserManagementPage() {
       label: '用户名',
       width: '15%',
       sortable: true,
-      render: (value) => (
-        <span className="font-medium text-gray-900 dark:text-white">{value}</span>
-      ),
+      render: (value) => <span className="font-medium text-gray-900 dark:text-white">{value}</span>,
     },
     {
       key: 'email',
@@ -129,7 +132,7 @@ export default function UserManagementPage() {
             'rounded',
             'bg-white dark:bg-gray-700',
             'text-gray-900 dark:text-gray-100',
-            'focus:outline-none focus:ring-1 focus:ring-blue-500',
+            'focus:ring-1 focus:ring-blue-500 focus:outline-none',
             'disabled:opacity-50'
           )}
         >
@@ -145,17 +148,16 @@ export default function UserManagementPage() {
       width: '10%',
       sortable: true,
       render: (value) => (
-        <span className={cn(
-          'inline-flex items-center gap-1.5 px-2 py-0.5',
-          'text-admin-xs font-semibold rounded-full',
-          value
-            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-        )}>
-          <span className={cn(
-            'w-1.5 h-1.5 rounded-full',
-            value ? 'bg-green-500' : 'bg-red-500'
-          )} />
+        <span
+          className={cn(
+            'inline-flex items-center gap-1.5 px-2 py-0.5',
+            'text-admin-xs rounded-full font-semibold',
+            value
+              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+          )}
+        >
+          <span className={cn('h-1.5 w-1.5 rounded-full', value ? 'bg-green-500' : 'bg-red-500')} />
           {value ? '已验证' : '未验证'}
         </span>
       ),
@@ -186,10 +188,10 @@ export default function UserManagementPage() {
             'hover:bg-red-50 dark:hover:bg-red-900/20',
             'rounded',
             'transition-colors duration-150',
-            'disabled:opacity-50 disabled:cursor-not-allowed'
+            'disabled:cursor-not-allowed disabled:opacity-50'
           )}
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Trash2 className="h-3.5 w-3.5" />
           {deleteMutation.isPending ? '删除中...' : '删除'}
         </button>
       ),
@@ -198,27 +200,27 @@ export default function UserManagementPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-900/20">
         <p className="text-red-600 dark:text-red-400">加载用户列表失败</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4 admin-compact">
+    <div className="admin-compact space-y-4">
       {/* Header - 紧凑间距 */}
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">用户管理</h1>
-          <p className="mt-1 text-admin-sm text-gray-600 dark:text-gray-400">
+          <p className="text-admin-sm mt-1 text-gray-600 dark:text-gray-400">
             共 {total.toLocaleString()} 位用户
           </p>
         </div>
@@ -234,12 +236,7 @@ export default function UserManagementPage() {
       />
 
       {/* 数据表格 */}
-      <EnhancedDataTable
-        data={filteredUsers}
-        columns={columns}
-        rowKey="id"
-        compact={true}
-      />
+      <EnhancedDataTable data={filteredUsers} columns={columns} rowKey="id" compact={true} />
 
       {/* 分页 */}
       {totalPages > 1 && (
@@ -254,4 +251,3 @@ export default function UserManagementPage() {
     </div>
   )
 }
-

@@ -291,22 +291,20 @@ pub async fn get_trending_keywords(
         .await
         .map_err(|_| AppError::InternalError)?;
 
-    if let Ok(cached) = redis::cmd("GET")
+    if let Ok(Some(cached_str)) = redis::cmd("GET")
         .arg(cache_key)
         .query_async::<Option<String>>(&mut conn)
         .await
     {
-        if let Some(cached_str) = cached {
-            if let Ok(keywords) = serde_json::from_str::<Vec<TrendingKeyword>>(&cached_str) {
-                return Ok((
-                    [(
-                        header::CACHE_CONTROL,
-                        "public, s-maxage=300, stale-while-revalidate=600",
-                    )],
-                    Json(keywords),
-                )
-                    .into_response());
-            }
+        if let Ok(keywords) = serde_json::from_str::<Vec<TrendingKeyword>>(&cached_str) {
+            return Ok((
+                [(
+                    header::CACHE_CONTROL,
+                    "public, s-maxage=300, stale-while-revalidate=600",
+                )],
+                Json(keywords),
+            )
+                .into_response());
         }
     }
 

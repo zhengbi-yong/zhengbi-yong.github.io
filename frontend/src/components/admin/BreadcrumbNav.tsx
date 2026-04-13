@@ -78,38 +78,34 @@ export default function BreadcrumbNav() {
   const pathname = usePathname()
   const breadcrumbs = parsePathname(pathname)
 
-  // 如果只有首页和当前页，不显示面包屑
   if (breadcrumbs.length <= 2) {
     return null
   }
 
   return (
-    <nav className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+    <nav className="admin-breadcrumb mb-0 flex min-h-10 items-center gap-1 rounded-[calc(var(--radius-panel)-8px)] border border-[var(--admin-border-subtle)] bg-[var(--surface-elevated)]/80 px-3 py-2 text-sm text-[var(--text-secondary)] backdrop-blur-sm">
       {breadcrumbs.map((item, index) => {
         const isLast = index === breadcrumbs.length - 1
 
         return (
-          <div key={item.href} className="flex items-center space-x-2">
-            {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+          <div key={item.href} className="admin-breadcrumb-item min-w-0 gap-1.5">
+            {index > 0 && (
+              <ChevronRight className="admin-breadcrumb-separator h-3.5 w-3.5 shrink-0 text-[var(--text-tertiary)]" />
+            )}
 
             {index === 0 ? (
-              // 首页图标
               <Link
                 href={item.href}
-                className="flex items-center hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[var(--text-secondary)] transition-colors duration-[var(--motion-fast)] hover:bg-black/5 hover:text-[var(--text-primary)] dark:hover:bg-white/10"
               >
-                <Home className="w-4 h-4" />
+                <Home className="h-3.5 w-3.5" />
               </Link>
             ) : isLast ? (
-              // 当前页
-              <span className="font-medium text-gray-900 dark:text-gray-100">
-                {item.label}
-              </span>
+              <span className="truncate font-medium text-[var(--text-primary)]">{item.label}</span>
             ) : (
-              // 中间层级
               <Link
                 href={item.href}
-                className="hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                className="truncate text-[var(--text-secondary)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--text-primary)]"
               >
                 {item.label}
               </Link>

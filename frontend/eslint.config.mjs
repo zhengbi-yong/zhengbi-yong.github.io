@@ -16,6 +16,8 @@ export default [
       '.contentlayer/**',
       'coverage/**',
       'storybook-static/**',
+      '.docker-runtime/**',
+      '**/*.min.js',
       '**/*.d.ts',
       'scripts/generate/**',
       'data/**',
@@ -70,6 +72,7 @@ export default [
       '@typescript-eslint/ban-ts-comment': 'warn', // Allow @ts-nocheck with warning
       'no-case-declarations': 'warn',
       'no-useless-escape': 'warn',
+    },
   },
   {
     files: ['scripts/**/*.{js,mjs,cjs,ts}'],

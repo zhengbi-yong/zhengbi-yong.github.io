@@ -28,7 +28,7 @@ export function useReadingProgress(options: ReadingProgressOptions = {}) {
   const totalTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // 防抖函数
-  const debounce = useCallback((func: Function, delay: number) => {
+  const debounce = useCallback((func: (...args: unknown[]) => void, delay: number) => {
     let timeoutId: NodeJS.Timeout
     return (...args: any[]) => {
       clearTimeout(timeoutId)

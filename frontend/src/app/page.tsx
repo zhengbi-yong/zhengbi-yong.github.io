@@ -1,5 +1,10 @@
-import Main from './Main'
+import PublicLayout from './(public)/layout'
+import Home from './Main'
 
-export default function Page() {
-  return <Main />
+export default function HomePage() {
+  return (
+    <PublicLayout>
+      <Home />
+    </PublicLayout>
+  )
 }

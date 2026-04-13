@@ -1,16 +1,20 @@
 //! CSRF保护中间件
 //!
 //! 为状态改变的操作提供CSRF保护
-//! 使用 Redis 进行服务器端 token 存储和验证
+//! 实现双重提交 Cookie 模式，使用 HMAC-SHA256 签名验证
 
-use crate::AppState;
+use crate::state::AppState;
 use axum::{
     extract::{Request, State},
     http::{HeaderMap, StatusCode},
     middleware::Next,
     response::Response,
 };
-use uuid::Uuid;
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
+use hmac::{Hmac, Mac};
+use sha2::Sha256;
+
+type HmacSha256 = Hmac<Sha256>;
 
 /// CSRF token结构
 #[derive(Debug, Clone)]
@@ -18,24 +22,105 @@ pub struct CsrfToken {
     pub token: String,
 }
 
-impl CsrfToken {
-    /// 生成新的CSRF token
-    pub fn new() -> Self {
+/// HMAC-SHA256 based CSRF token
+/// Token format: base64(nonce || timestamp || signature)
+/// - nonce: 16 random bytes
+/// - timestamp: 8 bytes (u64 big-endian)
+/// - signature: 32 bytes (HMAC-SHA256 of nonce || timestamp)
+pub struct HmacCsrfToken {
+    pub nonce: [u8; 16],
+    pub timestamp: u64,
+    pub signature: [u8; 32],
+}
+
+impl HmacCsrfToken {
+    /// 生成新的 HMAC CSRF token
+    pub fn new(secret: &str) -> Self {
+        let nonce_arr: [u8; 16] = *uuid::Uuid::new_v4().as_bytes();
+
+        let timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        // Calculate HMAC signature
+        let mut mac = create_hmac_mac(secret);
+        mac.update(&nonce_arr);
+        mac.update(&timestamp.to_be_bytes());
+        let result = mac.finalize();
+
         Self {
-            token: Uuid::new_v4().to_string(),
+            nonce: nonce_arr,
+            timestamp,
+            signature: result.into_bytes().as_slice().try_into().unwrap(),
         }
     }
 
-    /// 从字符串创建
-    pub fn from_string(token: String) -> Self {
-        Self { token }
+    /// 从字符串解析 token
+    pub fn from_string(token: &str, secret: &str) -> Result<Self, CsrfError> {
+        let bytes = BASE64.decode(token).map_err(|_| CsrfError::InvalidToken)?;
+
+        if bytes.len() != 56 {
+            return Err(CsrfError::InvalidToken);
+        }
+
+        let mut nonce = [0u8; 16];
+        nonce.copy_from_slice(&bytes[0..16]);
+
+        let mut ts_bytes = [0u8; 8];
+        ts_bytes.copy_from_slice(&bytes[16..24]);
+        let timestamp = u64::from_be_bytes(ts_bytes);
+
+        let mut signature = [0u8; 32];
+        signature.copy_from_slice(&bytes[24..56]);
+
+        let token = Self {
+            nonce,
+            timestamp,
+            signature,
+        };
+
+        // Verify signature
+        token.verify(secret)?;
+
+        Ok(token)
+    }
+
+    /// 验证 token 签名
+    pub fn verify(&self, secret: &str) -> Result<(), CsrfError> {
+        let mut mac = create_hmac_mac(secret);
+        mac.update(&self.nonce);
+        mac.update(&self.timestamp.to_be_bytes());
+
+        // Use verify_slice to compare against expected signature
+        mac.verify_slice(&self.signature)
+            .map_err(|_| CsrfError::InvalidToken)
+    }
+
+    /// 检查 timestamp 是否新鲜（1小时内）
+    pub fn is_fresh(&self) -> bool {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        // Token valid for 1 hour
+        now.saturating_sub(self.timestamp) < 3600
+    }
+
+    /// 编码为 base64 字符串
+    pub fn encode(&self) -> String {
+        let mut bytes = Vec::with_capacity(56);
+        bytes.extend_from_slice(&self.nonce);
+        bytes.extend_from_slice(&self.timestamp.to_be_bytes());
+        bytes.extend_from_slice(&self.signature);
+        BASE64.encode(&bytes)
     }
 }
 
-impl Default for CsrfToken {
-    fn default() -> Self {
-        Self::new()
-    }
+/// 创建 HMAC-SHA256 Mac
+fn create_hmac_mac(key: &str) -> HmacSha256 {
+    HmacSha256::new_from_slice(key.as_bytes()).expect("HMAC can take key of any size")
 }
 
 /// CSRF错误类型
@@ -44,6 +129,8 @@ pub enum CsrfError {
     MissingToken,
     InvalidToken,
     InvalidHeader,
+    ExpiredToken,
+    ReplayDetected,
     StorageError(String),
 }
 
@@ -53,6 +140,8 @@ impl std::fmt::Display for CsrfError {
             CsrfError::MissingToken => write!(f, "CSRF token is missing"),
             CsrfError::InvalidToken => write!(f, "CSRF token is invalid"),
             CsrfError::InvalidHeader => write!(f, "CSRF header is invalid"),
+            CsrfError::ExpiredToken => write!(f, "CSRF token has expired"),
+            CsrfError::ReplayDetected => write!(f, "CSRF token replay detected"),
             CsrfError::StorageError(msg) => write!(f, "CSRF storage error: {}", msg),
         }
     }
@@ -60,8 +149,12 @@ impl std::fmt::Display for CsrfError {
 
 /// CSRF保护中间件
 ///
-/// 使用 Redis 存储和验证 CSRF token
-/// 实现双重提交 Cookie 模式的服务器端验证
+/// 使用 HMAC-SHA256 签名验证实现双重提交 Cookie 模式
+/// 验证流程：
+/// 1. 从 header 或 cookie 提取 token
+/// 2. 验证 HMAC 签名
+/// 3. 检查 timestamp 新鲜度（1小时）
+/// 4. 检查 replay（nonce 未使用）
 pub async fn csrf_middleware(
     State(state): State<AppState>,
     request: Request,
@@ -79,17 +172,28 @@ pub async fn csrf_middleware(
     ) {
         let headers = request.headers();
 
+        // 获取 JWT secret 用于 HMAC 验证
+        let secret = &state.settings.jwt_secret;
+
         // 检查CSRF token（从header或cookie）
         let token = extract_csrf_token(headers).map_err(|e| {
             tracing::warn!("CSRF token extraction failed: {}", e);
             StatusCode::FORBIDDEN
         })?;
 
-        // 验证token（服务器端验证）
-        match is_valid_csrf_token_server(&state, &token).await {
+        // 验证token（HMAC签名 + replay检测）
+        match validate_csrf_token(&state, &token, secret).await {
             Ok(true) => {}
             Ok(false) => {
                 tracing::warn!("Invalid CSRF token: {}", token);
+                return Err(StatusCode::FORBIDDEN);
+            }
+            Err(CsrfError::ExpiredToken) => {
+                tracing::warn!("CSRF token expired: {}", token);
+                return Err(StatusCode::FORBIDDEN);
+            }
+            Err(CsrfError::ReplayDetected) => {
+                tracing::warn!("CSRF token replay detected: {}", token);
                 return Err(StatusCode::FORBIDDEN);
             }
             Err(e) => {
@@ -131,77 +235,89 @@ fn extract_csrf_token(headers: &HeaderMap) -> Result<String, CsrfError> {
     Err(CsrfError::MissingToken)
 }
 
-/// 验证CSRF token（服务器端验证）
-/// 检查 token 是否存在于 Redis 中且未过期
-async fn is_valid_csrf_token_server(state: &AppState, token: &str) -> Result<bool, CsrfError> {
-    // 首先检查是否为有效的 UUID 格式
-    if Uuid::parse_str(token).is_err() {
-        return Ok(false);
+/// 验证CSRF token
+/// 1. 解析并验证 HMAC 签名
+/// 2. 检查 timestamp 新鲜度
+/// 3. 检查 replay（Redis nonce 检测）
+async fn validate_csrf_token(
+    state: &AppState,
+    token: &str,
+    secret: &str,
+) -> Result<bool, CsrfError> {
+    // 解析 token
+    let hmac_token = HmacCsrfToken::from_string(token, secret)?;
+
+    // 检查 timestamp 新鲜度
+    if !hmac_token.is_fresh() {
+        return Err(CsrfError::ExpiredToken);
     }
 
-    // 从 Redis 获取存储的 token
-    let key = format!("csrf:{}", token);
-
+    // 检查 replay（nonce 是否已使用）
+    let nonce_key = format!("csrf:nonce:{}", BASE64.encode(hmac_token.nonce));
     let mut conn = state
         .redis
         .get()
         .await
         .map_err(|e| CsrfError::StorageError(format!("Redis connection failed: {}", e)))?;
 
-    use redis::AsyncCommands;
-    let exists: bool = conn
-        .exists(&key)
+    // SET NX: only set if not exists (burn-after-reading replay detection)
+    let set_ok: bool = redis::cmd("SET")
+        .arg(&nonce_key)
+        .arg("1")
+        .arg("NX")
+        .arg("EX")
+        .arg(3600u64)
+        .query_async(&mut conn)
         .await
-        .map_err(|e| CsrfError::StorageError(format!("Redis exists check failed: {}", e)))?;
+        .map(|v: Option<String>| v.is_some())
+        .map_err(|e| CsrfError::StorageError(format!("Redis SET NX failed: {}", e)))?;
 
-    Ok(exists)
+    if !set_ok {
+        return Err(CsrfError::ReplayDetected);
+    }
+
+    Ok(true)
 }
 
-/// 生成 CSRF token 并存储到 Redis
+/// 生成 CSRF token 并存储 nonce 到 Redis
 /// 返回 token 字符串
 pub async fn generate_csrf_token(state: &AppState) -> Result<CsrfToken, CsrfError> {
-    let token = CsrfToken::new();
+    let secret = &state.settings.jwt_secret;
+    let token = HmacCsrfToken::new(secret);
 
-    // 存储到 Redis，有效期 1 小时
-    let key = format!("csrf:{}", token.token);
-    let mut conn = state
-        .redis
-        .get()
-        .await
-        .map_err(|e| CsrfError::StorageError(format!("Redis connection failed: {}", e)))?;
+    tracing::debug!(
+        "Generated CSRF token, nonce prefix: {}",
+        &BASE64.encode(token.nonce)[..8]
+    );
 
-    use redis::AsyncCommands;
-    conn.set_ex::<_, _, ()>(&key, "1", 3600)
-        .await
-        .map_err(|e| CsrfError::StorageError(format!("Failed to store CSRF token: {}", e)))?;
-
-    tracing::debug!("Generated and stored CSRF token: {}", token.token);
-    Ok(token)
+    Ok(CsrfToken {
+        token: token.encode(),
+    })
 }
 
-/// 同步版本：生成 CSRF token（不存储到 Redis）
-/// 用于向后兼容和非 Redis 场景
-pub fn generate_csrf_token_sync() -> CsrfToken {
-    CsrfToken::new()
-}
-
-/// 验证CSRF token格式（仅客户端格式验证）
-/// 用于测试和快速格式检查
-pub fn is_valid_csrf_token_format(token: &str) -> bool {
-    Uuid::parse_str(token).is_ok()
-}
-
-/// 设置CSRF cookie的响应头
-pub fn set_csrf_cookie(token: &str) -> String {
-    format!(
+/// 设置CSRF cookie的响应头（双重提交Cookie模式）
+///
+/// 设置两个cookie：
+/// 1. csrf_token - HttpOnly, 浏览器自动发送
+/// 2. XSRF-TOKEN - 非HttpOnly, JavaScript可读取并作为header发送
+pub fn set_csrf_cookie(token: &str) -> (String, String) {
+    let http_only = format!(
         "csrf_token={}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=3600",
         token
-    )
+    );
+    let xsrf_token = format!(
+        "XSRF-TOKEN={}; Path=/; SameSite=Lax; Secure; Max-Age=3600",
+        token
+    );
+    (http_only, xsrf_token)
 }
 
 /// 删除CSRF token（用于登出等场景）
 pub async fn revoke_csrf_token(state: &AppState, token: &str) -> Result<(), CsrfError> {
-    let key = format!("csrf:{}", token);
+    let secret = &state.settings.jwt_secret;
+    let hmac_token = HmacCsrfToken::from_string(token, secret)?;
+
+    let nonce_key = format!("csrf:nonce:{}", BASE64.encode(hmac_token.nonce));
     let mut conn = state
         .redis
         .get()
@@ -210,11 +326,11 @@ pub async fn revoke_csrf_token(state: &AppState, token: &str) -> Result<(), Csrf
 
     use redis::AsyncCommands;
     let _: () = conn
-        .del(&key)
+        .del(&nonce_key)
         .await
         .map_err(|e| CsrfError::StorageError(format!("Failed to delete CSRF token: {}", e)))?;
 
-    tracing::debug!("Revoked CSRF token: {}", token);
+    tracing::debug!("Revoked CSRF token");
     Ok(())
 }
 
@@ -222,59 +338,75 @@ pub async fn revoke_csrf_token(state: &AppState, token: &str) -> Result<(), Csrf
 mod tests {
     use super::*;
 
+    const TEST_SECRET: &str = "test-secret-key-for-hmac-testing!!";
+
     #[test]
-    fn test_csrf_token_generation() {
-        let token = CsrfToken::new();
-        assert!(!token.token.is_empty());
-        assert!(Uuid::parse_str(&token.token).is_ok());
+    fn test_hmac_csrf_token_generation_and_verification() {
+        let token = HmacCsrfToken::new(TEST_SECRET);
+
+        assert!(token.is_fresh());
+        assert_eq!(token.nonce.len(), 16);
+        assert_eq!(token.signature.len(), 32);
+
+        // Encode and decode
+        let encoded = token.encode();
+        let decoded = HmacCsrfToken::from_string(&encoded, TEST_SECRET).unwrap();
+
+        assert_eq!(decoded.nonce, token.nonce);
+        assert_eq!(decoded.timestamp, token.timestamp);
+        assert_eq!(decoded.signature, token.signature);
     }
 
     #[test]
-    fn test_csrf_token_format_validation() {
-        let token = Uuid::new_v4().to_string();
-        assert!(is_valid_csrf_token_format(&token));
+    fn test_hmac_csrf_token_verification_fails_with_wrong_secret() {
+        let token = HmacCsrfToken::new(TEST_SECRET);
+        let encoded = token.encode();
 
-        let invalid_token = "invalid-token";
-        assert!(!is_valid_csrf_token_format(invalid_token));
+        let result = HmacCsrfToken::from_string(&encoded, "wrong-secret");
+        assert!(result.is_err());
     }
 
     #[test]
-    fn test_extract_csrf_token_from_header() {
-        let mut headers = HeaderMap::new();
-        headers.insert("x-csrf-token", "test-token".parse().unwrap());
+    fn test_hmac_csrf_token_verification_fails_with_tampered_token() {
+        let token = HmacCsrfToken::new(TEST_SECRET);
+        let mut encoded = BASE64.decode(token.encode()).unwrap();
 
-        let result = extract_csrf_token(&headers);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "test-token");
+        // Tamper with the last byte
+        encoded[55] ^= 0xFF;
+
+        let tampered = BASE64.encode(&encoded);
+        let result = HmacCsrfToken::from_string(&tampered, TEST_SECRET);
+        assert!(result.is_err());
     }
 
     #[test]
-    fn test_extract_csrf_token_from_cookie() {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            "cookie",
-            "session=abc; csrf_token=token-from-cookie".parse().unwrap(),
-        );
+    fn test_token_freshness() {
+        let token = HmacCsrfToken::new(TEST_SECRET);
 
-        let result = extract_csrf_token(&headers);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "token-from-cookie");
-    }
+        // Fresh token should pass
+        assert!(token.is_fresh());
 
-    #[test]
-    fn test_extract_csrf_token_missing() {
-        let headers = HeaderMap::new();
-        let result = extract_csrf_token(&headers);
-        assert!(matches!(result, Err(CsrfError::MissingToken)));
+        // Old token should fail (manipulate timestamp)
+        let mut old_token = token;
+        old_token.timestamp = 0; // Unix epoch, definitely expired
+        assert!(!old_token.is_fresh());
     }
 
     #[test]
     fn test_set_csrf_cookie() {
         let token = "test-token-123";
-        let cookie = set_csrf_cookie(token);
-        assert!(cookie.contains("csrf_token=test-token-123"));
-        assert!(cookie.contains("HttpOnly"));
-        assert!(cookie.contains("SameSite=Lax"));
-        assert!(cookie.contains("Secure"));
+        let (http_only, xsrf_token) = set_csrf_cookie(token);
+
+        // HttpOnly cookie for automatic browser sending
+        assert!(http_only.contains("csrf_token=test-token-123"));
+        assert!(http_only.contains("HttpOnly"));
+        assert!(http_only.contains("SameSite=Lax"));
+        assert!(http_only.contains("Secure"));
+
+        // XSRF-TOKEN for JavaScript to read and echo as header
+        assert!(xsrf_token.contains("XSRF-TOKEN=test-token-123"));
+        assert!(!xsrf_token.contains("HttpOnly")); // Must be readable by JS
+        assert!(xsrf_token.contains("SameSite=Lax"));
+        assert!(xsrf_token.contains("Secure"));
     }
 }

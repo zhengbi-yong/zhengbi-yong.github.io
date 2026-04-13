@@ -82,16 +82,27 @@ class ImagePreloader {
       }
     }
 
-    // 从 body.raw 中提取图片 URL（简单正则匹配）
-    if (post.body?.raw) {
-      const imageRegex = /!\[.*?\]\((.*?)\)/g
+    // 从 content 中提取图片 URL（HTML img 标签或 markdown 图片语法）
+    const content = (post as any).content || (post as any).body?.code || ''
+    if (content) {
+      // Match HTML img tags: <img src="..." or <img src='...'
+      const imgRegex = /<img[^>]+src=["']([^"']+)["']/g
       let match
-      while ((match = imageRegex.exec(post.body.raw)) !== null) {
+      while ((match = imgRegex.exec(content)) !== null) {
         const url = match[1]
-        if (url && !url.startsWith('http')) {
+        if (url) {
+          imageUrls.push(url)
+        }
+      }
+
+      // Also match markdown images: ![alt](url)
+      const mdImageRegex = /!\[.*?\]\((.*?)\)/g
+      while ((match = mdImageRegex.exec(content)) !== null) {
+        const url = match[1]
+        if (url && !url.startsWith('http') && !imageUrls.includes(url)) {
           // 相对路径，需要转换为绝对路径
           imageUrls.push(url)
-        } else if (url && url.startsWith('http')) {
+        } else if (url && url.startsWith('http') && !imageUrls.includes(url)) {
           imageUrls.push(url)
         }
       }

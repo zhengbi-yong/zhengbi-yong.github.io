@@ -1,57 +1,56 @@
 /**
  * Refine Auth Provider
  * 适配现有的认证系统
+ *
+ * GOLDEN_RULES 1.1: 认证令牌必须仅存在于 HttpOnly Cookie 中
+ * - 不再从 localStorage 读取或存储 token
+ * - 认证状态通过调用 /auth/me API 检查
+ * - 浏览器自动发送 HttpOnly Cookie
  */
 
 import { AuthProvider } from '@refinedev/core'
 import { authService } from '@/lib/api/backend'
-import type { UserInfo } from '@/lib/types/backend'
+import { useAuthStore } from '@/lib/store/auth-store'
+
+function getAvatarUrl(profile: Record<string, unknown> | null): string | undefined {
+  const value = profile?.avatar_url
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
 
 export const authProvider: AuthProvider = {
   login: async ({ email, password }) => {
     try {
-      await authService.login({ email, password })
-      
-      // 用户信息已存储在 localStorage 中（由 authService 处理）
+      await useAuthStore.getState().login(email, password)
+
       return {
         success: true,
         redirectTo: '/admin',
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
         error: {
           name: 'LoginError',
-          message: error?.message || '登录失败，请检查您的凭据',
+          message: error instanceof Error ? error.message : '登录失败，请检查您的凭据',
         },
       }
     }
   },
 
   logout: async () => {
-    try {
-      await authService.logout()
-      return {
-        success: true,
-        redirectTo: '/',
-      }
-    } catch (error) {
-      // 即使 API 失败，也清除本地状态
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('user_info')
-      }
-      return {
-        success: true,
-        redirectTo: '/',
-      }
+    await useAuthStore.getState().logout()
+    return {
+      success: true,
+      redirectTo: '/',
     }
   },
 
   check: async () => {
     try {
-      // 检查是否有 token
-      if (typeof window === 'undefined') {
+      const store = useAuthStore.getState()
+      const authenticated = await store.checkAuth()
+
+      if (!authenticated) {
         return {
           authenticated: false,
           redirectTo: '/',
@@ -59,38 +58,10 @@ export const authProvider: AuthProvider = {
         }
       }
 
-      const token = localStorage.getItem('access_token')
-      if (!token) {
-        return {
-          authenticated: false,
-          redirectTo: '/',
-          logout: true,
-        }
+      return {
+        authenticated: true,
       }
-
-      // 尝试获取当前用户信息
-      try {
-        await authService.getCurrentUser()
-        return {
-          authenticated: true,
-        }
-      } catch (error) {
-        // Token 可能已过期，尝试刷新
-        try {
-          await authService.refreshToken()
-          return {
-            authenticated: true,
-          }
-        } catch {
-          // 刷新失败，需要重新登录
-          return {
-            authenticated: false,
-            redirectTo: '/',
-            logout: true,
-          }
-        }
-      }
-    } catch (error) {
+    } catch {
       return {
         authenticated: false,
         redirectTo: '/',
@@ -102,6 +73,7 @@ export const authProvider: AuthProvider = {
   onError: async (error) => {
     // 如果是 401 错误，可能需要重新登录
     if (error?.statusCode === 401) {
+      await useAuthStore.getState().logout()
       return {
         logout: true,
         redirectTo: '/',
@@ -116,32 +88,21 @@ export const authProvider: AuthProvider = {
 
   getIdentity: async () => {
     try {
-      if (typeof window === 'undefined') {
-        return null
+      const store = useAuthStore.getState()
+      const user = store.user ?? (await authService.getCurrentUser())
+
+      if (!store.user) {
+        store.setUser(user)
       }
 
-      const userInfoStr = localStorage.getItem('user_info')
-      if (userInfoStr) {
-        const userInfo: UserInfo = JSON.parse(userInfoStr)
-        return {
-          id: userInfo.id,
-          name: userInfo.username,
-          email: userInfo.email,
-          avatar: userInfo.profile?.avatar || undefined,
-          role: userInfo.role || 'user',
-        }
-      }
-
-      // 如果没有缓存，尝试从 API 获取
-      const user = await authService.getCurrentUser()
       return {
         id: user.id,
         name: user.username,
         email: user.email,
-        avatar: user.profile?.avatar || undefined,
+        avatar: getAvatarUrl(user.profile),
         role: user.role || 'user',
       }
-    } catch (error) {
+    } catch {
       return null
     }
   },

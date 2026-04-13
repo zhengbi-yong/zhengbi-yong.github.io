@@ -1,0 +1,151 @@
+# K3s Deployment Manifest for Redis Cache
+# CIS Kubernetes Benchmark compliant security configuration
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: blog-redis-secrets
+  namespace: blog
+type: Opaque
+stringData:
+  REDIS_PASSWORD: "${REDIS_PASSWORD}"
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: blog-redis
+  namespace: blog
+  labels:
+    app.kubernetes.io/name: blog-redis
+    app.kubernetes.io/component: cache
+spec:
+  serviceName: blog-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: blog-redis
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: blog-redis
+        app.kubernetes.io/component: cache
+    spec:
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: false
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: blog-redis-pvc
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
+
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: Always
+
+          command:
+            - redis-server
+            - --appendonly
+            - yes
+            - --requirepass
+            - $(REDIS_PASSWORD)
+            - --maxmemory
+            - 256mb
+            - --maxmemory-policy
+            - allkeys-lru
+
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+
+          envFrom:
+            - secretRef:
+                name: blog-redis-secrets
+
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - --raw
+                - incr
+                - ping
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - --raw
+                - incr
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog-redis
+  namespace: blog
+  labels:
+    app.kubernetes.io/name: blog-redis
+spec:
+  clusterIP: None
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: redis
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: blog-redis
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: blog-redis-pvc
+  namespace: blog
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path

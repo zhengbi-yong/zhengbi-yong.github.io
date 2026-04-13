@@ -7,16 +7,13 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { useList } from '@refinedev/core'
 import AdminStatsCard from '@/components/admin/AdminStatsCard'
 import { Loader2 } from 'lucide-react'
-import { logger } from '@/lib/utils/logger'
 
 export default function AdminDashboard() {
-  const router = useRouter()
-  const { user, isAuthenticated, checkAuth } = useAuthStore()
+  const { user } = useAuthStore()
   
   // 使用 Refine hooks 获取统计数据
   const queryResult = useList({
@@ -31,23 +28,6 @@ export default function AdminDashboard() {
 
   const stats = data?.[0] // 从数组中取出第一个元素
 
-  useEffect(() => {
-    // Check if user is authenticated and is admin
-    const checkAdminAccess = async () => {
-      try {
-        const isAuth = await checkAuth()
-        if (!isAuth) {
-          router.push('/')
-          return
-        }
-      } catch (err) {
-        logger.error('Failed to check auth:', err)
-        router.push('/')
-      }
-    }
-
-    checkAdminAccess()
-  }, [checkAuth, router])
 
   if (isLoading) {
     return (

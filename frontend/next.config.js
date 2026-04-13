@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { withContentlayer } = require('next-contentlayer2')
+// Contentlayer removed - migrated to velite for content processing
+// const { withContentlayer } = require('next-contentlayer2')
 const { withSentryConfig } = require('@sentry/nextjs')
 
 const ignoreBuildErrors = process.env.NEXT_IGNORE_BUILD_ERRORS === '1'
@@ -94,7 +95,8 @@ const nextConfig = {
       ...(config.ignoreWarnings || []),
       {
         module: /@excalidraw[\\/]excalidraw/,
-        message: /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
+        message:
+          /Critical dependency: require function is used in a way in which dependencies cannot be statically extracted/,
       },
     ]
 
@@ -150,13 +152,6 @@ const nextConfig = {
               priority: 20,
               reuseExistingChunk: true,
             },
-            // 其他大型依赖
-            large: {
-              name: 'large',
-              minChunks: 2,
-              priority: 10,
-              reuseExistingChunk: true,
-            },
           },
         },
       }
@@ -176,12 +171,16 @@ const generateSecurityHeaders = () => {
         // 化学可视化需要的外部CDN: cdn.jsdelivr.net (KaTeX/mhchem), unpkg.com (3Dmol), rdkit.org (RDKit)
         // WebAssembly需要 'wasm-unsafe-eval' 和 'unsafe-eval' 才能运行
         'default-src': "'self'",
-        'script-src': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app analytics.umami.is https://cloud.umami.is",
-        'script-src-elem': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app analytics.umami.is https://cloud.umami.is",
-        'style-src': "'self' 'unsafe-inline'",
+        'script-src':
+          "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app analytics.umami.is https://cloud.umami.is",
+        'script-src-elem':
+          "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app analytics.umami.is https://cloud.umami.is",
+        'style-src': "'self' 'unsafe-inline' https://fonts.googleapis.com",
+        'style-src-elem': "'self' 'unsafe-inline' https://fonts.googleapis.com",
         'img-src': "'self' data: https: avatars.githubusercontent.com picsum.photos",
-        'font-src': "'self' data: blob: https:",
-        'connect-src': "'self' https: http://localhost:3000 https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://cloud.umami.is https://o1046881.ingest.sentry.io",
+        'font-src': "'self' data: blob: https://fonts.gstatic.com https:",
+        'connect-src':
+          "'self' https: http://localhost:3000 https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://cloud.umami.is https://o1046881.ingest.sentry.io",
         'frame-src': 'giscus.app excalidraw.com',
         'worker-src': "'self' blob:",
         'media-src': "'self'",
@@ -197,12 +196,16 @@ const generateSecurityHeaders = () => {
         // WebAssembly需要 'wasm-unsafe-eval' 或 'unsafe-eval' 才能运行
         // 评论系统需要 giscus.app
         'default-src': "'self'",
-        'script-src': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app https://cloud.umami.is",
-        'script-src-elem': "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app https://cloud.umami.is",
-        'style-src': "'self' 'unsafe-inline'",
+        'script-src':
+          "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app https://cloud.umami.is",
+        'script-src-elem':
+          "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app https://cloud.umami.is",
+        'style-src': "'self' 'unsafe-inline' https://fonts.googleapis.com",
+        'style-src-elem': "'self' 'unsafe-inline' https://fonts.googleapis.com",
         'img-src': "'self' data: https: avatars.githubusercontent.com",
-        'font-src': "'self' data: blob: https:",
-        'connect-src': "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
+        'font-src': "'self' data: blob: https://fonts.gstatic.com https:",
+        'connect-src':
+          "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
         'frame-src': 'giscus.app excalidraw.com',
       }
 
@@ -243,10 +246,14 @@ const generateSecurityHeaders = () => {
       value: 'camera=(), microphone=(), geolocation=()',
     },
     // Strict-Transport-Security (仅生产环境)
-    ...(isProduction ? [{
-      key: 'Strict-Transport-Security',
-      value: 'max-age=31536000; includeSubDomains',
-    }] : []),
+    ...(isProduction
+      ? [
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
+          },
+        ]
+      : []),
   ]
 
   return headers
@@ -270,6 +277,4 @@ if (process.env.EXPORT !== '1') {
   }
 }
 
-module.exports = withContentlayer(
-  withSentryConfig(finalConfig, sentryBuildOptions)
-)
+module.exports = withSentryConfig(finalConfig, sentryBuildOptions)

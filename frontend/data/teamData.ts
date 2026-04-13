@@ -31,7 +31,7 @@ const teamMembers: TeamMember[] = [
     nameEn: 'Zhengbi Yong',
     role: 'Lead',
     title: '硕士研究生',
-    avatar: '/static/images/avatar.jpg',
+    avatar: '/avatar.jpg',
     bio: '北京理工大学硕士研究生，研究方向为机器人灵巧操纵与具身智能。负责双臂协同操纵系统开发，同时进行论文阅读与学术写作。',
     affiliation: '北京理工大学',
     research: ['灵巧操纵', '具身智能', '多模态感知'],

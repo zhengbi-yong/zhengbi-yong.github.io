@@ -157,30 +157,20 @@ private translateErrorMessage(message: string): string {
 
 **Add Auth Header**:
 ```typescript
+// GOLDEN_RULES 1.1: 不再从 localStorage 读取 token
+// 使用 withCredentials: true 自动发送 HttpOnly Cookie
 private getRequestHeaders(): Record<string, string> {
-  const headers = { ...this.defaultHeaders }
-
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
-    }
-  }
-
-  return headers
+  return { ...this.defaultHeaders }
 }
 ```
 
 **Handle 401 Responses**:
 ```typescript
-if (response.status === 401 && !skipAuthRefresh) {
-  try {
-    const newToken = await refreshAccessToken()
-    // Retry request with new token
-    return this.request<T>(url, { ...options, skipAuthRefresh: true })
-  } catch {
-    // Redirect to login
-  }
+// GOLDEN_RULES 1.1: 不再处理 token 刷新
+// 认证状态由后端通过 HttpOnly Cookie 管理
+if (response.status === 401) {
+  // Redirect to login
+  window.location.href = '/login'
 }
 ```
 

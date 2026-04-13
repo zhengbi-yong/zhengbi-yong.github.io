@@ -1,27 +1,24 @@
 /* Header container spacing optimization */
 .header {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform var(--motion-slow, 320ms) var(--ease-standard, cubic-bezier(0.22, 1, 0.36, 1)),
+    background-color var(--motion-base, 220ms) ease,
+    border-color var(--motion-base, 220ms) ease,
+    box-shadow var(--motion-base, 220ms) ease;
 }
 
-/* 移除毛玻璃效果，使用纯色背景 */
-.header #site-container {
-  /* 不再使用毛玻璃效果 */
+.menu {
+  max-width: calc(100vw - 24px);
 }
 
-/* Ensure mobile menu doesn't stick to edges */
-@media (max-width: 639px) {
-  .menu {
-    max-width: calc(100vw - 24px); /* 12px margin on each side */
-  }
-}
-
-/* Mobile menu animation */
 @media (max-width: 639px) {
   .menu {
     transform: translateY(-10px);
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+      transform var(--motion-slow, 320ms) var(--ease-standard, cubic-bezier(0.22, 1, 0.36, 1)),
+      opacity var(--motion-base, 220ms) ease;
   }
 
   .menu:not(.hidden) {
@@ -31,101 +28,6 @@
   }
 }
 
-/* Menu item hover effect optimization */
-.nav a {
-  position: relative;
-}
-
-/* Desktop underline animation - 使用深红色/深绿色 */
-@media (min-width: 640px) {
-  .nav a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%) scaleX(0);
-    width: 70%;
-    height: 2px;
-    background: var(--brand-color, #7c1823);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 2px;
-  }
-
-  .nav a:hover::after {
-    transform: translateX(-50%) scaleX(1);
-  }
-}
-
-/* Mobile menu item click feedback */
-@media (max-width: 639px) {
-  .nav a:active {
-    background-color: var(--color-neutral-100, #f5f5f5);
-  }
-
-  .dark .nav a:active {
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-}
-
-/* Dark mode toggle button optimization */
-.darkToggle,
-.darkToggleMobile {
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* 移除移动端菜单的毛玻璃效果 */
-
-/* Ensure Logo doesn't shrink on mobile */
-.flexShrink0 {
-  min-width: fit-content;
-}
-
-/* Tablet compact layout */
-@media (min-width: 640px) and (max-width: 767px) {
-  .nav a {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-    font-size: 0.8125rem;
-  }
-}
-
-/* Note: body and global selectors should be in global CSS, not CSS modules */
-
-/* Menu background on small screens */
-@media (max-width: 639px) {
-  .mobileMenuBackground {
-    opacity: 0;
-    transition: opacity 0.3s ease-out;
-  }
-
-  .mobileMenuBackground:not(.hidden) {
-    opacity: 1;
-  }
-}
-
-/* Ensure mobile menu has good shadow - 色彩化阴影 */
-@media (max-width: 639px) {
-  .menuBackground {
-    box-shadow: 0 10px 25px -5px rgba(45, 41, 38, 0.08), 0 8px 10px -6px rgba(45, 41, 38, 0.05);
-  }
-
-  .dark .menuBackground {
-    border: 1px solid #333333;
-    box-shadow: none;
-  }
-}
-
-/* Dark mode toggle icon container shadow - 色彩化阴影 */
-.darkToggleIcon {
-  box-shadow: 0px 2px 3px 0 rgba(45, 41, 38, 0.1);
-}
-
-.dark .darkToggleIcon {
-  box-shadow: none;
-}
-
-/* Optimize mobile touch feedback */
 .tapHighlight {
   -webkit-tap-highlight-color: transparent;
 }

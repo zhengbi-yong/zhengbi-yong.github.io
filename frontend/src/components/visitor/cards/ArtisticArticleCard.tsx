@@ -34,11 +34,11 @@ export function ArtisticArticleCard({ article, className = '' }: ArtisticArticle
   return (
     <motion.article
       className={cn(
-        'group bg-white dark:bg-gray-800',
-        'rounded-visitor-lg overflow-hidden',
-        'shadow-visitor-soft hover:shadow-visitor-medium',
-        'transition-all duration-500 ease-visitor',
-        'border border-gray-100 dark:border-gray-700',
+        'group rounded-[var(--radius-panel)] overflow-hidden',
+        'bg-[var(--surface-elevated)]',
+        'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-medium)]',
+        'transition-all duration-[var(--motion-base)] ease-visitor',
+        'border border-[var(--border-subtle)] hover:border-[var(--border-strong)]',
         className
       )}
       whileHover={{ y: -8 }}
@@ -50,7 +50,7 @@ export function ArtisticArticleCard({ article, className = '' }: ArtisticArticle
       {/* 封面图 */}
       <Link href={`/blog/${article.slug}`} className="block overflow-hidden">
         <motion.div
-          className="relative w-full h-64 bg-gray-200 dark:bg-gray-700"
+          className="relative h-64 w-full bg-[var(--surface-muted)]"
           whileHover={{ scale: 1.05 }}
           transition={{
             duration: 0.6,
@@ -68,21 +68,21 @@ export function ArtisticArticleCard({ article, className = '' }: ArtisticArticle
       </Link>
 
       {/* 内容区域 */}
-      <div className="p-6 space-y-4">
+      <div className="space-y-4 p-6">
         {/* 标题 - 衬线字体 */}
         <Link href={`/blog/${article.slug}`}>
-          <h3 className="font-visitor-serif text-2xl font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300 line-clamp-2">
+          <h3 className="font-visitor-serif line-clamp-2 text-2xl font-semibold text-[var(--text-primary)] transition-colors duration-[var(--motion-fast)] group-hover:text-[var(--brand-color)]">
             {article.title}
           </h3>
         </Link>
 
         {/* 摘要 */}
-        <p className="text-visitor-base text-gray-600 dark:text-gray-400 line-clamp-3">
+        <p className="text-visitor-base line-clamp-3 text-[var(--text-soft)]">
           {article.summary}
         </p>
 
         {/* 元信息 - 极简 */}
-        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-500 pt-2">
+        <div className="flex items-center gap-4 pt-2 text-sm text-[var(--text-soft)]">
           <span className="flex items-center gap-1.5">
             <Calendar className="w-4 h-4" />
             <time>{new Date(article.date).toLocaleDateString('zh-CN')}</time>
@@ -120,11 +120,11 @@ export function CompactArticleCard({ article, className = '' }: ArtisticArticleC
     <motion.article
       className={cn(
         'group flex gap-4 p-4',
-        'bg-white dark:bg-gray-800',
-        'rounded-visitor-md',
-        'shadow-visitor-soft hover:shadow-visitor-medium',
-        'transition-all duration-300 ease-visitor',
-        'border border-gray-100 dark:border-gray-700',
+        'rounded-[var(--radius-panel)]',
+        'bg-[var(--surface-elevated)]',
+        'shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-medium)]',
+        'transition-all duration-[var(--motion-base)] ease-visitor',
+        'border border-[var(--border-subtle)] hover:border-[var(--border-strong)]',
         className
       )}
       whileHover={{ x: 4 }}
@@ -136,10 +136,10 @@ export function CompactArticleCard({ article, className = '' }: ArtisticArticleC
       {/* 封面图缩略图 */}
       <Link
         href={`/blog/${article.slug}`}
-        className="flex-shrink-0 w-32 h-24 rounded-visitor-md overflow-hidden"
+        className="h-24 w-32 flex-shrink-0 overflow-hidden rounded-[calc(var(--radius-panel)-8px)]"
       >
         <motion.div
-          className="relative w-full h-full bg-gray-200 dark:bg-gray-700"
+          className="relative w-full h-full bg-[var(--surface-muted)]"
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.4 }}
         >
@@ -158,19 +158,19 @@ export function CompactArticleCard({ article, className = '' }: ArtisticArticleC
         <div>
           {/* 标题 */}
           <Link href={`/blog/${article.slug}`}>
-            <h3 className="font-visitor-serif text-lg font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300 line-clamp-2">
+            <h3 className="font-visitor-serif line-clamp-2 text-lg font-semibold text-[var(--text-primary)] transition-colors duration-[var(--motion-fast)] group-hover:text-[var(--brand-color)]">
               {article.title}
             </h3>
           </Link>
 
           {/* 摘要 */}
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
+          <p className="mt-1 line-clamp-2 text-sm text-[var(--text-soft)]">
             {article.summary}
           </p>
         </div>
 
         {/* 元信息 */}
-        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-500 mt-2">
+        <div className="mt-2 flex items-center gap-3 text-xs text-[var(--text-soft)]">
           <time>{new Date(article.date).toLocaleDateString('zh-CN')}</time>
           <span>·</span>
           <span>{article.readTime} min read</span>

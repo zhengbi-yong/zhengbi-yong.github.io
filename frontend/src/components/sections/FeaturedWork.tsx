@@ -67,8 +67,8 @@ export default function FeaturedWork({
     limit !== undefined ? limit < allProjects.length : !showAll && allProjects.length > 6
 
   return (
-    <section className="py-16 md:py-16 md:pb-12">
-      <div className="container mx-auto space-y-8 px-4 sm:px-6 md:space-y-8 xl:px-8">
+    <section className="section-space-md">
+      <div className="container-content space-y-8 md:space-y-10">
         {/* 标题部分 */}
         <SectionHeader title={title} description={description} />
 

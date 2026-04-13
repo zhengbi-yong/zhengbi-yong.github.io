@@ -235,7 +235,7 @@ pub async fn list_tags(
     let sort_order = params.sort_order.unwrap_or_else(|| "desc".to_string());
 
     // 验证排序字段
-    let valid_sort_fields = vec!["name", "post_count", "created_at"];
+    let valid_sort_fields = ["name", "post_count", "created_at"];
     if !valid_sort_fields.contains(&sort_by.as_str()) {
         return Err(AppError::BadRequest("Invalid sort field".to_string()));
     }

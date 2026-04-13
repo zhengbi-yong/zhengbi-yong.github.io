@@ -1,14 +1,16 @@
 import { CACHE_REGISTRY as caches } from '../cache/CacheManager'
-import { AppError, ErrorType } from '../error-handler'
-import { refreshAccessToken } from './backend'
+import { AppError, ErrorType, ErrorSeverity } from '../error-handler'
 import { logger } from '../utils/logger'
+
+// GOLDEN_RULES 1.1: 认证令牌必须仅存在于 HttpOnly Cookie 中
+// 前端不存储、不读取、不操作任何认证令牌
+// 所有请求通过 credentials: 'include' 自动携带 Cookie
 
 interface RequestOptions extends Omit<RequestInit, 'cache'> {
   cache?: boolean | number // false = 不缓存, true = 使用默认缓存, number = 缓存时间（毫秒）
   retries?: number // 重试次数
   retryDelay?: number // 重试延迟（毫秒）
   timeout?: number // 超时时间（毫秒）
-  skipAuthRefresh?: boolean // 跳过自动刷新token
 }
 
 interface ApiResponse<T = any> {
@@ -21,8 +23,6 @@ interface ApiResponse<T = any> {
 class APIClient {
   private baseURL: string
   private defaultHeaders: Record<string, string>
-  private isRefreshing: boolean = false
-  private refreshSubscribers: Array<(token: string) => void> = []
 
   constructor(baseURL: string = '') {
     this.baseURL = baseURL
@@ -31,19 +31,10 @@ class APIClient {
     }
   }
 
-  // 获取当前的请求头（动态添加 Authorization）
+  // GOLDEN_RULES 1.1: 不再从 localStorage 读取令牌
+  // 所有认证通过 HttpOnly Cookie 自动发送
   private getRequestHeaders(): Record<string, string> {
-    const headers = { ...this.defaultHeaders }
-
-    // 动态从 localStorage 获取 token
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token')
-      if (token && !headers['Authorization']) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-    }
-
-    return headers
+    return { ...this.defaultHeaders }
   }
 
   // 翻译后端错误消息为中文
@@ -67,17 +58,6 @@ class APIClient {
     }
 
     return errorMap[message] || message
-  }
-
-  // 订阅token刷新事件
-  private subscribeTokenRefresh(callback: (token: string) => void) {
-    this.refreshSubscribers.push(callback)
-  }
-
-  // 取消订阅并通知所有订阅者
-  private onTokenRefreshed(token: string) {
-    this.refreshSubscribers.forEach((callback) => callback(token))
-    this.refreshSubscribers = []
   }
 
   // 生成缓存键
@@ -105,39 +85,9 @@ class APIClient {
     return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
-  // 处理401错误，尝试刷新token
-  private async handle401Error(): Promise<boolean> {
-    // 如果正在刷新token，等待刷新完成
-    if (this.isRefreshing) {
-      return new Promise((resolve) => {
-        this.subscribeTokenRefresh((token) => {
-          this.setDefaultHeader('Authorization', `Bearer ${token}`)
-          resolve(true)
-        })
-      })
-    }
-
-    // 开始刷新token
-    this.isRefreshing = true
-    try {
-      const newToken = await refreshAccessToken()
-      this.setDefaultHeader('Authorization', `Bearer ${newToken}`)
-      this.onTokenRefreshed(newToken)
-      return true
-    } catch (error) {
-      // 刷新失败，清除认证信息
-      this.removeDefaultHeader('Authorization')
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('user_info')
-      }
-      return false
-    } finally {
-      this.isRefreshing = false
-    }
-  }
-
   // 核心请求方法
+  // GOLDEN_RULES 1.1: 不再处理 token 刷新，401 错误直接抛出
+  // HttpOnly Cookie 的刷新由后端处理
   private async makeRequest<T>(
     endpoint: string,
     options: RequestOptions = {}
@@ -146,8 +96,7 @@ class APIClient {
       cache = true,
       retries = 0,
       retryDelay = 1000,
-      timeout = 30000, // 增加到30秒
-      skipAuthRefresh = false,
+      timeout = 30000,
       headers = {},
       ...fetchOptions
     } = options
@@ -165,7 +114,6 @@ class APIClient {
     }
 
     let lastError: Error | null = null
-    let attempt401Handled = false
 
     // 重试逻辑
     for (let attempt = 0; attempt <= retries; attempt++) {
@@ -180,7 +128,7 @@ class APIClient {
             ...headers,
           },
           signal: controller.signal,
-          credentials: 'include', // 发送 cookie
+          credentials: 'include', // GOLDEN_RULES: 自动发送 HttpOnly Cookie
         })
 
         // 清除超时
@@ -193,7 +141,13 @@ class APIClient {
           try {
             const errorData = await response.json()
             if (errorData.error) {
-              errorMessage = errorData.error
+              // errorData.error 可以是对象 { code, message, type } 或字符串
+              errorMessage =
+                typeof errorData.error === 'string'
+                  ? errorData.error
+                  : errorData.error.message ||
+                    errorData.error.code ||
+                    JSON.stringify(errorData.error)
             } else if (errorData.message) {
               errorMessage = this.translateErrorMessage(errorData.message)
             }
@@ -201,27 +155,19 @@ class APIClient {
             // 如果无法解析 JSON，使用默认错误消息
           }
 
-          // 处理401未授权错误 - 但跳过登录/注册接口的401（这些表示凭证错误，不是token过期）
-          const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/register')
-          if (response.status === 401 && !skipAuthRefresh && !attempt401Handled && !isAuthEndpoint) {
-            const refreshSuccess = await this.handle401Error()
-            if (refreshSuccess) {
-              attempt401Handled = true
-              // 用新token重试请求
-              continue
-            }
-          }
-
+          // 401 错误直接抛出，让调用方处理登录跳转
+          // 不再尝试刷新 token (GOLDEN_RULES 1.1)
           throw new AppError(
             errorMessage,
             this.getErrorType(response.status),
-            'HIGH' as any,
+            ErrorSeverity.HIGH,
             {
               status: response.status,
               statusText: response.statusText,
               url,
               attempt: attempt + 1,
-            }
+            },
+            response.status
           )
         }
 
@@ -254,7 +200,7 @@ class APIClient {
           if (error.type === ErrorType.VALIDATION) {
             throw error
           }
-          // 401错误已经处理过，不再重试
+          // 401 错误不再重试
           if (error.statusCode === 401) {
             throw error
           }
@@ -326,16 +272,6 @@ class APIClient {
 
   async delete<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.makeRequest<T>(endpoint, { ...options, method: 'DELETE' })
-  }
-
-  // 设置默认请求头
-  setDefaultHeader(key: string, value: string): void {
-    this.defaultHeaders[key] = value
-  }
-
-  // 移除默认请求头
-  removeDefaultHeader(key: string): void {
-    delete this.defaultHeaders[key]
   }
 
   // 清除所有缓存

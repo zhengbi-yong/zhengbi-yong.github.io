@@ -6,15 +6,15 @@ import 'katex/dist/katex.min.css' // KaTeX 数学公式样式
 import 'abcjs/abcjs-audio.css'
 
 import type { AnalyticsConfig } from 'pliny/analytics'
-import SkipLink from '@/components/SkipLink'
 import siteMetadata from '@/data/siteMetadata'
+import SkipLink from '@/components/SkipLink'
 import { ThemeProviders } from './theme-providers'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
 import VisitorTracker from '@/components/VisitorTracker'
 import I18nProvider from '@/components/I18nProvider'
-import { Inter, JetBrains_Mono, Newsreader, Great_Vibes } from 'next/font/google'
+import { JetBrains_Mono, Inter } from 'next/font/google'
 import { Metadata } from 'next'
 
 const inter = Inter({
@@ -27,21 +27,6 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-jetbrains-mono',
-})
-
-const newsreader = Newsreader({
-  subsets: ['latin', 'latin-ext'],
-  display: 'swap',
-  variable: '--font-newsreader',
-  style: ['normal', 'italic'],
-  weight: ['200', '300', '400', '500', '600', '700', '800'],
-})
-
-const greatVibes = Great_Vibes({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-great-vibes',
-  weight: '400',
 })
 
 import Script from 'next/script'
@@ -103,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang={siteMetadata.language}
-      className={`${inter.variable} ${jetbrainsMono.variable} ${newsreader.variable} ${greatVibes.variable} scroll-smooth`}
+      className={`${inter.variable} ${jetbrainsMono.variable} scroll-smooth`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
@@ -136,10 +121,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           precedence="default"
         />
       </head>
-      <body
-        className="pl-[calc(100vw-100%)] antialiased"
-        style={{ backgroundColor: 'var(--site-bg)', color: 'var(--text-primary)' }}
-      >
+      <body className="min-h-screen bg-[var(--shell-bg)] pl-[calc(100vw-100%)] font-sans text-[var(--text-primary)] antialiased selection:bg-[var(--brand-color)] selection:text-[var(--surface-strong)]">
         <Script id="load-env-variables" strategy="beforeInteractive">
           {`window["EXCALIDRAW_ASSET_PATH"] = "/";`}
         </Script>

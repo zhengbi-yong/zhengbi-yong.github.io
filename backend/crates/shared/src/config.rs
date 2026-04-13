@@ -268,7 +268,9 @@ impl Settings {
                     .map(|s| s.trim().to_string())
                     .collect(),
                 allowed_headers: env::var("CORS_ALLOWED_HEADERS")
-                    .unwrap_or_else(|_| "Authorization,Content-Type,Accept".to_string())
+                    .unwrap_or_else(|_| {
+                        "Authorization,Content-Type,Accept,X-CSRF-Token".to_string()
+                    })
                     .split(',')
                     .map(|s| s.trim().to_string())
                     .collect(),
@@ -387,7 +389,7 @@ SMTP_TLS=true
 # CORS
 CORS_ALLOWED_ORIGINS=http://localhost:3001
 CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
-CORS_ALLOWED_HEADERS=Authorization,Content-Type,Accept
+CORS_ALLOWED_HEADERS=Authorization,Content-Type,Accept,X-CSRF-Token
 
 # Rate limiting
 RATE_LIMIT_AUTH_RPS=5

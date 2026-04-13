@@ -38,46 +38,46 @@ export default function ChapterCard({
 }: ChapterCardProps) {
   return (
     <motion.div
-      whileHover={{ x: 4 }}
+      whileHover={{ y: -2 }}
       transition={{ duration: 0.2 }}
       className={className}
     >
       <Link
         href={chapter.slug}
-        className="block rounded-lg border-2 border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-primary-400 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-primary-600"
+        className="group block rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-5 shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]"
       >
         <div className="flex items-start gap-4">
           {/* 章节编号 */}
           <div className="flex-shrink-0">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300">
-              <span className="text-sm font-bold">{chapter.chapterNumber}</span>
+            <div className="flex h-12 w-12 items-center justify-center rounded-[calc(var(--radius-panel)-6px)] bg-[color-mix(in_srgb,var(--brand-color)_14%,transparent)] text-[var(--brand-color)]">
+              <span className="text-sm font-semibold tracking-[-0.02em]">{chapter.chapterNumber}</span>
             </div>
           </div>
 
           {/* 章节内容 */}
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             {/* 标题 */}
-            <h3 className="font-bold text-gray-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 line-clamp-2">
+            <h3 className="line-clamp-2 font-semibold tracking-[-0.02em] text-[var(--text-primary)] transition-colors duration-[var(--motion-fast)] group-hover:text-[var(--brand-color)]">
               {chapter.title}
             </h3>
 
             {/* 摘要 */}
             {!compact && chapter.summary && (
-              <p className="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
+              <p className="mt-2 line-clamp-2 text-sm text-[var(--text-soft)]">
                 {chapter.summary}
               </p>
             )}
 
             {/* 元信息 */}
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-medium tracking-[0.06em] text-[var(--text-soft)]">
               {chapter.date && (
-                <div className="flex items-center gap-1">
+                <div className="inline-flex items-center gap-1.5">
                   <FileText className="h-3.5 w-3.5" />
                   <time>{new Date(chapter.date).toLocaleDateString('zh-CN')}</time>
                 </div>
               )}
               {chapter.readTime && (
-                <div className="flex items-center gap-1">
+                <div className="inline-flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" />
                   <span>{chapter.readTime}</span>
                 </div>

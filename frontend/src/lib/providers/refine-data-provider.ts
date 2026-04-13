@@ -1,6 +1,10 @@
 /**
  * Refine Data Provider
  * 适配现有的后端 API 结构
+ *
+ * GOLDEN_RULES 1.1: 认证令牌必须仅存在于 HttpOnly Cookie 中
+ * - 不再从 localStorage 读取或存储 token
+ * - 使用 withCredentials: true 自动发送 HttpOnly Cookie
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -10,9 +14,11 @@ import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
 const BACKEND_API_URL = resolveBackendApiBaseUrl()
 
-// 创建自定义的 axios 实例，添加拦截器来处理认证
+// 创建自定义的 axios 实例
+// GOLDEN_RULES 1.1: 使用 withCredentials 发送 HttpOnly Cookie
 const customAxios = axios.create({
   baseURL: BACKEND_API_URL,
+  withCredentials: true,
 })
 
 // 辅助函数：创建符合 Refine HttpError 接口的错误对象
@@ -21,27 +27,16 @@ const createHttpError = (
   message: string,
   errors?: Record<string, unknown>
 ): { message: string; statusCode: number; errors?: Record<string, unknown> } => {
-  const error = new Error(message) as Error & { statusCode: number; errors?: Record<string, unknown> }
+  const error = new Error(message) as Error & {
+    statusCode: number
+    errors?: Record<string, unknown>
+  }
   error.statusCode = statusCode
   if (errors) {
     error.errors = errors
   }
   return error
 }
-
-// 请求拦截器 - 添加 Authorization header
-customAxios.interceptors.request.use(
-  (config) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
 
 // API 响应数据接口
 interface ApiResponse {
@@ -267,19 +262,29 @@ export const dataProvider: DataProvider = {
       let response: AxiosResponse<ApiResponse>
       switch (method?.toLowerCase()) {
         case 'get':
-          response = await customAxios.get<ApiResponse>(requestUrl, { headers } as AxiosRequestConfig)
+          response = await customAxios.get<ApiResponse>(requestUrl, {
+            headers,
+          } as AxiosRequestConfig)
           break
         case 'post':
-          response = await customAxios.post<ApiResponse>(requestUrl, payload, { headers } as AxiosRequestConfig)
+          response = await customAxios.post<ApiResponse>(requestUrl, payload, {
+            headers,
+          } as AxiosRequestConfig)
           break
         case 'put':
-          response = await customAxios.put<ApiResponse>(requestUrl, payload, { headers } as AxiosRequestConfig)
+          response = await customAxios.put<ApiResponse>(requestUrl, payload, {
+            headers,
+          } as AxiosRequestConfig)
           break
         case 'patch':
-          response = await customAxios.patch<ApiResponse>(requestUrl, payload, { headers } as AxiosRequestConfig)
+          response = await customAxios.patch<ApiResponse>(requestUrl, payload, {
+            headers,
+          } as AxiosRequestConfig)
           break
         case 'delete':
-          response = await customAxios.delete<ApiResponse>(requestUrl, { headers } as AxiosRequestConfig)
+          response = await customAxios.delete<ApiResponse>(requestUrl, {
+            headers,
+          } as AxiosRequestConfig)
           break
         default:
           throw new Error(`Unsupported method: ${method}`)

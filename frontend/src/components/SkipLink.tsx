@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { cn } from '@/lib/utils'
 
 export default function SkipLink() {
   const [isFocused, setIsFocused] = useState(false)
@@ -38,7 +39,10 @@ export default function SkipLink() {
     <a
       href="#main-content"
       onClick={handleSkipLink}
-      className={`bg-primary-600 focus:ring-primary-400 absolute top-0 left-0 z-[9999] -translate-y-full rounded-b-lg px-4 py-2 text-white transition-transform duration-200 focus:translate-y-0 focus:ring-2 focus:ring-offset-2 focus:outline-none ${!isFocused && 'sr-only'} `}
+      className={cn(
+        'bg-primary-600 focus:ring-primary-400 absolute top-0 left-0 z-[9999] -translate-y-full rounded-b-lg px-4 py-2 text-white transition-transform duration-200 focus:translate-y-0 focus:ring-2 focus:ring-offset-2 focus:outline-none',
+        !isFocused && 'sr-only'
+      )}
     >
       跳转到主内容
     </a>

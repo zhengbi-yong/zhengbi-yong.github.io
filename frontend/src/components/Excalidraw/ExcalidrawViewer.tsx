@@ -532,8 +532,7 @@ export function ExcalidrawViewer({
         event.preventDefault()
         handleSave()
         return
-    return null
-  }
+      }
 
       // Ctrl/Cmd + Shift + E: 导出 PNG
       if (isCtrlOrCmd && event.shiftKey && event.key === 'E') {

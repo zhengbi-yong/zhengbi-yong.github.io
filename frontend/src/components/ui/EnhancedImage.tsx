@@ -193,7 +193,7 @@ export function ResponsiveImage({
 }: Omit<EnhancedImageProps, 'width' | 'height'> & {
   aspectRatio?: 'auto' | 'square' | 'video' | '16/9' | '4/3' | '3/2' | '1/1'
 }) {
-  const aspectClasses = {
+  const aspectClasses: Record<NonNullable<typeof aspectRatio>, string> = {
     auto: '',
     square: 'aspect-square',
     video: 'aspect-video',

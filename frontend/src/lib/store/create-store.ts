@@ -28,11 +28,14 @@ type Create = {
 
 const identity = <T>(value: T) => value
 
+// eslint-disable-next-line no-redeclare
 function useBoundStore<S extends ReadonlyStoreApi<unknown>>(api: S): ExtractState<S>
+// eslint-disable-next-line no-redeclare
 function useBoundStore<S extends ReadonlyStoreApi<unknown>, U>(
   api: S,
   selector: (state: ExtractState<S>) => U
 ): U
+// eslint-disable-next-line no-redeclare
 function useBoundStore<S extends ReadonlyStoreApi<unknown>, U>(
   api: S,
   selector: (state: ExtractState<S>) => U = identity as (state: ExtractState<S>) => U

@@ -11,6 +11,7 @@ import {
   RadioGroup,
   Transition,
 } from '@headlessui/react'
+import { cn } from '@/lib/utils'
 
 const Sun = () => (
   <svg
@@ -85,7 +86,10 @@ const ThemeSwitch = () => {
                   <MenuItem>
                     {({ focus }) => (
                       <button
-                        className={`${focus ? 'bg-primary-600 text-white' : ''} group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                        className={cn(
+                          'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                          focus && 'bg-primary-600 text-white'
+                        )}
                       >
                         <div className="mr-2">
                           <Sun />
@@ -99,9 +103,10 @@ const ThemeSwitch = () => {
                   <MenuItem>
                     {({ focus }) => (
                       <button
-                        className={`${
-                          focus ? 'bg-primary-600 text-white' : ''
-                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                        className={cn(
+                          'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                          focus && 'bg-primary-600 text-white'
+                        )}
                       >
                         <div className="mr-2">
                           <Moon />
@@ -115,9 +120,10 @@ const ThemeSwitch = () => {
                   <MenuItem>
                     {({ focus }) => (
                       <button
-                        className={`${
-                          focus ? 'bg-primary-600 text-white' : ''
-                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                        className={cn(
+                          'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                          focus && 'bg-primary-600 text-white'
+                        )}
                       >
                         <div className="mr-2">
                           <Monitor />

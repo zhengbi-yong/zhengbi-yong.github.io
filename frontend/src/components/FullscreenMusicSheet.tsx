@@ -23,7 +23,7 @@ interface OpenSheetMusicDisplay {
 }
 
 interface FullscreenMusicSheetProps {
-  /** MusicXML file path, relative to public/musicxml/ */
+  /** MusicXML public asset path or filename */
   src: string
   /** Zoom level, default 1.0 */
   zoom?: number
@@ -56,6 +56,7 @@ export default function FullscreenMusicSheet({
   const [mounted, setMounted] = useState<boolean>(false)
   const [currentZoom, setCurrentZoom] = useState<number>(zoom)
   const [isDark, setIsDark] = useState(false)
+  const [hasLoadedScore, setHasLoadedScore] = useState(false)
 
   useEffect(() => {
     // Read theme directly from DOM since portal renders outside React context tree
@@ -153,6 +154,37 @@ export default function FullscreenMusicSheet({
     return xmlContent
   }
 
+  const normalizeMusicAssetPath = (filePath: string): string => {
+    if (filePath.startsWith('/')) {
+      return filePath
+    }
+
+    return `/musicxml/${filePath.replace(/^\/+/, '')}`
+  }
+
+  const applyCenteredScoreLayout = () => {
+    if (!containerRef.current) {
+      return
+    }
+
+    const svg = containerRef.current.querySelector('svg')
+    if (svg) {
+      svg.style.removeProperty('left')
+      svg.style.removeProperty('right')
+      svg.style.removeProperty('transform')
+      svg.style.removeProperty('position')
+      svg.style.margin = '0 auto'
+      svg.style.display = 'block'
+      svg.style.maxWidth = '100%'
+
+      containerRef.current.style.textAlign = 'center'
+      containerRef.current.style.display = 'flex'
+      containerRef.current.style.flexDirection = 'column'
+      containerRef.current.style.alignItems = 'center'
+      containerRef.current.style.justifyContent = 'flex-start'
+    }
+  }
+
   const loadMusicXML = async (filePath: string) => {
     if (!osmdInstanceRef.current) {
       setError('OSMD instance not initialized')
@@ -162,16 +194,21 @@ export default function FullscreenMusicSheet({
 
     setIsLoading(true)
     setError(null)
+    setHasLoadedScore(false)
 
     try {
       const basePath = getBasePath()
-      const isMXL = filePath.toLowerCase().endsWith('.mxl')
+      const normalizedPath = normalizeMusicAssetPath(filePath)
+      const isMXL = normalizedPath.toLowerCase().endsWith('.mxl')
+      const pathWithBase = basePath && normalizedPath.startsWith(`${basePath}/`)
+        ? normalizedPath
+        : `${basePath}${normalizedPath}`
 
       const possiblePaths = [
-        `${basePath}/musicxml/${filePath}`,
-        `/musicxml/${filePath}`,
-        `${window.location.origin}${basePath}/musicxml/${filePath}`,
-        `${window.location.origin}/musicxml/${filePath}`,
+        pathWithBase,
+        normalizedPath,
+        `${window.location.origin}${pathWithBase}`,
+        `${window.location.origin}${normalizedPath}`,
       ]
 
       let xmlContent = ''
@@ -244,6 +281,7 @@ export default function FullscreenMusicSheet({
       setIsLoading(false)
     } catch (err) {
       logger.error('Load score error:', err)
+      setHasLoadedScore(false)
       setError(`Failed to load score: ${err instanceof Error ? err.message : 'Unknown error'}`)
       setIsLoading(false)
     }
@@ -309,36 +347,20 @@ export default function FullscreenMusicSheet({
       if (osmdInstanceRef.current) {
         osmdInstanceRef.current = null
       }
+      setHasLoadedScore(false)
     }
   }, [mounted, src, drawTitle, drawMeasureNumbers])
 
   useEffect(() => {
-    if (osmdInstanceRef.current && !isLoading) {
+    if (osmdInstanceRef.current && hasLoadedScore && !isLoading && !error) {
       osmdInstanceRef.current.zoom = currentZoom
       osmdInstanceRef.current.render()
 
       setTimeout(() => {
-        if (containerRef.current) {
-          const svg = containerRef.current.querySelector('svg')
-          if (svg) {
-            svg.style.removeProperty('left')
-            svg.style.removeProperty('right')
-            svg.style.removeProperty('transform')
-            svg.style.removeProperty('position')
-            svg.style.margin = '0 auto'
-            svg.style.display = 'block'
-            svg.style.maxWidth = '100%'
-
-            containerRef.current.style.textAlign = 'center'
-            containerRef.current.style.display = 'flex'
-            containerRef.current.style.flexDirection = 'column'
-            containerRef.current.style.alignItems = 'center'
-            containerRef.current.style.justifyContent = 'flex-start'
-          }
-        }
+        applyCenteredScoreLayout()
       }, 200)
     }
-  }, [currentZoom, isLoading])
+  }, [currentZoom, hasLoadedScore, isLoading, error])
 
   const handleZoomIn = useCallback(() => {
     setCurrentZoom((prev) => Math.min(prev + 0.15, 3.0))

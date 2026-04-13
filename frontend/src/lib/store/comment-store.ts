@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import { commentService } from '../api/backend'
 import type { CommentResponse, CreateCommentRequest } from '../types/backend'
 import { logger } from '../utils/logger'
+import { AppError } from '../error-handler'
 
 interface CommentsState {
   // Map of post slug to comments
@@ -89,8 +90,7 @@ export const useCommentStore = create<CommentsState>()(
       }))
       try {
         await commentService.createComment(slug, data)
-        // Note: Comments are created with status 'pending' and won't appear in list until approved
-        // But we show success to the user
+        // Comments are refreshed from the server after submit so moderation state stays accurate
         set((state) => ({
           loading: { ...state.loading, [slug]: false },
         }))
@@ -143,6 +143,10 @@ export const useCommentStore = create<CommentsState>()(
           }
         })
       } catch (error) {
+        if (error instanceof AppError && error.statusCode === 401) {
+          throw error
+        }
+
         logger.error('Failed to like comment:', error)
       }
     },

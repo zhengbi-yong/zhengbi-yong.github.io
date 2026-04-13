@@ -19,7 +19,7 @@ const projectsData: Project[] = [
   {
     title: '论文阅读笔记',
     description: '系统性地阅读、整理并记录机器人学与多模态感知领域的前沿论文，涵盖灵巧操纵、具身智能等方向。',
-    imgSrc: '/static/images/units.jpg',
+    imgSrc: '/units.jpg',
     href: '/blog/robotics/dexmani',
     category: 'Research',
     year: '2025',

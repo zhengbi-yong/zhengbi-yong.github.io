@@ -272,10 +272,9 @@ async fn fetch_all_documents(db: &PgPool) -> anyhow::Result<Vec<SearchDocument>>
     .fetch_all(db)
     .await?;
 
-    Ok(rows
-        .into_iter()
+    rows.into_iter()
         .map(row_to_document)
-        .collect::<anyhow::Result<_>>()?)
+        .collect::<anyhow::Result<_>>()
 }
 
 async fn fetch_document_by_slug(db: &PgPool, slug: &str) -> anyhow::Result<Option<SearchDocument>> {

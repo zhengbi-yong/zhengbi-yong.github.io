@@ -10,11 +10,13 @@ import { AnimationErrorBoundary } from '@/components/AnimationErrorBoundary'
 import { normalizeRuntimeMdxContent } from './mdx-runtime-normalize'
 import { KatexRenderer } from '@/components/KatexRenderer'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import rehypeSlug from 'rehype-slug'
+import rehypeKatex from 'rehype-katex'
+import rehypeMhchem from './rehype-mhchem'
 
 // Import KaTeX CSS
 import 'katex/dist/katex.min.css'
-
 
 const ChemicalStructure = dynamic(
   () => import('@/components/chemistry/ChemicalStructure').then((mod) => mod.default),
@@ -65,7 +67,9 @@ const MoleculeFingerprint = dynamic(
       <div className="my-6 items-center justify-center rounded-lg border border-dashed border-gray-200 p-4 dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
           <div className="border-t-primary-500 h-6 w-6 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading molecular fingerprint...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Loading molecular fingerprint...
+          </p>
         </div>
       </div>
     ),
@@ -110,7 +114,7 @@ const components = {
   SimpleChemicalStructure: WrappedSimpleChemicalStructure,
   RDKitStructure: WrappedRDKitStructure,
   MoleculeFingerprint: WrappedMoleculeFingerprint,
-  KatexRenderer: KatexRenderer,  // 数学公式渲染组件
+  KatexRenderer: KatexRenderer, // 数学公式渲染组件
 }
 
 export type MDXRuntimeProps = {
@@ -131,8 +135,8 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
         setError(null)
         const source = await serialize(normalizeRuntimeMdxContent(content), {
           mdxOptions: {
-            remarkPlugins: [remarkGfm],
-            rehypePlugins: [rehypeSlug],
+            remarkPlugins: [remarkGfm, remarkMath],
+            rehypePlugins: [rehypeSlug, rehypeMhchem, rehypeKatex],
             format: 'mdx',
           },
         })
@@ -207,4 +211,3 @@ function MDXEmptyState() {
     </div>
   )
 }
-

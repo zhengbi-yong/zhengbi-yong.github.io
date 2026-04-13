@@ -228,7 +228,7 @@ const WrappedConfettiOnView = (props: any) => (
 const WrappedEChartsComponent = (props: any) => {
   // 提取formatter函数，其他props传递给组件
   const { option, ...restProps } = props
-  const formatters: { [key: string]: Function } = {}
+  const formatters: { [key: string]: (...args: unknown[]) => unknown } = {}
 
   // 从option中提取函数配置
   const safeOption = JSON.parse(JSON.stringify(option || {}))

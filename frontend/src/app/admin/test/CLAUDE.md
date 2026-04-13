@@ -68,14 +68,14 @@ const { mutate: logout } = useLogout()
 
 **Implementation**:
 ```typescript
+// GOLDEN_RULES 1.1: 使用 credentials: 'include' 发送 HttpOnly Cookie
 useEffect(() => {
   const fetchDirect = async () => {
-    const token = localStorage.getItem('access_token')
     const response = await fetch('http://localhost:3000/v1/admin/posts?page=1&page_size=20', {
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
     })
     const result = await response.json()
     setDirectApiData(result)
@@ -90,7 +90,7 @@ useEffect(() => {
 - `total`: Total count from API
 
 **Expected Behavior**:
-- Should fetch successfully if token is valid
+- Should fetch successfully if HttpOnly cookie is valid
 - Green background panel indicates test section
 
 ### 3. useList State Test
@@ -144,11 +144,11 @@ useEffect(() => {
 
 **Authentication**:
 ```typescript
-const token = localStorage.getItem('access_token')
+// GOLDEN_RULES 1.1: 使用 credentials: 'include' 发送 HttpOnly Cookie
 headers: {
-  'Authorization': `Bearer ${token}`,
   'Content-Type': 'application/json',
-}
+},
+credentials: 'include'
 ```
 
 **Query Parameters**:

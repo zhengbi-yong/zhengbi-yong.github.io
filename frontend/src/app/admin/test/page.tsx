@@ -38,15 +38,15 @@ export default function AdminTestPage() {
   const backendApiUrl = resolveBackendApiBaseUrl()
 
   // 直接调用 API 测试
+  // GOLDEN_RULES 1.1: 使用 credentials: 'include' 发送 HttpOnly Cookie，不读取 localStorage
   useEffect(() => {
     const fetchDirect = async () => {
       try {
-        const token = localStorage.getItem('access_token')
         const response = await fetch(`${backendApiUrl}/admin/posts?page=1&page_size=20`, {
           headers: {
-            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
+          credentials: 'include',
         })
         const result = await response.json()
         logger.log('[Direct API] Result:', result)

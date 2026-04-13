@@ -8,62 +8,46 @@
 import { useEffect, useState } from 'react'
 import { Sun, Moon, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-type Theme = 'light' | 'dark' | 'system'
+import { useUIStore } from '@/lib/store/ui-store'
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>('system')
+  const theme = useUIStore((s) => s.theme)
+  const setTheme = useUIStore((s) => s.setTheme)
   const [mounted, setMounted] = useState(false)
 
-  // 避免服务端渲染不匹配
   useEffect(() => {
     setMounted(true)
-    // 从localStorage读取保存的主题
-    const savedTheme = localStorage.getItem('theme') as Theme | null
-    if (savedTheme) {
-      setTheme(savedTheme)
-    }
   }, [])
 
   useEffect(() => {
     if (!mounted) return
 
     const root = window.document.documentElement
-
-    // 移除所有主题类
     root.classList.remove('light', 'dark')
 
-    // 应用主题
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
       root.classList.add(systemTheme)
     } else {
       root.classList.add(theme)
     }
-
-    // 保存到localStorage
-    localStorage.setItem('theme', theme)
   }, [theme, mounted])
 
   if (!mounted) {
     return (
       <button
-        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-[calc(var(--radius-panel)-8px)] border border-[var(--admin-border-subtle)] bg-[var(--surface-elevated)]/80 text-[var(--text-secondary)] transition-colors duration-[var(--motion-fast)]"
         disabled
       >
-        <Monitor className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+        <Monitor className="h-4 w-4" />
       </button>
     )
   }
 
   const cycleTheme = () => {
-    setTheme((prev) => {
-      if (prev === 'light') return 'dark'
-      if (prev === 'dark') return 'system'
-      return 'light'
-    })
+    if (theme === 'light') setTheme('dark')
+    else if (theme === 'dark') setTheme('system')
+    else setTheme('light')
   }
 
   const getIcon = () => {
@@ -92,10 +76,9 @@ export default function ThemeToggle() {
     <button
       onClick={cycleTheme}
       className={cn(
-        'p-2 rounded-lg transition-colors',
-        'hover:bg-gray-100 dark:hover:bg-gray-700',
-        'text-gray-600 dark:text-gray-400',
-        'hover:text-gray-900 dark:hover:text-gray-200'
+        'inline-flex h-10 w-10 items-center justify-center rounded-[calc(var(--radius-panel)-8px)] border border-[var(--admin-border-subtle)] bg-[var(--surface-elevated)]/80 text-[var(--text-secondary)] backdrop-blur-sm transition-all duration-[var(--motion-fast)]',
+        'hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] hover:shadow-[var(--shadow-soft)]',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)]/40'
       )}
       aria-label={`切换主题：${getLabel()}`}
       title={getLabel()}

@@ -18,6 +18,8 @@
   --admin-btn-padding-x: 0.75rem;     /* 原 1rem */
   --admin-btn-font-size: 0.813rem;    /* 13px */
   --admin-input-padding: 0.5rem;      /* 原 0.75rem */
+  --admin-density-gap: 0.875rem;
+  --admin-density-radius: var(--radius-md);
 }
 
 /* 数据表格行 */

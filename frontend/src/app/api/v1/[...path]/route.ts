@@ -28,10 +28,67 @@ function createProxyHeaders(request: NextRequest) {
   return headers
 }
 
+/**
+ * GOLDEN_RULES 1.1: Fix Set-Cookie header for cross-port development
+ *
+ * When running with frontend on port 3001 and backend on port 3000,
+ * the backend sets cookies for "localhost:3000" but the browser
+ * needs them for "localhost:3001" (the proxy origin).
+ *
+ * This function ALWAYS sets Domain=localhost (without port) so cookies
+ * work across different ports on localhost during development.
+ */
+function fixSetCookieHeader(cookieValue: string, frontendOrigin: string): string {
+  const parts = cookieValue.split(';').map((p) => p.trim())
+  const frontendHost = frontendOrigin.replace(/^https?:\/\//, '').split(':')[0]
+
+  const domainIndex = parts.findIndex((p) => p.toLowerCase().startsWith('domain='))
+  if (domainIndex !== -1) {
+    const domainValue = parts[domainIndex].substring('domain='.length)
+    if (domainValue.includes(':')) {
+      parts[domainIndex] = `Domain=${frontendHost}`
+    }
+  }
+
+  const secureIndex = parts.findIndex((p) => p.toLowerCase() === 'secure')
+  if (frontendOrigin.startsWith('http://') && secureIndex !== -1) {
+    parts.splice(secureIndex, 1)
+  }
+
+  return parts.join('; ')
+}
+
+/**
+ * Extract XSRF-TOKEN from cookies and inject as X-CSRF-TOKEN header
+ * For state-changing requests (POST, PUT, PATCH, DELETE)
+ */
+function injectCsrfToken(request: NextRequest, headers: Headers) {
+  const method = request.method.toUpperCase()
+  const stateChangingMethods = ['POST', 'PUT', 'PATCH', 'DELETE']
+
+  if (!stateChangingMethods.includes(method)) {
+    return
+  }
+
+  // Read XSRF-TOKEN cookie (non-HttpOnly, set by backend for CSRF protection)
+  const xsrfToken = request.cookies.get('XSRF-TOKEN')?.value
+
+  if (xsrfToken) {
+    headers.set('X-CSRF-Token', xsrfToken)
+  }
+}
+
 async function proxyRequest(request: NextRequest): Promise<NextResponse> {
   try {
     const backendUrl = getBackendUrl(request)
     const headers = createProxyHeaders(request)
+
+    // Inject CSRF token for state-changing requests
+    injectCsrfToken(request, headers)
+
+    // Get frontend origin for cookie fix
+    const frontendOrigin = new URL(request.url).origin
+
     const body =
       request.method === 'GET' || request.method === 'HEAD' ? undefined : await request.text()
 
@@ -42,16 +99,28 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
       cache: 'no-store',
     })
 
-    const responseHeaders = new Headers(response.headers)
+    const responseHeaders = new Headers()
 
-    ;['content-encoding', 'content-length', 'transfer-encoding'].forEach((header) => {
-      responseHeaders.delete(header)
+    // Apply cookie fix for cross-port development (GOLDEN_RULES 1.1)
+    // Backend sets cookies for localhost:3000, but we need them for localhost:3001
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === 'set-cookie') {
+        // Fix the Set-Cookie header - strip port from Domain
+        responseHeaders.append(key, fixSetCookieHeader(value, frontendOrigin))
+      } else if (
+        !['content-encoding', 'content-length', 'transfer-encoding'].includes(key.toLowerCase())
+      ) {
+        responseHeaders.append(key, value)
+      }
     })
 
     responseHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate')
     responseHeaders.set('Access-Control-Allow-Origin', '*')
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie')
+    responseHeaders.set(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, Cookie, X-CSRF-Token'
+    )
 
     if (response.status === 204 || response.status === 205) {
       return new NextResponse(null, {

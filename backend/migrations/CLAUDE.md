@@ -12,15 +12,26 @@ Manage database schema evolution, version control, and deployment across environ
 
 ```
 backend/migrations/
-├── 0001_initial.sql                # Initial schema (users, tokens, posts, comments)
-├── 0002_fix_column_names.sql       # Fix naming inconsistencies
-├── 0003_fix_post_likes_column.sql   # Correct post_likes foreign key
-├── 0004_create_cms_tables.sql      # CMS integration tables
-├── 0005_add_comment_likes.sql       # Comment like feature
-├── 0006_add_user_role.sql           # User role management
-├── 20251229_add_reading_progress.sql # Reading tracking
-├── 20251230_add_fulltext_search.sql  # Search optimization
-└── 20251231_add_mdx_support.sql     # MDX content support
+├── 0001_initial.sql                     # Initial schema (users, tokens, posts, comments)
+├── 0002_fix_column_names.sql            # Fix naming inconsistencies
+├── 0003_fix_post_likes_column.sql       # Correct post_likes foreign key
+├── 0004_create_cms_tables.sql           # CMS integration tables
+├── 0005_add_comment_likes.sql           # Comment like feature
+├── 0006_add_user_role.sql              # User role management
+├── 20251229_add_reading_progress.sql   # Reading tracking
+├── 20251230_add_fulltext_search.sql    # Search optimization
+├── 20251231_add_mdx_support.sql        # MDX content support
+├── 20260116_enhance_posts_schema.sql   # Enhanced posts schema (18 new fields)
+├── 2026032201_add_outbox_events.sql    # Outbox pattern implementation
+├── 2026032202_add_outbox_claiming.sql  # Outbox worker claiming
+├── 2026032901_add_title_exact_lookup_index.sql  # B-tree index for title lookups
+├── 2026033101_post_media.sql           # Post media support
+├── 2026033102_user_status.sql          # User status column
+├── 2026040601_create_team_members.sql  # Team members table
+├── 2026040901_uuidv7_migration.sql     # Phase 4.1: UUIDv4 → UUIDv7 migration
+├── 2026040902_hot_optimization.sql     # Phase 4.3: HOT optimization
+├── 2026040903_soft_delete_indexes.sql  # Phase 4.4: Soft delete + partial indexes
+└── 2026040904_citext_to_icu_collation.sql  # Phase 4.5: CITEXT → ICU collation
 ```
 
 ## Migration System
@@ -254,6 +265,72 @@ CREATE TABLE reading_progress (
 - Component metadata
 - Render options
 - Syntax highlighting data
+
+## Phase 4: Performance Optimization Migrations (2026-04-09)
+
+### Migration 2026040901: UUIDv7 Migration
+**Purpose**: Replace UUIDv4 with UUIDv7 for time-ordered UUIDs
+
+**Benefits**:
+- Time-ordered UUIDs improve B-Tree insert performance
+- Reduces page splits during sequential inserts
+- UUIDv7 format: timestamp_bits | random_bits
+
+**Affected Tables**:
+- posts, users, categories, tags, media, post_versions
+- comments, outbox_events, team_members, refresh_tokens
+
+**Migration Steps**:
+1. Add id_v7 columns to all UUID tables
+2. Batch backfill with uuid_generate_v7() (PG17+) or uuidv7() (PG18+)
+3. Swap id → id_old, id_v7 → id
+4. Update all foreign key references
+5. Set NOT NULL and PRIMARY KEY constraints
+
+### Migration 2026040902: HOT Optimization
+**Purpose**: Fix HOT (Heap-Only-Tuple) violations in post_stats
+
+**Problem**: Three indexes on post_stats violated HOT principle:
+- idx_post_stats_updated (on updated_at)
+- idx_post_stats_views (on view_count)
+- idx_post_stats_likes (on like_count)
+
+**Solution**:
+- Drop violating indexes (redundant with PK-based lookups)
+- Set fillfactor = 70 for more HOT update space
+- VACUUM FULL to reclaim space
+
+### Migration 2026040903: Soft Delete + Partial Unique Indexes
+**Purpose**: Enable soft-deleted users without breaking unique constraints
+
+**Changes**:
+1. Added deleted_at column to users table
+2. Dropped old CITEXT UNIQUE constraints
+3. Created ICU-based universal_ci collation
+4. Created partial unique indexes WHERE deleted_at IS NULL
+
+**Benefits**:
+- Soft-deleted users don't block email/username reuse
+- Maintains uniqueness for active users
+- Better Unicode support via ICU
+
+### Migration 2026040904: CITEXT → ICU Collation
+**Purpose**: Replace CITEXT with ICU collations for better Unicode support
+
+**Why ICU instead of CITEXT**:
+- Full Unicode 15+ support
+- Language-aware case folding
+- Better performance for common locales
+- No citext dependency
+
+**Collation Configuration**:
+```sql
+CREATE COLLATION universal_ci (
+    provider = icu,
+    locale = 'en-US-u-ks-level2',
+    deterministic = false
+);
+```
 
 ## Running Migrations
 
@@ -507,5 +584,5 @@ CREATE INDEX CONCURRENTLY idx_name ON table(column);
 
 ---
 
-**Last Updated**: 2026-01-03
+**Last Updated**: 2026-04-09
 **Maintained By**: Backend Team

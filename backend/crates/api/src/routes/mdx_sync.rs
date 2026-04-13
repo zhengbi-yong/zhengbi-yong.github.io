@@ -61,8 +61,10 @@ pub async fn sync_mdx_to_db(
     let mdx_files = scan_mdx_files(&blog_dir)
         .map_err(|error| AppError::BadRequest(format!("扫描 MDX 文件失败: {error}")))?;
 
-    let mut stats = SyncStats::default();
-    stats.total = mdx_files.len();
+    let mut stats = SyncStats {
+        total: mdx_files.len(),
+        ..Default::default()
+    };
 
     for file_path in mdx_files {
         match process_mdx_file(&state.db, &blog_root, &file_path, force).await {
@@ -526,9 +528,7 @@ fn slugify_text(value: &str) -> String {
     value
         .trim()
         .to_lowercase()
-        .replace(' ', "-")
-        .replace('/', "-")
-        .replace('\\', "-")
+        .replace([' ', '/', '\\'], "-")
         .chars()
         .filter(|character| character.is_alphanumeric() || *character == '-' || *character == '_')
         .collect::<String>()

@@ -95,8 +95,8 @@ export default function SmartCard({
 
       default:
         return (
-          <div className="rounded-xl border-2 border-dashed border-gray-300 p-8 text-center dark:border-gray-600">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="rounded-[var(--radius-panel)] border border-dashed border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-8 text-center shadow-[var(--shadow-soft)]">
+            <p className="text-sm text-[var(--text-soft)]">
               未知内容类型: {content.type}
             </p>
           </div>

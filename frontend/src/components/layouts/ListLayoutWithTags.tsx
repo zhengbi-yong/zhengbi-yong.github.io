@@ -27,38 +27,47 @@ function Pagination({ totalPages, currentPage }: PaginationProps) {
   const basePath = pathname
     .replace(/^\//, '') // Remove leading slash
     .replace(/\/page\/\d+$/, '') // Remove any trailing /page
-  console.log(pathname)
-  console.log(basePath)
   const prevPage = currentPage - 1 > 0
   const nextPage = currentPage + 1 <= totalPages
 
   return (
-    <div className="space-y-2 pt-6 pb-8 md:space-y-5">
-      <nav className="flex justify-between">
+    <div className="section-space-sm pt-8 pb-8 md:pt-10 md:pb-10">
+      <nav className="flex items-center justify-between gap-4 rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] px-4 py-3 shadow-[var(--shadow-soft)]">
         {!prevPage && (
-          <button className="cursor-auto disabled:opacity-50" disabled={!prevPage}>
-            Previous
+          <button
+            className="cursor-not-allowed rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-faint)] opacity-70"
+            disabled={!prevPage}
+          >
+            上一页
           </button>
         )}
         {prevPage && (
           <Link
             href={currentPage - 1 === 1 ? `/${basePath}/` : `/${basePath}/page/${currentPage - 1}`}
             rel="prev"
+            className="rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-fast)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:text-[var(--brand-color)]"
           >
-            Previous
+            上一页
           </Link>
         )}
-        <span>
-          {currentPage} of {totalPages}
+        <span className="rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)]">
+          {currentPage} / {totalPages} 页
         </span>
         {!nextPage && (
-          <button className="cursor-auto disabled:opacity-50" disabled={!nextPage}>
-            Next
+          <button
+            className="cursor-not-allowed rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-muted)] px-4 py-2 text-sm font-medium text-[var(--text-faint)] opacity-70"
+            disabled={!nextPage}
+          >
+            下一页
           </button>
         )}
         {nextPage && (
-          <Link href={`/${basePath}/page/${currentPage + 1}`} rel="next">
-            Next
+          <Link
+            href={`/${basePath}/page/${currentPage + 1}`}
+            rel="next"
+            className="rounded-[calc(var(--radius-panel)-10px)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-fast)] hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:text-[var(--brand-color)]"
+          >
+            下一页
           </Link>
         )}
       </nav>
@@ -190,37 +199,46 @@ export default function ListLayoutWithTags({
 
   return (
     <>
-      <div>
-        <div className="pt-6 pb-6">
-          <h1 className="text-3xl leading-9 font-extrabold tracking-tight text-gray-900 sm:hidden sm:text-4xl sm:leading-10 md:text-6xl md:leading-14 dark:text-gray-100">
-            {title}
-          </h1>
+      <div className="section-space-md mx-auto max-w-[min(100%,var(--container-content)+18rem)]">
+        <div className="border-b border-[var(--border-subtle)] pb-10 sm:pb-12">
+          <div className="mb-8 text-center md:mb-10">
+            <p className="mb-3 text-[11px] font-medium tracking-[0.28em] text-[var(--text-soft)] uppercase">
+              Topics & Tags
+            </p>
+            <h1 className="mx-auto text-4xl leading-tight font-semibold tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl md:text-6xl">
+              {title}
+            </h1>
+          </div>
         </div>
-        <div className="flex sm:space-x-24">
-          <div className="hidden h-full max-h-screen max-w-[280px] min-w-[280px] flex-wrap overflow-auto rounded-sm bg-gray-50 pt-5 shadow-md sm:flex dark:bg-gray-900/70 dark:shadow-gray-800/40">
-            <div className="px-6 py-4">
+
+        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:items-start">
+          <aside className="surface-elevated hidden max-h-[calc(100vh-7rem)] overflow-auto rounded-[var(--radius-panel)] p-5 lg:sticky lg:top-24 lg:block">
+            <div>
               {pathname.startsWith('/blog') ? (
-                <h3 className="text-primary-500 font-bold uppercase">All Posts</h3>
+                <h3 className="text-[11px] font-semibold tracking-[0.24em] text-[var(--brand-color)] uppercase">
+                  All Posts
+                </h3>
               ) : (
                 <Link
                   href={`/blog`}
-                  className="hover:text-primary-500 dark:hover:text-primary-500 font-bold text-gray-700 uppercase dark:text-gray-300"
+                  className="text-[11px] font-semibold tracking-[0.24em] text-[var(--text-primary)] uppercase transition-colors duration-[var(--motion-fast)] hover:text-[var(--brand-color)]"
                 >
                   All Posts
                 </Link>
               )}
-              <ul>
+              <ul className="mt-4 space-y-2.5">
                 {sortedTags.map((t) => {
+                  const isActive = decodeURI(pathname.split('/tags/')[1]) === slug(t)
                   return (
-                    <li key={t} className="my-3">
-                      {decodeURI(pathname.split('/tags/')[1]) === slug(t) ? (
-                        <h3 className="text-primary-500 inline px-3 py-2 text-sm font-bold uppercase">
+                    <li key={t}>
+                      {isActive ? (
+                        <span className="inline-flex rounded-full bg-[color-mix(in_srgb,var(--brand-color)_14%,transparent)] px-3 py-2 text-sm font-semibold text-[var(--brand-color)]">
                           {`${t} (${tagCounts[t]})`}
-                        </h3>
+                        </span>
                       ) : (
                         <Link
                           href={`/tags/${slug(t)}`}
-                          className="hover:text-primary-500 dark:hover:text-primary-500 px-3 py-2 text-sm font-medium text-gray-500 uppercase dark:text-gray-300"
+                          className="inline-flex rounded-full px-3 py-2 text-sm font-medium text-[var(--text-soft)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--brand-color)]"
                           aria-label={`View posts tagged ${t}`}
                         >
                           {`${t} (${tagCounts[t]})`}
@@ -231,37 +249,44 @@ export default function ListLayoutWithTags({
                 })}
               </ul>
             </div>
-          </div>
+          </aside>
+
           <div>
-            <ul>
+            <ul className="space-y-3 sm:space-y-4">
               {visiblePosts.map((post) => {
                 const { path, date, title, summary, tags } = post
                 return (
-                  <li key={path} className="py-2">
-                    <article className="flex flex-col space-y-1.5">
-                      <div className="space-y-2">
+                  <li key={path}>
+                    <article className="group rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-4 shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)] sm:p-5">
+                      <div className="space-y-3">
                         <div>
-                          <div className="flex flex-wrap items-baseline gap-2">
-                            <h2 className="text-lg leading-6 font-bold tracking-tight">
-                              <Link href={`/${path}`} className="text-gray-900 dark:text-gray-100">
-                                {title}
+                          <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-2">
+                            <h2 className="text-xl leading-7 font-semibold tracking-[-0.03em] text-[var(--text-primary)]">
+                              <Link
+                                href={`/${path}`}
+                                className="group/link relative transition-colors duration-[var(--motion-fast)] hover:text-[var(--brand-color)]"
+                              >
+                                <span className="relative">
+                                  {title}
+                                  <span className="absolute bottom-0 left-0 h-px w-0 bg-current transition-all duration-[var(--motion-base)] group-hover/link:w-full"></span>
+                                </span>
                               </Link>
                             </h2>
                             <time
                               dateTime={date}
                               suppressHydrationWarning
-                              className="flex-shrink-0 text-xs font-medium whitespace-nowrap text-gray-500 dark:text-gray-400"
+                              className="flex-shrink-0 text-xs font-medium tracking-[0.08em] whitespace-nowrap text-[var(--text-soft)] uppercase"
                             >
                               {formatDate(date, siteMetadata.locale)}
                             </time>
                           </div>
-                          <div className="flex flex-wrap">
+                          <div className="flex flex-wrap gap-1.5">
                             {tags?.map((tag) => (
                               <Tag key={tag} text={tag} />
                             ))}
                           </div>
                         </div>
-                        <div className="prose max-w-none text-sm leading-snug text-gray-500 dark:text-gray-400">
+                        <div className="prose max-w-none text-sm leading-relaxed text-[var(--text-soft)]">
                           {summary}
                         </div>
                       </div>
@@ -269,10 +294,9 @@ export default function ListLayoutWithTags({
                   </li>
                 )
               })}
-              {/* 加载更多触发器 */}
               {visibleCount < displayPosts.length && (
                 <li ref={loadMoreRef} className="py-4 text-center">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-sm text-[var(--text-soft)]">
                     加载更多文章... ({visibleCount} / {displayPosts.length})
                   </div>
                 </li>

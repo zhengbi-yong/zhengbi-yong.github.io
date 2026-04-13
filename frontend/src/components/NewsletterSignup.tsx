@@ -13,6 +13,7 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { cn } from '@/lib/utils'
 
 interface NewsletterSignupProps {
   className?: string
@@ -89,7 +90,7 @@ export function NewsletterSignup({
 
   if (compact) {
     return (
-      <div className={`${currentTheme.container} rounded-lg p-4 ${className}`}>
+      <div className={cn(currentTheme.container, 'rounded-lg p-4', className)}>
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
             type="email"
@@ -97,13 +98,19 @@ export function NewsletterSignup({
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('newsletter.placeholder') || '您的邮箱'}
             disabled={status === 'loading' || status === 'success'}
-            className={`${currentTheme.input} flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
+            className={cn(
+              currentTheme.input,
+              'flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'
+            )}
             required
           />
           <button
             type="submit"
             disabled={status === 'loading' || status === 'success'}
-            className={`${currentTheme.button} rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50`}
+            className={cn(
+              currentTheme.button,
+              'rounded-md px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50'
+            )}
           >
             {status === 'loading' ? (
               <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -125,9 +132,10 @@ export function NewsletterSignup({
         </form>
         {message && (
           <p
-            className={`mt-2 text-xs ${
+            className={cn(
+              'mt-2 text-xs',
               status === 'error' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
-            }`}
+            )}
           >
             {message}
           </p>
@@ -137,7 +145,7 @@ export function NewsletterSignup({
   }
 
   return (
-    <div className={`${currentTheme.container} rounded-xl p-8 shadow-lg ${className}`}>
+    <div className={cn(currentTheme.container, 'rounded-xl p-8 shadow-lg', className)}>
       {showTitle && (
         <div className="mb-6">
           <div className="mb-2 flex items-center gap-2">
@@ -151,7 +159,7 @@ export function NewsletterSignup({
             </svg>
             <h3 className="text-xl font-bold">{t('newsletter.title') || '订阅我们的通讯'}</h3>
           </div>
-          <p className={`text-sm ${currentTheme.text} opacity-80`}>
+          <p className={cn('text-sm opacity-80', currentTheme.text)}>
             {t('newsletter.description') || '获取最新的文章、技术见解和独家内容，直接发送到您的收件箱。'}
           </p>
         </div>
@@ -159,7 +167,7 @@ export function NewsletterSignup({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className={`mb-2 block text-sm font-medium ${currentTheme.text}`}>
+          <label htmlFor="email" className={cn('mb-2 block text-sm font-medium', currentTheme.text)}>
             {t('newsletter.emailLabel') || '邮箱地址'}
           </label>
           <input
@@ -169,7 +177,10 @@ export function NewsletterSignup({
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('newsletter.placeholder') || 'your@email.com'}
             disabled={status === 'loading' || status === 'success'}
-            className={`${currentTheme.input} w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`}
+            className={cn(
+              currentTheme.input,
+              'w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'
+            )}
             required
           />
         </div>
@@ -177,7 +188,10 @@ export function NewsletterSignup({
         <button
           type="submit"
           disabled={status === 'loading' || status === 'success'}
-          className={`${currentTheme.button} w-full rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+          className={cn(
+            currentTheme.button,
+            'w-full rounded-lg px-6 py-3 font-semibold transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50'
+          )}
         >
           {status === 'loading' ? (
             <span className="flex items-center justify-center gap-2">
@@ -210,18 +224,19 @@ export function NewsletterSignup({
 
         {message && (
           <div
-            className={`rounded-lg p-3 ${
+            className={cn(
+              'rounded-lg p-3',
               status === 'error'
                 ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
                 : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
-            }`}
+            )}
           >
             <p className="text-sm">{message}</p>
           </div>
         )}
       </form>
 
-      <p className={`mt-4 text-xs ${currentTheme.text} opacity-60`}>
+      <p className={cn('mt-4 text-xs opacity-60', currentTheme.text)}>
         {t('newsletter.privacy') || '我们尊重您的隐私。随时可以取消订阅。'}
       </p>
     </div>

@@ -1,10 +1,10 @@
-// @ts-nocheck
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
 import Image from '@/components/Image'
 import Link from '@/components/Link'
 import { cn } from '@/components/lib/utils'
+import { logger } from '@/lib/utils/logger'
 
 interface WorkCardProps {
   name: string
@@ -24,13 +24,13 @@ interface WorkCardProps {
  * useVideoAutoplay - 视频自动播放 Hook
  * 使用 Intersection Observer 检测视口可见性，自动播放/暂停视频
  */
-function useVideoAutoplay(videoRef: React.RefObject<HTMLVideoElement | null>, videoId: string) {
+function useVideoAutoplay(videoRef: React.RefObject<HTMLVideoElement | null>, videoId: string): void {
   const [isPlaying, setIsPlaying] = useState(false)
   const playAttemptsRef = useRef(0)
   const observerRef = useRef<IntersectionObserver | null>(null)
   const MAX_PLAY_ATTEMPTS = 3
 
-  useEffect(() => {
+  useEffect((): (() => void) | void => {
     const video = videoRef.current
     if (!video) return
 
@@ -190,12 +190,12 @@ export default function WorkCard({
   return (
     <article
       className={cn(
-        'group relative mb-8 overflow-hidden rounded-2xl border border-border bg-card p-5 transition-all duration-500',
+        'group relative mb-8 overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-4 shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)] sm:p-5',
         className
       )}
     >
       {/* Image/video container */}
-      <div className="relative aspect-video overflow-hidden rounded-xl">
+      <div className="relative aspect-video overflow-hidden rounded-[calc(var(--radius-panel)-6px)] bg-[var(--surface-muted)]">
         {video ? (
           /* Video */
           <video
@@ -232,7 +232,7 @@ export default function WorkCard({
 
         {/* Link button shown on hover */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100">
-          <div className="flex h-14 w-14 translate-y-8 transform items-center justify-center rounded-full bg-white shadow-lg transition-all duration-500 group-hover:translate-y-0 group-hover:scale-110 dark:bg-gray-800">
+          <div className="surface-elevated flex h-14 w-14 translate-y-8 items-center justify-center rounded-full transition-all duration-500 group-hover:translate-y-0 group-hover:scale-110">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
@@ -258,7 +258,7 @@ export default function WorkCard({
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3
             className={cn(
-              'group-hover:text-primary leading-tight font-bold text-foreground transition-colors duration-300',
+              'leading-tight font-semibold tracking-[-0.03em] text-[var(--text-primary)] transition-colors duration-[var(--motion-fast)] group-hover:text-[var(--brand-color)]',
               layout === 'featured' ? 'text-2xl md:text-3xl' : 'text-2xl'
             )}
           >
@@ -267,7 +267,7 @@ export default function WorkCard({
 
           {/* Link icon */}
           <div className="mt-1 flex-shrink-0">
-            <div className="bg-primary/10 text-primary group-hover:bg-primary flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 group-hover:rotate-45 group-hover:text-primary-foreground">
+            <div className="surface-elevated flex h-8 w-8 items-center justify-center rounded-full text-[var(--brand-color)] transition-all duration-[var(--motion-fast)] group-hover:rotate-45 group-hover:border-[var(--border-strong)] group-hover:text-[var(--text-primary)]">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"
@@ -292,7 +292,7 @@ export default function WorkCard({
             {tags.map((tag, tagIndex) => (
               <span
                 key={tagIndex}
-                className="bg-primary/10 text-primary border-primary/20 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium"
+                className="inline-flex items-center rounded-full border border-[var(--border-subtle)] bg-[color-mix(in_srgb,var(--brand-color)_10%,transparent)] px-2.5 py-0.5 text-[10px] font-medium text-[var(--brand-color)]"
               >
                 {tag}
               </span>
@@ -304,7 +304,7 @@ export default function WorkCard({
         {description && (
           <p
             className={cn(
-              'leading-relaxed text-muted-foreground',
+              'leading-relaxed text-[var(--text-soft)]',
               layout === 'featured' ? 'line-clamp-2 text-base md:text-lg' : 'line-clamp-2 text-sm'
             )}
           >

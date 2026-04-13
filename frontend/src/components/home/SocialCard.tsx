@@ -136,7 +136,7 @@ function SocialCardItem({ item, index, total, itemsPerRow }: SocialCardItemProps
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="social-item relative h-[72px] w-[72px] cursor-pointer overflow-hidden rounded-xl transition-all duration-300 hover:shadow-[0_15px_32px_rgba(0,0,0,0.15),0_5px_12px_rgba(0,0,0,0.1)] active:scale-95 md:active:scale-100"
+      className="social-item relative h-[72px] w-[72px] cursor-pointer overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-[var(--shadow-soft)] transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)] active:scale-95 md:active:scale-100"
       style={{
         '--index': index,
         '--total': total,
@@ -151,7 +151,7 @@ function SocialCardItem({ item, index, total, itemsPerRow }: SocialCardItemProps
         width={72}
         height={72}
         sizes="72px"
-        className="rounded-xl object-cover transition-transform duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.15]"
+        className="rounded-[calc(var(--radius-panel)-6px)] object-cover transition-transform duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-[1.15]"
       />
       <div className="absolute bottom-[6px] left-[6px] z-10 transition-opacity duration-300">
         <div className="text-[8px] text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">

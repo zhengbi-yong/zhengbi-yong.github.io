@@ -6,20 +6,26 @@ export const CSP_CONFIG = {
   development: {
     'default-src': ["'self'"],
     'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-    'style-src': ["'self'", "'unsafe-inline'"],
+    'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+    'style-src-elem': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
     'img-src': ["'self'", 'data:', 'https:'],
-    'font-src': ["'self'"],
-    'connect-src': ["'self'"],
+    'font-src': ["'self'", 'https://fonts.gstatic.com'],
+    'font-src-elem': ["'self'", 'https://fonts.gstatic.com'],
+    'connect-src': ["'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
   },
   // 生产环境 - 严格
   production: {
     'default-src': ["'self'"],
     'script-src': ["'self'", "'unsafe-inline'", 'giscus.app'],
-    'style-src': ["'self'", "'unsafe-inline'", 'unpkg.com'],
+    'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'unpkg.com'],
+    'style-src-elem': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'unpkg.com'],
     'img-src': ["'self'", 'data:', 'https:', 'avatars.githubusercontent.com', 'picsum.photos'],
-    'font-src': ["'self'"],
+    'font-src': ["'self'", 'https://fonts.gstatic.com'],
+    'font-src-elem': ["'self'", 'https://fonts.gstatic.com'],
     'connect-src': [
       "'self'",
+      'https://fonts.googleapis.com',
+      'https://fonts.gstatic.com',
       'https://api.github.com',
       'https://github.com',
       'https://avatars.githubusercontent.com',
@@ -108,38 +114,57 @@ export function validateInput(
 }
 
 // CSRF Token 管理
+// GOLDEN_RULES 1.2: 双重提交 Cookie 方案
+// - 从 cookie 读取 CSRF token（HttpOnly: false, JavaScript 可读）
+// - 验证时同时检查 cookie 和 header（双重提交）
 export class CSRFTokenManager {
-  private static readonly TOKEN_KEY = 'csrf-token'
+  private static readonly COOKIE_NAME = 'XSRF-TOKEN'
   private static readonly HEADER_NAME = 'X-CSRF-Token'
 
-  // 生成随机 token
+  // 生成随机 token (32字节十六进制)
   static generateToken(): string {
     const array = new Uint8Array(32)
     crypto.getRandomValues(array)
     return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
   }
 
-  // 获取当前 token
+  // 从 cookie 获取当前 token
+  // GOLDEN_RULES 1.2: CSRF token 存储在 cookie 中, JavaScript 可读
   static getToken(): string {
-    if (typeof window === 'undefined') return ''
+    if (typeof document === 'undefined') return ''
 
-    let token = localStorage.getItem(this.TOKEN_KEY)
-    if (!token) {
-      token = this.generateToken()
-      localStorage.setItem(this.TOKEN_KEY, token)
+    const cookies = document.cookie.split(';')
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split('=')
+      if (name === this.COOKIE_NAME) {
+        return decodeURIComponent(value)
+      }
     }
-    return token
+    return ''
+  }
+
+  // 设置 CSRF token 到 cookie
+  // HttpOnly: false - JavaScript 需要读取并作为 header 发送
+  // SameSite: Strict - 严格同站限制
+  static setToken(token: string): void {
+    if (typeof document === 'undefined') return
+
+    const expires = new Date()
+    expires.setHours(expires.getHours() + 24) // 24小时有效
+
+    document.cookie = `${this.COOKIE_NAME}=${encodeURIComponent(token)}; path=/; expires=${expires.toUTCString()}; samesite=strict`
   }
 
   // 验证 token
   static validateToken(token: string): boolean {
-    return token === this.getToken()
+    const cookieToken = this.getToken()
+    return token === cookieToken && token.length > 0
   }
 
   // 刷新 token
   static refreshToken(): string {
     const newToken = this.generateToken()
-    localStorage.setItem(this.TOKEN_KEY, newToken)
+    this.setToken(newToken)
     return newToken
   }
 
@@ -149,10 +174,21 @@ export class CSRFTokenManager {
   }
 
   // 获取带 token 的请求头
+  // GOLDEN_RULES 1.2: 从 cookie 读取并设置到 header
   static getHeaders(): Record<string, string> {
     return {
       [this.HEADER_NAME]: this.getToken(),
     }
+  }
+
+  // 确保 token 存在（初始化时调用）
+  static ensureToken(): string {
+    let token = this.getToken()
+    if (!token) {
+      token = this.generateToken()
+      this.setToken(token)
+    }
+    return token
   }
 }
 
