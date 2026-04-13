@@ -371,6 +371,14 @@ fn auth_routes() -> Router<AppState> {
         .route("/auth/login", post(blog_api::routes::auth::login))
         .route("/auth/refresh", post(blog_api::routes::auth::refresh))
         .route("/auth/logout", post(blog_api::routes::auth::logout))
+        .route(
+            "/auth/forgot-password",
+            post(blog_api::routes::auth::forgot_password),
+        )
+        .route(
+            "/auth/reset-password",
+            post(blog_api::routes::auth::reset_password),
+        )
     // /auth/me 需要认证，在 v1_routes 中单独定义并应用中间件
 }
 

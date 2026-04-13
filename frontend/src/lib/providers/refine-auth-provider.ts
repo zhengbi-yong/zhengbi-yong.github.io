@@ -126,27 +126,32 @@ export const authProvider: AuthProvider = {
   },
 
   forgotPassword: async ({ email }) => {
-    // Consume email to satisfy TS6133 when not implemented yet
-    void email
-    // TODO: 实现忘记密码功能
-    return {
-      success: false,
-      error: {
-        name: 'ForgotPasswordError',
-        message: '忘记密码功能尚未实现',
-      },
+    try {
+      await authService.forgotPassword(email)
+      return { success: true }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: {
+          name: 'ForgotPasswordError',
+          message: error instanceof Error ? error.message : '发送重置邮件失败',
+        },
+      }
     }
   },
 
-  updatePassword: async (_params) => {
-    // TODO: 实现更新密码功能
-    void _params
-    return {
-      success: false,
-      error: {
-        name: 'UpdatePasswordError',
-        message: '更新密码功能尚未实现',
-      },
+  updatePassword: async ({ token, password }: { token: string; password: string }) => {
+    try {
+      await authService.resetPassword(token, password)
+      return { success: true, redirectTo: '/' }
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: {
+          name: 'UpdatePasswordError',
+          message: error instanceof Error ? error.message : '密码更新失败',
+        },
+      }
     }
   },
 }

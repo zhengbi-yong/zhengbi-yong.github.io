@@ -8,6 +8,7 @@ use axum::{
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use blog_db::{AuthResponse, LoginRequest, RefreshToken, RegisterRequest, User, UserInfo};
 use blog_shared::{AppError, AuthUser, PasswordValidator};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use time;
 use uuid::Uuid;
@@ -484,7 +485,6 @@ pub async fn me(
 )]
 pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Result<(), AppError> {
     if let Some(refresh_token) = jar.get("refresh_token") {
-        // 吊销 token
         let token_hash = state.jwt.hash_token(refresh_token.value());
         sqlx::query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = $1")
             .bind(&token_hash)
@@ -492,10 +492,7 @@ pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Result<(),
             .await?;
     }
 
-    // 清除 cookie
     let is_production = std::env::var("ENVIRONMENT").unwrap_or_default() == "production";
-
-    // 清除 cookie 时使用相同的 Domain 设置
     let cookie_domain = if is_production {
         std::env::var("COOKIE_DOMAIN").ok()
     } else {
@@ -515,4 +512,116 @@ pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Result<(),
     let _cookie = clear_cookie.build();
 
     Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct ForgotPasswordRequest {
+    pub email: String,
+}
+
+#[derive(Deserialize)]
+pub struct ResetPasswordRequest {
+    pub token: String,
+    pub new_password: String,
+}
+
+#[derive(Serialize)]
+pub struct AuthMessageResponse {
+    pub message: String,
+}
+
+/// 请求密码重置邮件
+pub async fn forgot_password(
+    State(state): State<AppState>,
+    Json(payload): Json<ForgotPasswordRequest>,
+) -> Result<Json<AuthMessageResponse>, AppError> {
+    // Always return success to avoid email enumeration
+    let user = sqlx::query!(
+        "SELECT id, email FROM users WHERE email = $1",
+        &payload.email
+    )
+    .fetch_optional(&state.db)
+    .await?;
+
+    if let Some(user) = user {
+        let reset_token = Uuid::new_v4().to_string();
+        let token_hash = state.jwt.hash_token(&reset_token);
+
+        sqlx::query!(
+            r#"
+            INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+            VALUES ($1, $2, NOW() + INTERVAL '1 hour')
+            ON CONFLICT (user_id) DO UPDATE
+              SET token_hash = EXCLUDED.token_hash,
+                  expires_at = EXCLUDED.expires_at,
+                  created_at = NOW()
+            "#,
+            user.id,
+            token_hash,
+        )
+        .execute(&state.db)
+        .await?;
+
+        let _ = state
+            .email_service
+            .send_password_reset_email(&user.email, &reset_token)
+            .await;
+    }
+
+    Ok(Json(AuthMessageResponse {
+        message: "如果该邮箱已注册,您将收到密码重置邮件".to_string(),
+    }))
+}
+
+/// 使用重置令牌更新密码
+pub async fn reset_password(
+    State(state): State<AppState>,
+    Json(payload): Json<ResetPasswordRequest>,
+) -> Result<Json<AuthMessageResponse>, AppError> {
+    PasswordValidator::default()
+        .validate(&payload.new_password)
+        .map_err(|_| AppError::InvalidInput)?;
+
+    let token_hash = state.jwt.hash_token(&payload.token);
+
+    let row = sqlx::query!(
+        "SELECT user_id FROM password_reset_tokens WHERE token_hash = $1 AND expires_at > NOW()",
+        token_hash
+    )
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::BadRequest("无效或已过期的重置令牌".to_string()))?;
+
+    let new_hash = state.jwt.hash_password(&payload.new_password)?;
+
+    let mut tx = state.db.begin().await?;
+
+    sqlx::query!(
+        "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2",
+        new_hash,
+        row.user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query!(
+        "DELETE FROM password_reset_tokens WHERE user_id = $1",
+        row.user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    // Revoke all refresh tokens for security
+    sqlx::query!(
+        "UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL",
+        row.user_id
+    )
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+
+    Ok(Json(AuthMessageResponse {
+        message: "密码已成功重置".to_string(),
+    }))
 }

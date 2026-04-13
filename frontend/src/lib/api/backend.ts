@@ -105,6 +105,18 @@ export const authService = {
    * Returns user if session is valid, null if not authenticated
    * GOLDEN_RULES 1.1: 不再返回 token, 只通过 Cookie 自动处理认证
    */
+  async forgotPassword(email: string): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/auth/forgot-password`, { email }, { cache: false })
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await api.post(
+      `${BACKEND_API_URL}/auth/reset-password`,
+      { token, new_password: newPassword },
+      { cache: false }
+    )
+  },
+
   async initAuth(): Promise<{ user: UserInfo | null }> {
     try {
       const user = await this.getCurrentUser()
