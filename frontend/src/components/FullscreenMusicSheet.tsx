@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import JSZip from 'jszip'
 import { cn } from './lib/utils'
@@ -394,30 +395,33 @@ export default function FullscreenMusicSheet({
       {/* Header Bar */}
       <header
         className={cn(
-          'z-50 flex items-center justify-between px-8 md:px-12 py-4 md:py-5',
+          'z-50 flex items-center justify-between px-6 md:px-10 py-3 md:py-4',
           isDark ? 'border-b border-white/5' : 'border-b border-black/5'
         )}
       >
-        <div className="flex items-center gap-8 md:gap-12">
+        <div className="flex items-center gap-6 md:gap-10">
           <button
             onClick={handleBack}
             className={cn(
-              'text-[10px] uppercase tracking-[0.3em] font-medium transition-opacity opacity-60 hover:opacity-100',
+              'text-[10px] uppercase tracking-[0.25em] font-medium transition-opacity opacity-50 hover:opacity-100',
               isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
             )}
           >
             ← Back
           </button>
-          {composer && (
-            <div
-              className={cn(
-                'hidden md:block text-[9px] uppercase tracking-[0.25em] font-medium',
-                isDark ? 'text-slate-500' : 'text-[#6b6b6b]/60'
-              )}
-            >
-              {composer}
-            </div>
-          )}
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-[9px] uppercase tracking-[0.2em] opacity-40">
+            <Link href="/music" className={cn(
+              'transition-opacity hover:opacity-100',
+              isDark ? 'text-slate-500 hover:text-slate-300' : 'text-[#6b6b6b] hover:text-[#1a1a1a]'
+            )}>
+              乐谱库
+            </Link>
+            <span className={isDark ? 'text-slate-600' : 'text-[#6b6b6b]/40'}>/</span>
+            <span className={isDark ? 'text-slate-400' : 'text-[#6b6b6b]'}>
+              {title || 'Untitled'}
+            </span>
+          </nav>
         </div>
 
         <div className="flex items-center gap-6">
@@ -519,41 +523,46 @@ export default function FullscreenMusicSheet({
           )}
         >
           {/* Metadata Header */}
-          <div className="w-full max-w-3xl mx-auto mt-16 mb-16 px-8 md:px-0 md:ml-12">
-            <div
-              className={cn(
-                'mb-3 text-[9px] uppercase tracking-[0.35em] font-medium opacity-50',
-                isDark ? 'text-slate-500' : 'text-[#6b6b6b]'
+          <div className="w-full max-w-3xl mx-auto mt-12 mb-12 px-6 md:px-0 md:ml-12">
+            {/* Category + Difficulty tags */}
+            <div className="flex items-center gap-3 mb-4">
+              <span
+                className={cn(
+                  'text-[9px] uppercase tracking-[0.25em] font-medium px-3 py-1 rounded-full border',
+                  isDark
+                    ? 'text-amber-400/80 border-amber-500/30 bg-amber-500/5'
+                    : 'text-amber-700/80 border-amber-300/50 bg-amber-50'
+                )}
+              >
+                乐谱
+              </span>
+              {composer && (
+                <span
+                  className={cn(
+                    'text-[10px] uppercase tracking-[0.2em] font-light',
+                    isDark ? 'text-slate-500' : 'text-[#6b6b6b]/60'
+                  )}
+                >
+                  {composer}
+                </span>
               )}
-            >
-              Score Selection
             </div>
+
             <h1
               className={cn(
-                'text-3xl md:text-4xl font-light leading-tight mb-3 tracking-tight',
+                'text-3xl md:text-5xl font-light leading-tight tracking-tight mb-6',
                 isDark ? 'text-[#e0e2ed]' : 'text-[#061542]'
               )}
               style={{ fontFamily: 'var(--font-newsreader)' }}
             >
               {title || 'Untitled Score'}
             </h1>
-            {composer && (
-              <p
-                className={cn(
-                  'text-[11px] tracking-[0.35em] font-light uppercase pl-6 ml-1',
-                  isDark
-                    ? 'text-slate-500 border-l border-slate-700'
-                    : 'text-[#6b6b6b] border-l border-[#061542]/20'
-                )}
-              >
-                {composer}
-              </p>
-            )}
+
             {description && (
               <p
                 className={cn(
-                  'mt-4 text-sm leading-relaxed max-w-lg',
-                  isDark ? 'text-slate-500' : 'text-[#6b6b6b]/70'
+                  'text-sm leading-relaxed max-w-xl',
+                  isDark ? 'text-slate-400' : 'text-[#6b6b6b]/70'
                 )}
               >
                 {description}
