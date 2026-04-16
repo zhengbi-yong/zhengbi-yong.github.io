@@ -52,12 +52,31 @@ export default function FullscreenMusicSheet({
   const containerRef = useRef<HTMLDivElement>(null)
   const osmdInstanceRef = useRef<OpenSheetMusicDisplay | null>(null)
   const mainRef = useRef<HTMLDivElement>(null)
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [mounted, setMounted] = useState<boolean>(false)
   const [currentZoom, setCurrentZoom] = useState<number>(zoom)
   const [isDark, setIsDark] = useState(false)
   const [hasLoadedScore, setHasLoadedScore] = useState(false)
+  // New interaction states
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showControls, setShowControls] = useState(true)
+  const [showKeyboardHint, setShowKeyboardHint] = useState(false)
+
+  // Reset controls timer on user interaction
+  const resetControlsTimer = useCallback(() => {
+    setShowControls(true)
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current)
+    }
+    // Auto-hide controls after 3 seconds of inactivity
+    if (!isFullscreen) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false)
+      }, 3000)
+    }
+  }, [isFullscreen])
 
   useEffect(() => {
     // Read theme directly from DOM since portal renders outside React context tree
@@ -379,6 +398,100 @@ export default function FullscreenMusicSheet({
     window.history.back()
   }, [])
 
+  // Fullscreen toggle
+  const handleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen()
+        setIsFullscreen(true)
+      } else {
+        await document.exitFullscreen()
+        setIsFullscreen(false)
+      }
+    } catch (err) {
+      logger.error('Fullscreen error:', err)
+    }
+  }, [])
+
+  // Listen for fullscreen changes from browser (e.g. Esc key)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!mounted) return undefined
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return
+      }
+
+      switch (e.key) {
+        case '+':
+        case '=':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            handleZoomIn()
+          }
+          break
+        case '-':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            handleZoomOut()
+          }
+          break
+        case '0':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            handleZoomReset()
+          }
+          break
+        case 'f':
+        case 'F':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            handleFullscreen()
+          }
+          break
+        case 'Escape':
+          if (isFullscreen) {
+            handleFullscreen()
+          }
+          break
+        case '?':
+          setShowKeyboardHint(prev => !prev)
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [mounted, isFullscreen, handleFullscreen, handleZoomIn, handleZoomOut, handleZoomReset])
+
+  // Mouse wheel zoom
+  useEffect(() => {
+    if (!mounted || !mainRef.current) return undefined
+
+    const handleWheel = (e: WheelEvent) => {
+      // Only zoom with Ctrl/Cmd + wheel (standard browser zoom gesture)
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+
+      const delta = e.deltaY > 0 ? -0.1 : 0.1
+      setCurrentZoom(prev => Math.min(Math.max(prev + delta, 0.3), 4.0))
+    }
+
+    const main = mainRef.current
+    main.addEventListener('wheel', handleWheel, { passive: false })
+    return () => main.removeEventListener('wheel', handleWheel)
+  }, [mounted])
+
   if (!mounted) {
     return null
   }
@@ -392,11 +505,12 @@ export default function FullscreenMusicSheet({
           : 'bg-gradient-to-br from-[#fdfdfc] via-[#f8f7f4] to-[#f2f1ed] text-[#1a1a1a]'
       )}
     >
-      {/* Header Bar */}
+      {/* Header Bar - auto-hides after inactivity */}
       <header
         className={cn(
-          'z-50 flex items-center justify-between px-6 md:px-10 py-3 md:py-4',
-          isDark ? 'border-b border-white/5' : 'border-b border-black/5'
+          'z-50 flex items-center justify-between px-6 md:px-10 py-3 md:py-4 transition-all duration-500',
+          isDark ? 'border-b border-white/5' : 'border-b border-black/5',
+          showControls || !hasLoadedScore ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         )}
       >
         <div className="flex items-center gap-6 md:gap-10">
@@ -425,47 +539,96 @@ export default function FullscreenMusicSheet({
         </div>
 
         <div className="flex items-center gap-6">
-          {/* Zoom controls */}
-          <div className="flex items-center gap-1">
+          {/* Zoom controls with slider */}
+          <div className="hidden sm:flex items-center gap-2">
             <button
-              onClick={handleZoomOut}
+              onClick={() => { handleZoomOut(); resetControlsTimer() }}
               className={cn(
-                'w-8 h-8 flex items-center justify-center text-sm transition-opacity opacity-50 hover:opacity-100',
+                'w-7 h-7 flex items-center justify-center text-sm transition-opacity opacity-50 hover:opacity-100',
                 isDark ? 'text-slate-300' : 'text-[#1a1a1a]'
               )}
               aria-label="Zoom out"
             >
               −
             </button>
-            <span
+            {/* Zoom slider */}
+            <input
+              type="range"
+              min="30"
+              max="400"
+              value={Math.round(currentZoom * 100)}
+              onChange={(e) => {
+                const val = Number(e.target.value) / 100
+                setCurrentZoom(val)
+                resetControlsTimer()
+              }}
+              onMouseDown={() => {
+                if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
+              }}
+              onMouseUp={resetControlsTimer}
               className={cn(
-                'min-w-[48px] text-center text-[10px] tracking-[0.1em] font-medium',
-                isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+                'w-24 h-1 rounded-full appearance-none cursor-pointer',
+                isDark
+                  ? 'bg-slate-700 accent-slate-400'
+                  : 'bg-zinc-300 accent-zinc-600'
               )}
-            >
-              {Math.round(currentZoom * 100)}%
-            </span>
+              aria-label="Zoom level"
+            />
             <button
-              onClick={handleZoomIn}
+              onClick={() => { handleZoomIn(); resetControlsTimer() }}
               className={cn(
-                'w-8 h-8 flex items-center justify-center text-sm transition-opacity opacity-50 hover:opacity-100',
+                'w-7 h-7 flex items-center justify-center text-sm transition-opacity opacity-50 hover:opacity-100',
                 isDark ? 'text-slate-300' : 'text-[#1a1a1a]'
               )}
               aria-label="Zoom in"
             >
               +
             </button>
-            <button
-              onClick={handleZoomReset}
+            <span
               className={cn(
-                'ml-2 text-[9px] uppercase tracking-[0.15em] font-medium transition-opacity opacity-40 hover:opacity-100',
-                isDark ? 'text-slate-500' : 'text-[#6b6b6b]'
+                'min-w-[44px] text-center text-[10px] tracking-[0.1em] font-medium',
+                isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
               )}
-              aria-label="Reset zoom"
             >
-              Reset
-            </button>
+              {Math.round(currentZoom * 100)}%
+            </span>
           </div>
+
+          {/* Fullscreen toggle */}
+          <button
+            onClick={() => { handleFullscreen(); resetControlsTimer() }}
+            className={cn(
+              'w-8 h-8 flex items-center justify-center transition-opacity opacity-50 hover:opacity-100',
+              isDark ? 'text-slate-300' : 'text-[#1a1a1a]'
+            )}
+            title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          >
+            {isFullscreen ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+              </svg>
+            )}
+          </button>
+
+          {/* Keyboard hint toggle */}
+          <button
+            onClick={() => { setShowKeyboardHint(prev => !prev); resetControlsTimer() }}
+            className={cn(
+              'w-8 h-8 flex items-center justify-center transition-opacity opacity-40 hover:opacity-100',
+              isDark ? 'text-slate-400' : 'text-[#1a1a1a]'
+            )}
+            title="Keyboard shortcuts (?)"
+            aria-label="Show keyboard shortcuts"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+            </svg>
+          </button>
         </div>
       </header>
 
@@ -474,42 +637,80 @@ export default function FullscreenMusicSheet({
         {/* Thin Vertical Sidebar */}
         <aside
           className={cn(
-            'hidden md:flex flex-col items-center py-10 z-40 w-14 gap-8',
+            'hidden md:flex flex-col items-center py-10 z-40 w-14 gap-6',
             isDark ? 'border-r border-white/5' : 'border-r border-black/5'
           )}
         >
+          {/* Zoom In */}
           <button
-            onClick={handleZoomIn}
+            onClick={() => { handleZoomIn(); resetControlsTimer() }}
             className={cn(
               'group relative flex items-center justify-center w-8 h-8 transition-opacity opacity-40 hover:opacity-100',
             )}
-            title="Zoom In"
+            title="Zoom In (+)"
           >
             <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
             </svg>
           </button>
+
+          {/* Zoom Out */}
           <button
-            onClick={handleZoomOut}
+            onClick={() => { handleZoomOut(); resetControlsTimer() }}
             className={cn(
               'group relative flex items-center justify-center w-8 h-8 transition-opacity opacity-40 hover:opacity-100',
             )}
-            title="Zoom Out"
+            title="Zoom Out (-)"
           >
             <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
             </svg>
           </button>
-          <div className={cn('w-4 h-px', isDark ? 'bg-white/5' : 'bg-black/5')} />
+
+          {/* Fit to page / Reset */}
           <button
-            onClick={handleZoomReset}
+            onClick={() => { handleZoomReset(); resetControlsTimer() }}
             className={cn(
               'flex items-center justify-center w-8 h-8 transition-opacity opacity-40 hover:opacity-100',
             )}
-            title="Fit to page"
+            title="Reset zoom (Ctrl+0)"
           >
             <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+            </svg>
+          </button>
+
+          <div className={cn('w-4 h-px', isDark ? 'bg-white/5' : 'bg-black/5')} />
+
+          {/* Fullscreen */}
+          <button
+            onClick={() => { handleFullscreen(); resetControlsTimer() }}
+            className={cn(
+              'flex items-center justify-center w-8 h-8 transition-opacity opacity-40 hover:opacity-100',
+            )}
+            title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
+          >
+            {isFullscreen ? (
+              <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+              </svg>
+            ) : (
+              <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+              </svg>
+            )}
+          </button>
+
+          {/* Keyboard hint */}
+          <button
+            onClick={() => { setShowKeyboardHint(prev => !prev); resetControlsTimer() }}
+            className={cn(
+              'flex items-center justify-center w-8 h-8 transition-opacity opacity-40 hover:opacity-100',
+            )}
+            title="Keyboard shortcuts (?)"
+          >
+            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
             </svg>
           </button>
         </aside>
@@ -521,6 +722,8 @@ export default function FullscreenMusicSheet({
             'flex-1 ml-0 md:ml-14 overflow-y-auto overflow-x-hidden flex flex-col items-center relative group/canvas',
             isDark ? 'bg-[#0a0c12]' : ''
           )}
+          onMouseMove={resetControlsTimer}
+          onTouchStart={resetControlsTimer}
         >
           {/* Metadata Header */}
           <div className="w-full max-w-3xl mx-auto mt-12 mb-12 px-6 md:px-0 md:ml-12">
@@ -569,6 +772,66 @@ export default function FullscreenMusicSheet({
               </p>
             )}
           </div>
+
+          {/* Keyboard shortcuts hint overlay */}
+          {showKeyboardHint && (
+            <div className="w-full max-w-lg mx-auto mb-8 px-6 md:px-0">
+              <div
+                className={cn(
+                  'rounded-xl border p-5',
+                  isDark
+                    ? 'bg-[#12151e]/95 border-white/10 backdrop-blur-sm'
+                    : 'bg-white/95 border-black/5 shadow-lg'
+                )}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3
+                    className={cn(
+                      'text-xs font-semibold uppercase tracking-widest',
+                      isDark ? 'text-slate-300' : 'text-[#061542]'
+                    )}
+                  >
+                    键盘快捷键
+                  </h3>
+                  <button
+                    onClick={() => setShowKeyboardHint(false)}
+                    className={cn(
+                      'text-xs transition-opacity opacity-50 hover:opacity-100',
+                      isDark ? 'text-slate-500' : 'text-[#6b6b6b]'
+                    )}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {[
+                    { key: 'F', desc: '切换全屏' },
+                    { key: 'Ctrl + 0', desc: '重置缩放' },
+                    { key: 'Ctrl + +', desc: '放大' },
+                    { key: 'Ctrl + -', desc: '缩小' },
+                    { key: 'Ctrl + 滚轮', desc: '缩放（触控板）' },
+                    { key: '?', desc: '切换此面板' },
+                  ].map(({ key, desc }) => (
+                    <div key={key} className="flex items-center gap-3">
+                      <kbd
+                        className={cn(
+                          'px-2 py-0.5 rounded text-[10px] font-mono min-w-[80px] text-center',
+                          isDark
+                            ? 'bg-white/10 border border-white/15 text-slate-300'
+                            : 'bg-zinc-100 border border-zinc-200 text-zinc-700'
+                        )}
+                      >
+                        {key}
+                      </kbd>
+                      <span className={isDark ? 'text-slate-400' : 'text-[#6b6b6b]'}>
+                        {desc}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Score Page */}
           <div className="w-full max-w-5xl mb-32 px-4 md:px-8">
