@@ -278,6 +278,8 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
 
     try {
       const score = parseMusicXML(xmlContent)
+      console.log('[playback] parsed score:', { notes: score.notes.length, measures: score.measures, tempo: score.tempo,
+        first3: score.notes.slice(0, 3).map(n => ({ m: n.midi, p: n.pitch, t: n.startTime.toFixed(2) })) })
       setParsedScore(score)
       setPlaybackState((prev) => ({
         ...prev,
@@ -330,7 +332,10 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
   }, [])
 
   const play = useCallback(async () => {
-    if (!parsedScore || parsedScore.notes.length === 0) return
+    if (!parsedScore || parsedScore.notes.length === 0) {
+      console.log('[playback] early return: parsedScore=', parsedScore?.notes.length)
+      return
+    }
 
     await Tone.start()
 
@@ -339,7 +344,13 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
     }
 
     const synth = synthRef.current
-    if (!synth) return
+    if (!synth) {
+      console.log('[playback] synth not initialized')
+      return
+    }
+
+    console.log('[playback] playing, notes count:', parsedScore.notes.length,
+      'first 3:', parsedScore.notes.slice(0, 3).map(n => ({ t: n.startTime.toFixed(2), d: n.duration.toFixed(2), m: n.midi, p: n.pitch })))
 
     // Stop any existing playback
     if (partRef.current) {

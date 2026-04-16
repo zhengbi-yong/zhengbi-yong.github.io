@@ -432,7 +432,11 @@ export default function PostLayoutMonograph({
           </article>
 
           {/* Sidenote column: TOC (desktop) + floating FAB (mobile/tablet) */}
-          {showTOC !== false && toc.length > 0 && <TableOfContents toc={toc} />}
+          {showTOC !== false && toc.length > 0 && (
+            <aside className="not-sticky lg:sticky lg:top-[100px] lg:self-start">
+              <TableOfContents toc={toc} />
+            </aside>
+          )}
         </div>
         </SectionContainer>
       </main>

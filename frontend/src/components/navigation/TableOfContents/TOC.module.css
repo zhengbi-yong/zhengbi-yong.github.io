@@ -1,21 +1,24 @@
 .tocContainer {
-  /* Fixed to .surface-shell's scrollable viewport, positioned at the right grid column.
-     JS scroll handler keeps it in sync with .surface-shell's scroll position. */
-  position: fixed;
-  /* top/right set dynamically via inline style from scroll handler */
-  max-height: calc(100vh * 2 / 3);
+  /* Inside .monograph-grid sidenote column via grid placement.
+     sticky keeps it visible within the article scroll area. */
+  position: sticky;
+  top: 100px;
+  max-height: calc(100vh - 140px);
   overflow-y: auto;
   border-radius: 0.75rem;
-  border: 1px solid rgba(229, 225, 224, 0.6);
-  background: #F5F3F0;
+  border: 1px solid var(--border, #E8E5E0);
+  background: var(--card-bg, #FFFFFF);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   z-index: 50;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #5A5652);
 }
 
 :global(.dark) .tocContainer {
-  border-color: #374151;
-  background: #111827;
+  border-color: var(--border, #374151);
+  background: var(--card-bg, #1F2937);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  color: #9CA3AF;
 }
 
 .tocHeader {
@@ -288,12 +291,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(229, 225, 224, 0.4);
+  border-bottom: 1px solid var(--border, #E8E5E0);
   flex-shrink: 0;
 }
 
 :global(.dark) .tocTitle {
-  border-bottom-color: #374151;
+  border-bottom-color: var(--border, #374151);
 }
 
 .tocTitleText {
@@ -301,7 +304,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #4B5563;
+  color: var(--text-secondary, #5A5652);
 }
 
 :global(.dark) .tocTitleText {

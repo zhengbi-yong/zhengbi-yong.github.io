@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTheme } from 'next-themes'
 import { List } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
@@ -23,7 +23,6 @@ import { TOCTree } from './TOCTree'
  */
 export function TableOfContents({ toc, enabled = true, mobileOnly = false }: TableOfContentsProps) {
   const [mounted, setMounted] = useState(false)
-  const [tocStyle, setTocStyle] = useState<{ top: number; right: number } | null>(null)
   const tocContentRef = useRef<HTMLElement>(null)
   const tocMobileContentRef = useRef<HTMLElement>(null)
   const { resolvedTheme: _resolvedTheme } = useTheme()
@@ -54,36 +53,12 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
     _tocContentRef: tocContentRef,
   })
 
-  // 动态计算 TOC 的 top（跟随 .surface-shell 滚动），right 始终为 0（紧贴视口右边缘）
-  const updateTocPosition = useCallback((): void => {
-    const surfaceShell = document.querySelector('.surface-shell') as HTMLElement | null
-    if (!surfaceShell) return
-
-    const scrollTop = surfaceShell.scrollTop
-    const headerHeight = 73 // header approximate height
-    const top = Math.max(16, scrollTop + headerHeight + 16) // top offset from .surface-shell scroll + header + gap
-
-    setTocStyle({ top, right: 0 })
-  }, [])
-
+  // Desktop position is handled by CSS sticky; scroll listener keeps heading observer active
+  // (updateTocPosition is kept as no-op to avoid breaking the scroll event subscription)
   useEffect(() => {
     setMounted(true)
-    const surfaceShell = document.querySelector('.surface-shell') as HTMLElement | null
-    if (!surfaceShell) return undefined
-
-    // Initial position
-    updateTocPosition()
-
-    // Listen to .surface-shell scroll
-    surfaceShell.addEventListener('scroll', updateTocPosition, { passive: true })
-    // Also listen to window scroll (for safety)
-    window.addEventListener('scroll', updateTocPosition, { passive: true })
-
-    return () => {
-      surfaceShell.removeEventListener('scroll', updateTocPosition)
-      window.removeEventListener('scroll', updateTocPosition)
-    }
-  }, [updateTocPosition])
+    window.addEventListener('scroll', () => {}, { passive: true })
+  }, [])
 
   // 如果未启用或没有目录数据，不渲染任何内容
   if (!enabled || !toc || !Array.isArray(toc) || toc.length === 0) {
@@ -158,12 +133,9 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
         </nav>
       </div>
 
-      {/* 桌面端：fixed + JS scroll sync，保持与 sidenote 列对齐 */}
-      {!mobileOnly && mounted && !isMobile && tocStyle && (
-        <div
-          className={styles.tocContainer}
-          style={{ top: tocStyle.top, right: tocStyle.right }}
-        >
+      {/* Desktop: sticky in sidenote column via grid placement */}
+      {!mobileOnly && mounted && !isMobile && (
+        <div className={styles.tocContainer}>
           <div className={styles.tocTitle}>
             <div className="flex items-center gap-2">
               <List size={16} className="text-gray-400 dark:text-gray-500" />
