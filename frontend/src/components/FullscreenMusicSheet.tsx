@@ -1030,7 +1030,9 @@ export default function FullscreenMusicSheet({
                 ref={containerRef}
                 className={cn(
                   isLoading || error ? 'hidden' : '',
-                  isDark ? 'bg-[#12151e]' : 'bg-white'
+                  isDark ? 'bg-[#12151e]' : 'bg-white',
+                  // Dark mode score rendering: invert SVG colors
+                  isDark && 'dark-score-svg'
                 )}
                 style={{
                   maxWidth: '100%',
