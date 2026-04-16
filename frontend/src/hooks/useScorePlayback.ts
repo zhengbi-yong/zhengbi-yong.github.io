@@ -351,9 +351,13 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
     const { notes, tempo } = parsedScore
     const secondsPerQuarter = 60.0 / tempo
 
+    // Calculate the time offset relative to score start (first note's startTime)
+    const scoreStartTime = notes[0]?.startTime ?? 0
+
     // Create a Tone.js Part with all notes
+    // Use absolute seconds for each event's time (Tone.Part interprets these as Transport seconds)
     const events: { time: Tone.Unit.Time; pitch: string; duration: number; midi: number }[] = notes.map((note) => ({
-      time: `0:${note.startTime}`,
+      time: note.startTime - scoreStartTime,
       pitch: note.pitch,
       duration: note.duration,
       midi: note.midi,
@@ -363,7 +367,7 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
       if (event.pitch === 'rest') return
       synth.triggerAttackRelease(
         Tone.Frequency(event.midi, 'midi').toNote(),
-        event.duration * 0.95, // slight overlap for legato
+        event.duration * 0.95,
         time
       )
 
@@ -372,7 +376,7 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
         setPlaybackState((prev) => ({
           ...prev,
           currentTime: Tone.Transport.seconds,
-          currentMeasure: Math.floor(Tone.Transport.seconds / (secondsPerQuarter * 4)), // rough estimate
+          currentMeasure: Math.floor(Tone.Transport.seconds / (secondsPerQuarter * 4)),
         }))
       }, time)
     }, events)
