@@ -10,20 +10,25 @@ CREATE OR REPLACE FUNCTION uuid_generate_v7()
 RETURNS UUID AS $$
 DECLARE
     unix_ms BIGINT;
-    hex     TEXT;
+    rand_a  BIGINT;
+    rand_b  BIGINT;
+    hex_text TEXT;
 BEGIN
     unix_ms := (EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::BIGINT;
-    hex := lpad(to_hex(unix_ms), 12, '0')
-        || '7'
-        || lpad(to_hex(floor(random() * 4096)::INT), 3, '0')
-        || lpad(to_hex(floor(random() * 4)::INT | 8), 1, '0')  -- variant bits 10xx
-        || lpad(to_hex(floor(random() * 68719476736)::BIGINT), 12, '0');
+    rand_a := floor(random() * 4096)::BIGINT;                           -- 12 bits
+    rand_b := floor(random() * 1152921504606846976)::BIGINT;             -- 60 bits (max for 15 hex chars)
+    hex_text := 
+        lpad(to_hex(unix_ms), 12, '0')                                    -- 48 bits timestamp_ms
+        || '7'                                                            -- 4 bits version = 7
+        || lpad(to_hex(rand_a), 3, '0')                                   -- 12 bits rand_a
+        || lpad(to_hex((floor(random() * 4)::INT) | 8), 1, '0')          -- 2 bits variant 10xx
+        || lpad(to_hex(rand_b), 15, '0');                                 -- 60 bits rand_b (15 hex = 60 bits)
     RETURN (
-        substring(hex, 1, 8) || '-' ||
-        substring(hex, 9, 4) || '-' ||
-        substring(hex, 13, 4) || '-' ||
-        substring(hex, 17, 4) || '-' ||
-        substring(hex, 21, 12)
+        substring(hex_text, 1, 8) || '-' ||
+        substring(hex_text, 9, 4) || '-' ||
+        substring(hex_text, 13, 4) || '-' ||
+        substring(hex_text, 17, 4) || '-' ||
+        substring(hex_text, 21, 12)
     )::UUID;
 END;
 $$ LANGUAGE plpgsql VOLATILE;

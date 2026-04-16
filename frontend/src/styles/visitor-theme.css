@@ -130,9 +130,10 @@
 
 /* 文章内容样式 */
 .visitor-article {
-  line-height: 1.8;
-  font-size: 1.125rem; /* 18px */
+  line-height: clamp(1.6, 3vw, 1.8);
+  font-size: clamp(1rem, 2vw, 1.125rem); /* 16px-18px */
   color: var(--visitor-text-primary);
+  max-width: none; /* 覆盖 prose 默认 65ch 限制，填满 Grid 列 */
 }
 
 .visitor-article h1,
@@ -150,33 +151,34 @@
 }
 
 .visitor-article h1 {
-  font-size: 2.5rem; /* 40px */
+  font-size: clamp(1.75rem, 4vw, 2.5rem); /* 28px-40px */
   letter-spacing: -0.02em;
 }
 
-@media (min-width: 768px) {
-  .visitor-article h1 {
-    font-size: 3.5rem; /* 56px */
-  }
-}
-
 .visitor-article h2 {
-  font-size: 2rem; /* 32px */
-}
-
-@media (min-width: 768px) {
-  .visitor-article h2 {
-    font-size: 2.5rem; /* 40px */
-  }
+  font-size: clamp(1.5rem, 3vw, 2rem); /* 24px-32px */
 }
 
 .visitor-article h3 {
-  font-size: 1.5rem; /* 24px */
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem); /* 20px-24px */
 }
 
 .visitor-article p {
   margin-bottom: var(--spacing-visitor-sm);
   color: var(--visitor-text-secondary);
+}
+
+/* 强制覆盖 Tailwind Typography prose 的默认 max-width: 65ch */
+.visitor-article.prose,
+.prose.visitor-article {
+  max-width: none !important;
+}
+
+/* 代码块：允许宽度突破正文限制，最大 900px */
+.visitor-article pre,
+.prose.visitor-article pre {
+  max-width: min(900px, 100%) !important;
+  width: 100%;
 }
 
 .visitor-article a {

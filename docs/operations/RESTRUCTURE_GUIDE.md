@@ -219,7 +219,7 @@ docker-compose up -d
 
 **新命令：**
 ```bash
-docker compose -f deployments/docker/compose-files/docker-compose.yml up -d
+docker compose -f deployments/docker/compose-files/backend/docker-compose.yml up -d
 ```
 
 ### 查看文档

@@ -6,10 +6,10 @@ Observability covers health checks, metrics, tracing, and frontend error reporti
 
 ## Backend observability
 
-- health and readiness endpoints are mounted in [main.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/main.rs#L174)
-- Prometheus-style metrics live in [metrics/prometheus.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/metrics/prometheus.rs)
-- OpenTelemetry setup lives in [observability/tracing.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/observability/tracing.rs#L1)
-- request IDs are injected via [middleware/request_id.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/middleware/request_id.rs)
+- health and readiness endpoints are mounted in [main.rs](../../../../../backend/crates/api/src/main.rs#L174)
+- Prometheus-style metrics live in [metrics/prometheus.rs](../../../../../backend/crates/api/src/metrics/prometheus.rs)
+- OpenTelemetry setup lives in [observability/tracing.rs](../../../../../backend/crates/api/src/observability/tracing.rs#L1)
+- request IDs are injected via [middleware/request_id.rs](../../../../../backend/crates/api/src/middleware/request_id.rs)
 
 ## Frontend observability
 

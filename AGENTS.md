@@ -48,17 +48,17 @@ The repository now has two maintained deployment paths only:
 | API routes | `backend/crates/api/src/routes/` |
 | Runtime bootstrapping | `backend/crates/api/src/main.rs` |
 | Worker runtime | `backend/crates/worker/src/main.rs` |
-| Compose deployment | `docker-compose.production.yml` |
+| Compose deployment | `deployments/docker/compose-files/prod/docker-compose.yml` |
 | Kubernetes deployment | `deployments/kubernetes/` |
 
 ## CANONICAL COMMANDS
 
 ```bash
 # Local development
-docker compose -f docker-compose.dev.yml up -d
-./start-dev.sh
-./start-backend.sh
-./start-frontend.sh
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d
+./scripts/start/bash/start-all.sh
+./scripts/start/bash/start-backend.sh
+./scripts/start/bash/start-frontend.sh
 
 # Build and test
 make build
@@ -86,8 +86,8 @@ make validate-k8s-apply RELEASE_VERSION=1.8.2
 
 - TypeScript `strict` remains disabled in the frontend.
 - Frontend dev server is `3001`; backend API is `3000`.
-- Root `docker-compose.dev.yml` is for shared development infrastructure only.
-- Root `docker-compose.production.yml` is the canonical Compose runtime.
+- Root `deployments/docker/compose-files/dev/docker-compose.yml` is for shared development infrastructure only.
+- Root `deployments/docker/compose-files/prod/docker-compose.yml` is the canonical Compose runtime.
 - Production env files are generated from `.env.production.example`.
 
 ## KNOWN LIMITS

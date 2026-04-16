@@ -33,7 +33,7 @@ This document describes the parts of the system that matter when moving from one
 
 ### Worker isolation
 
-- outbox processing runs in [backend/crates/worker/src/main.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/worker/src/main.rs#L1)
+- outbox processing runs in [backend/crates/worker/src/main.rs](../../../../../backend/crates/worker/src/main.rs#L1)
 - search sync and view-count batching no longer block request handlers
 
 ### Explicit pool controls
@@ -43,7 +43,7 @@ This document describes the parts of the system that matter when moving from one
 
 ### Release assets
 
-- [scripts/release/render-release-assets.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/release/render-release-assets.sh) renders version-pinned Compose and Kubernetes assets
+- [scripts/release/render-release-assets.sh](../../../../../scripts/release/render-release-assets.sh) renders version-pinned Compose and Kubernetes assets
 - Kubernetes overlays and Argo CD applications are generated from the same release metadata
 
 ## Deployment modes

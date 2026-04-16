@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import JSZip from 'jszip'
 import { cn } from './lib/utils'
+import { useScorePlayback } from '@/hooks/useScorePlayback'
 // Theme is detected from DOM via MutationObserver (portal is outside React context)
 
 // Simple logger for development
@@ -59,10 +60,23 @@ export default function FullscreenMusicSheet({
   const [currentZoom, setCurrentZoom] = useState<number>(zoom)
   const [isDark, setIsDark] = useState(false)
   const [hasLoadedScore, setHasLoadedScore] = useState(false)
+  const [rawXmlContent, setRawXmlContent] = useState<string | null>(null)
   // New interaction states
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showControls, setShowControls] = useState(true)
   const [showKeyboardHint, setShowKeyboardHint] = useState(false)
+
+  // Score playback hook
+  const {
+    playbackState,
+    parsedScore,
+    play,
+    pause,
+    stop,
+    seekToMeasure,
+    setTempo,
+    toggleLoop,
+  } = useScorePlayback(rawXmlContent)
 
   // Reset controls timer on user interaction
   const resetControlsTimer = useCallback(() => {
@@ -298,6 +312,10 @@ export default function FullscreenMusicSheet({
         }
       }, 200)
 
+      setTimeout(() => {
+        setRawXmlContent(xmlContent)
+      }, 100)
+
       setIsLoading(false)
     } catch (err) {
       logger.error('Load score error:', err)
@@ -467,12 +485,36 @@ export default function FullscreenMusicSheet({
         case '?':
           setShowKeyboardHint(prev => !prev)
           break
+        case ' ':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            if (playbackState.isPlaying) {
+              pause()
+            } else {
+              void play()
+            }
+          }
+          break
+        case 'ArrowLeft':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            seekToMeasure(Math.max(0, playbackState.currentMeasure - 1))
+          }
+          break
+        case 'ArrowRight':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            if (parsedScore) {
+              seekToMeasure(Math.min(parsedScore.measures - 1, playbackState.currentMeasure + 1))
+            }
+          }
+          break
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [mounted, isFullscreen, handleFullscreen, handleZoomIn, handleZoomOut, handleZoomReset])
+  }, [mounted, isFullscreen, handleFullscreen, handleZoomIn, handleZoomOut, handleZoomReset, playbackState, pause, play, parsedScore, seekToMeasure])
 
   // Mouse wheel zoom
   useEffect(() => {
@@ -537,6 +579,109 @@ export default function FullscreenMusicSheet({
             </span>
           </nav>
         </div>
+
+        {/* Playback Controls - center area */}
+        {parsedScore && parsedScore.notes.length > 0 && (
+          <div className="flex items-center gap-3">
+            {/* Play/Pause */}
+            <button
+              onClick={() => {
+                if (playbackState.isPlaying) {
+                  pause()
+                } else {
+                  void play()
+                }
+                resetControlsTimer()
+              }}
+              className={cn(
+                'w-9 h-9 flex items-center justify-center rounded-full transition-all',
+                playbackState.isPlaying
+                  ? 'bg-amber-600 hover:bg-amber-500 text-white'
+                  : 'bg-amber-700/80 hover:bg-amber-600 text-amber-50 dark:bg-amber-600/80 dark:hover:bg-amber-500 dark:text-amber-50'
+              )}
+              title={playbackState.isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+            >
+              {playbackState.isPlaying ? (
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
+            </button>
+
+            {/* Stop */}
+            <button
+              onClick={() => { stop(); resetControlsTimer() }}
+              className={cn(
+                'w-7 h-7 flex items-center justify-center rounded transition-opacity opacity-50 hover:opacity-100',
+                isDark ? 'text-slate-400 hover:text-slate-200' : 'text-[#1a1a1a] hover:text-[#000]'
+              )}
+              title="Stop"
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="6" y="6" width="12" height="12" rx="1" />
+              </svg>
+            </button>
+
+            {/* Tempo control */}
+            <div className="hidden lg:flex items-center gap-1.5">
+              <span className={cn(
+                'text-[9px] uppercase tracking-wider opacity-40',
+                isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+              )}>BPM</span>
+              <input
+                type="range"
+                min="40"
+                max="200"
+                value={playbackState.tempo}
+                onChange={(e) => {
+                  setTempo(Number(e.target.value))
+                  resetControlsTimer()
+                }}
+                onMouseDown={() => {
+                  if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
+                }}
+                onMouseUp={resetControlsTimer}
+                className={cn(
+                  'w-16 h-1 rounded-full appearance-none cursor-pointer',
+                  isDark ? 'bg-slate-700 accent-amber-400' : 'bg-zinc-300 accent-amber-600'
+                )}
+              />
+              <span className={cn(
+                'min-w-[32px] text-center text-[10px] font-medium',
+                isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+              )}>
+                {playbackState.tempo}
+              </span>
+            </div>
+
+            {/* Loop toggle */}
+            <button
+              onClick={() => { toggleLoop(); resetControlsTimer() }}
+              className={cn(
+                'w-7 h-7 flex items-center justify-center rounded transition-opacity opacity-50 hover:opacity-100',
+                playbackState.isLooping ? 'opacity-100 text-amber-600 dark:text-amber-400' : '',
+                isDark ? 'text-slate-400' : 'text-[#1a1a1a]'
+              )}
+              title={playbackState.isLooping ? 'Loop: ON (click to disable)' : 'Loop: OFF (click to enable)'}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 3l4 4-4 4M3 11h18M7 21l-4-4 4-4M21 13H3" />
+              </svg>
+            </button>
+
+            {/* Measure indicator */}
+            <span className={cn(
+              'text-[10px] tabular-nums font-medium',
+              isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+            )}>
+              {playbackState.currentMeasure + 1}/{parsedScore.measures}
+            </span>
+          </div>
+        )}
 
         <div className="flex items-center gap-6">
           {/* Zoom controls with slider */}
@@ -805,6 +950,8 @@ export default function FullscreenMusicSheet({
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   {[
+                    { key: 'Space', desc: '播放 / 暂停' },
+                    { key: '← →', desc: '上一小节 / 下一小节' },
                     { key: 'F', desc: '切换全屏' },
                     { key: 'Ctrl + 0', desc: '重置缩放' },
                     { key: 'Ctrl + +', desc: '放大' },

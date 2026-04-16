@@ -11,15 +11,15 @@ Media storage abstracts uploads away from local disk so the same application can
 
 Core code:
 
-- [storage.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/storage.rs#L1)
-- [routes/media.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/routes/media.rs)
+- [storage.rs](../../../../../backend/crates/api/src/storage.rs#L1)
+- [routes/media.rs](../../../../../backend/crates/api/src/routes/media.rs)
 
 ## Implementation model
 
 - `StorageBackend` defines the contract for store, delete, metadata lookup, and presigned URLs
 - `LocalStorage` writes to a mounted directory and returns relative URLs
 - `MinioStorage` provisions buckets if needed and generates durable object URLs
-- the API initializes storage from environment-driven config at startup in [main.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/main.rs#L121)
+- the API initializes storage from environment-driven config at startup in [main.rs](../../../../../backend/crates/api/src/main.rs#L121)
 
 ## Deployment impact
 

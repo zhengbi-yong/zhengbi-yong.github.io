@@ -274,10 +274,10 @@ frontend/
 deployments/
 ├── docker/
 │   └── compose-files/
-│       ├── docker-compose.yml           # 主配置
-│       ├── docker-compose.dev.yml       # 开发环境
-│       ├── docker-compose.prod.yml      # 生产环境
-│       └── backend/                     # Backend专用
+│       ├── dev/
+│       │   └── docker-compose.yml       # 开发环境
+│       └── prod/
+│           └── docker-compose.yml       # 生产环境
 ├── nginx/
 │   ├── nginx.conf               # 主配置
 │   ├── conf.d/                  # 站点配置
@@ -402,8 +402,8 @@ API文档:         kebab-case.md
 主配置:          <name>.config.yml
                 (nginx.config.yml)
 
-环境配置:        docker-compose.<env>.yml
-                (docker-compose.dev.yml)
+环境配置:        deployments/docker/compose-files/{env}/docker-compose.yml
+                (deployments/docker/compose-files/dev/docker-compose.yml)
 
 示例配置:        <name>.example
                 (.env.docker.example)

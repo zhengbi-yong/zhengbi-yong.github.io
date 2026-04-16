@@ -43,41 +43,39 @@ ANALYZE=true pnpm build
 pnpm start
 
 # Generate search index (included in build)
-node ./scripts/generate-search.mjs
+node ./scripts/generate/generate-search.mjs
 ```
 
 ### Backend Development
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d
 
 cd backend
 
-# Run migrations
-cargo run -p blog-migrator
+# Run migrations (via api binary's migrate subcommand)
+cargo run --bin api -- migrate
 
 # Build and run the API
-export DATABASE_URL=postgresql://blog_user:blog_password@localhost:5432/blog_db
+export DATABASE_URL=postgresql://blog_user:***@localhost:5432/blog_db
 export REDIS_URL=redis://localhost:6379
-cargo run -p blog-api --bin api
+cargo run --bin api
 
-# Run the worker
-cargo run -p blog-worker --bin worker
+# Run the background worker
+cargo run --bin worker
 
-# Production deployment
-./scripts/deployment/deploy.sh prod
+# Production deployment (choose appropriate script)
+./scripts/deployment/deploy-compose-stack.sh prod   # Docker Compose deploy
+./scripts/deployment/deploy-production.sh            # Full production deploy
 
 # Stop all services
-./scripts/deployment/deploy.sh stop
-
-# Check service status
-./scripts/deployment/deploy.sh status
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml down
 
 # Run tests
 cargo test
 
 # Run with debug logging
-RUST_LOG=debug cargo run -p blog-api --bin api
+RUST_LOG=debug cargo run --bin api
 ```
 
 ---

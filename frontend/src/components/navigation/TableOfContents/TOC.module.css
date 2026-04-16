@@ -1,14 +1,15 @@
 .tocContainer {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 100%;
-  min-height: 0;
+  /* Fixed to .surface-shell's scrollable viewport, positioned at the right grid column.
+     JS scroll handler keeps it in sync with .surface-shell's scroll position. */
+  position: fixed;
+  /* top/right set dynamically via inline style from scroll handler */
+  max-height: calc(100vh * 2 / 3);
+  overflow-y: auto;
   border-radius: 0.75rem;
   border: 1px solid rgba(229, 225, 224, 0.6);
   background: #F5F3F0;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  z-index: 50;
 }
 
 :global(.dark) .tocContainer {
@@ -376,52 +377,11 @@
   font-size: 0.875em;
 }
 
-/* 响应式样式 - 使用 768px 断点与 Tailwind md: 保持一致 */
+/* 响应式样式 - 移动端隐藏桌面端固定 TOC */
 @media (max-width: 767px) {
-  /* 移动端隐藏桌面端容器 */
+  /* 移动端隐藏桌面端固定 TOC */
   .tocContainer {
     display: none !important;
-  }
-
-  /* 显示浮动按钮 */
-  .tocFloatingButton {
-    display: flex !important;
-  }
-}
-
-/* 桌面端隐藏浮动按钮和面板 */
-@media (min-width: 768px) {
-  .tocFloatingButton,
-  .tocBackdrop,
-  .tocMobilePanel {
-    display: none !important;
-  }
-}
-
-/* 平板尺寸 (768px - 1023px) */
-@media (min-width: 768px) and (max-width: 1023px) {
-  .tocContainer {
-    flex: 1 1 0;
-    min-height: 0;
-  }
-}
-
-/* 桌面端 (1024px+) */
-@media (min-width: 1024px) {
-  .tocContainer {
-    position: relative;
-    width: 100%;
-    z-index: 1;
-    flex: 1 1 0;
-    min-height: 0;
-  }
-}
-
-/* 超大屏幕 (1440px+) */
-@media (min-width: 1440px) {
-  .tocContainer {
-    flex: 1 1 0;
-    min-height: 0;
   }
 }
 

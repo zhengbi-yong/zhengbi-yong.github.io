@@ -447,12 +447,12 @@ input:-webkit-autofill:focus {
   --sidebar-ring: #6366f1;
 
   /* TOC Colors - 浅色模式 */
-  --toc-active-text: var(--color-toc-active-text-light);
-  --toc-active-bg: var(--color-toc-active-bg-light);
-  --toc-active-indicator: var(--color-toc-active-indicator-light);
-  --toc-hover: var(--color-toc-hover-light);
-  --toc-shadow: var(--color-toc-shadow-light);
-  --toc-indicator-shadow: var(--color-toc-indicator-shadow-light);
+  --toc-active-text: #6366f1;
+  --toc-active-bg: rgba(99, 102, 241, 0.08);
+  --toc-active-indicator: #6366f1;
+  --toc-hover: rgba(99, 102, 241, 0.06);
+  --toc-shadow: 0 1px 3px rgba(99, 102, 241, 0.12);
+  --toc-indicator-shadow: 0 1px 4px rgba(99, 102, 241, 0.25);
 
   /* 精致多层阴影 - 使用靛蓝调阴影 */
   --shadow-tinted: rgba(26, 26, 46, 0.05);
@@ -563,12 +563,12 @@ input:-webkit-autofill:focus {
   --sidebar-ring: #818cf8;
 
   /* TOC Colors - 深色模式 */
-  --toc-active-text: var(--color-toc-active-text-dark);
-  --toc-active-bg: var(--color-toc-active-bg-dark);
-  --toc-active-indicator: var(--color-toc-active-indicator-dark);
-  --toc-hover: var(--color-toc-hover-dark);
-  --toc-shadow: var(--color-toc-shadow-dark);
-  --toc-indicator-shadow: var(--color-toc-indicator-shadow-dark);
+  --toc-active-text: #818cf8;
+  --toc-active-bg: rgba(129, 140, 248, 0.12);
+  --toc-active-indicator: #818cf8;
+  --toc-hover: rgba(129, 140, 248, 0.08);
+  --toc-shadow: 0 1px 3px rgba(129, 140, 248, 0.2);
+  --toc-indicator-shadow: 0 1px 4px rgba(129, 140, 248, 0.35);
 
   /* 暗夜模式阴影 - 使用边框描边和轻微阴影 */
   --shadow-tinted: rgba(0, 0, 0, 0.2);
@@ -645,8 +645,8 @@ input:-webkit-autofill:focus {
   --color-toc-active-bg: var(--toc-active-bg);
   --color-toc-active-indicator: var(--toc-active-indicator);
   --color-toc-hover: var(--toc-hover);
-  --color-toc-shadow: var(--toc-shadow);
-  --color-toc-indicator-shadow: var(--toc-indicator-shadow);
+  --color-toc-shadow: 0 1px 3px rgba(99, 102, 241, 0.12);
+  --color-toc-indicator-shadow: 0 1px 4px rgba(99, 102, 241, 0.25);
 }
 
 @layer base {

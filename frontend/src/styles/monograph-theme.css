@@ -115,30 +115,39 @@
   gap: var(--mono-grid-gap);
 }
 
-/* Tablet: centered single column */
+/* Tablet: full-width centered single column (no 65ch cap) */
 @media (min-width: 768px) {
   .monograph-grid {
     grid-template-columns: 1fr;
-    max-width: 65ch;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
   }
 }
 
-/* Desktop: proportional editorial grid — equal outer margins via 1fr on both sides */
-@media (min-width: 1280px) {
+/* Desktop: 2-column editorial grid — content fills left, sidenote anchors right
+   Structure: | content (1fr) | sidenote (--mono-grid-sidenote) | */
+@media (min-width: 1024px) {
   .monograph-grid {
-    grid-template-columns: 1fr minmax(0, 65ch) var(--mono-grid-sidenote) 1fr;
+    grid-template-columns: minmax(0, 1fr) var(--mono-grid-sidenote);
     max-width: none;
     margin: 0;
+  }
+}
+
+/* Wide: same 2-column structure on extra-large screens */
+@media (min-width: 1536px) {
+  .monograph-grid {
+    grid-template-columns: minmax(0, 1fr) var(--mono-grid-sidenote);
   }
 }
 
 /* ========================================
    Article Content - Typography
    ======================================== */
-@media (min-width: 1280px) {
+/* Content column spans the 1st track (fills remaining space) */
+@media (min-width: 1024px) {
   .monograph-content {
-    grid-column: 2;
+    grid-column: 1;
   }
 }
 
@@ -165,6 +174,8 @@
   color: var(--mono-text);
   margin-block-start: var(--space-2);
   margin-block-end: var(--space-half);
+  /* scroll-margin-top ensures heading is never hidden under fixed header */
+  scroll-margin-top: var(--space-2);
 }
 
 .monograph-content h1 { font-size: var(--font-size-h2); font-weight: 700; }
@@ -234,9 +245,9 @@
   display: contents;
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .monograph-toc-slot {
-    grid-column: 3;
+    grid-column: 2;
     display: flex;
     flex-direction: column;
   }
@@ -310,6 +321,11 @@
 
 .monograph-toc-item.active::before {
   background: var(--mono-accent);
+}
+
+/* Active item: accent left border + subtle background */
+.monograph-toc-item.active {
+  padding-left: 10px; /* compensate for 2px border offset */
 }
 
 .monograph-toc-btn {
@@ -438,6 +454,25 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* Dark Mode KaTeX formula colors */
+.dark .katex {
+  color: var(--mono-text);
+}
+
+.dark .katex .mord,
+.dark .katex .mop,
+.dark .katex .mbin,
+.dark .katex .mrel,
+.dark .katex .mopen,
+.dark .katex .mclose,
+.dark .katex .mpunct,
+.dark .katex .minner {
+  color: var(--mono-text);
+}
+
+.dark .katex .mord + .mop { color: var(--mono-text-muted); }
+.dark .katex .mrel { color: var(--mono-text-muted); }
 
 /* ========================================
    Selection

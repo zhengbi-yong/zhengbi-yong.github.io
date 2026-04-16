@@ -5,7 +5,6 @@
 
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 import Backend from 'i18next-http-backend'
 
 // 导入翻译文件
@@ -440,7 +439,6 @@ const enableI18nDebug = process.env.NEXT_PUBLIC_I18N_DEBUG === 'true'
 
 i18n
   .use(Backend)
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
@@ -452,11 +450,6 @@ i18n
 
     interpolation: {
       escapeValue: false, // React 已经做了 XSS 防护
-    },
-
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
     },
 
     react: {

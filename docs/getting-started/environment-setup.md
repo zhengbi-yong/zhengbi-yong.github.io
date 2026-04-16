@@ -373,7 +373,7 @@ source ~/.bashrc
 
 ### Docker Compose
 
-在 `docker-compose.production.yml` 中配置：
+在 `deployments/docker/compose-files/prod/docker-compose.yml` 中配置：
 
 ```yaml
 services:

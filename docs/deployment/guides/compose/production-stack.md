@@ -4,10 +4,10 @@ This is the canonical deployment path for one host and small fleets.
 
 ## Core files
 
-- [docker-compose.production.yml](/home/Sisyphus/zhengbi-yong.github.io/docker-compose.production.yml)
-- [.env.production.example](/home/Sisyphus/zhengbi-yong.github.io/.env.production.example)
-- [scripts/deployment/validate-production-env.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/validate-production-env.sh)
-- [scripts/deployment/deploy-compose-stack.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/deploy-compose-stack.sh)
+- [deployments/docker/compose-files/prod/docker-compose.yml](../../../../../../../deployments/docker/compose-files/prod/docker-compose.yml)
+- [.env.production.example](../../../../../../../.env.production.example)
+- [scripts/deployment/validate-production-env.sh](../../../../../../../scripts/deployment/validate-production-env.sh)
+- [scripts/deployment/deploy-compose-stack.sh](../../../../../../../scripts/deployment/deploy-compose-stack.sh)
 
 ## Local operator workflow
 
@@ -76,7 +76,7 @@ That path builds local images, streams them over SSH, and deploys with
 - Backend, frontend, PostgreSQL, Redis, Meilisearch, MinIO, and Mailpit should
   usually bind to loopback on production hosts.
 - If the host already runs system nginx on `80/443`, keep the Compose edge on
-  loopback and use [System Nginx Cutover](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/system-nginx-cutover.md).
+  loopback and use [System Nginx Cutover](../../../../../../../docs/deployment/guides/server/system-nginx-cutover.md).
 
 ## Optional bundled services
 

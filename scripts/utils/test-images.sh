@@ -79,6 +79,6 @@ else
     echo ""
     echo "建议操作:"
     echo "  1. 配置 Docker 镜像加速器（阿里云）"
-    echo "  2. 或更新 docker-compose.production.yml 中的镜像来源"
+    echo "  2. 或更新 deployments/docker/compose-files/prod/docker-compose.yml 中的镜像来源"
     exit 1
 fi

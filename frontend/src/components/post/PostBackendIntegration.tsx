@@ -10,53 +10,21 @@ interface PostBackendIntegrationProps {
   children: React.ReactNode
 }
 
+// In-memory set to prevent double-counting views within the same tab session.
+// No localStorage/sessionStorage needed — this is the same pattern used by
+// useArticleAnalytics and useAnalyticsStorage (GOLDEN_RULES 2.2 compliant).
 const recordedPostViews = new Set<string>()
-const VIEW_SESSION_KEY_PREFIX = 'post-view-recorded:'
-
-function hasRecordedView(slug: string) {
-  if (recordedPostViews.has(slug)) {
-    return true
-  }
-
-  if (typeof window === 'undefined') {
-    return false
-  }
-
-  try {
-    const wasRecorded = window.sessionStorage.getItem(`${VIEW_SESSION_KEY_PREFIX}${slug}`) === '1'
-    if (wasRecorded) {
-      recordedPostViews.add(slug)
-    }
-    return wasRecorded
-  } catch {
-    return false
-  }
-}
-
-function markViewRecorded(slug: string) {
-  recordedPostViews.add(slug)
-
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  try {
-    window.sessionStorage.setItem(`${VIEW_SESSION_KEY_PREFIX}${slug}`, '1')
-  } catch {
-    // Ignore storage failures; the in-memory set still prevents duplicates in this tab.
-  }
-}
 
 export function PostBackendIntegration({ slug, children }: PostBackendIntegrationProps) {
   const { recordView, fetchStats } = usePostStore()
   void fetchStats
 
   useEffect(() => {
-    if (!slug || hasRecordedView(slug)) {
+    if (!slug || recordedPostViews.has(slug)) {
       return
     }
 
-    markViewRecorded(slug)
+    recordedPostViews.add(slug)
     void recordView(slug)
   }, [slug, recordView])
 

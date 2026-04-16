@@ -211,12 +211,13 @@ export class CacheManager<T = any> {
   }
 }
 
-// 全局缓存实例
+// 全局缓存实例（统一使用 memory 存储，符合 GOLDEN_RULES 2.2）
+// localStorage/sessionStorage 选项保留但默认不启用，防止未来误用导致违规
 export const CACHE_REGISTRY = {
-  api: new CacheManager('api-cache', { storage: 'sessionStorage', ttl: 5 * 60 * 1000 }), // 5 分钟
-  images: new CacheManager('image-cache', { storage: 'localStorage', ttl: 24 * 60 * 60 * 1000 }), // 24 小时
-  articles: new CacheManager('article-cache', { storage: 'localStorage', ttl: 30 * 60 * 1000 }), // 30 分钟
-  search: new CacheManager('search-cache', { storage: 'sessionStorage', ttl: 10 * 60 * 1000 }), // 10 分钟
+  api: new CacheManager('api-cache', { storage: 'memory', ttl: 5 * 60 * 1000 }), // 5 分钟
+  images: new CacheManager('image-cache', { storage: 'memory', ttl: 24 * 60 * 60 * 1000 }), // 24 小时
+  articles: new CacheManager('article-cache', { storage: 'memory', ttl: 30 * 60 * 1000 }), // 30 分钟
+  search: new CacheManager('search-cache', { storage: 'memory', ttl: 10 * 60 * 1000 }), // 10 分钟
 }
 
 // 定期清理过期缓存

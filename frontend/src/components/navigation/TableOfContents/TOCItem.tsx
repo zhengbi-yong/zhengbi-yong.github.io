@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react'
 import { cn } from '@/components/lib/utils'
-import styles from '../../FloatingTOC.module.css'
+import styles from './TOC.module.css'
 import type { HeadingNode } from './types'
 
 interface TOCItemProps {
@@ -36,6 +36,7 @@ export const TOCItem = memo(function TOCItem({
         href={node.url}
         data-depth={node.depth}
         data-id={nodeId}
+        aria-current={isActive ? 'location' : undefined}
         className={cn(
           'toc-link',
           isActive && 'active',
@@ -74,9 +75,9 @@ export const TOCItem = memo(function TOCItem({
       </a>
       {node.children.length > 0 && (
         <ul>
-          {node.children.map((child) => (
+          {node.children.map((child, idx) => (
             <TOCItem
-              key={child.url}
+              key={`${child.url}-child-${idx}`}
               node={child}
               activeHeadingId={activeHeadingId}
               onLinkClick={onLinkClick}

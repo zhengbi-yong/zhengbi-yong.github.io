@@ -11,7 +11,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $repoRoot = $PSScriptRoot
-$composeFile = Join-Path $repoRoot 'docker-compose.dev.yml'
+$composeFile = Join-Path $repoRoot 'deployments/docker/compose-files/dev/docker-compose.yml'
 $backendScript = Join-Path $repoRoot 'start-backend.ps1'
 $frontendScript = Join-Path $repoRoot 'start-frontend.ps1'
 $workerScript = Join-Path $repoRoot 'start-worker.ps1'

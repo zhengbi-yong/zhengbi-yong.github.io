@@ -18,28 +18,21 @@ interface AnalyticsOptions {
   trackScrollDepth?: boolean
 }
 
-// 模拟本地存储的 analytics 数据
+/**
+ * Module-level in-memory store for article analytics.
+ * Replaces localStorage to comply with GOLDEN_RULES 2.2 (no localStorage for user data).
+ */
+const analyticsMemoryStore = new Map<string, ArticleAnalytics>()
+
+// In-memory analytics getter
 const getStoredAnalytics = (articleId: string): ArticleAnalytics => {
-  if (typeof window === 'undefined') {
-    return {
-      viewCount: 0,
-      totalReadingTime: 0,
-      averageReadingTime: 0,
-      scrollDepth: 0,
-      lastVisited: null,
-      engagementScore: 0,
-    }
-  }
-
-  const stored = localStorage.getItem(`article_analytics_${articleId}`)
+  const stored = analyticsMemoryStore.get(articleId)
   if (stored) {
-    const data = JSON.parse(stored)
     return {
-      ...data,
-      lastVisited: new Date(data.lastVisited),
+      ...stored,
+      lastVisited: stored.lastVisited ? new Date(stored.lastVisited) : null,
     }
   }
-
   return {
     viewCount: 0,
     totalReadingTime: 0,
@@ -50,37 +43,25 @@ const getStoredAnalytics = (articleId: string): ArticleAnalytics => {
   }
 }
 
-// 保存 analytics 数据到本地存储
+// In-memory analytics setter
 const saveAnalytics = (articleId: string, analytics: ArticleAnalytics): void => {
-  if (typeof window === 'undefined') return
-
-  localStorage.setItem(
-    `article_analytics_${articleId}`,
-    JSON.stringify({
-      ...analytics,
-      lastVisited: analytics.lastVisited?.toISOString(),
-    })
-  )
+  // Clone to break reference, serialize Date to ISO string for storage
+  analyticsMemoryStore.set(articleId, {
+    ...analytics,
+    lastVisited: analytics.lastVisited ? new Date(analytics.lastVisited) : null,
+  })
 }
 
-// 计算参与度分数
+// Calculate engagement score
 const calculateEngagementScore = (
   viewCount: number,
   averageReadingTime: number,
   scrollDepth: number
 ): number => {
-  // 基础分数来自浏览次数
   const viewScore = Math.min(viewCount * 10, 100)
-
-  // 阅读时间分数（假设平均阅读时间为 3 分钟）
   const timeScore = Math.min((averageReadingTime / 180) * 100, 100)
-
-  // 滚动深度分数
   const depthScore = scrollDepth * 100
-
-  // 加权平均
   const engagementScore = viewScore * 0.3 + timeScore * 0.4 + depthScore * 0.3
-
   return Math.round(engagementScore)
 }
 
@@ -91,12 +72,11 @@ export function useArticleAnalytics({
   trackScrollDepth = true,
 }: AnalyticsOptions) {
   const [analytics, setAnalytics] = useState<ArticleAnalytics>(() => getStoredAnalytics(articleId))
-
   const [sessionStartTime] = useState<Date>(new Date())
   const [maxScrollDepth, setMaxScrollDepth] = useState(0)
   const [hasTrackedView, setHasTrackedView] = useState(false)
 
-  // 更新 analytics 数据
+  // Update analytics data
   const updateAnalytics = useCallback(
     (updates: Partial<ArticleAnalytics>) => {
       setAnalytics((prev) => {
@@ -105,7 +85,7 @@ export function useArticleAnalytics({
           ...updates,
         }
 
-        // 重新计算参与度分数
+        // Recalculate engagement score
         if (
           updates.viewCount !== undefined ||
           updates.averageReadingTime !== undefined ||
@@ -118,6 +98,7 @@ export function useArticleAnalytics({
           )
         }
 
+        // Save to in-memory store
         saveAnalytics(articleId, updated)
         return updated
       })
@@ -125,7 +106,7 @@ export function useArticleAnalytics({
     [articleId]
   )
 
-  // 跟踪页面访问
+  // Track page view
   const trackPageView = useCallback(() => {
     if (!trackView || hasTrackedView) return
 
@@ -137,14 +118,13 @@ export function useArticleAnalytics({
     setHasTrackedView(true)
   }, [trackView, hasTrackedView, analytics.viewCount, updateAnalytics])
 
-  // 跟踪阅读时间
+  // Track reading time
   const trackReadingTimeCallback = useCallback(() => {
     if (!trackReadingTime || !hasTrackedView) return
 
     const currentTime = new Date()
     const sessionDuration = Math.floor((currentTime.getTime() - sessionStartTime.getTime()) / 1000)
 
-    // 更新总阅读时间和平均阅读时间
     const newTotalReadingTime = analytics.totalReadingTime + sessionDuration
     const newAverageReadingTime = Math.floor(newTotalReadingTime / analytics.viewCount)
 
@@ -161,7 +141,7 @@ export function useArticleAnalytics({
     updateAnalytics,
   ])
 
-  // 跟踪滚动深度
+  // Track scroll depth
   const trackScrollDepthCallback = useCallback(() => {
     if (!trackScrollDepth || !hasTrackedView) return
 
@@ -172,7 +152,6 @@ export function useArticleAnalytics({
 
     const currentDepth = Math.min(scrollTop / scrollHeight, 1)
 
-    // 只在滚动深度超过之前记录时更新
     if (currentDepth > maxScrollDepth) {
       const newMaxDepth = currentDepth
       setMaxScrollDepth(newMaxDepth)
@@ -183,7 +162,7 @@ export function useArticleAnalytics({
     }
   }, [trackScrollDepth, hasTrackedView, maxScrollDepth, updateAnalytics])
 
-  // 获取热门度标签
+  // Get popularity label
   const getPopularityLabel = useCallback((): string => {
     if (analytics.engagementScore >= 80) return '热门'
     if (analytics.engagementScore >= 60) return '受欢迎'
@@ -192,12 +171,12 @@ export function useArticleAnalytics({
     return '新作'
   }, [analytics.engagementScore])
 
-  // 初始化时跟踪页面访问
+  // Initialize: track page view
   useEffect(() => {
     trackPageView()
   }, [trackPageView])
 
-  // 监听滚动事件
+  // Scroll event listener
   useEffect(() => {
     if (!trackScrollDepth) return undefined
 
@@ -212,7 +191,7 @@ export function useArticleAnalytics({
     }
   }, [trackScrollDepth, trackScrollDepthCallback])
 
-  // 页面卸载时跟踪阅读时间
+  // Track reading time on page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
       trackReadingTimeCallback()
@@ -222,16 +201,15 @@ export function useArticleAnalytics({
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload)
-      // 组件卸载时也记录阅读时间
       trackReadingTimeCallback()
     }
   }, [trackReadingTimeCallback])
 
-  // 定期保存数据
+  // Periodic save
   useEffect(() => {
     const interval = setInterval(() => {
       trackReadingTimeCallback()
-    }, 30000) // 每30秒更新一次
+    }, 30000) // Every 30s
 
     return () => clearInterval(interval)
   }, [trackReadingTimeCallback])
@@ -246,36 +224,21 @@ export function useArticleAnalytics({
   }
 }
 
-// 获取所有文章的 analytics 数据
+// Get all articles' analytics from in-memory store
 export function getAllAnalytics(): Record<string, ArticleAnalytics> {
-  if (typeof window === 'undefined') return {}
-
   const allAnalytics: Record<string, ArticleAnalytics> = {}
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key?.startsWith('article_analytics_')) {
-      const articleId = key.replace('article_analytics_', '')
-      const data = localStorage.getItem(key)
-
-      if (data) {
-        try {
-          const analytics = JSON.parse(data)
-          allAnalytics[articleId] = {
-            ...analytics,
-            lastVisited: analytics.lastVisited ? new Date(analytics.lastVisited) : null,
-          }
-        } catch (error) {
-          console.error(`Failed to parse analytics for ${articleId}:`, error)
-        }
-      }
+  analyticsMemoryStore.forEach((value, key) => {
+    allAnalytics[key] = {
+      ...value,
+      lastVisited: value.lastVisited ? new Date(value.lastVisited) : null,
     }
-  }
+  })
 
   return allAnalytics
 }
 
-// 获取最受欢迎的文章
+// Get most popular articles
 export function getPopularArticles(limit = 5): Array<{
   articleId: string
   analytics: ArticleAnalytics

@@ -13,8 +13,8 @@ This solves the most common production transition problem:
 
 The cutover flow is implemented by:
 
-- [cutover-system-nginx.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/cutover-system-nginx.sh)
-- [rollback-system-nginx.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/rollback-system-nginx.sh)
+- [cutover-system-nginx.sh](../../../../../../../scripts/deployment/cutover-system-nginx.sh)
+- [rollback-system-nginx.sh](../../../../../../../scripts/deployment/rollback-system-nginx.sh)
 
 ## One-command production path
 

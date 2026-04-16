@@ -92,7 +92,7 @@ install:
 # 启动数据库服务
 setup-db:
 	@echo "🗄️  启动数据库服务..."
-	docker compose -f docker-compose.dev.yml up -d postgres redis
+	docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d postgres redis
 	@echo "✅ 数据库服务已启动！"
 	@echo ""
 	@echo "💡 数据库连接:"
@@ -113,12 +113,12 @@ db-migrate:
 
 # 查看日志
 logs:
-	docker compose -f docker-compose.dev.yml logs -f
+	docker compose -f deployments/docker/compose-files/dev/docker-compose.yml logs -f
 
 # 停止所有服务
 stop:
 	@echo "🛑 停止所有服务..."
-	docker compose -f docker-compose.dev.yml down
+	docker compose -f deployments/docker/compose-files/dev/docker-compose.yml down
 	@echo "✅ 服务已停止！"
 
 # 重启所有服务
@@ -131,7 +131,7 @@ restart: stop setup-db
 
 dev-backend:
 	@echo "🚀 启动开发基础设施并运行后端..."
-	docker compose -f docker-compose.dev.yml up -d postgres redis meilisearch minio
+	docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d postgres redis meilisearch minio
 	cd backend && cargo run --bin api
 
 dev-shell:
@@ -140,17 +140,17 @@ dev-shell:
 
 dev-migrate:
 	@echo "🗄️  启动基础设施并运行迁移..."
-	docker compose -f docker-compose.dev.yml up -d postgres redis
+	docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d postgres redis
 	cd backend && cargo run --bin migrate
 
 dev-create-admin:
 	@echo "👤 启动基础设施并创建管理员账户..."
-	docker compose -f docker-compose.dev.yml up -d postgres redis
+	docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d postgres redis
 	cd backend && cargo run --bin create_admin
 
 dev-stop:
 	@echo "🛑 停止开发环境..."
-	docker compose -f docker-compose.dev.yml down
+	docker compose -f deployments/docker/compose-files/dev/docker-compose.yml down
 	@echo "✅ 开发环境已停止"
 
 # =============================================================================
@@ -167,7 +167,7 @@ deploy-prod-up-build:
 	@bash scripts/deployment/deploy-compose-stack.sh --env-file .env.production --build
 
 deploy-prod-migrate:
-	@docker compose --env-file .env.production -f docker-compose.production.yml --profile ops run --rm migrate
+	@docker compose --env-file .env.production -f deployments/docker/compose-files/prod/docker-compose.yml --profile ops run --rm migrate
 
 print-version-metadata:
 	@bash scripts/release/oci-metadata.sh

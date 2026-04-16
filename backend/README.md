@@ -30,7 +30,7 @@ does not mutate schema automatically.
 From the repository root:
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d postgres redis
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d postgres redis
 cd backend
 cp .env.example .env
 cargo run --bin migrate

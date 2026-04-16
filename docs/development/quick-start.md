@@ -112,7 +112,7 @@ In `frontend/.env.local`:
 cd backend
 
 # Run backend server
-cargo run -p blog-api --bin api
+cargo run --bin api
 ```
 
 **Time**: ~1-2 minutes (first run compiles dependencies)

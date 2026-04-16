@@ -25,19 +25,19 @@ export ENVIRONMENT=development
 
 # 检查数据库状态
 echo "1. 检查数据库状态..."
-if docker compose -f "$PROJECT_ROOT/docker-compose.dev.yml" ps | grep -q "blog-postgres.*Up"; then
+if docker compose -f "$PROJECT_ROOT/deployments/docker/compose-files/dev/docker-compose.yml" ps | grep -q "blog-postgres.*Up"; then
     echo "   ✓ PostgreSQL 运行中"
 else
     echo "   ✗ PostgreSQL 未运行，正在启动..."
-    docker compose -f "$PROJECT_ROOT/docker-compose.dev.yml" up -d
+    docker compose -f "$PROJECT_ROOT/deployments/docker/compose-files/dev/docker-compose.yml" up -d
     sleep 3
 fi
 
-if docker compose -f "$PROJECT_ROOT/docker-compose.dev.yml" ps | grep -q "blog-redis.*Up"; then
+if docker compose -f "$PROJECT_ROOT/deployments/docker/compose-files/dev/docker-compose.yml" ps | grep -q "blog-redis.*Up"; then
     echo "   ✓ Redis 运行中"
 else
     echo "   ✗ Redis 未运行，正在启动..."
-    docker compose -f "$PROJECT_ROOT/docker-compose.dev.yml" up -d
+    docker compose -f "$PROJECT_ROOT/deployments/docker/compose-files/dev/docker-compose.yml" up -d
     sleep 3
 fi
 
@@ -93,7 +93,7 @@ case $choice in
         pkill -f "cargo run" || true
         pkill -f "pnpm dev" || true
         pkill -f "next-dev" || true
-        docker compose -f "$PROJECT_ROOT/docker-compose.dev.yml" down
+        docker compose -f "$PROJECT_ROOT/deployments/docker/compose-files/dev/docker-compose.yml" down
         echo "✓ 所有服务已停止"
         ;;
     *)

@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-COMPOSE_FILE="${ROOT_DIR}/docker-compose.production.yml"
+COMPOSE_FILE="${ROOT_DIR}/deployments/docker/compose-files/prod/docker-compose.yml"
 ENV_FILE=""
 GENERATED_ENV=false
 KEEP_RUNNING=false

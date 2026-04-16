@@ -1,148 +1,54 @@
-# Zhengbi Yong Blog Platform
+# 雍征彼的技术博客
 
-Production blog platform for `https://zhengbi-yong.top`, built as a dual-stack
-monorepo:
+个人技术博客，基于 Next.js + Rust 构建，聚焦具身智能（Embodied AI）方向。
 
-- `frontend/`: Next.js 16 App Router, MDX, admin UI, search UI
-- `backend/`: Rust + Axum API workspace (`api`, `core`, `db`, `shared`, `worker`)
-- `docker-compose.production.yml`: canonical single-host and small-fleet runtime
-- `deployments/kubernetes/`: canonical multi-node baseline
+## 项目结构
 
-## Current architecture
-
-- stateless `api` and `frontend` processes
-- independent `worker` process for outbox and background jobs
-- PostgreSQL + Redis as core stateful services
-- optional Meilisearch and MinIO
-- optional Compose edge proxy, or host nginx cutover in front of the stack
-
-## Repository layout
-
-```text
-.
-├── backend/
-├── frontend/
-├── scripts/
-│   ├── deployment/
-│   └── release/
-├── deployments/
-│   ├── environments/
-│   ├── kubernetes/
-│   └── nginx/
-└── docs/
+```
+zhengbi-yong.github.io/
+├── frontend/     — Next.js 16 前端（Tailwind CSS + Velite）
+├── backend/     — Rust Axum 后端（PostgreSQL + Redis）
+├── docs/        — 完整项目文档
+├── scripts/     — 自动化脚本
+├── deployments/ — Docker Compose / K8s 部署配置
+└── config/      — 环境配置模板
 ```
 
-## Local development
-
-Start infrastructure:
+## 快速开始
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d
+# 安装所有依赖
+make setup
+
+# 启动开发服务
+./scripts/start/bash/start-all.sh
+
+# 前端地址：http://localhost:3001
+# 后端地址：http://localhost:3000
 ```
 
-Recommended entrypoints:
+## 文档导航
 
-```bash
-# Unix-like shells
-./start-dev.sh
-./start-backend.sh
-./start-frontend.sh
-```
+| 文档 | 位置 | 说明 |
+|------|------|------|
+| 开发入门 | [docs/getting-started/](docs/getting-started/) | 环境配置、快速启动 |
+| 工程规范 | [docs/development/](docs/development/) | 代码风格、安全实践 |
+| 设计系统 | [docs/design/](docs/design/) | 外观设计文档 |
+| 部署指南 | [docs/deployment/](docs/deployment/) | Docker、K8s、服务器部署 |
+| **专项方案** | [docs/plans/](docs/plans/) | **所有长期方案的索引** |
+| AI 代理指南 | [.github/AGENTS.md](.github/AGENTS.md) | AI 助手使用规范 |
 
-```powershell
-# Windows PowerShell
-powershell -ExecutionPolicy Bypass -File .\start-dev.ps1
-powershell -ExecutionPolicy Bypass -File .\start-backend.ps1
-powershell -ExecutionPolicy Bypass -File .\start-frontend.ps1
-powershell -ExecutionPolicy Bypass -File .\start-worker.ps1
-```
+## 专项方案索引
 
-Or run services directly:
+所有需要多步骤执行的方案文档统一存放在 [docs/plans/](docs/plans/)：
 
-```bash
-cd backend && cargo run -p blog-migrator
-cd backend && cargo run --bin api
-cd backend && cargo run -p blog-worker --bin worker
-cd frontend && pnpm dev
-```
+- 🔧 [仓库结构整理方案](docs/plans/REPOSITORY_ORGANIZATION.md) — 整理根目录杂乱文件
+- 🛡️ [安全审计与整改方案](docs/plans/REMEDIATION_PLAN.md) — 15 项安全与性能问题修复
 
-For native Windows day-to-day development, prefer the PowerShell entrypoints
-above or the direct `cargo` / `pnpm` commands. The release, deployment, and
-Compose validation helpers remain Bash-first and are still best run from WSL2
-or another Unix-like shell.
+## 相关链接
 
-## Testing and quality
+- 博客在线：http://192.168.0.161:3001
+- 文档总览：[docs/INDEX.md](docs/INDEX.md)
 
-```bash
-make test
-make verify-api-contract
-make smoke-prod-compose
-make smoke-prod-compose-fast
-cd backend && cargo check
-cd backend && cargo test
-cd frontend && pnpm test
-cd frontend && pnpm test:e2e
-```
-
-## Production deployment
-
-Compose is the canonical path for one host to a small fleet:
-
-```bash
-cp .env.production.example .env.production
-make deploy-prod-validate
-make deploy-prod-up
-```
-
-For repeat local validation after images already exist:
-
-```bash
-make smoke-prod-compose-fast ENV_FILE=.env.production
-```
-
-Sentry release creation and source map upload are now credential-driven. Set
-`SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` only in environments
-where build-time release artifacts should be published.
-
-Lowest-friction remote deployment:
-
-```bash
-bash scripts/deployment/provision-compose-host.sh --target ubuntu@203.0.113.10
-```
-
-If the host already runs system nginx on `80/443`:
-
-```bash
-bash scripts/deployment/provision-compose-host.sh \
-  --target ubuntu@203.0.113.10 \
-  --site-url https://blog.example.com \
-  --cutover-system-nginx
-```
-
-Kubernetes is the canonical clustered path:
-
-```bash
-kubectl apply -k deployments/kubernetes/base
-```
-
-Generate immutable release assets:
-
-```bash
-make render-release-assets VERSION=1.8.2
-make validate-k8s-apply RELEASE_VERSION=1.8.2
-```
-
-## Canonical documentation
-
-- [Developer Handoff](README_DEV.md)
-- [Documentation Hub](/home/Sisyphus/zhengbi-yong.github.io/docs/README.md)
-- [Feature Index](/home/Sisyphus/zhengbi-yong.github.io/docs/features/README.md)
-- [Deployment Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/README.md)
-- [Developer Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/development/README.md)
-- [Kubernetes Base](/home/Sisyphus/zhengbi-yong.github.io/deployments/kubernetes/README.md)
-
-## Maintenance policy
-
-- Compose production and Kubernetes base are the only maintained deployment paths.
-- Legacy deployment flows have been removed from the active documentation surface.
-- Historical material belongs under `docs/archive/` or git history, not the main entrypoints.
+---
+*最后更新：2025-04-14*

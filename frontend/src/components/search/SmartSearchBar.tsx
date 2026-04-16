@@ -49,15 +49,9 @@ export function SmartSearchBar({
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // 加载搜索历史
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const history = localStorage.getItem('searchHistory')
-      if (history) {
-        setSearchHistory(JSON.parse(history))
-      }
-    }
-  }, [])
+  // 搜索历史现在完全由 React state 管理（内存存储）
+  // 符合 GOLDEN_RULES 2.2: 禁止 localStorage 存储用户数据
+  // 历史仅在当前会话有效，页面刷新后清除（这是预期行为）
 
   // 保存搜索历史
   const saveToHistory = useCallback((searchQuery: string) => {
@@ -65,7 +59,6 @@ export function SmartSearchBar({
 
     const newHistory = [searchQuery, ...searchHistory.filter((h) => h !== searchQuery)].slice(0, 10)
     setSearchHistory(newHistory)
-    localStorage.setItem('searchHistory', JSON.stringify(newHistory))
   }, [searchHistory])
 
   // 防抖搜索

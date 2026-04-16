@@ -1,16 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { getAllAnalytics } from './useArticleAnalytics'
 
 export interface AnalyticsExport {
   exportDate: string
   version: string
-  data: Record<string, any>
+  data: Record<string, unknown>
 }
 
 const STORAGE_KEY = 'article_analytics'
 const EXPORT_VERSION = '1.0.0'
+
+/**
+ * In-memory store for analytics data.
+ * Replaces localStorage to comply with GOLDEN_RULES 2.2 (no localStorage for user data).
+ *
+ * This is a module-level singleton so all component instances share the same data.
+ */
+const analyticsMemoryStore = new Map<string, unknown>()
 
 export function useAnalyticsStorage() {
   const [isClient, setIsClient] = useState(false)
@@ -19,24 +27,28 @@ export function useAnalyticsStorage() {
     setIsClient(true)
   }, [])
 
-  // 获取所有分析数据
-  const getAllData = () => {
+  // Get all analytics data from memory store
+  const getAllData = useCallback(() => {
     if (!isClient) return {}
-    return getAllAnalytics()
-  }
+    const result: Record<string, unknown> = {}
+    analyticsMemoryStore.forEach((value, key) => {
+      result[key] = value
+    })
+    return result
+  }, [isClient])
 
-  // 导出数据为 JSON 文件
-  const exportData = () => {
+  // Export data as JSON file (file download - no localStorage)
+  const exportData = useCallback(() => {
     if (!isClient) return
 
     const allData = getAllAnalytics()
-    const exportData: AnalyticsExport = {
+    const exportPayload: AnalyticsExport = {
       exportDate: new Date().toISOString(),
       version: EXPORT_VERSION,
       data: allData,
     }
 
-    const dataStr = JSON.stringify(exportData, null, 2)
+    const dataStr = JSON.stringify(exportPayload, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
     const url = URL.createObjectURL(dataBlob)
 
@@ -47,10 +59,10 @@ export function useAnalyticsStorage() {
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-  }
+  }, [isClient, getAllData])
 
-  // 导入数据
-  const importData = (file: File): Promise<void> => {
+  // Import data from JSON file (file read - no localStorage)
+  const importData = useCallback((file: File): Promise<void> => {
     return new Promise((resolve, reject) => {
       if (!isClient) {
         reject(new Error('Not running on client'))
@@ -63,18 +75,19 @@ export function useAnalyticsStorage() {
           const content = e.target?.result as string
           const importedData: AnalyticsExport = JSON.parse(content)
 
-          // 验证数据格式
+          // Validate data format
           if (!importedData.version || !importedData.data) {
             throw new Error('Invalid data format')
           }
 
-          // 合并数据
+          // Merge data into memory store
           const existingData = getAllAnalytics()
           const mergedData = { ...existingData, ...importedData.data }
 
-          // 保存合并后的数据
+          // Clear and repopulate memory store
+          analyticsMemoryStore.clear()
           Object.entries(mergedData).forEach(([key, value]) => {
-            localStorage.setItem(`${STORAGE_KEY}_${key}`, JSON.stringify(value))
+            analyticsMemoryStore.set(key, value)
           })
 
           resolve()
@@ -86,31 +99,22 @@ export function useAnalyticsStorage() {
       reader.onerror = () => reject(new Error('Failed to read file'))
       reader.readAsText(file)
     })
-  }
+  }, [isClient, getAllData])
 
-  // 清除所有数据
-  const clearAllData = () => {
+  // Clear all analytics data from memory
+  const clearAllData = useCallback(() => {
     if (!isClient) return
+    analyticsMemoryStore.clear()
+  }, [isClient])
 
-    const keysToRemove: string[] = []
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i)
-      if (key?.startsWith(STORAGE_KEY)) {
-        keysToRemove.push(key)
-      }
-    }
-
-    keysToRemove.forEach((key) => localStorage.removeItem(key))
-  }
-
-  // 清除特定文章的数据
-  const clearArticleData = (articleId: string) => {
+  // Clear specific article's data from memory
+  const clearArticleData = useCallback((articleId: string) => {
     if (!isClient) return
-    localStorage.removeItem(`${STORAGE_KEY}_${articleId}`)
-  }
+    analyticsMemoryStore.delete(`${STORAGE_KEY}_${articleId}`)
+  }, [isClient])
 
-  // 获取数据统计
-  const getDataStats = () => {
+  // Get storage statistics
+  const getDataStats = useCallback(() => {
     if (!isClient) {
       return {
         totalArticles: 0,
@@ -124,20 +128,16 @@ export function useAnalyticsStorage() {
     const articles = Object.entries(allData)
 
     const totalArticles = articles.length
-    const totalViews = articles.reduce((sum, [, data]) => sum + (data.viewCount || 0), 0)
+    const totalViews = articles.reduce((sum, [, data]) => sum + ((data as { viewCount?: number }).viewCount || 0), 0)
     const avgEngagement =
       totalArticles > 0
-        ? articles.reduce((sum, [, data]) => sum + (data.engagementScore || 0), 0) / totalArticles
+        ? articles.reduce((sum, [, data]) => sum + ((data as { engagementScore?: number }).engagementScore || 0), 0) / totalArticles
         : 0
 
-    // 计算存储大小
+    // Calculate in-memory store size
     let storageSize = 0
-    articles.forEach(([key]) => {
-      const data = localStorage.getItem(`${STORAGE_KEY}_${key}`)
-      if (data) {
-        storageSize += data.length
-      }
-    })
+    const serialized = JSON.stringify(Object.fromEntries(analyticsMemoryStore))
+    storageSize = serialized.length
 
     return {
       totalArticles,
@@ -145,7 +145,7 @@ export function useAnalyticsStorage() {
       avgEngagement: Math.round(avgEngagement),
       storageSize: Math.round(storageSize / 1024), // KB
     }
-  }
+  }, [isClient])
 
   return {
     getAllData,

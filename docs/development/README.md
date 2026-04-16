@@ -4,34 +4,34 @@ This is the maintained entrypoint for engineering documentation.
 
 ## Start here
 
-- [Development Quick Start](/home/Sisyphus/zhengbi-yong.github.io/docs/development/quick-start.md)
-- [Getting Started Overview](/home/Sisyphus/zhengbi-yong.github.io/docs/development/getting-started/overview.md)
-- [Development Workflow](/home/Sisyphus/zhengbi-yong.github.io/docs/development/getting-started/workflow.md)
+- [Development Quick Start](../../../../../docs/development/quick-start.md)
+- [Getting Started Overview](../../../../../docs/development/getting-started/overview.md)
+- [Development Workflow](../../../../../docs/development/getting-started/workflow.md)
 
 ## Architecture
 
-- [System Architecture](/home/Sisyphus/zhengbi-yong.github.io/docs/development/concepts/architecture.md)
-- [Frontend Architecture](/home/Sisyphus/zhengbi-yong.github.io/docs/development/concepts/frontend-architecture.md)
-- [Backend Architecture](/home/Sisyphus/zhengbi-yong.github.io/docs/development/concepts/backend-architecture.md)
+- [System Architecture](../../../../../docs/development/concepts/architecture.md)
+- [Frontend Architecture](../../../../../docs/development/concepts/frontend-architecture.md)
+- [Backend Architecture](../../../../../docs/development/concepts/backend-architecture.md)
 
 ## Reference
 
-- [API Reference](/home/Sisyphus/zhengbi-yong.github.io/docs/development/reference/api-reference.md)
-- [Components Reference](/home/Sisyphus/zhengbi-yong.github.io/docs/development/reference/components-reference.md)
+- [API Reference](../../../../../docs/development/reference/api-reference.md)
+- [Components Reference](../../../../../docs/development/reference/components-reference.md)
 
 ## Standards
 
-- [Best Practices Overview](/home/Sisyphus/zhengbi-yong.github.io/docs/development/best-practices/overview.md)
-- [Code Style](/home/Sisyphus/zhengbi-yong.github.io/docs/development/best-practices/code-style.md)
-- [Naming Conventions](/home/Sisyphus/zhengbi-yong.github.io/docs/development/best-practices/naming-conventions.md)
-- [File Organization](/home/Sisyphus/zhengbi-yong.github.io/docs/development/best-practices/file-organization.md)
-- [Security Practices](/home/Sisyphus/zhengbi-yong.github.io/docs/development/best-practices/security-practices.md)
+- [Best Practices Overview](../../../../../docs/development/best-practices/overview.md)
+- [Code Style](../../../../../docs/development/best-practices/code-style.md)
+- [Naming Conventions](../../../../../docs/development/best-practices/naming-conventions.md)
+- [File Organization](../../../../../docs/development/best-practices/file-organization.md)
+- [Security Practices](../../../../../docs/development/best-practices/security-practices.md)
 
 ## Operations for developers
 
-- [Performance Monitoring](/home/Sisyphus/zhengbi-yong.github.io/docs/development/operations/performance-monitoring.md)
-- [Security Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/development/operations/security-guide.md)
-- [Troubleshooting](/home/Sisyphus/zhengbi-yong.github.io/docs/development/operations/troubleshooting.md)
+- [Performance Monitoring](../../../../../docs/development/operations/performance-monitoring.md)
+- [Security Guide](../../../../../docs/development/operations/security-guide.md)
+- [Troubleshooting](../../../../../docs/development/operations/troubleshooting.md)
 
 ## Scope policy
 

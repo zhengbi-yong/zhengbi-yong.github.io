@@ -12,13 +12,13 @@ The blog platform uses environment variables for configuration. These variables 
 
 For the canonical production path, start from:
 
-- [.env.production.example](/home/Sisyphus/zhengbi-yong.github.io/.env.production.example)
-- [generate-production-env.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/generate-production-env.sh)
-- [validate-production-env.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/validate-production-env.sh)
+- [.env.production.example](../../../../../../.env.production.example)
+- [generate-production-env.sh](../../../../../../scripts/deployment/generate-production-env.sh)
+- [validate-production-env.sh](../../../../../../scripts/deployment/validate-production-env.sh)
 
 For the lowest-friction SSH deployment path, see:
 
-- [automated-compose-deploy.md](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/automated-compose-deploy.md)
+- [automated-compose-deploy.md](../../../../../../docs/deployment/guides/server/automated-compose-deploy.md)
 
 ### Configuration Files / 配置文件
 

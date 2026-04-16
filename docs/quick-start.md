@@ -12,7 +12,7 @@ cd zhengbi-yong.github.io
 ## 2. Start shared infrastructure
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d
 ```
 
 This starts PostgreSQL, Redis, Meilisearch, and MinIO for local development.
@@ -35,9 +35,9 @@ powershell -ExecutionPolicy Bypass -File .\start-dev.ps1 -IncludeWorker
 Or run the services directly:
 
 ```bash
-cd backend && cargo run -p blog-migrator
+cd backend && cargo run --bin api -- migrate
 cd backend && cargo run --bin api
-cd backend && cargo run -p blog-worker --bin worker
+cd backend && cargo run --bin worker
 cd frontend && pnpm dev
 ```
 
@@ -60,7 +60,7 @@ powershell -ExecutionPolicy Bypass -File .\start-worker.ps1
 
 ```bash
 # stop shared infrastructure
-docker compose -f docker-compose.dev.yml down
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml down
 
 # backend checks
 cd backend && cargo check
@@ -74,7 +74,7 @@ cd frontend && pnpm generate:types
 
 ## Next steps
 
-- [Getting Started](/home/Sisyphus/zhengbi-yong.github.io/docs/getting-started/README.md)
-- [Developer Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/development/README.md)
-- [Feature Index](/home/Sisyphus/zhengbi-yong.github.io/docs/features/README.md)
-- [Deployment Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/README.md)
+- [Getting Started](./docs/getting-started/)
+- [Developer Guide](./docs/development/)
+- [Feature Index](./docs/features/)
+- [Deployment Guide](./docs/deployment/)

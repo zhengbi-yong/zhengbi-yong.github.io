@@ -109,7 +109,7 @@ if you want strict local image builds.
 
 ### 1. Generate env
 
-Use [generate-production-env.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/generate-production-env.sh):
+Use [generate-production-env.sh](../../../../../../../scripts/deployment/generate-production-env.sh):
 
 ```bash
 bash scripts/deployment/generate-production-env.sh \
@@ -136,7 +136,7 @@ bash scripts/deployment/generate-production-env.sh \
 
 ### 2. Bootstrap the host
 
-Use [bootstrap-remote-host.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/bootstrap-remote-host.sh):
+Use [bootstrap-remote-host.sh](../../../../../../../scripts/deployment/bootstrap-remote-host.sh):
 
 ```bash
 bash scripts/deployment/bootstrap-remote-host.sh --target ubuntu@203.0.113.10
@@ -161,7 +161,7 @@ The bootstrap installs Docker Engine, Docker Compose, `curl`, `pigz`, and
 
 ### 3. Deploy the runtime package
 
-Use [deploy-remote-compose.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/deploy-remote-compose.sh):
+Use [deploy-remote-compose.sh](../../../../../../../scripts/deployment/deploy-remote-compose.sh):
 
 ```bash
 bash scripts/deployment/deploy-remote-compose.sh \
@@ -172,10 +172,10 @@ bash scripts/deployment/deploy-remote-compose.sh \
 
 The runtime package includes:
 
-- [docker-compose.production.yml](/home/Sisyphus/zhengbi-yong.github.io/docker-compose.production.yml)
-- [scripts/deployment/deploy-compose-stack.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/deploy-compose-stack.sh)
-- [scripts/deployment/validate-production-env.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/validate-production-env.sh)
-- [deployments/nginx](/home/Sisyphus/zhengbi-yong.github.io/deployments/nginx)
+- [deployments/docker/compose-files/prod/docker-compose.yml](../../../../../../../deployments/docker/compose-files/prod/docker-compose.yml)
+- [scripts/deployment/deploy-compose-stack.sh](../../../../../../../scripts/deployment/deploy-compose-stack.sh)
+- [scripts/deployment/validate-production-env.sh](../../../../../../../scripts/deployment/validate-production-env.sh)
+- [deployments/nginx](../../../../../../../deployments/nginx)
 
 Releases are uploaded into:
 
@@ -191,7 +191,7 @@ This keeps runtime files versioned while preserving a stable env file path.
 ## Fast updates for an existing host
 
 After the first successful deploy, use
-[refresh-remote-compose.sh](/home/Sisyphus/zhengbi-yong.github.io/scripts/deployment/refresh-remote-compose.sh)
+[refresh-remote-compose.sh](../../../../../../../scripts/deployment/refresh-remote-compose.sh)
 instead of re-running the full bootstrap flow:
 
 ```bash
@@ -220,7 +220,7 @@ bash scripts/deployment/refresh-remote-compose.sh \
 
 ## Optional bundled services
 
-`docker-compose.production.yml` now supports:
+`deployments/docker/compose-files/prod/docker-compose.yml` now supports:
 
 - `ENABLE_BUNDLED_MAILPIT=true`
 - `ENABLE_BUNDLED_MEILISEARCH=true`
@@ -272,4 +272,4 @@ That generates the env file and deployment package without opening an SSH sessio
 - if the image registry is private, authenticate Docker on the host before deploy
 - local mode removes the registry dependency by building and streaming images over SSH
 - for HTTPS, point a domain to the host and place TLS termination in front of the bundled edge proxy
-- if system nginx already owns `80/443`, use [System Nginx Cutover](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/system-nginx-cutover.md)
+- if system nginx already owns `80/443`, use [System Nginx Cutover](../../../../../../../docs/deployment/guides/server/system-nginx-cutover.md)

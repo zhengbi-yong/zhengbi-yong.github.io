@@ -139,6 +139,6 @@ bash scripts/deployment/provision-compose-host.sh \
 
 ## 规范文档
 
-- [Automated Compose Deploy](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/automated-compose-deploy.md)
-- [System Nginx Cutover](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/system-nginx-cutover.md)
-- [Compose Production Stack](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/compose/production-stack.md)
+- [Automated Compose Deploy](../../../../../../../docs/deployment/guides/server/automated-compose-deploy.md)
+- [System Nginx Cutover](../../../../../../../docs/deployment/guides/server/system-nginx-cutover.md)
+- [Compose Production Stack](../../../../../../../docs/deployment/guides/compose/production-stack.md)

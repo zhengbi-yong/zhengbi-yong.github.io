@@ -697,7 +697,7 @@ Browser-level verification in this workstream included:
 Start infra only:
 
 ```powershell
-docker compose -f docker-compose.dev.yml up -d
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d
 ```
 
 Start frontend + backend:
@@ -880,8 +880,8 @@ cd C:/Users/Sisyphus/Documents/private/zhengbi-yong.github.io
 git checkout main
 git pull origin main
 
-# Verify docker-compose.production.yml has FRONTEND_BLOG_DIR configured
-grep -q "FRONTEND_BLOG_DIR" docker-compose.production.yml && echo "✓ Configured" || echo "✗ Missing FRONTEND_BLOG_DIR"
+# Verify deployments/docker/compose-files/prod/docker-compose.yml has FRONTEND_BLOG_DIR configured
+grep -q "FRONTEND_BLOG_DIR" deployments/docker/compose-files/prod/docker-compose.yml && echo "✓ Configured" || echo "✗ Missing FRONTEND_BLOG_DIR"
 ```
 
 #### Step 2: Build Docker Images Locally
@@ -1112,7 +1112,7 @@ ssh ubuntu@<SERVER_IP> \
 
 # Should output: FRONTEND_BLOG_DIR=/app/data/blog
 
-# If not set, add to docker-compose.production.yml and restart API
+# If not set, add to deployments/docker/compose-files/prod/docker-compose.yml and restart API
 ```
 
 **Issue: Frontend shows "Loading..." but no posts**
@@ -1220,7 +1220,7 @@ cd C:/Users/Sisyphus/Documents/private/zhengbi-yong.github.io
 
 ### Required Configuration for Blog Sync
 
-**1. Environment Variable (docker-compose.production.yml)**
+**1. Environment Variable (deployments/docker/compose-files/prod/docker-compose.yml)**
 ```yaml
 x-backend-environment: &backend-environment
   # ... other variables ...
@@ -1293,7 +1293,7 @@ After deployment, verify all services:
 - **Symptom**: Sync API returns "Directory not found: ../frontend/data/blog"
 - **Cause**: `FRONTEND_BLOG_DIR` not set in environment
 - **Solution**:
-  - Add to `docker-compose.production.yml`: `FRONTEND_BLOG_DIR: ${FRONTEND_BLOG_DIR:-/app/data/blog}`
+  - Add to `deployments/docker/compose-files/prod/docker-compose.yml`: `FRONTEND_BLOG_DIR: ${FRONTEND_BLOG_DIR:-/app/data/blog}`
   - Restart API container
 
 ### Monitoring Commands

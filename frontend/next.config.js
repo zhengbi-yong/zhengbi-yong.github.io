@@ -35,6 +35,8 @@ const sentryBuildOptions = {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // 允许局域网其他机器访问开发服务器
+  allowedDevOrigins: ['192.168.0.161', '192.168.0.100'],
   // 解决 workspace 多个 lockfile 的警告
   turbopack: {
     // 指定项目根目录
@@ -205,7 +207,7 @@ const generateSecurityHeaders = () => {
         'img-src': "'self' data: https: avatars.githubusercontent.com",
         'font-src': "'self' data: blob: https://fonts.gstatic.com https:",
         'connect-src':
-          "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
+          "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 ws://192.168.0.161:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
         'frame-src': 'giscus.app excalidraw.com',
       }
 

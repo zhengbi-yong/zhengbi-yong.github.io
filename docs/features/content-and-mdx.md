@@ -15,24 +15,24 @@ The content system serves static authored content and dynamic runtime-rendered M
 
 ### Static MDX path
 
-- source content lives under [frontend/data/blog](/home/Sisyphus/zhengbi-yong.github.io/frontend/data/blog)
-- static pages such as [about/page.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/app/about/page.tsx#L1) render Contentlayer output with `MDXLayoutRenderer`
+- source content lives under [frontend/data/blog](../../../../../frontend/data/blog)
+- static pages such as [about/page.tsx](../../../../../frontend/src/app/about/page.tsx#L1) render Contentlayer output with `MDXLayoutRenderer`
 
 ### Shared component registry
 
-- [MDXComponents.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/components/MDXComponents.tsx#L1) is the single MDX component source
+- [MDXComponents.tsx](../../../../../frontend/src/components/MDXComponents.tsx#L1) is the single MDX component source
 - it handles fenced `abc` blocks, custom embeds, and dynamically imported heavy widgets
 - the registry is reused by both static and runtime MDX rendering paths
 
 ### ABC notation
 
-- [SheetMusic.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/components/SheetMusic.tsx) renders notation and playback controls via `abcjs`
-- the `pre` handler in [MDXComponents.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/components/MDXComponents.tsx#L1) upgrades fenced `abc` blocks into music notation
-- [test-abc-mdx/page.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/app/test-abc-mdx/page.tsx) exercises the real Contentlayer render path
+- [SheetMusic.tsx](../../../../../frontend/src/components/SheetMusic.tsx) renders notation and playback controls via `abcjs`
+- the `pre` handler in [MDXComponents.tsx](../../../../../frontend/src/components/MDXComponents.tsx#L1) upgrades fenced `abc` blocks into music notation
+- [test-abc-mdx/page.tsx](../../../../../frontend/src/app/test-abc-mdx/page.tsx) exercises the real Contentlayer render path
 
 ### Excalidraw and advanced embeds
 
-- [ExcalidrawEmbed.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/components/MDXComponents/ExcalidrawEmbed.tsx) is a client-only MDX embed
+- [ExcalidrawEmbed.tsx](../../../../../frontend/src/components/MDXComponents/ExcalidrawEmbed.tsx) is a client-only MDX embed
 - chart, chemistry, and animation blocks are lazy-loaded from the same registry to limit initial bundle cost
 
 ## Runtime dependencies

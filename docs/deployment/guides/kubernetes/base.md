@@ -1,6 +1,6 @@
 # Kubernetes Base
 
-The canonical multi-node deployment base and overlays live in [deployments/kubernetes/README.md](/home/Sisyphus/zhengbi-yong.github.io/deployments/kubernetes/README.md).
+The canonical multi-node deployment base and overlays live in [deployments/kubernetes/README.md](../../../../../../../deployments/kubernetes/README.md).
 
 Use it when:
 

@@ -35,11 +35,11 @@ docs/development/
 - State management
 
 **Backend Development**:
-- Rust backend setup
+- Rust backend setup (Axum web framework)
 - API development
 - Database operations
 - Authentication and authorization
-- Background workers
+- Background workers (blog-worker crate)
 
 **Testing**:
 - Unit testing
@@ -97,35 +97,45 @@ docs/development/
 **Document**: `concepts/architecture.md`
 
 **Components**:
-- Frontend (Next.js + React)
-- Backend (Rust + Actix-web)
+- Frontend (Next.js 16 + React)
+- Backend (Rust + Axum 0.8)
 - Database (PostgreSQL)
 - Cache (Redis)
-- Reverse Proxy (Nginx)
+- Search (Meilisearch)
+- Object Storage (MinIO)
 
 ### Data Flow
 
 **Request Flow**:
-1. Client → Nginx
-2. Nginx → Frontend/Backend
-3. Backend → PostgreSQL/Redis
+1. Client → Frontend (Next.js)
+2. Frontend → Backend API (Axum)
+3. Backend → PostgreSQL / Redis / Meilisearch / MinIO
 4. Response back through chain
 
 ### Technology Stack
 
 **Frontend**:
-- Next.js 14 (App Router)
+- Next.js 16 (App Router)
 - React 18
-- TypeScript
+- TypeScript (strict mode **disabled** — see `frontend/tsconfig.json`)
 - Tailwind CSS
 - shadcn/ui
+- Velite (content layer for MDX)
 
 **Backend**:
 - Rust
-- Actix-web
-- SQLx (database)
+- Axum 0.8 (web framework)
+- SQLx (database, async)
 - Tokio (async runtime)
 - JWT (authentication)
+
+**Backend Workspace Crates**:
+- `blog-api` — HTTP API server (crates/api)
+- `blog-worker` — Background job processor (crates/worker)
+- `blog-migrator` — Database migrations (crates/migrator)
+- `blog-core` — Core business logic (crates/core)
+- `blog-db` — Database layer (crates/db)
+- `blog-shared` — Shared utilities (crates/shared)
 
 ## Development Workflow
 
@@ -135,7 +145,7 @@ docs/development/
 ```bash
 cd frontend
 pnpm install
-cp .env.local.example .env.local
+cp .env.example .env.local   # NOT .env.local.example
 pnpm dev
 ```
 
@@ -152,50 +162,61 @@ pnpm lint           # Run ESLint
 pnpm type-check     # TypeScript check
 ```
 
+**Search Index**:
+```bash
+# Generate search index (run as part of build)
+node ./scripts/generate/generate-search.mjs
+```
+
 ### Backend Development
 
 **Setup**:
 ```bash
 cd backend
 cargo build
-cp .env.example .env
-cargo run
+cp .env.example .env          # NOT .env.example at root
+cargo run --bin api           # Start API server
 ```
 
 **Development Server**:
 - URL: `http://localhost:3000`
-- Auto-reload with cargo-watch
-- Debug logging enabled
+- Auto-reload with cargo-watch (if installed)
+- Debug logging enabled via RUST_LOG
 
 **Running**:
 ```bash
-cargo run           # Start development server
-cargo test          # Run tests
-cargo clippy        # Lint code
-cargo fmt           # Format code
+cargo run --bin api           # API server (includes migrate subcommand)
+cargo run --bin worker        # Background worker
+cargo test                    # Run tests
+cargo clippy                  # Lint code
+cargo fmt                     # Format code
 ```
 
 ### Database Development
 
 **Migrations**:
 ```bash
-# Run migrations
-cargo run -p blog-migrator
+# Run migrations (via api binary)
+cargo run --bin api -- migrate
 
-# Create new migration
+# Create migration via sqlx CLI (requires: cargo install sqlx-cli)
 sqlx migrate add add_new_feature
 
-# Rollback
+# Rollback via sqlx CLI
 sqlx migrate revert
+
+# Note: sqlx CLI must be installed separately
+# Project does not include sqlx-cli as a devDependency
 ```
 
 **Offline Mode**:
 ```bash
-# Generate query cache
-cargo sqlx prepare
+# Generate query cache (requires sqlx offline mode)
+cargo sqlx prepare --offline
 
-# Enable offline in .sqlx/config.toml
-echo "offline = true" > .sqlx/config.toml
+# Or generate config
+mkdir -p .sqlx
+echo 'offline = true' > .sqlx/config.toml
 ```
 
 ## Code Organization
@@ -203,31 +224,61 @@ echo "offline = true" > .sqlx/config.toml
 ### Frontend Structure
 
 ```
-frontend/src/
-├── app/              # Next.js App Router
-├── components/       # React components
-│   ├── auth/        # Authentication components
-│   ├── layouts/     # Layout components
-│   ├── magazine/    # Magazine layout components
-│   └── ui/          # Reusable UI components
-├── lib/             # Utility functions
-├── styles/          # Global styles
-└── types/           # TypeScript types
+frontend/
+├── src/
+│   ├── app/              # Next.js App Router pages
+│   ├── components/       # React components (lib/ form UI components)
+│   ├── lib/               # Utilities and type definitions
+│   ├── styles/           # Global styles
+│   ├── locales/          # i18n translations
+│   ├── mocks/            # Mock data for development
+│   └── payload/          # Payload CMS integration
+├── content/               # MDX blog content (Velite source)
+├── public/                # Static assets
+├── scripts/               # Build and utility scripts
+├── tests/                 # Test files
+├── app/                  # Root-level Next.js app directory
+└── components/           # Root-level components (alternative location)
 ```
+
+**Key paths**:
+- Search script: `frontend/scripts/generate/generate-search.mjs`
+- Env template: `frontend/.env.example`
+- OpenAPI types: `frontend/src/lib/api.ts` (generated by orval)
 
 ### Backend Structure
 
 ```
-backend/src/
-├── main.rs          # Application entry point
-├── config/          # Configuration module
-├── models/          # Data models
-├── routes/          # API routes
-├── middleware/      # Middleware (auth, cors)
-├── services/        # Business logic
-├── utils/           # Utilities
-└── workers/         # Background workers
+backend/
+├── Cargo.toml            # Workspace root
+├── crates/
+│   ├── api/             # HTTP API server
+│   │   └── src/
+│   │       ├── main.rs          # Entry point (binary "api")
+│   │       ├── migrate.rs       # Migration runner (binary "migrate")
+│   │       ├── create_admin.rs  # Admin creator (binary "create_admin")
+│   │       └── export_openapi.rs
+│   ├── worker/          # Background worker
+│   │   └── src/
+│   │       ├── main.rs          # Worker binary "worker"
+│   │       └── cdc_main.rs      # CDC worker binary "cdc-worker"
+│   ├── migrator/        # Standalone migration tool (blog-migrator)
+│   ├── core/            # Core business logic
+│   ├── db/              # Database layer
+│   └── shared/          # Shared utilities
+├── migrations/          # SQLx migration files
+└── scripts/             # Deployment scripts
 ```
+
+**Binaries defined**:
+| Binary | Crate | Purpose |
+|--------|-------|---------|
+| `api` | blog-api | Main HTTP API server |
+| `migrate` | blog-api | DB migration runner |
+| `create_admin` | blog-api | Admin user creation |
+| `export_openapi` | blog-api | OpenAPI spec export |
+| `worker` | blog-worker | Background job processor |
+| `cdc-worker` | blog-worker | CDC worker for Meilisearch sync |
 
 ## Testing
 
@@ -235,7 +286,7 @@ backend/src/
 
 **Unit Tests**:
 ```bash
-pnpm test            # Run Jest tests
+pnpm test            # Run tests
 pnpm test:watch      # Watch mode
 pnpm test:coverage   # Coverage report
 ```
@@ -271,7 +322,7 @@ cargo tarpaulin --out Html
 **Style Guide**:
 - Use functional components with hooks
 - Prefer composition over inheritance
-- Use TypeScript strict mode
+- **Note**: TypeScript strict mode is **disabled** (see `frontend/tsconfig.json`)
 - Follow ESLint rules
 - Use Prettier for formatting
 
@@ -310,8 +361,8 @@ cargo tarpaulin --out Html
 **Frontend**:
 - ESLint
 - Prettier
-- TypeScript Vue Plugin (if using Vue)
 - Tailwind CSS IntelliSense
+- TypeScript Importer
 
 **Backend**:
 - rust-analyzer
@@ -369,7 +420,7 @@ cargo test
 **Backend**:
 - `RUST_LOG=debug` for verbose logging
 - VS Code debugger with CodeLLDB
-- `println!` or `log::debug!` for quick debugging
+- `tracing::debug!` for structured logging
 - Postman/curl for API testing
 
 ### Performance Profiling
@@ -417,9 +468,9 @@ cargo test
 
 - **Deployment Docs**: `../deployment/` - Deployment procedures
 - **Configuration**: `../configuration/` - Configuration management
-- **API Docs**: `../../backend/openapi/` - API reference
+- **API Docs**: `frontend/src/lib/api.ts` - Generated API types
 - **Frontend Code**: `../../frontend/src/` - Frontend source
-- **Backend Code**: `../../backend/src/` - Backend source
+- **Backend Code**: `../../backend/crates/` - Backend source crates
 
 ## Resources
 
@@ -427,8 +478,9 @@ cargo test
 - [Rust Book](https://doc.rust-lang.org/book/)
 - [React Documentation](https://react.dev/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Axum Web Framework](https://docs.rs/axum/latest/axum/)
 
 ---
 
-**Last Updated**: 2026-01-03
+**Last Updated**: 2025-04-14
 **Maintained By**: Development Team

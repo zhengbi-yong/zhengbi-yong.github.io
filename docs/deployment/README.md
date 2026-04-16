@@ -8,32 +8,32 @@ This section documents the maintained deployment surface of the repository.
 
 Use this for one host or a small fleet with a shared operational model.
 
-- [Compose Production Stack](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/compose/production-stack.md)
-- [Environment Variables](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/environment-variables.md)
-- [Commands Reference](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/commands.md)
+- [Compose Production Stack](../../../../../docs/deployment/guides/compose/production-stack.md)
+- [Environment Variables](../../../../../docs/deployment/reference/environment-variables.md)
+- [Commands Reference](../../../../../docs/deployment/reference/commands.md)
 
 ### 2. Automated SSH deployment
 
 Use this when you want the repository to generate env, bootstrap the host, and
 publish the Compose runtime over SSH.
 
-- [Automated Compose Deploy](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/automated-compose-deploy.md)
-- [Quick Deployment](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/quick-deployment.md)
+- [Automated Compose Deploy](../../../../../docs/deployment/guides/server/automated-compose-deploy.md)
+- [Quick Deployment](../../../../../docs/deployment/guides/server/quick-deployment.md)
 
 ### 3. System nginx cutover
 
 Use this when the server already owns `80/443` with system nginx and you want a
 safe switch-over with backup and rollback.
 
-- [System Nginx Cutover](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/system-nginx-cutover.md)
+- [System Nginx Cutover](../../../../../docs/deployment/guides/server/system-nginx-cutover.md)
 
 ### 4. Kubernetes and GitOps
 
 Use this for clustered deployments and version-pinned release promotion.
 
-- [Kubernetes Base](/home/Sisyphus/zhengbi-yong.github.io/deployments/kubernetes/README.md)
-- [Kubernetes Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/kubernetes/base.md)
-- [GitOps / Argo CD](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/gitops/argocd.md)
+- [Kubernetes Base](../../../../../deployments/kubernetes/README.md)
+- [Kubernetes Guide](../../../../../docs/deployment/guides/kubernetes/base.md)
+- [GitOps / Argo CD](../../../../../docs/deployment/guides/gitops/argocd.md)
 
 ## Quick commands
 
@@ -81,6 +81,6 @@ repository understandable and maintainable.
 
 ## Supporting references
 
-- [Environment Variables](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/environment-variables.md)
-- [Commands Reference](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/commands.md)
-- [Ports and Networking](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/ports-and-networking.md)
+- [Environment Variables](../../../../../docs/deployment/reference/environment-variables.md)
+- [Commands Reference](../../../../../docs/deployment/reference/commands.md)
+- [Ports and Networking](../../../../../docs/deployment/reference/ports-and-networking.md)

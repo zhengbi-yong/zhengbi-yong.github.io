@@ -2,6 +2,33 @@
 
 import { useEffect, useState } from 'react'
 
+// Module-level in-memory store (per-session, not persisted)
+interface MotionPreferenceStore {
+  preference: boolean | null
+  listeners: Set<(reduced: boolean) => void>
+}
+const motionPreferenceStore: MotionPreferenceStore = {
+  preference: null,
+  listeners: new Set(),
+}
+
+/**
+ * Broadcast preference to all listening components.
+ * Call this when the user changes their motion preference.
+ */
+function broadcastMotionPreference(reduced: boolean) {
+  motionPreferenceStore.preference = reduced
+  motionPreferenceStore.listeners.forEach((listener) => listener(reduced))
+  // Also dispatch a custom event for non-React consumers
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent('motionPreferenceChange', {
+        detail: { reduced },
+      })
+    )
+  }
+}
+
 // Check if user prefers reduced motion
 export function useReducedMotion() {
   const [prefersReduced, setPrefersReduced] = useState(false)
@@ -9,14 +36,15 @@ export function useReducedMotion() {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
 
-    // Check for saved preference or system preference
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const savedPreference = localStorage.getItem('prefers-reduced-motion')
 
     const updateMotionPreference = () => {
+      // User-set in-memory preference takes priority over system preference
       const systemPrefersReduced = mediaQuery.matches
       const effectivePreference =
-        savedPreference !== null ? savedPreference === 'true' : systemPrefersReduced
+        motionPreferenceStore.preference !== null
+          ? motionPreferenceStore.preference
+          : systemPrefersReduced
 
       setPrefersReduced(effectivePreference)
 
@@ -36,27 +64,48 @@ export function useReducedMotion() {
 
     updateMotionPreference()
 
-    // Listen for changes
-    const handleChange = () => updateMotionPreference()
-    mediaQuery.addEventListener('change', handleChange)
+    // Listen for external preference changes (e.g., user toggling via settings UI)
+    const handleExternalChange = (event: CustomEvent<{ reduced: boolean }>) => {
+      motionPreferenceStore.preference = event.detail.reduced
+      updateMotionPreference()
+    }
+    window.addEventListener(
+      'motionPreferenceChange',
+      handleExternalChange as EventListener
+    )
+
+    // Listen for system preference changes
+    const handleMediaChange = () => updateMotionPreference()
+    mediaQuery.addEventListener('change', handleMediaChange)
 
     return () => {
-      mediaQuery.removeEventListener('change', handleChange)
+      window.removeEventListener(
+        'motionPreferenceChange',
+        handleExternalChange as EventListener
+      )
+      mediaQuery.removeEventListener('change', handleMediaChange)
     }
   }, [])
 
   return prefersReduced
 }
 
-// Set reduced motion preference
+// Set reduced motion preference (in-memory only, per-session)
 export function setReducedMotion(enabled: boolean) {
-  localStorage.setItem('prefers-reduced-motion', enabled.toString())
+  motionPreferenceStore.preference = enabled
+  broadcastMotionPreference(enabled)
+}
 
-  // Trigger a custom event for components to listen to
-  window.dispatchEvent(
-    new CustomEvent('motionPreferenceChange', {
-      detail: { reduced: enabled },
-    })
+// Check if a user preference has been set in this session
+export function hasMotionPreference(): boolean {
+  return motionPreferenceStore.preference !== null
+}
+
+// Clear the in-memory preference (revert to system default)
+export function clearMotionPreference() {
+  motionPreferenceStore.preference = null
+  broadcastMotionPreference(
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
   )
 }
 

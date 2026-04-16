@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react'
-import styles from '../../FloatingTOC.module.css'
+import styles from './TOC.module.css'
 import type { HeadingNode } from './types'
 import { TOCItem } from './TOCItem'
 
@@ -34,9 +34,9 @@ export const TOCTree = memo(function TOCTree({
 
   return (
     <ul>
-      {tree.map((node) => (
+      {tree.map((node, index) => (
         <TOCItem
-          key={node.url}
+          key={`${node.url}-${index}`}
           node={node}
           activeHeadingId={activeHeadingId}
           onLinkClick={onLinkClick}

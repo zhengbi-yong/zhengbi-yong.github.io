@@ -193,9 +193,7 @@ export function ArticleSettingsPanel({
           onChange={(e) => onLayoutChange(e.target.value)}
           className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
         >
-          <option value="PostSimple">简洁</option>
-          <option value="PostFull">全宽</option>
-          <option value="PostMagazine">杂志</option>
+          <option value="PostLayoutMonograph">专著</option>
         </select>
       </div>
 

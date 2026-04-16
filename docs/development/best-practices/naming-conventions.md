@@ -1404,13 +1404,10 @@ api-port=3000                     # ❌ 应该是API_PORT
 **示例**:
 ```
 deployments/docker/compose-files/
-├── docker-compose.yml                    # 主配置（开发）
-├── docker-compose.dev.yml                # 开发环境
-├── docker-compose.prod.yml               # 生产环境
-├── docker-compose.test.yml               # 测试环境
-└── backend/
-    ├── docker-compose.yml                # Backend专用
-    └── docker-compose.prod.yml
+├── dev/
+│   └── docker-compose.yml                    # 开发环境（PostgreSQL + Redis + Meilisearch + MinIO）
+└── prod/
+    └── docker-compose.yml                    # 生产环境
 ```
 
 **规则**:

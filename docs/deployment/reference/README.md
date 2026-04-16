@@ -4,10 +4,10 @@ Reference material for the maintained deployment surface.
 
 ## Primary references
 
-- [Environment Variables](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/environment-variables.md)
-- [Commands Reference](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/commands.md)
-- [Ports and Networking](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/ports-and-networking.md)
-- [Performance Tuning](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/reference/performance-tuning.md)
+- [Environment Variables](../../../../../../docs/deployment/reference/environment-variables.md)
+- [Commands Reference](../../../../../../docs/deployment/reference/commands.md)
+- [Ports and Networking](../../../../../../docs/deployment/reference/ports-and-networking.md)
+- [Performance Tuning](../../../../../../docs/deployment/reference/performance-tuning.md)
 
 ## When to use this section
 
@@ -18,7 +18,7 @@ Reference material for the maintained deployment surface.
 
 ## Related guides
 
-- [Compose Production Stack](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/compose/production-stack.md)
-- [Automated Compose Deploy](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/automated-compose-deploy.md)
-- [System Nginx Cutover](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/server/system-nginx-cutover.md)
-- [Kubernetes Base](/home/Sisyphus/zhengbi-yong.github.io/docs/deployment/guides/kubernetes/base.md)
+- [Compose Production Stack](../../../../../../docs/deployment/guides/compose/production-stack.md)
+- [Automated Compose Deploy](../../../../../../docs/deployment/guides/server/automated-compose-deploy.md)
+- [System Nginx Cutover](../../../../../../docs/deployment/guides/server/system-nginx-cutover.md)
+- [Kubernetes Base](../../../../../../docs/deployment/guides/kubernetes/base.md)

@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import siteMetadata from '@/data/siteMetadata'
@@ -8,13 +7,13 @@ import { CoreContent } from 'pliny/utils/contentlayer'
 import type { Authors } from 'contentlayer/generated'
 import JsonLd from '@/components/seo/JsonLd'
 import { PostBackendIntegration } from '@/components/post/PostBackendIntegration'
-import { DEFAULT_COVER_IMAGE } from '@/lib/utils/default-image'
 import { BackendComments } from '@/components/post/BackendComments'
 import type { TOC } from '@/lib/types/toc'
 import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 import { usePosts } from '@/lib/hooks/useBlogData'
-import { MonographTOC } from './MonographTOC'
+import { TableOfContents } from '@/components/navigation/TableOfContents'
 import SectionContainer from '@/components/SectionContainer'
+import { useReadingProgressWithApi } from '@/components/hooks/useReadingProgressWithApi'
 
 import '@/styles/monograph-theme.css'
 
@@ -36,7 +35,7 @@ export default function PostLayoutMonograph({
   authorDetails,
   children,
   toc: tocProp,
-  showTOC: _showTOC,
+  showTOC,
 }: LayoutProps) {
   const { slug, urlPath, date, title, tags, summary, images, categorySegment } =
     resolvePostLayoutContent(content)
@@ -44,9 +43,17 @@ export default function PostLayoutMonograph({
   const hasValidDate = !Number.isNaN(parsedDate.getTime())
   const isoDate = hasValidDate ? parsedDate.toISOString() : undefined
 
-  const [readingProgress, setReadingProgress] = useState(0)
+  // Reading progress with API sync (login-protected)
+  const { scrollPercentage } = useReadingProgressWithApi({
+    postSlug: slug || urlPath,
+    enabled: true,
+  })
 
-  // Related posts
+  // All published posts for prev/next navigation
+  const { data: allPostsData } = usePosts({ limit: 100 })
+  const allPosts = allPostsData?.posts || []
+
+  // Related posts (same tag, for recommendation section)
   const { data: relatedPostsData } = usePosts({
     limit: 6,
     tag_slug: tags[0],
@@ -55,18 +62,6 @@ export default function PostLayoutMonograph({
   const recommendedPosts = relatedPostsData?.posts
     ?.filter((p) => p.slug !== slug && p.status === 'Published')
     ?.slice(0, 2) || []
-
-  // Reading progress
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.body.scrollHeight - window.innerHeight
-      const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0
-      setReadingProgress(Math.min(100, Math.max(0, progress)))
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   const wordCount = typeof children === 'string' ? children.split(/\s+/).length : 1000
   const readingTime = Math.max(1, Math.ceil(wordCount / 200))
@@ -113,19 +108,45 @@ export default function PostLayoutMonograph({
       <div className="monograph-reading-progress">
         <div
           className="monograph-reading-progress-bar"
-          style={{ width: `${readingProgress}%` }}
+          style={{ width: `${Math.round(scrollPercentage * 100)}%` }}
         />
       </div>
 
       <main className="section-space-md px-4 sm:px-6">
-        <SectionContainer variant="reading">
+        <SectionContainer variant="wide">
         {/* Article Header */}
         <header style={{
           maxWidth: 'min(80ch, 90%)',
           margin: '0 auto',
           textAlign: 'center',
           marginBottom: 'var(--space-3)',
+          position: 'relative',
+          overflow: 'hidden',
         }} className="surface-elevated rounded-[var(--radius-panel)] px-5 py-8 shadow-[var(--shadow-soft)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
+          {/* Hero image as background */}
+          {images && images.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: `url(${images[0]})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                zIndex: 0,
+              }}
+            >
+              {/* Gradient overlay for text readability */}
+              <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+              }}
+              className="!bg-gradient-to-b !from-stone-100/90 !to-stone-100/95 dark:!from-[#0D0D0D]/90 dark:!to-[#0D0D0D]/95"
+              />
+            </div>
+          )}
+          {/* Header content above background */}
+          <div style={{ position: 'relative', zIndex: 1 }}>
           {categorySegment && (
             <Link
               href={`/blog/category/${categorySegment}`}
@@ -207,25 +228,16 @@ export default function PostLayoutMonograph({
               </>
             )}
           </div>
+          </div>
         </header>
 
         {/* Asymmetric Editorial Grid */}
         <div className="surface-elevated monograph-grid rounded-[var(--radius-panel)] px-5 py-8 shadow-[var(--shadow-soft)] sm:px-8 sm:py-10 lg:px-10 lg:py-12">
           {/* Main content column */}
           <article className="monograph-content">
-            {/* Cover image */}
-            <figure style={{ marginBottom: 'var(--space-2)' }}>
-              <img
-                src={(images && images.length > 0) ? images[0] : DEFAULT_COVER_IMAGE}
-                alt={title}
-                style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '4px' }}
-                loading="eager"
-              />
-            </figure>
-
             {/* Article body */}
             <PostBackendIntegration slug={slug}>
-              <div className="prose max-w-none w-full" style={{ color: 'var(--mono-text)' }}>
+              <div className="prose max-w-none w-full" style={{ color: 'var(--mono-text)', maxWidth: 'none' }}>
                 {children}
               </div>
             </PostBackendIntegration>
@@ -319,6 +331,96 @@ export default function PostLayoutMonograph({
               </section>
             )}
 
+            {/* Post Navigation: prev / next */}
+            {(() => {
+              const publishedPosts = allPosts.filter((p) => p.status === 'Published')
+              const sorted = [...publishedPosts].sort(
+                (a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+              )
+              const currentIndex = sorted.findIndex((p) => p.slug === slug)
+              const prevPost = currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null
+              const nextPost = currentIndex > 0 ? sorted[currentIndex - 1] : null
+              if (!prevPost && !nextPost) return null
+              return (
+                <nav style={{
+                  display: 'grid',
+                  gridTemplateColumns: prevPost && nextPost ? '1fr 1fr' : '1fr',
+                  gap: 'var(--space-1)',
+                  marginTop: 'var(--space-3)',
+                  paddingTop: 'var(--space-2)',
+                  borderTop: '1px solid var(--mono-border)',
+                }}>
+                  {prevPost ? (
+                    <Link
+                      href={`/blog/${prevPost.slug}`}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.25rem',
+                        padding: 'var(--space-1)',
+                        border: '1px solid var(--mono-border)',
+                        borderRadius: '4px',
+                        textDecoration: 'none',
+                        transition: 'border-color 0.2s',
+                      }}
+                    >
+                      <span style={{
+                        fontFamily: 'var(--mono-font-sans)',
+                        fontSize: 'var(--font-size-xs)',
+                        color: 'var(--mono-text-muted)',
+                        textTransform: 'uppercase' as const,
+                        letterSpacing: '0.1em',
+                      }}>← 上一篇</span>
+                      <span style={{
+                        fontFamily: 'var(--mono-font-serif)',
+                        fontSize: 'var(--font-size-sm)',
+                        color: 'var(--mono-text)',
+                        fontWeight: 600,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical' as const,
+                        overflow: 'hidden',
+                      }}>{prevPost.title}</span>
+                    </Link>
+                  ) : <div />}
+                  {nextPost ? (
+                    <Link
+                      href={`/blog/${nextPost.slug}`}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.25rem',
+                        padding: 'var(--space-1)',
+                        border: '1px solid var(--mono-border)',
+                        borderRadius: '4px',
+                        textDecoration: 'none',
+                        textAlign: 'right' as const,
+                        transition: 'border-color 0.2s',
+                      }}
+                    >
+                      <span style={{
+                        fontFamily: 'var(--mono-font-sans)',
+                        fontSize: 'var(--font-size-xs)',
+                        color: 'var(--mono-text-muted)',
+                        textTransform: 'uppercase' as const,
+                        letterSpacing: '0.1em',
+                      }}>下一篇 →</span>
+                      <span style={{
+                        fontFamily: 'var(--mono-font-serif)',
+                        fontSize: 'var(--font-size-sm)',
+                        color: 'var(--mono-text)',
+                        fontWeight: 600,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical' as const,
+                        overflow: 'hidden',
+                      }}>{nextPost.title}</span>
+                    </Link>
+                  ) : <div />}
+                </nav>
+              )
+            })()}
+
             {/* Comments */}
             <section style={{
               marginTop: 'var(--space-3)',
@@ -330,7 +432,7 @@ export default function PostLayoutMonograph({
           </article>
 
           {/* Sidenote column: TOC (desktop) + floating FAB (mobile/tablet) */}
-          <MonographTOC toc={toc} />
+          {showTOC !== false && toc.length > 0 && <TableOfContents toc={toc} />}
         </div>
         </SectionContainer>
       </main>

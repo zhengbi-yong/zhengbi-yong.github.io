@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $repoRoot = $PSScriptRoot
-$composeFile = Join-Path $repoRoot 'docker-compose.dev.yml'
+$composeFile = Join-Path $repoRoot 'deployments/docker/compose-files/dev/docker-compose.yml'
 $logDir = Join-Path $repoRoot '.sisyphus\logs'
 $pollCount = [Math]::Max([int][Math]::Ceiling($TimeoutSeconds / 2), 1)
 

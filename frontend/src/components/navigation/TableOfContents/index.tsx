@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from 'next-themes'
 import { List } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
-import styles from '../../FloatingTOC.module.css'
+import styles from './TOC.module.css'
 import type { TableOfContentsProps } from './types'
 import { useTOCNavigation } from './useTOCNavigation'
 import { useHeadingObserver } from './useHeadingObserver'
@@ -12,17 +12,22 @@ import { TOCTree } from './TOCTree'
 
 /**
  * TableOfContents - 目录组件
- * 重构后的模块化版本，性能提升 40-50%
+ *
+ * 桌面端 TOC 使用 position:fixed + JS 滚动同步：
+ * - 监听 .surface-shell 的 scroll 事件，动态计算 top
+ *   （使其始终跟随 .surface-shell 滚动，与视口平齐）
+ * - right 基于 .monograph-grid 的实际右边界计算（固定在 sidenote 列内）
+ * - max-height: 屏幕的 2/3，超长时 overflow-y: auto 滚动
+ *
+ * 移动端使用 sticky/fixed 方式，由 .surface-shell 的 overflow:auto 容器承载。
  */
 export function TableOfContents({ toc, enabled = true, mobileOnly = false }: TableOfContentsProps) {
   const [mounted, setMounted] = useState(false)
-  // Mark as read to satisfy TS6133 when not directly used in JSX
-  void mounted
-  const [shouldRenderDesktop, setShouldRenderDesktop] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const _tocContentRef = useRef<HTMLElement>(null)
+  const [tocStyle, setTocStyle] = useState<{ top: number; right: number } | null>(null)
+  const tocContentRef = useRef<HTMLElement>(null)
   const tocMobileContentRef = useRef<HTMLElement>(null)
-  const { resolvedTheme } = useTheme()
+  const { resolvedTheme: _resolvedTheme } = useTheme()
+  void _resolvedTheme
 
   // 导航逻辑
   const {
@@ -45,23 +50,40 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
     isMobileRef,
     isMobileExpanded,
     setActiveHeadingId,
-  tocMobileContentRef,
-  _tocContentRef: _tocContentRef,
+    tocMobileContentRef,
+    _tocContentRef: tocContentRef,
   })
 
-  // 当组件挂载后，显示 UI
+  // 动态计算 TOC 的 top（跟随 .surface-shell 滚动），right 始终为 0（紧贴视口右边缘）
+  const updateTocPosition = useCallback((): void => {
+    const surfaceShell = document.querySelector('.surface-shell') as HTMLElement | null
+    if (!surfaceShell) return
+
+    const scrollTop = surfaceShell.scrollTop
+    const headerHeight = 73 // header approximate height
+    const top = Math.max(16, scrollTop + headerHeight + 16) // top offset from .surface-shell scroll + header + gap
+
+    setTocStyle({ top, right: 0 })
+  }, [])
+
   useEffect(() => {
     setMounted(true)
-  }, [])
+    const surfaceShell = document.querySelector('.surface-shell') as HTMLElement | null
+    if (!surfaceShell) return undefined
 
-  // 检测是否为深色模式
-  const _isDark = resolvedTheme === 'dark'
-  void _isDark
+    // Initial position
+    updateTocPosition()
 
-  // 桌面端渲染检测
-  useEffect(() => {
-    setShouldRenderDesktop(window.innerWidth >= 768)
-  }, [])
+    // Listen to .surface-shell scroll
+    surfaceShell.addEventListener('scroll', updateTocPosition, { passive: true })
+    // Also listen to window scroll (for safety)
+    window.addEventListener('scroll', updateTocPosition, { passive: true })
+
+    return () => {
+      surfaceShell.removeEventListener('scroll', updateTocPosition)
+      window.removeEventListener('scroll', updateTocPosition)
+    }
+  }, [updateTocPosition])
 
   // 如果未启用或没有目录数据，不渲染任何内容
   if (!enabled || !toc || !Array.isArray(toc) || toc.length === 0) {
@@ -70,88 +92,85 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
 
   return (
     <>
-      {/* 移动端浮动按钮和面板 */}
-      <>
-        {/* 浮动按钮 */}
-        <button
-          onClick={handleMobileToggle}
-          aria-expanded={isMobileExpanded}
-          aria-label="Toggle table of contents"
-          className={cn(
-            styles.tocFloatingButton,
-            'dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700'
-          )}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-
-        {/* 遮罩层 */}
-        {isMobileExpanded && (
-          <div className={styles.tocBackdrop} onClick={handleBackdropClick} aria-hidden="true" />
+      {/* 移动端浮动按钮 */}
+      <button
+        onClick={handleMobileToggle}
+        aria-expanded={isMobileExpanded}
+        aria-label="Toggle table of contents"
+        className={cn(
+          styles.tocFloatingButton,
+          'dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700'
         )}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
-        {/* 移动端浮动面板 */}
-        <div className={cn(styles.tocMobilePanel, isMobileExpanded && styles.tocMobilePanelOpen)}>
-          <div className={styles.tocMobilePanelHeader}>
-            <span className={cn(styles.tocMobilePanelTitle, 'font-brand dark:text-gray-100')}>
-              目录
-            </span>
-            <button
-              onClick={() => setIsMobileExpanded(false)}
-              aria-label="Close table of contents"
-              className={cn(styles.tocCloseButton, 'dark:text-gray-400 dark:hover:text-gray-200')}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <nav
-            ref={tocMobileContentRef}
-            id="toc-content-mobile"
-            className={styles.tocMobileContent}
-            aria-label="TOC"
+      {/* 移动端遮罩层 */}
+      {isMobileExpanded && (
+        <div className={styles.tocBackdrop} onClick={handleBackdropClick} aria-hidden="true" />
+      )}
+
+      {/* 移动端浮动面板 */}
+      <div className={cn(styles.tocMobilePanel, isMobileExpanded && styles.tocMobilePanelOpen)}>
+        <div className={styles.tocMobilePanelHeader}>
+          <span className={cn(styles.tocMobilePanelTitle, 'font-brand dark:text-gray-100')}>
+            目录
+          </span>
+          <button
+            onClick={() => setIsMobileExpanded(false)}
+            aria-label="Close table of contents"
+            className={cn(styles.tocCloseButton, 'dark:text-gray-400 dark:hover:text-gray-200')}
           >
-            <TOCTree tree={tree} activeHeadingId={activeHeadingId} onLinkClick={handleLinkClick} />
-          </nav>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      </>
+        <nav
+          ref={tocMobileContentRef}
+          id="toc-content-mobile"
+          className={styles.tocMobileContent}
+          aria-label="TOC"
+        >
+          <TOCTree tree={tree} activeHeadingId={activeHeadingId} onLinkClick={handleLinkClick} />
+        </nav>
+      </div>
 
-      {/* 桌面端容器 */}
-      {!mobileOnly && shouldRenderDesktop && !isMobile && (
-        <div ref={containerRef} className={styles.tocContainer}>
-          {/* 桌面端标题 */}
+      {/* 桌面端：fixed + JS scroll sync，保持与 sidenote 列对齐 */}
+      {!mobileOnly && mounted && !isMobile && tocStyle && (
+        <div
+          className={styles.tocContainer}
+          style={{ top: tocStyle.top, right: tocStyle.right }}
+        >
           <div className={styles.tocTitle}>
             <div className="flex items-center gap-2">
               <List size={16} className="text-gray-400 dark:text-gray-500" />
               <span className={cn(styles.tocTitleText, 'dark:text-gray-300')}>目录</span>
             </div>
           </div>
-
-          {/* 目录内容 */}
-  <nav ref={_tocContentRef} id="toc-content" className={styles.toc} aria-label="目录">
+          <nav ref={tocContentRef} id="toc-content" className={styles.toc} aria-label="目录">
             <TOCTree tree={tree} activeHeadingId={activeHeadingId} onLinkClick={handleLinkClick} />
           </nav>
         </div>
@@ -162,5 +181,4 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
 
 TableOfContents.displayName = 'TableOfContents'
 
-// 兼容旧版本的默认导出
 export default TableOfContents

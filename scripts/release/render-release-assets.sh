@@ -511,7 +511,7 @@ Generated release assets for Compose and Kubernetes.
 Deploy with:
 
 \`\`\`bash
-docker compose --env-file compose/production.env -f ${ROOT_DIR}/docker-compose.production.yml config
+docker compose --env-file compose/production.env -f ${ROOT_DIR}/deployments/docker/compose-files/prod/docker-compose.yml config
 \`\`\`
 
 ## Kubernetes

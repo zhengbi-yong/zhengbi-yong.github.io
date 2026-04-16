@@ -1,5 +1,4 @@
 import '@/styles/prism.css'
-import 'katex/dist/katex.css'
 
 import dynamic from 'next/dynamic'
 import type { Metadata } from 'next'

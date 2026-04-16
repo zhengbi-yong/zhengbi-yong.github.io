@@ -15,12 +15,12 @@ development flow for day-to-day frontend and backend work.
 
 Native Windows is now a practical path for:
 
-- `docker compose -f docker-compose.dev.yml up -d`
+- `docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d`
 - `pnpm dev`
 - `pnpm generate:types`
 - `cargo run -p blog-migrator`
 - `cargo run --bin api`
-- `cargo run -p blog-worker --bin worker`
+- `cargo run --bin worker`
 
 These areas are still Bash-first and are better run from WSL2 or another
 Unix-like shell:
@@ -58,7 +58,7 @@ C:\dev\zhengbi-yong.github.io
 ### 1. Start shared infrastructure
 
 ```powershell
-docker compose -f docker-compose.dev.yml up -d
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d
 ```
 
 This starts PostgreSQL, Redis, Meilisearch, and MinIO for local development.
@@ -116,7 +116,7 @@ powershell -ExecutionPolicy Bypass -File .\start-dev.ps1 -Mode full -NoInfra
 If you prefer direct commands instead of helper scripts:
 
 ```powershell
-docker compose -f docker-compose.dev.yml up -d
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml up -d
 
 cd backend
 cargo run -p blog-migrator
@@ -127,7 +127,7 @@ Open another terminal for the worker when needed:
 
 ```powershell
 cd backend
-cargo run -p blog-worker --bin worker
+cargo run --bin worker
 ```
 
 Open another terminal for the frontend:
@@ -171,7 +171,7 @@ powershell -ExecutionPolicy Bypass -File .\backend\scripts\smoke-worker-start.ps
 Stop shared infrastructure:
 
 ```powershell
-docker compose -f docker-compose.dev.yml down
+docker compose -f deployments/docker/compose-files/dev/docker-compose.yml down
 ```
 
 ## Local URLs
@@ -243,6 +243,6 @@ Try:
 
 ## Next Steps
 
-- [Quick Start](/home/Sisyphus/zhengbi-yong.github.io/docs/quick-start.md)
-- [Getting Started](/home/Sisyphus/zhengbi-yong.github.io/docs/getting-started/README.md)
-- [Developer Guide](/home/Sisyphus/zhengbi-yong.github.io/docs/development/README.md)
+- [Quick Start](../../../../../docs/quick-start.md)
+- [Getting Started](../../../../../docs/getting-started/README.md)
+- [Developer Guide](../../../../../docs/development/README.md)

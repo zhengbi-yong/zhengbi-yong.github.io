@@ -12,9 +12,9 @@ This area covers user identity, session refresh, comments, reading progress, and
 
 Key code:
 
-- [routes/auth.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/routes/auth.rs#L1)
-- [middleware/auth.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/middleware/auth.rs)
-- [core/auth.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/core/src/auth.rs)
+- [routes/auth.rs](../../../../../backend/crates/api/src/routes/auth.rs#L1)
+- [middleware/auth.rs](../../../../../backend/crates/api/src/middleware/auth.rs)
+- [core/auth.rs](../../../../../backend/crates/core/src/auth.rs)
 
 ## Comment system
 
@@ -25,9 +25,9 @@ Key code:
 
 Key code:
 
-- [routes/comments.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/routes/comments.rs#L1)
-- [frontend/src/components/Comments.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/components/Comments.tsx)
-- [frontend/src/components/post](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/components/post)
+- [routes/comments.rs](../../../../../backend/crates/api/src/routes/comments.rs#L1)
+- [frontend/src/components/Comments.tsx](../../../../../frontend/src/components/Comments.tsx)
+- [frontend/src/components/post](../../../../../frontend/src/components/post)
 
 ## Reading and personalization
 
@@ -36,10 +36,10 @@ Key code:
 
 Relevant routes:
 
-- [frontend/src/app/profile/page.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/app/profile/page.tsx)
-- [frontend/src/app/reading-history/page.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/app/reading-history/page.tsx)
-- [frontend/src/app/reading-list/page.tsx](/home/Sisyphus/zhengbi-yong.github.io/frontend/src/app/reading-list/page.tsx)
-- [routes/reading_progress.rs](/home/Sisyphus/zhengbi-yong.github.io/backend/crates/api/src/routes/reading_progress.rs)
+- [frontend/src/app/profile/page.tsx](../../../../../frontend/src/app/profile/page.tsx)
+- [frontend/src/app/reading-history/page.tsx](../../../../../frontend/src/app/reading-history/page.tsx)
+- [frontend/src/app/reading-list/page.tsx](../../../../../frontend/src/app/reading-list/page.tsx)
+- [routes/reading_progress.rs](../../../../../backend/crates/api/src/routes/reading_progress.rs)
 
 ## Scaling properties
 
