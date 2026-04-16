@@ -36,6 +36,31 @@ interface EditorToolbarProps {
   editor: Editor | null
 }
 
+// 快捷键映射
+const SHORTCUTS: Record<string, string> = {
+  '粗体': 'Ctrl+B',
+  '斜体': 'Ctrl+I',
+  '下划线': 'Ctrl+U',
+  '下划线 (Ctrl+U)': 'Ctrl+U',  // 特殊处理
+  '删除线': 'Ctrl+Shift+X',
+  '行内代码': 'Ctrl+E',
+  '一级标题': 'Ctrl+Alt+1',
+  '二级标题': 'Ctrl+Alt+2',
+  '三级标题': 'Ctrl+Alt+3',
+  '无序列表': 'Ctrl+Shift+8',
+  '有序列表': 'Ctrl+Shift+7',
+  '任务列表': 'Ctrl+Shift+9',
+  '引用': 'Ctrl+Shift+B',
+  '撤销': 'Ctrl+Z',
+  '重做': 'Ctrl+Shift+Z',
+  '左对齐': '',
+  '居中': '',
+  '右对齐': '',
+  '添加链接': '',
+  '插入图片': '',
+  '水平线': '',
+}
+
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   const [showLinkInput, setShowLinkInput] = useState(false)
   const [showImageInput, setShowImageInput] = useState(false)
@@ -62,6 +87,15 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
     }
   }
 
+  // 获取带快捷键的完整 title
+  const getFullTitle = (title: string): string => {
+    const shortcut = SHORTCUTS[title]
+    if (shortcut) {
+      return `${title} (${shortcut})`
+    }
+    return title
+  }
+
   const ToolbarButton = ({
     onClick,
     active,
@@ -78,7 +112,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
     <button
       onClick={onClick}
       disabled={disabled}
-      title={title}
+      title={getFullTitle(title)}
       className={cn(
         'p-2 rounded-md transition-colors',
         'hover:bg-gray-100 dark:hover:bg-gray-700',
