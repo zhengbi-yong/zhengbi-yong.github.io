@@ -22,6 +22,25 @@ interface OpenSheetMusicDisplay {
   render: () => void
   zoom: number
   clear: () => void
+  cursor: {
+    init: (manager: unknown, graphic: unknown) => void
+    show: () => void
+    hide: () => void
+    update: () => void
+    reset: () => void
+    next: () => void
+    previous: () => void
+    nextMeasure: () => void
+    previousMeasure: () => void
+    updateCurrentPage: () => number
+    currentPageNumber: number
+  }
+  sheet: {
+    MusicPartManager: unknown
+  }
+  GraphicSheet: unknown
+  setPageFormat: (formatId: string) => void
+  setOptions: (options: Record<string, unknown>) => void
 }
 
 interface FullscreenMusicSheetProps {
@@ -65,6 +84,10 @@ export default function FullscreenMusicSheet({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showControls, setShowControls] = useState(true)
   const [showKeyboardHint, setShowKeyboardHint] = useState(false)
+
+  // Pagination state
+  const [pageCount, setPageCount] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
 
   // Score playback hook
   const {
@@ -309,8 +332,29 @@ export default function FullscreenMusicSheet({
             containerRef.current.style.alignItems = 'center'
             containerRef.current.style.justifyContent = 'flex-start'
           }
+
+          // Detect page count from OSMD pagination
+          // OSMD creates page divs with class 'osmd-page' when pageFormat is set
+          const pageElements = containerRef.current.querySelectorAll('.osmd-page')
+          const detectedPages = pageElements.length > 0 ? pageElements.length : 1
+          setPageCount(detectedPages)
+
+          // Initialize OSMD cursor for playback highlighting
+          // osmd.cursor.init(manager, graphic) requires the MusicPartManager and GraphicalMusicSheet
+          try {
+            const osmd = osmdInstanceRef.current
+            if (osmd && osmd.cursor && osmd.sheet && osmd.GraphicSheet) {
+              osmd.cursor.init(osmd.sheet.MusicPartManager, osmd.GraphicSheet)
+              osmd.cursor.show()
+              // Update current page after cursor init
+              const pageNum = osmd.cursor.updateCurrentPage()
+              setCurrentPage(pageNum > 0 ? pageNum : 1)
+            }
+          } catch (cursorErr) {
+            logger.warn('Cursor init error:', cursorErr)
+          }
         }
-      }, 200)
+      }, 300)
 
       setTimeout(() => {
         setRawXmlContent(xmlContent)
@@ -364,6 +408,11 @@ export default function FullscreenMusicSheet({
           drawPartNames: true,
           drawMeasureNumbers,
           drawTimeSignatures: true,
+          // Enable pagination with A4 landscape format
+          pageFormat: 'A4_P',
+          // Enable cursor for playback sync
+          disableCursor: false,
+          followCursor: true,
         })
 
         osmdInstanceRef.current = osmd
@@ -565,6 +614,55 @@ export default function FullscreenMusicSheet({
           >
             ← Back
           </button>
+
+          {/* First page / Last page navigation */}
+          {pageCount > 1 && (
+            <div className={cn('flex items-center gap-1 text-[10px]', isDark ? 'text-slate-500' : 'text-[#6b6b6b]')}>
+              <button
+                onClick={() => {
+                  const osmd = osmdInstanceRef.current
+                  if (osmd && osmd.cursor) {
+                    osmd.cursor.reset()
+                    osmd.cursor.update()
+                    const pageNum = osmd.cursor.updateCurrentPage()
+                    setCurrentPage(pageNum > 0 ? pageNum : 1)
+                    mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+                  }
+                  resetControlsTimer()
+                }}
+                className={cn(
+                  'px-1.5 py-0.5 rounded transition-opacity opacity-50 hover:opacity-100',
+                  isDark ? 'hover:text-slate-300' : 'hover:text-[#1a1a1a]'
+                )}
+                title="First page"
+              >«</button>
+              <button
+                onClick={() => {
+                  const osmd = osmdInstanceRef.current
+                  if (osmd && osmd.cursor) {
+                    // Move to the last measure
+                    for (let i = 0; i < parsedScore.measures; i++) {
+                      osmd.cursor.nextMeasure()
+                    }
+                    osmd.cursor.update()
+                    const pageNum = osmd.cursor.updateCurrentPage()
+                    setCurrentPage(pageNum > 0 ? pageNum : pageCount)
+                    // Scroll to bottom
+                    if (mainRef.current) {
+                      mainRef.current.scrollTop = mainRef.current.scrollHeight
+                    }
+                  }
+                  resetControlsTimer()
+                }}
+                className={cn(
+                  'px-1.5 py-0.5 rounded transition-opacity opacity-50 hover:opacity-100',
+                  isDark ? 'hover:text-slate-300' : 'hover:text-[#1a1a1a]'
+                )}
+                title="Last page"
+              >»</button>
+            </div>
+          )}
+
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-[9px] uppercase tracking-[0.2em] opacity-40">
             <Link href="/music" className={cn(
@@ -680,6 +778,50 @@ export default function FullscreenMusicSheet({
             )}>
               {playbackState.currentMeasure + 1}/{parsedScore.measures}
             </span>
+
+            {/* Page navigation */}
+            <div className={cn(
+              'flex items-center gap-1 text-[10px] tabular-nums',
+              isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+            )}>
+              <button
+                onClick={() => {
+                  const osmd = osmdInstanceRef.current
+                  if (osmd && osmd.cursor) {
+                    osmd.cursor.previousMeasure()
+                    osmd.cursor.update()
+                    const pageNum = osmd.cursor.updateCurrentPage()
+                    setCurrentPage(pageNum > 0 ? pageNum : 1)
+                  }
+                  resetControlsTimer()
+                }}
+                className={cn(
+                  'w-5 h-5 flex items-center justify-center rounded transition-opacity opacity-50 hover:opacity-100',
+                  isDark ? 'hover:text-slate-200' : 'hover:text-[#1a1a1a]'
+                )}
+                title="Previous measure (←)"
+              >‹</button>
+              <span className="min-w-[28px] text-center font-medium">
+                {currentPage}/{pageCount}
+              </span>
+              <button
+                onClick={() => {
+                  const osmd = osmdInstanceRef.current
+                  if (osmd && osmd.cursor) {
+                    osmd.cursor.nextMeasure()
+                    osmd.cursor.update()
+                    const pageNum = osmd.cursor.updateCurrentPage()
+                    setCurrentPage(pageNum > 0 ? pageNum : 1)
+                  }
+                  resetControlsTimer()
+                }}
+                className={cn(
+                  'w-5 h-5 flex items-center justify-center rounded transition-opacity opacity-50 hover:opacity-100',
+                  isDark ? 'hover:text-slate-200' : 'hover:text-[#1a1a1a]'
+                )}
+                title="Next measure (→)"
+              >›</button>
+            </div>
           </div>
         )}
 
