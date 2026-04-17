@@ -334,11 +334,20 @@
 }
 
 .tocItem {
+  width: 100%;
+  box-sizing: border-box;
   margin: 0.25rem 0;
+  flex-shrink: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .tocItem a {
   display: block;
+  /* width: 100% 相对于 .tocItem（已设置为容器宽度 220px），
+     box-sizing: border-box 确保 padding 不撑开宽度 */
+  width: 100%;
+  box-sizing: border-box;
   color: var(--muted-foreground, #5A5652);
   text-decoration: none;
   padding: 0.625rem 1rem;
