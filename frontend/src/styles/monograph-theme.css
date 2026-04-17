@@ -293,6 +293,20 @@
    TOC - Sidenote Navigation
    ======================================== */
 
+/* Mobile/tablet: aside is just a flex container hosting the FAB (TableOfContents hides .tocContainer at <768px).
+   The FAB uses position:fixed so it's independent of the aside layout. */
+@media (max-width: 1023px) {
+  .monograph-toc-aside {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    grid-column: 1;
+    grid-row: auto;
+    position: static;
+  }
+}
+
+/* Desktop: 3-column grid with sticky TOC */
 @media (min-width: 1024px) {
   .monograph-toc-aside {
     grid-column: 3;
@@ -309,8 +323,38 @@
     max-height: calc(100vh - 8rem);
     overflow-y: auto;
     overflow-x: hidden;
+    /* Thin scrollbar: Firefox */
     scrollbar-width: thin;
     scrollbar-color: var(--mono-border) transparent;
+  }
+
+  /* Thin scrollbar: Chrome/Safari/Edge */
+  .monograph-toc-aside::-webkit-scrollbar {
+    width: 6px;
+    background: transparent;
+  }
+
+  .monograph-toc-aside::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 0.5rem 0;
+    border-radius: 4px;
+  }
+
+  .monograph-toc-aside::-webkit-scrollbar-thumb {
+    background: var(--mono-border);
+    border-radius: 4px;
+  }
+
+  .monograph-toc-aside::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary, #5A5652);
+  }
+
+  :global(.dark) .monograph-toc-aside::-webkit-scrollbar-thumb {
+    background: #3A5A7F;
+  }
+
+  :global(.dark) .monograph-toc-aside::-webkit-scrollbar-thumb:hover {
+    background: #B8C5D1;
   }
 }
 
