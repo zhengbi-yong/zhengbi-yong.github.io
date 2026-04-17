@@ -140,13 +140,13 @@ export function useHeadingObserver({
       const headings = getHeadingElements()
       if (headings.length === 0) return
 
-      // 找到第一个"其顶部已进入视口"的标题
+      // 找到第一个"其顶部已进入视口"的标题及其 rect
       // （rect.top >= 0 意味着标题顶部已在视口顶部或以下）
-      let firstBelowCenter: HTMLElement | null = null
+      let firstBelowCenter: { el: HTMLElement; rect: DOMRect } | null = null
       for (let i = 0; i < headings.length; i++) {
         const rect = headings[i].getBoundingClientRect()
         if (rect.top >= 0) {
-          firstBelowCenter = headings[i]
+          firstBelowCenter = { el: headings[i], rect }
           break
         }
       }
@@ -157,16 +157,16 @@ export function useHeadingObserver({
         // 所有标题都还在视口上方（页面顶部）→ 高亮第一个
         activeId = headings[0]?.id ?? null
       } else {
-        const firstBelowCenterIdx = headings.indexOf(firstBelowCenter)
-        // firstBelowCenter 的 rect.top 相对于视口顶部
+        const firstBelowCenterIdx = headings.indexOf(firstBelowCenter.el)
+        // firstBelowCenter.rect.top 相对于视口顶部
         // 如果它靠近视口顶部（< 视口高度一半），说明正在阅读它的上一章
         // 否则（它已滚动到视口下半部分），当前章节就是它本身
         if (firstBelowCenter.rect.top < viewportHeight / 2) {
           // 正在阅读 firstBelowCenter 的上一章（如果有的话）
-          activeId = firstBelowCenterIdx > 0 ? headings[firstBelowCenterIdx - 1].id : firstBelowCenter.id
+          activeId = firstBelowCenterIdx > 0 ? headings[firstBelowCenterIdx - 1].id : firstBelowCenter.el.id
         } else {
           // 正在阅读 firstBelowCenter 本身
-          activeId = firstBelowCenter.id
+          activeId = firstBelowCenter.el.id
         }
       }
 
