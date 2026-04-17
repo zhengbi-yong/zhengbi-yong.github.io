@@ -17,7 +17,6 @@ import {
   Medium,
   Bluesky,
 } from '@/components/social-icons/icons'
-import { useTheme } from 'next-themes'
 import { cn } from './lib/utils'
 import styles from './Footer.module.css'
 
@@ -78,8 +77,6 @@ const primaryLinks = [
 
 const Footer = memo(() => {
   const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear())
-  const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear())
@@ -178,14 +175,7 @@ const Footer = memo(() => {
   }, [])
 
   return (
-    <footer
-      suppressHydrationWarning
-      className={cn(
-        styles.footerRoot,
-        'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12',
-        isDark ? 'bg-[#05080F] text-slate-200' : 'bg-slate-50 text-slate-900'
-      )}
-    >
+    <footer className={cn(styles.footerRoot, 'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12 bg-slate-50 dark:bg-[#05080F] text-slate-900 dark:text-slate-200')}>
       <div className="mx-auto flex max-w-6xl flex-col gap-10">
         <div className={styles.footerDivider} />
 
@@ -194,40 +184,22 @@ const Footer = memo(() => {
             <div className="space-y-3">
               <Link
                 href="/"
-                className={cn(
-                  'inline-block text-2xl tracking-tight transition-colors duration-300',
-                  isDark ? 'text-white hover:text-slate-200' : 'text-slate-900 hover:text-slate-700'
-                )}
+                className="inline-block text-2xl tracking-tight transition-colors duration-300 text-slate-900 dark:text-white dark:hover:text-slate-200 hover:text-slate-700"
                 style={{ fontFamily: 'var(--font-great-vibes)' }}
               >
                 {siteMetadata.title}
               </Link>
-              <p
-                className={cn(
-                  'max-w-md text-sm leading-6',
-                  isDark ? 'text-slate-400' : 'text-slate-600'
-                )}
-              >
+              <p className="max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
                 Calm technical writing, research notes, and selected work by Zhengbi Yong.
               </p>
             </div>
-            <p
-              className={cn(
-                'text-[10px] uppercase tracking-[0.24em]',
-                isDark ? 'text-slate-500' : 'text-slate-500'
-              )}
-            >
+            <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
               © {currentYear} Zhengbi Yong. All rights reserved.
             </p>
           </section>
 
           <nav aria-label="Footer navigation" className="flex flex-col gap-4 text-center lg:text-left">
-            <p
-              className={cn(
-                'text-[10px] uppercase tracking-[0.28em]',
-                isDark ? 'text-slate-500' : 'text-slate-500'
-              )}
-            >
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">
               Navigate
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 lg:justify-start">
@@ -237,8 +209,7 @@ const Footer = memo(() => {
                   href={link.href}
                   className={cn(
                     styles.footerLink,
-                    'text-sm transition-colors duration-300',
-                    isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                    'text-sm transition-colors duration-300 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   )}
                 >
                   {link.label}
@@ -248,12 +219,7 @@ const Footer = memo(() => {
           </nav>
 
           <section className="flex flex-col gap-4 text-center lg:text-left">
-            <p
-              className={cn(
-                'text-[10px] uppercase tracking-[0.28em]',
-                isDark ? 'text-slate-500' : 'text-slate-500'
-              )}
-            >
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">
               Connect
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
@@ -267,7 +233,7 @@ const Footer = memo(() => {
                     rel="noopener noreferrer"
                     className={cn(
                       styles.footerSocialButton,
-                      isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                      'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                     )}
                     title={social.name}
                     aria-label={social.name}
@@ -286,7 +252,7 @@ const Footer = memo(() => {
         <div className={styles.footerDivider} />
 
         <div className="flex flex-col gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
-          <p className={cn('text-xs tracking-[0.16em] uppercase', isDark ? 'text-slate-600' : 'text-slate-500')}>
+          <p className="text-xs tracking-[0.16em] uppercase text-slate-500 dark:text-slate-600">
             Built with clarity across light and dark themes.
           </p>
           <Link
@@ -295,8 +261,7 @@ const Footer = memo(() => {
             rel="noopener noreferrer"
             className={cn(
               styles.footerLink,
-              'text-[10px] uppercase tracking-[0.18em] transition-colors duration-300',
-              isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-500 hover:text-slate-800'
+              'text-[10px] uppercase tracking-[0.18em] transition-colors duration-300 text-slate-500 hover:text-slate-800 dark:text-slate-500 dark:hover:text-slate-300'
             )}
           >
             京ICP备2025110798号-1
