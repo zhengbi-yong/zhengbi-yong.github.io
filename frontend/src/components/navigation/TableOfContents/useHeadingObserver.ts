@@ -8,7 +8,8 @@ interface UseHeadingObserverOptions {
   isMobileExpanded: boolean
   setActiveHeadingId: (id: string | null) => void
   tocMobileContentRef: React.RefObject<HTMLElement>
-  _tocContentRef: React.RefObject<HTMLDivElement | null>
+  /** @deprecated 已废弃，使用 tocContainerRef 代替 */
+  _tocContentRef?: React.RefObject<HTMLDivElement | null>
   /** 桌面端 TOC 容器 ref — 用于自动滚动使活动条目可见 */
   tocContainerRef?: React.RefObject<HTMLDivElement | null>
   /** 阅读进度回调 (0-100) */
@@ -19,9 +20,7 @@ interface UseHeadingObserverOptions {
  * 标题滚动监听 Hook
  *
  * 高亮策略（始终保证有且只有一个条目高亮）：
- *  1. 有交集标题时，优先选深度最大（同层选视口最靠上）
- *  2. 无交集标题时（长章节中间），选滚动位置下方最近的标题
- *  3. 滚动位置超出所有标题时，回退到最后一个标题
+ *  基于 Docusaurus TOC 算法 — 找到第一个顶部"触及"视口顶部的标题。
  *
  * 副作用：
  *  - 当 activeHeadingId 变化时，自动滚动 TOC 使对应条目可见
@@ -38,7 +37,7 @@ export function useHeadingObserver({
   tocContainerRef,
   onProgressChange,
 }: UseHeadingObserverOptions) {
-  void _tocContentRef
+  void _tocContentRef // 参数保留但不使用（由 tocContainerRef 替代）
   const activeHeadingIdRef = useRef<string | null>(null)
   const onProgressChangeRef = useRef(onProgressChange)
   // 追踪上一次的 progress，避免频繁回调
@@ -123,6 +122,9 @@ export function useHeadingObserver({
 
       if (headingElements.length === 0) return undefined
 
+      // 获取 sticky header 高度，用于判断第一个标题是否被遮挡
+      const STICKY_HEADER_HEIGHT = 72
+
       // ── 计算阅读进度 ────────────────────────────────────────────────────────
       const updateProgress = () => {
         const scrollTop = window.scrollY
@@ -135,85 +137,81 @@ export function useHeadingObserver({
         }
       }
 
-      // ── 统一高亮选择逻辑 ──────────────────────────────────────────────────
-      // 优先级：
-      //  A. 有交集标题 → 选 DOM 顺序最后（即嵌套最深）的小标题
-      //  B. 无交集标题（长章节中间）→ 选滚动位置下方最近的标题
-      //  C. 已滚过所有标题 → 回退到最后一个
-      const updateActiveHeading = () => {
-        const scrollTop = window.scrollY
-        const viewportHeight = window.innerHeight
-        const bottomThreshold = scrollTop + viewportHeight * 0.3
-
-        // 收集所有可见标题
-        // h.bottom > 0         — 标题底部未完全滚出视口顶部
-        // h.offsetTop <= ...    — 标题顶部在视口底部上方
-        // 当页面顶部时所有标题都在下方视口外，候选集为空，
-        // 此时用全部 headingElements（取第一个）作为 fallback。
-        let candidateHeadings = headingElements
-          .map((h) => {
-            const rect = h.getBoundingClientRect()
-            return {
-              id: h.id,
-              top: rect.top,
-              bottom: rect.bottom,
-              offsetTop: scrollTop + rect.top,
-              domIndex: headingElements.indexOf(h),
-            }
-          })
-          .filter((h) => h.bottom > 0 && h.offsetTop <= scrollTop + viewportHeight)
-
-        // 候选集为空（页面顶部时）→ 取文档第一个标题作为初始高亮
-        if (candidateHeadings.length === 0 && headingElements.length > 0) {
-          const firstHeading = headingElements[0]
-          const rect = firstHeading.getBoundingClientRect()
-          candidateHeadings = [{
-            id: firstHeading.id,
-            top: rect.top,
-            bottom: rect.bottom,
-            offsetTop: scrollTop + rect.top,
-            domIndex: 0,
-          }]
+      // ── Docusaurus 算法：获取活动锚点 ─────────────────────────────────────
+      /**
+       * 获取元素的可视边界（处理 anchor 元素高度为 0 的情况）
+       */
+      const getVisibleRect = (el: HTMLElement): DOMRect => {
+        const rect = el.getBoundingClientRect()
+        // 如果 rect.top === rect.bottom，说明是个 height=0 的 anchor，用父元素
+        if (rect.top === rect.bottom) {
+          const parent = el.parentElement as HTMLElement
+          if (parent) return parent.getBoundingClientRect()
         }
+        return rect
+      }
 
-        if (candidateHeadings.length === 0) return
+      /**
+       * 判断 heading 是否在视口上半部分
+       * 用于决定"下一个将出现的标题"是否应该高亮
+       */
+      const isInTopHalf = (rect: DOMRect): boolean => {
+        return rect.top > 0 && rect.bottom < window.innerHeight / 2
+      }
 
-        // 触发区内的交集标题
-        const intersecting = candidateHeadings.filter(
-          (h) => h.top <= bottomThreshold && h.top > -viewportHeight
-        )
+      /**
+       * 核心高亮算法 — Docusaurus 方案
+       *
+       * 核心思想：找到文档顺序中第一个"顶部触及视口顶部"的标题。
+       * "触及"的意思是 heading.top >= anchorTopOffset。
+       * 这个标题就是"下一个将出现在视口顶部"的标题。
+       *
+       * 如果这个标题在视口上半部分 → 它就是当前高亮。
+       * 如果这个标题在视口下半部分（或下方）→ 前一个标题是高亮（当前阅读内容属于前一个）。
+       *
+       * 这样保证了：
+       * 1. 滚动时永远有且只有一个高亮
+       * 2. 长章节中间（无交集标题）也有正确的高亮
+       * 3. 算法简洁，不依赖复杂的交集计算
+       */
+      const getActiveAnchor = (): string | null => {
+        // 找到第一个顶部在视口顶部（或以下）的标题
+        // heading.top >= STICKY_HEADER_HEIGHT 意味着标题已"触及"视口顶部（考虑了 sticky header）
+        const nextVisible = headingElements.find((h) => {
+          const rect = getVisibleRect(h)
+          // 标题的顶部已越过 sticky header（进入可视区）
+          return rect.top >= STICKY_HEADER_HEIGHT
+        })
 
-        let nextActive: string
-
-        if (intersecting.length > 0) {
-          // 情况 A：取 DOM 顺序最后（即嵌套最深）的小标题
-          intersecting.sort((a, b) => a.domIndex - b.domIndex)
-          nextActive = intersecting[intersecting.length - 1].id
-        } else {
-          // 情况 B：没有交集标题，选滚动位置下方最近的
-          const belowScroll = candidateHeadings
-            .filter((h) => h.offsetTop > scrollTop)
-            .sort((a, b) => a.offsetTop - b.offsetTop)
-
-          if (belowScroll.length > 0) {
-            nextActive = belowScroll[0].id
-          } else {
-            // 已在文档底部
-            nextActive = headingElements[headingElements.length - 1].id
+        if (nextVisible) {
+          const rect = getVisibleRect(nextVisible)
+          // 如果标题在视口上半部分 → 高亮这个
+          if (isInTopHalf(rect)) {
+            return nextVisible.id
           }
+          // 如果在视口下半部分（或超出视口）→ 高亮前一个（当前阅读内容属于前一个）
+          const idx = headingElements.indexOf(nextVisible)
+          if (idx > 0) {
+            return headingElements[idx - 1].id
+          }
+          // idx === 0 → 第一个标题就在下半部分 → 高亮第一个
+          return nextVisible.id
         }
 
+        // 没有找到"在视口顶部"的标题 → 已在文档底部 → 高亮最后一个
+        return headingElements[headingElements.length - 1]?.id ?? null
+      }
+
+      // ── 更新 TOC 高亮 ──────────────────────────────────────────────────────
+      const updateActiveHeading = () => {
+        const nextActive = getActiveAnchor()
         if (nextActive && nextActive !== activeHeadingIdRef.current) {
           setActiveHeadingId(nextActive)
         }
       }
 
-      // IntersectionObserver：标题进出视口边缘时触发
-      // rootMargin: 触发区从视口顶部延伸（-top 到 -bottom 的范围）
-      // '-120px 0px -80% 0px' 时首个标题 rect.top=976（远在视口下方），
-      // 不会触发 IntersectionObserver，导致页面顶部完全没有高亮。
-      // 改为 '0px 0px -80% 0px'：只要有标题在视口顶部至上 20% 的带状区域
-      // 就能触发，确保页面顶部有初始高亮。
+      // IntersectionObserver：仅用于通知 scroll handler 重新检查
+      // 不依赖它来确定高亮（scroll handler 的 getActiveAnchor 才是准确算法）
       let debounceTimer: NodeJS.Timeout | null = null
       const headingObserver = new IntersectionObserver(
         () => {
@@ -223,11 +221,13 @@ export function useHeadingObserver({
             updateProgress()
           }, 80)
         },
-        { rootMargin: '0px 0px -80% 0px', threshold: 0 }
+        // rootMargin: 0 表示触发区是整个视口
+        // threshold: 0 只要有像素进入/离开就触发
+        { rootMargin: '0px', threshold: 0 }
       )
       headingElements.forEach((heading) => headingObserver.observe(heading))
 
-      // scroll 监听：作为辅助刷新，确保长章节中间始终有高亮 + 进度更新
+      // scroll 监听：主要驱动源，每次滚动都重新计算
       let lastScrollFire = 0
       const handleScroll = () => {
         const now = Date.now()
@@ -238,9 +238,7 @@ export function useHeadingObserver({
       }
       window.addEventListener('scroll', handleScroll, { passive: true })
 
-      // 初始激活 + 进度：在 observer 初始化后执行
-      // 确保 headingElements 已找到（initObserver 同步执行），
-      // 延迟 50ms 让 DOM 完全稳定
+      // 初始化：在 observer 初始化后执行，设置初始高亮
       setTimeout(() => {
         const hash = window.location.hash.substring(1)
         if (hash) {
