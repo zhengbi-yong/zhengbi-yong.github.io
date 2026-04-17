@@ -3,9 +3,10 @@
      定位由父元素 .monograph-toc-aside 的 sticky 处理。
      此处只需定义容器本身的样式（背景、边框、字号）。 */
   position: static;
-  max-height: calc(100vh - 8rem);
-  overflow-x: hidden;
-  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  /* 不设置 max-height，让它自然被 aside 的 max-height 约束 */
+  overflow: visible;
   border-radius: 0.75rem;
   border: 1px solid var(--border, #E8E5E0);
   background: var(--card-bg, #FFFFFF);
@@ -16,69 +17,13 @@
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  /* 始终显示滚动条（不是 overlay），滚动条区域本身可点击交互 */
-  scrollbar-gutter: stable;
-  /* Firefox: 始终显示细滚动条 */
-  scrollbar-width: thin;
-  scrollbar-color: var(--mono-border) #F0EDE8;
+  /* 滚动条样式由 .toc（内部 nav）处理 */
 }
 
-/* 鼠标进入 TOC 区域时，滑块变深提示可滚动 */
-.tocContainer:hover {
-  scrollbar-color: var(--text-secondary, #5A5652) #F0EDE8;
-}
-
-/* 传统滚动条：Chrome/Safari/Edge — 始终可见，鼠标放在整个轨道上都能滚 */
-.tocContainer::-webkit-scrollbar {
-  width: 10px;
-  background: #F0EDE8;
-}
-
-.tocContainer::-webkit-scrollbar-track {
-  background: #F0EDE8;
-  margin: 0.5rem 0;
-  border-radius: 4px;
-}
-
-.tocContainer::-webkit-scrollbar-thumb {
-  background: var(--mono-border, #C8C4BE);
-  border-radius: 4px;
-  border: 2px solid #F0EDE8;
-  background-clip: padding-box;
-}
-
-.tocContainer::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary, #5A5652);
-  background-clip: padding-box;
-  border-color: #F0EDE8;
-}
-
-/* Dark mode: 滚动条滑块 */
-.dark .tocContainer::-webkit-scrollbar {
-  background: #1A2332;
-}
-
-.dark .tocContainer::-webkit-scrollbar-track {
-  background: #1A2332;
-}
-
-.dark .tocContainer::-webkit-scrollbar-thumb {
-  background: #3A5A7F;
-  border-color: #1A2332;
-}
-
-.dark .tocContainer::-webkit-scrollbar-thumb:hover {
-  background: #B8C5D1;
-  border-color: #1A2332;
-}
-
-.dark .tocContainer {
+/* Dark mode */
+:global(.dark) .tocContainer {
   border-color: var(--border, #374151);
   background: var(--card-bg, #1F2937);
-}
-
-.dark .tocContainer:hover {
-  scrollbar-color: #B8C5D1 #1A2332;
 }
 
 .tocHeader {
@@ -291,6 +236,8 @@
 .toc {
   flex: 1;
   min-height: 0;
+  /* 唯一滚动容器，最大高度 = aside 高度减去表头（进度条 3px + 标题 ~54px） */
+  max-height: calc(100vh - 8rem - 57px);
   overflow-y: auto;
   overflow-x: hidden;
   font-size: 0.875rem;
@@ -300,7 +247,6 @@
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   z-index: 1;
-  /* 确保内容可以滚动 */
   overscroll-behavior: contain;
 }
 
@@ -315,7 +261,7 @@
 
 .toc::-webkit-scrollbar-track {
   background: transparent;
-  margin: 0.5rem 0;
+  margin: 0.25rem 0;
   border-radius: 4px;
 }
 
@@ -340,11 +286,11 @@
 /* Dark mode scrollbar */
 :global(.dark) .toc {
   scrollbar-color: var(--muted-foreground, #B8C5D1) transparent;
-  }
+}
 
 :global(.dark) .toc::-webkit-scrollbar-thumb {
   background: var(--muted-foreground, #B8C5D1);
-  }
+}
 
 :global(.dark) .toc::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary, #B8C5D1);
@@ -354,17 +300,16 @@
 
 /* ── 阅读进度条 ──────────────────────────────────────────── */
 .tocProgressBar {
-  position: absolute;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
   height: 3px;
   background: transparent;
-  z-index: 1;
-  border-radius: 0.75rem 0.75rem 0 0;
+  z-index: 3;
   overflow: hidden;
-  /* 让进度条在容器最上层 */
   pointer-events: none;
+  flex-shrink: 0;
 }
 
 .tocProgressFill {
@@ -391,13 +336,20 @@
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border, #E8E5E0);
   flex-shrink: 0;
-  /* 为进度条腾出位置（进度条 absolute 压在标题上方） */
-  position: relative;
+  /* sticky 紧贴容器顶部，与 .tocProgressBar 共同组成固定表头 */
+  position: sticky;
+  top: 3px; /* 紧跟在 3px 进度条下方 */
+  background: var(--card-bg, #FFFFFF);
   z-index: 2;
+}
+
+.dark :global(.dark) .tocTitle {
+  background: #1F2937;
 }
 
 :global(.dark) .tocTitle {
   border-bottom-color: var(--border, #374151);
+  background: var(--card-bg, #1F2937);
 }
 
 .tocTitleText {

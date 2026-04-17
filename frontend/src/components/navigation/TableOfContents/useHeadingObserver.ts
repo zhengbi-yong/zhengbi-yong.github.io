@@ -95,6 +95,8 @@ export function useHeadingObserver({
     if (!toc || toc.length === 0) return undefined
 
     const getHeadingElements = (): HTMLElement[] => {
+      const tocIds = toc.map((item) => item.url.replace('#', ''))
+
       const selectors = [
         'article h1[id], article h2[id], article h3[id], article h4[id], article h5[id], article h6[id]',
         'main h1[id], main h2[id], main h3[id], main h4[id], main h5[id], main h6[id]',
@@ -103,14 +105,13 @@ export function useHeadingObserver({
       ]
       for (const selector of selectors) {
         const elements = Array.from(document.querySelectorAll<HTMLElement>(selector))
+          .filter((heading) => {
+            const id = heading.id || heading.getAttribute('id')
+            return id && tocIds.includes(id)
+          })
         if (elements.length > 0) return elements
       }
-      const allHeadings = Array.from(document.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'))
-      const tocIds = toc.map((item) => item.url.replace('#', ''))
-      return allHeadings.filter((heading) => {
-        const id = heading.id || heading.getAttribute('id')
-        return id && tocIds.includes(id)
-      })
+      return []
     }
 
     const updateProgress = () => {
