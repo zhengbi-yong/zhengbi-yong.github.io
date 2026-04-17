@@ -1,6 +1,5 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import type { TOC } from '@/lib/types/toc'
-import type { LinkMap } from './types'
 
 interface UseHeadingObserverOptions {
   toc?: TOC
@@ -14,7 +13,11 @@ interface UseHeadingObserverOptions {
 
 /**
  * 标题滚动监听 Hook
- * 使用 IntersectionObserver 监听标题滚动，自动高亮当前章节
+ *
+ * 高亮策略（始终保证有且只有一个条目高亮）：
+ *  1. 有交集标题时，优先选深度最大（同层选视口最靠上）
+ *  2. 无交集标题时（长章节中间），选滚动位置下方最近的标题
+ *  3. 滚动位置超出所有标题时，回退到最后一个标题
  */
 export function useHeadingObserver({
   toc,
@@ -28,18 +31,10 @@ export function useHeadingObserver({
   void _tocContentRef
   const activeHeadingIdRef = useRef<string | null>(null)
 
-  // 同步 ref
-  // 同步 ref
-  // 同步 ref
+  // 同步 ref，保证 handler 内能读到最新值
   useEffect(() => {
     activeHeadingIdRef.current = activeHeadingId
   }, [activeHeadingId])
-
-  // 创建 ID 到链接的映射
-  const buildIdToLinkMap = useCallback((): LinkMap => {
-    const map = new Map<string, HTMLAnchorElement>()
-    return map
-  }, [])
 
   // 移动端面板打开时，滚动到活动链接
   useEffect(() => {
@@ -55,15 +50,11 @@ export function useHeadingObserver({
     }
   }, [isMobileRef, isMobileExpanded, activeHeadingId, tocMobileContentRef])
 
-  // IntersectionObserver 监听标题
   useEffect(() => {
     if (!toc || toc.length === 0) return undefined
 
     const initObserver = () => {
-      const idToLinkMap = buildIdToLinkMap()
-      if (idToLinkMap.size === 0) return undefined
-
-      // 尝试多种选择器
+      // 尝试多种选择器找到文章标题
       const selectors = [
         'article h1[id], article h2[id], article h3[id], article h4[id], article h5[id], article h6[id]',
         'main h1[id], main h2[id], main h3[id], main h4[id], main h5[id], main h6[id]',
@@ -77,7 +68,7 @@ export function useHeadingObserver({
         if (headingElements.length > 0) break
       }
 
-      // 如果找不到，尝试从 TOC 数据中获取
+      // 如果选择器都找不到，从 TOC 数据反向查找
       if (headingElements.length === 0) {
         const allHeadings = Array.from(document.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6'))
         const tocIds = toc.map((item) => item.url.replace('#', ''))
@@ -89,114 +80,111 @@ export function useHeadingObserver({
 
       if (headingElements.length === 0) return undefined
 
-      const observerOptions = {
-        rootMargin: '-120px 0px -70% 0px',
-        threshold: [0, 0.25, 0.5, 0.75, 1] as number[],
+      // ── 统一高亮选择逻辑 ──────────────────────────────────────────────────
+      // 优先级：
+      //  A. 有交集标题 → 选 DOM 顺序最后（即嵌套最深）的小标题
+      //  B. 无交集标题（长章节中间）→ 选滚动位置下方最近的标题
+      //  C. 已滚过所有标题 → 回退到最后一个
+      const updateActiveHeading = () => {
+        const scrollTop = window.scrollY
+        const viewportHeight = window.innerHeight
+        const bottomThreshold = scrollTop + viewportHeight * 0.3
+
+        // 收集所有可见标题（底部在视口内且顶部未完全滚出）
+        const candidateHeadings = headingElements
+          .map((h) => {
+            const rect = h.getBoundingClientRect()
+            return {
+              id: h.id,
+              top: rect.top,
+              bottom: rect.bottom,
+              offsetTop: scrollTop + rect.top,
+              domIndex: headingElements.indexOf(h),
+            }
+          })
+          .filter((h) => h.bottom > 0 && h.offsetTop <= scrollTop + viewportHeight)
+
+        if (candidateHeadings.length === 0) return
+
+        // 触发区内的交集标题
+        const intersecting = candidateHeadings.filter(
+          (h) => h.top <= bottomThreshold && h.top > -viewportHeight
+        )
+
+        let nextActive: string
+
+        if (intersecting.length > 0) {
+          // 情况 A：取 DOM 顺序最后（即嵌套最深）的小标题
+          intersecting.sort((a, b) => a.domIndex - b.domIndex)
+          nextActive = intersecting[intersecting.length - 1].id
+        } else {
+          // 情况 B：没有交集标题，选滚动位置下方最近的
+          const belowScroll = candidateHeadings
+            .filter((h) => h.offsetTop > scrollTop)
+            .sort((a, b) => a.offsetTop - b.offsetTop)
+
+          if (belowScroll.length > 0) {
+            nextActive = belowScroll[0].id
+          } else {
+            // 已在文档底部
+            nextActive = headingElements[headingElements.length - 1].id
+          }
+        }
+
+        if (nextActive && nextActive !== activeHeadingIdRef.current) {
+          setActiveHeadingId(nextActive)
+        }
       }
 
+      // IntersectionObserver：标题进出视口边缘时触发
+      // threshold:0 保证标题刚触边就能触发；rootMargin 扩展触发区
       let debounceTimer: NodeJS.Timeout | null = null
-
-      const headingObserver = new IntersectionObserver((entries) => {
-        if (debounceTimer) clearTimeout(debounceTimer)
-
-        debounceTimer = setTimeout(() => {
-          const intersectingHeadings = entries
-            .filter((entry) => entry.isIntersecting)
-            .map((entry) => ({
-              id: entry.target.id,
-              ratio: entry.intersectionRatio,
-              top: entry.boundingClientRect.top,
-            }))
-
-          if (intersectingHeadings.length > 0) {
-            const topHeading = intersectingHeadings.reduce((prev, current) => {
-              if (prev.top < 120 && current.top >= 120) return prev
-              if (prev.top >= 120 && current.top < 120) return current
-              if (prev.top < 120 && current.top < 120) return current.top > prev.top ? current : prev
-              if (prev.top >= 120 && current.top >= 120) return current.top < prev.top ? current : prev
-              return prev
-            }, intersectingHeadings[0] as any)
-
-            if (topHeading.id && topHeading.id !== activeHeadingIdRef.current) {
-              setActiveHeadingId(topHeading.id)
-            }
-          }
-        }, 150)
-      }, observerOptions)
-
+      const headingObserver = new IntersectionObserver(
+        () => {
+          if (debounceTimer) clearTimeout(debounceTimer)
+          debounceTimer = setTimeout(updateActiveHeading, 80)
+        },
+        { rootMargin: '-120px 0px -80% 0px', threshold: 0 }
+      )
       headingElements.forEach((heading) => headingObserver.observe(heading))
 
-      // 初始激活状态
+      // scroll 监听：作为辅助刷新，确保长章节中间始终有高亮
+      let lastScrollFire = 0
+      const handleScroll = () => {
+        const now = Date.now()
+        if (now - lastScrollFire < 80) return
+        lastScrollFire = now
+        updateActiveHeading()
+      }
+      window.addEventListener('scroll', handleScroll, { passive: true })
+
+      // 初始激活
       const initActiveState = () => {
         const hash = window.location.hash.substring(1)
         if (hash) {
           setActiveHeadingId(hash)
           return
         }
-
-        const visibleHeadings = headingElements
-          .map((heading) => ({
-            top: heading.getBoundingClientRect().top,
-            id: heading.id,
-          }))
-          .filter((h) => h.top >= 100 && h.top <= window.innerHeight / 2)
-          .sort((a, b) => a.top - b.top)
-
-        if (visibleHeadings.length > 0) {
-          setActiveHeadingId(visibleHeadings[0].id)
-        } else if (headingElements.length > 0) {
-          setActiveHeadingId(headingElements[0].id)
-        }
+        updateActiveHeading()
       }
-
       setTimeout(initActiveState, 200)
 
+      // hash 变化
       const handleHashChange = () => {
         const hash = window.location.hash.substring(1)
         if (hash) setActiveHeadingId(hash)
       }
-
       window.addEventListener('hashchange', handleHashChange)
-
-      // 滚动监听（后备方案）
-      let scrollTimeout: NodeJS.Timeout | null = null
-      const handleScroll = () => {
-        if (scrollTimeout) return
-        scrollTimeout = setTimeout(() => {
-          const scrollPosition = window.scrollY + 120
-          let currentActive: string | null = null
-
-          for (let i = headingElements.length - 1; i >= 0; i--) {
-            const heading = headingElements[i]
-            const rect = heading.getBoundingClientRect()
-            const elementTop = window.scrollY + rect.top
-
-            if (elementTop <= scrollPosition) {
-              currentActive = heading.id
-              break
-            }
-          }
-
-          if (currentActive && currentActive !== activeHeadingIdRef.current) {
-            setActiveHeadingId(currentActive)
-          }
-
-          scrollTimeout = null
-        }, 150)
-      }
-
-      window.addEventListener('scroll', handleScroll, { passive: true })
 
       return () => {
         headingObserver.disconnect()
-        window.removeEventListener('hashchange', handleHashChange)
         window.removeEventListener('scroll', handleScroll)
-        if (scrollTimeout) clearTimeout(scrollTimeout)
+        window.removeEventListener('hashchange', handleHashChange)
         if (debounceTimer) clearTimeout(debounceTimer)
       }
     }
 
     const timeoutId = setTimeout(initObserver, 300)
     return () => clearTimeout(timeoutId)
-  }, [toc, buildIdToLinkMap, setActiveHeadingId])
+  }, [toc, setActiveHeadingId])
 }

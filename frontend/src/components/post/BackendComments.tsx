@@ -89,9 +89,9 @@ export function BackendComments({ slug, className }: BackendCommentsProps) {
 
   return (
     <>
-      <div className={cn('space-y-6', className)}>
+      <div className="space-y-6" style={{ minWidth: 0 }}>
         {/* Comment Form */}
-        <div className="border rounded-lg p-4 bg-card">
+        <div className="border rounded-lg p-4 bg-card" style={{ minWidth: 0 }}>
           <h3 className="font-semibold mb-4 flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
             发表评论
@@ -122,6 +122,7 @@ export function BackendComments({ slug, className }: BackendCommentsProps) {
               rows={3}
               disabled={!isAuthenticated || isSubmitting}
               className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+              style={{ minWidth: 0 }}
             />
             <div className="flex justify-between items-center">
               <span className="text-xs text-muted-foreground">
@@ -197,6 +198,7 @@ export function BackendComments({ slug, className }: BackendCommentsProps) {
                     {/* Comment Content */}
                     <div
                       className="text-sm leading-relaxed"
+                      style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
                       dangerouslySetInnerHTML={{ __html: comment.html_sanitized }}
                     />
 
@@ -249,6 +251,7 @@ export function BackendComments({ slug, className }: BackendCommentsProps) {
                             </div>
                             <div
                               className="text-xs leading-relaxed"
+                              style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
                               dangerouslySetInnerHTML={{ __html: reply.html_sanitized }}
                             />
                           </div>

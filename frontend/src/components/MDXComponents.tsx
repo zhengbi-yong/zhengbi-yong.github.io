@@ -8,7 +8,6 @@ import {
   type ReactNode,
 } from 'react'
 import TOCInline from 'pliny/ui/TOCInline'
-import Pre from 'pliny/ui/Pre'
 import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm'
 import Image from './Image'
 import CustomLink from './Link'
@@ -18,6 +17,7 @@ import { AnimationSkeleton } from './loaders/AnimationSkeleton'
 import { AnimationErrorBoundary } from './AnimationErrorBoundary'
 import { ExcalidrawEmbed } from './MDXComponents/ExcalidrawEmbed'
 import SheetMusic, { ABCCodeBlock } from './SheetMusic'
+import { CodeBlock } from './mdx/CodeBlock'
 
 // 动态导入动画组件，减少初始 bundle 大小
 // 注意：在 Server Component 中不能使用 ssr: false，但这些组件本身已经是 Client Components
@@ -320,13 +320,14 @@ function PreWithABC({ children, className }: PreWithABCProps) {
     return <ABCCodeBlock>{extractABCNotation(children)}</ABCCodeBlock>
   }
 
-  return <Pre>{children}</Pre>
+  return <CodeBlock>{children}</CodeBlock>
 }
 
 // MDX 组件映射，用于自定义 MDX 渲染
 export const components = {
   Image,
-  TOCInline,
+  // TOCInline 在 MDX 内容中渲染底部目录，侧边栏已有 TOC，这里覆盖为空
+  TOCInline: () => null,
   a: CustomLink,
   pre: PreWithABC,
   BlogNewsletterForm,

@@ -583,8 +583,24 @@ export default function FullscreenMusicSheet({
     return () => main.removeEventListener('wheel', handleWheel)
   }, [mounted])
 
+  // Use a mounted portal pattern instead of the typeof window guard.
+  // During SSR this returns null. After hydration the portal mounts to document.body.
   if (!mounted) {
-    return null
+    return (
+      <div
+        className={cn(
+          'fixed inset-0 z-[9999] flex flex-col h-screen overflow-hidden',
+          'bg-gradient-to-br from-[#fdfdfc] via-[#f8f7f4] to-[#f2f1ed] text-[#1a1a1a]'
+        )}
+      >
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-8 w-8 border-2 border-[#061542] border-t-transparent rounded-full animate-spin" />
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#6b6b6b]/60">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const content = (
@@ -1188,9 +1204,6 @@ export default function FullscreenMusicSheet({
     </div>
   )
 
-  if (typeof window !== 'undefined') {
-    return createPortal(content, document.body)
-  }
-
-  return null
+  // Portal is only reached after mount — window is guaranteed to exist
+  return createPortal(content, document.body)
 }

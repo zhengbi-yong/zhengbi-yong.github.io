@@ -1,27 +1,34 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { TOC } from '@/lib/types/toc'
 
+/** Hook 必须在组件顶层调用，获取初始 isMobile 值避免 hydration mismatch */
+function getInitialIsMobile(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.innerWidth < 768
+}
+
 /**
  * TOC 导航逻辑 Hook
  * 处理 TOC 树的构建、链接点击等导航相关逻辑
  */
 export function useTOCNavigation(toc?: TOC) {
   const [isMobileExpanded, setIsMobileExpanded] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
+  // 初始值读取 window.innerWidth，保证首次渲染（hydrate 后）即为正确值
+  // 服务端始终为 false，与客户端 hydrate 后的值一致，避免 hydration mismatch
+  const [isMobile, setIsMobile] = useState(getInitialIsMobile)
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null)
-  const isMobileRef = useRef(false)
+  const isMobileRef = useRef(isMobile)
 
   // 同步 ref
   useEffect(() => {
     isMobileRef.current = isMobile
   }, [isMobile])
 
-  // 检测是否为移动端
+  // 检测是否为移动端 — 首次在 useState 初始化时已捕获，后续 resize 时更新
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
-    checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])

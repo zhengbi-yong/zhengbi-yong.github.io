@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useTheme } from 'next-themes'
 import { List } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
@@ -28,6 +29,12 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
   const { resolvedTheme: _resolvedTheme } = useTheme()
   void _resolvedTheme
 
+  // JS-driven sticky state
+  // tocTop is always constant '100px' — fixed positioning locks the element 100px from viewport top
+  const tocTop = '100px'
+  const [tocRight, setTocRight] = useState('0px')
+  const [tocVisible, setTocVisible] = useState(false)
+
   // 导航逻辑
   const {
     isMobileExpanded,
@@ -53,11 +60,49 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
     _tocContentRef: tocContentRef,
   })
 
-  // Desktop position is handled by CSS sticky; scroll listener keeps heading observer active
-  // (updateTocPosition is kept as no-op to avoid breaking the scroll event subscription)
+  // JS-driven sticky: position:fixed + scroll-synced top/right + visibility
+  // position:fixed always locks TOC at top:100px from viewport.
+  // tocVisible=false hides it when outside article boundaries (header area / footer area).
+  // Uses RAF polling instead of scroll events to ensure reliability across all browsers/environments.
+  useEffect(() => {
+    if (!mounted || isMobile) return undefined
+
+    let rafId: number
+    let lastScrollY = -1
+
+    const updatePosition = () => {
+      const grid = document.querySelector('.monograph-grid') as HTMLElement | null
+      if (!grid) return
+
+      const scrollY = window.scrollY
+      if (scrollY === lastScrollY) return
+      lastScrollY = scrollY
+
+      const gridRect = grid.getBoundingClientRect()
+      const headerHeight = gridRect.top
+      const gridBottom = gridRect.bottom
+      const viewportHeight = window.innerHeight
+
+      const showTOC = scrollY > Math.max(0, headerHeight - 20)
+      const hideForFooter = gridBottom < viewportHeight + 10
+
+      setTocVisible(showTOC && !hideForFooter)
+      const right = window.innerWidth - gridRect.right
+      setTocRight(`${right}px`)
+    }
+
+    const loop = () => {
+      updatePosition()
+      rafId = requestAnimationFrame(loop)
+    }
+
+    rafId = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(rafId)
+  }, [mounted, isMobile])
+
+  // 只负责让 Portal 知道 DOM 已挂载，不影响渲染逻辑
   useEffect(() => {
     setMounted(true)
-    window.addEventListener('scroll', () => {}, { passive: true })
   }, [])
 
   // 如果未启用或没有目录数据，不渲染任何内容
@@ -65,40 +110,72 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
     return null
   }
 
-  return (
+  // 桌面端 TOC 的渲染不依赖 mounted（mounted 只控制 Portal 是否挂载到 document.body）
+  // isMobile 在客户端通过 useState 初始化函数同步设置为正确值，不会闪现
+  const desktopTOC = !mobileOnly && !isMobile ? (
+    <div
+      className={styles.tocContainer}
+      style={{
+        position: 'fixed',
+        top: tocTop,
+        right: tocRight,
+        opacity: tocVisible ? 1 : 0,
+        pointerEvents: tocVisible ? 'auto' : 'none',
+        transition: 'opacity 0.2s ease',
+      }}
+    >
+      <div className={styles.tocTitle}>
+        <div className="flex items-center gap-2">
+          <List size={16} className="text-gray-400 dark:text-gray-500" />
+          <span className={cn(styles.tocTitleText, 'dark:text-gray-300')}>目录</span>
+        </div>
+      </div>
+      <nav ref={tocContentRef} id="toc-content" className={styles.toc} aria-label="目录">
+        <TOCTree tree={tree} activeHeadingId={activeHeadingId} onLinkClick={handleLinkClick} />
+      </nav>
+    </div>
+  ) : null
+
+  return mounted ? createPortal((
     <>
-      {/* 移动端浮动按钮 */}
-      <button
-        onClick={handleMobileToggle}
-        aria-expanded={isMobileExpanded}
-        aria-label="Toggle table of contents"
-        className={cn(
-          styles.tocFloatingButton,
-          'dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700'
-        )}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+      {/* 桌面端 TOC */}
+      {desktopTOC}
+
+      {/* 移动端浮动按钮 — 仅移动端渲染 */}
+      {isMobile && (
+        <button
+          onClick={handleMobileToggle}
+          aria-expanded={isMobileExpanded}
+          aria-label="Toggle table of contents"
+          className={cn(
+            styles.tocFloatingButton,
+            'dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700'
+          )}
         >
-          <path d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      )}
 
       {/* 移动端遮罩层 */}
       {isMobileExpanded && (
         <div className={styles.tocBackdrop} onClick={handleBackdropClick} aria-hidden="true" />
       )}
 
-      {/* 移动端浮动面板 */}
-      <div className={cn(styles.tocMobilePanel, isMobileExpanded && styles.tocMobilePanelOpen)}>
+      {/* 移动端浮动面板 — 仅移动端渲染 */}
+      {isMobile && (
+        <div className={cn(styles.tocMobilePanel, isMobileExpanded && styles.tocMobilePanelOpen)}>
         <div className={styles.tocMobilePanelHeader}>
           <span className={cn(styles.tocMobilePanelTitle, 'font-brand dark:text-gray-100')}>
             目录
@@ -132,23 +209,9 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
           <TOCTree tree={tree} activeHeadingId={activeHeadingId} onLinkClick={handleLinkClick} />
         </nav>
       </div>
-
-      {/* Desktop: sticky in sidenote column via grid placement */}
-      {!mobileOnly && mounted && !isMobile && (
-        <div className={styles.tocContainer}>
-          <div className={styles.tocTitle}>
-            <div className="flex items-center gap-2">
-              <List size={16} className="text-gray-400 dark:text-gray-500" />
-              <span className={cn(styles.tocTitleText, 'dark:text-gray-300')}>目录</span>
-            </div>
-          </div>
-          <nav ref={tocContentRef} id="toc-content" className={styles.toc} aria-label="目录">
-            <TOCTree tree={tree} activeHeadingId={activeHeadingId} onLinkClick={handleLinkClick} />
-          </nav>
-        </div>
       )}
     </>
-  )
+  ), document.body) : null
 }
 
 TableOfContents.displayName = 'TableOfContents'

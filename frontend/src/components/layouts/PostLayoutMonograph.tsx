@@ -109,6 +109,7 @@ export default function PostLayoutMonograph({
         <div
           className="monograph-reading-progress-bar"
           style={{ width: `${Math.round(scrollPercentage * 100)}%` }}
+          suppressHydrationWarning
         />
       </div>
 
@@ -116,8 +117,7 @@ export default function PostLayoutMonograph({
         <SectionContainer variant="wide">
         {/* Article Header */}
         <header style={{
-          maxWidth: 'min(80ch, 90%)',
-          margin: '0 auto',
+          maxWidth: 'none',
           textAlign: 'center',
           marginBottom: 'var(--space-3)',
           position: 'relative',
@@ -349,6 +349,8 @@ export default function PostLayoutMonograph({
                   marginTop: 'var(--space-3)',
                   paddingTop: 'var(--space-2)',
                   borderTop: '1px solid var(--mono-border)',
+                  /* 手机端 prev/next 不会横向撑出 */
+                  minWidth: 0,
                 }}>
                   {prevPost ? (
                     <Link
@@ -362,6 +364,8 @@ export default function PostLayoutMonograph({
                         borderRadius: '4px',
                         textDecoration: 'none',
                         transition: 'border-color 0.2s',
+                        /* 允许 flex 子项收缩，防止长标题撑出 */
+                        minWidth: 0,
                       }}
                     >
                       <span style={{
@@ -396,6 +400,8 @@ export default function PostLayoutMonograph({
                         textDecoration: 'none',
                         textAlign: 'right' as const,
                         transition: 'border-color 0.2s',
+                        /* 允许 flex 子项收缩，防止长标题撑出 */
+                        minWidth: 0,
                       }}
                     >
                       <span style={{
@@ -433,7 +439,7 @@ export default function PostLayoutMonograph({
 
           {/* Sidenote column: TOC (desktop) + floating FAB (mobile/tablet) */}
           {showTOC !== false && toc.length > 0 && (
-            <aside className="not-sticky lg:sticky lg:top-[100px] lg:self-start">
+            <aside>
               <TableOfContents toc={toc} />
             </aside>
           )}

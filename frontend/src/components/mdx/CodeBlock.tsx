@@ -17,12 +17,18 @@ function extractLanguage(className?: string): string {
   return match ? match[1] : ''
 }
 
+/**
+ * Recursively extract plain text from React children.
+ * Strips out any DOM elements (including copy buttons) and returns only code text.
+ */
 function extractTextContent(children: ReactNode): string {
   if (typeof children === 'string') return children
   if (typeof children === 'number') return String(children)
   if (Array.isArray(children)) return children.map(extractTextContent).join('')
   if (children && typeof children === 'object' && 'props' in children) {
-    return extractTextContent((children as { props: { children: ReactNode } }).props.children)
+    return extractTextContent(
+      (children as { props: { children?: ReactNode } }).props.children
+    )
   }
   return ''
 }
@@ -31,7 +37,6 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const language = extractLanguage(className)
-
   const codeText = extractTextContent(children)
 
   const handleCopy = useCallback(async () => {
@@ -41,11 +46,10 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
       timeoutRef.current = setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback for older browsers
+      // Fallback for older browsers / insecure contexts
       const textarea = document.createElement('textarea')
       textarea.value = codeText
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
+      textarea.style.cssText = 'position:fixed;opacity:0;top:0;left:0'
       document.body.appendChild(textarea)
       textarea.select()
       document.execCommand('copy')
@@ -63,9 +67,9 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   }, [])
 
   return (
-    <div className="code-block group relative my-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700/50 bg-[#1e293b] dark:bg-gray-900/95">
+    <div className="group/code relative my-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700/50 bg-[#F5F3F0] dark:bg-gray-900/95">
       {/* Header bar */}
-      <div className="flex items-center justify-between border-b border-gray-700/50 px-4 py-2 bg-[#1a2332] dark:bg-gray-800/80">
+      <div className="flex items-center justify-between border-b border-gray-300 dark:border-gray-700/50 px-4 py-2 bg-stone-200 dark:bg-gray-800/80">
         <div className="flex items-center gap-2">
           {/* Traffic lights */}
           <div className="flex items-center gap-1.5">
@@ -85,7 +89,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
           )}
         </div>
 
-        {/* Copy button */}
+        {/* Copy button — always visible, no hover required */}
         <motion.button
           onClick={handleCopy}
           className={cn(
@@ -101,9 +105,9 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
             {copied ? (
               <motion.span
                 key="check"
-                initial={{ scale: 0, rotate: -90 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: 90 }}
+                initial={{ scale: 0, rotate: -90, opacity: 0 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                exit={{ scale: 0, rotate: 90, opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 className="flex items-center gap-1.5"
               >
@@ -113,9 +117,9 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
             ) : (
               <motion.span
                 key="copy"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
                 transition={{ duration: 0.15 }}
                 className="flex items-center gap-1.5"
               >
@@ -131,7 +135,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       <div className="relative">
         {language ? (
           <div className="flex">
-            {/* Line numbers */}
+            {/* Line numbers — hidden on very small screens */}
             <div className="hidden sm:flex flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
               {codeText.split('\n').map((_, i) => (
                 <div key={i}>{i + 1}</div>

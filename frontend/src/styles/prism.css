@@ -1,15 +1,14 @@
 @reference "./tailwind.css";
 
 /**
- * CSS Styles for code highlighting.
- * Feel free to customize token styles 
- * by copying from a prismjs compatible theme:
- * https://github.com/PrismJS/prism-themes
+ * CSS Styles for code highlighting — light theme for monograph
+ * Background: #F5F3F0 (warm paper) / #1E1E1E (dark)
+ * Based on Sarah Drasner's Night Owl (dark) adapted for light mode
  */
 
 /* Code title styles */
 .remark-code-title {
-  @apply rounded-xs bg-gray-700 px-5 py-3 font-mono text-sm font-bold text-gray-200 dark:bg-gray-800;
+  @apply rounded-xs bg-stone-200 px-5 py-3 font-mono text-sm font-bold text-stone-700 dark:bg-gray-800 dark:text-gray-200;
 }
 
 .remark-code-title + div > pre {
@@ -21,44 +20,70 @@
   @apply float-left min-w-full;
 }
 
-/* Ensure code blocks have horizontal scroll only when needed */
+/* pre base — monograph-theme.css overrides overflow-x per breakpoint */
 pre {
-  @apply overflow-x-auto;
   max-width: 100%;
-  overflow-y: hidden;
-  /* 滚动条默认透明，只在hover或滚动时显示 */
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-  /* 确保 pre 是滚动容器 */
+  /* 确保是滚动容器 */
   position: relative;
 }
 
-pre:hover {
-  scrollbar-color: rgb(209 213 219) transparent;
+/* Desktop: 折行，不滚动 */
+@media (min-width: 768px) {
+  pre {
+    overflow-x: hidden !important;
+    overflow-y: hidden;
+    word-break: break-word;
+    white-space: pre-wrap;
+    /* 滚动条默认透明，只在hover或滚动时显示 */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  pre:hover {
+    scrollbar-color: rgb(209 213 219) transparent;
+  }
+
+  pre::-webkit-scrollbar {
+    height: 8px;
+    background: transparent;
+  }
+
+  pre::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  pre::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  pre:hover::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+  }
+
+  pre::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
 }
 
-pre::-webkit-scrollbar {
-  height: 8px;
-  background: transparent;
-}
+/* Mobile: 允许横向滚动（Touch 友好） */
+@media (max-width: 767px) {
+  pre {
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    white-space: pre;
+    word-break: normal;
+  }
 
-pre::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 4px;
-}
+  pre::-webkit-scrollbar {
+    height: 6px;
+  }
 
-pre::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-pre:hover::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-}
-
-pre::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
+  pre::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+  }
 }
 
 pre code {
@@ -95,78 +120,73 @@ pre code::-webkit-scrollbar {
 }
 
 .highlight-line {
-  @apply -mx-4 border-l-4 bg-gray-700/50;
+  @apply -mx-4 border-l-4 bg-stone-200 dark:bg-gray-700/50;
   border-left-color: var(--color-primary-500, var(--color-primary));
 }
 
 .line-number::before {
-  @apply mr-4 -ml-2 inline-block w-4 text-right text-gray-400;
+  @apply mr-4 -ml-2 inline-block w-4 text-right text-stone-400 dark:text-gray-400;
   content: attr(line);
 }
 
-/* Token styles */
-/**
- * MIT License
- * Copyright (c) 2018 Sarah Drasner
- * Sarah Drasner's[@sdras] Night Owl
- * Ported by Sara vieria [@SaraVieira]
- * Added by Souvik Mandal [@SimpleIndian]
- */
+/* ============================================================
+   Light theme token colors (for bg #F5F3F0)
+   ============================================================ */
 .token.comment,
 .token.prolog,
 .token.cdata {
-  color: rgb(99, 119, 119);
+  color: #8A8580;
   font-style: italic;
 }
 
 .token.punctuation {
-  color: rgb(199, 146, 234);
+  color: #7B5EA7;
 }
 
 .namespace {
-  color: rgb(178, 204, 214);
+  color: #2C7A7B;
 }
 
 .token.deleted {
-  color: rgba(239, 83, 80, 0.56);
+  color: #C0392B;
   font-style: italic;
 }
 
 .token.symbol,
 .token.property {
-  color: rgb(128, 203, 196);
+  color: #2C7A7B;
 }
 
 .token.tag,
 .token.operator,
 .token.keyword {
-  color: rgb(127, 219, 202);
+  color: #9B4F9E;
 }
 
 .token.boolean {
-  color: rgb(255, 88, 116);
+  color: #D35400;
 }
 
 .token.number {
-  color: rgb(247, 140, 108);
+  color: #D35400;
 }
 
 .token.constant,
 .token.function,
 .token.builtin,
 .token.char {
-  color: rgb(130, 170, 255);
+  color: #1A5276;
 }
 
 .token.selector,
 .token.doctype {
-  color: rgb(199, 146, 234);
+  color: #7B5EA7;
   font-style: italic;
 }
 
 .token.attr-name,
 .token.inserted {
-  color: rgb(173, 219, 103);
+  color: #1E8449;
   font-style: italic;
 }
 
@@ -175,19 +195,19 @@ pre code::-webkit-scrollbar {
 .token.entity,
 .language-css .token.string,
 .style .token.string {
-  color: rgb(173, 219, 103);
+  color: #1E8449;
 }
 
 .token.class-name,
 .token.atrule,
 .token.attr-value {
-  color: rgb(255, 203, 139);
+  color: #C17F00;
 }
 
 .token.regex,
 .token.important,
 .token.variable {
-  color: rgb(214, 222, 235);
+  color: #C0392B;
 }
 
 .token.important,
@@ -201,4 +221,94 @@ pre code::-webkit-scrollbar {
 
 .token.table {
   display: inline;
+}
+
+/* ============================================================
+   Dark theme token colors (for bg #1E1E1E)
+   ============================================================ */
+.dark .token.comment,
+.dark .token.prolog,
+.dark .token.cdata {
+  color: rgb(99, 119, 119);
+  font-style: italic;
+}
+
+.dark .token.punctuation {
+  color: rgb(199, 146, 234);
+}
+
+.dark .namespace {
+  color: rgb(178, 204, 214);
+}
+
+.dark .token.deleted {
+  color: rgba(239, 83, 80, 0.56);
+  font-style: italic;
+}
+
+.dark .token.symbol,
+.dark .token.property {
+  color: rgb(128, 203, 196);
+}
+
+.dark .token.tag,
+.dark .token.operator,
+.dark .token.keyword {
+  color: rgb(127, 219, 202);
+}
+
+.dark .token.boolean {
+  color: rgb(255, 88, 116);
+}
+
+.dark .token.number {
+  color: rgb(247, 140, 108);
+}
+
+.dark .token.constant,
+.dark .token.function,
+.dark .token.builtin,
+.dark .token.char {
+  color: rgb(130, 170, 255);
+}
+
+.dark .token.selector,
+.dark .token.doctype {
+  color: rgb(199, 146, 234);
+  font-style: italic;
+}
+
+.dark .token.attr-name,
+.dark .token.inserted {
+  color: rgb(173, 219, 103);
+  font-style: italic;
+}
+
+.dark .token.string,
+.dark .token.url,
+.dark .token.entity,
+.dark .language-css .token.string,
+.dark .style .token.string {
+  color: rgb(173, 219, 103);
+}
+
+.dark .token.class-name,
+.dark .token.atrule,
+.dark .token.attr-value {
+  color: rgb(255, 203, 139);
+}
+
+.dark .token.regex,
+.dark .token.important,
+.dark .token.variable {
+  color: rgb(214, 222, 235);
+}
+
+.dark .token.important,
+.dark .token.bold {
+  font-weight: bold;
+}
+
+.dark .token.italic {
+  font-style: italic;
 }
