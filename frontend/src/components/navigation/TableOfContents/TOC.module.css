@@ -4,8 +4,8 @@
      此处只需定义容器本身的样式（背景、边框、字号）。 */
   position: static;
   max-height: calc(100vh - 8rem);
-  overflow-y: auto;
   overflow-x: hidden;
+  overflow-y: scroll;
   border-radius: 0.75rem;
   border: 1px solid var(--border, #E8E5E0);
   background: var(--card-bg, #FFFFFF);
@@ -16,45 +16,69 @@
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  /* Thin scrollbar: Firefox */
+  /* 始终显示滚动条（不是 overlay），滚动条区域本身可点击交互 */
+  scrollbar-gutter: stable;
+  /* Firefox: 始终显示细滚动条 */
   scrollbar-width: thin;
-  scrollbar-color: var(--mono-border) transparent;
+  scrollbar-color: var(--mono-border) #F0EDE8;
 }
 
-/* Thin scrollbar: Chrome/Safari/Edge */
+/* 鼠标进入 TOC 区域时，滑块变深提示可滚动 */
+.tocContainer:hover {
+  scrollbar-color: var(--text-secondary, #5A5652) #F0EDE8;
+}
+
+/* 传统滚动条：Chrome/Safari/Edge — 始终可见，鼠标放在整个轨道上都能滚 */
 .tocContainer::-webkit-scrollbar {
-  width: 6px;
-  background: transparent;
+  width: 10px;
+  background: #F0EDE8;
 }
 
 .tocContainer::-webkit-scrollbar-track {
-  background: transparent;
+  background: #F0EDE8;
   margin: 0.5rem 0;
   border-radius: 4px;
 }
 
 .tocContainer::-webkit-scrollbar-thumb {
-  background: var(--mono-border);
+  background: var(--mono-border, #C8C4BE);
   border-radius: 4px;
+  border: 2px solid #F0EDE8;
+  background-clip: padding-box;
 }
 
 .tocContainer::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary, #5A5652);
+  background-clip: padding-box;
+  border-color: #F0EDE8;
 }
 
-:global(.dark) .tocContainer::-webkit-scrollbar-thumb {
+/* Dark mode: 滚动条滑块 */
+.dark .tocContainer::-webkit-scrollbar {
+  background: #1A2332;
+}
+
+.dark .tocContainer::-webkit-scrollbar-track {
+  background: #1A2332;
+}
+
+.dark .tocContainer::-webkit-scrollbar-thumb {
   background: #3A5A7F;
+  border-color: #1A2332;
 }
 
-:global(.dark) .tocContainer::-webkit-scrollbar-thumb:hover {
+.dark .tocContainer::-webkit-scrollbar-thumb:hover {
   background: #B8C5D1;
+  border-color: #1A2332;
 }
 
-:global(.dark) .tocContainer {
+.dark .tocContainer {
   border-color: var(--border, #374151);
   background: var(--card-bg, #1F2937);
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  color: #9CA3AF;
+}
+
+.dark .tocContainer:hover {
+  scrollbar-color: #B8C5D1 #1A2332;
 }
 
 .tocHeader {
