@@ -63,8 +63,19 @@ function convertMathFormulas(content: string): string {
     return `__PROTECTED_BLOCK_${protectedBlocks.length - 1}__`
   })
 
-  // 注意：不需要保护表格，MDX 原生支持 Markdown 表格
-  // 表格行中的 | 符号不会被数学公式转换误处理，因为我们的正则不会匹配它们
+  // 保护行内代码块（``...``），避免处理其中的 $ 符号（如价格 $150）
+  content = content.replace(/`[^`\n]+`/g, (match) => {
+    protectedBlocks.push(match)
+    return `__PROTECTED_BLOCK_${protectedBlocks.length - 1}__`
+  })
+
+  // 保护表格行（以 | 开头），避免其中的 $ 符号（如价格列 $150-250）被误匹配
+  // 表格行格式: | cell | cell | ... （可能有多行）
+  const tableRows: string[] = []
+  content = content.replace(/^(\|.*\|)\s*$/gm, (match) => {
+    tableRows.push(match)
+    return `__TABLE_ROW_${tableRows.length - 1}__`
+  })
 
   // 转换块级公式 $$...$$ (支持跨行)
   content = content.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => {
@@ -73,9 +84,15 @@ function convertMathFormulas(content: string): string {
   })
 
   // 转换行内公式 $...$ (不跨行)
-  content = content.replace(/\$([^$\n]+?)\$/g, (_, math) => {
+  // 排除了 | 符号，避免 $150 | $200 这样表格单元格内的 $ 被错误匹配
+  content = content.replace(/\$([^$\n|]+?)\$/g, (_, math) => {
     const escapedMath = escapeHtml(math.trim())
     return `<KatexRenderer math="${escapedMath}" display={false} />`
+  })
+
+  // 恢复被保护的表格行
+  content = content.replace(/__TABLE_ROW_(\d+)__/g, (_, index) => {
+    return tableRows[parseInt(index)]
   })
 
   // 恢复被保护的内容
