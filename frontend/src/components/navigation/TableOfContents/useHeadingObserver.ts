@@ -145,8 +145,12 @@ export function useHeadingObserver({
         const viewportHeight = window.innerHeight
         const bottomThreshold = scrollTop + viewportHeight * 0.3
 
-        // 收集所有可见标题（底部在视口内且顶部未完全滚出）
-        const candidateHeadings = headingElements
+        // 收集所有可见标题
+        // h.bottom > 0         — 标题底部未完全滚出视口顶部
+        // h.offsetTop <= ...    — 标题顶部在视口底部上方
+        // 当页面顶部时所有标题都在下方视口外，候选集为空，
+        // 此时用全部 headingElements（取第一个）作为 fallback。
+        let candidateHeadings = headingElements
           .map((h) => {
             const rect = h.getBoundingClientRect()
             return {
@@ -158,6 +162,19 @@ export function useHeadingObserver({
             }
           })
           .filter((h) => h.bottom > 0 && h.offsetTop <= scrollTop + viewportHeight)
+
+        // 候选集为空（页面顶部时）→ 取文档第一个标题作为初始高亮
+        if (candidateHeadings.length === 0 && headingElements.length > 0) {
+          const firstHeading = headingElements[0]
+          const rect = firstHeading.getBoundingClientRect()
+          candidateHeadings = [{
+            id: firstHeading.id,
+            top: rect.top,
+            bottom: rect.bottom,
+            offsetTop: scrollTop + rect.top,
+            domIndex: 0,
+          }]
+        }
 
         if (candidateHeadings.length === 0) return
 
@@ -192,7 +209,11 @@ export function useHeadingObserver({
       }
 
       // IntersectionObserver：标题进出视口边缘时触发
-      // threshold:0 保证标题刚触边就能触发；rootMargin 扩展触发区
+      // rootMargin: 触发区从视口顶部延伸（-top 到 -bottom 的范围）
+      // '-120px 0px -80% 0px' 时首个标题 rect.top=976（远在视口下方），
+      // 不会触发 IntersectionObserver，导致页面顶部完全没有高亮。
+      // 改为 '0px 0px -80% 0px'：只要有标题在视口顶部至上 20% 的带状区域
+      // 就能触发，确保页面顶部有初始高亮。
       let debounceTimer: NodeJS.Timeout | null = null
       const headingObserver = new IntersectionObserver(
         () => {
@@ -202,7 +223,7 @@ export function useHeadingObserver({
             updateProgress()
           }, 80)
         },
-        { rootMargin: '-120px 0px -80% 0px', threshold: 0 }
+        { rootMargin: '0px 0px -80% 0px', threshold: 0 }
       )
       headingElements.forEach((heading) => headingObserver.observe(heading))
 
