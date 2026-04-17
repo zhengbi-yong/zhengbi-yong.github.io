@@ -19,13 +19,15 @@ interface UseHeadingObserverOptions {
 /**
  * 标题滚动监听 Hook
  *
- * 算法：遍历所有标题 DOM，找到"最后出现在视口上方"的标题作为 active。
- * 使用 scrollY + rect.top 计算绝对 Y 坐标，每次 scroll 事件重新计算。
+ * 算法（Docusaurus 风格）：
+ * - 找到第一个"其顶部已进入视口"的标题 H（rect.top >= 0）
+ * - 如果 H 的顶部在视口上半部分（< viewportHeight/2），说明正在读 H 的上一章
+ * - 否则（H 已到视口下半部分），当前章节就是 H 本身
  *
  * 特点：
- *  - scroll 驱动（不需要 IntersectionObserver）
- *  - 防抖 100ms，避免高频滚动时性能问题
- *  - 保证永远有且只有一个条目高亮
+ * - scroll 事件驱动，无 IntersectionObserver
+ * - 无防抖，滚动即时响应
+ * - 永远有且只有一个条目高亮
  */
 export function useHeadingObserver({
   toc,
@@ -92,8 +94,6 @@ export function useHeadingObserver({
   useEffect(() => {
     if (!toc || toc.length === 0) return undefined
 
-    const STICKY_HEADER = 72
-
     const getHeadingElements = (): HTMLElement[] => {
       const selectors = [
         'article h1[id], article h2[id], article h3[id], article h4[id], article h5[id], article h6[id]',
@@ -125,37 +125,49 @@ export function useHeadingObserver({
     }
 
     /**
-     * 核心算法：
-     * 遍历 DOM 顺序的所有标题，找到"最后出现在视口上方"的标题。
-     * "视口上方" = 标题的 absoluteTop（scrollY + rect.top）<= scrollY + STICKY_HEADER
+     * 核心算法（Docusaurus 风格）：
      *
-     * 遇到第一个尚未进入的标题就停止，保证永远有且只有一个 active。
+     * 视口中点以上有哪些标题？
+     * → 第一个尚未进入视口中点的标题 H，其"前一个"是当前正在阅读的章节。
+     *
+     * 例：视口中点 = 400px。标题 A top=50px, B top=300px, C top=600px
+     * → A 和 B 的顶部都在视口中点以上 → 正在阅读的是 B
+     *
+     * fallback：first heading（当所有标题都在视口以下时）
      */
     const updateActiveHeading = () => {
-      const scrollY = window.scrollY
+      const viewportHeight = window.innerHeight
       const headings = getHeadingElements()
       if (headings.length === 0) return
 
-      let activeId: string | null = null
-
+      // 找到第一个"其顶部已进入视口"的标题
+      // （rect.top >= 0 意味着标题顶部已在视口顶部或以下）
+      let firstBelowCenter: HTMLElement | null = null
       for (let i = 0; i < headings.length; i++) {
-        const heading = headings[i]
-        const rect = heading.getBoundingClientRect()
-        // absoluteTop = 标题顶部在文档中的绝对 Y 坐标
-        const absoluteTop = scrollY + rect.top
-
-        if (absoluteTop <= scrollY + STICKY_HEADER) {
-          // 标题已进入视口（顶部在 sticky header 线或以下）
-          activeId = heading.id
-        } else {
-          // 第一个尚未进入的标题 — 停止，使用上一个（已进入的）
+        const rect = headings[i].getBoundingClientRect()
+        if (rect.top >= 0) {
+          firstBelowCenter = headings[i]
           break
         }
       }
 
-      // 快速滚动到底部（所有标题都已进入）
-      if (!activeId) {
-        activeId = headings[headings.length - 1]?.id ?? null
+      let activeId: string | null = null
+
+      if (!firstBelowCenter) {
+        // 所有标题都还在视口上方（页面顶部）→ 高亮第一个
+        activeId = headings[0]?.id ?? null
+      } else {
+        const firstBelowCenterIdx = headings.indexOf(firstBelowCenter)
+        // firstBelowCenter 的 rect.top 相对于视口顶部
+        // 如果它靠近视口顶部（< 视口高度一半），说明正在阅读它的上一章
+        // 否则（它已滚动到视口下半部分），当前章节就是它本身
+        if (firstBelowCenter.rect.top < viewportHeight / 2) {
+          // 正在阅读 firstBelowCenter 的上一章（如果有的话）
+          activeId = firstBelowCenterIdx > 0 ? headings[firstBelowCenterIdx - 1].id : firstBelowCenter.id
+        } else {
+          // 正在阅读 firstBelowCenter 本身
+          activeId = firstBelowCenter.id
+        }
       }
 
       if (activeId !== activeHeadingIdRef.current) {
