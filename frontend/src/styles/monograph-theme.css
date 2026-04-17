@@ -19,6 +19,14 @@
   --mono-code-bg:      #F5F3F0;
   --mono-selection:    rgba(139, 37, 0, 0.08);
 
+  /* --- TOC Active State Colors --- */
+  --toc-active-bg:           rgba(139, 37, 0, 0.08);
+  --toc-active-text:         #8B2500;
+  --toc-active-indicator:    #8B2500;
+  --toc-shadow:              0 0 0 1px rgba(139, 37, 0, 0.12);
+  --toc-indicator-shadow:     0 0 4px rgba(139, 37, 0, 0.3);
+  --toc-hover:               #8B2500;
+
   /* --- Fluid Typography Scale (ratio 1.25 / Major Third) --- */
   --font-size-base:    clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
   --font-size-h1:      clamp(2rem, 1.6rem + 2vw, 3.5rem);
@@ -62,6 +70,14 @@
   --mono-border:       rgba(255, 255, 255, 0.06);
   --mono-code-bg:      #1E1E1E;
   --mono-selection:    rgba(212, 165, 116, 0.12);
+
+  /* TOC active state — dark mode */
+  --toc-active-bg:           rgba(212, 165, 116, 0.12);
+  --toc-active-text:         #D4A574;
+  --toc-active-indicator:    #D4A574;
+  --toc-shadow:             0 0 0 1px rgba(212, 165, 116, 0.2);
+  --toc-indicator-shadow:    0 0 4px rgba(212, 165, 116, 0.4);
+  --toc-hover:              #D4A574;
 }
 
 /* ========================================

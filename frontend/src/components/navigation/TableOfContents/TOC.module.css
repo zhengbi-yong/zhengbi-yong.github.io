@@ -352,6 +352,38 @@
 
 /* Dark mode styles will be handled via Tailwind dark: variant */
 
+/* ── 阅读进度条 ──────────────────────────────────────────── */
+.tocProgressBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: transparent;
+  z-index: 1;
+  border-radius: 0.75rem 0.75rem 0 0;
+  overflow: hidden;
+  /* 让进度条在容器最上层 */
+  pointer-events: none;
+}
+
+.tocProgressFill {
+  height: 100%;
+  background: var(--mono-accent, #8B2500);
+  border-radius: 0.75rem 0.75rem 0 0;
+  transition: width 0.15s ease-out;
+  max-width: 100%;
+}
+
+/* ── 进度百分比标签 ─────────────────────────────────────── */
+.tocProgressLabel {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--mono-text-muted, #5c5c5c);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
 .tocTitle {
   display: flex;
   justify-content: space-between;
@@ -359,6 +391,9 @@
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border, #E8E5E0);
   flex-shrink: 0;
+  /* 为进度条腾出位置（进度条 absolute 压在标题上方） */
+  position: relative;
+  z-index: 2;
 }
 
 :global(.dark) .tocTitle {

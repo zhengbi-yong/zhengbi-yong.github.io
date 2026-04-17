@@ -23,6 +23,7 @@ import { TOCTree } from './TOCTree'
  */
 export function TableOfContents({ toc, enabled = true, mobileOnly = false }: TableOfContentsProps) {
   const [mounted, setMounted] = useState(false)
+  const [progress, setProgress] = useState(0)
   const tocContentRef = useRef<HTMLDivElement>(null)
   const tocMobileContentRef = useRef<HTMLElement>(null)
 
@@ -40,7 +41,7 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
     handleLinkClick,
   } = useTOCNavigation(toc)
 
-  // 滚动监听 — 负责更新 active heading
+  // 滚动监听 — 负责更新 active heading + 阅读进度 + TOC 自动滚动
   useHeadingObserver({
     toc,
     activeHeadingId,
@@ -49,6 +50,8 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
     setActiveHeadingId,
     tocMobileContentRef,
     _tocContentRef: tocContentRef,
+    tocContainerRef: tocContentRef,
+    onProgressChange: setProgress,
   })
 
   // mounted — 仅用于移动端 Portal，不影响桌面端 TOC（直接 DOM 渲染）
@@ -65,11 +68,22 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
   // 样式由 CSS `.monograph-toc-aside` 的 sticky 定位处理
   const desktopTOC = !mobileOnly && !isMobile ? (
     <div className={styles.tocContainer} ref={tocContentRef}>
+      {/* 阅读进度条 */}
+      <div className={styles.tocProgressBar} aria-hidden="true">
+        <div
+          className={styles.tocProgressFill}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
       <div className={styles.tocTitle}>
         <div className="flex items-center gap-2">
           <List size={16} className="text-gray-400 dark:text-gray-500" />
           <span className={cn(styles.tocTitleText, 'dark:text-gray-300')}>目录</span>
         </div>
+        <span className={cn(styles.tocProgressLabel, 'dark:text-gray-500')}>
+          {Math.round(progress)}%
+        </span>
       </div>
       <nav id="toc-content" className={styles.toc} aria-label="目录">
         <TOCTree tree={tree} activeHeadingId={activeHeadingId} onLinkClick={handleLinkClick} />

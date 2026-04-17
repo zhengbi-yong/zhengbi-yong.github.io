@@ -9,6 +9,10 @@ interface UseHeadingObserverOptions {
   setActiveHeadingId: (id: string | null) => void
   tocMobileContentRef: React.RefObject<HTMLElement>
   _tocContentRef: React.RefObject<HTMLDivElement | null>
+  /** 桌面端 TOC 容器 ref — 用于自动滚动使活动条目可见 */
+  tocContainerRef?: React.RefObject<HTMLDivElement | null>
+  /** 阅读进度回调 (0-100) */
+  onProgressChange?: (progress: number) => void
 }
 
 /**
@@ -18,6 +22,10 @@ interface UseHeadingObserverOptions {
  *  1. 有交集标题时，优先选深度最大（同层选视口最靠上）
  *  2. 无交集标题时（长章节中间），选滚动位置下方最近的标题
  *  3. 滚动位置超出所有标题时，回退到最后一个标题
+ *
+ * 副作用：
+ *  - 当 activeHeadingId 变化时，自动滚动 TOC 使对应条目可见
+ *  - 实时计算阅读进度并通过 onProgressChange 回调推送
  */
 export function useHeadingObserver({
   toc,
@@ -27,14 +35,24 @@ export function useHeadingObserver({
   setActiveHeadingId,
   tocMobileContentRef,
   _tocContentRef,
+  tocContainerRef,
+  onProgressChange,
 }: UseHeadingObserverOptions) {
   void _tocContentRef
   const activeHeadingIdRef = useRef<string | null>(null)
+  const onProgressChangeRef = useRef(onProgressChange)
+  // 追踪上一次的 progress，避免频繁回调
+  const lastProgressRef = useRef<number>(-1)
 
   // 同步 ref，保证 handler 内能读到最新值
   useEffect(() => {
     activeHeadingIdRef.current = activeHeadingId
   }, [activeHeadingId])
+
+  // 同步 onProgressChange ref
+  useEffect(() => {
+    onProgressChangeRef.current = onProgressChange
+  }, [onProgressChange])
 
   // 移动端面板打开时，滚动到活动链接
   useEffect(() => {
@@ -49,6 +67,31 @@ export function useHeadingObserver({
       }, 100)
     }
   }, [isMobileRef, isMobileExpanded, activeHeadingId, tocMobileContentRef])
+
+  // ── 自动滚动 TOC 使活动条目可见 ──────────────────────────────────────────
+  // 当 activeHeadingId 变化（非初次挂载），将对应条目滚动到 TOC 可视范围内
+  const prevActiveHeadingIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (
+      activeHeadingId &&
+      activeHeadingId !== prevActiveHeadingIdRef.current &&
+      tocContainerRef?.current
+    ) {
+      // 延迟执行，确保 DOM 已更新（active class 已在 DOM 中）
+      const timer = setTimeout(() => {
+        const link = tocContainerRef.current?.querySelector<HTMLAnchorElement>(
+          `.toc-link[data-id="${activeHeadingId}"]`
+        )
+        if (link) {
+          link.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        }
+      }, 60)
+      prevActiveHeadingIdRef.current = activeHeadingId
+      return () => clearTimeout(timer)
+    }
+    prevActiveHeadingIdRef.current = activeHeadingId ?? null
+    return undefined
+  }, [activeHeadingId, tocContainerRef])
 
   useEffect(() => {
     if (!toc || toc.length === 0) return undefined
@@ -79,6 +122,18 @@ export function useHeadingObserver({
       }
 
       if (headingElements.length === 0) return undefined
+
+      // ── 计算阅读进度 ────────────────────────────────────────────────────────
+      const updateProgress = () => {
+        const scrollTop = window.scrollY
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight
+        if (docHeight <= 0) return
+        const progress = Math.min(100, Math.max(0, (scrollTop / docHeight) * 100))
+        if (Math.abs(progress - lastProgressRef.current) >= 1) {
+          lastProgressRef.current = progress
+          onProgressChangeRef.current?.(progress)
+        }
+      }
 
       // ── 统一高亮选择逻辑 ──────────────────────────────────────────────────
       // 优先级：
@@ -142,30 +197,35 @@ export function useHeadingObserver({
       const headingObserver = new IntersectionObserver(
         () => {
           if (debounceTimer) clearTimeout(debounceTimer)
-          debounceTimer = setTimeout(updateActiveHeading, 80)
+          debounceTimer = setTimeout(() => {
+            updateActiveHeading()
+            updateProgress()
+          }, 80)
         },
         { rootMargin: '-120px 0px -80% 0px', threshold: 0 }
       )
       headingElements.forEach((heading) => headingObserver.observe(heading))
 
-      // scroll 监听：作为辅助刷新，确保长章节中间始终有高亮
+      // scroll 监听：作为辅助刷新，确保长章节中间始终有高亮 + 进度更新
       let lastScrollFire = 0
       const handleScroll = () => {
         const now = Date.now()
         if (now - lastScrollFire < 80) return
         lastScrollFire = now
         updateActiveHeading()
+        updateProgress()
       }
       window.addEventListener('scroll', handleScroll, { passive: true })
 
-      // 初始激活
+      // 初始激活 + 进度
       const initActiveState = () => {
         const hash = window.location.hash.substring(1)
         if (hash) {
           setActiveHeadingId(hash)
-          return
+        } else {
+          updateActiveHeading()
         }
-        updateActiveHeading()
+        updateProgress()
       }
       setTimeout(initActiveState, 200)
 
