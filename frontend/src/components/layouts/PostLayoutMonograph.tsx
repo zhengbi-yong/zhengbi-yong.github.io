@@ -439,7 +439,7 @@ export default function PostLayoutMonograph({
 
           {/* Sidenote column: TOC (desktop) + floating FAB (mobile/tablet) */}
           {showTOC !== false && toc.length > 0 && (
-            <aside>
+            <aside className="monograph-toc-aside">
               <TableOfContents toc={toc} />
             </aside>
           )}

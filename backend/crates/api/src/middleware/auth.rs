@@ -70,18 +70,17 @@ pub async fn auth_middleware(
             let user_id =
                 uuid::Uuid::parse_str(&claims.sub).map_err(|_| AuthError::InvalidToken)?;
 
-            // 从 JWT claims 构建 AuthUser (不查 DB/Redis)
-            let auth_user = AuthUser {
-                id: user_id,
-                email: claims.email,
-                username: claims.username,
-                profile: serde_json::Value::Null,
-                email_verified: false,
-                role: "user".to_string(),
-            };
-
-            request.extensions_mut().insert(auth_user);
-            Ok(next.run(request).await)
+            // 从数据库加载完整用户信息（含真实 role），而非硬编码 "user"
+            match load_user_from_db(&state.db, user_id).await {
+                Ok(auth_user) => {
+                    request.extensions_mut().insert(auth_user);
+                    Ok(next.run(request).await)
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to load user from DB: {:?}", e);
+                    Err(AuthError::InvalidToken)
+                }
+            }
         }
         Err(e) => {
             tracing::warn!("JWT verification failed: {}", e);

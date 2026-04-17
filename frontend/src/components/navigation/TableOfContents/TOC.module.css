@@ -1,21 +1,21 @@
 .tocContainer {
-  /* JS-driven sticky: position:fixed + scroll-synced top/right
-     (CSS sticky fails inside .surface-shell with overflow:hidden)
-     top/right managed by scroll listener in index.tsx */
-  position: fixed;
-  max-height: calc(100vh - 140px);
+  /* 桌面端 TOC 直接渲染在 DOM 中（不走 Portal）
+     定位由父元素 .monograph-toc-aside 的 sticky 处理。
+     此处只需定义容器本身的样式（背景、边框、字号）。 */
+  position: static;
+  max-height: calc(100vh - 8rem);
   overflow-y: auto;
-  overflow-x: hidden; /* 超长条目折行，不横向扩展 */
+  overflow-x: hidden;
   border-radius: 0.75rem;
   border: 1px solid var(--border, #E8E5E0);
   background: var(--card-bg, #FFFFFF);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  z-index: 50;
   font-size: 0.8125rem;
   color: var(--text-secondary, #5A5652);
   /* 固定宽度，防止多篇文章视觉不一致 */
-  width: 220px;
-  min-width: 220px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 :global(.dark) .tocContainer {

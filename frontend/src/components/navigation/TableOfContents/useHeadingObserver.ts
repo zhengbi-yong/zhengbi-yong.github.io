@@ -8,7 +8,7 @@ interface UseHeadingObserverOptions {
   isMobileExpanded: boolean
   setActiveHeadingId: (id: string | null) => void
   tocMobileContentRef: React.RefObject<HTMLElement>
-  _tocContentRef: React.RefObject<HTMLElement>
+  _tocContentRef: React.RefObject<HTMLDivElement | null>
 }
 
 /**

@@ -121,20 +121,23 @@
   }
 }
 
-/* Desktop: 2-column editorial grid — content fills left, sidenote anchors right
-   Structure: | content (1fr) | sidenote (--mono-grid-sidenote) | */
+/* Desktop: 3-column editorial grid — content | gap | TOC
+   Structure: | content (1fr) | 40px gap | toc (220px, sticky) |
+   Explicit gap column ensures TOC never overlaps content.
+   TOC is positioned via CSS Grid column 3; sticky keeps it in view while scrolling. */
 @media (min-width: 1024px) {
   .monograph-grid {
-    grid-template-columns: minmax(0, 1fr) var(--mono-grid-sidenote);
+    /* 3 columns: content fills remaining, 40px gap, 220px fixed TOC */
+    grid-template-columns: minmax(0, 1fr) 40px 220px;
     max-width: none;
     margin: 0;
   }
 }
 
-/* Wide: same 2-column structure on extra-large screens */
+/* Wide: same 3-column structure on extra-large screens */
 @media (min-width: 1536px) {
   .monograph-grid {
-    grid-template-columns: minmax(0, 1fr) var(--mono-grid-sidenote);
+    grid-template-columns: minmax(0, 1fr) 40px 220px;
   }
 }
 
@@ -277,16 +280,24 @@
    TOC - Sidenote Navigation
    ======================================== */
 
-/* The slot wrapper occupies the sidenote grid cell */
-.monograph-toc-slot {
-  display: contents;
-}
-
 @media (min-width: 1024px) {
-  .monograph-toc-slot {
-    grid-column: 2;
+  .monograph-toc-aside {
+    grid-column: 3;
+    grid-row: 1;
+    /* TOC is a direct child of the grid cell — position: sticky works here
+       because the containing block is the grid cell itself.
+       top: 5rem keeps it pinned 5rem from the scroll container's top edge. */
     display: flex;
     flex-direction: column;
+    align-items: stretch;
+    position: sticky;
+    top: 5rem;
+    align-self: start;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--mono-border) transparent;
   }
 }
 
@@ -297,11 +308,7 @@
 @media (min-width: 1280px) {
   .monograph-toc {
     display: block;
-    position: sticky;
-    top: 5rem;
-    max-height: calc(100vh - 8rem);
-    overflow-y: auto;
-    height: fit-content;
+    /* removed — now handled by sticky on the aside */
   }
 }
 

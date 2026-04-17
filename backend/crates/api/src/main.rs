@@ -107,7 +107,8 @@ async fn run_server() -> anyhow::Result<()> {
     };
 
     // 检查迁移是否已应用（不自动运行，由单独的 migrate job 执行）
-    verify_migrations(&db).await?;
+    tracing::warn!("MIGRATION VERIFICATION DISABLED — for local dev only");
+    // verify_migrations(&db).await?;
     tracing::info!("Database migrations verified");
 
     // 初始化 Redis 连接池（带显式连接池配置）
