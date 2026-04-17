@@ -9,7 +9,6 @@ use blog_api::middleware::{
 use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
 use blog_api::runtime::{
     create_postgres_pool, create_redis_pool, create_replica_pool, shutdown_signal,
-    verify_migrations,
 };
 use blog_api::state::AppState;
 use opentelemetry::trace::TracerProvider as _;
