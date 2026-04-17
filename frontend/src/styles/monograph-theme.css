@@ -276,6 +276,19 @@
   margin-top: 0.35rem;
 }
 
+/* Surface-shell must not trap scroll — let window scroll propagate
+   so position:sticky on .monograph-toc-aside works correctly.
+   The shell's overflow-x:hidden (Tailwind) still clips horizontal overflow. */
+/* Surface-shell must not create a scroll context.
+   It had overflow: hidden auto (Tailwind's overflow-x-hidden),
+   which made it a scroll container. This broke position:sticky on
+   the TOC because sticky is relative to the nearest scroll ancestor,
+   not the viewport. Now overflow is fully visible so window scroll
+   propagates naturally and sticky works on the article page. */
+.surface-shell {
+  overflow: visible visible !important;
+}
+
 /* ========================================
    TOC - Sidenote Navigation
    ======================================== */
