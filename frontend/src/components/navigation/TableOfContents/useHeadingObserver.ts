@@ -42,7 +42,6 @@ export function useHeadingObserver({
   const activeHeadingIdRef = useRef<string | null>(null)
   const onProgressChangeRef = useRef(onProgressChange)
   const lastProgressRef = useRef<number>(-1)
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 同步 ref
   useEffect(() => {
@@ -94,7 +93,6 @@ export function useHeadingObserver({
     if (!toc || toc.length === 0) return undefined
 
     const STICKY_HEADER = 72
-    const DEBOUNCE_MS = 100
 
     const getHeadingElements = (): HTMLElement[] => {
       const selectors = [
@@ -168,15 +166,8 @@ export function useHeadingObserver({
       updateProgress()
     }
 
-    // scroll 事件驱动（不需要 IntersectionObserver）
-    // 防抖：每次 scroll 事件重置计时器，100ms 无新事件后才执行
     const handleScroll = () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-      debounceTimerRef.current = setTimeout(() => {
-        updateActiveHeading()
-      }, DEBOUNCE_MS)
+      updateActiveHeading()
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
 
@@ -200,7 +191,6 @@ export function useHeadingObserver({
     return () => {
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('hashchange', handleHashChange)
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     }
   }, [toc, setActiveHeadingId])
 }
