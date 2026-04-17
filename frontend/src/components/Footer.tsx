@@ -179,6 +179,7 @@ const Footer = memo(() => {
 
   return (
     <footer
+      suppressHydrationWarning
       className={cn(
         styles.footerRoot,
         'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12',

@@ -238,8 +238,10 @@ export function useHeadingObserver({
       }
       window.addEventListener('scroll', handleScroll, { passive: true })
 
-      // 初始激活 + 进度
-      const initActiveState = () => {
+      // 初始激活 + 进度：在 observer 初始化后执行
+      // 确保 headingElements 已找到（initObserver 同步执行），
+      // 延迟 50ms 让 DOM 完全稳定
+      setTimeout(() => {
         const hash = window.location.hash.substring(1)
         if (hash) {
           setActiveHeadingId(hash)
@@ -247,8 +249,7 @@ export function useHeadingObserver({
           updateActiveHeading()
         }
         updateProgress()
-      }
-      setTimeout(initActiveState, 200)
+      }, 50)
 
       // hash 变化
       const handleHashChange = () => {
