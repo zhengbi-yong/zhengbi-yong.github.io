@@ -126,53 +126,47 @@ export function useHeadingObserver({
     }
 
     /**
-     * 核心算法（"正在读哪一章"）：
+     * 核心算法（"视口顶部最近原则"）：
      *
-     * 找到第一个"其底部已完全滚出视口上方"的标题 H（rect.bottom < 0）。
-     * H 的下一个就是当前正在阅读的章节（因为 H 的内容已全部读完）。
+     * 视口的 top=0（页面顶部），向下滚动时新的 heading 依次从顶部"进入"。
+     * 找到 rect.top 最接近 0 的那条 heading（它在视口最上方），
+     * 它的前一条（如果有）是当前正在阅读的章节。
      *
-     * 例：视口高度 720px。
-     * 标题 2.4: rect.top=80, rect.bottom=200  → rect.bottom > 0 → 未读完
-     * 标题 2.5: rect.top=-100, rect.bottom=20  → rect.bottom > 0 → 未读完
-     * 标题 2.6: rect.top=-500, rect.bottom=-200 → rect.bottom < 0 → 已读完
-     * → 2.5 是当前章节（2.6 的前一个）
+     * 例：视口高度 720px，页面顶部 top=0。
+     * 滚动 s=1000:  标题 2.4 top=82,  2.5 top=520  → 2.4 距顶部最近(82) → 高亮 2.3
+     * 滚动 s=1500:  标题 2.4 top=-418, 2.5 top=20   → 2.5 距顶部最近(20) → 高亮 2.4
+     * 滚动 s=2000:  标题 2.5 top=-480, 2.6 top=60    → 2.6 距顶部最近(60) → 高亮 2.5
      *
-     * fallback：第一个标题（当所有标题都还在视口内时）
+     * fallback：第一个 heading
      *
-     * 为什么不用 Docusaurus 的方法（rect.top >= 0）？
-     * 因为进入新章节时，顶部刚进入视口会在"上半部分"触发高亮上一个章节，
-     * 造成向下滚动时 TOC 高亮先跳到上一章再跳回来的"反向"体验。
-     * 用 rect.bottom < 0 只有在读完上一章后才切换，高亮永远是当前章节。
+     * 关键：只依赖 rect.top >= 0 找"已进入视口的 heading"，取最靠上的一条，
+     * 它的前一条就是当前章节。这个逻辑在滚动全程始终有效。
      */
     const updateActiveHeading = () => {
       const headings = getHeadingElements()
       if (headings.length === 0) return
 
-      // 找到第一个"底部已滚出视口上方"的标题（即已读完）
-      let firstScrolledPast: HTMLElement | null = null
+      // 收集所有已进入视口的 heading（rect.top >= 0），取最靠上（rect.top 最小）的那条
+      let topmostInViewport: HTMLElement | null = null
+      let minTop = Infinity
+
       for (let i = 0; i < headings.length; i++) {
         const rect = headings[i].getBoundingClientRect()
-        if (rect.bottom < 0) {
-          firstScrolledPast = headings[i]
-          break
+        if (rect.top >= 0 && rect.top < minTop) {
+          minTop = rect.top
+          topmostInViewport = headings[i]
         }
       }
 
       let activeId: string | null = null
 
-      if (!firstScrolledPast) {
-        // 所有标题都还在视口内（或部分在视口下方）→ 高亮第一个
+      if (!topmostInViewport) {
+        // 没有 heading 进入视口（还在页面顶部）→ 高亮第一个
         activeId = headings[0]?.id ?? null
       } else {
-        const idx = headings.indexOf(firstScrolledPast)
-        // firstScrolledPast 是已读完的章节，它的下一个是当前正在阅读的
-        const nextHeading = headings[idx + 1]
-        if (nextHeading) {
-          activeId = nextHeading.id
-        } else {
-          // 没有下一个了（已到最后章节），高亮已读完章节本身
-          activeId = firstScrolledPast.id
-        }
+        const idx = headings.indexOf(topmostInViewport)
+        // topmostInViewport 刚进入视口，它的上一条是当前正在阅读的章节
+        activeId = idx > 0 ? headings[idx - 1].id : topmostInViewport.id
       }
 
       if (activeId !== activeHeadingIdRef.current) {
