@@ -126,48 +126,52 @@ export function useHeadingObserver({
     }
 
     /**
-     * 核心算法（Docusaurus 风格）：
+     * 核心算法（"正在读哪一章"）：
      *
-     * 视口中点以上有哪些标题？
-     * → 第一个尚未进入视口中点的标题 H，其"前一个"是当前正在阅读的章节。
+     * 找到第一个"其底部已完全滚出视口上方"的标题 H（rect.bottom < 0）。
+     * H 的下一个就是当前正在阅读的章节（因为 H 的内容已全部读完）。
      *
-     * 例：视口中点 = 400px。标题 A top=50px, B top=300px, C top=600px
-     * → A 和 B 的顶部都在视口中点以上 → 正在阅读的是 B
+     * 例：视口高度 720px。
+     * 标题 2.4: rect.top=80, rect.bottom=200  → rect.bottom > 0 → 未读完
+     * 标题 2.5: rect.top=-100, rect.bottom=20  → rect.bottom > 0 → 未读完
+     * 标题 2.6: rect.top=-500, rect.bottom=-200 → rect.bottom < 0 → 已读完
+     * → 2.5 是当前章节（2.6 的前一个）
      *
-     * fallback：first heading（当所有标题都在视口以下时）
+     * fallback：第一个标题（当所有标题都还在视口内时）
+     *
+     * 为什么不用 Docusaurus 的方法（rect.top >= 0）？
+     * 因为进入新章节时，顶部刚进入视口会在"上半部分"触发高亮上一个章节，
+     * 造成向下滚动时 TOC 高亮先跳到上一章再跳回来的"反向"体验。
+     * 用 rect.bottom < 0 只有在读完上一章后才切换，高亮永远是当前章节。
      */
     const updateActiveHeading = () => {
-      const viewportHeight = window.innerHeight
       const headings = getHeadingElements()
       if (headings.length === 0) return
 
-      // 找到第一个"其顶部已进入视口"的标题及其 rect
-      // （rect.top >= 0 意味着标题顶部已在视口顶部或以下）
-      let firstBelowCenter: { el: HTMLElement; rect: DOMRect } | null = null
+      // 找到第一个"底部已滚出视口上方"的标题（即已读完）
+      let firstScrolledPast: HTMLElement | null = null
       for (let i = 0; i < headings.length; i++) {
         const rect = headings[i].getBoundingClientRect()
-        if (rect.top >= 0) {
-          firstBelowCenter = { el: headings[i], rect }
+        if (rect.bottom < 0) {
+          firstScrolledPast = headings[i]
           break
         }
       }
 
       let activeId: string | null = null
 
-      if (!firstBelowCenter) {
-        // 所有标题都还在视口上方（页面顶部）→ 高亮第一个
+      if (!firstScrolledPast) {
+        // 所有标题都还在视口内（或部分在视口下方）→ 高亮第一个
         activeId = headings[0]?.id ?? null
       } else {
-        const firstBelowCenterIdx = headings.indexOf(firstBelowCenter.el)
-        // firstBelowCenter.rect.top 相对于视口顶部
-        // 如果它靠近视口顶部（< 视口高度一半），说明正在阅读它的上一章
-        // 否则（它已滚动到视口下半部分），当前章节就是它本身
-        if (firstBelowCenter.rect.top < viewportHeight / 2) {
-          // 正在阅读 firstBelowCenter 的上一章（如果有的话）
-          activeId = firstBelowCenterIdx > 0 ? headings[firstBelowCenterIdx - 1].id : firstBelowCenter.el.id
+        const idx = headings.indexOf(firstScrolledPast)
+        // firstScrolledPast 是已读完的章节，它的下一个是当前正在阅读的
+        const nextHeading = headings[idx + 1]
+        if (nextHeading) {
+          activeId = nextHeading.id
         } else {
-          // 正在阅读 firstBelowCenter 本身
-          activeId = firstBelowCenter.el.id
+          // 没有下一个了（已到最后章节），高亮已读完章节本身
+          activeId = firstScrolledPast.id
         }
       }
 
