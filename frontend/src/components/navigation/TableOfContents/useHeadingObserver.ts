@@ -19,10 +19,10 @@ interface UseHeadingObserverOptions {
 /**
  * 标题滚动监听 Hook
  *
- * 算法（Docusaurus 风格）：
+ * 算法（视口中心分割）：
  * - 找到第一个"其顶部已进入视口"的标题 H（rect.top >= 0）
- * - 如果 H 的顶部在视口上半部分（< viewportHeight/2），说明正在读 H 的上一章
- * - 否则（H 已到视口下半部分），当前章节就是 H 本身
+ * - 如果 H 的顶部在视口上半部（< viewportHeight/2），说明正在读 H 本身
+ * - 否则（H 已到视口下半部），当前章节是 H 的上一条
  *
  * 特点：
  * - scroll 事件驱动，无 IntersectionObserver
@@ -165,8 +165,18 @@ export function useHeadingObserver({
         activeId = headings[0]?.id ?? null
       } else {
         const idx = headings.indexOf(topmostInViewport)
-        // topmostInViewport 刚进入视口，它的上一条是当前正在阅读的章节
-        activeId = idx > 0 ? headings[idx - 1].id : topmostInViewport.id
+        // 根据 topmostInViewport 相对于视口的位置决定：
+        // - 其顶部还在视口上半部（< viewportHeight/2）→ 用户刚开始读它 → 高亮它自己
+        // - 其顶部已进入视口下半部 → 用户已翻过它 → 高亮上一条
+        const viewportHeight = window.innerHeight
+        const halfwayPoint = viewportHeight / 2
+        if (topmostInViewport.getBoundingClientRect().top < halfwayPoint) {
+          // 仍在视口上半部，高亮 topmostInViewport 本身
+          activeId = topmostInViewport.id
+        } else {
+          // 已进入下半部，高亮上一条
+          activeId = idx > 0 ? headings[idx - 1].id : topmostInViewport.id
+        }
       }
 
       if (activeId !== activeHeadingIdRef.current) {
