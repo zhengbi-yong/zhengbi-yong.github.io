@@ -29,7 +29,10 @@ const TiptapEditor = dynamic(
 )
 
 export default function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params)
+  const { slug: encodedSlug } = use(params)
+  // decodeURIComponent: href uses encodeURIComponent so '/' in slugs like
+  // "tactile/vision_based_tactile_sensor" travels as a single URL segment
+  const slug = decodeURIComponent(encodedSlug)
   const [isSaving, setIsSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<{
     type: 'success' | 'error' | null
