@@ -80,6 +80,8 @@ export function TiptapEditor({
     extensions: [
       StarterKit.configure({
         codeBlock: false, // 使用 lowlight 替代默认代码块
+        link: false,       // 使用下方显式导入的 @tiptap/extension-link
+        underline: false,  // 使用下方显式导入的 @tiptap/extension-underline
       }),
       Placeholder.configure({
         placeholder,
