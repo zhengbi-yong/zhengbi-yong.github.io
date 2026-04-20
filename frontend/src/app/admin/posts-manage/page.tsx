@@ -298,7 +298,7 @@ export default function AdminPostsManagePage() {
                   <td className="px-4 py-4 text-sm">
                     <div className="flex items-center gap-2">
                       <Link
-                        href={`/admin/posts/${post.slug}/edit`}
+                        href={`/admin/posts/${encodeURIComponent(post.slug)}/edit`}
                         className="rounded bg-blue-500 px-2 py-1 text-white text-xs transition-colors hover:bg-blue-600"
                       >
                         {t('edit') || '编辑'}

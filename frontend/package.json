@@ -65,6 +65,7 @@
     "@refinedev/react-router-v6": "^4.6.2",
     "@refinedev/simple-rest": "^6.0.1",
     "@sentry/nextjs": "^10.40.0",
+    "@sparkjsdev/spark": "2.0.0",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/typography": "^0.5.19",

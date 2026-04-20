@@ -182,7 +182,7 @@ const generateSecurityHeaders = () => {
         'img-src': "'self' data: https: avatars.githubusercontent.com picsum.photos",
         'font-src': "'self' data: blob: https://fonts.gstatic.com https:",
         'connect-src':
-          "'self' https: http://localhost:3000 https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://cloud.umami.is https://o1046881.ingest.sentry.io",
+          "'self' https: http://localhost:3000 http://192.168.0.161:3000 https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://cloud.umami.is https://o1046881.ingest.sentry.io",
         'frame-src': 'giscus.app excalidraw.com',
         'worker-src': "'self' blob:",
         'media-src': "'self'",
@@ -199,15 +199,16 @@ const generateSecurityHeaders = () => {
         // 评论系统需要 giscus.app
         'default-src': "'self'",
         'script-src':
-          "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app https://cloud.umami.is",
+          "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' blob: giscus.app https://cloud.umami.is",
         'script-src-elem':
-          "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' giscus.app https://cloud.umami.is",
+          "'self' 'unsafe-eval' 'unsafe-inline' 'wasm-unsafe-eval' blob: giscus.app https://cloud.umami.is",
         'style-src': "'self' 'unsafe-inline' https://fonts.googleapis.com",
         'style-src-elem': "'self' 'unsafe-inline' https://fonts.googleapis.com",
         'img-src': "'self' data: https: avatars.githubusercontent.com",
         'font-src': "'self' data: blob: https://fonts.gstatic.com https:",
+        'worker-src': "'self' blob:",
         'connect-src':
-          "'self' https: http://localhost:3000 ws://localhost:3000 ws://localhost:3001 ws://192.168.0.161:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
+          "'self' data: https: http://localhost:3000 http://192.168.0.161:3000 ws://localhost:3000 ws://localhost:3001 ws://192.168.0.161:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
         'frame-src': 'giscus.app excalidraw.com',
       }
 
