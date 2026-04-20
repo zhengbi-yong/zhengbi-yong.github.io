@@ -816,10 +816,10 @@ pub async fn get_post_by_id(
 /// 更新文章
 #[utoipa::path(
     patch,
-    path = "/admin/posts/{slug}",
+    path = "/admin/posts/{postId}",
     tag = "admin/posts",
     params(
-        ("slug" = String, Path, description = "文章slug")
+        ("postId" = Uuid, Path, description = "文章数据库ID (UUID)")
     ),
     request_body = UpdatePostRequest,
     responses(
@@ -834,18 +834,24 @@ pub async fn get_post_by_id(
 )]
 pub async fn update_post(
     State(state): State<AppState>,
-    Path(slug): Path<String>,
+    Path(post_id): Path<Uuid>,
     Json(req): Json<UpdatePostRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let mut tx = state.db.begin().await?;
 
     // 检查文章是否存在
     let post_id: Uuid =
-        sqlx::query_scalar("SELECT id FROM posts WHERE slug = $1 AND deleted_at IS NULL")
-            .bind(&slug)
+        sqlx::query_scalar("SELECT id FROM posts WHERE id = $1 AND deleted_at IS NULL")
+            .bind(post_id)
             .fetch_optional(&mut *tx)
             .await?
             .ok_or(AppError::PostNotFound)?;
+
+    // 获取当前 slug（用于缓存清理和搜索索引更新）
+    let current_slug: String = sqlx::query_scalar("SELECT slug FROM posts WHERE id = $1")
+        .bind(post_id)
+        .fetch_one(&mut *tx)
+        .await?;
 
     // 构建更新查询（动态）
     let mut update_fields = Vec::new();
@@ -924,11 +930,11 @@ pub async fn update_post(
     }
 
     let query = format!(
-        "UPDATE posts SET {} WHERE slug = $1 RETURNING id",
+        "UPDATE posts SET {} WHERE id = $1 RETURNING id",
         update_fields.join(", ")
     );
 
-    let mut query_builder = sqlx::query(&query).bind(&slug);
+    let mut query_builder = sqlx::query(&query).bind(post_id);
 
     if let Some(title) = req.title {
         query_builder = query_builder.bind(title);
@@ -1008,11 +1014,11 @@ pub async fn update_post(
     tx.commit().await?;
 
     // 清除缓存
-    clear_post_cache(&state, &slug).await;
+    clear_post_cache(&state, &current_slug).await;
     clear_posts_cache(&state).await;
 
     // 异步写入 outbox，由 worker 处理搜索索引同步
-    if let Err(error) = crate::outbox::add_search_index_upsert(&state.db, &slug).await {
+    if let Err(error) = crate::outbox::add_search_index_upsert(&state.db, &current_slug).await {
         tracing::warn!("Failed to add search index upsert to outbox: {error:#}");
     }
 
@@ -1025,10 +1031,10 @@ pub async fn update_post(
 /// 删除文章（软删除）
 #[utoipa::path(
     delete,
-    path = "/admin/posts/{slug}",
+    path = "/admin/posts/{postId}",
     tag = "admin/posts",
     params(
-        ("slug" = String, Path, description = "文章slug")
+        ("postId" = Uuid, Path, description = "文章数据库ID (UUID)")
     ),
     responses(
         (status = 200, description = "删除成功", body = MessageResponse),
@@ -1041,11 +1047,20 @@ pub async fn update_post(
 )]
 pub async fn delete_post(
     State(state): State<AppState>,
-    Path(slug): Path<String>,
+    Path(post_id): Path<Uuid>,
 ) -> Result<impl IntoResponse, AppError> {
+    // 先查询 slug（用于缓存清理和搜索索引删除）
+    let slug: String =
+        sqlx::query_scalar("SELECT slug FROM posts WHERE id = $1 AND deleted_at IS NULL")
+            .bind(post_id)
+            .fetch_optional(&state.db)
+            .await?
+            .ok_or(AppError::PostNotFound)?;
+
+    // 软删除
     let affected = sqlx::query!(
-        "UPDATE posts SET deleted_at = NOW() WHERE slug = $1 AND deleted_at IS NULL",
-        slug
+        "UPDATE posts SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL",
+        post_id
     )
     .execute(&state.db)
     .await?

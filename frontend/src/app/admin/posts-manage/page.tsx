@@ -74,21 +74,21 @@ export default function AdminPostsManagePage() {
     setSelectedPosts(newSelected)
   }
 
-  const handleDelete = async (slug: string, title: string) => {
+  const handleDelete = async (postId: string, title: string) => {
     if (!confirm(`确定要删除文章 "${title}" 吗？此操作不可撤销。`)) {
       return
     }
 
-    setDeleting(prev => new Set(prev).add(slug))
+    setDeleting(prev => new Set(prev).add(postId))
     try {
-      await adminService.deletePost(slug)
+      await adminService.deletePost(postId)
       // 重新加载列表
       loadPosts()
     } catch (error) {
       alert('删除失败')
       setDeleting(prev => {
         const newSet = new Set(prev)
-        newSet.delete(slug)
+        newSet.delete(postId)
         return newSet
       })
     }
@@ -105,7 +105,7 @@ export default function AdminPostsManagePage() {
       for (const postId of selectedPosts) {
         const post = posts.find(p => p.id === postId)
         if (post) {
-          await adminService.deletePost(post.slug)
+          await adminService.deletePost(post.id)
         }
       }
       setSelectedPosts(new Set())
@@ -115,10 +115,10 @@ export default function AdminPostsManagePage() {
     }
   }
 
-  const handleToggleStatus = async (slug: string, currentStatus: string) => {
+  const handleToggleStatus = async (postId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Published' ? 'Draft' : 'Published'
     try {
-      await adminService.updatePost(slug, { status: newStatus })
+      await adminService.updatePost(postId, { status: newStatus })
       loadPosts()
     } catch (error) {
       alert('更新状态失败')
@@ -304,17 +304,17 @@ export default function AdminPostsManagePage() {
                         {t('edit') || '编辑'}
                       </Link>
                       <button
-                        onClick={() => handleToggleStatus(post.slug, post.status)}
+                        onClick={() => handleToggleStatus(post.id, post.status)}
                         className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                       >
                         {post.status === 'Published' ? (t('blog.unpublish') || '下线') : (t('blog.publish') || '发布')}
                       </button>
                       <button
-                        onClick={() => handleDelete(post.slug, post.title)}
-                        disabled={deleting.has(post.slug)}
+                        onClick={() => handleDelete(post.id, post.title)}
+                        disabled={deleting.has(post.id)}
                         className="rounded border border-red-300 px-2 py-1 text-xs text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
                       >
-                        {deleting.has(post.slug) ? (t('loading') || '删除中...') : (t('delete') || '删除')}
+                        {deleting.has(post.id) ? (t('loading') || '删除中...') : (t('delete') || '删除')}
                       </button>
                     </div>
                   </td>

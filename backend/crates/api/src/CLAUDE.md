@@ -162,7 +162,7 @@ pub struct AppState {
 - `GET /admin/users` - List users
 - `PUT /admin/users/{id}/role` - Update user role
 - `DELETE /admin/users/{id}` - Delete user
-- `GET /admin/users/growth` - User growth analytics
+- `GET /admin/user-growth` - User growth analytics
 
 ### Media (`/v1/admin/media`)
 - `GET /admin/media` - List media

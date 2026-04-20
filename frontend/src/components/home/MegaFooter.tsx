@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import siteMetadata from '@/data/siteMetadata'
 import { cn } from '@/components/lib/utils'
@@ -36,7 +37,14 @@ const socialLinks = [
 
 export default function MegaFooter() {
   const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // GOLDEN_RULES 2.6 / NextSSR: 防止 hydration mismatch
+  const isDark = mounted && resolvedTheme === 'dark'
 
   const navLinks = [
     { href: '/blog', label: 'Blog' },
@@ -53,6 +61,7 @@ export default function MegaFooter() {
         isDark ? 'bg-[#05080F] text-slate-200' : 'bg-slate-50 text-slate-900'
       )}
       aria-label="Footer"
+      suppressHydrationWarning
     >
       <div
         className={cn(

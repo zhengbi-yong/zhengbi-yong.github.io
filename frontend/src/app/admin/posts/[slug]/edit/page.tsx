@@ -98,7 +98,8 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
     setSaveStatus({ type: null, message: '' })
 
     try {
-      await adminService.updatePost(slug, {
+      if (!originalPost) return
+      await adminService.updatePost(originalPost.id, {
         title,
         content,
         summary: summary || undefined,

@@ -587,7 +587,7 @@ export const adminService = {
    * Update post
    */
   async updatePost(
-    slug: string,
+    postId: string,
     data: {
       title?: string
       content?: string
@@ -607,7 +607,7 @@ export const adminService = {
       tag_ids?: string[] | null
     }
   ): Promise<PostDetail> {
-    const response = await api.patch<PostDetail>(`${BACKEND_API_URL}/admin/posts/${slug}`, data, {
+    const response = await api.patch<PostDetail>(`${BACKEND_API_URL}/admin/posts/${postId}`, data, {
       cache: false,
     })
     return response.data
@@ -616,8 +616,8 @@ export const adminService = {
   /**
    * Delete post
    */
-  async deletePost(slug: string): Promise<void> {
-    await api.delete(`${BACKEND_API_URL}/admin/posts/${slug}`, { cache: false })
+  async deletePost(postId: string): Promise<void> {
+    await api.delete(`${BACKEND_API_URL}/admin/posts/${postId}`, { cache: false })
   },
 
   /**

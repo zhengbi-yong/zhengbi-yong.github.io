@@ -175,7 +175,10 @@ const Footer = memo(() => {
   }, [])
 
   return (
-    <footer className={cn(styles.footerRoot, 'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12 bg-slate-50 dark:bg-[#05080F] text-slate-900 dark:text-slate-200')}>
+    <footer
+      className={cn(styles.footerRoot, 'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12 bg-slate-50 dark:bg-[#05080F] text-slate-900 dark:text-slate-200')}
+      suppressHydrationWarning
+    >
       <div className="mx-auto flex max-w-6xl flex-col gap-10">
         <div className={styles.footerDivider} />
 

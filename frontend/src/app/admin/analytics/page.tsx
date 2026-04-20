@@ -25,7 +25,7 @@ export default function AnalyticsPage() {
 
   // 获取用户增长数据
   const userGrowthQuery = useCustom({
-    url: '/admin/users/growth',
+    url: '/admin/user-growth',
     method: 'get',
     queryOptions: {
       staleTime: 5 * 60 * 1000, // 5分钟缓存

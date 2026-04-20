@@ -2,24 +2,51 @@
  * Refine Data Provider
  * 适配现有的后端 API 结构
  *
+ * GOLDEN_RULES 2.1: Client Components 必须走 /api/v1/* Route Handler (BFF)
+ * - 不再直接调用后端 (http://192.168.0.161:3000)
+ * - 所有请求走 BFF 代理，由 Next.js Route Handler 转发
+ * - credentials: 'include' 自动携带浏览器 Cookie 到同源 BFF
+ *
  * GOLDEN_RULES 1.1: 认证令牌必须仅存在于 HttpOnly Cookie 中
  * - 不再从 localStorage 读取或存储 token
- * - 使用 withCredentials: true 自动发送 HttpOnly Cookie
+ * - 浏览器自动发送 HttpOnly Cookie 到 BFF，BFF 透传 Cookie 到后端
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { DataProvider } from '@refinedev/core'
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
-const BACKEND_API_URL = resolveBackendApiBaseUrl()
+// GOLDEN_RULES 2.1: 使用 /api/v1 BFF 路径，而非直接调后端
+// resolveBackendApiBaseUrl() 在客户端环境返回 '/api/v1'
+const BFF_API_URL = resolveBackendApiBaseUrl()
 
-// 创建自定义的 axios 实例
-// GOLDEN_RULES 1.1: 使用 withCredentials 发送 HttpOnly Cookie
-const customAxios = axios.create({
-  baseURL: BACKEND_API_URL,
-  withCredentials: true,
-})
+async function bffFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = `${BFF_API_URL}${path}`
+  const response = await fetch(url, {
+    ...options,
+    credentials: 'include', // GOLDEN_RULES 1.1: 自动发送 HttpOnly Cookie 到同源 BFF
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+
+  if (!response.ok) {
+    const error = new Error(`HTTP ${response.status}: ${response.statusText}`) as Error & {
+      statusCode: number
+    }
+    error.statusCode = response.status
+    try {
+      const data = await response.json()
+      error.message = data.error?.message || data.message || error.message
+    } catch {
+      // use default message
+    }
+    throw error
+  }
+
+  return response.json()
+}
 
 // 辅助函数：创建符合 Refine HttpError 接口的错误对象
 const createHttpError = (
@@ -48,14 +75,27 @@ interface ApiResponse {
   [key: string]: unknown
 }
 
+// 构建带查询参数的路径
+function buildPath(resource: string, params?: Record<string, string | number>): string {
+  if (!params || Object.keys(params).length === 0) return `/${resource}`
+  const searchParams = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null) {
+      searchParams.set(key, String(value))
+    }
+  }
+  const query = searchParams.toString()
+  return query ? `/${resource}?${query}` : `/${resource}`
+}
+
 // 创建 dataProvider 对象
 export const dataProvider: DataProvider = {
   getList: async ({ resource, pagination, filters, sorters }) => {
     // 特殊处理 admin/stats
     if (resource === 'admin/stats') {
-      const response = await customAxios.get<ApiResponse>('/admin/stats')
+      const data = await bffFetch<ApiResponse>('/admin/stats')
       return {
-        data: [response.data.data] as any,
+        data: [data.data] as any,
         total: 1,
       }
     }
@@ -95,64 +135,64 @@ export const dataProvider: DataProvider = {
     }
 
     try {
-      const response = await customAxios.get<ApiResponse>(`/${resource}`, { params })
+      const response = await bffFetch<ApiResponse>(buildPath(resource, params))
 
       // 处理不同的响应格式
       let data: unknown[] = []
-      if (response.data.data) {
-        data = response.data.data as unknown[]
-      } else if (response.data.users) {
-        data = response.data.users as unknown[]
-      } else if (response.data.comments) {
-        data = response.data.comments as unknown[]
-      } else if (response.data.posts) {
-        data = response.data.posts as unknown[]
-      } else if (Array.isArray(response.data)) {
+      if (response.data) {
         data = response.data as unknown[]
+      } else if (response.users) {
+        data = response.users as unknown[]
+      } else if (response.comments) {
+        data = response.comments as unknown[]
+      } else if (response.posts) {
+        data = response.posts as unknown[]
+      } else if (Array.isArray(response)) {
+        data = response as unknown[]
       }
 
       return {
         data: data as any,
-        total: response.data.total ?? data.length,
+        total: response.total ?? data.length,
       }
     } catch (error) {
-      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+      const err = error as { statusCode?: number; message?: string }
       throw createHttpError(
-        err.response?.status || 500,
-        err.response?.statusText || 'Unknown Error',
-        err.response?.data as Record<string, unknown>
+        err.statusCode || 500,
+        err.message || 'Unknown Error'
       )
     }
   },
 
   getOne: async ({ resource, id }) => {
     try {
-      const response = await customAxios.get<ApiResponse>(`/${resource}/${id}`)
+      const data = await bffFetch<ApiResponse>(`/${resource}/${id}`)
       return {
-        data: response.data as any,
+        data: data as any,
       }
     } catch (error) {
-      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+      const err = error as { statusCode?: number; message?: string }
       throw createHttpError(
-        err.response?.status || 500,
-        err.response?.statusText || 'Unknown Error',
-        err.response?.data as Record<string, unknown>
+        err.statusCode || 500,
+        err.message || 'Unknown Error'
       )
     }
   },
 
   create: async ({ resource, variables }) => {
     try {
-      const response = await customAxios.post<ApiResponse>(`/${resource}`, variables as any)
+      const data = await bffFetch<ApiResponse>(`/${resource}`, {
+        method: 'POST',
+        body: JSON.stringify(variables),
+      })
       return {
-        data: response.data as any,
+        data: data as any,
       }
     } catch (error) {
-      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+      const err = error as { statusCode?: number; message?: string }
       throw createHttpError(
-        err.response?.status || 500,
-        err.response?.statusText || 'Unknown Error',
-        err.response?.data as Record<string, unknown>
+        err.statusCode || 500,
+        err.message || 'Unknown Error'
       )
     }
   },
@@ -161,90 +201,104 @@ export const dataProvider: DataProvider = {
     try {
       // 对于 admin/users/{id}/role 这样的特殊端点
       if (resource === 'admin/users' && variables && 'role' in (variables as any)) {
-        await customAxios.put(`/${resource}/${id}/role`, { role: (variables as any).role })
-        const userResponse = await customAxios.get<ApiResponse>(`/${resource}/${id}`)
+        await bffFetch(`/${resource}/${id}/role`, {
+          method: 'PUT',
+          body: JSON.stringify({ role: (variables as any).role }),
+        })
+        const userResponse = await bffFetch<ApiResponse>(`/${resource}/${id}`)
         return {
-          data: userResponse.data as any,
+          data: userResponse as any,
         }
       }
 
       // 对于 admin/comments/{id}/status 这样的特殊端点
       if (resource === 'admin/comments' && variables && 'status' in (variables as any)) {
-        await customAxios.put(`/${resource}/${id}/status`, { status: (variables as any).status })
+        await bffFetch(`/${resource}/${id}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({ status: (variables as any).status }),
+        })
         return {
           data: { id, status: (variables as any).status } as any,
         }
       }
 
       // 标准更新
-      const response = await customAxios.put<ApiResponse>(`/${resource}/${id}`, variables as any)
+      const data = await bffFetch<ApiResponse>(`/${resource}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(variables),
+      })
       return {
-        data: response.data as any,
+        data: data as any,
       }
     } catch (error) {
-      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+      const err = error as { statusCode?: number; message?: string }
       throw createHttpError(
-        err.response?.status || 500,
-        err.response?.statusText || 'Unknown Error',
-        err.response?.data as Record<string, unknown>
+        err.statusCode || 500,
+        err.message || 'Unknown Error'
       )
     }
   },
 
   deleteOne: async ({ resource, id }) => {
     try {
-      await customAxios.delete(`/${resource}/${id}`)
+      await bffFetch(`/${resource}/${id}`, { method: 'DELETE' })
       return {
         data: { id } as any,
       }
     } catch (error) {
-      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+      const err = error as { statusCode?: number; message?: string }
       throw createHttpError(
-        err.response?.status || 500,
-        err.response?.statusText || 'Unknown Error',
-        err.response?.data as Record<string, unknown>
+        err.statusCode || 500,
+        err.message || 'Unknown Error'
       )
     }
   },
 
   updateMany: async ({ resource, ids, variables }) => {
     try {
-      await Promise.all(ids.map((id) => customAxios.put(`/${resource}/${id}`, variables as any)))
+      await Promise.all(
+        ids.map((id) =>
+          bffFetch(`/${resource}/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(variables),
+          })
+        )
+      )
       return {
         data: ids as any,
       }
     } catch (error) {
-      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+      const err = error as { statusCode?: number; message?: string }
       throw createHttpError(
-        err.response?.status || 500,
-        err.response?.statusText || 'Unknown Error',
-        err.response?.data as Record<string, unknown>
+        err.statusCode || 500,
+        err.message || 'Unknown Error'
       )
     }
   },
 
   deleteMany: async ({ resource, ids }) => {
     try {
-      await Promise.all(ids.map((id) => customAxios.delete(`/${resource}/${id}`)))
+      await Promise.all(
+        ids.map((id) => bffFetch(`/${resource}/${id}`, { method: 'DELETE' }))
+      )
       return {
         data: ids as any,
       }
     } catch (error) {
-      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
+      const err = error as { statusCode?: number; message?: string }
       throw createHttpError(
-        err.response?.status || 500,
-        err.response?.statusText || 'Unknown Error',
-        err.response?.data as Record<string, unknown>
+        err.statusCode || 500,
+        err.message || 'Unknown Error'
       )
     }
   },
 
-  getApiUrl: () => {
-    return BACKEND_API_URL
-  },
+  getApiUrl: () => BFF_API_URL,
 
   custom: async ({ url, method, payload, query, headers }) => {
-    let requestUrl = url.startsWith('http') ? url : `${BACKEND_API_URL}${url}`
+    // GOLDEN_RULES 2.1: 必须走 /api/v1 BFF
+    // 禁止使用完整 URL 直接调后端
+    let requestPath = url.startsWith('/') ? url : `/${url}`
 
     if (query) {
       const params = new URLSearchParams()
@@ -253,53 +307,20 @@ export const dataProvider: DataProvider = {
           params.append(key, String(value))
         }
       })
-      if (params.toString()) {
-        requestUrl += `?${params.toString()}`
+      const queryStr = params.toString()
+      if (queryStr) {
+        requestPath += `?${queryStr}`
       }
     }
 
-    try {
-      let response: AxiosResponse<ApiResponse>
-      switch (method?.toLowerCase()) {
-        case 'get':
-          response = await customAxios.get<ApiResponse>(requestUrl, {
-            headers,
-          } as AxiosRequestConfig)
-          break
-        case 'post':
-          response = await customAxios.post<ApiResponse>(requestUrl, payload, {
-            headers,
-          } as AxiosRequestConfig)
-          break
-        case 'put':
-          response = await customAxios.put<ApiResponse>(requestUrl, payload, {
-            headers,
-          } as AxiosRequestConfig)
-          break
-        case 'patch':
-          response = await customAxios.patch<ApiResponse>(requestUrl, payload, {
-            headers,
-          } as AxiosRequestConfig)
-          break
-        case 'delete':
-          response = await customAxios.delete<ApiResponse>(requestUrl, {
-            headers,
-          } as AxiosRequestConfig)
-          break
-        default:
-          throw new Error(`Unsupported method: ${method}`)
-      }
+    const response = await bffFetch<ApiResponse>(requestPath, {
+      method: method?.toUpperCase() || 'GET',
+      body: payload ? JSON.stringify(payload) : undefined,
+      headers,
+    })
 
-      return {
-        data: response.data as any,
-      }
-    } catch (error) {
-      const err = error as { response?: { status?: number; statusText?: string; data?: unknown } }
-      throw createHttpError(
-        err.response?.status || 500,
-        err.response?.statusText || 'Unknown Error',
-        err.response?.data as Record<string, unknown>
-      )
+    return {
+      data: response as any,
     }
   },
 }

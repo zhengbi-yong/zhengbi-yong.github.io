@@ -41,7 +41,7 @@ fn extract_token(request: &Request) -> Option<String> {
         .and_then(|cookie_str| {
             cookie_str.split(';').find_map(|cookie| {
                 let cookie = cookie.trim();
-                cookie.strip_prefix("auth_session=").map(|s| s.to_string())
+                cookie.strip_prefix("access_token=").map(|s| s.to_string())
             })
         })
 }

@@ -426,11 +426,11 @@ fn post_admin_routes() -> Router<AppState> {
         )
         .route("/admin/posts", post(blog_api::routes::posts::create_post))
         .route(
-            "/admin/posts/{slug}",
+            "/admin/posts/{postId}",
             patch(blog_api::routes::posts::update_post),
         )
         .route(
-            "/admin/posts/{slug}",
+            "/admin/posts/{postId}",
             delete(blog_api::routes::posts::delete_post),
         )
 }
@@ -587,7 +587,7 @@ fn admin_routes() -> Router<AppState> {
         .route("/admin/users:batchDelete", post(blog_api::routes::admin::batch_delete_users))
         .route("/admin/users/{id}", get(blog_api::routes::admin::get_user).put(blog_api::routes::admin::update_user).delete(blog_api::routes::admin::delete_user))
         .route("/admin/users/{id}/role", put(blog_api::routes::admin::update_user_role))
-        .route("/admin/users:growth", get(blog_api::routes::admin::get_user_growth))
+        .route("/admin/user-growth", get(blog_api::routes::admin::get_user_growth))
         // 媒体管理
         .route("/admin/media", get(blog_api::routes::media::list_media))
         .route(

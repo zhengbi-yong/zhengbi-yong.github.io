@@ -131,41 +131,23 @@ pub async fn register(
     // GOLDEN_RULES 1.1: secure=true 仅在生产环境启用
     let is_production = std::env::var("ENVIRONMENT").unwrap_or_default() == "production";
 
-    // 设置 Domain=localhost (无端口) 以支持跨端口开发
-    // 前端可能在 port 3001，API 在 port 3000
-    let cookie_domain = if is_production {
-        // 生产环境可以从环境变量获取
-        std::env::var("COOKIE_DOMAIN").ok()
-    } else {
-        // 开发环境使用 localhost（无端口）
-        Some("localhost".to_string())
-    };
-
-    let mut refresh_cookie = Cookie::build(("refresh_token", refresh_token))
+    let refresh_cookie = Cookie::build(("refresh_token", refresh_token))
         .path("/")
         .http_only(true)
         .secure(is_production)
         .same_site(SameSite::Lax)
-        .max_age(time::Duration::days(7));
-
-    if let Some(ref domain) = cookie_domain {
-        refresh_cookie = refresh_cookie.domain(domain);
-    }
-    let refresh_cookie = refresh_cookie.build();
+        .max_age(time::Duration::days(7))
+        .build();
 
     // GOLDEN_RULES 1.1: 同时设置 access_token cookie
     // 前端使用 credentials: 'include' 自动发送，无需手动设置 Authorization header
-    let mut access_cookie = Cookie::build(("access_token", access_token.clone()))
+    let access_cookie = Cookie::build(("access_token", access_token.clone()))
         .path("/")
         .http_only(true)
         .secure(is_production)
         .same_site(SameSite::Lax)
-        .max_age(time::Duration::minutes(15)); // Access token 15分钟有效期
-
-    if let Some(ref domain) = cookie_domain {
-        access_cookie = access_cookie.domain(domain);
-    }
-    let access_cookie = access_cookie.build();
+        .max_age(time::Duration::minutes(15)) // Access token 15分钟有效期
+        .build();
 
     // 使用 HeaderMap 设置多个 Set-Cookie 头
     let mut headers = HeaderMap::new();
@@ -293,37 +275,45 @@ pub async fn login(
     // 开发环境 (localhost) 使用 HTTP，cookie 需要能在 HTTP 下工作
     let is_production = std::env::var("ENVIRONMENT").unwrap_or_default() == "production";
 
-    // 设置 Domain=localhost (无端口) 以支持跨端口开发
-    let cookie_domain = if is_production {
-        std::env::var("COOKIE_DOMAIN").ok()
+    // 开发环境使用更宽松的 Cookie 策略，允许跨域子请求携带 Cookie
+    // 生产环境使用严格策略：SameSite=Lax + Secure（HTTPS）
+    let (refresh_cookie, access_cookie) = if is_production {
+        (
+            Cookie::build(("refresh_token", new_token))
+                .path("/")
+                .http_only(true)
+                .secure(true)
+                .same_site(SameSite::Lax)
+                .max_age(time::Duration::days(7))
+                .build(),
+            Cookie::build(("access_token", access_token.clone()))
+                .path("/")
+                .http_only(true)
+                .secure(true)
+                .same_site(SameSite::Lax)
+                .max_age(time::Duration::minutes(15))
+                .build(),
+        )
     } else {
-        Some("localhost".to_string())
+        // 开发环境: SameSite=Lax (不需要 Secure)，允许同源子请求携带 Cookie
+        // 不使用 SameSite=None，因为那需要 Secure 标志（浏览器强制要求）
+        (
+            Cookie::build(("refresh_token", new_token))
+                .path("/")
+                .http_only(true)
+                .secure(false)
+                .same_site(SameSite::Lax)
+                .max_age(time::Duration::days(7))
+                .build(),
+            Cookie::build(("access_token", access_token.clone()))
+                .path("/")
+                .http_only(true)
+                .secure(false)
+                .same_site(SameSite::Lax)
+                .max_age(time::Duration::minutes(15))
+                .build(),
+        )
     };
-
-    let mut refresh_cookie = Cookie::build(("refresh_token", new_token))
-        .path("/")
-        .http_only(true)
-        .secure(is_production)
-        .same_site(SameSite::Lax)
-        .max_age(time::Duration::days(7));
-
-    if let Some(ref domain) = cookie_domain {
-        refresh_cookie = refresh_cookie.domain(domain);
-    }
-    let refresh_cookie = refresh_cookie.build();
-
-    // GOLDEN_RULES 1.1: 同时设置 access_token cookie
-    let mut access_cookie = Cookie::build(("access_token", access_token.clone()))
-        .path("/")
-        .http_only(true)
-        .secure(is_production)
-        .same_site(SameSite::Lax)
-        .max_age(time::Duration::minutes(15));
-
-    if let Some(ref domain) = cookie_domain {
-        access_cookie = access_cookie.domain(domain);
-    }
-    let access_cookie = access_cookie.build();
 
     // 使用 HeaderMap 设置多个 Set-Cookie 头
     let mut headers = HeaderMap::new();
@@ -493,23 +483,14 @@ pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> Result<(),
     }
 
     let is_production = std::env::var("ENVIRONMENT").unwrap_or_default() == "production";
-    let cookie_domain = if is_production {
-        std::env::var("COOKIE_DOMAIN").ok()
-    } else {
-        Some("localhost".to_string())
-    };
 
-    let mut clear_cookie = Cookie::build(("refresh_token", ""))
+    let _clear_cookie = Cookie::build(("refresh_token", ""))
         .path("/")
         .http_only(true)
         .secure(is_production)
         .same_site(SameSite::Lax)
-        .max_age(time::Duration::seconds(0));
-
-    if let Some(domain) = cookie_domain {
-        clear_cookie = clear_cookie.domain(domain);
-    }
-    let _cookie = clear_cookie.build();
+        .max_age(time::Duration::seconds(0))
+        .build();
 
     Ok(())
 }

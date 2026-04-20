@@ -14,7 +14,7 @@ Provides administrators with comprehensive insights into platform growth and use
 
 ### Data Aggregation & Visualization
 - Fetch aggregate statistics from backend `/admin/stats` endpoint
-- Retrieve user growth trends via `/admin/users/growth` API
+- Retrieve user growth trends via `/admin/user-growth` API
 - Fetch comment data for activity analysis
 - Transform raw data into chart-friendly formats
 
@@ -40,7 +40,7 @@ const queryResult = useList({
 
 // 2. User Growth Data (custom endpoint)
 const userGrowthQuery = useCustom({
-  url: '/admin/users/growth',
+  url: '/admin/user-growth',
   method: 'get',
   queryOptions: {
     staleTime: 5 * 60 * 1000, // 5min cache
@@ -362,7 +362,7 @@ GET /admin/stats
 
 #### 2. User Growth
 ```
-GET /admin/users/growth
+GET /admin/user-growth
 ```
 **Response**:
 ```json
@@ -557,7 +557,7 @@ if (statsError || userGrowthError || commentsError) {
 ## Integration Points
 - **Admin Layout**: Uses shared admin layout
 - **Refine Provider**: Requires `<Refine>` wrapper
-- **Backend API**: Depends on `/admin/stats` and `/admin/users/growth` endpoints
+- **Backend API**: Depends on `/admin/stats` and `/admin/user-growth` endpoints
 - **Authentication**: Requires admin role (enforced at backend/API level)
 
 ## Testing Considerations

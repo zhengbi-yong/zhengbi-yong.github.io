@@ -71,12 +71,14 @@ export const authProvider: AuthProvider = {
   },
 
   onError: async (error) => {
-    // 如果是 401 错误，可能需要重新登录
+    // If 401 error, don't call logout() here - that would clear state and trigger
+    // a cascade of issues. The auth state should only be cleared when the user
+    // explicitly logs out, or when the session is confirmed expired by the server.
+    // Let the components handle the redirect based on check() result instead.
     if (error?.statusCode === 401) {
-      await useAuthStore.getState().logout()
       return {
-        logout: true,
-        redirectTo: '/',
+        logout: false, // Don't logout - just let the component show login
+        redirectTo: '/admin',
         error,
       }
     }

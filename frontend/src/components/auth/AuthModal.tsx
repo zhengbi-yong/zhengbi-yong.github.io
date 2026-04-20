@@ -72,7 +72,12 @@ export function AuthModal({
       }
 
       handleClose()
-    } catch (submitError) {
+    } catch (submitError: unknown) {
+      // Ignore AbortError — request was cancelled (e.g. component unmounted or duplicate submit).
+      // The auth store already handles the error state, so no need to log it.
+      if (submitError instanceof Error && submitError.name === 'AbortError') {
+        return
+      }
       console.error('[AuthModal] Authentication request failed:', submitError)
     }
   }

@@ -100,6 +100,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   // Get current user action
+  // Note: 401 means "not logged in" - this is NOT an error condition.
+  // We set isAuthenticated=false but PRESERVE the user object if one existed.
+  // This prevents unnecessary logout cascades when session cookies are expired.
+  // The admin layout will detect isAuthenticated=false and show the login modal.
   getCurrentUser: async () => {
     set({ isLoading: true })
     try {
@@ -112,14 +116,25 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         error: null,
       })
       return user
-    } catch (error) {
-      // Clear auth state if fetch fails
-      set({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        isInitialized: true,
-      })
+    } catch (error: unknown) {
+      const appError = error as { statusCode?: number }
+      if (appError.statusCode === 401) {
+        // Not logged in - this is a normal condition, NOT an error.
+        // Clear isAuthenticated but preserve user (so we still show their name in the login prompt).
+        set({
+          isAuthenticated: false,
+          isLoading: false,
+          isInitialized: true,
+        })
+      } else {
+        // Actual error (network failure, server error, etc.) - clear state
+        set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+          isInitialized: true,
+        })
+      }
       return null
     }
   },

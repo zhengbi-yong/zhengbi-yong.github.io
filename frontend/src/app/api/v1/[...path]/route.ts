@@ -29,33 +29,42 @@ function createProxyHeaders(request: NextRequest) {
 }
 
 /**
- * GOLDEN_RULES 1.1: Fix Set-Cookie header for cross-port development
+ * GOLDEN_RULES 1.1: Fix Set-Cookie header for cross-origin development
  *
- * When running with frontend on port 3001 and backend on port 3000,
- * the backend sets cookies for "localhost:3000" but the browser
- * needs them for "localhost:3001" (the proxy origin).
+ * Key insight: Do NOT set Domain=. Instead, let cookies be "host-only" (no Domain attribute).
+ * Host-only cookies are only sent to the exact same host:port.
  *
- * This function ALWAYS sets Domain=localhost (without port) so cookies
- * work across different ports on localhost during development.
+ * Flow:
+ * 1. Browser → BFF (localhost:3001) - browser stores cookie with no Domain
+ * 2. Browser → BFF again - browser sends cookie (same origin)
+ * 3. BFF forwards cookie to backend - BFF acts as cookie forwarder
+ *
+ * Why not set Domain:
+ * - Domain=0.0.0.0 is INVALID and browsers reject it
+ * - Domain=localhost breaks when user accesses via IP (192.168.0.161:3001)
+ * - Host-only cookies avoid all these issues
+ *
+ * What we DO fix:
+ * - Strip invalid Domain=0.0.0.0 from backend-set cookies
+ * - Strip Domain=localhost if it would cause issues (same logic)
+ * - Keep all other Domain values intact
  */
-function fixSetCookieHeader(cookieValue: string, frontendOrigin: string): string {
+function fixSetCookieHeader(cookieValue: string): string {
+  // ✨ DEBUG MARKER - look for this in logs
+  console.error('[COOKIE_FIX] INVOKED:', cookieValue.substring(0, 80))
   const parts = cookieValue.split(';').map((p) => p.trim())
-  const frontendHost = frontendOrigin.replace(/^https?:\/\//, '').split(':')[0]
 
   const domainIndex = parts.findIndex((p) => p.toLowerCase().startsWith('domain='))
   if (domainIndex !== -1) {
     const domainValue = parts[domainIndex].substring('domain='.length)
-    if (domainValue.includes(':')) {
-      parts[domainIndex] = `Domain=${frontendHost}`
+    // Strip invalid Domain values - let cookie be host-only instead
+    if (domainValue === '0.0.0.0' || domainValue === 'localhost') {
+      parts.splice(domainIndex, 1)
+      return parts.join('; ')
     }
   }
-
-  const secureIndex = parts.findIndex((p) => p.toLowerCase() === 'secure')
-  if (frontendOrigin.startsWith('http://') && secureIndex !== -1) {
-    parts.splice(secureIndex, 1)
-  }
-
-  return parts.join('; ')
+  // No Domain set, or valid Domain - pass through unchanged
+  return cookieValue
 }
 
 /**
@@ -97,6 +106,10 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
       headers,
       body,
       cache: 'no-store',
+      // GOLDEN_RULES 1.1 + 2.1: 必须携带浏览器 Cookie 转发到后端
+      // 同源请求（localhost→localhost）默认不发送 credentials，
+      // 必须显式声明才能把 HttpOnly Cookie 传递给后端
+      credentials: 'include',
     })
 
     const responseHeaders = new Headers()
@@ -105,8 +118,8 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
     // Backend sets cookies for localhost:3000, but we need them for localhost:3001
     response.headers.forEach((value, key) => {
       if (key.toLowerCase() === 'set-cookie') {
-        // Fix the Set-Cookie header - strip port from Domain
-        responseHeaders.append(key, fixSetCookieHeader(value, frontendOrigin))
+        // Strip invalid Domain=0.0.0.0 and Domain=localhost, let cookie be host-only
+        responseHeaders.append(key, fixSetCookieHeader(value))
       } else if (
         !['content-encoding', 'content-length', 'transfer-encoding'].includes(key.toLowerCase())
       ) {
@@ -115,7 +128,9 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
     })
 
     responseHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    responseHeaders.set('Access-Control-Allow-Origin', '*')
+    // credentials: 'include' requires specific origin, not '*'
+    responseHeaders.set('Access-Control-Allow-Origin', frontendOrigin)
+    responseHeaders.set('Access-Control-Allow-Credentials', 'true')
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
     responseHeaders.set(
       'Access-Control-Allow-Headers',
