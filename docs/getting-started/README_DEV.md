@@ -153,7 +153,7 @@ This release adds a Team page, blog admin consolidation, and blog edit functiona
    - Fixed admin sidebar to link to `/admin/posts-manage` instead of `/admin/posts`
    - Added `listAdminPosts()`, `createPost()`, `updatePost()` methods to `adminService` in `backend.ts`
 
-3. **Blog edit page** — New `/admin/posts/[slug]/edit` page for editing existing posts:
+3. **Blog edit page** — New `/admin/posts/edit/[slug]` page for editing existing posts:
    - Loads post data via `postService.getPost(slug)`
    - Rich text editing with TiptapEditor (dynamic import, SSR disabled)
    - Metadata editing via `ArticleMetadata` component (title, summary, category, tags)
@@ -161,7 +161,7 @@ This release adds a Team page, blog admin consolidation, and blog edit functiona
    - Current status indicator and last-updated timestamp
 
    New files:
-   - `frontend/src/app/admin/posts/[slug]/edit/page.tsx`
+   - `frontend/src/app/admin/posts/edit/[slug]/page.tsx`
 
 ### Technical Notes
 

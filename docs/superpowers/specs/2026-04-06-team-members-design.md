@@ -91,7 +91,7 @@ CREATE INDEX idx_team_members_display_order ON team_members(display_order);
 
 1. Create `frontend/src/app/admin/team/page.tsx` (list view)
 2. Create `frontend/src/app/admin/team/new/page.tsx` (create form)
-3. Create `frontend/src/app/admin/team/[id]/edit/page.tsx` (edit form)
+3. ~~`frontend/src/app/admin/team/[id]/edit/page.tsx`~~ — dead code, removed 2026-04-23 (not in use)
 
 ## Key Files
 
@@ -106,7 +106,7 @@ CREATE INDEX idx_team_members_display_order ON team_members(display_order);
 ### Frontend (New)
 - `frontend/src/app/admin/team/page.tsx`
 - `frontend/src/app/admin/team/new/page.tsx`
-- `frontend/src/app/admin/team/[id]/edit/page.tsx`
+- ~~`frontend/src/app/admin/team/[id]/edit/page.tsx`~~ (removed 2026-04-23)
 
 ### Frontend (Modified)
 - `frontend/src/lib/types/backend.ts`
