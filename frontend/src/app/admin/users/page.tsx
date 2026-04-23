@@ -12,7 +12,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useList, useUpdate, useDelete } from '@refinedev/core'
+import { useList, useUpdate, useDelete, useInvalidate } from '@refinedev/core'
 import type { UserListItem } from '@/lib/types/backend'
 import { Loader2, Trash2 } from 'lucide-react'
 import { logger } from '@/lib/utils/logger'
@@ -40,12 +40,16 @@ export default function UserManagementPage() {
     filters: roleFilter !== 'all' ? [{ field: 'role', operator: 'eq', value: roleFilter }] : [],
   })
 
-  const query = queryResult.query
-  const result = queryResult.result
-  const data = result?.data
-  const total = result?.total || 0
+  const { query, result } = queryResult
+  const data = result?.data ?? []
+  const total = result?.total ?? 0
   const isLoading = query?.isPending
   const error = query?.isError ? query.error : undefined
+
+  const invalidate = useInvalidate()
+  const handleRefresh = () => {
+    invalidate({ resource: 'admin/users', invalidates: ['list'] })
+  }
 
   const updateMutation = useUpdate()
   const deleteMutation = useDelete()
@@ -94,10 +98,6 @@ export default function UserManagementPage() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query)
-  }
-
-  const handleRefresh = () => {
-    queryResult.refetch()
   }
 
   // 定义表格列

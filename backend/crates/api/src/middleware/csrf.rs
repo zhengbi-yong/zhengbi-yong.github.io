@@ -8,7 +8,7 @@ use axum::{
     extract::{Request, State},
     http::{HeaderMap, StatusCode},
     middleware::Next,
-    response::Response,
+    response::{IntoResponse, Response},
 };
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use hmac::{Hmac, Mac};
@@ -155,9 +155,11 @@ impl std::fmt::Display for CsrfError {
 /// 2. 验证 HMAC 签名
 /// 3. 检查 timestamp 新鲜度（1小时）
 /// 4. 检查 replay（nonce 未使用）
+///
+/// 验证成功后：自动刷新 CSRF token（nonce 是一次性的），新 token 通过响应 Set-Cookie 发放给前端
 pub async fn csrf_middleware(
     State(state): State<AppState>,
-    request: Request,
+    mut request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let method = request.method();
@@ -171,8 +173,6 @@ pub async fn csrf_middleware(
             | axum::http::Method::DELETE
     ) {
         let headers = request.headers();
-
-        // 获取 JWT secret 用于 HMAC 验证
         let secret = &state.settings.jwt_secret;
 
         // 检查CSRF token（从header或cookie）
@@ -183,7 +183,19 @@ pub async fn csrf_middleware(
 
         // 验证token（HMAC签名 + replay检测）
         match validate_csrf_token(&state, &token, secret).await {
-            Ok(true) => {}
+            Ok(true) => {
+                // 验证成功：生成新 token 并存入 request extensions，供 inject_csrf_cookie 消费
+                match generate_csrf_token(&state).await {
+                    Ok(new_csrf) => {
+                        request.extensions_mut().insert(NewCsrfToken {
+                            token: new_csrf.token,
+                        });
+                    }
+                    Err(e) => {
+                        tracing::error!("Failed to generate new CSRF token: {}", e);
+                    }
+                }
+            }
             Ok(false) => {
                 tracing::warn!("Invalid CSRF token: {}", token);
                 return Err(StatusCode::FORBIDDEN);
@@ -203,7 +215,30 @@ pub async fn csrf_middleware(
         }
     }
 
-    Ok(next.run(request).await)
+    // 在调用 next.run(request) 之前，提前提取 NewCsrfToken
+    // 因为 next.run(request) 会 move 走 request，之后无法再访问其 extensions
+    let new_csrf_token = request.extensions().get::<NewCsrfToken>().cloned();
+
+    let response = next.run(request).await;
+
+    // 响应拦截：如果 extensions 中有 NewCsrfToken，注入 Set-Cookie
+    if let Some(new_csrf) = new_csrf_token {
+        let (_, xsrf_cookie) = set_csrf_cookie(&new_csrf.token);
+        let mut resp = response.into_response();
+        resp.headers_mut().insert(
+            axum::http::header::SET_COOKIE,
+            xsrf_cookie.parse().unwrap(),
+        );
+        Ok(resp)
+    } else {
+        Ok(response.into_response())
+    }
+}
+
+/// 标记新 CSRF token 的 request extension（由响应拦截器消费）
+#[derive(Clone, Debug)]
+pub struct NewCsrfToken {
+    pub token: String,
 }
 
 /// 从headers提取CSRF token
@@ -301,12 +336,16 @@ pub async fn generate_csrf_token(state: &AppState) -> Result<CsrfToken, CsrfErro
 /// 1. csrf_token - HttpOnly, 浏览器自动发送
 /// 2. XSRF-TOKEN - 非HttpOnly, JavaScript可读取并作为header发送
 pub fn set_csrf_cookie(token: &str) -> (String, String) {
+    // NOTE: csrf_token (HttpOnly) is sent automatically by browser via Cookie header.
+    // XSRF-TOKEN (non-HttpOnly) is read by JS and sent as X-CSRF-Token header.
+    // We remove "Secure" because the site runs on HTTP (dev: 192.168.0.161:3001).
+    // In production with HTTPS, add "Secure" back.
     let http_only = format!(
-        "csrf_token={}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=3600",
+        "csrf_token={}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600",
         token
     );
     let xsrf_token = format!(
-        "XSRF-TOKEN={}; Path=/; SameSite=Lax; Secure; Max-Age=3600",
+        "XSRF-TOKEN={} Path=/; SameSite=Lax; Max-Age=3600",
         token
     );
     (http_only, xsrf_token)
@@ -401,12 +440,12 @@ mod tests {
         assert!(http_only.contains("csrf_token=test-token-123"));
         assert!(http_only.contains("HttpOnly"));
         assert!(http_only.contains("SameSite=Lax"));
-        assert!(http_only.contains("Secure"));
+        // Note: "Secure" is intentionally NOT set — site runs on HTTP (dev: 192.168.0.161:3001)
 
         // XSRF-TOKEN for JavaScript to read and echo as header
         assert!(xsrf_token.contains("XSRF-TOKEN=test-token-123"));
         assert!(!xsrf_token.contains("HttpOnly")); // Must be readable by JS
         assert!(xsrf_token.contains("SameSite=Lax"));
-        assert!(xsrf_token.contains("Secure"));
+        // Note: "Secure" is intentionally NOT set — site runs on HTTP
     }
 }

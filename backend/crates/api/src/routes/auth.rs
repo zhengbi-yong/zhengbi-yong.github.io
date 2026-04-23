@@ -1,3 +1,4 @@
+use crate::middleware::csrf::{generate_csrf_token, set_csrf_cookie};
 use crate::state::AppState;
 use crate::utils::ip_extractor::RealIp;
 use axum::{
@@ -158,6 +159,19 @@ pub async fn register(
     headers.append(
         header::SET_COOKIE,
         access_cookie.to_string().parse().unwrap(),
+    );
+
+    // 生成 CSRF token 并设置 XSRF-TOKEN cookie（HttpOnly=false，前端可读）
+    let csrf_token = generate_csrf_token(&state)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to generate CSRF token: {}", e);
+            AppError::InternalError
+        })?;
+    let (_, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
+    headers.append(
+        header::SET_COOKIE,
+        xsrf_cookie.parse().unwrap(),
     );
 
     Ok((
@@ -325,6 +339,16 @@ pub async fn login(
         header::SET_COOKIE,
         access_cookie.to_string().parse().unwrap(),
     );
+
+    // 生成 CSRF token 并设置 XSRF-TOKEN cookie（HttpOnly=false，前端可读）
+    let csrf_token = generate_csrf_token(&state)
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to generate CSRF token: {}", e);
+            AppError::InternalError
+        })?;
+    let (_, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
+    headers.append(header::SET_COOKIE, xsrf_cookie.parse().unwrap());
 
     Ok((
         headers,

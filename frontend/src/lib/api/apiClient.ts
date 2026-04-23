@@ -1,6 +1,7 @@
 import { CACHE_REGISTRY as caches } from '../cache/CacheManager'
 import { AppError, ErrorType, ErrorSeverity } from '../error-handler'
 import { logger } from '../utils/logger'
+import { CSRFTokenManager } from '../security'
 
 // GOLDEN_RULES 1.1: 认证令牌必须仅存在于 HttpOnly Cookie 中
 // 前端不存储、不读取、不操作任何认证令牌
@@ -126,6 +127,10 @@ class APIClient {
           headers: {
             ...this.getRequestHeaders(),
             ...headers,
+            // GOLDEN_RULES 1.2: CSRF 双重提交 Cookie - 写操作必须带 X-CSRF-Token
+            ...(['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())
+              ? CSRFTokenManager.getHeaders()
+              : {}),
           },
           signal: controller.signal,
           credentials: 'include', // GOLDEN_RULES: 自动发送 HttpOnly Cookie

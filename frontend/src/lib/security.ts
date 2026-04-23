@@ -115,21 +115,14 @@ export function validateInput(
 
 // CSRF Token 管理
 // GOLDEN_RULES 1.2: 双重提交 Cookie 方案
-// - 从 cookie 读取 CSRF token（HttpOnly: false, JavaScript 可读）
-// - 验证时同时检查 cookie 和 header（双重提交）
+// 后端通过 `generate_csrf_token()` 生成 HMAC-SHA256 签名token（格式: base64(nonce||timestamp||signature)）
+// 前端只负责从 XSRF-TOKEN cookie 读取并作为 X-CSRF-Token header 原样发回
+// 前端绝不自己生成token，只做"echo"——后端给什么就发什么
 export class CSRFTokenManager {
   private static readonly COOKIE_NAME = 'XSRF-TOKEN'
   private static readonly HEADER_NAME = 'X-CSRF-Token'
 
-  // 生成随机 token (32字节十六进制)
-  static generateToken(): string {
-    const array = new Uint8Array(32)
-    crypto.getRandomValues(array)
-    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('')
-  }
-
-  // 从 cookie 获取当前 token
-  // GOLDEN_RULES 1.2: CSRF token 存储在 cookie 中, JavaScript 可读
+  // 从 cookie 获取当前 token（必须是后端设置的 HMAC 签名token）
   static getToken(): string {
     if (typeof document === 'undefined') return ''
 
@@ -143,52 +136,32 @@ export class CSRFTokenManager {
     return ''
   }
 
-  // 设置 CSRF token 到 cookie
-  // HttpOnly: false - JavaScript 需要读取并作为 header 发送
-  // SameSite: Strict - 严格同站限制
-  static setToken(token: string): void {
-    if (typeof document === 'undefined') return
-
-    const expires = new Date()
-    expires.setHours(expires.getHours() + 24) // 24小时有效
-
-    document.cookie = `${this.COOKIE_NAME}=${encodeURIComponent(token)}; path=/; expires=${expires.toUTCString()}; samesite=strict`
-  }
-
-  // 验证 token
-  static validateToken(token: string): boolean {
-    const cookieToken = this.getToken()
-    return token === cookieToken && token.length > 0
-  }
-
-  // 刷新 token
-  static refreshToken(): string {
-    const newToken = this.generateToken()
-    this.setToken(newToken)
-    return newToken
-  }
-
   // 获取请求头名称
   static getHeaderName(): string {
     return this.HEADER_NAME
   }
 
   // 获取带 token 的请求头
-  // GOLDEN_RULES 1.2: 从 cookie 读取并设置到 header
+  // GOLDEN_RULES 1.2: 从 XSRF-TOKEN cookie 读取并设置到 header
+  // XSRF-TOKEN 是后端通过 `set_csrf_cookie()` 设置的非 HttpOnly cookie
+  // 格式为 base64(HMAC-SHA256签名)，由后端 `generate_csrf_token()` 生成
   static getHeaders(): Record<string, string> {
+    const token = this.getToken()
+    if (!token) {
+      // 没有token时返回空 headers，让后端 CSRF 中间件返回 403
+      // 这正确地反映了"未携带有效CSRF token"的状态
+      return {}
+    }
     return {
-      [this.HEADER_NAME]: this.getToken(),
+      [this.HEADER_NAME]: token,
     }
   }
 
-  // 确保 token 存在（初始化时调用）
+  // 确保 token 存在（由后端保证，前端只读）
+  // 注意：前端绝不生成token！token必须由后端 `generate_csrf_token()` 创建
+  // 此方法现在只是读取cookie，如果cookie不存在则返回空字符串
   static ensureToken(): string {
-    let token = this.getToken()
-    if (!token) {
-      token = this.generateToken()
-      this.setToken(token)
-    }
-    return token
+    return this.getToken()
   }
 }
 
