@@ -98,7 +98,7 @@ export function assignCardSizes(items: ContentItem[]): CardSize[] {
     small: total - Math.floor(total * 0.2) - Math.floor(total * 0.3) - Math.floor(total * 0.2), // 30%
   }
 
-  let distribution = { ...targetDistribution }
+  const distribution = { ...targetDistribution }
 
   for (const { score } of scored) {
     let size: CardSize

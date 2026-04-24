@@ -80,18 +80,17 @@ describe('Refine Provider Integration', () => {
 
 describe('Data Provider and Auth Provider Integration', () => {
   it('should work together correctly', async () => {
-    // 模拟认证流程
-    const token = 'test_token'
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('access_token', token)
-    }
+    // Note: authProvider.check() does NOT read from localStorage.
+    // Tokens are managed via HttpOnly Cookies (GOLDEN_RULES 1.1).
+    // localStorage.setItem('access_token', ...) is a no-op for auth flow.
 
-    // 验证 auth provider 能正确检查认证状态
+    // Verify auth provider can check auth state without localStorage token
     const checkResult = await authProvider.check()
     expect(checkResult).toBeDefined()
+    // checkResult.authenticated reflects server-side cookie state
+    expect('authenticated' in checkResult).toBe(true)
 
-    // 验证 data provider 能正确使用认证信息
-    // (在实际场景中，data provider 会使用 auth provider 的 token)
+    // Verify data provider has correct API URL
     expect(dataProvider.getApiUrl()).toBeDefined()
   })
 })

@@ -1,38 +1,44 @@
 /**
  * Refine Auth Provider 测试
+ *
+ * Tests verify actual auth provider behavior:
+ * - check() uses useAuthStore.checkAuth() which returns true if user+isAuthenticated
+ *   are already set, otherwise calls authService.getCurrentUser()
+ * - check() does NOT call refreshToken - that concept doesn't exist in the current impl
+ * - onError(401) returns {logout:false, redirectTo:'/admin'} NOT {logout:true}
+ * - getIdentity() reads from store.user first, then calls authService.getCurrentUser()
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { authProvider } from '@/lib/providers/refine-auth-provider'
 import { authService } from '@/lib/api/backend'
+import { useAuthStore } from '@/lib/store/auth-store'
+import { resetLocalStorage } from '@/lib/utils/cleanup'
 
 // Mock auth service
+// NOTE: refreshToken does NOT exist in authService.
+// authService only has: login, logout, getCurrentUser, register
 vi.mock('@/lib/api/backend', () => ({
   authService: {
     login: vi.fn(),
     logout: vi.fn(),
     getCurrentUser: vi.fn(),
-    refreshToken: vi.fn(),
     register: vi.fn(),
   },
 }))
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-}
-
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
-})
-
 describe('Refine Auth Provider', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    localStorageMock.getItem.mockReturnValue(null)
+    resetLocalStorage()
+    // Reset store state to initial values
+    useAuthStore.setState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+      isInitialized: false,
+    })
   })
 
   afterEach(() => {
@@ -98,21 +104,63 @@ describe('Refine Auth Provider', () => {
 
       expect(result.success).toBe(true)
       expect(result.redirectTo).toBe('/')
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('access_token')
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('user_info')
+      // Store should have been cleared
+      const { user, isAuthenticated } = useAuthStore.getState()
+      expect(user).toBeNull()
+      expect(isAuthenticated).toBe(false)
     })
   })
 
   describe('check', () => {
-    it('should return authenticated when token exists', async () => {
-      localStorageMock.getItem.mockReturnValue('token123')
-      const mockUser = {
+    it('should return authenticated when store has user and isAuthenticated', async () => {
+      // Pre-populate store (simulates already-logged-in state)
+      useAuthStore.setState({
+        user: { id: '1', username: 'testuser', email: 'test@test.com' },
+        isAuthenticated: true,
+        isInitialized: true,
+      })
+
+      const result = await authProvider.check()
+
+      expect(result.authenticated).toBe(true)
+      // Should NOT call getCurrentUser when already authenticated
+      expect(authService.getCurrentUser).not.toHaveBeenCalled()
+    })
+
+    it('should return unauthenticated when no token (store not initialized)', async () => {
+      // Store is in initial state (not initialized, no user)
+      vi.mocked(authService.getCurrentUser).mockRejectedValue(new Error('Not authenticated'))
+
+      const result = await authProvider.check()
+
+      expect(result.authenticated).toBe(false)
+      expect(result.logout).toBe(true)
+      expect(result.redirectTo).toBe('/')
+    })
+
+    it('should return unauthenticated when store is initialized but no user', async () => {
+      // Store is initialized with no user (session expired)
+      useAuthStore.setState({
+        user: null,
+        isAuthenticated: false,
+        isInitialized: true,
+      })
+
+      const result = await authProvider.check()
+
+      // isInitialized=true means we already tried to auth and found no session
+      expect(result.authenticated).toBe(false)
+      // Should NOT call API again - checkAuth returns false without calling getCurrentUser
+      expect(authService.getCurrentUser).not.toHaveBeenCalled()
+    })
+
+    it('should call getCurrentUser when store needs initialization', async () => {
+      // Store is not initialized yet (first check)
+      vi.mocked(authService.getCurrentUser).mockResolvedValue({
         id: '1',
         username: 'testuser',
         email: 'test@test.com',
-      }
-
-      vi.mocked(authService.getCurrentUser).mockResolvedValue(mockUser)
+      })
 
       const result = await authProvider.check()
 
@@ -120,59 +168,12 @@ describe('Refine Auth Provider', () => {
       expect(authService.getCurrentUser).toHaveBeenCalled()
     })
 
-    it('should return unauthenticated when no token', async () => {
-      localStorageMock.getItem.mockReturnValue(null)
+    it('should return unauthenticated when getCurrentUser fails on init', async () => {
+      // Store needs initialization and API call fails
+      vi.mocked(authService.getCurrentUser).mockRejectedValue(new Error('Network error'))
 
       const result = await authProvider.check()
 
-      expect(result.authenticated).toBe(false)
-      expect(result.logout).toBe(true)
-      expect(result.redirectTo).toBe('/')
-    })
-
-    it('should refresh token when getCurrentUser fails', async () => {
-      localStorageMock.getItem.mockReturnValue('expired_token')
-      const mockUser = {
-        id: '1',
-        username: 'testuser',
-        email: 'test@test.com',
-      }
-
-      vi.mocked(authService.getCurrentUser)
-        .mockRejectedValueOnce(new Error('Token expired'))
-        .mockResolvedValueOnce(mockUser)
-      vi.mocked(authService.refreshToken).mockResolvedValue({
-        access_token: 'new_token',
-      })
-
-      const result = await authProvider.check()
-
-      expect(result.authenticated).toBe(true)
-      expect(authService.refreshToken).toHaveBeenCalled()
-    })
-
-    it('should logout when refresh fails', async () => {
-      localStorageMock.getItem.mockReturnValue('expired_token')
-
-      // 确保每次调用都返回 rejected
-      const getCurrentUserMock = vi.mocked(authService.getCurrentUser)
-      getCurrentUserMock.mockReset()
-      getCurrentUserMock.mockRejectedValue(new Error('Token expired'))
-      
-      // refreshToken 也失败
-      const refreshTokenMock = vi.mocked(authService.refreshToken)
-      refreshTokenMock.mockReset()
-      refreshTokenMock.mockRejectedValue(new Error('Refresh failed'))
-
-      const result = await authProvider.check()
-
-      // 验证 getCurrentUser 被调用
-      expect(getCurrentUserMock).toHaveBeenCalledTimes(1)
-      
-      // 验证 refreshToken 被调用（在 getCurrentUser 失败后）
-      expect(refreshTokenMock).toHaveBeenCalledTimes(1)
-      
-      // 当刷新失败时，应该返回未认证状态
       expect(result.authenticated).toBe(false)
       expect(result.logout).toBe(true)
       expect(result.redirectTo).toBe('/')
@@ -180,15 +181,20 @@ describe('Refine Auth Provider', () => {
   })
 
   describe('getIdentity', () => {
-    it('should return user identity from localStorage', async () => {
+    it('should return identity from store user', async () => {
       const mockUser = {
         id: '1',
         username: 'testuser',
         email: 'test@test.com',
-        profile: { avatar: 'avatar.jpg' },
+        profile: { avatar_url: 'avatar.jpg' },
+        role: 'user',
       }
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockUser))
+      useAuthStore.setState({
+        user: mockUser as any,
+        isAuthenticated: true,
+        isInitialized: true,
+      })
 
       const result = await authProvider.getIdentity()
 
@@ -199,10 +205,11 @@ describe('Refine Auth Provider', () => {
         avatar: 'avatar.jpg',
         role: 'user',
       })
+      // Should NOT call API when store has user
+      expect(authService.getCurrentUser).not.toHaveBeenCalled()
     })
 
-    it('should fetch user from API if not in localStorage', async () => {
-      localStorageMock.getItem.mockReturnValue(null)
+    it('should fetch user from API if store has no user', async () => {
       const mockUser = {
         id: '1',
         username: 'testuser',
@@ -226,7 +233,6 @@ describe('Refine Auth Provider', () => {
     })
 
     it('should return null on error', async () => {
-      localStorageMock.getItem.mockReturnValue(null)
       vi.mocked(authService.getCurrentUser).mockRejectedValue(new Error('Failed'))
 
       const result = await authProvider.getIdentity()
@@ -279,23 +285,25 @@ describe('Refine Auth Provider', () => {
   })
 
   describe('onError', () => {
-    it('should logout on 401 error', async () => {
+    it('should NOT logout on 401 - just redirect to /admin with error', async () => {
       const error = { statusCode: 401, message: 'Unauthorized' }
 
       const result = await authProvider.onError(error as any)
 
-      expect(result.logout).toBe(true)
-      expect(result.redirectTo).toBe('/')
+      // Actual behavior: logout:false, redirectTo:'/admin'
+      expect(result.logout).toBe(false)
+      expect(result.redirectTo).toBe('/admin')
+      expect(result.error).toEqual(error)
     })
 
-    it('should return error for other status codes', async () => {
+    it('should return error for other status codes without logout', async () => {
       const error = { statusCode: 500, message: 'Server error' }
 
       const result = await authProvider.onError(error as any)
 
       expect(result.error).toEqual(error)
       expect(result.logout).toBeUndefined()
+      expect(result.redirectTo).toBeUndefined()
     })
   })
 })
-

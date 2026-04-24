@@ -1,7 +1,7 @@
 -- Normalize the original outbox schema from 0001_initial.sql to the
 -- async-worker schema used by the API and worker services.
 CREATE TABLE IF NOT EXISTS outbox_events (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     event_type VARCHAR(100) NOT NULL,
     payload JSONB NOT NULL DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

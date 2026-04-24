@@ -99,7 +99,7 @@ $$ LANGUAGE plpgsql;
 
 -- 创建搜索关键词记录表（用于趋势关键词）
 CREATE TABLE IF NOT EXISTS search_keywords (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     keyword TEXT NOT NULL,
     search_count INTEGER DEFAULT 1,
     last_searched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -126,7 +126,7 @@ $$ LANGUAGE plpgsql;
 
 -- 创建搜索历史表（可选，用于个性化搜索建议）
 CREATE TABLE IF NOT EXISTS search_history (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     keyword TEXT NOT NULL,
     results_count INTEGER,

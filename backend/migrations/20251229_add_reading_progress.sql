@@ -2,7 +2,7 @@
 -- 用于记录用户阅读文章的进度
 
 CREATE TABLE IF NOT EXISTS reading_progress (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     post_slug TEXT NOT NULL REFERENCES posts(slug) ON DELETE CASCADE,
     progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),

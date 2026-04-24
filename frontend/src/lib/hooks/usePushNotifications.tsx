@@ -113,8 +113,8 @@ export function usePushNotifications() {
         canRequest: false,
       })
       return result === 'granted'
-    } catch (error) {
-      console.error('Failed to request notification permission:', error)
+    } catch (_err) {
+      console.error('Failed to request notification permission:', _err)
       return false
     }
   }, [isSupported, permission.state])
@@ -150,9 +150,9 @@ export function usePushNotifications() {
       await sendSubscriptionToServer(subscription)
 
       return subscription
-    } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error)
-      throw error
+    } catch (_err) {
+      console.error('Failed to subscribe to push notifications:', _err)
+      throw _err
     }
   }, [isSupported, permission.state, requestPermission])
 
@@ -171,9 +171,9 @@ export function usePushNotifications() {
 
       // 通知服务器取消订阅
       await removeSubscriptionFromServer(subscription)
-    } catch (error) {
-      console.error('Failed to unsubscribe from push notifications:', error)
-      throw error
+    } catch (_err) {
+      console.error('Failed to unsubscribe from push notifications:', _err)
+      throw _err
     }
   }, [subscription])
 
@@ -209,9 +209,9 @@ export function usePushNotifications() {
         }
 
         await registration.showNotification(options.title, notificationOptions)
-      } catch (error) {
-        console.error('Failed to show notification:', error)
-        throw error
+      } catch (_err) {
+        console.error('Failed to show notification:', _err)
+        throw _err
       }
     },
     [permission.state]
@@ -342,7 +342,7 @@ export function NotificationSettings() {
         await subscribe()
         alert(t('notification.subscribed') || '已订阅推送通知')
       }
-    } catch (error) {
+    } catch (_) {
       alert(t('notification.error') || '操作失败')
     }
   }

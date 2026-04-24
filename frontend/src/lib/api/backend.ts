@@ -121,12 +121,12 @@ export const authService = {
     try {
       const user = await this.getCurrentUser()
       return { user }
-    } catch (error) {
-      if (error instanceof AppError && error.statusCode === 401) {
+    } catch (_err) {
+      if (_err instanceof AppError && _err.statusCode === 401) {
         return { user: null }
       }
 
-      throw error
+      throw _err
     }
   },
 }
@@ -943,7 +943,7 @@ export const bookmarkService = {
         `${BACKEND_API_URL}/bookmarks/${postId}/check`
       )
       return response.data.bookmarked
-    } catch (error) {
+    } catch (_) {
       return false
     }
   },

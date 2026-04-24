@@ -156,7 +156,7 @@ function useVideoAutoplay(videoRef: React.RefObject<HTMLVideoElement | null>, vi
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [videoId])
 }
 

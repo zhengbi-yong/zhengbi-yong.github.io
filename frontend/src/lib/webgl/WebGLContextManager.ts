@@ -101,10 +101,15 @@ class WebGLContextManager {
 
   /**
    * Release a managed context, freeing GPU resources
+   * Idempotent - safe to call multiple times
    */
   release(id: string): void {
     const managed = this.contexts.get(id)
     if (!managed) return
+
+    // Idempotent guard: if already marked for cleanup, skip
+    if ((managed as any)._released) return
+    ;(managed as any)._released = true
 
     // Save snapshot before releasing
     if (managed.canvas && managed.context && !managed.isLost) {
@@ -118,13 +123,16 @@ class WebGLContextManager {
     // Remove event listeners
     this.removeContextHandlers(id, managed.canvas)
 
-    // Free GPU resources
-    if (managed.context) {
+    // Free GPU resources (only if not already lost)
+    if (managed.context && !managed.isLost) {
       const gl = managed.context
-      // Lose context to free GPU memory
       const ext = gl.getExtension('WEBGL_lose_context')
       if (ext) {
-        ext.loseContext()
+        try {
+          ext.loseContext()
+        } catch {
+          // Ignore if context already lost (idempotent)
+        }
       }
     }
 

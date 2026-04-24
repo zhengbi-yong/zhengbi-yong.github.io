@@ -125,7 +125,7 @@ pub async fn search_posts_optimized(
         results.push(OptimizedSearchResult {
             slug: row.try_get("slug")?,
             title: row.try_get("title")?,
-            summary: row.try_get("summary").ok(),
+            summary: row.try_get("summary").inspect_err(|e| tracing::warn!("search: failed to get summary: {}", e)).ok(),
             title_highlight: row.try_get("title_highlight")?,
             summary_highlight: row.try_get("summary_highlight")?,
             content_preview: row.try_get("content_preview")?,

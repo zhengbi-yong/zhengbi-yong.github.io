@@ -2,7 +2,7 @@
  * Cleanup Utilities Unit Tests
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   resetLocalStorage,
   resetSessionStorage,
@@ -14,11 +14,19 @@ import {
 } from './cleanup'
 
 describe('Cleanup Utilities', () => {
+  // These tests verify the reset functions work correctly
+  // They use beforeEach to ensure localStorage is in a known state first
   describe('resetLocalStorage', () => {
+    beforeEach(() => {
+      // Reset to known empty state before each test
+      resetLocalStorage()
+    })
+
     it('should reset localStorage to empty mock', () => {
-      // Set some data
+      // Set some data using the mock
       localStorage.setItem('key', 'value')
 
+      // Reset and verify
       resetLocalStorage()
 
       expect(localStorage.getItem('key')).toBeNull()
@@ -27,8 +35,11 @@ describe('Cleanup Utilities', () => {
   })
 
   describe('resetSessionStorage', () => {
+    beforeEach(() => {
+      resetSessionStorage()
+    })
+
     it('should reset sessionStorage to empty mock', () => {
-      // Set some data
       sessionStorage.setItem('key', 'value')
 
       resetSessionStorage()
@@ -39,6 +50,10 @@ describe('Cleanup Utilities', () => {
   })
 
   describe('resetAllStorage', () => {
+    beforeEach(() => {
+      resetAllStorage()
+    })
+
     it('should reset both localStorage and sessionStorage', () => {
       localStorage.setItem('local', 'value')
       sessionStorage.setItem('session', 'value')
@@ -59,12 +74,10 @@ describe('Cleanup Utilities', () => {
       const mockFn = vi.fn()
       mockFn('test')
 
-      // Verify mock was called before cleanup
       expect(mockFn).toHaveBeenCalled()
 
       setupTestIsolation()
 
-      // After cleanup, mock calls should be cleared
       vi.clearAllMocks()
     })
 

@@ -39,7 +39,7 @@ pnpm tsc --noEmit
 | 数学 | KaTeX (rehype-katex) |
 | 图表 | Nivo, ECharts, AntV G2 |
 | 3D/化学 | @react-three/fiber, 3Dmol.js, RDKit (WASM) |
-| 认证 | NextAuth.js (JWT) |
+| 认证 | Backend JWT + HttpOnly Cookie（无 NextAuth.js） |
 | 测试 | Playwright (E2E), Vitest (单元) |
 | i18n | next-intl |
 
@@ -65,15 +65,17 @@ frontend/
 │   │   │   │   ├── health/           #     健康检查
 │   │   │   │   └── metrics/          #     性能指标
 │   │   │   ├── posts/                #   文章管理
-│   │   │   │   ├── [slug]/           #     编辑 / 历史版本
-│   │   │   │   └── new/              #     新建
+│   │   │   │   ├── edit/[...slug]/    #     编辑文章
+│   │   │   │   ├── versions/[...slug]/ #     历史版本
+│   │   │   │   ├── show/[...slug]/    #     查看文章
+│   │   │   │   └── new/              #     新建文章
 │   │   │   ├── posts-manage/         #   简易文章管理
 │   │   │   ├── settings/             #   站点设置
 │   │   │   ├── team/                 #   团队管理
-│   │   │   │   └── [id]/edit         #     编辑成员
+│   │   │   │   ├── edit/            #     编辑成员
+│   │   │   │   └── new/             #     新建成员
 │   │   │   ├── test/                 #   测试页
-│   │   │   └── users/                #   用户管理
-│   │   │       └── users-refine/     #   Refine 版用户管理
+│   │   │   └── users-refine/         #   Refine 版用户管理
 │   │   │
 │   │   ├── analytics/                # 访客分析页
 │   │   ├── api/                      # BFF API 路由
@@ -286,8 +288,7 @@ frontend/
 │   │   ├── ai/                      #   AI / LLM 集成
 │   │   ├── api/                     #   API 客户端
 │   │   │   ├── apiClient.ts         #     Axios 实例
-│   │   │   ├── backend.ts          #     后端地址解析
-│   │   │   ├── mutator.ts          #     数据修改函数
+│   │   │   ├── backend.ts          #     后端 API 调用封装
 │   │   │   ├── resolveBackendApiBaseUrl.ts
 │   │   │   └── generated/          #     Orval 自动生成的类型
 │   │   │       └── schemas/        #       OpenAPI Schema
@@ -299,11 +300,10 @@ frontend/
 │   │   │   └── ...
 │   │   │
 │   │   ├── chemistry/               #   化学计算库集成
-│   │   ├── contentlayer/            #   Contentlayer 内容处理
 │   │   ├── contexts/                #   React Context
 │   │   │   └── ...
 │   │   │
-│   │   ├── db/                      #   数据库客户端（Payload CMS）
+│   │   ├── db/                      #   文件系统博客抽象层（读 content/posts/）
 │   │   ├── hooks/                   #   通用 Hooks（非组件专用）
 │   │   ├── performance/             #   性能监控与分析
 │   │   │   ├── code-splitting.tsx   #     代码分割工具
@@ -363,11 +363,16 @@ frontend/
 │       ├── colors.css                #   颜色系统（--color-primary-500 等）
 │       └── spacing.css               #   间距系统（--spacing-md: 16px 等）
 │
-├── content/                          # Velite 编译后的静态内容（机器生成）
-│   └── blog/                         #   编译后的博客 HTML/MD
+├── content/                          # MDX/MD 博客源文件（Velite 编译输入）
+│   └── blog/                         #   博客文章源文件
 │       └── rdkit化学结构可视化完整指南.md
 │
-├── data/                             # Velite 源内容（MDX + YAML/JSON）
+├── .velite/                         # ★ Velite 编译输出目录（机器生成）
+│   ├── blog.json                    #   博客索引
+│   ├── authors.json                  #   作者索引
+│   └── index.js                     #   编译入口
+│
+├── data/                            # Velite 源内容（MDX + YAML/JSON）
 │   ├── authors/                      #   作者信息 MDX
 │   │   └── default.mdx
 │   ├── blog/                        #   ★ 博客文章 MDX 源文件
@@ -620,7 +625,7 @@ pattern: 'blog/**/*.mdx'  →  输出到 .velite/ + public/static/
 
 | Store | 用途 |
 |-------|------|
-| `auth-store.ts` | 认证状态（用户信息、Token） |
+| `auth-store.ts` | 认证状态（用户信息、isAuthenticated）— **不含 Token**（GOLDEN_RULES 1.1: Token 仅在 HttpOnly Cookie） |
 | `blog-store.ts` | 博客状态（当前文章、阅读进度） |
 | `comment-store.ts` | 评论状态 |
 | `post-store.ts` | 文章状态 |
@@ -1522,7 +1527,7 @@ ANALYZE=true pnpm build  # Bundle 分析
 | CSRF 防护 | Next.js 内置 + SameSite Cookie |
 | 内容安全策略 | `next.config.js` 配置 CSP 头 |
 | 依赖扫描 | `pnpm audit` |
-| API 鉴权 | NextAuth.js JWT + 后端 Token 验证 |
+| API 鉴权 | 后端 JWT + HttpOnly Cookie + XSRF-TOKEN |
 
 ---
 

@@ -1,6 +1,6 @@
 -- Team Members table for lab team management
 CREATE TABLE team_members (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
 
     -- Name fields

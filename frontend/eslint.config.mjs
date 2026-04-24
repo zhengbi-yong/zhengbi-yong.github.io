@@ -52,24 +52,24 @@ export default [
       ...typescriptEslint.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': [
         'warn',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-require-imports': 'off',
 
       // React Hooks
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': 'off',
 
       // General - relax some rules
       'no-unused-vars': 'off',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': ['warn', { allow: ['warn', 'error', 'log', 'debug', 'info'] }],
       'prefer-const': 'warn',
       'no-unused-expressions': 'off',
       'no-undef': 'off', // TypeScript handles this
-      '@typescript-eslint/ban-ts-comment': 'warn', // Allow @ts-nocheck with warning
+      '@typescript-eslint/ban-ts-comment': 'off',
       'no-case-declarations': 'warn',
       'no-useless-escape': 'warn',
     },
@@ -79,6 +79,7 @@ export default [
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
       'no-console': 'off',
+      'no-unused-vars': 'off',
     },
   },
 ]

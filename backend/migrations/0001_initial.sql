@@ -2,10 +2,11 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;  -- gen_random_uuid()
 CREATE EXTENSION IF NOT EXISTS citext;    -- 大小写不敏感
 CREATE EXTENSION IF NOT EXISTS ltree;     -- 评论树结构
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- uuid_generate_v7() 用于时间有序 UUID
 
 -- 用户表
 CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     email CITEXT UNIQUE NOT NULL,
     username CITEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
@@ -23,7 +24,7 @@ CREATE INDEX idx_users_profile_gin ON users USING GIN (profile);
 
 -- Refresh Token 表（修正版）
 CREATE TABLE refresh_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash TEXT NOT NULL UNIQUE,
     family_id UUID NOT NULL,
@@ -49,9 +50,11 @@ CREATE TABLE post_stats (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_post_stats_updated ON post_stats(updated_at DESC);
-CREATE INDEX idx_post_stats_views ON post_stats(view_count DESC);
-CREATE INDEX idx_post_stats_likes ON post_stats(like_count DESC);
+-- 注意：idx_post_stats_updated/idx_post_stats_views/idx_post_stats_likes 索引已在
+-- 2026040902_hot_optimization.sql 中 DROP。保留此处仅作历史记录。
+CREATE INDEX idx_post_stats_updated ON post_stats(updated_at DESC);  -- DROPped by 2026040902
+CREATE INDEX idx_post_stats_views ON post_stats(view_count DESC);    -- DROPped by 2026040902
+CREATE INDEX idx_post_stats_likes ON post_stats(like_count DESC);     -- DROPped by 2026040902
 
 -- 点赞表
 CREATE TABLE post_likes (
@@ -69,7 +72,7 @@ CREATE TYPE comment_status AS ENUM ('pending','approved','rejected','spam','dele
 
 -- 评论表（修正版）
 CREATE TABLE comments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     post_slug TEXT NOT NULL,
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
@@ -100,7 +103,7 @@ CREATE INDEX idx_comments_user ON comments(user_id);
 
 -- 事件出队表（用于 Worker）
 CREATE TABLE outbox_events (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     topic TEXT NOT NULL,
     payload JSONB NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',

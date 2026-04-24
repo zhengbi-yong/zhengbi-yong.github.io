@@ -47,8 +47,8 @@ export default function NotificationsPage() {
     try {
       const data = await commentNotificationService.getSubscriptions()
       setSubscriptions(data)
-    } catch (error) {
-      console.error('Failed to load subscriptions:', error)
+    } catch (err) {
+      console.error('Failed to load subscriptions:', err)
     } finally {
       setLoading(false)
     }
@@ -58,8 +58,8 @@ export default function NotificationsPage() {
     try {
       const data = await commentNotificationService.getPreferences()
       setPreferences(data)
-    } catch (error) {
-      console.error('Failed to load preferences:', error)
+    } catch (err) {
+      console.error('Failed to load preferences:', err)
     }
   }
 
@@ -71,7 +71,7 @@ export default function NotificationsPage() {
     try {
       await commentNotificationService.unsubscribeFromPost(postId)
       loadSubscriptions()
-    } catch (error) {
+    } catch (_) {
       alert(t('notification.unsubscribeError') || '取消订阅失败')
     }
   }
@@ -83,7 +83,7 @@ export default function NotificationsPage() {
     try {
       await commentNotificationService.updatePreferences(preferences)
       alert(t('notification.preferencesSaved') || '设置已保存')
-    } catch (error) {
+    } catch (_) {
       alert(t('notification.saveError') || '保存失败')
     } finally {
       setSaving(false)

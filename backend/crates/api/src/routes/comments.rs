@@ -151,13 +151,12 @@ pub async fn create_comment(
         moderation_reason: comment_row.get("moderation_reason"),
     };
 
-    // 更新评论计数
-    sqlx::query!(
-        "UPDATE post_stats SET comment_count = comment_count + 1 WHERE slug = $1",
-        slug
-    )
-    .execute(&mut *tx)
-    .await?;
+    // 更新评论计数（事务内使用 query() 而非 query!）
+    // GOLDEN_RULES §3.5 / ultradesign §4.6: 事务内禁止外部 I/O，但 query! 在事务上下文中不工作
+    sqlx::query("UPDATE post_stats SET comment_count = comment_count + 1 WHERE slug = $1")
+        .bind(slug)
+        .execute(&mut *tx)
+        .await?;
 
     tx.commit().await?;
 

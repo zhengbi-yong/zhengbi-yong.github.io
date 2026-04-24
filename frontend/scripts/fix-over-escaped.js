@@ -1,4 +1,5 @@
 const fs = require('fs');
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const path = require('path');
 
 /**

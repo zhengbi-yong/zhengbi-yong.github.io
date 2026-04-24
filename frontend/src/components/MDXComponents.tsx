@@ -7,7 +7,6 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react'
-import TOCInline from 'pliny/ui/TOCInline'
 import BlogNewsletterForm from 'pliny/ui/BlogNewsletterForm'
 import Image from './Image'
 import CustomLink from './Link'

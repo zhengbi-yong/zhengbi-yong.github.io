@@ -1,5 +1,3 @@
-// @ts-nocheck
-'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useTheme } from 'next-themes'
@@ -17,6 +15,7 @@ interface HeaderState {
   isMobileMenuOpen: boolean
   scrollY: number
   isVisible: boolean
+  transformY?: number
 }
 
 export default function Header() {
@@ -28,7 +27,6 @@ export default function Header() {
   })
   const [currentPath, setCurrentPath] = useState('')
   const { setTheme, resolvedTheme } = useTheme()
-  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastScrollYRef = useRef(0)
 
   useEffect(() => {

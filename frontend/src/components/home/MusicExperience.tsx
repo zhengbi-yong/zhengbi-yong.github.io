@@ -293,7 +293,7 @@ export default function MusicExperience() {
 
         measures.forEach((measure, measureIdx) => {
           const noteElements = measure.querySelectorAll('note')
-          let measureTime = measureOffsets[measureIdx]
+          const measureTime = measureOffsets[measureIdx]
           let rawTime = 0
 
           noteElements.forEach((note) => {

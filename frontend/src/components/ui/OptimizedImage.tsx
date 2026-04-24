@@ -1,5 +1,3 @@
-// @ts-nocheck
-'use client'
 
 import Image, { ImageProps } from 'next/image'
 import { useState } from 'react'
@@ -16,7 +14,6 @@ export function OptimizedImage({
   fallbackSrc = '/images/default-cover.svg',
   wrapperClassName,
   className,
-  onError,
   ...props
 }: OptimizedImageProps) {
   const [imgSrc, setImgSrc] = useState(props.src)
@@ -28,7 +25,6 @@ export function OptimizedImage({
       setImgSrc(fallbackSrc)
       setHasError(true)
     }
-    // Not calling onError callback as we don't have a synthetic event
   }
 
   return (
@@ -63,7 +59,7 @@ export function OptimizedImage({
 // 类型安全的图片组件，强制要求 alt 属性
 export function AccessibleImage(props: OptimizedImageProps) {
   if (!props.alt) {
-    logger.warn('AccessibleImage: alt prop is required for accessibility')
+    console.warn('AccessibleImage: alt prop is required for accessibility')
     return <OptimizedImage {...props} alt="Image" />
   }
   return <OptimizedImage {...props} />

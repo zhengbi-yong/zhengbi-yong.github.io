@@ -1,5 +1,3 @@
-// @ts-nocheck
-'use client'
 
 import Image from 'next/image'
 import { useState, useCallback, useRef, useEffect } from 'react'
@@ -73,7 +71,7 @@ export function EnhancedImage({
   // Handle load error
   const handleError = useCallback(
     (event: React.SyntheticEvent<HTMLImageElement>) => {
-      logger.error('Image loading error:', event)
+      console.error('Image loading error:', event)
       setHasError(true)
       setIsLoading(false)
 

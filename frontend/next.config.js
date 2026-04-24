@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+ 
 // Contentlayer removed - migrated to velite for content processing
 // const { withContentlayer } = require('next-contentlayer2')
 const { withSentryConfig } = require('@sentry/nextjs')

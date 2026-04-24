@@ -65,22 +65,25 @@ pub async fn auth_middleware(
     let token = token.ok_or(AuthError::MissingToken)?;
 
     // 仅验证 JWT token (CPU-bound operation)
+    // GOLDEN_RULES §3.2: 禁止在提取器里做外部I/O，提取器运行在请求主路径上会把认证变成外部依赖可用性的放大器
     match state.jwt.verify_access_token(&token) {
         Ok(claims) => {
             let user_id =
                 uuid::Uuid::parse_str(&claims.sub).map_err(|_| AuthError::InvalidToken)?;
 
-            // 从数据库加载完整用户信息（含真实 role），而非硬编码 "user"
-            match load_user_from_db(&state.db, user_id).await {
-                Ok(auth_user) => {
-                    request.extensions_mut().insert(auth_user);
-                    Ok(next.run(request).await)
-                }
-                Err(e) => {
-                    tracing::warn!("Failed to load user from DB: {:?}", e);
-                    Err(AuthError::InvalidToken)
-                }
-            }
+            // 从 JWT claims 构建 AuthUser（不查 DB，符合 GOLDEN_RULES §3.2）
+            // 注：JWT 不包含 role，role 验证在具体 handler 中按需调用 load_user_from_db()
+            // 此处 role 仅用于中间件路径的占位值
+            let auth_user = AuthUser {
+                id: user_id,
+                email: claims.email,
+                username: claims.username,
+                profile: serde_json::Value::Null,
+                email_verified: false,
+                role: "user".to_string(),
+            };
+            request.extensions_mut().insert(auth_user);
+            Ok(next.run(request).await)
         }
         Err(e) => {
             tracing::warn!("JWT verification failed: {}", e);

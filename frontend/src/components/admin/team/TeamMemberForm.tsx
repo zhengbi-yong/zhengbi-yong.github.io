@@ -66,7 +66,7 @@ export function TeamMemberForm({ memberId, onSuccess }: TeamMemberFormProps) {
         avatar_media_id: undefined, // Avatar handling would require media resolution
         display_order: member.display_order,
       })
-    } catch (error) {
+    } catch (_) {
       alert('加载成员信息失败')
       router.push('/admin/team')
     } finally {
@@ -91,7 +91,7 @@ export function TeamMemberForm({ memberId, onSuccess }: TeamMemberFormProps) {
       }
       onSuccess?.()
       router.push('/admin/team')
-    } catch (error) {
+    } catch (_) {
       alert(isEditing ? '更新失败' : '创建失败')
     } finally {
       setSaving(false)

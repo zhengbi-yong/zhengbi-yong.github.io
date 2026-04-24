@@ -30,8 +30,13 @@ async fn main() -> anyhow::Result<()> {
         .unwrap_or_else(|_| "redis://localhost:6379".to_string());
 
     // 初始化数据库连接
+    // GOLDEN_RULES §3.3: 必须配置 acquire_timeout, idle_timeout, max_lifetime, fetch_dynamic_timeout
     let db = sqlx::postgres::PgPoolOptions::new()
         .max_connections(10)
+        .acquire_timeout(std::time::Duration::from_secs(5))
+        .idle_timeout(std::time::Duration::from_secs(600))
+        .max_lifetime(std::time::Duration::from_secs(1800))
+        .fetch_dynamic_timeout(true)
         .connect(&database_url)
         .await?;
     tracing::info!("Database connection established");

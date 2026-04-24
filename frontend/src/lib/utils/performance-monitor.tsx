@@ -216,16 +216,6 @@ export function reportWebVitals(metrics: PerformanceMetrics) {
         }
       })
     }
-
-    // Example: Send to custom endpoint
-    fetch('/api/analytics/performance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(metrics),
-      keepalive: true,
-    }).catch((error) => {
-      console.warn('Failed to report web vitals:', error)
-    })
   }
 }
 

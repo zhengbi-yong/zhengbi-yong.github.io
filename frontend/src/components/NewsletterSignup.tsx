@@ -65,7 +65,7 @@ export function NewsletterSignup({
         setStatus('error')
         setMessage(data.error || t('newsletter.error') || '订阅失败，请稍后重试')
       }
-    } catch (error) {
+    } catch (_error) {
       setStatus('error')
       setMessage(t('newsletter.networkError') || '网络错误，请稍后重试')
     }

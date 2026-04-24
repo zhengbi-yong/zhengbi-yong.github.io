@@ -40,7 +40,7 @@ export function parsePrometheusMetrics(text: string): PrometheusMetrics {
       const value = parseFloat(valueStr)
 
       // 解析标签
-      let labels: Record<string, string> = {}
+      const labels: Record<string, string> = {}
       if (labelsStr) {
         const labelsContent = labelsStr.slice(1, -1) // 移除 {}
         labelsContent.split(',').forEach(pair => {

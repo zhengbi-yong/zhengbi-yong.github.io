@@ -77,7 +77,7 @@ export function usePerformanceMonitor() {
   const [data, setData] = useState<PerformanceData | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout>()
-  const fpsFrameRef = useRef<number>()
+  const _fpsFrameRef = useRef<number>()
   const fpsLastTimeRef = useRef<number>(performance.now())
   const fpsFramesRef = useRef<number[]>([])
 

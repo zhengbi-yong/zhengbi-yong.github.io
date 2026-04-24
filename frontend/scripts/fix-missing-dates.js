@@ -1,4 +1,5 @@
 const fs = require('fs');
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const path = require('path');
 
 /**
@@ -16,7 +17,7 @@ const filesWithoutDate = [
 
 function addDateToMDX(filePath) {
   try {
-    let content = fs.readFileSync(filePath, 'utf8');
+    const content = fs.readFileSync(filePath, 'utf8');
 
     // Check if date field already exists
     if (content.match(/^date:\s*$/m)) {

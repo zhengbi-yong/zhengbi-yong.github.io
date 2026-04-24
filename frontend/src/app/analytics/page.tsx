@@ -31,7 +31,7 @@ export default function AnalyticsPage() {
       setStats(getDataStats())
       setAllData(getAllData())
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [isClient])
 
   // 刷新数据的辅助函数

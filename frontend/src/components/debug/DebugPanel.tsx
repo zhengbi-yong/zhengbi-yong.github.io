@@ -87,7 +87,7 @@ export function DebugPanel() {
 
     try {
       observer.observe({ entryTypes: ['navigation'] })
-    } catch (e) {
+    } catch (_) {
       // 某些浏览器可能不支持
     }
 

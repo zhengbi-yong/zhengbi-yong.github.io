@@ -49,7 +49,7 @@ export default function OptimizedImage({
     try {
       const base64 = btoa(svgString)
       return `data:image/svg+xml;base64,${base64}`
-    } catch (error) {
+    } catch (_error) {
       // 如果 base64 编码失败（理论上不应该发生），回退到 URL 编码的 data URL
       return `data:image/svg+xml,${encodeURIComponent(svgString)}`
     }

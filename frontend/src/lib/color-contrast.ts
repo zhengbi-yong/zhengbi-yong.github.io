@@ -327,5 +327,5 @@ export const checkTailwindColors = () => {
     // This would need to be implemented to get actual hex values
     logger.log(`${pair.text} on ${pair.bg}: Need to check contrast`)
   })
-  console.groupEnd()
+  logger.groupEnd()
 }

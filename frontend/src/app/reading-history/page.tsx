@@ -31,8 +31,8 @@ export default function ReadingHistoryPage() {
       setHistory(response.history)
       setTotalPages(response.total_pages)
       setTotalCount(response.total)
-    } catch (error) {
-      console.error('Failed to load reading history:', error)
+    } catch (err) {
+      console.error('Failed to load reading history:', err)
     } finally {
       setLoading(false)
     }
@@ -61,7 +61,7 @@ export default function ReadingHistoryPage() {
       await readingProgressService.resetProgress(slug)
       // 重新加载当前页
       loadHistory(currentPage)
-    } catch (error) {
+    } catch (_) {
       alert(t('blog.resetFailed') || '重置失败')
     }
   }

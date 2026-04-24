@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import CommentManagementPage from '@/app/admin/comments/page'
+import CommentManagementPage from '../../../src/app/(admin)/admin/comments/page'
 import * as refineCore from '@refinedev/core'
 
 // Mock Refine hooks

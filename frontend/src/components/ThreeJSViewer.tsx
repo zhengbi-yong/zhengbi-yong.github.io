@@ -1,12 +1,9 @@
-// @ts-nocheck
-'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import URDFLoader from 'urdf-loader'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Spinner } from '@/components/loaders'
-import { logger } from '@/lib/utils/logger'
 
 interface QualityProfile {
   pixelRatio?: number
@@ -45,7 +42,7 @@ export default function ThreeJSViewer({
 
   useEffect(() => {
     const container = containerRef.current
-    if (!container) return
+    if (!container) return undefined
 
     // 在 effect 开始时复制 ref 值，避免在清理函数中使用可能已改变的 ref
     const currentScene = sceneRef.current
@@ -58,7 +55,7 @@ export default function ThreeJSViewer({
     const width = container.clientWidth
     const height = container.clientHeight
     if (width === 0 || height === 0) {
-      logger.warn('ThreeJSViewer: 容器尺寸为 0，等待容器渲染')
+      console.warn('ThreeJSViewer: 容器尺寸为 0，等待容器渲染')
       // 等待容器渲染
       const checkSize = setInterval(() => {
         if (container.clientWidth > 0 && container.clientHeight > 0) {
@@ -125,15 +122,15 @@ export default function ThreeJSViewer({
 
       const manager = new THREE.LoadingManager(
         () => {
-          logger.log('全部资源加载完成')
+          console.log('全部资源加载完成')
           setIsLoading(false)
           setError(null)
         },
-        (url, loaded, total) => {
-          logger.log(`加载进度: ${((loaded / total) * 100).toFixed(1)}%`)
+        (_url, loaded, total) => {
+          console.log(`加载进度: ${((loaded / total) * 100).toFixed(1)}%`)
         },
-        (url) => {
-          logger.error('资源加载失败:', url)
+        (_url) => {
+          console.error('资源加载失败:', _url)
           // 单个资源失败不中断整个加载过程
         }
       )
@@ -149,12 +146,12 @@ export default function ThreeJSViewer({
       const urdfPath =
         modelPath || '/models/SO_5DOF_ARM100_05d.SLDASM/urdf/SO_5DOF_ARM100_05d.SLDASM.urdf'
 
-      logger.log(`正在加载URDF (尝试 ${retryCount + 1}/${maxRetries}):`, urdfPath)
+      console.log(`正在加载URDF (尝试 ${retryCount + 1}/${maxRetries}):`, urdfPath)
 
       // 设置超时
       const timeoutId = setTimeout(() => {
         if (retryCount < maxRetries - 1) {
-          logger.warn(`加载超时，准备重试 (${retryCount + 1}/${maxRetries})`)
+          console.warn(`加载超时，准备重试 (${retryCount + 1}/${maxRetries})`)
           setTimeout(() => loadRobot(retryCount + 1), 1000) // 1秒后重试
         } else {
           setError('模型加载超时')
@@ -166,7 +163,7 @@ export default function ThreeJSViewer({
         urdfPath,
         (robot) => {
           clearTimeout(timeoutId)
-          logger.log('模型加载成功')
+          console.log('模型加载成功')
           robot.rotation.x = -Math.PI / 2
           if (modelRef.current) {
             sceneRef.current.remove(modelRef.current)
@@ -195,16 +192,16 @@ export default function ThreeJSViewer({
             typeof progress.loaded === 'number' &&
             typeof progress.total === 'number'
           ) {
-            logger.log(`加载进度: ${((progress.loaded / progress.total) * 100).toFixed(1)}%`)
+            console.log(`加载进度: ${((progress.loaded / progress.total) * 100).toFixed(1)}%`)
           } else {
-            logger.log('加载中...')
+            console.log('加载中...')
           }
         },
         (error) => {
           clearTimeout(timeoutId)
-          logger.error('加载失败:', error)
+          console.error('加载失败:', error)
           if (retryCount < maxRetries - 1) {
-            logger.log(`准备重试 (${retryCount + 1}/${maxRetries})`)
+            console.log(`准备重试 (${retryCount + 1}/${maxRetries})`)
             setTimeout(() => loadRobot(retryCount + 1), 1000) // 1秒后重试
           } else {
             setError(`模型加载失败: ${error.message || '未知错误'}`)
@@ -257,7 +254,7 @@ export default function ThreeJSViewer({
       loadRobot()
       animate()
     } catch (err) {
-      logger.error('ThreeJSViewer 初始化失败:', err)
+      console.error('ThreeJSViewer 初始化失败:', err)
       setError(`初始化失败: ${err instanceof Error ? err.message : '未知错误'}`)
       setIsLoading(false)
     }

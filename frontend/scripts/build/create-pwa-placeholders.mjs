@@ -1,4 +1,5 @@
 import { writeFileSync } from 'fs'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { join } from 'path'
 
 // 创建 PWA 截图占位符的 SVG

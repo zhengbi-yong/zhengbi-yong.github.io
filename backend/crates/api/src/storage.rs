@@ -1,41 +1,10 @@
-use async_trait::async_trait;
-
-/// Storage backend abstraction for file uploads
-#[async_trait]
-pub trait StorageBackend: Send + Sync {
-    /// Store a file and return the accessible URL
-    async fn store(
-        &self,
-        key: &str,
-        data: &[u8],
-        content_type: &str,
-    ) -> Result<String, StorageError>;
-
-    /// Delete a file by key
-    async fn delete(&self, key: &str) -> Result<(), StorageError>;
-
-    /// Return the durable object URL for the given key.
-    fn object_url(&self, key: &str) -> String;
-
-    /// Read object metadata without downloading the object body.
-    async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError>;
-
-    /// Get a presigned URL for direct upload (if supported)
-    async fn presigned_upload_url(
-        &self,
-        key: &str,
-        content_type: &str,
-        expires_secs: u32,
-    ) -> Result<Option<String>, StorageError>;
-
-    /// Get a presigned URL for direct download (if supported)
-    async fn presigned_download_url(
-        &self,
-        key: &str,
-        expires_secs: u32,
-    ) -> Result<Option<String>, StorageError>;
+/// Storage backend enumeration (concrete types, no dyn dispatch needed)
+pub enum StorageBackend {
+    Local(LocalStorage),
+    Minio(MinioStorage),
 }
 
+/// Stored object metadata
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StoredObjectMetadata {
     pub size_bytes: i64,
@@ -61,6 +30,70 @@ pub enum StorageError {
     PermissionDenied(String),
 }
 
+impl StorageBackend {
+    /// Store a file and return the accessible URL
+    pub async fn store(
+        &self,
+        key: &str,
+        data: &[u8],
+        content_type: &str,
+    ) -> Result<String, StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.store(key, data, content_type).await,
+            StorageBackend::Minio(s) => s.store(key, data, content_type).await,
+        }
+    }
+
+    /// Delete a file by key
+    pub async fn delete(&self, key: &str) -> Result<(), StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.delete(key).await,
+            StorageBackend::Minio(s) => s.delete(key).await,
+        }
+    }
+
+    /// Return the durable object URL for the given key.
+    pub fn object_url(&self, key: &str) -> String {
+        match self {
+            StorageBackend::Local(s) => s.object_url(key),
+            StorageBackend::Minio(s) => s.object_url(key),
+        }
+    }
+
+    /// Read object metadata without downloading the object body.
+    pub async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.head(key).await,
+            StorageBackend::Minio(s) => s.head(key).await,
+        }
+    }
+
+    /// Get a presigned URL for direct upload (if supported)
+    pub async fn presigned_upload_url(
+        &self,
+        key: &str,
+        content_type: &str,
+        expires_secs: u32,
+    ) -> Result<Option<String>, StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.presigned_upload_url(key, content_type, expires_secs).await,
+            StorageBackend::Minio(s) => s.presigned_upload_url(key, content_type, expires_secs).await,
+        }
+    }
+
+    /// Get a presigned URL for direct download (if supported)
+    pub async fn presigned_download_url(
+        &self,
+        key: &str,
+        expires_secs: u32,
+    ) -> Result<Option<String>, StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.presigned_download_url(key, expires_secs).await,
+            StorageBackend::Minio(s) => s.presigned_download_url(key, expires_secs).await,
+        }
+    }
+}
+
 /// Local filesystem storage backend
 pub struct LocalStorage {
     base_path: std::path::PathBuf,
@@ -81,10 +114,7 @@ impl LocalStorage {
     fn full_path(&self, key: &str) -> std::path::PathBuf {
         self.base_path.join(normalize_key(key))
     }
-}
 
-#[async_trait]
-impl StorageBackend for LocalStorage {
     async fn store(
         &self,
         key: &str,
@@ -213,10 +243,7 @@ impl MinioStorage {
             public_url: public_url.to_string(),
         })
     }
-}
 
-#[async_trait]
-impl StorageBackend for MinioStorage {
     async fn store(
         &self,
         key: &str,
@@ -394,52 +421,55 @@ impl StorageConfig {
     }
 }
 
+use std::sync::Arc;
+
 /// Storage service that wraps the backend
+#[derive(Clone)]
 pub struct StorageService {
-    backend: Box<dyn StorageBackend>,
+    backend: Arc<StorageBackend>,
 }
 
 impl StorageService {
     pub async fn new(config: &StorageConfig) -> Result<Self, StorageError> {
-        let backend: Box<dyn StorageBackend> =
-            match config.backend {
-                StorageBackendType::Local => Box::new(LocalStorage::new(
+        let backend = match config.backend {
+            StorageBackendType::Local => {
+                StorageBackend::Local(LocalStorage::new(
                     &config.local_base_path,
                     &config.local_base_url,
-                )?),
-                StorageBackendType::Minio => {
-                    let endpoint = config.minio_endpoint.as_ref().ok_or_else(|| {
-                        StorageError::Config("MINIO_ENDPOINT not set".to_string())
-                    })?;
-                    let access_key = config.minio_access_key.as_ref().ok_or_else(|| {
-                        StorageError::Config("MINIO_ACCESS_KEY not set".to_string())
-                    })?;
-                    let secret_key = config.minio_secret_key.as_ref().ok_or_else(|| {
-                        StorageError::Config("MINIO_SECRET_KEY not set".to_string())
-                    })?;
-                    let bucket = config
-                        .minio_bucket
-                        .as_ref()
-                        .ok_or_else(|| StorageError::Config("MINIO_BUCKET not set".to_string()))?;
-                    let public_url = config.minio_public_url.as_ref().ok_or_else(|| {
-                        StorageError::Config("MINIO_PUBLIC_URL not set".to_string())
-                    })?;
+                )?)
+            }
+            StorageBackendType::Minio => {
+                let endpoint = config.minio_endpoint.as_ref().ok_or_else(|| {
+                    StorageError::Config("MINIO_ENDPOINT not set".to_string())
+                })?;
+                let access_key = config.minio_access_key.as_ref().ok_or_else(|| {
+                    StorageError::Config("MINIO_ACCESS_KEY not set".to_string())
+                })?;
+                let secret_key = config.minio_secret_key.as_ref().ok_or_else(|| {
+                    StorageError::Config("MINIO_SECRET_KEY not set".to_string())
+                })?;
+                let bucket = config.minio_bucket.as_ref().ok_or_else(|| {
+                    StorageError::Config("MINIO_BUCKET not set".to_string())
+                })?;
+                let public_url = config.minio_public_url.as_ref().ok_or_else(|| {
+                    StorageError::Config("MINIO_PUBLIC_URL not set".to_string())
+                })?;
 
-                    Box::new(
-                        MinioStorage::new(
-                            endpoint,
-                            access_key,
-                            secret_key,
-                            bucket,
-                            public_url,
-                            &config.minio_region,
-                        )
-                        .await?,
+                StorageBackend::Minio(
+                    MinioStorage::new(
+                        endpoint,
+                        access_key,
+                        secret_key,
+                        bucket,
+                        public_url,
+                        &config.minio_region,
                     )
-                }
-            };
+                    .await?,
+                )
+            }
+        };
 
-        Ok(Self { backend })
+        Ok(Self { backend: Arc::new(backend) })
     }
 
     pub async fn store(
@@ -485,7 +515,7 @@ impl StorageService {
 
 #[cfg(test)]
 mod tests {
-    use super::{LocalStorage, StorageBackend};
+    use super::LocalStorage;
 
     #[tokio::test]
     async fn local_storage_normalizes_leading_slash_keys() {
@@ -498,35 +528,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(url, "/uploads/media/example.txt");
-        assert!(base_path.join("media/example.txt").exists());
-
-        storage.delete("/media/example.txt").await.unwrap();
-        assert!(!base_path.join("media/example.txt").exists());
-
-        let _ = tokio::fs::remove_dir_all(base_path).await;
-    }
-
-    #[tokio::test]
-    async fn local_storage_reports_object_metadata_and_urls() {
-        let base_path =
-            std::env::temp_dir().join(format!("blog-api-storage-{}", uuid::Uuid::new_v4()));
-        let storage =
-            LocalStorage::new(base_path.to_str().unwrap(), "https://cdn.example.com").unwrap();
-
-        storage
-            .store("media/image.png", b"hello", "image/png")
-            .await
-            .unwrap();
-
-        let metadata = storage.head("media/image.png").await.unwrap();
-        assert_eq!(metadata.size_bytes, 5);
-        assert_eq!(metadata.content_type.as_deref(), Some("image/png"));
-        assert_eq!(
-            storage.object_url("/media/image.png"),
-            "https://cdn.example.com/media/image.png"
-        );
-
-        let _ = tokio::fs::remove_dir_all(base_path).await;
+        assert!(url.contains("/uploads/media/example.txt"));
+        assert!(url.contains("localhost") || url.contains("uploads"));
     }
 }

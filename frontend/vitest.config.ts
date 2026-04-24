@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    setupFiles: ['./tests/setup.ts'],
     exclude: ['**/e2e/**', '**/node_modules/**', '**/dist/**', '**/.next/**'],
     coverage: {
       provider: 'v8',
@@ -29,18 +30,26 @@ export default defineConfig({
         '.next/',
       ],
     },
-    // 移除无效的transformMode配置
   },
   resolve: {
-    alias: {
-      '@': resolve(__dirname, './'),
-      '@/components': resolve(__dirname, './components'),
-      '@/lib': resolve(__dirname, './lib'),
-      '@/data': resolve(__dirname, './data'),
-      '@/layouts': resolve(__dirname, './layouts'),
-      '@/app': resolve(__dirname, './app'),
-      '@/src': resolve(__dirname, './src'),
-      '@/mocks': resolve(__dirname, './src/mocks'),
-    },
+    alias: [
+      // Longest-prefix-first — Vite uses first-match-wins
+      { find: '@/src/app/admin/comments', replacement: resolve(__dirname, './src/app/(admin)/admin/comments') },
+      { find: '@/src/app/admin/users-refine', replacement: resolve(__dirname, './src/app/(admin)/admin/users-refine') },
+      { find: '@/src/app/admin', replacement: resolve(__dirname, './src/app/(admin)/admin') },
+      { find: '@/src/app', replacement: resolve(__dirname, './src/app') },
+      { find: '@/src', replacement: resolve(__dirname, './src') },
+      { find: '@/components', replacement: resolve(__dirname, './src/components') },
+      { find: '@/lib', replacement: resolve(__dirname, './src/lib') },
+      { find: '@/lib/store', replacement: resolve(__dirname, './src/lib/store') },
+      { find: '@/lib/providers', replacement: resolve(__dirname, './src/lib/providers') },
+      { find: '@/lib/security', replacement: resolve(__dirname, './src/lib/security') },
+      { find: '@/lib/hooks', replacement: resolve(__dirname, './src/lib/hooks') },
+      { find: '@/lib/types', replacement: resolve(__dirname, './src/lib/types') },
+      { find: '@/layouts', replacement: resolve(__dirname, './src/layouts') },
+      { find: '@/mocks', replacement: resolve(__dirname, './src/mocks') },
+      { find: '@/data', replacement: resolve(__dirname, './data') },
+      // Note: @/lib/utils/cleanup → @/lib → ./src/lib + /utils/cleanup = ./src/lib/utils/cleanup.ts
+    ],
   },
 })

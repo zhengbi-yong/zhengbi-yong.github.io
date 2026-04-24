@@ -78,17 +78,28 @@ export function clearAllMocksAndReset() {
  * ```
  */
 export function resetLocalStorage() {
-  const localStorageMock = {
-    getItem: vi.fn(() => null),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
+  const storage: Record<string, string> = {}
+  // Delete existing localStorage first — jsdom's native localStorage has
+  // non-configurable properties (e.g. clear), so delete before reassigning
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete (window as any).localStorage
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(window as any).localStorage = {
+    getItem: (key: string) => storage[key] ?? null,
+    setItem: (key: string, value: string) => {
+      storage[key] = value
+    },
+    removeItem: (key: string) => {
+      delete storage[key]
+    },
+    clear: () => {
+      Object.keys(storage).forEach(k => delete storage[k])
+    },
+    get length() {
+      return Object.keys(storage).length
+    },
+    key: (index: number) => Object.keys(storage)[index] ?? null,
   }
-
-  Object.defineProperty(window, 'localStorage', {
-    value: localStorageMock,
-    writable: true,
-  })
 }
 
 /**
@@ -102,17 +113,26 @@ export function resetLocalStorage() {
  * ```
  */
 export function resetSessionStorage() {
-  const sessionStorageMock = {
-    getItem: vi.fn(() => null),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
+  const storage: Record<string, string> = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete (window as any).sessionStorage
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(window as any).sessionStorage = {
+    getItem: (key: string) => storage[key] ?? null,
+    setItem: (key: string, value: string) => {
+      storage[key] = value
+    },
+    removeItem: (key: string) => {
+      delete storage[key]
+    },
+    clear: () => {
+      Object.keys(storage).forEach(k => delete storage[k])
+    },
+    get length() {
+      return Object.keys(storage).length
+    },
+    key: (index: number) => Object.keys(storage)[index] ?? null,
   }
-
-  Object.defineProperty(window, 'sessionStorage', {
-    value: sessionStorageMock,
-    writable: true,
-  })
 }
 
 /**

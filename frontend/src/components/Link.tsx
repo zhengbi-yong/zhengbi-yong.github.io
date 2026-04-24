@@ -1,4 +1,4 @@
-/* eslint-disable jsx-a11y/anchor-has-content */
+ 
 'use client'
 
 import Link from 'next/link'

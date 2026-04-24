@@ -63,7 +63,7 @@ export interface ProgressiveImageProps extends Omit<ImgHTMLAttributes<HTMLImageE
   threshold?: number
 
   // 效果
-  fadeIn?: boolean
+  _fadeIn?: boolean
   fadeDuration?: number
 
   // 错误重试
@@ -98,7 +98,7 @@ export function ProgressiveImage({
   fetchPriority = 'auto',
   lazy = true,
   threshold = 0.1,
-  fadeIn = true,
+  _fadeIn = true,
   fadeDuration = 300,
   retry = 1,
   retryDelay = 1000,
@@ -145,7 +145,7 @@ export function ProgressiveImage({
           const dataUrl = canvas.toDataURL('image/png')
           setBlurhashDataUrl(dataUrl)
         }
-      } catch (error) {
+      } catch (_) {
         console.error('Failed to decode blurhash:', error)
       }
     }
@@ -191,7 +191,7 @@ export function ProgressiveImage({
 
   // 处理加载错误
   const handleError = useCallback(
-    (error: Event) => {
+    (_error: Event) => {
       if (retryCount < retry) {
         // 重试
         setTimeout(() => {
@@ -354,7 +354,7 @@ export function ProgressiveBackground({
           const dataUrl = canvas.toDataURL('image/png')
           setBlurhashDataUrl(dataUrl)
         }
-      } catch (error) {
+      } catch (_) {
         console.error('Failed to decode blurhash:', error)
       }
     }

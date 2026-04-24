@@ -108,6 +108,10 @@ export function createUsersFactory(count: number, options: UserFactoryOptions = 
 /**
  * Generate authenticated user response (API login response format)
  *
+ * NOTE: The actual AuthResponse only has access_token + user, no refresh_token.
+ * The refresh_token in the actual backend flow is handled via HttpOnly Cookie,
+ * not as a JSON field in the response body (per GOLDEN_RULES 1.1).
+ *
  * @param options - User factory options
  * @returns Login response with access token and user data
  *
@@ -118,12 +122,10 @@ export function createUsersFactory(count: number, options: UserFactoryOptions = 
  */
 export function createAuthResponseFactory(options: UserFactoryOptions = {}): {
   access_token: string
-  refresh_token: string
   user: TestUser
 } {
   return {
     access_token: faker.string.alphanumeric({ length: 64 }),
-    refresh_token: faker.string.alphanumeric({ length: 64 }),
     user: createUserFactory(options),
   }
 }

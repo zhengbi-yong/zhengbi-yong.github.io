@@ -73,8 +73,8 @@ export default function GaussianSplat({
     // THREE.Clock gives us deltaTime for SparkControls
     let clock: any = null
 
-    async function init() {
-      if (!canvasRef.current || !containerRef.current || cancelled) return
+    async function init(): Promise<() => void> {
+      if (!canvasRef.current || !containerRef.current || cancelled) return async () => {}
       const canvas = canvasRef.current
       const container = containerRef.current
 
@@ -86,10 +86,10 @@ export default function GaussianSplat({
           setState('error')
           setErrorMsg(`Spark module load failed: ${(err as Error).message || String(err)}`)
         }
-        return
+        return async () => {}
       }
 
-      if (cancelled) return
+      if (cancelled) return async () => {}
       const { SparkRenderer, SplatMesh, SparkControls, THREE } = sparkModule
 
       const gl = webGLContextManager.acquire(instanceId, canvas)
@@ -99,7 +99,7 @@ export default function GaussianSplat({
 
       try {
         // THREE.Clock is deprecated but still works; suppress the warning
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
+         
         clock = new THREE.Clock()
 
         const scene = new THREE.Scene()
@@ -210,17 +210,18 @@ export default function GaussianSplat({
           setErrorMsg((err as Error).message || 'Failed to initialize Spark renderer')
         }
         webGLContextManager.release(instanceId)
+        return () => {}
       }
     }
 
-    const cleanup = init()
+    const cleanupPromise = init()
     return () => {
       cancelled = true
       cancelAnimationFrame(rafId)
-      if (cleanup) cleanup.then(fn => fn?.())
+      cleanupPromise.then(cleanup => cleanup?.())
       webGLContextManager.release(instanceId)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [url, height, fov])
 
   return (

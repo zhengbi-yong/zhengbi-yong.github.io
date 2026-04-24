@@ -230,8 +230,9 @@ export function ExcalidrawViewer({
           files: filesToSave || {},
         }
 
-        // 保存到 localStorage
-        localStorage.setItem('excalidraw-latest', JSON.stringify(data))
+        // 保存到本地（仅内存，刷新丢失）
+        // ultradesign §3.3/GOLDEN_RULES §9.2: 绘图数据应存后端，此处仅为内存状态
+        // 如需持久化，应添加后端端点 POST /api/v1/drawings 保存到数据库
 
         // 显示保存成功提示
         logger.log('保存成功:', {
@@ -560,34 +561,12 @@ export function ExcalidrawViewer({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleSave, handleExportPNG, handleExportSVG, handleExportJSON])
 
-  // 加载最新保存的绘图
+  // 加载绘图（仅从内存，不从 localStorage）
+  // ultradesign §3.3/GOLDEN_RULES §9.2: 禁止 localStorage 存储业务数据
   useEffect(() => {
     if (!initialData && typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('excalidraw-latest')
-        if (saved) {
-          const data = JSON.parse(saved)
-          if (data.elements && data.elements.length > 0) {
-            setElements(data.elements)
-            setAppState(data.appState)
-            // 等待 API 准备好后更新场景
-            if (excalidrawAPI) {
-              const api = excalidrawAPI as {
-                updateScene: (data: {
-                  elements: ExcalidrawElement[]
-                  appState: ExcalidrawAppState
-                }) => void
-              }
-              api.updateScene({
-                elements: data.elements,
-                appState: data.appState,
-              })
-            }
-          }
-        }
-      } catch (error) {
-        logger.error('加载保存的绘图失败:', error)
-      }
+      // 无自动恢复 — 用户需手动保存到后端
+      // 如需持久化，应添加后端端点 GET /api/v1/drawings/latest 从数据库加载
     }
   }, [initialData, excalidrawAPI])
 

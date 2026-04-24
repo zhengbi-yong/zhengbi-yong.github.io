@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import AdminDashboard from '@/app/admin/page'
+import AdminDashboard from '../../../src/app/(admin)/admin/page'
 import * as refineCore from '@refinedev/core'
 import * as authStore from '@/lib/store/auth-store'
 

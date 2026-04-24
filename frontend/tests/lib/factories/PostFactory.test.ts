@@ -26,10 +26,10 @@ describe('PostFactory', () => {
       expect(post).toHaveProperty('updatedAt')
     })
 
-    it('should generate valid UUID for post ID', () => {
+    it('should generate valid lowercase UUID for post ID', () => {
       const post = createPostFactory()
 
-      expect(post.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
+      expect(post.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)
     })
 
     it('should generate slug from title', () => {

@@ -67,10 +67,18 @@ describe('Admin Pages Integration Tests', () => {
         { id: '2', username: 'user2', email: 'user2@test.com', role: 'admin' },
       ]
 
+      // Use Refine v5 structure: { query: {isPending, isError, error}, result: {data, total} }
+      // This matches what the actual admin pages expect (AdminDashboard, UsersRefinePage, etc.)
       const mockReturnValue = {
-        data: { data: mockUsers, total: 2 },
-        isLoading: false,
-        error: null,
+        query: {
+          isPending: false,
+          isError: false,
+          error: null,
+        },
+        result: {
+          data: mockUsers,
+          total: 2,
+        },
       } as any
 
       // 模拟多个页面使用相同的数据
@@ -86,7 +94,7 @@ describe('Admin Pages Integration Tests', () => {
 
       // 调用 mock 函数获取返回值
       const result1 = mockUseList()
-      expect(result1.data.data).toEqual(mockUsers)
+      expect(result1.result.data).toEqual(mockUsers)
 
       // 更新后应该触发数据刷新
       const updateHook = mockUseUpdate()
@@ -103,16 +111,29 @@ describe('Admin Pages Integration Tests', () => {
 
   describe('错误恢复测试', () => {
     it('should recover from network error and retry', async () => {
+      // Use Refine v5 structure: { query: {isPending, isError, error}, result: {data, total} }
       const errorReturn = {
-        data: undefined,
-        isLoading: false,
-        error: new Error('Network error'),
+        query: {
+          isPending: false,
+          isError: true,
+          error: new Error('Network error'),
+        },
+        result: {
+          data: undefined,
+          total: 0,
+        },
       } as any
 
       const successReturn = {
-        data: { data: [], total: 0 },
-        isLoading: false,
-        error: null,
+        query: {
+          isPending: false,
+          isError: false,
+          error: null,
+        },
+        result: {
+          data: [],
+          total: 0,
+        },
       } as any
 
       mockUseList
@@ -133,11 +154,11 @@ describe('Admin Pages Integration Tests', () => {
 
       // 第一次调用失败
       const firstCall = mockUseList()
-      expect(firstCall.error).toBeDefined()
+      expect(firstCall.query.error).toBeDefined()
 
       // 第二次调用应该成功（模拟重试）
       const secondCall = mockUseList()
-      expect(secondCall.error).toBeNull()
+      expect(secondCall.query.error).toBeNull()
     })
   })
 
@@ -148,10 +169,17 @@ describe('Admin Pages Integration Tests', () => {
         { id: '2', username: 'user2', role: 'user' },
       ]
 
+      // Use Refine v5 structure
       mockUseList.mockReturnValue({
-        data: { data: mockUsers, total: 2 },
-        isLoading: false,
-        error: null,
+        query: {
+          isPending: false,
+          isError: false,
+          error: null,
+        },
+        result: {
+          data: mockUsers,
+          total: 2,
+        },
       } as any)
 
       const updateMock = vi.fn().mockResolvedValue({})
@@ -196,21 +224,30 @@ describe('Admin Pages Integration Tests', () => {
         approved_comments: 490,
       }
 
-      // Dashboard 使用 stats
+      // Dashboard uses stats (Refine v5 structure: { query, result })
       const statsReturn = {
-        data: { data: [mockStats], total: 1 },
-        isLoading: false,
-        error: null,
+        query: {
+          isPending: false,
+          isError: false,
+          error: null,
+        },
+        result: {
+          data: [mockStats],
+          total: 1,
+        },
       } as any
 
-      // Users 页面使用 users
+      // Users page uses users (Refine v5 structure)
       const usersReturn = {
-        data: {
+        query: {
+          isPending: false,
+          isError: false,
+          error: null,
+        },
+        result: {
           data: [{ id: '1', username: 'user1' }],
           total: 100,
         },
-        isLoading: false,
-        error: null,
       } as any
 
       mockUseList
@@ -221,8 +258,8 @@ describe('Admin Pages Integration Tests', () => {
       const statsResult = mockUseList()
       const usersResult = mockUseList()
 
-      expect(statsResult.data.data[0].total_users).toBe(100)
-      expect(usersResult.data.total).toBe(100)
+      expect(statsResult.result.data[0].total_users).toBe(100)
+      expect(usersResult.result.total).toBe(100)
     })
   })
 })

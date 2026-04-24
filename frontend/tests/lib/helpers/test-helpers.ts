@@ -315,8 +315,6 @@ export function mockFetch(
       blob: async () => new Blob(),
       headers: new Headers(),
       redirected: false,
-      status: status,
-      statusText: statusText,
       type: 'basic' as ResponseType,
       url: 'http://localhost',
       clone: function () {

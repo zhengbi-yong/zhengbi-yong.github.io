@@ -12,10 +12,9 @@ import { AppError } from '@/lib/error-handler'
 
 interface BackendCommentsProps {
   slug: string
-  className?: string
 }
 
-export function BackendComments({ slug, className }: BackendCommentsProps) {
+export function BackendComments({ slug }: BackendCommentsProps) {
   const { isAuthenticated } = useAuthStore()
   const {
     fetchComments,
@@ -60,7 +59,7 @@ export function BackendComments({ slug, className }: BackendCommentsProps) {
       // Refresh comments list and stats
       await fetchComments(slug)
       await fetchStats(slug)
-    } catch (error) {
+    } catch (_) {
       // Error is handled by store
     } finally {
       setIsSubmitting(false)
@@ -75,8 +74,8 @@ export function BackendComments({ slug, className }: BackendCommentsProps) {
 
     try {
       await likeComment(commentId)
-    } catch (error) {
-      if (error instanceof AppError && error.statusCode === 401) {
+    } catch (_err) {
+      if (_err instanceof AppError && _err.statusCode === 401) {
         setIsAuthModalOpen(true)
       }
     }

@@ -88,7 +88,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         isLoading: false,
         isInitialized: true,
       })
-    } catch (error) {
+    } catch (_) {
       // Even if logout API fails, clear local state
       set({
         user: null,

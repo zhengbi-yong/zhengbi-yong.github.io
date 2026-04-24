@@ -601,20 +601,18 @@ pub async fn reset_password(
 
     let mut tx = state.db.begin().await?;
 
-    sqlx::query!(
-        "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2",
-        new_hash,
-        row.user_id
-    )
-    .execute(&mut *tx)
-    .await?;
+    // 更新密码（事务内使用 query() 而非 query!）
+    // GOLDEN_RULES §3.5: query! 在事务上下文中不工作
+    sqlx::query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2")
+        .bind(&new_hash)
+        .bind(row.user_id)
+        .execute(&mut *tx)
+        .await?;
 
-    sqlx::query!(
-        "DELETE FROM password_reset_tokens WHERE user_id = $1",
-        row.user_id
-    )
-    .execute(&mut *tx)
-    .await?;
+    sqlx::query("DELETE FROM password_reset_tokens WHERE user_id = $1")
+        .bind(row.user_id)
+        .execute(&mut *tx)
+        .await?;
 
     // Revoke all refresh tokens for security
     sqlx::query!(

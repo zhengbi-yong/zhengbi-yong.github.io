@@ -51,8 +51,9 @@ export function PWAInstallPrompt() {
       // 保存事件以备后用
       setDeferredPrompt(promptEvent)
 
-      // 检查是否已显示过提示（使用localStorage）
-      const hasShownPrompt = localStorage.getItem('pwa_install_prompt_shown')
+      // 检查是否已显示过提示（使用 sessionStorage，单会话有效）
+      // ultradesign §3.3/GOLDEN_RULES §9.2: localStorage 禁止用于非必要数据
+      const hasShownPrompt = sessionStorage.getItem('pwa_install_prompt_shown')
       const lastShown = hasShownPrompt ? parseInt(hasShownPrompt) : 0
       const daysSinceShown = (Date.now() - lastShown) / (1000 * 60 * 60 * 24)
 
@@ -97,8 +98,8 @@ export function PWAInstallPrompt() {
     setShowPrompt(false)
     setDismissed(true)
 
-    // 记录已显示提示的时间
-    localStorage.setItem('pwa_install_prompt_shown', Date.now().toString())
+    // 记录已显示提示的时间（使用 sessionStorage）
+    sessionStorage.setItem('pwa_install_prompt_shown', Date.now().toString())
 
     recordInstallEvent('dismissed_by_user')
   }

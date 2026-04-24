@@ -17,7 +17,7 @@ export function checkPasswordStrength(password: string): PasswordStrength {
     hasUppercase: /[A-Z]/.test(password),
     hasLowercase: /[a-z]/.test(password),
     hasDigit: /[0-9]/.test(password),
-    hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    hasSpecialChar: /[!@#$%^&*()_+=[\]{};':"\\|,.<>?/-]/.test(password),
   }
 
   const metRequirements = Object.values(requirements).filter(Boolean).length

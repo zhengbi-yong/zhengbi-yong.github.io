@@ -40,7 +40,7 @@ function fixMDXFile(filePath) {
 
     const lines = content.split('\n');
     let inCodeBlock = false;
-    let fixedLines = [];
+    const fixedLines = [];
 
     for (let line of lines) {
       // Check if we're in a code block

@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from 'fs'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { glob } from 'glob'
 
 const files = [

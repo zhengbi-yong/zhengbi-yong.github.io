@@ -105,7 +105,7 @@ function convertMathFormulas(content: string): string {
 
 export function normalizeRuntimeMdxContent(content: string) {
   // 先转换数学公式
-  let processed = convertMathFormulas(content)
+  const processed = convertMathFormulas(content)
 
   // 然后处理组件属性
   const segments = processed.split(/(```[\s\S]*?```)/g)

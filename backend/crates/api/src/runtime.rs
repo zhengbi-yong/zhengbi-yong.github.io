@@ -154,6 +154,13 @@ pub async fn verify_migrations(db: &PgPool) -> Result<()> {
     Ok(())
 }
 
+/// 优雅关闭信号处理
+///
+/// GOLDEN_RULES §3.4: 必须捕获SIGTERM，禁止暴力退出
+/// - 收到信号后等待最多30秒让现有请求完成
+/// - 然后强制退出
+///
+/// 返回一个 Future，在信号触发后等待30秒完成。
 pub async fn shutdown_signal(component: &'static str) {
     let ctrl_c = async {
         tokio::signal::ctrl_c()
@@ -176,6 +183,21 @@ pub async fn shutdown_signal(component: &'static str) {
         _ = ctrl_c => tracing::info!(component, "Received Ctrl+C, starting graceful shutdown"),
         _ = terminate => tracing::info!(component, "Received SIGTERM, starting graceful shutdown"),
     }
+
+    // GOLDEN_RULES §3.4: 等待最多30秒让现有请求完成
+    tracing::info!(component, seconds = 30, "Waiting for in-flight requests to complete");
+    tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+    tracing::info!(component, "Graceful shutdown wait period elapsed");
+}
+
+/// 关闭数据库连接池
+///
+/// GOLDEN_RULES §3.4: 优雅停机后必须关闭连接池
+/// 在 shutdown_signal (30秒等待期) 结束后调用此函数
+pub async fn shutdown_db(pool: &PgPool) {
+    tracing::info!("Closing database connection pool");
+    pool.close().await;
+    tracing::info!("Database connection pool closed");
 }
 
 fn format_versions(versions: &[i64]) -> String {

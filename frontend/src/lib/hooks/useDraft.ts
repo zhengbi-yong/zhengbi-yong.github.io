@@ -1,7 +1,7 @@
 /**
  * 草稿管理 Hook
  *
- * 提供 localStorage 持久化的草稿管理功能：
+ * 提供 sessionStorage 持久化的草稿管理功能：
  * - 自动保存（内容变化后 2 秒防抖）
  * - 草稿列表（查看/恢复/删除）
  * - 自动恢复上次编辑内容
@@ -65,7 +65,7 @@ function enrichDraftsWithTime(drafts: Draft[]): DraftWithTime[] {
 
 function loadDraftsFromStorage(): Draft[] {
   try {
-    const stored = localStorage.getItem(DRAFTS_KEY)
+    const stored = sessionStorage.getItem(DRAFTS_KEY)
     return stored ? JSON.parse(stored) : []
   } catch {
     return []
@@ -74,7 +74,7 @@ function loadDraftsFromStorage(): Draft[] {
 
 function saveDraftsToStorage(drafts: Draft[]): void {
   try {
-    localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts))
+    sessionStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts))
   } catch (e) {
     console.error('[useDraft] Failed to save drafts:', e)
   }
@@ -127,7 +127,7 @@ export function useDraft(existingDraftId?: string) {
   // 清除所有草稿
   const clearAllDrafts = useCallback(() => {
     setDrafts([])
-    localStorage.removeItem(DRAFTS_KEY)
+    sessionStorage.removeItem(DRAFTS_KEY)
   }, [])
 
   // 获取带时间描述的草稿列表（用于 UI 显示）

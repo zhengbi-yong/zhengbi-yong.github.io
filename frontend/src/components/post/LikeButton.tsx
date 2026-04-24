@@ -38,7 +38,7 @@ export function LikeButton({ slug, showCount = true, className }: LikeButtonProp
 
     try {
       await toggleLike(slug)
-    } catch (error) {
+    } catch (_error) {
       // Error is handled by the store
     }
   }

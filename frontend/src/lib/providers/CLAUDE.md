@@ -60,7 +60,7 @@ interface AuthProvider {
 
 **Implementation**:
 - Uses `@/lib/api/backend` for auth calls
-- Manages access tokens in localStorage
+- GOLDEN_RULES 1.1: Access tokens are in HttpOnly Cookies only — no localStorage token storage
 - Redirects to login on auth failure
 
 ### Admin Provider (admin-provider.tsx)

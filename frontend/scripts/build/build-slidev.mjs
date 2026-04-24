@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 /**
  * 构建所有 Slidev 演示文稿
@@ -11,9 +12,9 @@ import { join } from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 
-// eslint-disable-next-line no-redeclare
+ 
 const __filename = fileURLToPath(import.meta.url)
-// eslint-disable-next-line no-redeclare
+ 
 const __dirname = dirname(__filename)
 const rootDir = join(__dirname, '..')
 const slidevDir = join(rootDir, 'slidev')

@@ -71,7 +71,7 @@ export interface VirtualListProps<T = any> {
   className?: string
 
   // 滚动事件回调
-  onScroll?: (scrollTop: number, scrollDirection: 'up' | 'down') => void
+  onScroll?: (scrollTop: number, _scrollDirection: 'up' | 'down') => void
 
   // 可见性变化回调
   onVisibleItemsChange?: (startIndex: number, endIndex: number, visibleItems: T[]) => void
@@ -108,7 +108,7 @@ export function VirtualList<T extends Record<string, any>>({
   // 状态
   const [scrollTop, setScrollTop] = useState(0)
   const [isScrolling, setIsScrolling] = useState(false)
-  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('down')
+  const [_scrollDirection, setScrollDirection] = useState<'up' | 'down'>('down')
   const [itemHeights, setItemHeights] = useState<ItemHeight>({})
 
   // 滚动定时器引用
@@ -137,7 +137,7 @@ export function VirtualList<T extends Record<string, any>>({
 
     let currentStartIndex = 0
     let currentOffsetY = 0
-    let currentScrollTop = scrollTop
+    const currentScrollTop = scrollTop
 
     // 计算起始索引
     if (dynamicHeight) {
@@ -300,7 +300,7 @@ export function VirtualList<T extends Record<string, any>>({
     targetScrollTop = Math.max(0, Math.min(targetScrollTop, totalHeight - containerHeight))
 
     scrollElementRef.current.scrollTo({
-      top: targetScrollTop,
+      _top: targetScrollTop,
       behavior: 'smooth',
     })
   }, [scrollToIndex, items, estimatedItemHeight, dynamicHeight, itemHeights, getKey, height, scrollAlignment, totalHeight, scrollTop])
@@ -357,7 +357,7 @@ export function VirtualList<T extends Record<string, any>>({
 
         {/* 加载更多 */}
         {onLoadMore && endIndex < items.length - 1 && LoadMoreComponent && (
-          <div style={{ position: 'absolute', top: totalHeight, left: 0, right: 0 }}>
+          <div style={{ position: 'absolute', _top: totalHeight, left: 0, right: 0 }}>
             {LoadMoreComponent}
           </div>
         )}
@@ -378,7 +378,6 @@ interface VirtualListItemProps {
 }
 
 function VirtualListItem({
-  item,
   index,
   offsetY,
   estimatedHeight,
@@ -408,7 +407,7 @@ function VirtualListItem({
   }, [index, onMeasure])
 
   // 计算当前项的顶部偏移
-  const top = useMemo(() => {
+  const _top = useMemo(() => {
     // 在父组件中计算
     return 0 // 这里的offsetY会在父组件的样式中处理
   }, [])
@@ -419,7 +418,7 @@ function VirtualListItem({
       className="virtual-list-item"
       style={{
         position: 'absolute',
-        top: offsetY,
+        _top: offsetY,
         left: 0,
         right: 0,
         minHeight: measuredHeight || estimatedHeight,

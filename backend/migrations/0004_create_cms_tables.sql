@@ -12,7 +12,7 @@ CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived', 'scheduled');
 -- Categories Table (Hierarchical)
 -- ============================================
 CREATE TABLE IF NOT EXISTS categories (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     description TEXT,
@@ -34,7 +34,7 @@ CREATE INDEX idx_categories_display_order ON categories(display_order);
 -- Tags Table (Flat)
 -- ============================================
 CREATE TABLE IF NOT EXISTS tags (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     description TEXT,
@@ -50,7 +50,7 @@ CREATE INDEX idx_tags_post_count ON tags(post_count DESC);
 -- Media Table (File Storage)
 -- ============================================
 CREATE TABLE IF NOT EXISTS media (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     filename TEXT NOT NULL,
     original_filename TEXT NOT NULL,
     mime_type TEXT NOT NULL,
@@ -79,7 +79,7 @@ CREATE INDEX idx_media_deleted_at ON media(deleted_at) WHERE deleted_at IS NOT N
 -- Posts Table (Core Content)
 -- ============================================
 CREATE TABLE IF NOT EXISTS posts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
@@ -136,7 +136,7 @@ CREATE INDEX idx_post_tags_tag_id ON post_tags(tag_id);
 -- Post Versions Table (Version History)
 -- ============================================
 CREATE TABLE IF NOT EXISTS post_versions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     version_number INTEGER NOT NULL,
     title TEXT NOT NULL,

@@ -8,7 +8,8 @@ use blog_api::middleware::{
 };
 use blog_api::observability::tracing::{init_tracer, shutdown_tracer};
 use blog_api::runtime::{
-    create_postgres_pool, create_redis_pool, create_replica_pool, shutdown_signal,
+    create_postgres_pool, create_redis_pool, create_replica_pool, shutdown_db,
+    shutdown_signal,
 };
 use blog_api::state::AppState;
 use opentelemetry::trace::TracerProvider as _;
@@ -183,6 +184,11 @@ async fn run_server() -> anyhow::Result<()> {
         storage,
     };
 
+    // 提取 pools 用于优雅停机（在 state 移动到 router 之前）
+    // GOLDEN_RULES §3.4: 优雅停机后必须关闭连接池
+    let db_pool = state.db.clone();
+    let db_read_pool = state.db_read.clone();
+
     // 提取服务器地址（在移动 state 之前）
     let addr = format!(
         "{}:{}",
@@ -273,6 +279,15 @@ async fn run_server() -> anyhow::Result<()> {
         .await?;
 
     tracing::info!("Server shutdown complete");
+
+    // GOLDEN_RULES §3.4: 优雅停机后关闭数据库连接池
+    // 注意：shutdown_signal 已经等待了30秒，这里直接关闭连接池
+    // 安全关闭两个连接池
+    tracing::info!("Closing database connection pools");
+    shutdown_db(&db_pool).await;
+    // 读副本池可能与主池是同一实例，但重复 close 是安全的
+    shutdown_db(&db_read_pool).await;
+
     Ok(())
 }
 
@@ -303,7 +318,13 @@ fn v1_routes(state: AppState) -> Router<AppState> {
                     auth_middleware,
                 ))
         )
-        .merge(reading_progress_routes())
+        .merge(
+            reading_progress_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+        )
         .merge(auth_me_route)
         // 团队成员公开路由
         .merge(team_members_routes())
@@ -395,6 +416,9 @@ fn post_routes() -> Router<AppState> {
             "/posts/id/{id}",
             get(blog_api::routes::posts::get_post_by_id),
         )
+        // Note: /posts/id/{id} 保留给内部或历史使用，handler 仅支持 slug 查询。
+        // 规范要求统一寻址 GET /posts/{identifier}，实际 get_post 内部仅查 slug。
+        // 如需 UUID 支持，应在 get_post_response 中增加 UUID 检测逻辑。
         .route("/posts/{slug}", get(blog_api::routes::posts::get_post))
         .route(
             "/posts/{slug}/stats",

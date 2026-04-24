@@ -40,8 +40,8 @@ export default function ReadingListPage() {
       setBookmarks(response.bookmarks)
       setTotalPages(response.total_pages)
       setTotalCount(response.total)
-    } catch (error) {
-      console.error('Failed to load bookmarks:', error)
+    } catch (err) {
+      console.error('Failed to load bookmarks:', err)
     } finally {
       setLoading(false)
     }
@@ -67,7 +67,7 @@ export default function ReadingListPage() {
       loadBookmarks(currentPage)
       setEditingNote(null)
       setNoteText('')
-    } catch (error) {
+    } catch (_) {
       alert(t('bookmark.saveNoteFailed') || '保存笔记失败')
     }
   }

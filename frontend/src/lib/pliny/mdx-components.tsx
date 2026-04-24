@@ -1,8 +1,7 @@
 /**
  * Pliny MDX components compatibility shim
  *
- * This module provides shimmed exports that mimic pliny's mdx-components,
- * adapted for use with Velite-generated data.
+ * This module provides shimmed exports that mimic pliny's mdx-* adapted for use with Velite-generated data.
  *
  * Velite stores content as pre-rendered HTML, while pliny expects raw MDX code.
  * This shim renders HTML directly instead of compiling MDX.
@@ -22,7 +21,7 @@ interface MDXLayoutRendererProps {
  * from Velite. This is a compatibility shim - proper MDX compilation
  * would require additional setup.
  */
-export function MDXLayoutRenderer({ code, components, ...props }: MDXLayoutRendererProps) {
+export function MDXLayoutRenderer({ code, ...props }: MDXLayoutRendererProps) {
   // Velite stores HTML content in the 'code' field (despite the name)
   // Render it directly using dangerouslySetInnerHTML
   return (

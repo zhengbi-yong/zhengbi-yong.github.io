@@ -13,6 +13,7 @@
 import { useState, useEffect } from 'react'
 import { X, Tag as TagIcon, Hash } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { categoryService, tagService } from '@/lib/api/backend'
 
 interface Category {
   id: string
@@ -58,14 +59,11 @@ export function ArticleMetadata({
     const fetchMetadata = async () => {
       setLoading(true)
       try {
-        // 获取分类
-        const catRes = await fetch('/api/v1/categories')
-        const catData = await catRes.json()
+        const [catData, tagData] = await Promise.all([
+          categoryService.getCategories(),
+          tagService.getTags(),
+        ])
         setCategories(catData || [])
-
-        // 获取标签
-        const tagRes = await fetch('/api/v1/tags')
-        const tagData = await tagRes.json()
         setAllTags(tagData || [])
       } catch (error) {
         console.error('Failed to fetch metadata:', error)

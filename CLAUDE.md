@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Zhengbi Yong's personal technical blog platform - a sophisticated dual-architecture system featuring a Next.js 16 frontend with MDX rendering, Rust backend API, and comprehensive deployment infrastructure.
+Zhengbi Yong's personal technical blog platform - a sophisticated dual-architecture system featuring a Next.js 15 frontend with MDX rendering, Rust backend API, and comprehensive deployment infrastructure.
 
 **Live Site**: https://zhengbi-yong.github.io
 
@@ -62,7 +62,7 @@ cargo run  # Runs on http://localhost:3000
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              Next.js 16 Frontend (Port 3001)                 │
+│              Next.js 15 Frontend (Port 3001)                 │
 │  ┌────────────┐  ┌────────────┐  ┌────────────────────┐    │
 │  │ App Router │  │ MDX Blog   │  │   Admin Panel      │    │
 │  │  (React 19)│  │  Renderer  │  │  (Payload CMS)     │    │
@@ -91,14 +91,14 @@ cargo run  # Runs on http://localhost:3000
 ### Technology Stack
 
 #### Frontend
-- **Framework**: Next.js 16 (App Router)
+- **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript 5.7+
 - **UI Library**: React 19
 - **Styling**: Tailwind CSS 4
 - **Content**: MDX + Contentlayer2
 - **State**: Zustand + TanStack Query
 - **CMS**: Payload CMS 3.69
-- **Authentication**: NextAuth.js
+- **Authentication**: Backend JWT + HttpOnly Cookie
 
 **Interactive Components**:
 - 3D rendering: Three.js, 3Dmol.js
@@ -129,7 +129,7 @@ cargo run  # Runs on http://localhost:3000
 ```
 zhengbi-yong.github.io/
 │
-├── frontend/                    # Next.js 16 application
+├── frontend/                    # Next.js 15 application
 │   ├── src/
 │   │   ├── app/                # App Router pages
 │   │   │   ├── (auth)/        # Auth routes
@@ -248,11 +248,11 @@ zhengbi-yong.github.io/
 - Settings configuration
 
 ### Authentication
-**NextAuth.js**:
-- Session-based authentication
-- Protected routes
-- OAuth providers (GitHub, Google)
-- JWT token management
+**Backend JWT + HttpOnly Cookie** (no NextAuth.js):
+- HttpOnly, Secure, SameSite=Strict cookies
+- JWT verification in Rust Axum middleware
+- CSRF protection via XSRF-TOKEN double-submit cookie
+- No localStorage token storage (XSS protection)
 
 ### Search
 **Kbar Command Palette**:
@@ -611,13 +611,13 @@ import Image from 'next/image';
 **Implementations**:
 - CSP headers (Content Security Policy)
 - XSS protection (DOMPurify)
-- CSRF tokens (NextAuth)
+- CSRF tokens (XSRF-TOKEN double-submit cookie)
 - Secure cookies (httpOnly, secure, sameSite)
 
 ### Backend Security
 
 **Implementations**:
-- Password hashing (bcrypt + pepper)
+- Password hashing (Argon2id, 64MiB, 3 iterations, p=4)
 - JWT session tokens
 - CORS validation
 - Rate limiting (60 req/min)

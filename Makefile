@@ -1,4 +1,4 @@
-.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env generate-ci-prod-env verify-api-contract smoke-prod-compose smoke-prod-compose-fast bootstrap-remote-host deploy-remote-compose refresh-remote-compose provision-remote-compose
+.PHONY: help dev build test clean install setup-db dev-backend dev-shell dev-migrate dev-create-admin lint lint-install lint-docs deploy-prod-validate deploy-prod-up deploy-prod-up-build deploy-prod-migrate print-version-metadata render-release-assets validate-k8s-apply generate-prod-env generate-ci-prod-env verify-api-contract smoke-prod-compose smoke-prod-compose-fast bootstrap-remote-host deploy-remote-compose refresh-remote-compose provision-remote-compose
 
 # 默认目标
 help:
@@ -8,6 +8,8 @@ help:
 	@echo "  make dev           - 启动前后端开发服务器"
 	@echo "  make build         - 构建前后端"
 	@echo "  make test          - 运行所有测试"
+	@echo "  make lint          - 运行 GOLDEN_RULES 自动化检查"
+	@echo "  make lint-install  - 安装 pre-commit hook"
 	@echo "  make lint-docs     - 校验维护中的 Markdown 文档与链接"
 	@echo "  make clean         - 清理所有构建文件"
 	@echo "  make install       - 安装所有依赖"
@@ -66,6 +68,17 @@ test:
 	cd backend && cargo test
 	@echo "🧪 运行前端测试..."
 	cd frontend && pnpm test
+
+lint:
+	@echo "⚡ Running GOLDEN_RULES automated checks..."
+	@bash scripts/lint/100_golden_rules.sh
+	@echo ""
+	@echo "✅ lint passed"
+
+lint-install:
+	@ln -sf "$(CURDIR)/scripts/lint/100_golden_rules.sh" "$(CURDIR)/.git/hooks/pre-commit"
+	@chmod +x "$(CURDIR)/.git/hooks/pre-commit"
+	@echo "✅ Pre-commit hook installed ($(CURDIR)/.git/hooks/pre-commit)"
 
 lint-docs:
 	@echo "📝 校验维护中的文档..."

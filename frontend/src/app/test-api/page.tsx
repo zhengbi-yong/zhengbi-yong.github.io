@@ -15,12 +15,12 @@ export default function TestPage() {
     setStatus('Testing backend connection...')
     
     try {
-      const response = await fetch('http://localhost:3000/api/v1/posts?limit=1', {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // GOLDEN_RULES §2.1: Client Components must use BFF Route Handler, not direct backend
+      // This page is a Client Component debug tool — it proxies through /api/v1/* BFF
+      const response = await fetch('/api/v1/posts?limit=1', {
+        credentials: 'include',
       })
-      
+
       if (response.ok) {
         const data = await response.json()
         setPosts(data.results || [])

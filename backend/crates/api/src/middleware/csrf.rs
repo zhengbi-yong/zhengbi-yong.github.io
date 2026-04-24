@@ -345,7 +345,7 @@ pub fn set_csrf_cookie(token: &str) -> (String, String) {
         token
     );
     let xsrf_token = format!(
-        "XSRF-TOKEN={} Path=/; SameSite=Lax; Max-Age=3600",
+        "XSRF-TOKEN={}; Path=/; SameSite=Lax; Max-Age=3600",
         token
     );
     (http_only, xsrf_token)

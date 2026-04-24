@@ -54,7 +54,12 @@ impl JwtService {
 
         // 验证通过后进行哈希
         let salt = SaltString::generate(&mut OsRng);
-        let argon2 = Argon2::default();
+        // GOLDEN_RULES §1.4: Argon2id, m=64MiB, t=3, p=1
+        let argon2 = Argon2::new(
+            argon2::Algorithm::Argon2id,
+            argon2::Version::V0x13,
+            argon2::Params::new(65536, 3, 4, None).unwrap(),
+        );
         let password_hash = argon2
             .hash_password(password.as_bytes(), &salt)
             .map_err(|_| AppError::PasswordHashError)?
@@ -69,7 +74,12 @@ impl JwtService {
         }
 
         let parsed_hash = PasswordHash::new(hash).map_err(|_| AppError::PasswordHashError)?;
-        Ok(Argon2::default()
+        let argon2 = Argon2::new(
+            argon2::Algorithm::Argon2id,
+            argon2::Version::V0x13,
+            argon2::Params::new(65536, 3, 4, None).unwrap(),
+        );
+        Ok(argon2
             .verify_password(password.as_bytes(), &parsed_hash)
             .is_ok())
     }

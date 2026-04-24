@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { api } from '@/lib/api/apiClient'
 import { useAuthStore } from '@/lib/store/auth-store'
+import { AppError } from '@/lib/error-handler'
 
 interface ReadingProgressOptions {
   postSlug: string
@@ -150,8 +151,14 @@ export function useReadingProgressWithApi(options: ReadingProgressOptions) {
           { cache: false }
         )
       } catch (err) {
-        // 静默失败，不影响用户体验
-        console.warn('Failed to save reading progress:', err)
+        // 静默失败：401（未登录）静默，网络错误（无 statusCode）静默，其他服务端错误打 warn
+        if (err instanceof AppError && err.statusCode === 401) {
+          return // 未登录，静默忽略
+        }
+        if (err instanceof AppError) {
+          console.warn('Failed to save reading progress:', err.message)
+        }
+        // 网络错误（TypeError: Failed to fetch 等）静默，不打扰用户
       } finally {
         setIsSaving(false)
       }

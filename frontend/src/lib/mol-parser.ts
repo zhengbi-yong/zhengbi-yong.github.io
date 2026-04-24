@@ -133,12 +133,12 @@ export function parseMOLFormat(molData: string): ParseResult {
     }
 
     return { atoms, bonds, isAromatic }
-  } catch (error) {
+  } catch (err) {
     return {
       atoms: [],
       bonds: [],
       isAromatic: [],
-      error: error instanceof Error ? error.message : 'Parse error',
+      error: err instanceof Error ? err.message : 'Parse error',
     }
   }
 }
@@ -245,7 +245,7 @@ export function convertMOLToSMILES(molData: string): string | null {
     }
 
     return smiles || null
-  } catch (error) {
+  } catch (_) {
     return null
   }
 }

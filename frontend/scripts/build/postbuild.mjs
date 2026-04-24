@@ -1,4 +1,5 @@
 import rss from './rss.mjs'
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { copyFileSync, mkdirSync, readdirSync, statSync, existsSync } from 'fs'
 import { execSync } from 'child_process'
 import { join } from 'path'

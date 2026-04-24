@@ -71,7 +71,7 @@ export default function MusicOSMDRenderer({ musicUrl, isDark }: MusicOSMDRendere
             }
           }
         }
-      } catch (err) {
+      } catch (_) {
         // MusicXML file might not exist - show fallback
         if (containerRef.current && mounted) {
           containerRef.current.innerHTML = `

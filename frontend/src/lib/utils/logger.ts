@@ -14,6 +14,8 @@
  * ```
  */
 
+/* eslint-disable no-console */
+
 import * as Sentry from '@sentry/nextjs'
 
 interface Logger {

@@ -32,16 +32,17 @@ md.renderer.rules.text = function (tokens, idx, options, env, self) {
   const content = tokens[idx].content
 
   // Check for inline math: $...$
-  const inlineMathRegex = /\$([^\$]+)\$/g
+  const inlineMathRegex = /\$([^$]+)\$/g
   if (inlineMathRegex.test(content)) {
     return content.replace(inlineMathRegex, (match, math) => {
       try {
+         
         const decoded = math.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
         return katex.renderToString(decoded, {
           displayMode: false,
           throwOnError: false,
         })
-      } catch (e) {
+      } catch (_) {
         return `<span class="text-red-500">${match}</span>`
       }
     })
@@ -55,15 +56,16 @@ md.renderer.rules.text = function (tokens, idx, options, env, self) {
 
 // KaTeX block renderer - processes $$...$$ display math
 function renderKaTeXBlock(content: string): string {
-  const displayMathRegex = /\$\$([^\$]+)\$\$/g
+  const displayMathRegex = /\$\$([^$]+)\$\$/g
   return content.replace(displayMathRegex, (match, math) => {
     try {
+       
       const decoded = math.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
       return `<div class="katex-display">${katex.renderToString(decoded, {
         displayMode: true,
         throwOnError: false,
       })}</div>`
-    } catch (e) {
+    } catch (_) {
       return `<div class="text-red-500">${match}</div>`
     }
   })

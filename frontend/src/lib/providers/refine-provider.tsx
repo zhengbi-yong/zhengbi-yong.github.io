@@ -17,7 +17,6 @@ import { dataProvider } from './refine-data-provider'
 import { authProvider } from './refine-auth-provider'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
-import ReactQueryDevtoolsLoader from '@/components/dev/ReactQueryDevtoolsLoader'
 
 interface RefineProviderProps {
   children: React.ReactNode
@@ -136,7 +135,6 @@ export function RefineProvider({ children }: RefineProviderProps) {
           {children}
         </RefineKbarProvider>
       </Refine>
-      <ReactQueryDevtoolsLoader />
     </QueryClientProvider>
   )
 }

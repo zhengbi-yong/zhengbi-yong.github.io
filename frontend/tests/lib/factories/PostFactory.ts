@@ -152,7 +152,7 @@ export function createPostFactory(options: PostFactoryOptions = {}): TestPost {
   const coverImage = options.coverImage !== undefined
     ? options.coverImage
     : faker.datatype.boolean({ probability: 0.6 })
-      ? faker.image.urlLoremFlickr({ width: 1200, height: 630, category: 'technology' })
+      ? faker.image.url({ width: 1200, height: 630 })
       : null
 
   const post: TestPost = {
@@ -217,7 +217,7 @@ export const PostPresets = {
       status: 'published',
       published: true,
       excerpt: faker.lorem.paragraph({ min: 1, max: 3 }),
-      coverImage: faker.image.urlLoremFlickr({ width: 1200, height: 630, category: 'technology' }),
+      coverImage: faker.image.url({ width: 1200, height: 630 }),
       featured: false,
     }),
 
@@ -230,7 +230,7 @@ export const PostPresets = {
       published: true,
       featured: true,
       excerpt: faker.lorem.paragraph({ min: 1, max: 3 }),
-      coverImage: faker.image.urlLoremFlickr({ width: 1200, height: 630, category: 'technology' }),
+      coverImage: faker.image.url({ width: 1200, height: 630 }),
       viewCount: faker.number.int({ min: 5000, max: 10000 }),
     }),
 

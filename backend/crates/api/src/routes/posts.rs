@@ -225,22 +225,19 @@ pub async fn like(
         return Err(AppError::AlreadyLiked);
     }
 
-    // 添加点赞记录
-    sqlx::query!(
-        "INSERT INTO post_likes (slug, user_id) VALUES ($1, $2)",
-        slug,
-        auth_user.id
-    )
-    .execute(&mut *tx)
-    .await?;
+    // 添加点赞记录（事务内使用 query() 而非 query!）
+    // GOLDEN_RULES §3.5 / ultradesign §4.6: 事务内禁止外部 I/O，但 query! 在事务上下文中不工作
+    sqlx::query("INSERT INTO post_likes (slug, user_id) VALUES ($1, $2)")
+        .bind(&slug)
+        .bind(auth_user.id)
+        .execute(&mut *tx)
+        .await?;
 
     // 更新计数
-    sqlx::query!(
-        "UPDATE post_stats SET like_count = like_count + 1 WHERE slug = $1",
-        slug
-    )
-    .execute(&mut *tx)
-    .await?;
+    sqlx::query("UPDATE post_stats SET like_count = like_count + 1 WHERE slug = $1")
+        .bind(&slug)
+        .execute(&mut *tx)
+        .await?;
 
     tx.commit().await?;
 
@@ -1295,7 +1292,7 @@ async fn sync_post_media(
         .bind(idx as i32)
         .execute(&mut *conn)
         .await
-        .ok();
+        .inspect_err(|e| tracing::warn!("Failed to insert post_media row: {}", e))?;
     }
 
     // Recalculate usage_count for all media

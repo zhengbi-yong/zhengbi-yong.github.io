@@ -1,0 +1,119 @@
+name: GOLDEN_RULES Compliance
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '**.ts'
+      - '**.tsx'
+      - '**.rs'
+      - '**.sql'
+      - 'scripts/lint/**'
+      - '.github/workflows/golden-rules-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '**.ts'
+      - '**.tsx'
+      - '**.rs'
+      - '**.sql'
+      - 'scripts/lint/**'
+      - '.github/workflows/golden-rules-ci.yml'
+
+jobs:
+  golden-rules-check:
+    name: GOLDEN_RULES Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup shell
+        shell: bash
+
+      - name: Run GOLDEN_RULES checks
+        run: |
+          bash scripts/lint/100_golden_rules.sh
+
+  frontend-typecheck:
+    name: Frontend TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+        working-directory: frontend
+      - run: pnpm tsc --noEmit
+        working-directory: frontend
+
+  backend-check:
+    name: Backend Rust Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Check compilation
+        run: cargo check --workspace
+        working-directory: backend
+      - name: Run clippy
+        run: cargo clippy --workspace -- -D warnings
+        working-directory: backend
+
+  database-migrations:
+    name: Database Migrations
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: blog_user
+          POSTGRES_PASSWORD: blog_password
+          POSTGRES_DB: blog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check migrations
+        run: |
+          # Verify all migrations are valid SQL and use uuid_generate_v7
+          echo "=== Checking for UUIDv4 (gen_random_uuid) violations ==="
+          FOUND=$(grep -r "gen_random_uuid()" backend/migrations --include="*.sql" || true)
+          if [ -n "$FOUND" ]; then
+            echo "ERROR: Found gen_random_uuid() in migrations:"
+            echo "$FOUND"
+            exit 1
+          fi
+          echo "✅ No UUIDv4 violations found"
+
+          echo "=== Checking for post_stats indexes (HOT violation) ==="
+          FOUND=$(grep -r "CREATE INDEX.*post_stats\|idx_post_stats" backend/migrations --include="*.sql" || true)
+          if [ -n "$FOUND" ]; then
+            echo "ERROR: Found indexes on post_stats (HOT optimization violation):"
+            echo "$FOUND"
+            exit 1
+          fi
+          echo "✅ No HOT violation found"
+
+          echo "=== Checking for fillfactor on post_stats ==="
+          FOUND=$(grep -r "fillfactor.*70\|WITH.*fillfactor" backend/migrations --include="*.sql" || true)
+          if [ -n "$FOUND" ]; then
+            echo "✅ fillfactor configuration found"
+          else
+            echo "WARN: No fillfactor configuration found in migrations"
+          fi
+        env:
+          DATABASE_URL: postgresql://blog_user:blog_password@localhost:5432/blog_test

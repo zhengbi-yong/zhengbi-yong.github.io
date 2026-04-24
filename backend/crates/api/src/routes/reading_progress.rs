@@ -42,8 +42,11 @@ pub struct ReadingProgressResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UpdateReadingProgressRequest {
     pub progress: i32,
-    pub scroll_percentage: f64,
+    #[serde(default)]
+    pub scroll_percentage: Option<f64>,
+    #[serde(default)]
     pub last_read_position: Option<i32>,
+    #[serde(default)]
     pub words_read: Option<i32>,
 }
 
@@ -162,8 +165,10 @@ pub async fn update_reading_progress_handler(
         return Err(AppError::InvalidInput);
     }
 
-    if req.scroll_percentage < 0.0 || req.scroll_percentage > 1.0 {
-        return Err(AppError::InvalidInput);
+    if let Some(sp) = req.scroll_percentage {
+        if !(0.0..=1.0).contains(&sp) {
+            return Err(AppError::InvalidInput);
+        }
     }
 
     // 检查是否已存在进度记录
@@ -180,7 +185,7 @@ pub async fn update_reading_progress_handler(
                 UPDATE reading_progress
                 SET
                     progress = $1,
-                    scroll_percentage = $2,
+                    scroll_percentage = COALESCE($2, scroll_percentage),
                     last_read_position = COALESCE($3, last_read_position),
                     words_read = COALESCE($4, words_read),
                     is_completed = $5,
