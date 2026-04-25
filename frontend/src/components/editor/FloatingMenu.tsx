@@ -80,6 +80,7 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
       icon: Heading1,
       label: '一级标题',
       action: () => {
+        // @ts-ignore TipTap StarterKit types incomplete
         editor.chain().focus().toggleHeading({ level: 1 }).run()
         editor.chain().focus().deleteRange({ from: editor.state.selection.from - 1, to: editor.state.selection.from }).run()
       },
@@ -88,6 +89,7 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
       icon: Heading2,
       label: '二级标题',
       action: () => {
+        // @ts-ignore TipTap StarterKit types incomplete
         editor.chain().focus().toggleHeading({ level: 2 }).run()
         editor.chain().focus().deleteRange({ from: editor.state.selection.from - 1, to: editor.state.selection.from }).run()
       },
@@ -104,6 +106,7 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
       icon: Quote,
       label: '引用',
       action: () => {
+        // @ts-ignore TipTap StarterKit types incomplete
         editor.chain().focus().toggleBlockquote().run()
         editor.chain().focus().deleteRange({ from: editor.state.selection.from - 1, to: editor.state.selection.from }).run()
       },
@@ -112,6 +115,7 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
       icon: Code,
       label: '代码块',
       action: () => {
+        // @ts-ignore TipTap StarterKit types incomplete
         editor.chain().focus().toggleCodeBlock().run()
         editor.chain().focus().deleteRange({ from: editor.state.selection.from - 1, to: editor.state.selection.from }).run()
       },
@@ -122,7 +126,8 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
       action: () => {
         const url = prompt('输入图片 URL:')
         if (url) {
-          editor.chain().focus().setImage({ src: url }).run()
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ;(editor.chain().focus() as any).setImage({ src: url }).run()
           editor.chain().focus().deleteRange({ from: editor.state.selection.from - 1, to: editor.state.selection.from }).run()
         }
       },

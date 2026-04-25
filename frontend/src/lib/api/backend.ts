@@ -591,6 +591,7 @@ export const adminService = {
     data: {
       title?: string
       content?: string
+      content_format?: 'mdx' | 'html'
       content_html?: string
       summary?: string
       cover_image_id?: string | null
@@ -605,6 +606,8 @@ export const adminService = {
       layout?: string
       is_featured?: boolean
       tag_ids?: string[] | null
+      content_json?: Record<string, unknown> | null
+      content_mdx?: string | null
     }
   ): Promise<PostDetail> {
     const response = await api.patch<PostDetail>(`${BACKEND_API_URL}/admin/posts/${postId}`, data, {

@@ -387,3 +387,57 @@
     --admin-text-muted: #000000;
   }
 }
+
+/* ===== ProseMirror 表格选中边框 ===== */
+/* 表格节点选中高亮 — 审查报告 Phase 3 规范 */
+.ProseMirror table.ProseMirror-selectednode {
+  outline: 3px solid #0096ff !important;
+  box-shadow: 0 0 0 4px rgba(0, 150, 255, 0.2);
+}
+
+/* ===== highlight.js 代码语法高亮 ===== */
+/* reactjs-tiptap-editor/codeblock 使用 hljs 生成 <span class="hljs-keyword"> 类 */
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-name,
+.hljs-tag { color: #569cd6; }
+.hljs-string,
+.hljs-title,
+.hljs-section,
+.hljs-attribute,
+.hljs-literal,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type { color: #ce9178; }
+.hljs-comment,
+.hljs-quote { color: #6a9955; font-style: italic; }
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-meta { color: #b5cea8; }
+.hljs-deletion { color: #ce9178; background-color: #ff000018; }
+.hljs-addition { color: #b5cea8; background-color: #00ff0018; }
+.hljs-variable,
+.hljs-params { color: #9cdcfe; }
+.hljs-function { color: #dcdcaa; }
+.hljs-selector-id,
+.hljs-selector-class { color: #d7ba7d; }
+.hljs-regexp { color: #d16969; }
+.hljs-operator { color: #d4d4d4; }
+.hljs-punctuation { color: #808080; }
+.hljs-attr { color: #9cdcfe; }
+.hljs-property { color: #9cdcfe; }
+.hljs-selector-pseudo { color: #d7ba7d; }
+.hljs-doctag { color: #608b4e; }
+.hljs-subst { color: #d4d4d4; }
+.hljs-section { color: #569cd6; font-weight: bold; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: bold; }

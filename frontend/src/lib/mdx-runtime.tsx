@@ -176,16 +176,17 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
   return <MDXRemote {...mdxSource} components={components} {...props} />
 }
 
+// Note: uses <span> not <div> to avoid hydration errors when MDXLoadingSkeleton
+// renders inside a <p> tag (e.g., inline summary text with KaTeX)
 function MDXLoadingSkeleton() {
   return (
-    <div className="animate-pulse space-y-4">
-      <div className="h-8 w-3/4 rounded bg-gray-200 dark:bg-gray-700"></div>
-      <div className="space-y-2">
-        <div className="h-4 rounded bg-gray-200 dark:bg-gray-700"></div>
-        <div className="h-4 rounded bg-gray-200 dark:bg-gray-700"></div>
-        <div className="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700"></div>
-      </div>
-    </div>
+    <span className="animate-pulse inline-flex flex-col gap-1">
+      <span className="inline-block h-6 w-48 rounded bg-gray-200 dark:bg-gray-700 align-middle"></span>
+      <span className="inline-flex flex-col gap-1">
+        <span className="inline-block h-4 w-72 rounded bg-gray-200 dark:bg-gray-700 align-middle"></span>
+        <span className="inline-block h-4 w-60 rounded bg-gray-200 dark:bg-gray-700 align-middle"></span>
+      </span>
+    </span>
   )
 }
 

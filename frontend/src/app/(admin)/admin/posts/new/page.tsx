@@ -1,5 +1,24 @@
 'use client'
 
+// crypto.randomUUID polyfill for environments where it's not available
+const randomUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  // Fallback: generate UUID-like string using crypto.getRandomValues
+  const bytes = new Uint8Array(16)
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes)
+  } else {
+    // Ultimate fallback for test environments
+    for (let i = 0; i < 16; i++) bytes[i] = Math.floor(Math.random() * 256)
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
 /**
  * 新建文章页面
  *
@@ -16,24 +35,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import { ArticleMetadata } from '@/components/editor/ArticleMetadata'
 import { Loader2, Save, Eye, FileText, Trash2, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDraft, Draft } from '@/lib/hooks/useDraft'
-
-// 动态导入编辑器，避免 SSR 问题
-const TiptapEditor = dynamic(
-  () => import('@/components/editor/TiptapEditor').then((mod) => ({ default: mod.TiptapEditor })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex h-[600px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
-      </div>
-    ),
-  }
-)
+import TiptapEditor from '@/components/editor/TiptapEditor'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -48,10 +54,10 @@ export default function NewPostPage() {
   const [summary, setSummary] = useState('')
   const [category, setCategory] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [content, setContent] = useState('开始写作...') // 改为 Markdown 格式
+  const [content, setContent] = useState('') // empty string; TiptapEditor renders placeholder via placeholder prop
 
   // 草稿状态
-  const [draftId] = useState(() => crypto.randomUUID())
+  const [draftId] = useState(() => randomUUID())
   const [showDrafts, setShowDrafts] = useState(false)
   const { draftsWithTime, saveDraft, deleteDraft, getCurrentDraft } = useDraft(draftId)
 
@@ -133,13 +139,27 @@ export default function NewPostPage() {
     try {
       // 生成 slug：统一使用长 ID（UUID v4），保证全局唯一、可扩展
       // 无论中英文标题，一律使用 UUID，确保 URL 格式统一美观
-      const slug = crypto.randomUUID()
+      const slug = randomUUID()
+
+      // content 已经是 JSON.stringify(editor.getJSON())，从中提取双轨字段
+      let content_json: Record<string, unknown> | undefined
+      let content_mdx: string | undefined
+      try {
+        content_json = JSON.parse(content)
+        // 新的 content_mdx 留空（后端会计算），或存储为 HTML fallback
+        content_mdx = undefined
+      } catch {
+        // ignore parse errors
+      }
 
       const requestBody = {
         title,
         slug,
         summary,
         content,
+        content_json,
+        content_mdx,
+        content_format: 'mdx',
         status,
         category_id: category || null,
         tag_ids: tags.length > 0 ? tags : null,
@@ -429,9 +449,6 @@ export default function NewPostPage() {
             <TiptapEditor
               content={content}
               onChange={setContent}
-              placeholder="开始输入正文内容... (支持 Markdown 语法)"
-              editable={!isPublishing}
-              className="min-h-[600px]"
             />
           </div>
 

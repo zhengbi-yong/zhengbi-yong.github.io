@@ -12,25 +12,41 @@ export function KatexRenderer({ math, display = false }: KatexRendererProps) {
   const containerRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    if (containerRef.current) {
-      try {
-        // 解码 HTML 实体
-        const decodedMath = math
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"')
-          .replace(/&#039;/g, "'")
-          .replace(/&#x27;/g, "'")
+    const container = containerRef.current
+    if (!container) return undefined
 
-        katex.render(decodedMath, containerRef.current, {
-          displayMode: display,
-          throwOnError: false,
-        })
-      } catch (error) {
-        console.error('KaTeX render error:', error)
-        console.error('Math formula:', math)
-        containerRef.current.innerHTML = `<code class="text-red-500">${math}</code>`
+    try {
+      // 解码 HTML 实体
+      const decodedMath = math
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&#x27;/g, "'")
+
+      katex.render(decodedMath, container, {
+        displayMode: display,
+        throwOnError: false,
+      })
+    } catch (error) {
+      console.error('KaTeX render error:', error)
+      console.error('Math formula:', math)
+      // XSS 防御：转义 math 内容后再插入 innerHTML
+      const raw = math ?? ''
+      const escaped = raw
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+      container.innerHTML = `<code class="text-red-500">${escaped}</code>`
+    }
+
+    // Cleanup: prevent stale DOM updates and clear on unmount
+    return () => {
+      if (container) {
+        container.textContent = ''
       }
     }
   }, [math, display])

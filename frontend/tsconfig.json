@@ -24,6 +24,18 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
+      "reactjs-tiptap-editor": [
+        "./node_modules/reactjs-tiptap-editor/lib/components/RichTextProvider.d.ts"
+      ],
+      "reactjs-tiptap-editor/*": [
+        "./node_modules/reactjs-tiptap-editor/lib/extensions/*/index.d.ts"
+      ],
+      "reactjs-tiptap-editor/bubble": [
+        "./node_modules/reactjs-tiptap-editor/lib/bubble.d.ts"
+      ],
+      "reactjs-tiptap-editor/underline": [
+        "./node_modules/reactjs-tiptap-editor/lib/extensions/TextUnderline/index.d.ts"
+      ],
       "@/*": [
         "./src/*"
       ],

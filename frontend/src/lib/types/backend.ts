@@ -52,6 +52,9 @@ export interface PostDetail {
   created_at: string
   updated_at: string
   tags: TagBasic[]
+  // Phase 3: 双轨存储
+  content_json?: Record<string, unknown> | null
+  content_mdx?: string | null
 }
 
 export interface PostListResponse {

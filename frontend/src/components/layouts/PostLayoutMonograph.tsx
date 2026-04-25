@@ -14,6 +14,7 @@ import { usePosts } from '@/lib/hooks/useBlogData'
 import { TableOfContents } from '@/components/navigation/TableOfContents'
 import SectionContainer from '@/components/SectionContainer'
 import { useReadingProgressWithApi } from '@/components/hooks/useReadingProgressWithApi'
+import { SummaryRenderer } from '@/components/SummaryRenderer'
 
 import '@/styles/monograph-theme.css'
 
@@ -176,7 +177,7 @@ export default function PostLayoutMonograph({
             {title}
           </h1>
           {summary && (
-            <p style={{
+            <div style={{
               fontFamily: 'var(--mono-font-serif)',
               fontSize: 'var(--font-size-h3)',
               fontStyle: 'italic',
@@ -185,8 +186,8 @@ export default function PostLayoutMonograph({
               color: 'var(--mono-text-muted)',
               marginBottom: 'var(--space-2)',
             }}>
-              {summary}
-            </p>
+              <SummaryRenderer summary={summary} />
+            </div>
           )}
           {/* Metadata row */}
           <div style={{

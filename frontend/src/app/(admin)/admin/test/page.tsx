@@ -1,3 +1,4 @@
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useList, useLogout, useApiUrl } from '@refinedev/core'

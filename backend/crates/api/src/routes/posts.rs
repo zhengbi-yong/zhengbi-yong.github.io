@@ -4,6 +4,7 @@ use axum::{
     http::{header, StatusCode},
     response::{IntoResponse, Json},
 };
+use blog_core::tiptap_json_to_mdx;
 use blog_db::{cms::*, PostStatsResponse};
 use blog_shared::{middleware::AuthUser, AppError};
 use serde::Deserialize;
@@ -379,6 +380,12 @@ pub async fn create_post(
         return Err(AppError::Conflict("Slug already exists".to_string()));
     }
 
+    // Phase 4: 如果提供了 content_json 但没有 content_mdx，自动派生 MDX
+    let content_mdx = match (&req.content_json, &req.content_mdx) {
+        (Some(json), None) => Some(tiptap_json_to_mdx(json)),
+        (_, mdx) => mdx.clone(),
+    };
+
     // 计算阅读时间
     let reading_time_obj = ReadingTime::from_content(&req.content);
     let reading_time = reading_time_obj.minutes as i32;
@@ -391,13 +398,15 @@ pub async fn create_post(
             status, published_at, scheduled_at,
             meta_title, meta_description, canonical_url,
             category_id, author_id, show_toc, layout,
-            is_featured, content_format, reading_time
+            is_featured, content_format, reading_time,
+            content_json, content_mdx
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8,
             $9, $10, $11,
             $12, $13, $14, $15,
-            $16, $17, $18
+            $16, $17, $18,
+            $19, $20
         )
         RETURNING id
         "#,
@@ -418,7 +427,9 @@ pub async fn create_post(
         req.layout.unwrap_or_else(|| "PostSimple".to_string()),
         req.is_featured.unwrap_or(false),
         req.content_format,
-        reading_time as i32
+        reading_time as i32,
+        req.content_json,
+        content_mdx,
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -580,7 +591,8 @@ async fn get_post_response(
             p.show_toc, p.layout,
             p.view_count, p.like_count, p.comment_count,
             p.created_at, p.updated_at, p.lastmod_at,
-            p.reading_time as "reading_time?: i32"
+            p.reading_time as "reading_time?: i32",
+            p.content_json, p.content_mdx
         FROM posts p
         LEFT JOIN media m ON p.cover_image_id = m.id
         LEFT JOIN categories c ON p.category_id = c.id
@@ -594,12 +606,34 @@ async fn get_post_response(
 
     match post_row {
         Some(row) => {
+            // 解析 content：处理三种情况
+            // 1. content_mdx 为 NULL → 从 content_json 转换
+            // 2. content_mdx 是 TipTap JSON 格式（脏数据）→ 实时转换
+            // 3. content_mdx 是真正 MDX → 直接使用
+            let content = {
+                let raw = row.content_mdx.clone().unwrap_or_else(|| {
+                    row.content_json
+                        .as_ref()
+                        .map(|v| tiptap_json_to_mdx(v))
+                        .unwrap_or_default()
+                });
+                let trimmed = raw.trim_start();
+                if trimmed.starts_with("{\"type\":\"doc\"") {
+                    serde_json::from_str::<serde_json::Value>(&raw)
+                        .ok()
+                        .map(|v| tiptap_json_to_mdx(&v))
+                        .unwrap_or_default()
+                } else {
+                    raw
+                }
+            };
+
             // 手动构造 PostDetail
             let mut post_detail = PostDetail {
                 id: row.id,
                 slug: row.slug,
                 title: row.title,
-                content: row.content,
+                content,
                 content_html: row.content_html,
                 summary: row.summary,
                 cover_image_url: row.cover_image_url,
@@ -623,6 +657,8 @@ async fn get_post_response(
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
                 reading_time: row.reading_time,
+                content_json: row.content_json,
+                content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
             };
             // 获取标签（使用读副本）
@@ -724,7 +760,8 @@ pub async fn get_post_by_id(
             p.show_toc, p.layout,
             p.view_count, p.like_count, p.comment_count,
             p.created_at, p.updated_at, p.lastmod_at,
-            p.reading_time as "reading_time?: i32"
+            p.reading_time as "reading_time?: i32",
+            p.content_json, p.content_mdx
         FROM posts p
         LEFT JOIN media m ON p.cover_image_id = m.id
         LEFT JOIN categories c ON p.category_id = c.id
@@ -738,12 +775,34 @@ pub async fn get_post_by_id(
 
     match post_row {
         Some(row) => {
+            // 解析 content：处理三种情况
+            // 1. content_mdx 为 NULL → 从 content_json 转换
+            // 2. content_mdx 是 TipTap JSON 格式（脏数据）→ 实时转换
+            // 3. content_mdx 是真正 MDX → 直接使用
+            let content = {
+                let raw = row.content_mdx.clone().unwrap_or_else(|| {
+                    row.content_json
+                        .as_ref()
+                        .map(|v| tiptap_json_to_mdx(v))
+                        .unwrap_or_default()
+                });
+                let trimmed = raw.trim_start();
+                if trimmed.starts_with("{\"type\":\"doc\"") {
+                    serde_json::from_str::<serde_json::Value>(&raw)
+                        .ok()
+                        .map(|v| tiptap_json_to_mdx(&v))
+                        .unwrap_or_default()
+                } else {
+                    raw
+                }
+            };
+
             // 手动构造 PostDetail
             let mut post_detail = PostDetail {
                 id: row.id,
                 slug: row.slug,
                 title: row.title,
-                content: row.content,
+                content,
                 content_html: row.content_html,
                 summary: row.summary,
                 cover_image_url: row.cover_image_url,
@@ -767,6 +826,8 @@ pub async fn get_post_by_id(
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
                 reading_time: row.reading_time,
+                content_json: row.content_json,
+                content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
             };
 
@@ -854,6 +915,13 @@ pub async fn update_post(
     let mut update_fields = Vec::new();
     let mut param_index = 2;
 
+    // Phase 4: 自动派生 content_mdx（当 content_json 被更新但 content_mdx 未指定时）
+    let derived_mdx: Option<String> = if req.content_json.is_some() && req.content_mdx.is_none() {
+        req.content_json.as_ref().map(|j| tiptap_json_to_mdx(j))
+    } else {
+        None
+    };
+
     if req.title.is_some() {
         update_fields.push(format!("title = ${}", param_index));
         param_index += 1;
@@ -916,6 +984,19 @@ pub async fn update_post(
     }
     if req.content_format.is_some() {
         update_fields.push(format!("content_format = ${}", param_index));
+        param_index += 1;
+    }
+    if req.content_json.is_some() {
+        update_fields.push(format!("content_json = ${}", param_index));
+        param_index += 1;
+    }
+    if req.content_mdx.is_some() {
+        update_fields.push(format!("content_mdx = ${}", param_index));
+        param_index += 1;
+    } else if derived_mdx.is_some() {
+        // Phase 4: 自动派生的 content_mdx
+        update_fields.push(format!("content_mdx = ${}", param_index));
+        param_index += 1;
     }
 
     if update_fields.is_empty() {
@@ -980,6 +1061,14 @@ pub async fn update_post(
     }
     if let Some(content_format) = req.content_format {
         query_builder = query_builder.bind(content_format);
+    }
+    if let Some(content_json) = req.content_json {
+        query_builder = query_builder.bind(content_json);
+    }
+    if let Some(content_mdx) = req.content_mdx {
+        query_builder = query_builder.bind(content_mdx);
+    } else if let Some(ref derived) = derived_mdx {
+        query_builder = query_builder.bind(derived.clone());
     }
 
     query_builder.fetch_one(&mut *tx).await?;

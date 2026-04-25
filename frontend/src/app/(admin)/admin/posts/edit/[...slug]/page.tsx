@@ -7,7 +7,6 @@
  */
 
 import { useState, useEffect, use, useRef } from 'react'
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ArticleMetadata } from '@/components/editor/ArticleMetadata'
 import { Loader2, Save, ArrowLeft } from 'lucide-react'
@@ -16,18 +15,7 @@ import { postService, adminService } from '@/lib/api/backend'
 import { loadToEditor, saveToMdx } from '@/lib/mdx/MDXContentBridge'
 import type { PostDetail } from '@/lib/types/backend'
 
-// 动态导入编辑器，避免 SSR 问题
-const TiptapEditor = dynamic(
-  () => import('@/components/editor/TiptapEditor').then((mod) => ({ default: mod.TiptapEditor })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-[600px] bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
-      </div>
-    ),
-  }
-)
+import TiptapEditor from '@/components/editor/TiptapEditor'
 
 export default function EditPostPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug: slugArray } = use(params)
@@ -63,9 +51,14 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
         setTags(post.tags?.map((t) => t.id) || [])
         // 保存原始 MDX 内容，用于保存时还原 MDX 特殊语法
         originalMdxRef.current = post.content || ''
-        // 将 MDX 内容转换为 Tiptap 安全格式后加载到编辑器
-        const { content: editorContent } = loadToEditor(post.content || '')
-        setContent(editorContent)
+        // 【Phase 3 降级路径】优先从 content_json（JSON AST）加载，否则从 content（HTML/MDX）降级
+        if (post.content_json) {
+          setContent(JSON.stringify(post.content_json))
+        } else {
+          // 将 MDX 内容转换为 Tiptap 安全格式后加载到编辑器
+          const { content: editorContent } = loadToEditor(post.content || '')
+          setContent(editorContent)
+        }
         setPostStatus(post.status)
       } catch (error) {
         console.error('Failed to load post:', error)
@@ -107,9 +100,21 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
       if (!originalPost) return
       // 将编辑器输出（包含 placeholder）还原为 MDX 格式后再保存
       const { content: mdxContent } = saveToMdx(content, originalMdxRef.current)
+      // Phase 3: 提取 content_json（Tiptap JSON AST）并同时发送 content_mdx
+      let content_json: Record<string, unknown> | undefined
+      let content_mdx: string | undefined
+      try {
+        content_json = JSON.parse(content)
+        content_mdx = mdxContent
+      } catch {
+        // ignore parse errors
+      }
       await adminService.updatePost(originalPost.id, {
         title,
         content: mdxContent,
+        content_json,
+        content_mdx,
+        content_format: 'mdx',
         summary: summary || undefined,
         status,
         category_id: category || null,
@@ -263,9 +268,6 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
           <TiptapEditor
             content={content}
             onChange={setContent}
-            placeholder="编辑正文内容... (支持 Markdown 语法)"
-            editable={!isSaving}
-            className="min-h-[600px]"
           />
         </div>
 

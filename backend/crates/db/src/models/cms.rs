@@ -110,6 +110,9 @@ pub struct PostDetail {
     pub updated_at: DateTime<Utc>,
     pub lastmod_at: Option<DateTime<Utc>>,
     pub reading_time: Option<i32>,
+    // Phase 3: 双轨存储
+    pub content_json: Option<serde_json::Value>,
+    pub content_mdx: Option<String>,
     #[serde(default)]
     pub tags: Vec<TagBasic>,
 }
@@ -175,6 +178,11 @@ pub struct CreatePostRequest {
     pub is_featured: Option<bool>,
     pub content_format: Option<String>,
     pub tag_ids: Option<Vec<Uuid>>,
+    // Phase 3: 双轨存储
+    /// Tiptap JSON AST — Source of Truth（协作编辑）
+    pub content_json: Option<serde_json::Value>,
+    /// 预编译 MDX 文本 — SSR 直读缓存
+    pub content_mdx: Option<String>,
 }
 
 // 文章更新请求
@@ -197,6 +205,11 @@ pub struct UpdatePostRequest {
     pub is_featured: Option<bool>,
     pub content_format: Option<String>,
     pub tag_ids: Option<Vec<Uuid>>,
+    // Phase 3: 双轨存储
+    /// Tiptap JSON AST — Source of Truth（协作编辑）
+    pub content_json: Option<serde_json::Value>,
+    /// 预编译 MDX 文本 — SSR 直读缓存
+    pub content_mdx: Option<String>,
 }
 
 // 文章列表查询参数
