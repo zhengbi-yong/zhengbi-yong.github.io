@@ -6,11 +6,13 @@ import { ShikiCodeBlockComponent } from './ShikiCodeBlockComponent'
 
 // ------------------------------------------------------------------------------------------------
 // ShikiCodeBlock — replaces StarterKit's plain codeBlock with Shiki-powered highlighting.
-// Uses a custom React NodeView; the lowlight import is only for language detection metadata.
+// Uses a custom React NodeView registered via priority:100 (StarterKit codeBlock is priority:50).
+// The toggleCodeBlock command comes from StarterKit (we no longer disable codeBlock:false).
 // ------------------------------------------------------------------------------------------------
 export const ShikiCodeBlock = Node.create({
   name: 'codeBlock',
   // Higher priority than StarterKit's built-in codeBlock (priority 50)
+  // This means our parseHTML/renderHTML/addNodeView win over StarterKit's for <pre> tags
   priority: 100,
   group: 'block',
   content: 'text*',
@@ -50,7 +52,7 @@ export const ShikiCodeBlock = Node.create({
   },
 
   addNodeView() {
-    // E3: stopEvent prevents the NodeView from intercepting events meant for the editor
+    // stopEvent: false → let ProseMirror handle keyboard events (Tab, Enter, etc.)
     return ReactNodeViewRenderer(ShikiCodeBlockComponent, { stopEvent: () => false })
   },
 })

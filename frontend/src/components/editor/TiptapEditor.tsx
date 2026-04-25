@@ -288,10 +288,11 @@ function RichTextEditorInner({
         code: { HTMLAttributes: { class: 'bg-muted px-1 py-0.5 rounded text-sm font-mono' } },
         link: false,
         underline: false,
-        codeBlock: false, // → ShikiCodeBlock
+        // Note: do NOT disable codeBlock — StarterKit needs it for toggleCodeBlock command.
+        // Our ShikiCodeBlock (priority:100) intercepts parsing/rendering of codeBlock nodes.
       }),
 
-      // Shiki syntax-highlighted code block
+      // Shiki syntax-highlighted code block (replaces StarterKit codeBlock rendering, not the command)
       ShikiCodeBlock,
 
       // Core formatting
