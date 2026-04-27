@@ -395,11 +395,9 @@ fn parse_mdx_content(
                 }
             }
             "description" => {
-                if summary.is_none() {
-                    let parsed = strip_quotes(value);
-                    if !parsed.is_empty() {
-                        summary = Some(parsed.to_string());
-                    }
+                let parsed = strip_quotes(value);
+                if summary.is_none() && !parsed.is_empty() {
+                    summary = Some(parsed.to_string());
                 }
             }
             "tags" => {

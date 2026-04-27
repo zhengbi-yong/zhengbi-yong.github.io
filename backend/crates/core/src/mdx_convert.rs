@@ -90,7 +90,7 @@ pub fn tiptap_json_to_mdx(json: &Value) -> String {
 fn render_doc(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
-            let rendered: Vec<String> = arr.iter().map(|n| tiptap_json_to_mdx(n)).collect();
+            let rendered: Vec<String> = arr.iter().map(tiptap_json_to_mdx).collect();
             rendered.join("\n\n")
         }
         _ => String::new(),
@@ -167,7 +167,7 @@ fn render_code_block(content: Option<&Value>, attrs: Option<&Value>) -> String {
 fn render_blockquote(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
-            let inner: Vec<String> = arr.iter().map(|n| tiptap_json_to_mdx(n)).collect();
+            let inner: Vec<String> = arr.iter().map(tiptap_json_to_mdx).collect();
             let joined = inner.join("\n\n");
             joined
                 .split('\n')
@@ -229,7 +229,7 @@ fn render_table(content: Option<&Value>) -> String {
         Some(Value::Array(rows)) if !rows.is_empty() => {
             let rendered_rows: Vec<String> = rows
                 .iter()
-                .map(|r| tiptap_json_to_mdx(r))
+                .map(tiptap_json_to_mdx)
                 .filter(|s| !s.trim().is_empty())
                 .collect();
 
@@ -254,7 +254,7 @@ fn render_table(content: Option<&Value>) -> String {
 fn render_table_row(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(cells)) => {
-            let rendered: Vec<String> = cells.iter().map(|c| tiptap_json_to_mdx(c)).collect();
+            let rendered: Vec<String> = cells.iter().map(tiptap_json_to_mdx).collect();
 
             format!("|{}|", rendered.join("|"))
         }
@@ -378,7 +378,7 @@ fn render_task_list(content: Option<&Value>) -> String {
         Some(Value::Array(items)) => {
             let rendered: Vec<String> = items
                 .iter()
-                .map(|n| tiptap_json_to_mdx(n))
+                .map(tiptap_json_to_mdx)
                 .filter(|s| !s.trim().is_empty())
                 .collect();
             rendered.join("\n")
@@ -399,7 +399,7 @@ fn render_task_item(content: Option<&Value>, attrs: Option<&Value>) -> String {
         Some(Value::Array(arr)) => {
             let inner: Vec<String> = arr
                 .iter()
-                .map(|n| tiptap_json_to_mdx(n))
+                .map(tiptap_json_to_mdx)
                 .filter(|s| !s.trim().is_empty())
                 .collect();
             let joined = inner.join("\n");
@@ -424,7 +424,7 @@ fn render_task_item(content: Option<&Value>, attrs: Option<&Value>) -> String {
 fn render_list_item(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
-            let parts: Vec<String> = arr.iter().map(|n| tiptap_json_to_mdx(n)).collect();
+            let parts: Vec<String> = arr.iter().map(tiptap_json_to_mdx).collect();
 
             if parts.is_empty() {
                 String::new()
@@ -440,21 +440,14 @@ fn render_list_item(content: Option<&Value>) -> String {
                         .iter()
                         .map(|s| {
                             s.split('\n')
-                                .enumerate()
-                                .map(|(i, line)| {
-                                    if i == 0 {
-                                        format!("  {}", line)
-                                    } else {
-                                        format!("  {}", line)
-                                    }
-                                })
+                                .map(|line| format!("  {}", line))
                                 .collect::<Vec<_>>()
                                 .join("\n")
                         })
                         .collect::<Vec<_>>()
                         .join("\n");
                     if !nested.trim().is_empty() {
-                        result.push_str("\n");
+                        result.push('\n');
                         result.push_str(&nested);
                     }
                 }
@@ -480,7 +473,7 @@ fn render_mention(attrs: Option<&Value>) -> String {
 fn render_details(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
-            let inner: Vec<String> = arr.iter().map(|n| tiptap_json_to_mdx(n)).collect();
+            let inner: Vec<String> = arr.iter().map(tiptap_json_to_mdx).collect();
             inner.join("\n")
         }
         _ => String::new(),
@@ -500,7 +493,7 @@ fn render_details_summary(content: Option<&Value>) -> String {
 fn render_details_content(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
-            let inner: Vec<String> = arr.iter().map(|n| tiptap_json_to_mdx(n)).collect();
+            let inner: Vec<String> = arr.iter().map(tiptap_json_to_mdx).collect();
             format!("{}\n</details>", inner.join("\n"))
         }
         _ => String::new(),
@@ -515,7 +508,7 @@ fn render_callout(content: Option<&Value>, attrs: Option<&Value>) -> String {
 
     match content {
         Some(Value::Array(arr)) => {
-            let inner: Vec<String> = arr.iter().map(|n| tiptap_json_to_mdx(n)).collect();
+            let inner: Vec<String> = arr.iter().map(tiptap_json_to_mdx).collect();
             let joined = inner.join("\n\n");
             let prefix = match callout_type {
                 "warning" => "> ⚠️ ",
@@ -540,7 +533,7 @@ fn render_callout(content: Option<&Value>, attrs: Option<&Value>) -> String {
 /// Render an array of inline nodes (text + marks + inlineMath + mention)
 fn render_inline_nodes(arr: &[Value]) -> String {
     arr.iter()
-        .map(|node| render_inline_node(node))
+        .map(render_inline_node)
         .collect::<Vec<_>>()
         .join("")
 }
@@ -643,7 +636,7 @@ fn render_display_math(node: &Value) -> String {
 
 fn render_children(arr: &[Value]) -> String {
     arr.iter()
-        .map(|n| tiptap_json_to_mdx(n))
+        .map(tiptap_json_to_mdx)
         .collect::<Vec<_>>()
         .join("\n")
 }

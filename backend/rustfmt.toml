@@ -23,31 +23,6 @@ use_try_shorthand = true
 # Force explicit abi
 force_explicit_abi = true
 
-# Format code in doc comments
-format_code_in_doc_comments = true
-
-# Format strings
-format_strings = true
-
-# Normalize comments
-normalize_comments = true
-
-# Normalize doc attributes
-normalize_doc_attributes = true
-
-# Format macro matchers
-format_macro_matchers = true
-
-# Format macro bodies
-format_macro_bodies = true
-
-# Hex literal case
-hex_literal_case = "Lower"
-
-# Imports granularity
-imports_granularity = "Crate"
-group_imports = "StdExternalCrate"
-
 # Reorder imports
 reorder_imports = true
 
@@ -57,62 +32,46 @@ reorder_modules = true
 # Remove nested parens
 remove_nested_parens = true
 
-# Space after colon
-space_after_colon = true
-
-# Space before colon
-space_before_colon = false
-
-# Spaces around ranges
-spaces_around_ranges = false
-
-# Type punctuation density
-type_punctuation_density = "Wide"
-
 # Merge derives
 merge_derives = true
 
 # Use small heuristics
 use_small_heuristics = "Default"
 
-# Overflow delimiting expr
-overflow_delimited_expr = true
-
-# Reorder impl items
-reorder_impl_items = true
-
-# Show parse errors
-show_parse_errors = true
-
-# Skip children
-skip_children = false
-
-# Struct lit single line
-struct_lit_single_line = true
+# Match arm leading pipes
+match_arm_leading_pipes = "Never"
 
 # Struct variant width
 struct_variant_width = 35
 
-# Wrap comments at max width
-wrap_comments = false
-
-# Comment width
-comment_width = 100
-
-# Condense wildcard suffixes
-condense_wildcard_suffixes = true
-
-# Format match blocks
-format_match_matchers = true
-
 # Match arm blocks
 match_block_trailing_comma = false
 
-# Match arm leading pipes
-match_arm_leading_pipes = "Never"
-
-# Force multiline match
-force_multiline_blocks = false
-
-# Inline narrow macros
-inline_macro_width = 30
+# The following options require nightly rustfmt.
+# They are commented out to avoid 200+ lines of warnings on stable Rust.
+# If you have nightly installed, uncomment them:
+#
+# format_code_in_doc_comments = true
+# format_strings = true
+# normalize_comments = true
+# normalize_doc_attributes = true
+# format_macro_matchers = true
+# format_macro_bodies = true
+# hex_literal_case = "Lower"
+# imports_granularity = "Crate"
+# group_imports = "StdExternalCrate"
+# space_after_colon = true
+# space_before_colon = false
+# spaces_around_ranges = false
+# type_punctuation_density = "Wide"
+# overflow_delimited_expr = true
+# reorder_impl_items = true
+# show_parse_errors = true
+# skip_children = false
+# struct_lit_single_line = true
+# wrap_comments = false
+# comment_width = 100
+# condense_wildcard_suffixes = true
+# format_match_matchers = true
+# force_multiline_blocks = false
+# inline_macro_width = 30

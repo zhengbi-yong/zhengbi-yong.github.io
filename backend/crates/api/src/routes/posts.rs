@@ -745,7 +745,7 @@ pub async fn update_post(
 
     // Phase 4: 自动派生 content_mdx（当 content_json 被更新但 content_mdx 未指定时）
     let derived_mdx: Option<String> = if req.content_json.is_some() && req.content_mdx.is_none() {
-        req.content_json.as_ref().map(|j| tiptap_json_to_mdx(j))
+        req.content_json.as_ref().map(tiptap_json_to_mdx)
     } else {
         None
     };
@@ -826,6 +826,8 @@ pub async fn update_post(
         update_fields.push(format!("content_mdx = ${}", param_index));
         param_index += 1;
     }
+
+    let _ = param_index;
 
     if update_fields.is_empty() {
         tx.rollback().await?;

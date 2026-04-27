@@ -30,7 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let existing = sqlx::query_scalar::<_, Option<uuid::Uuid>>(
         "SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL",
     )
-    .bind(&email)
+    .bind(email)
     .fetch_optional(&pool)
     .await?;
 

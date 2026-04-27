@@ -35,20 +35,11 @@ make setup
 | 工程规范 | [docs/development/](docs/development/) | 代码风格、安全实践 |
 | 设计系统 | [docs/design/](docs/design/) | 外观设计文档 |
 | 部署指南 | [docs/deployment/](docs/deployment/) | Docker、K8s、服务器部署 |
-| **专项方案** | [docs/plans/](docs/plans/) | **所有长期方案的索引** |
 | AI 代理指南 | [.github/AGENTS.md](.github/AGENTS.md) | AI 助手使用规范 |
-
-## 专项方案索引
-
-所有需要多步骤执行的方案文档统一存放在 [docs/plans/](docs/plans/)：
-
-- 🔧 [仓库结构整理方案](docs/plans/REPOSITORY_ORGANIZATION.md) — 整理根目录杂乱文件
-- 🛡️ [安全审计与整改方案](docs/plans/REMEDIATION_PLAN.md) — 15 项安全与性能问题修复
 
 ## 相关链接
 
 - 博客在线：http://192.168.0.161:3001
 - 文档总览：[docs/INDEX.md](docs/INDEX.md)
 
----
-*最后更新：2025-04-14*
+

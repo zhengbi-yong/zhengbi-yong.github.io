@@ -293,7 +293,7 @@ async fn run_server() -> anyhow::Result<()> {
 // 🔥 关键修复：使用路由分组 + .boxed() 避免栈溢出
 // 专家建议：大型路由应使用 router.merge() 或 .nest()，并在必要时使用 .boxed()
 fn v1_routes(state: AppState) -> Router<AppState> {
-    use axum::routing::{get, post};
+    use axum::routing::get;
     // 使用 merge 组合各个路由组，每个组已使用 .boxed()
     // /auth/me 需要认证，单独定义并应用中间件
     let auth_me_route = Router::new()
