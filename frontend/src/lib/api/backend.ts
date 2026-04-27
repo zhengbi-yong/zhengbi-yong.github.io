@@ -201,7 +201,7 @@ export const postService = {
    * Unlike a post
    */
   async unlikePost(slug: string): Promise<void> {
-    await api.delete(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/like`, { cache: false })
+    await api.delete(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/likes`, { cache: false })
   },
 }
 
