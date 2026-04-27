@@ -165,15 +165,6 @@ export const postService = {
     return response.data
   },
 
-  /**
-   * Get post detail by ID (UUID)
-   */
-  async getPostById(id: string): Promise<PostDetail> {
-    const response = await api.get<PostDetail>(`${BACKEND_API_URL}/posts/id/${id}`, {
-      cache: 5 * 60 * 1000, // 5 minute cache
-    })
-    return response.data
-  },
 
   /**
    * Get post statistics (views, likes, comments count)

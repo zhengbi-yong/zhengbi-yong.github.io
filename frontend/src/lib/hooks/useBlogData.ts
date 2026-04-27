@@ -37,19 +37,6 @@ export function usePost(slug: string) {
 }
 
 /**
- * Fetch single post by ID (UUID)
- */
-export function usePostById(id: string) {
-  return useQuery({
-    queryKey: ['post', 'id', id],
-    queryFn: () => backendApi.post.getPostById(id),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    enabled: !!id, // Only fetch if id is provided
-  })
-}
-
-/**
  * Fetch post statistics (views, likes, comments)
  */
 export function usePostStats(slug: string) {
