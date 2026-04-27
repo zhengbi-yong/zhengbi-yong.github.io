@@ -1,6 +1,6 @@
 # AGENTS.md - Codebase Guide for AI Agents
 
-**Generated**: 2026-03-22
+**Generated**: 2026-04-28
 
 ## OVERVIEW
 
@@ -93,7 +93,6 @@ make validate-k8s-apply RELEASE_VERSION=1.8.2
 ## KNOWN LIMITS
 
 - comment IP extraction still has TODOs in `backend/crates/api/src/routes/comments.rs`
-- forgot-password and password-update flows still have TODOs in `frontend/src/lib/providers/refine-auth-provider.ts`
 - multipart media upload work remains incomplete in `backend/crates/api/src/routes/media.rs`
 
 ## DELIVERY PIPELINE

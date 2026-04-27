@@ -17,6 +17,7 @@ Cargo.lock
 
 # testing
 /coverage
+frontend/coverage
 
 # Next.js
 /.next/

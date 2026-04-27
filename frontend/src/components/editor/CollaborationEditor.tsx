@@ -11,7 +11,6 @@ export default function CollaborationEditor({
   return (
     <div data-collab-room={roomId}>
       <TiptapEditor 
-        collaborationRoomId={roomId}
         {...props}
       />
     </div>
