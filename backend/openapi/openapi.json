@@ -398,7 +398,7 @@
         }
       }
     },
-    "/posts/{slug}/like": {
+    "/posts/{slug}/likes": {
       "post": {
         "tags": [
           "posts"
@@ -981,6 +981,13 @@
             "type": "string"
           },
           "content_html": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content_json": {},
+          "content_mdx": {
             "type": [
               "string",
               "null"
