@@ -1,53 +1,59 @@
 # 测试策略与质量保证
 
-> 来源：EDITOR_SYSTEM_DESIGN.md P6
+> 本文件记录项目当前的实际测试实践和目标。
 
 ## 测试金字塔
 
-```
-        ╱  E2E  ╲              ← Playwright: 关键用户流程
+```text
+        ╱  E2E  ╲              Playwright: 97 个测试用例覆盖 12 条核心路径
        ╱──────────╲
-      ╱ 集成测试   ╲            ← 前后端联调、API 测试
+      ╱ 集成测试   ╲            前端 Vitest (188 tests), 后端 cargo test
      ╱──────────────╲
-    ╱   单元测试      ╲          ← 函数级、组件级
+    ╱   单元测试      ╲          后端: 28 个测试文件 (含 mdx_convert 的 16 个测试)
    ╱────────────────────╲
-  ╱  类型检查 (编译时)    ╲       ← TypeScript strict, Rust cargo check
+  ╱  类型检查 (编译时)    ╲       Rust cargo check, TypeScript ESLint
  ╱──────────────────────────╲
 ```
 
 ## 测试覆盖矩阵
 
-| 层级 | 工具 | 目标覆盖率 | 关键测试点 |
-|------|------|-----------|----------|
-| Rust 单元测试 | `cargo test` | 后端核心逻辑 ≥80% | 业务逻辑、数据模型、序列化 |
-| Rust API 测试 | `cargo test` (集成模式) | 端点 ≥90% | 认证、CRUD、校验、错误码 |
-| TypeScript 类型 | `tsc --noEmit` | 100% | 无 any 型、无隐式 any |
-| 前端组件测试 | Vitest + Testing Library | 组件 ≥70% | 渲染、交互、状态变化 |
-| E2E 流程 | Playwright | 10 条核心路径 | 登录→写文章→发布→阅读→评论 |
+| 层级 | 工具 | 目标 | 现状 |
+|------|------|------|------|
+| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 28 个测试文件，16 个 mdx_convert 测试 |
+| Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
+| TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
+| 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
+| E2E 流程 | Playwright | 12 条核心路径 | 97 个 E2E 测试用例 |
 
 ## E2E 核心路径
 
-| 编号 | 路径 | 步骤 |
-|------|------|------|
-| E2E-01 | 用户注册 | 填写表单 → 提交 → 验证邮箱(如需要) → 登录 |
-| E2E-02 | 创建文章 | 打开编辑器 → 输入 Markdown → 插入图片 → 保存 → 验证数据库 |
-| E2E-03 | 编辑文章 | 打开已有文章 → 修改内容 → 保存 → 验证版本历史 |
-| E2E-04 | 文章阅读 | 访问公开 URL → 验证 SSR 内容渲染 → 验证 MDX 组件加载 |
-| E2E-05 | 搜索 | 输入关键词 → 验证结果包含目标文章 → 验证高亮 |
-| E2E-06 | 响应式 | 桌面/平板/手机三端验证布局和功能 |
-| E2E-07 | 暗色模式 | 切换主题 → 验证所有页面渲染正常 |
-| E2E-08 | 数学公式 | 在编辑器中插入公式 → 保存 → 阅读页验证 KaTeX 渲染 |
+实际覆盖（`frontend/e2e/`）：
+
+| 文件 | 测试内容 |
+|------|---------|
+| `auth.spec.ts` | 用户注册 → 登录 |
+| `admin.spec.ts` | 创建文章、编辑文章、管理操作 |
+| `blog.spec.ts` | 文章阅读 / SSR |
+| `search.spec.ts` | 搜索功能 |
+| `editor-publish.spec.ts` | 编辑器发布流程 |
+| `math-rendering.spec.ts` | 数学公式 KaTeX 渲染 |
+| `abc-notation.spec.ts` | ABC 乐谱渲染 |
+| `codeblock-shiki.spec.ts` | 代码块 Shiki 高亮 |
+| `codeblock-rendering.spec.ts` | 代码块渲染 |
+| `content-cqrs.spec.ts` | 内容 CQRS 双轨 |
+| `api-contract.spec.ts` | API 契约测试 |
+| `blog-rendering.spec.ts` | 博客渲染（Playwright 配置需调整） |
 
 ## 回归测试流程
 
-每次 master 合并前：
+每次 main 合并前：
 
 ```bash
 # 1. 后端
 cd backend && cargo test --workspace && cargo clippy
 
 # 2. 前端
-cd frontend && pnpm typecheck && pnpm test
+cd frontend && pnpm test && npx eslint . --max-warnings=600
 
 # 3. E2E（CI 环境）
 pnpm test:e2e

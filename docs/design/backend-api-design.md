@@ -1,6 +1,6 @@
 # 后端 API 设计
 
-> 来源：ultradesign.md (4章、6章)
+> 本文件根据 `backend/crates/api/src/main.rs` 路由表中的实际注册为准。
 
 ## 技术栈
 
@@ -9,16 +9,16 @@
 | 后端框架 | Rust Axum | 0.8 |
 | 数据库 | PostgreSQL (SQLx) | 17+ |
 | 缓存 | Redis (deadpool-redis) | 7.4.x |
-| 搜索 | PG FTS + Meilisearch | 1.12 |
+| 搜索 | PG FTS + Meilisearch | 1.12 (Meilisearch 尚未实装) |
 
 ## 项目结构
 
-```
+```text
 backend/
 ├── crates/
-│   ├── api/                    # HTTP 服务器
+│   ├── api/                    # HTTP 服务器（Axum）
 │   │   ├── src/
-│   │   │   ├── main.rs        # 入口 + 优雅停机
+│   │   │   ├── main.rs         # 入口 + 路由组合 + 优雅停机
 │   │   │   ├── routes/
 │   │   │   │   ├── auth.rs
 │   │   │   │   ├── posts.rs
@@ -27,92 +27,147 @@ backend/
 │   │   │   │   ├── tags.rs
 │   │   │   │   ├── media.rs
 │   │   │   │   ├── admin.rs
+│   │   │   │   ├── reading_progress.rs
 │   │   │   │   ├── search.rs
+│   │   │   │   ├── search_optimized.rs
+│   │   │   │   ├── mdx_sync.rs
+│   │   │   │   ├── versions.rs
+│   │   │   │   ├── openapi.rs
 │   │   │   │   └── team_members.rs
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.rs
 │   │   │   │   ├── rate_limit.rs
 │   │   │   │   ├── csrf.rs
 │   │   │   │   └── request_id.rs
-│   │   │   └── state.rs
+│   │   │   ├── metrics/
+│   │   │   ├── state.rs
+│   │   │   └── outbox.rs
 │   │   └── Cargo.toml
 │   │
-│   ├── core/                   # 业务逻辑（纯 Rust）
-│   ├── db/                     # SQLx 模型
-│   └── worker/                 # MeiliBridge CDC Worker
+│   ├── core/                   # 业务逻辑（JWT、密码哈希、MDX 转换、Email）
+│   ├── db/                     # SQLx 数据库模型
+│   ├── shared/                 # 公共类型（AppError、Config 等）
+│   ├── worker/                 # CDC Worker
+│   └── migrator/               # 迁移工具
 │
 ├── migrations/                 # SQL 迁移
+├── openapi/                    # OpenAPI 规范
 └── Cargo.toml                  # Workspace 配置
 ```
 
 ## RESTful 规范
 
 ```bash
-# 资源命名: 名词复数，不用动词
-GET    /posts              # 获取列表
-POST   /posts              # 创建
-GET    /posts/{slug}       # 获取单个
-PATCH  /posts/{slug}       # 部分更新
-DELETE /posts/{slug}       # 删除
+# 资源命名: 名词复数，斜杠子路径
+GET    /posts                  # 获取列表
+POST   /posts                  # 创建（管理端）
+GET    /posts/{slug}           # 获取单个
+PATCH  /posts/{slug}           # 部分更新（管理端）
+DELETE /posts/{slug}           # 删除（管理端）
 
-# 禁止:
-POST   /posts/create       # 错误!
-GET    /posts/get/{id}     # 错误!
-
-# 自定义操作: 冒号后缀 (AIP-136)
-POST   /posts/{slug}:view           # 记录浏览
-POST   /posts/{slug}/likes          # 点赞（关联资源）
-GET    /tags:autocomplete           # 自定义查询
-
-# 批量操作: 返回 202 + task_id
-POST   /admin/posts:bulkDelete
-```
-
-## 统一寻址
-
-```bash
-GET /posts/{slug}          # 优先查 slug
-GET /posts/{uuid}          # 识别为 UUID
-
-# 禁止:
-GET /posts/id/{id}         # 不需要
-GET /posts/slug/{slug}     # 不需要
+# 自定义操作: 斜杠子路径
+POST   /posts/{slug}/view      # 记录浏览
+POST   /posts/{slug}/likes     # 点赞
+DELETE /posts/{slug}/likes     # 取消点赞
+GET    /tags/autocomplete      # 自动补全
 ```
 
 ## 路由表
 
 ### 公开 API (`/api/v1/`)
 
+#### 认证
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | /auth/tokens | 登录 |
-| PUT | /auth/tokens | 刷新 |
-| DELETE | /auth/tokens | 登出 |
-| POST | /users | 注册 |
-| GET | /users/me | 当前用户 |
-| GET | /posts | 列表 |
-| GET | /posts/{identifier} | 详情 |
-| POST | /posts/{identifier}:view | 浏览 |
-| POST | /posts/{identifier}/likes | 点赞 |
-| DELETE | /posts/{identifier}/likes | 取消点赞 |
-| GET | /posts/{identifier}/comments | 评论 |
-| GET | /categories | 分类 |
-| GET | /tags | 标签 |
-| GET | /tags:autocomplete | 补全 |
-| GET | /search | 搜索 |
+| POST | /auth/register | 注册 |
+| POST | /auth/login | 登录 |
+| POST | /auth/refresh | 刷新令牌 |
+| POST | /auth/logout | 登出 |
+| POST | /auth/forgot-password | 忘记密码 |
+| POST | /auth/reset-password | 重置密码 |
+| GET | /auth/me | 当前用户信息 |
 
-### 管理 API (`/api/admin/v1/`)
+#### 文章
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /posts | 列表（分页） |
+| GET | /posts/by-slug | 通过查询参数 slug 获取 |
+| GET | /posts/{slug} | 详情 |
+| GET | /posts/{slug}/stats | 统计 |
+| POST | /posts/{slug}/view | 记录浏览 |
+| POST | /posts/{slug}/likes | 点赞 |
+| DELETE | /posts/{slug}/likes | 取消点赞 |
+| GET | /posts/{slug}/comments | 评论列表 |
+| GET | /posts/{slug}/related | 相关文章 |
+
+#### 阅读进度
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /posts/{slug}/reading-progress | 获取进度 |
+| POST | /posts/{slug}/reading-progress | 更新进度 |
+| DELETE | /posts/{slug}/reading-progress | 重置进度 |
+| GET | /reading-progress/history | 阅读历史 |
+
+#### 评论
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /posts/{slug}/comments | 创建评论 |
+| POST | /comments/{id}/like | 点赞评论 |
+| POST | /comments/{id}/unlike | 取消点赞评论 |
+
+#### 分类 / 标签 / 搜索
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /categories | 分类列表 |
+| GET | /categories/tree | 分类树 |
+| GET | /categories/{slug} | 分类详情 |
+| GET | /categories/{slug}/posts | 分类下文章 |
+| GET | /tags | 标签列表 |
+| GET | /tags/popular | 热门标签 |
+| GET | /tags/autocomplete | 自动补全 |
+| GET | /tags/{slug} | 标签详情 |
+| GET | /tags/{slug}/posts | 标签下文章 |
+| GET | /search | 全文搜索 |
+| GET | /search/suggest | 搜索建议 |
+| GET | /search/trending | 热门搜索词 |
+
+#### 团队成员
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /team-members | 团队成员列表 |
+
+### 管理 API（需认证）
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | /posts | 列表（含草稿） |
-| POST | /posts | 创建 |
-| PATCH | /posts/{id} | 更新 |
-| DELETE | /posts/{id} | 删除 |
-| POST | /posts:syncFromMdx | 同步 MDX |
-| POST | /users:bulkDelete | 批量删除 |
-| POST | /media:generateUploadUrl | 预签名 URL |
-| GET | /statistics | 统计 |
+| GET | /admin/posts | 列表（含草稿） |
+| POST | /admin/posts | 创建 |
+| PATCH | /admin/posts/{slug} | 更新 |
+| DELETE | /admin/posts/{slug} | 删除 |
+| POST | /admin/sync/mdx | 同步 MDX |
+| GET | /admin/stats | 仪表盘统计 |
+| GET | /admin/users | 用户列表 |
+| PUT | /admin/users/{id}/role | 更新角色 |
+| DELETE | /admin/users/{id} | 删除用户 |
+| GET | /admin/user-growth | 用户增长 |
+| GET | /admin/comments | 评论列表 |
+| PUT | /admin/comments/{id}/status | 审核评论 |
+| DELETE | /admin/comments/{id} | 删除评论 |
+| GET | /admin/media | 媒体列表 |
+| GET | /admin/media/unused | 未使用媒体 |
+| GET | /admin/media/{id} | 媒体详情 |
+| PATCH | /admin/media/{id} | 更新媒体 |
+| DELETE | /admin/media/{id} | 删除媒体 |
+| POST | /admin/media/upload | 上传媒体 |
+| POST | /admin/media/presign-upload | 预签名上传 |
+| POST | /admin/media/finalize | 完成上传 |
+| GET | /admin/posts/{postId}/versions | 版本列表 |
+| POST | /admin/posts/{postId}/versions | 创建版本 |
+| GET | /admin/posts/{postId}/versions/{versionNumber} | 版本详情 |
+| POST | /admin/posts/{postId}/versions/{versionNumber}/restore | 恢复版本 |
+| DELETE | /admin/posts/{postId}/versions/{versionNumber} | 删除版本 |
+| GET | /admin/posts/{postId}/versions/compare | 比较版本 |
+| POST | /admin/search/reindex | 重建搜索索引 |
 
 ## Axum 0.8 路由语法
 
@@ -141,6 +196,8 @@ let pool = PgPoolOptions::new()
     .connect(&database_url)
     .await?;
 ```
+
+Redis 连接池配置通过 `redis_pool` 配置段管理（wait_timeout, create_timeout, recycle_timeout）。
 
 ## 禁止模式
 
@@ -177,8 +234,7 @@ async fn bad_middleware(request: Request, next: Next) -> Response {
 async fn auth_middleware(
     request: Request, next: Next
 ) -> Result<Response, AuthError> {
-    // 只验证 JWT 签名（CPU 运算）
-    // 不查数据库
+    // 只验证 JWT 签名（CPU 运算，不查数据库/Redis）
     next.run(request).await
 }
 ```
@@ -186,22 +242,11 @@ async fn auth_middleware(
 ## 优雅停机
 
 ```rust
-async fn run_server(pool: PgPool) {
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-
-    tokio::spawn(async move {
-        signal::ctrl_c().await.unwrap();
-        // 1. 标记健康检查失败 → 负载均衡器停止发新请求
-        // set_healthy(false);
-        // 2. 等待现有请求完成（最多 30 秒）
-        tokio::time::sleep(Duration::from_secs(30)).await;
-        // 3. 关闭数据库连接池
-        pool.close().await;
-        std::process::exit(0);
-    });
-
-    axum::serve(listener, app).await.unwrap();
-}
+// 1. 收到 SIGTERM/Ctrl+C
+// 2. 标记健康检查失败（/livez 返回 503）
+// 3. 等待现有请求完成（最多 30s graceful period）
+// 4. 关闭数据库和 Redis 连接池
+// 5. 退出进程
 ```
 
 ## HTTP 状态码约定
@@ -210,10 +255,21 @@ async fn run_server(pool: PgPool) {
 |--------|------|
 | 200 | GET/PUT/PATCH 成功 |
 | 201 | POST 创建成功 |
-| 204 | DELETE 成功 |
+| 204 | DELETE 成功，或 NO_CONTENT 操作 |
 | 400 | 参数校验失败 |
 | 401 | 未认证 |
 | 403 | 权限不足 |
 | 404 | 资源不存在 |
+| 409 | 资源冲突（重复点赞等） |
 | 429 | 限流触发 |
 | 500 | 服务器内部错误 |
+
+## 健康检查
+
+| 路径 | 说明 | 类型 |
+|------|------|------|
+| /livez | Kubernetes 存活探针 | 只返回 200 |
+| /readyz | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
+| /health | 基本健康检查 | 返回 "OK" |
+| /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
+| /metrics | Prometheus 指标 | 返回指标数据 |

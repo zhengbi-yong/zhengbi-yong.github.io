@@ -1,127 +1,84 @@
 # 部署与安全设计
 
-> 来源：ultradesign.md (7章)
+> 当前使用 Docker Compose 和 Kubernetes 两种部署方式，以下描述以实际配置文件为准。
 
 ## 容器安全
 
-```yaml
-# kubernetes/deployment.yaml
-spec:
-  template:
-    spec:
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        readOnlyRootFilesystem: true
-        capabilities:
-          capDrop: [ALL]           # 丢弃所有 capability
+### Docker 构建
 
-      # 临时文件用 tmpfs
-      volumes:
-        - name: tmp
-          emptyDir:
-            medium: Memory
-      volumeMounts:
-        - name: tmp
-          mountPath: /tmp
+```dockerfile
+# backend/Dockerfile
+FROM rust:1.92-slim-bookworm AS builder
+WORKDIR /app
+COPY . .
+RUN cargo build --locked --release -p blog-api -p blog-worker
+
+# 运行时最小镜像
+FROM debian:bookworm-slim
+COPY --from=builder /app/target/release/api /usr/local/bin/
+COPY --from=builder /app/target/release/worker /usr/local/bin/
+COPY --from=builder /app/target/release/migrate /usr/local/bin/
+COPY --from=builder /app/target/release/create_admin /usr/local/bin/
+COPY --from=builder /app/migrations /app/migrations
+ENTRYPOINT ["dumb-init", "--"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3000/healthz
 ```
 
-## 重启策略
+- 构建 4 个二进制: `api`, `worker`, `migrate`, `create_admin`
+- 复制 `migrations/` 目录到运行时镜像
+- 使用 `dumb-init` 确保信号正确转发
 
-| 策略 | 适用 | 说明 |
-|------|------|------|
-| `Always` | 主服务 | 总是自动重启 |
-| `OnFailure` | 一次性任务 | 只在上次退出码非 0 时重启 |
-| `UnlessStopped` | 数据库 | 除非手动停止否则总是运行 |
+### 前端 Dockerfile
+
+`frontend/Dockerfile` — 使用 `node:22-alpine` 多阶段构建，独立部署。
+
+### Kubernetes 安全上下文
+
+K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
+- 未设置 `securityContext`
+- 存活探针: `/livez:3000` (initialDelaySeconds: 20, periodSeconds: 20)
+- 就绪探针: `/readyz:3000` (initialDelaySeconds: 10, periodSeconds: 10)
+- 密钥引用: `blog-runtime-secrets`
+
+K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
+- `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
+- `capabilities.drop: ["ALL"]`
+- `tmpfs` 卷挂载 `/tmp`
+
+> 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
 
 ## 健康检查
 
-### 存活探针 (Liveness)
+### 后端健康端点
 
-**只检查进程是否存活，不查外部依赖。**
-
-```yaml
-livenessProbe:
-  httpGet:
-    path: /.well-known/live
-    port: 3000
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  failureThreshold: 3
-```
-
-- 用于 K8s 判断是否需要重启 Pod
-- 网络抖动不应触发重启
-
-### 就绪探针 (Readiness)
-
-**可查 DB/Redis，确认能否接收流量。**
-
-```yaml
-readinessProbe:
-  httpGet:
-    path: /.well-known/ready
-    port: 3000
-  initialDelaySeconds: 10
-  periodSeconds: 5
-```
-
-- 用于 K8s 判断是否接收流量
-- DB 断开时停止接收，避免 500 响应
-
-### 错误示范
-
-```yaml
-# 禁止: 将 pg_isready 作为存活探针
-livenessProbe:
-  exec:
-    command: ["pg_isready"]  # 网络抖动会触发重启!
-```
+| 路径 | 用途 | 说明 |
+|------|------|------|
+| `/livez` | 存活探针 | 只返回 200 |
+| `/readyz` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
+| `/health` | 基本健康 | 返回 "OK" |
+| `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
+| `/metrics` | Prometheus 指标 | 指标数据 |
 
 ## 环境变量与密钥管理
-
-### 禁止明文
-
-```yaml
-# 禁止!
-env:
-  - name: JWT_SECRET
-    value: "super-secret-key"
-```
-
-### 正确做法
 
 ```yaml
 # 从 Secrets 挂载
 envFrom:
   - secretRef:
-      name: app-secrets
-env:
-  - name: JWT_SECRET_FILE
-    value: "/run/secrets/jwt_secret"
+      name: blog-runtime-secrets
 ```
 
-## Docker 多阶段构建
-
-```dockerfile
-# backend/Dockerfile
-FROM rust:1.80 AS builder
-WORKDIR /app
-COPY Cargo.toml Cargo.lock ./
-# 先编译依赖（利用缓存）
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-RUN cargo build --release
-# 再编译源码
-COPY src/ ./src/
-RUN cargo build --release
-
-# 运行时: 最小镜像
-FROM debian:bookworm-slim
-COPY --from=builder /app/target/release/api /usr/local/bin/
-# 只复制二进制，不带工具链
-CMD ["/usr/local/bin/api"]
-```
+所需环境变量：
+- `DATABASE_URL` — PostgreSQL 连接串
+- `REDIS_URL` — Redis 连接串
+- `JWT_SECRET` — ≥32 字符
+- `PASSWORD_PEPPER` — ≥32 字符
+- `SESSION_SECRET`
+- `CORS_ALLOWED_ORIGINS`
+- `RUST_LOG`
+- `ENVIRONMENT` (development/production)
+- SMTP 配置（可选）
 
 ## 备份策略
 

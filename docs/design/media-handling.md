@@ -1,73 +1,84 @@
 # 多媒体处理与存储
 
-> 来源：EDITOR_SYSTEM_DESIGN.md P5
-
-## 设计原则
-
-**多媒体外置**：二进制资产存 S3/MinIO，JSON 中仅保留元数据和 URL 指针。
+> 当前实现状态。部分功能（分片上传、缩略图生成、WebP/AVIF 转换）尚未实施。
 
 ## 文件上传流程
 
-```
-编辑器中选择文件
+```text
+编辑器/管理界面中选择文件
        │
        ▼
-Next.js BFF /api/upload
-       │  Multipart POST
-       ▼
-Rust Axum /api/v1/upload
+POST /admin/media/upload (Multipart POST)
        │
        ├─ 文件类型检测 (MIME)
-       ├─ 病毒扫描 (ClamAV 可选)
-       ├─ 生成 UUID 文件名 (防冲突)
-       ├─ 存储到 S3/MinIO
-       └─ 记录到 media_assets 表
-              │
-              ▼
-       返回 { url, filename, mime_type, size }
+       ├─ 生成 UUID 文件名 (object_key，防冲突)
+       ├─ 存储到后端存储层 (S3/MinIO/本地)
+       ├─ 记录到 media 表 (persist_media_record)
+       └─ 返回 MediaListItem { id, url, filename, mime_type, size, alt_text, ... }
               │
               ▼
        编辑器插入 <img src={url} />
 ```
 
+### 上传端点
+
+- **`POST /admin/media/upload`** — 直接 Multipart POST 上传
+- **`POST /admin/media/presign-upload`** — 预签名直传 URL（前端直接传 S3）
+- **`POST /admin/media/finalize`** — 预签名上传完成后登记到数据库
+
+> 上传由 Rust Axum 直接处理，不经过 Next.js BFF 代理。
+
+### 存储后端抽象
+
+```rust
+// 抽象存储层 (state.storage)
+pub trait StorageBackend {
+    async fn store(&self, key: &str, data: &[u8], content_type: &str) -> Result<()>;
+    async fn delete(&self, key: &str) -> Result<()>;
+    async fn presign_upload(&self, key: &str, expires_in: Duration) -> Result<String>;
+    async fn presign_download(&self, key: &str, expires_in: Duration) -> Result<String>;
+}
+```
+
+支持实现:
+- S3/MinIO (`S3StorageBackend`)
+- 本地文件系统 (`LocalStorageBackend`)
+
 ## 媒体表结构
 
+> 表名为 `media`（非 `media_assets`）。
+
 ```sql
-CREATE TABLE media_assets (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    filename        VARCHAR(255) NOT NULL,
-    original_name   VARCHAR(255) NOT NULL,
-    mime_type       VARCHAR(100) NOT NULL,
-    file_size       BIGINT NOT NULL,
-    storage_path    TEXT NOT NULL,     -- S3 路径
-    url             TEXT NOT NULL,     -- CDN/访问 URL
-    width           INTEGER,           -- 图片/视频宽度
-    height          INTEGER,           -- 图片/视频高度
-    duration        FLOAT,             -- 音视频时长(秒)
-    uploader_id     UUID NOT NULL REFERENCES users(id),
-    article_id      UUID REFERENCES articles(id),
-    created_at      TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE media (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    filename        TEXT NOT NULL,
+    url             TEXT NOT NULL,
+    mime_type       TEXT NOT NULL,
+    size            BIGINT NOT NULL,
+    width           INTEGER,
+    height          INTEGER,
+    alt_text        TEXT,
+    uploader_id     UUID REFERENCES users(id),
+    article_id      UUID REFERENCES posts(id),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at      TIMESTAMPTZ
 );
 ```
 
-## API 分片上传
+## 尚未实施的功能
 
-对于大文件（>100MB），支持分片上传：
+以下功能在规划中，当前未实现：
 
-```
-1. POST /api/v1/upload/init     → { upload_id, chunk_size }
-2. PUT /api/v1/upload/{upload_id}/chunk/{index}  → 逐片上传
-3. POST /api/v1/upload/{upload_id}/complete      → 合并
-```
+### 分片上传
+- `POST /upload/init` → `{ upload_id, chunk_size }`
+- `PUT /upload/{upload_id}/chunk/{index}`
+- `POST /upload/{upload_id}/complete`
+- 当前文件大小上限 50MB，超过会报错
 
-## 图片优化
+### 图片优化
+- 缩略图生成（150px / 800px / original）
+- WebP/AVIF 自动转换
+- Next.js `<Image>` 响应式选择支持
 
-| 格式 | 场景 | 说明 |
-|------|------|------|
-| WebP | 照片/截图 | 有损压缩，Chrome 原生支持 |
-| AVIF | 高质量图片 | 压缩率比 WebP 高 30% |
-| SVG | 图标/图表 | 矢量无损，可缩放 |
-| 原始格式 | 编辑器原图 | 保留原始文件，作为备份 |
-
-- 上传时生成 3 种尺寸缩略图（thumbnail 150px, medium 800px, full original）
-- Next.js `<Image>` 组件自动响应式选择
+### 病毒扫描
+- ClamAV 集成（标注为可选）
