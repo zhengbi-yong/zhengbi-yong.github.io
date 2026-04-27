@@ -361,7 +361,7 @@ def hello():
 ```mdx
 此处有代码
 
-import CodeBlock from '@/components/CodeBlock'
+import CodeBlock from '@/components/mdx/CodeBlock'
 
 <CodeBlock language="rust" src="/examples/main.rs" />
 ```

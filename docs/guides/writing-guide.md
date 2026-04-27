@@ -108,7 +108,7 @@ import { Chart } from '@/components/charts/LineChart'
 ### 导入代码文件
 
 ```mdx
-import CodeBlock from '@/components/CodeBlock'
+import CodeBlock from '@/components/mdx/CodeBlock'
 
 <CodeBlock language="rust" meta="main.rs">
   {`fn main() {
