@@ -142,8 +142,8 @@ GET    /tags/autocomplete      # 自动补全
 |------|------|------|
 | GET | /admin/posts | 列表（含草稿） |
 | POST | /admin/posts | 创建 |
-| PATCH | /admin/posts/{slug} | 更新 |
-| DELETE | /admin/posts/{slug} | 删除 |
+| PATCH | /admin/posts/{postId} | 更新 |
+| DELETE | /admin/posts/{postId} | 删除 |
 | POST | /admin/sync/mdx | 同步 MDX |
 | GET | /admin/stats | 仪表盘统计 |
 | GET | /admin/users | 用户列表 |
@@ -268,8 +268,8 @@ async fn auth_middleware(
 
 | 路径 | 说明 | 类型 |
 |------|------|------|
-| /livez | Kubernetes 存活探针 | 只返回 200 |
-| /readyz | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
+| /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
+| /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
 | /health | 基本健康检查 | 返回 "OK" |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |

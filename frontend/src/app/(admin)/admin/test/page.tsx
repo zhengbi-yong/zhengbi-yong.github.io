@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useList, useLogout, useApiUrl } from '@refinedev/core'
 import { logger } from '@/lib/utils/logger'
 import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
+import { api } from '@/lib/api/apiClient'
 
 export default function AdminTestPage() {
   const [directApiData, setDirectApiData] = useState<any>(null)
@@ -41,15 +42,9 @@ export default function AdminTestPage() {
   useEffect(() => {
     const fetchDirect = async () => {
       try {
-        const response = await fetch(`${backendApiUrl}/admin/posts?page=1&page_size=20`, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        })
-        const result = await response.json()
+        const result = await api.get(`${backendApiUrl}/admin/posts?page=1&page_size=20`)
         logger.log('[Direct API] Result:', result)
-        setDirectApiData(result)
+        setDirectApiData(result.data)
       } catch (err) {
         logger.error('[Direct API] Error:', err)
       }

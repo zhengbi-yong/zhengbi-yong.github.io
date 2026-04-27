@@ -40,6 +40,7 @@ import { Loader2, Save, Eye, FileText, Trash2, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDraft, Draft } from '@/lib/hooks/useDraft'
 import TiptapEditor from '@/components/editor/TiptapEditor'
+import { api } from '@/lib/api/apiClient'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -169,46 +170,11 @@ export default function NewPostPage() {
 
       // GOLDEN_RULES 1.1: 使用 credentials: 'include' 自动发送 HttpOnly Cookie
       // 不手动设置 Authorization 头
-      const response = await fetch('/api/v1/admin/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(requestBody),
+      await api.post('/api/v1/admin/posts', requestBody, {
+        cache: false,
       })
 
-      console.log('[NewPostPage] 响应状态:', response.status, response.statusText)
-
-      // 检查响应是否为空
-      const contentType = response.headers.get('content-type')
-      const hasJsonBody = contentType && contentType.includes('application/json')
-
-      if (!response.ok) {
-        // 尝试解析错误信息
-        let errorMessage = `发布失败 (HTTP ${response.status})`
-        if (hasJsonBody) {
-          try {
-            const error = await response.json()
-            console.error('[NewPostPage] 错误响应:', error)
-            errorMessage = error.message || error.error || errorMessage
-          } catch (e) {
-            console.error('[NewPostPage] 解析错误响应失败:', e)
-            // 如果解析失败，使用状态码作为错误信息
-            errorMessage = `发布失败 (HTTP ${response.status})`
-          }
-        }
-        throw new Error(errorMessage)
-      }
-
-      // 解析成功响应
-      if (hasJsonBody) {
-        try {
-          await response.json()
-        } catch {
-          // 如果响应为空或解析失败，继续使用本地 slug 跳转
-        }
-      }
+      console.log('[NewPostPage] 响应状态: 200 (via apiClient)')
 
       setPublishStatus({
         type: 'success',

@@ -43,7 +43,7 @@ pub struct TeamMemberAdminListQuery {
 /// Public: List all active team members
 #[utoipa::path(
     get,
-    path = "/api/v1/team-members",
+    path = "/team-members",
     tag = "team",
     responses(
         (status = 200, description = "List team members", body = Vec<TeamMemberListItem>)
@@ -69,7 +69,7 @@ pub async fn list_team_members(
 /// Public: Get single team member
 #[utoipa::path(
     get,
-    path = "/api/v1/team-members/{id}",
+    path = "/team-members/{id}",
     tag = "team",
     params(
         ("id" = Uuid, Path, description = "Team member ID")
@@ -116,7 +116,7 @@ pub async fn get_team_member(
 /// Admin: List all team members (including inactive)
 #[utoipa::path(
     get,
-    path = "/api/v1/admin/team-members",
+    path = "/admin/team-members",
     tag = "admin/team",
     params(
         ("page" = Option<usize>, Query, description = "Page number"),
@@ -188,7 +188,7 @@ pub async fn list_admin_team_members(
 /// Admin: Get single team member
 #[utoipa::path(
     get,
-    path = "/api/v1/admin/team-members/{id}",
+    path = "/admin/team-members/{id}",
     tag = "admin/team",
     params(
         ("id" = Uuid, Path, description = "Team member ID")
@@ -230,7 +230,7 @@ pub async fn get_admin_team_member(
 /// Admin: Create team member
 #[utoipa::path(
     post,
-    path = "/api/v1/admin/team-members",
+    path = "/admin/team-members",
     tag = "admin/team",
     request_body = CreateTeamMemberRequest,
     responses(
@@ -273,7 +273,7 @@ pub async fn create_team_member(
 /// Admin: Update team member
 #[utoipa::path(
     put,
-    path = "/api/v1/admin/team-members/{id}",
+    path = "/admin/team-members/{id}",
     tag = "admin/team",
     params(
         ("id" = Uuid, Path, description = "Team member ID")
@@ -394,7 +394,7 @@ pub async fn update_team_member(
 /// Admin: Delete team member (soft delete)
 #[utoipa::path(
     delete,
-    path = "/api/v1/admin/team-members/{id}",
+    path = "/admin/team-members/{id}",
     tag = "admin/team",
     params(
         ("id" = Uuid, Path, description = "Team member ID")
@@ -438,7 +438,7 @@ pub struct BatchDeleteTeamMembersRequest {
 /// Admin: Batch delete team members
 #[utoipa::path(
     post,
-    path = "/api/v1/admin/team-members/batch/delete",
+    path = "/admin/team-members/batch/delete",
     tag = "admin/team",
     request_body = BatchDeleteTeamMembersRequest,
     responses(
@@ -476,26 +476,26 @@ pub async fn batch_delete_team_members(
 /// Public team member routes
 pub fn team_members_routes() -> Router<AppState> {
     Router::new()
-        .route("/api/v1/team-members", get(list_team_members))
-        .route("/api/v1/team-members/{id}", get(get_team_member))
+        .route("/team-members", get(list_team_members))
+        .route("/team-members/{id}", get(get_team_member))
 }
 
 /// Admin team member routes
 pub fn admin_team_members_routes() -> Router<AppState> {
     Router::new()
-        .route("/api/v1/admin/team-members", get(list_admin_team_members))
-        .route("/api/v1/admin/team-members", post(create_team_member))
+        .route("/admin/team-members", get(list_admin_team_members))
+        .route("/admin/team-members", post(create_team_member))
         .route(
-            "/api/v1/admin/team-members/{id}",
+            "/admin/team-members/{id}",
             get(get_admin_team_member),
         )
-        .route("/api/v1/admin/team-members/{id}", put(update_team_member))
+        .route("/admin/team-members/{id}", put(update_team_member))
         .route(
-            "/api/v1/admin/team-members/{id}",
+            "/admin/team-members/{id}",
             delete(delete_team_member),
         )
         .route(
-            "/api/v1/admin/team-members/batch/delete",
+            "/admin/team-members/batch/delete",
             post(batch_delete_team_members),
         )
 }

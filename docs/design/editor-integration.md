@@ -65,12 +65,12 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 const json = editor.getJSON()
 
 // 保存到后端
-await fetch('/api/v1/articles', {
+await fetch('/api/v1/posts', {
   method: 'POST',
   body: JSON.stringify({ content: json })
 })
 
 // 从后端加载
-const { content_json } = await fetch(`/api/v1/articles/${slug}`)
+const { content_json } = await fetch(`/api/v1/posts/${slug}`)
 editor.commands.setContent(content_json)
 ```

@@ -306,11 +306,15 @@ CREATE TABLE views (
 CREATE TABLE refresh_tokens (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_id UUID NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
     family_id UUID NOT NULL,
+    replaced_by_hash TEXT,
+    revoked_at TIMESTAMPTZ,
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    revoked BOOLEAN NOT NULL DEFAULT FALSE
+    last_used_at TIMESTAMPTZ,
+    created_ip INET,
+    user_agent_hash TEXT
 );
 ```
 

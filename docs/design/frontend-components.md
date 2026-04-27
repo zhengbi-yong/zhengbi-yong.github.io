@@ -17,7 +17,6 @@
 | `header/HeaderNavigation.tsx` | 导航链接结构 + 移动折叠 |
 | `header/HeaderActions.tsx` | 搜索/主题/语言/Auth 动作区 |
 | `header/MobileMenuButton.tsx` | 移动端菜单按钮 |
-| `header/DarkModeToggle.tsx` | 深浅色切换按钮 |
 | `Header.module.css` | 页眉样式 |
 
 ## 3) 页脚模块 (Footer)
@@ -26,7 +25,6 @@
 |------|------|
 | `Footer.tsx` | 页脚整体布局（作者区、导航、社交、备案） |
 | `home/MegaFooter.tsx` | 首页全屏 CTA 页脚 |
-| `Footer.module.css` | 页脚样式 |
 
 ## 4) 布局组件
 
