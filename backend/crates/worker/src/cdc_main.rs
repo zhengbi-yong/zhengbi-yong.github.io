@@ -80,8 +80,8 @@ impl Lsn {
         if parts.len() != 2 {
             return None;
         }
-        let upper: u32 = parts[0].parse().ok()?;
-        let lower: u32 = parts[1].parse().ok()?;
+        let upper: u32 = u32::from_str_radix(parts[0], 16).ok()?;
+        let lower: u32 = u32::from_str_radix(parts[1], 16).ok()?;
         Some(Self(((upper as u64) << 32) | (lower as u64)))
     }
 
@@ -89,7 +89,7 @@ impl Lsn {
     pub fn to_pg_string(self) -> String {
         let upper = (self.0 >> 32) as u32;
         let lower = (self.0 & 0xFFFFFFFF) as u32;
-        format!("{}/{}", upper, lower)
+        format!("{:X}/{:X}", upper, lower)
     }
 }
 
