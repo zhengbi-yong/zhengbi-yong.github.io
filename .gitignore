@@ -18,6 +18,7 @@ Cargo.lock
 # testing
 /coverage
 frontend/coverage
+frontend/.velite
 
 # Next.js
 /.next/
