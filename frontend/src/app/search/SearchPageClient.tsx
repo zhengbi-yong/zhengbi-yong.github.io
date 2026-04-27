@@ -3,6 +3,8 @@
 import Link from '@/components/Link'
 import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { api } from '@/lib/api/apiClient'
+import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
 interface SearchResult {
   id: string
@@ -24,17 +26,7 @@ interface TrendingKeyword {
   count: number
 }
 
-function buildSearchUrl(path: string, params: Record<string, string | number | undefined>) {
-  const url = new URL(path, window.location.origin)
-
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== '') {
-      url.searchParams.set(key, String(value))
-    }
-  })
-
-  return `${url.pathname}${url.search}`
-}
+const apiBaseUrl = resolveBackendApiBaseUrl()
 
 export default function SearchPageClient({ initialQuery }: { initialQuery: string }) {
   const router = useRouter()
@@ -49,23 +41,18 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
   const deferredQuery = useDeferredValue(query.trim())
 
   useEffect(() => {
-    const controller = new AbortController()
+    let cancelled = false
 
     async function loadTrending() {
       try {
-        const response = await fetch('/api/v1/search/trending', {
-          signal: controller.signal,
-          cache: 'no-store',
+        const response = await api.get<TrendingKeyword[]>(`${apiBaseUrl}/search/trending`, {
+          cache: false,
         })
-
-        if (!response.ok) {
-          return
+        if (!cancelled) {
+          setTrending(response.data)
         }
-
-        const data: TrendingKeyword[] = await response.json()
-        setTrending(data)
       } catch (fetchError) {
-        if ((fetchError as Error).name !== 'AbortError') {
+        if (!cancelled) {
           console.error('Failed to load trending keywords:', fetchError)
         }
       }
@@ -73,7 +60,9 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
 
     loadTrending()
 
-    return () => controller.abort()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -95,41 +84,28 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
       return undefined
     }
 
-    const controller = new AbortController()
+    let cancelled = false
     const timer = window.setTimeout(async () => {
       setIsLoading(true)
       setError(null)
 
       try {
         const [searchResponse, suggestResponse] = await Promise.all([
-          fetch(
-            buildSearchUrl('/api/v1/search', {
-              q: normalizedQuery,
-              limit: 12,
-            }),
-            { signal: controller.signal, cache: 'no-store' }
-          ),
-          fetch(
-            buildSearchUrl('/api/v1/search/suggest', {
-              q: normalizedQuery,
-              limit: 6,
-            }),
-            { signal: controller.signal, cache: 'no-store' }
-          ),
+          api.get<SearchResponse>(`${apiBaseUrl}/search?q=${encodeURIComponent(normalizedQuery)}&limit=12`, {
+            cache: false,
+          }),
+          api.get<string[]>(`${apiBaseUrl}/search/suggest?q=${encodeURIComponent(normalizedQuery)}&limit=6`, {
+            cache: false,
+          }),
         ])
 
-        if (!searchResponse.ok) {
-          throw new Error(`Search request failed with ${searchResponse.status}`)
+        if (!cancelled) {
+          setResults(searchResponse.data.results)
+          setSuggestions(suggestResponse.data)
+          setTotal(searchResponse.data.total)
         }
-
-        const searchData: SearchResponse = await searchResponse.json()
-        const suggestionData: string[] = suggestResponse.ok ? await suggestResponse.json() : []
-
-        setResults(searchData.results)
-        setSuggestions(suggestionData)
-        setTotal(searchData.total)
       } catch (fetchError) {
-        if ((fetchError as Error).name !== 'AbortError') {
+        if (!cancelled) {
           console.error('Search request failed:', fetchError)
           setError('Search is temporarily unavailable.')
           setResults([])
@@ -137,12 +113,14 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
           setTotal(0)
         }
       } finally {
-        setIsLoading(false)
+        if (!cancelled) {
+          setIsLoading(false)
+        }
       }
     }, 200)
 
     return () => {
-      controller.abort()
+      cancelled = true
       window.clearTimeout(timer)
     }
   }, [deferredQuery, router])
@@ -249,7 +227,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
             <div>
               <h2 className="text-xl font-semibold text-slate-900">Results</h2>
               <p data-testid="search-status" className="mt-1 text-sm text-slate-600">
-                {isLoading ? 'Searching...' : `${total} matching posts for “${query.trim()}”.`}
+                {isLoading ? 'Searching...' : `${total} matching posts for "${query.trim()}".`}
               </p>
             </div>
             {error && (

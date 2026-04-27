@@ -56,6 +56,8 @@ frontend/src/
 └── data/blog/                 # MDX 静态内容源
 ```
 
+> **注意**：`e2e/`、`tests/`、`data/blog/` 实际位于 `frontend/` 根目录（而非 `frontend/src/` 下）。
+
 ## 数据获取规范
 
 | 调用方 | 方式 | 说明 |

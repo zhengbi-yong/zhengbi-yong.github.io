@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { api } from '@/lib/api/apiClient'
 
 export default function TestPage() {
   const [status, setStatus] = useState('Connecting...')
@@ -13,22 +14,20 @@ export default function TestPage() {
 
   const testBackend = async () => {
     setStatus('Testing backend connection...')
-    
+
     try {
-      // GOLDEN_RULES §2.1: Client Components must use BFF Route Handler, not direct backend
-      // This page is a Client Component debug tool — it proxies through /api/v1/* BFF
-      const response = await fetch('/api/v1/posts?limit=1', {
-        credentials: 'include',
+      // GOLDEN_RULES §2.1: Client Components must use backend.ts → apiClient.ts
+      const response = await api.get<any>('/api/v1/posts?limit=1', {
+        cache: false,
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        setPosts(data.results || [])
+      if (response.data) {
+        setPosts((response.data as any).results || [])
         setBackendStatus('✅ Connected')
         setStatus('✅ Success!')
       } else {
-        setBackendStatus(`❌ HTTP ${response.status}`)
-        setStatus(`❌ HTTP Error: ${response.status}`)
+        setBackendStatus('❌ No data')
+        setStatus('❌ Response missing data')
       }
     } catch (error) {
       setBackendStatus('❌ Network Error')

@@ -15,24 +15,17 @@ import {
 } from '@/lib/utils/prometheus-parser'
 import { Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { resolveBackendBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
+import { api } from '@/lib/api/apiClient'
 
 export default function MetricsPage() {
   const [autoRefresh, setAutoRefresh] = useState(true)
 
-  // Health check endpoints are at root level, not under /v1
-  const backendBaseUrl = resolveBackendBaseUrl()
-
   // 使用 useQuery 获取 Prometheus 指标
-  // Note: /metrics returns Prometheus text format (not JSON), so we use fetch directly
+  // /metrics returns Prometheus text format (not JSON), so we use api.getText
   const { data, isLoading, error, refetch } = useQuery<string>({
     queryKey: ['metrics'],
     queryFn: async () => {
-      const response = await fetch(`${backendBaseUrl}/metrics`)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return response.text()
+      return api.getText('/metrics')
     },
     refetchInterval: autoRefresh ? 10000 : false, // 10秒自动刷新
   })

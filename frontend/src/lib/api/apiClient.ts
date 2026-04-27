@@ -283,6 +283,56 @@ class APIClient {
   clearCache(): void {
     caches.api.clear()
   }
+
+  /**
+   * GET 请求，返回纯文本（用于 Prometheus metrics 等非 JSON 端点）
+   */
+  async getText(endpoint: string, options?: RequestOptions): Promise<string> {
+    const { retries = 0, retryDelay = 1000, timeout = 30000, headers = {}, cache: _cache, ...fetchOptions } = options || {}
+    const url = `${this.baseURL}${endpoint}`
+    let lastError: Error | null = null
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const { controller, timeoutId } = this.createTimeoutController(timeout)
+
+        const response = await fetch(url, {
+          ...fetchOptions,
+          headers: {
+            ...this.getRequestHeaders(),
+            ...headers,
+          },
+          signal: controller.signal,
+          credentials: 'include',
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          throw new AppError(
+            `HTTP ${response.status}: ${response.statusText}`,
+            this.getErrorType(response.status),
+            ErrorSeverity.HIGH,
+            { status: response.status, statusText: response.statusText, url, attempt: attempt + 1 },
+            response.status
+          )
+        }
+
+        return response.text()
+      } catch (error) {
+        lastError = error as Error
+        if (attempt === retries) {
+          throw lastError
+        }
+        if (error instanceof AppError && error.type === ErrorType.VALIDATION) {
+          throw error
+        }
+        await this.delay(retryDelay * Math.pow(2, attempt))
+      }
+    }
+
+    throw lastError
+  }
 }
 
 // 创建默认实例
@@ -298,4 +348,5 @@ export const api = {
   patch: <T>(endpoint: string, data?: any, options?: RequestOptions) =>
     apiClient.patch<T>(endpoint, data, options),
   delete: <T>(endpoint: string, options?: RequestOptions) => apiClient.delete<T>(endpoint, options),
+  getText: (endpoint: string, options?: RequestOptions) => apiClient.getText(endpoint, options),
 }

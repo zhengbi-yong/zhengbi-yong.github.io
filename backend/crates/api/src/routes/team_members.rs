@@ -485,15 +485,9 @@ pub fn admin_team_members_routes() -> Router<AppState> {
     Router::new()
         .route("/admin/team-members", get(list_admin_team_members))
         .route("/admin/team-members", post(create_team_member))
-        .route(
-            "/admin/team-members/{id}",
-            get(get_admin_team_member),
-        )
+        .route("/admin/team-members/{id}", get(get_admin_team_member))
         .route("/admin/team-members/{id}", put(update_team_member))
-        .route(
-            "/admin/team-members/{id}",
-            delete(delete_team_member),
-        )
+        .route("/admin/team-members/{id}", delete(delete_team_member))
         .route(
             "/admin/team-members/batch/delete",
             post(batch_delete_team_members),
