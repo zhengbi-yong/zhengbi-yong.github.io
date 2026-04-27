@@ -126,7 +126,6 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
       action: () => {
         const url = prompt('输入图片 URL:')
         if (url) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ;(editor.chain().focus() as any).setImage({ src: url }).run()
           editor.chain().focus().deleteRange({ from: editor.state.selection.from - 1, to: editor.state.selection.from }).run()
         }

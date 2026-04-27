@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
-import { getShikiHighlighter } from '@/lib/shiki-highlighter'
+import { getHighlighter } from '@/lib/shiki-highlighter'
 
 const LANGUAGES = [
   'javascript', 'typescript', 'python', 'rust', 'go', 'java', 'cpp', 'c',
@@ -46,7 +46,7 @@ export function CodeBlockShikiNodeView({
     let cancelled = false
     const text = getRawText() || ' '
 
-    getShikiHighlighter().then(highlighter => {
+    getHighlighter().then(highlighter => {
       if (cancelled) return
       try {
         const html = highlighter.codeToHtml(text, {

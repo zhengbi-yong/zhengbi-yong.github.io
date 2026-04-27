@@ -430,6 +430,6 @@ const DynamicEditor = dynamic(
 
 export { RichTextEditorInner }
 
-export default function TiptapEditor(props: { content?: string; onChange?: (v: string) => void }) {
+export default function TiptapEditor(props: { content?: string; onChange?: (v: string) => void; collaborationRoomId?: string }) {
   return <DynamicEditor content={props.content ?? ''} onChange={props.onChange ?? (() => {})} />
 }

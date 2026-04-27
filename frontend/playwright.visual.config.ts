@@ -31,8 +31,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     /* 截图 - 总是截取用于视觉对比 */
     screenshot: 'on',
-    /* 禁用动画 */
-    animations: 'disabled',
     /* 测试超时时间 */
     actionTimeout: 10000,
     navigationTimeout: 30000,

@@ -82,7 +82,6 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   const addImage = () => {
     if (imageUrl) {
       // setImage is added by reactjs-tiptap-editor/image extension
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ;(editor.chain().focus() as any).setImage({ src: imageUrl }).run()
       setImageUrl('')
       setShowImageInput(false)

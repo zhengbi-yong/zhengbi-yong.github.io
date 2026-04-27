@@ -126,7 +126,7 @@ export function loadToEditor(mdxContent: string): BridgeResult {
   })
 
   // 临时移除 $...$ 行内公式，防止 markdown-it 处理
-  result = result.replace(/(?<!\$)\$(?!\$)((?:[^\$\n]|\$(?!\$))+?)\$/g, (match) => {
+  result = result.replace(/(?<!\$)\$(?!\$)((?:[^$\n]|\$(?!\$))+?)\$/g, (match) => {
     const id = mathInlines.length
     const encoded = toBase64(match)
     mathInlines.push({ original: match, placeholder: makePlaceholder(MATH_INLINE_PREFIX, id, encoded) })

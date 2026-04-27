@@ -741,7 +741,6 @@ pub async fn update_post(
 
     // 构建更新查询（动态）
     let mut update_fields = Vec::new();
-    let mut param_index = 2;
 
     // Phase 4: 自动派生 content_mdx（当 content_json 被更新但 content_mdx 未指定时）
     let derived_mdx: Option<String> = if req.content_json.is_some() && req.content_mdx.is_none() {
@@ -751,83 +750,62 @@ pub async fn update_post(
     };
 
     if req.title.is_some() {
-        update_fields.push(format!("title = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("title = ${}", update_fields.len() + 2));
     }
     if req.content.is_some() {
-        update_fields.push(format!("content = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("content = ${}", update_fields.len() + 2));
     }
     if req.content_html.is_some() {
-        update_fields.push(format!("content_html = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("content_html = ${}", update_fields.len() + 2));
     }
     if req.summary.is_some() {
-        update_fields.push(format!("summary = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("summary = ${}", update_fields.len() + 2));
     }
     if req.cover_image_id.is_some() {
-        update_fields.push(format!("cover_image_id = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("cover_image_id = ${}", update_fields.len() + 2));
     }
     if req.status.is_some() {
-        update_fields.push(format!("status = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("status = ${}", update_fields.len() + 2));
     }
     if req.published_at.is_some() {
-        update_fields.push(format!("published_at = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("published_at = ${}", update_fields.len() + 2));
     }
     if req.scheduled_at.is_some() {
-        update_fields.push(format!("scheduled_at = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("scheduled_at = ${}", update_fields.len() + 2));
     }
     if req.meta_title.is_some() {
-        update_fields.push(format!("meta_title = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("meta_title = ${}", update_fields.len() + 2));
     }
     if req.meta_description.is_some() {
-        update_fields.push(format!("meta_description = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("meta_description = ${}", update_fields.len() + 2));
     }
     if req.canonical_url.is_some() {
-        update_fields.push(format!("canonical_url = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("canonical_url = ${}", update_fields.len() + 2));
     }
     if req.category_id.is_some() {
-        update_fields.push(format!("category_id = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("category_id = ${}", update_fields.len() + 2));
     }
     if req.show_toc.is_some() {
-        update_fields.push(format!("show_toc = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("show_toc = ${}", update_fields.len() + 2));
     }
     if req.layout.is_some() {
-        update_fields.push(format!("layout = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("layout = ${}", update_fields.len() + 2));
     }
     if req.is_featured.is_some() {
-        update_fields.push(format!("is_featured = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("is_featured = ${}", update_fields.len() + 2));
     }
     if req.content_format.is_some() {
-        update_fields.push(format!("content_format = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("content_format = ${}", update_fields.len() + 2));
     }
     if req.content_json.is_some() {
-        update_fields.push(format!("content_json = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("content_json = ${}", update_fields.len() + 2));
     }
     if req.content_mdx.is_some() {
-        update_fields.push(format!("content_mdx = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("content_mdx = ${}", update_fields.len() + 2));
     } else if derived_mdx.is_some() {
         // Phase 4: 自动派生的 content_mdx
-        update_fields.push(format!("content_mdx = ${}", param_index));
-        param_index += 1;
+        update_fields.push(format!("content_mdx = ${}", update_fields.len() + 2));
     }
-
-    let _ = param_index;
 
     if update_fields.is_empty() {
         tx.rollback().await?;
