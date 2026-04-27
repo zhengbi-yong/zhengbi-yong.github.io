@@ -24,6 +24,7 @@ export default function MetricsPage() {
   const backendBaseUrl = resolveBackendBaseUrl()
 
   // 使用 useQuery 获取 Prometheus 指标
+  // Note: /metrics returns Prometheus text format (not JSON), so we use fetch directly
   const { data, isLoading, error, refetch } = useQuery<string>({
     queryKey: ['metrics'],
     queryFn: async () => {

@@ -11,6 +11,7 @@ import type { DetailedHealthStatus, ServiceHealth } from '@/lib/types/backend'
 import { Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { resolveBackendBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
+import { api } from '@/lib/api/apiClient'
 
 export default function HealthCheckPage() {
   const [autoRefresh, setAutoRefresh] = useState(true)
@@ -27,11 +28,8 @@ export default function HealthCheckPage() {
   } = useQuery({
     queryKey: ['health-check', 'detailed'],
     queryFn: async () => {
-      const response = await fetch(`${backendBaseUrl}/health/detailed`)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return response.json() as Promise<DetailedHealthStatus>
+      const response = await api.get<DetailedHealthStatus>(`${backendBaseUrl}/health/detailed`)
+      return response.data
     },
     refetchInterval: autoRefresh ? 10000 : false, // 10秒自动刷新
   })

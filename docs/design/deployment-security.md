@@ -22,7 +22,7 @@ COPY --from=builder /app/target/release/create_admin /usr/local/bin/
 COPY --from=builder /app/migrations /app/migrations
 ENTRYPOINT ["dumb-init", "--"]
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3000/healthz
+    CMD curl -f http://localhost:3000/.well-known/live
 ```
 
 - 构建 4 个二进制: `api`, `worker`, `migrate`, `create_admin`
@@ -37,8 +37,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
 - 未设置 `securityContext`
-- 存活探针: `/livez:3000` (initialDelaySeconds: 20, periodSeconds: 20)
-- 就绪探针: `/readyz:3000` (initialDelaySeconds: 10, periodSeconds: 10)
+- 存活探针: `/.well-known/live:3000` (initialDelaySeconds: 20, periodSeconds: 20)
+- 就绪探针: `/.well-known/ready:3000` (initialDelaySeconds: 10, periodSeconds: 10)
 - 密钥引用: `blog-runtime-secrets`
 
 K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
@@ -54,8 +54,8 @@ K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 
 | 路径 | 用途 | 说明 |
 |------|------|------|
-| `/livez` | 存活探针 | 只返回 200 |
-| `/readyz` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
+| `/.well-known/live` | 存活探针 | 只返回 200 |
+| `/.well-known/ready` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
 | `/health` | 基本健康 | 返回 "OK" |
 | `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
 | `/metrics` | Prometheus 指标 | 指标数据 |

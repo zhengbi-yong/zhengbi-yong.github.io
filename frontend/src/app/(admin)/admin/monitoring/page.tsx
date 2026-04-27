@@ -11,6 +11,7 @@ import { Activity, Heart, BarChart3, Server, Zap, Database, Loader2 } from 'luci
 import type { DetailedHealthStatus } from '@/lib/types/backend'
 import { useQuery } from '@tanstack/react-query'
 import { resolveBackendBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
+import { api } from '@/lib/api/apiClient'
 
 export default function MonitoringOverviewPage() {
   const [mounted, setMounted] = useState(false)
@@ -26,11 +27,8 @@ export default function MonitoringOverviewPage() {
   const { data: healthData, isLoading: healthLoading } = useQuery({
     queryKey: ['health-check', 'overview'],
     queryFn: async () => {
-      const response = await fetch(`${backendBaseUrl}/health/detailed`)
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      return response.json() as Promise<DetailedHealthStatus>
+      const response = await api.get<DetailedHealthStatus>(`${backendBaseUrl}/health/detailed`)
+      return response.data
     },
     refetchInterval: 10000, // 10秒自动刷新
     enabled: mounted,
