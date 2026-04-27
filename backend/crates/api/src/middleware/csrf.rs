@@ -6,7 +6,7 @@
 use crate::state::AppState;
 use axum::{
     extract::{Request, State},
-    http::{HeaderMap, StatusCode},
+    http::{HeaderMap, HeaderValue, StatusCode},
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -226,7 +226,10 @@ pub async fn csrf_middleware(
         let (_, xsrf_cookie) = set_csrf_cookie(&new_csrf.token);
         let mut resp = response.into_response();
         resp.headers_mut()
-            .insert(axum::http::header::SET_COOKIE, xsrf_cookie.parse().unwrap());
+            .insert(axum::http::header::SET_COOKIE, xsrf_cookie.parse().unwrap_or_else(|e| {
+                tracing::error!(error = %e, cookie = %xsrf_cookie, "Failed to parse CSRF cookie as HeaderValue");
+                HeaderValue::from_static("")
+            }));
         Ok(resp)
     } else {
         Ok(response.into_response())

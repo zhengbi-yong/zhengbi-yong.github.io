@@ -3,7 +3,7 @@ use crate::state::AppState;
 use crate::utils::ip_extractor::RealIp;
 use axum::{
     extract::{Extension, Json, State},
-    http::{header, HeaderMap},
+    http::{header, HeaderMap, HeaderValue},
     response::IntoResponse,
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
@@ -13,6 +13,17 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use time;
 use uuid::Uuid;
+
+/// 安全地将 cookie 字符串解析为 HeaderValue
+/// Cookie 由 axum Cookie builder 生成，理论上不会解析失败，
+/// 但为防御起见记录错误日志并提供 fallback
+fn cookie_to_header_value(cookie_str: &str) -> HeaderValue {
+    cookie_str.parse().unwrap_or_else(|e| {
+        tracing::error!(error = %e, cookie = %cookie_str, "Failed to parse cookie as HeaderValue");
+        // 返回一个空的 Set-Cookie 作为安全兜底
+        HeaderValue::from_static("")
+    })
+}
 
 /// 用户注册
 #[utoipa::path(
@@ -154,11 +165,11 @@ pub async fn register(
     let mut headers = HeaderMap::new();
     headers.append(
         header::SET_COOKIE,
-        refresh_cookie.to_string().parse().unwrap(),
+        cookie_to_header_value(&refresh_cookie.to_string()),
     );
     headers.append(
         header::SET_COOKIE,
-        access_cookie.to_string().parse().unwrap(),
+        cookie_to_header_value(&access_cookie.to_string()),
     );
 
     // 生成 CSRF token 并设置 XSRF-TOKEN cookie（HttpOnly=false，前端可读）
@@ -167,7 +178,7 @@ pub async fn register(
         AppError::InternalError
     })?;
     let (_, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
-    headers.append(header::SET_COOKIE, xsrf_cookie.parse().unwrap());
+    headers.append(header::SET_COOKIE, cookie_to_header_value(&xsrf_cookie));
 
     Ok((
         headers,
@@ -328,11 +339,11 @@ pub async fn login(
     let mut headers = HeaderMap::new();
     headers.append(
         header::SET_COOKIE,
-        refresh_cookie.to_string().parse().unwrap(),
+        cookie_to_header_value(&refresh_cookie.to_string()),
     );
     headers.append(
         header::SET_COOKIE,
-        access_cookie.to_string().parse().unwrap(),
+        cookie_to_header_value(&access_cookie.to_string()),
     );
 
     // 生成 CSRF token 并设置 XSRF-TOKEN cookie（HttpOnly=false，前端可读）
@@ -341,7 +352,7 @@ pub async fn login(
         AppError::InternalError
     })?;
     let (_, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
-    headers.append(header::SET_COOKIE, xsrf_cookie.parse().unwrap());
+    headers.append(header::SET_COOKIE, cookie_to_header_value(&xsrf_cookie));
 
     Ok((
         headers,
