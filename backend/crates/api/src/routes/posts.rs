@@ -475,7 +475,7 @@ pub async fn create_post(
     .await?;
 
     // 同步 post_media 关联
-    sync_post_media(&mut tx, post_id, &req.content).await?;
+    sync_post_media(&mut tx, post_id.unwrap_or_else(Uuid::new_v4), &req.content).await?;
 
     if let Some(cover_id) = req.cover_image_id {
         sqlx::query(
