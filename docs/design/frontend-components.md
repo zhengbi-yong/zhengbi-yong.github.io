@@ -49,7 +49,8 @@
 
 | 文件 | 职责 |
 |------|------|
-| `blog/CodeBlock.tsx` | 深色主题 + macOS 窗口装饰 + 复制按钮 |
+| `CodeBlock.tsx` | 基础代码块组件（macOS 窗口装饰 + 复制按钮） |
+| `mdx/CodeBlock.tsx` | MDX 渲染专用代码块（深色主题 + 语法高亮 + 行号） |
 
 ## 6) 导航组件
 
