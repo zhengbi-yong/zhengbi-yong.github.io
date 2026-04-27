@@ -167,7 +167,7 @@ impl Settings {
                 .map_err(|_| anyhow::anyhow!("Invalid SERVER_PORT"))?,
             database_pool: DatabasePoolConfig {
                 max_connections: env::var("DATABASE_POOL_MAX_CONNECTIONS")
-                    .unwrap_or_else(|_| "20".to_string())
+                    .unwrap_or_else(|_| "50".to_string())
                     .parse()
                     .map_err(|_| anyhow::anyhow!("Invalid DATABASE_POOL_MAX_CONNECTIONS"))?,
                 min_connections: env::var("DATABASE_POOL_MIN_CONNECTIONS")
@@ -175,7 +175,7 @@ impl Settings {
                     .parse()
                     .map_err(|_| anyhow::anyhow!("Invalid DATABASE_POOL_MIN_CONNECTIONS"))?,
                 acquire_timeout_secs: env::var("DATABASE_POOL_ACQUIRE_TIMEOUT_SECS")
-                    .unwrap_or_else(|_| "10".to_string())
+                    .unwrap_or_else(|_| "5".to_string())
                     .parse()
                     .map_err(|_| anyhow::anyhow!("Invalid DATABASE_POOL_ACQUIRE_TIMEOUT_SECS"))?,
                 max_lifetime_secs: env::var("DATABASE_POOL_MAX_LIFETIME_SECS")
@@ -520,7 +520,7 @@ mod tests {
 
         assert_eq!(settings.server_host, "0.0.0.0");
         assert_eq!(settings.server_port, 3000);
-        assert_eq!(settings.database_pool.max_connections, 20);
+        assert_eq!(settings.database_pool.max_connections, 50);
         assert_eq!(settings.redis_pool.max_size, 10);
         assert_eq!(settings.worker.batch_size, 100);
         assert_eq!(settings.health.outbox_pending_warn_threshold, 1000);

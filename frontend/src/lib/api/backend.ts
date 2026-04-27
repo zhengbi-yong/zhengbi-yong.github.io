@@ -194,7 +194,7 @@ export const postService = {
    * Like a post
    */
   async likePost(slug: string): Promise<void> {
-    await api.post(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/like`, undefined, { cache: false })
+    await api.post(`${BACKEND_API_URL}/posts/${encodeSlug(slug)}/likes`, undefined, { cache: false })
   },
 
   /**

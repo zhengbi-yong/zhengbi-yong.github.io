@@ -24,30 +24,51 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Hash password
     let password_hash = jwt_service.hash_password(password)?;
 
-    // Insert or update admin user
-    let result = sqlx::query!(
-        r#"
-        INSERT INTO users (email, username, password_hash, role, email_verified)
-        VALUES ($1, $2, $3, 'admin', true)
-        ON CONFLICT (email) DO UPDATE SET
-            role = 'admin',
-            email_verified = true,
-            password_hash = CASE WHEN $4 THEN EXCLUDED.password_hash ELSE users.password_hash END
-        RETURNING id, email, username, role
-        "#,
-        email,
-        username,
-        password_hash,
-        false  // Don't overwrite existing password
+    // Check if user exists
+    let existing = sqlx::query_scalar::<_, Option<uuid::Uuid>>(
+        "SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL"
     )
-    .fetch_one(&pool)
+    .bind(&email)
+    .fetch_optional(&pool)
     .await?;
 
-    println!("✓ Admin user created/updated:");
-    println!("  ID: {}", result.id);
-    println!("  Email: {}", result.email);
-    println!("  Username: {}", result.username);
-    println!("  Role: {}", result.role);
+    match existing {
+        Some(user_id) => {
+            sqlx::query!(
+                r#"
+                UPDATE users SET
+                    role = 'admin',
+                    email_verified = true,
+                    password_hash = $1
+                WHERE id = $2
+                "#,
+                password_hash,
+                user_id
+            )
+            .execute(&pool)
+            .await?;
+            println!("✅ 已更新管理员用户: {}", email);
+        }
+        None => {
+            sqlx::query!(
+                r#"
+                INSERT INTO users (email, username, password_hash, role, email_verified)
+                VALUES ($1, $2, $3, 'admin', true)
+                "#,
+                email,
+                username,
+                password_hash
+            )
+            .execute(&pool)
+            .await?;
+            println!("✅ 已创建管理员用户: {}", email);
+        }
+    }
+
+    println!();
+    println!("  管理员邮箱: {}", email);
+    println!("  用户名: {}", username);
+    println!("  Role: admin");
     println!("\nLogin credentials:");
     println!("  Email: {}", email);
     println!("  Password: {}", password);

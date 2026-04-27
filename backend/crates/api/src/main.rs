@@ -374,8 +374,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
                     csrf_middleware,
                 ))
         )
-        // TEMPORARY: 公开的MDX同步端点用于测试（生产环境应该移除或添加认证）
-        .route("/sync/mdx/public", post(blog_api::routes::mdx_sync::sync_mdx_to_db))
+        // 管理后台有受保护的 /admin/sync/mdx 端点，这里不再需要公开版本
         .with_state(state)
 }
 
@@ -411,13 +410,6 @@ fn post_routes() -> Router<AppState> {
             "/posts/by-slug",
             get(blog_api::routes::posts::get_post_by_slug_query),
         )
-        .route(
-            "/posts/id/{id}",
-            get(blog_api::routes::posts::get_post_by_id),
-        )
-        // Note: /posts/id/{id} 保留给内部或历史使用，handler 仅支持 slug 查询。
-        // 规范要求统一寻址 GET /posts/{identifier}，实际 get_post 内部仅查 slug。
-        // 如需 UUID 支持，应在 get_post_response 中增加 UUID 检测逻辑。
         .route("/posts/{slug}", get(blog_api::routes::posts::get_post))
         .route(
             "/posts/{slug}/stats",
@@ -432,9 +424,9 @@ fn post_routes() -> Router<AppState> {
             "/posts/{slug}/related",
             get(blog_api::routes::search::get_related_posts),
         )
-        .route("/posts/{slug}/like", post(blog_api::routes::posts::like))
+        .route("/posts/{slug}/likes", post(blog_api::routes::posts::like))
         .route(
-            "/posts/{slug}/like",
+            "/posts/{slug}/likes",
             delete(blog_api::routes::posts::unlike),
         )
 }

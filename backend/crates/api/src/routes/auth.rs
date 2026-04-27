@@ -61,57 +61,46 @@ pub async fn register(
     // 使用事务确保原子性
     let mut tx = state.db.begin().await?;
 
-    // 优化：使用 ON CONFLICT 替代两次预检查查询
-    // 这样可以从 3 次数据库往返（检查邮箱 + 检查用户名 + 插入）减少到最多 2 次
-    let result = sqlx::query!(
+    // 检查邮箱是否已存在（数据库用部分唯一索引，无法使用 ON CONFLICT）
+    let email_exists = sqlx::query_scalar::<_, bool>(
+        "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1 AND deleted_at IS NULL)",
+    )
+    .bind(&payload.email)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    if email_exists {
+        return Err(AppError::Conflict("该邮箱已被注册".to_string()));
+    }
+
+    // 插入用户
+    let row = sqlx::query!(
         r#"
         INSERT INTO users (email, username, password_hash)
         VALUES ($1, $2, $3)
-        ON CONFLICT (email) DO NOTHING
         RETURNING id, email, username, password_hash, profile, email_verified, role, created_at, updated_at
         "#,
         &payload.email,
         &payload.username,
         &password_hash
     )
-    .fetch_optional(&mut *tx)
+    .fetch_one(&mut *tx)
     .await?;
 
-    let user = match result {
-        Some(row) => {
-            // 插入成功，创建用户对象
-            User {
-                id: row.id,
-                email: row.email,
-                username: row.username,
-                password_hash: row.password_hash,
-                profile: row.profile,
-                email_verified: row.email_verified,
-                role: match row.role.as_str() {
-                    "admin" => blog_db::UserRole::Admin,
-                    "moderator" => blog_db::UserRole::Moderator,
-                    _ => blog_db::UserRole::User,
-                },
-                created_at: row.created_at,
-                updated_at: row.updated_at,
-            }
-        }
-        None => {
-            // 插入失败，检查是否是用户名冲突（即使 email 通过）
-            let username_conflict = sqlx::query_scalar::<_, bool>(
-                "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 AND email != $2)",
-            )
-            .bind(&payload.username)
-            .bind(&payload.email)
-            .fetch_one(&mut *tx)
-            .await?;
-
-            if username_conflict {
-                return Err(AppError::UsernameAlreadyExists);
-            } else {
-                return Err(AppError::EmailAlreadyExists);
-            }
-        }
+    let user = User {
+        id: row.id,
+        email: row.email,
+        username: row.username,
+        password_hash: row.password_hash,
+        profile: row.profile,
+        email_verified: row.email_verified,
+        role: match row.role.as_str() {
+            "admin" => blog_db::UserRole::Admin,
+            "moderator" => blog_db::UserRole::Moderator,
+            _ => blog_db::UserRole::User,
+        },
+        created_at: row.created_at,
+        updated_at: row.updated_at,
     };
 
     // 创建 refresh token

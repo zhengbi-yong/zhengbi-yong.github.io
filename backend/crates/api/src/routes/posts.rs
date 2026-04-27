@@ -475,7 +475,7 @@ pub async fn create_post(
     .await?;
 
     // 同步 post_media 关联
-    sync_post_media(&mut tx, post_id.unwrap_or_else(Uuid::new_v4), &req.content).await?;
+    sync_post_media(&mut tx, post_id, &req.content).await?;
 
     if let Some(cover_id) = req.cover_image_id {
         sqlx::query(
@@ -611,12 +611,10 @@ async fn get_post_response(
             // 2. content_mdx 是 TipTap JSON 格式（脏数据）→ 实时转换
             // 3. content_mdx 是真正 MDX → 直接使用
             let content = {
-                let raw = row.content_mdx.clone().unwrap_or_else(|| {
-                    row.content_json
-                        .as_ref()
-                        .map(|v| tiptap_json_to_mdx(v))
-                        .unwrap_or_default()
-                });
+                let raw = row
+                    .content_mdx
+                    .clone()
+                    .unwrap_or_else(|| tiptap_json_to_mdx(&row.content_json));
                 let trimmed = raw.trim_start();
                 if trimmed.starts_with("{\"type\":\"doc\"") {
                     serde_json::from_str::<serde_json::Value>(&raw)
@@ -657,7 +655,7 @@ async fn get_post_response(
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
                 reading_time: row.reading_time,
-                content_json: row.content_json,
+                content_json: Some(row.content_json),
                 content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
             };
@@ -780,12 +778,10 @@ pub async fn get_post_by_id(
             // 2. content_mdx 是 TipTap JSON 格式（脏数据）→ 实时转换
             // 3. content_mdx 是真正 MDX → 直接使用
             let content = {
-                let raw = row.content_mdx.clone().unwrap_or_else(|| {
-                    row.content_json
-                        .as_ref()
-                        .map(|v| tiptap_json_to_mdx(v))
-                        .unwrap_or_default()
-                });
+                let raw = row
+                    .content_mdx
+                    .clone()
+                    .unwrap_or_else(|| tiptap_json_to_mdx(&row.content_json));
                 let trimmed = raw.trim_start();
                 if trimmed.starts_with("{\"type\":\"doc\"") {
                     serde_json::from_str::<serde_json::Value>(&raw)
@@ -826,7 +822,7 @@ pub async fn get_post_by_id(
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
                 reading_time: row.reading_time,
-                content_json: row.content_json,
+                content_json: Some(row.content_json),
                 content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
             };
