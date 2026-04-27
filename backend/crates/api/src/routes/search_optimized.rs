@@ -89,34 +89,29 @@ pub async fn search_posts_optimized(
     let limit = params.limit.unwrap_or(20).min(50);
     let offset = params.offset.unwrap_or(0);
 
-    // 解析标签筛选
-    let filter_tags: Option<Vec<String>> = params.tags.as_ref().map(|tags| {
+    // 解析标签筛选（当前未使用，保留为后续扩展）
+    let _filter_tags: Option<Vec<String>> = params.tags.as_ref().map(|tags| {
         tags.split(',')
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect()
     });
 
-    // 转义搜索词以防止SQL注入
-    let escaped_query = params.q.replace('\'', "''").replace('\\', "\\\\");
-    let escaped_category = params.category.as_ref().map(|c| c.replace('\'', "''"));
-
     // 使用数据库函数进行全文搜索（带高亮）
     let search_query = r#"
         SELECT * FROM search_posts_with_highlights(
             $1::text,
             $2::integer,
-            $3::integer
+            $3::integer,
+            $4::text
         )
-        "#
-    .to_string();
+        "#;
 
-    let rows = sqlx::query(&search_query)
-        .bind(&escaped_query)
+    let rows = sqlx::query(search_query)
+        .bind(&params.q)
         .bind(limit as i64)
         .bind(offset as i64)
-        .bind(escaped_category.as_deref())
-        .bind(filter_tags)
+        .bind(&params.category)
         .fetch_all(&state.db)
         .await?;
 
@@ -125,7 +120,10 @@ pub async fn search_posts_optimized(
         results.push(OptimizedSearchResult {
             slug: row.try_get("slug")?,
             title: row.try_get("title")?,
-            summary: row.try_get("summary").inspect_err(|e| tracing::warn!("search: failed to get summary: {}", e)).ok(),
+            summary: row
+                .try_get("summary")
+                .inspect_err(|e| tracing::warn!("search: failed to get summary: {}", e))
+                .ok(),
             title_highlight: row.try_get("title_highlight")?,
             summary_highlight: row.try_get("summary_highlight")?,
             content_preview: row.try_get("content_preview")?,
@@ -141,19 +139,14 @@ pub async fn search_posts_optimized(
         FROM posts p
         WHERE p.search_vector @@ plainto_tsquery('simple', $1)
         AND p.draft = false
+        AND ($2::text IS NULL OR p.category = $2)
     "#;
 
-    let total: i64 = if let Some(category) = &escaped_category {
-        sqlx::query_scalar(&format!("{} AND p.category = '{}'", count_query, category))
-            .bind(&escaped_query)
-            .fetch_one(&state.db)
-            .await?
-    } else {
-        sqlx::query_scalar(count_query)
-            .bind(&escaped_query)
-            .fetch_one(&state.db)
-            .await?
-    };
+    let total: i64 = sqlx::query_scalar(count_query)
+        .bind(&params.q)
+        .bind(&params.category)
+        .fetch_one(&state.db)
+        .await?;
 
     // 记录搜索关键词（异步，不阻塞响应）
     let state_clone = state.clone();
@@ -205,8 +198,6 @@ pub async fn search_suggest_optimized(
     }
 
     let limit = params.limit.unwrap_or(5).min(10);
-    let escaped_query = params.q.replace('\'', "''");
-
     // 使用数据库的模糊搜索函数
     let suggestions = sqlx::query(
         r#"
@@ -218,7 +209,7 @@ pub async fn search_suggest_optimized(
         FROM fuzzy_search_suggestions($1::text, $2::integer)
         "#,
     )
-    .bind(&escaped_query)
+    .bind(&params.q)
     .bind(limit as i64)
     .fetch_all(&state.db)
     .await?;
@@ -320,8 +311,6 @@ async fn record_search_keyword(
     keyword: &str,
     _results_count: i32,
 ) -> Result<(), AppError> {
-    let escaped_keyword = keyword.replace('\'', "''");
-
     // 使用数据库触发器自动更新计数
     sqlx::query(
         r#"
@@ -332,7 +321,7 @@ async fn record_search_keyword(
             last_searched_at = NOW()
         "#,
     )
-    .bind(&escaped_keyword)
+    .bind(keyword)
     .execute(&state.db)
     .await?;
 

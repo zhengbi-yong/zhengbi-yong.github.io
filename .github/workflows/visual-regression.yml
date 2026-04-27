@@ -1,0 +1,115 @@
+name: Visual Regression Testing
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/visual-regression.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/visual-regression.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  FRONTEND_DIR: frontend
+  BASE_URL: http://localhost:3001
+
+jobs:
+  visual-regression:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install chromium --with-deps
+
+      - name: Build frontend
+        run: pnpm build
+        env:
+          CI: true
+
+      - name: Start frontend server
+        run: |
+          # Start the production server in background
+          pnpm serve &
+          
+          # Wait for server to be ready
+          for i in {1..30}; do
+            if curl -s -o /dev/null -w "%{http_code}" ${{ env.BASE_URL }} | grep -q "200"; then
+              echo "Server is ready"
+              break
+            fi
+            echo "Waiting for server... ($i/30)"
+            sleep 2
+          done
+
+      - name: Verify server is running
+        run: curl -s -o /dev/null -w "%{http_code}" ${{ env.BASE_URL }}/blog/post/hermes-roundtrip-7883751571
+
+      - name: Run visual regression tests
+        run: pnpm exec playwright test tests/visual/blog-rendering.spec.ts --config=playwright.visual.config.ts
+        env:
+          CI: true
+          BASE_URL: ${{ env.BASE_URL }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_number }}
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 14
+
+      - name: Upload snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-snapshots-${{ github.run_number }}
+          path: frontend/tests/visual/snapshots/
+          retention-days: 30
+
+      - name: Generate and upload baseline comparison
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          # Create a summary of visual test results
+          echo "## Visual Regression Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Test run: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: ${{ github.head_ref || github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f frontend/test-results/junit.xml ]; then
+            echo "Tests completed. Check artifacts for detailed report." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Stop server
+        if: always()
+        run: pkill -f "next start" || true

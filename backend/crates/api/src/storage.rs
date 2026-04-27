@@ -76,8 +76,14 @@ impl StorageBackend {
         expires_secs: u32,
     ) -> Result<Option<String>, StorageError> {
         match self {
-            StorageBackend::Local(s) => s.presigned_upload_url(key, content_type, expires_secs).await,
-            StorageBackend::Minio(s) => s.presigned_upload_url(key, content_type, expires_secs).await,
+            StorageBackend::Local(s) => {
+                s.presigned_upload_url(key, content_type, expires_secs)
+                    .await
+            }
+            StorageBackend::Minio(s) => {
+                s.presigned_upload_url(key, content_type, expires_secs)
+                    .await
+            }
         }
     }
 
@@ -431,45 +437,47 @@ pub struct StorageService {
 
 impl StorageService {
     pub async fn new(config: &StorageConfig) -> Result<Self, StorageError> {
-        let backend = match config.backend {
-            StorageBackendType::Local => {
-                StorageBackend::Local(LocalStorage::new(
+        let backend =
+            match config.backend {
+                StorageBackendType::Local => StorageBackend::Local(LocalStorage::new(
                     &config.local_base_path,
                     &config.local_base_url,
-                )?)
-            }
-            StorageBackendType::Minio => {
-                let endpoint = config.minio_endpoint.as_ref().ok_or_else(|| {
-                    StorageError::Config("MINIO_ENDPOINT not set".to_string())
-                })?;
-                let access_key = config.minio_access_key.as_ref().ok_or_else(|| {
-                    StorageError::Config("MINIO_ACCESS_KEY not set".to_string())
-                })?;
-                let secret_key = config.minio_secret_key.as_ref().ok_or_else(|| {
-                    StorageError::Config("MINIO_SECRET_KEY not set".to_string())
-                })?;
-                let bucket = config.minio_bucket.as_ref().ok_or_else(|| {
-                    StorageError::Config("MINIO_BUCKET not set".to_string())
-                })?;
-                let public_url = config.minio_public_url.as_ref().ok_or_else(|| {
-                    StorageError::Config("MINIO_PUBLIC_URL not set".to_string())
-                })?;
+                )?),
+                StorageBackendType::Minio => {
+                    let endpoint = config.minio_endpoint.as_ref().ok_or_else(|| {
+                        StorageError::Config("MINIO_ENDPOINT not set".to_string())
+                    })?;
+                    let access_key = config.minio_access_key.as_ref().ok_or_else(|| {
+                        StorageError::Config("MINIO_ACCESS_KEY not set".to_string())
+                    })?;
+                    let secret_key = config.minio_secret_key.as_ref().ok_or_else(|| {
+                        StorageError::Config("MINIO_SECRET_KEY not set".to_string())
+                    })?;
+                    let bucket = config
+                        .minio_bucket
+                        .as_ref()
+                        .ok_or_else(|| StorageError::Config("MINIO_BUCKET not set".to_string()))?;
+                    let public_url = config.minio_public_url.as_ref().ok_or_else(|| {
+                        StorageError::Config("MINIO_PUBLIC_URL not set".to_string())
+                    })?;
 
-                StorageBackend::Minio(
-                    MinioStorage::new(
-                        endpoint,
-                        access_key,
-                        secret_key,
-                        bucket,
-                        public_url,
-                        &config.minio_region,
+                    StorageBackend::Minio(
+                        MinioStorage::new(
+                            endpoint,
+                            access_key,
+                            secret_key,
+                            bucket,
+                            public_url,
+                            &config.minio_region,
+                        )
+                        .await?,
                     )
-                    .await?,
-                )
-            }
-        };
+                }
+            };
 
-        Ok(Self { backend: Arc::new(backend) })
+        Ok(Self {
+            backend: Arc::new(backend),
+        })
     }
 
     pub async fn store(

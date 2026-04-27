@@ -185,7 +185,11 @@ pub async fn shutdown_signal(component: &'static str) {
     }
 
     // GOLDEN_RULES §3.4: 等待最多30秒让现有请求完成
-    tracing::info!(component, seconds = 30, "Waiting for in-flight requests to complete");
+    tracing::info!(
+        component,
+        seconds = 30,
+        "Waiting for in-flight requests to complete"
+    );
     tokio::time::sleep(std::time::Duration::from_secs(30)).await;
     tracing::info!(component, "Graceful shutdown wait period elapsed");
 }

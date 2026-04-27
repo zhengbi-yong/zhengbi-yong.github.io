@@ -162,17 +162,12 @@ pub async fn register(
     );
 
     // 生成 CSRF token 并设置 XSRF-TOKEN cookie（HttpOnly=false，前端可读）
-    let csrf_token = generate_csrf_token(&state)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to generate CSRF token: {}", e);
-            AppError::InternalError
-        })?;
+    let csrf_token = generate_csrf_token(&state).await.map_err(|e| {
+        tracing::error!("Failed to generate CSRF token: {}", e);
+        AppError::InternalError
+    })?;
     let (_, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
-    headers.append(
-        header::SET_COOKIE,
-        xsrf_cookie.parse().unwrap(),
-    );
+    headers.append(header::SET_COOKIE, xsrf_cookie.parse().unwrap());
 
     Ok((
         headers,
@@ -341,12 +336,10 @@ pub async fn login(
     );
 
     // 生成 CSRF token 并设置 XSRF-TOKEN cookie（HttpOnly=false，前端可读）
-    let csrf_token = generate_csrf_token(&state)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to generate CSRF token: {}", e);
-            AppError::InternalError
-        })?;
+    let csrf_token = generate_csrf_token(&state).await.map_err(|e| {
+        tracing::error!("Failed to generate CSRF token: {}", e);
+        AppError::InternalError
+    })?;
     let (_, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
     headers.append(header::SET_COOKIE, xsrf_cookie.parse().unwrap());
 

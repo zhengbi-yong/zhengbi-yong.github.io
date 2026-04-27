@@ -86,46 +86,31 @@ pub async fn search_posts(
         }
     }
 
-    // 转义搜索词
-    let escaped_query = params.q.replace('\'', "''").replace('\\', "\\\\");
-
-    // 构建搜索查询
-    let mut where_conditions = vec![
-        "p.deleted_at IS NULL".to_string(),
-        "p.status = 'published'".to_string(),
-        format!(
-            "p.search_vector @@ plainto_tsquery('simple', '{}')",
-            escaped_query
-        ),
-    ];
-
-    if let Some(category_slug) = &params.category_slug {
-        where_conditions.push(format!("c.slug = '{}'", category_slug.replace('\'', "''")));
-    }
-
-    if let Some(tag_slug) = &params.tag_slug {
-        where_conditions.push(format!("t.slug = '{}'", tag_slug.replace('\'', "''")));
-    }
-
-    if let Some(author_id) = &params.author_id {
-        where_conditions.push(format!("p.author_id = '{}'", author_id));
-    }
-
-    let where_clause = where_conditions.join(" AND ");
+    // 构建搜索查询条件
+    let search_query = params.q.clone();
+    let category_slug = params.category_slug.clone();
+    let tag_slug = params.tag_slug.clone();
+    let author_id_uuid = params.author_id;
 
     // 查询总数（用于统计）
-    let count_query = format!(
-        r#"
+    let count_query = r#"
         SELECT COUNT(DISTINCT p.id)
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         LEFT JOIN post_tags pt ON p.id = pt.post_id
         LEFT JOIN tags t ON pt.tag_id = t.id
-        WHERE {}
-        "#,
-        where_clause
-    );
-    let total: i64 = sqlx::query_scalar(&count_query)
+        WHERE p.deleted_at IS NULL
+            AND p.status = 'published'
+            AND p.search_vector @@ plainto_tsquery('simple', $1)
+            AND ($2::text IS NULL OR c.slug = $2)
+            AND ($3::text IS NULL OR t.slug = $3)
+            AND ($4::uuid IS NULL OR p.author_id = $4)
+    "#;
+    let total: i64 = sqlx::query_scalar(count_query)
+        .bind(&search_query)
+        .bind(&category_slug)
+        .bind(&tag_slug)
+        .bind(author_id_uuid)
         .fetch_one(&state.db)
         .await?;
 
@@ -145,24 +130,34 @@ pub async fn search_posts(
     }
 
     // 执行搜索查询（使用 ts_rank 排序）
-    let search_query = format!(
-        r#"
+    let search_sql = r#"
         SELECT
             p.id, p.slug, p.title, p.summary, p.published_at,
-            ts_rank(p.search_vector, plainto_tsquery('simple', '{}')) as rank
+            ts_rank(p.search_vector, plainto_tsquery('simple', $1)) as rank
         FROM posts p
         LEFT JOIN categories c ON p.category_id = c.id
         LEFT JOIN post_tags pt ON p.id = pt.post_id
         LEFT JOIN tags t ON pt.tag_id = t.id
-        WHERE {}
+        WHERE p.deleted_at IS NULL
+            AND p.status = 'published'
+            AND p.search_vector @@ plainto_tsquery('simple', $1)
+            AND ($2::text IS NULL OR c.slug = $2)
+            AND ($3::text IS NULL OR t.slug = $3)
+            AND ($4::uuid IS NULL OR p.author_id = $4)
         GROUP BY p.id, p.search_vector
         ORDER BY rank DESC, p.published_at DESC
-        LIMIT {} OFFSET {}
-        "#,
-        escaped_query, where_clause, limit, offset
-    );
+        LIMIT $5 OFFSET $6
+    "#;
 
-    let rows = sqlx::query(&search_query).fetch_all(&state.db).await?;
+    let rows = sqlx::query(search_sql)
+        .bind(&search_query)
+        .bind(&category_slug)
+        .bind(&tag_slug)
+        .bind(author_id_uuid)
+        .bind(limit as i64)
+        .bind(offset as i64)
+        .fetch_all(&state.db)
+        .await?;
 
     let mut results = Vec::new();
     for row in rows {
@@ -241,7 +236,7 @@ pub async fn search_suggest(
         }
     }
 
-    let search_term = format!("{}%", params.q.replace('\'', "''"));
+    let search_term = format!("{}%", params.q);
 
     // 搜索标题匹配的文章
     let suggestions: Vec<String> = sqlx::query_scalar(

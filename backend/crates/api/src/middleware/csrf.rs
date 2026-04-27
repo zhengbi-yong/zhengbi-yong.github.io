@@ -225,10 +225,8 @@ pub async fn csrf_middleware(
     if let Some(new_csrf) = new_csrf_token {
         let (_, xsrf_cookie) = set_csrf_cookie(&new_csrf.token);
         let mut resp = response.into_response();
-        resp.headers_mut().insert(
-            axum::http::header::SET_COOKIE,
-            xsrf_cookie.parse().unwrap(),
-        );
+        resp.headers_mut()
+            .insert(axum::http::header::SET_COOKIE, xsrf_cookie.parse().unwrap());
         Ok(resp)
     } else {
         Ok(response.into_response())
@@ -344,10 +342,7 @@ pub fn set_csrf_cookie(token: &str) -> (String, String) {
         "csrf_token={}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600",
         token
     );
-    let xsrf_token = format!(
-        "XSRF-TOKEN={}; Path=/; SameSite=Lax; Max-Age=3600",
-        token
-    );
+    let xsrf_token = format!("XSRF-TOKEN={}; Path=/; SameSite=Lax; Max-Age=3600", token);
     (http_only, xsrf_token)
 }
 

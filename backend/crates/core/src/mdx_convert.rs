@@ -138,18 +138,17 @@ fn render_heading(content: Option<&Value>, attrs: Option<&Value>) -> String {
 
 fn render_code_block(content: Option<&Value>, attrs: Option<&Value>) -> String {
     let code = match content {
-        Some(Value::Array(arr)) => {
-            arr.iter()
-                .map(|n| {
-                    if let Some(t) = n.get("text").and_then(|v| v.as_str()) {
-                        t.to_string()
-                    } else {
-                        tiptap_json_to_mdx(n)
-                    }
-                })
-                .collect::<Vec<_>>()
-                .join("")
-        }
+        Some(Value::Array(arr)) => arr
+            .iter()
+            .map(|n| {
+                if let Some(t) = n.get("text").and_then(|v| v.as_str()) {
+                    t.to_string()
+                } else {
+                    tiptap_json_to_mdx(n)
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(""),
         _ => String::new(),
     };
 
@@ -197,9 +196,7 @@ fn render_image(attrs: Option<&Value>) -> String {
         .and_then(|a| a.get("alt"))
         .and_then(|v| v.as_str())
         .unwrap_or("");
-    let title = attrs
-        .and_then(|a| a.get("title"))
-        .and_then(|v| v.as_str());
+    let title = attrs.and_then(|a| a.get("title")).and_then(|v| v.as_str());
 
     if src.is_empty() {
         String::new()
@@ -244,12 +241,7 @@ fn render_table(content: Option<&Value>) -> String {
                     let header = &rendered_rows[0];
                     let body = &rendered_rows[1..];
                     let sep = make_table_separator(header);
-                    format!(
-                        "{}\n{}\n{}",
-                        header,
-                        sep,
-                        body.join("\n")
-                    )
+                    format!("{}\n{}\n{}", header, sep, body.join("\n"))
                 } else {
                     rendered_rows.join("\n")
                 }
@@ -262,10 +254,7 @@ fn render_table(content: Option<&Value>) -> String {
 fn render_table_row(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(cells)) => {
-            let rendered: Vec<String> = cells
-                .iter()
-                .map(|c| tiptap_json_to_mdx(c))
-                .collect();
+            let rendered: Vec<String> = cells.iter().map(|c| tiptap_json_to_mdx(c)).collect();
 
             format!("|{}|", rendered.join("|"))
         }
@@ -279,7 +268,11 @@ fn render_table_cell(content: Option<&Value>) -> String {
             let text: String = paragraphs
                 .iter()
                 .map(|p| {
-                    if let Some(arr) = p.as_object().and_then(|o| o.get("content")).and_then(|v| v.as_array()) {
+                    if let Some(arr) = p
+                        .as_object()
+                        .and_then(|o| o.get("content"))
+                        .and_then(|v| v.as_array())
+                    {
                         render_inline_nodes(arr)
                     } else {
                         String::new()
@@ -298,7 +291,8 @@ fn make_table_separator(header_row: &str) -> String {
     (0..col_count)
         .map(|_| "| --- ")
         .collect::<Vec<_>>()
-        .join("") + "|"
+        .join("")
+        + "|"
 }
 
 // ---------------------------------------------------------------------------
@@ -430,10 +424,7 @@ fn render_task_item(content: Option<&Value>, attrs: Option<&Value>) -> String {
 fn render_list_item(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
-            let parts: Vec<String> = arr
-                .iter()
-                .map(|n| tiptap_json_to_mdx(n))
-                .collect();
+            let parts: Vec<String> = arr.iter().map(|n| tiptap_json_to_mdx(n)).collect();
 
             if parts.is_empty() {
                 String::new()
@@ -560,8 +551,14 @@ fn render_inline_node(node: &Value) -> String {
 
     match node_type {
         "text" => render_text_node(node),
-        "image" => obj.and_then(|o| o.get("attrs")).map(|a| render_image(Some(a))).unwrap_or_default(),
-        "video" => obj.and_then(|o| o.get("attrs")).map(|a| render_video(Some(a))).unwrap_or_default(),
+        "image" => obj
+            .and_then(|o| o.get("attrs"))
+            .map(|a| render_image(Some(a)))
+            .unwrap_or_default(),
+        "video" => obj
+            .and_then(|o| o.get("attrs"))
+            .map(|a| render_video(Some(a)))
+            .unwrap_or_default(),
         "inlineMath" => render_inline_math(node),
         "math" => render_display_math(node),
         _ => {
@@ -818,7 +815,10 @@ mod tests {
                 ]}
             ]
         });
-        assert_eq!(tiptap_json_to_mdx(&json), "![example](https://example.com/img.png)");
+        assert_eq!(
+            tiptap_json_to_mdx(&json),
+            "![example](https://example.com/img.png)"
+        );
     }
 
     #[test]
