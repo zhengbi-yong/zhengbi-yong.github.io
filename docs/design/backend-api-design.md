@@ -27,11 +27,11 @@ backend/
 │   │   │   │   ├── tags.rs
 │   │   │   │   ├── media.rs
 │   │   │   │   ├── admin.rs
-│   │   │   │   ├── reading_progress.rs
+│   │   │   │   ├── reading_progress.rs   # 阅读进度
 │   │   │   │   ├── search.rs
-│   │   │   │   ├── search_optimized.rs
+│   │   │   │   ├── search_optimized.rs   # ⚠️ 死代码：模块存在但未接入路由表
 │   │   │   │   ├── mdx_sync.rs
-│   │   │   │   ├── versions.rs
+│   │   │   │   ├── versions.rs           # 版本控制
 │   │   │   │   ├── openapi.rs
 │   │   │   │   └── team_members.rs
 │   │   │   ├── middleware/
@@ -75,6 +75,8 @@ GET    /tags/autocomplete      # 自动补全
 ## 路由表
 
 ### 公开 API (`/api/v1/`)
+
+> **注意**：所有路由均注册在 `/api/v1` 前缀下（`main.rs` 中 `.nest("/api/v1", api_router)`）。
 
 #### 认证
 | 方法 | 路径 | 说明 |
@@ -146,9 +148,11 @@ GET    /tags/autocomplete      # 自动补全
 | DELETE | /admin/posts/{postId} | 删除 |
 | POST | /admin/sync/mdx | 同步 MDX |
 | GET | /admin/stats | 仪表盘统计 |
-| GET | /admin/users | 用户列表 |
+| GET, POST | /admin/users | 用户列表 / 创建用户 |
+| GET, PUT, DELETE | /admin/users/{id} | 获取 / 更新 / 删除用户 |
 | PUT | /admin/users/{id}/role | 更新角色 |
-| DELETE | /admin/users/{id} | 删除用户 |
+| POST | /admin/users:batchUpdateRole | 批量更新角色 |
+| POST | /admin/users:batchDelete | 批量删除用户 |
 | GET | /admin/user-growth | 用户增长 |
 | GET | /admin/comments | 评论列表 |
 | PUT | /admin/comments/{id}/status | 审核评论 |
@@ -158,16 +162,30 @@ GET    /tags/autocomplete      # 自动补全
 | GET | /admin/media/{id} | 媒体详情 |
 | PATCH | /admin/media/{id} | 更新媒体 |
 | DELETE | /admin/media/{id} | 删除媒体 |
+| GET | /admin/media/{id}/download-url | 下载链接 |
 | POST | /admin/media/upload | 上传媒体 |
 | POST | /admin/media/presign-upload | 预签名上传 |
 | POST | /admin/media/finalize | 完成上传 |
-| GET | /admin/posts/{postId}/versions | 版本列表 |
-| POST | /admin/posts/{postId}/versions | 创建版本 |
-| GET | /admin/posts/{postId}/versions/{versionNumber} | 版本详情 |
-| POST | /admin/posts/{postId}/versions/{versionNumber}/restore | 恢复版本 |
-| DELETE | /admin/posts/{postId}/versions/{versionNumber} | 删除版本 |
-| GET | /admin/posts/{postId}/versions/compare | 比较版本 |
+| GET | /admin/categories | 分类列表（管理端） |
+| POST | /admin/categories | 创建分类 |
+| GET | /admin/categories/{slug} | 分类详情（管理端） |
+| PATCH | /admin/categories/{slug} | 更新分类 |
+| DELETE | /admin/categories/{slug} | 删除分类 |
+| GET | /admin/tags | 标签列表（管理端） |
+| POST | /admin/tags | 创建标签 |
+| GET | /admin/tags/{slug} | 标签详情（管理端） |
+| PATCH | /admin/tags/{slug} | 更新标签 |
+| DELETE | /admin/tags/{slug} | 删除标签 |
+| POST | /admin/posts/{post_id}/versions | 创建版本 |
+| GET | /admin/posts/{post_id}/versions | 版本列表 |
+| GET | /admin/posts/{post_id}/versions/{version_number} | 版本详情 |
+| POST | /admin/posts/{post_id}/versions/{version_number}/restore | 恢复版本 |
+| DELETE | /admin/posts/{post_id}/versions/{version_number} | 删除版本 |
+| GET | /admin/posts/{post_id}/versions/compare | 比较版本 |
 | POST | /admin/search/reindex | 重建搜索索引 |
+| POST | /admin/mdx/convert | MDX 转换 |
+| POST | /admin/mdx/batch-convert | MDX 批量转换 |
+| POST | /admin/mdx/migrate-all | 全部 JSON 内容迁移 |
 
 ## Axum 0.8 路由语法
 
@@ -186,16 +204,22 @@ Router::new()
 
 ## 数据库连接池
 
+数据库连接池通过环境变量配置（`DATABASE_POOL_*`），默认值由 `DatabasePoolConfig` 在 `shared/src/config.rs` 中定义：
+
 ```rust
-let pool = PgPoolOptions::new()
-    .max_connections(50)           // 单实例不超过 50
-    .min_connections(5)            // 保持最小连接
-    .acquire_timeout(Duration::from_secs(5))
-    .idle_timeout(Duration::from_secs(600))
-    .max_lifetime(Duration::from_secs(1800))
-    .connect(&database_url)
-    .await?;
+// 实际代码：通过 DatabasePoolConfig 从环境变量读取
+let db = create_postgres_pool(&settings.database_url, &settings.database_pool).await?;
 ```
+
+| 环境变量 | 默认值 | 说明 |
+|----------|--------|------|
+| `DATABASE_POOL_MAX_CONNECTIONS` | 50 | 最大连接数 |
+| `DATABASE_POOL_MIN_CONNECTIONS` | 5 | 最小连接数 |
+| `DATABASE_POOL_ACQUIRE_TIMEOUT_SECS` | 5 | 获取连接超时（秒） |
+| `DATABASE_POOL_MAX_LIFETIME_SECS` | 1800 | 连接最大生命周期（秒） |
+| `DATABASE_POOL_IDLE_TIMEOUT_SECS` | 600 | 空闲超时（秒） |
+
+> **注意**：生产部署建议覆盖 `max_connections` 为 20、`acquire_timeout` 为 10s，但默认值保留 50 和 5s 以保证兼容性。
 
 Redis 连接池配置通过 `redis_pool` 配置段管理（wait_timeout, create_timeout, recycle_timeout）。
 
@@ -270,6 +294,11 @@ async fn auth_middleware(
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | 基本健康检查 | 返回 "OK" |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |
+| /api/v1/healthz | 基本健康（API v1 子路径下） | 返回 "OK" |
+| /api/v1/readyz | 就绪探针（API v1 子路径下） | 检查各组件状态 |
+
+> **注意**：
+> - `/health` 路径在 main.rs 中不存在 — 只有 `/health/detailed` 在根级别注册
+> - Swagger UI 路由已注释禁用（主路由中 `// .merge(blog_api::routes::openapi::swagger_ui())`）

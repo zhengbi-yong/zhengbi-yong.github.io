@@ -43,12 +43,14 @@ CREATE TABLE post_stats (
 ```sql
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    email CITEXT UNIQUE NOT NULL,
-    username CITEXT UNIQUE NOT NULL,
+    email CITEXT NOT NULL,
+    username CITEXT NOT NULL,
     password_hash TEXT NOT NULL,       -- Argon2id
     role VARCHAR(20) NOT NULL DEFAULT 'user',
     profile JSONB NOT NULL DEFAULT '{}',
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    status TEXT NOT NULL DEFAULT 'active'
+      CHECK (status IN ('active', 'suspended', 'banned')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ             -- 软删除
@@ -57,7 +59,7 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
-CREATE INDEX idx_users_profile ON users USING GIN (profile jsonb_path_ops);
+CREATE INDEX idx_users_profile_gin ON users USING GIN (profile jsonb_path_ops);
 ```
 
 ### 软删除下的唯一性
@@ -79,7 +81,6 @@ CREATE TABLE posts (
     slug TEXT NOT NULL UNIQUE,
     title TEXT NOT NULL,
     content TEXT NOT NULL,                       -- 旧列，过渡期保留
-    content_html TEXT,                           -- 旧列，过渡期保留
     content_json JSONB NOT NULL DEFAULT '{}',    -- 双轨: 写入侧真相源
     content_mdx TEXT DEFAULT '',                 -- 双轨: 读取侧缓存
     mdx_compiled_at TIMESTAMPTZ,                 -- MDX 最后编译时间
@@ -110,7 +111,7 @@ CREATE TABLE posts (
     canonical_url TEXT,
     author_display_name TEXT,
     is_featured BOOLEAN NOT NULL DEFAULT FALSE,
-    post_type TEXT NOT NULL DEFAULT 'post',
+    post_type TEXT NOT NULL DEFAULT 'article',
     content_format TEXT,
     language TEXT NOT NULL DEFAULT 'zh-CN',
     copyright_info TEXT,
@@ -138,7 +139,6 @@ CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_
 | `content_mdx` | TEXT | MDX 文本，读取侧 SSR/SSG 直读缓存 |
 | `mdx_compiled_at` | TIMESTAMPTZ | MDX 最后编译时间，判断是否需要重新编译 |
 | `content` | TEXT | 旧列，过渡期保留向后兼容 |
-| `content_html` | TEXT | 旧列，过渡期保留 |
 
 ## 评论表 (comments)
 
@@ -192,12 +192,11 @@ CREATE TABLE post_stats (
 ```sql
 CREATE TABLE outbox_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    event_type TEXT NOT NULL,               -- 原 topic
-    payload JSONB NOT NULL,
+    event_type VARCHAR(100) NOT NULL,
+    payload JSONB NOT NULL DEFAULT '{}',
     status TEXT NOT NULL DEFAULT 'pending',
-    run_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    retry_count INT NOT NULL DEFAULT 0,     -- 原 attempts
-    error TEXT,                              -- 原 last_error
+    retry_count INT NOT NULL DEFAULT 0,
+    error TEXT,
     processed_at TIMESTAMPTZ,
     locked_at TIMESTAMPTZ,
     locked_by TEXT,
@@ -205,7 +204,7 @@ CREATE TABLE outbox_events (
 );
 ```
 
-> 注：当前无分区。`event_type`、`retry_count`、`error` 字段通过 `2026032201` 迁移重命名。
+> 注：通过 `2026032201_add_outbox_events.sql` 迁移重建。字段 `event_type`（原 `topic`）、`retry_count`（原 `attempts`）、`error`（原 `last_error`）。`status` 继承自 `0001_initial.sql`。`run_after` 字段已移除。
 
 ## 其他表
 
@@ -216,9 +215,13 @@ CREATE TABLE categories (
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     description TEXT,
-    parent_id UUID REFERENCES categories(id),
-    "order" INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    icon TEXT,
+    color TEXT,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    post_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
 
@@ -228,6 +231,7 @@ CREATE TABLE tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
+    description TEXT,
     post_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -244,15 +248,20 @@ CREATE TABLE post_tags (
 CREATE TABLE media (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     filename TEXT NOT NULL,
-    url TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
     mime_type TEXT NOT NULL,
-    size BIGINT NOT NULL,
+    size_bytes BIGINT NOT NULL,
     width INTEGER,
     height INTEGER,
+    storage_path TEXT NOT NULL,
+    cdn_url TEXT,
     alt_text TEXT,
-    uploader_id UUID REFERENCES users(id),
-    article_id UUID REFERENCES posts(id),
+    caption TEXT,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    media_type TEXT NOT NULL DEFAULT 'image',
+    usage_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
 );
 ```
@@ -265,9 +274,10 @@ CREATE TABLE post_versions (
     version_number INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    summary TEXT,
+    change_log TEXT,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by UUID REFERENCES users(id),
-    comment TEXT,
     UNIQUE (post_id, version_number)
 );
 ```
@@ -282,24 +292,28 @@ CREATE TABLE post_likes (
 );
 
 CREATE TABLE comment_likes (
+    id BIGSERIAL PRIMARY KEY,
     comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (comment_id, user_id)
+    UNIQUE(comment_id, user_id)
 );
 ```
 
-### 浏览记录 (views)
+### 浏览记录 (views) — 计划中
 ```sql
-CREATE TABLE views (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    post_id UUID NOT NULL REFERENCES posts(id),
-    user_id UUID REFERENCES users(id),
-    ip_address INET NOT NULL,
-    user_agent TEXT,
-    viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+-- 表尚未创建，以下为计划中的设计
+-- CREATE TABLE views (
+--     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+--     post_id UUID NOT NULL REFERENCES posts(id),
+--     user_id UUID REFERENCES users(id),
+--     ip_address INET NOT NULL,
+--     user_agent TEXT,
+--     viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- );
 ```
+
+> 注：`views` 表尚未在 migration 中实现，当前浏览计数通过 `posts.view_count` 和 `post_stats.view_count` 维护。
 
 ### 刷新令牌 (refresh_tokens)
 ```sql
@@ -321,12 +335,145 @@ CREATE TABLE refresh_tokens (
 ### 阅读进度 (reading_progress)
 ```sql
 CREATE TABLE reading_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    progress INTEGER NOT NULL DEFAULT 0,
-    last_read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    completed_at TIMESTAMPTZ,
-    PRIMARY KEY (user_id, post_id)
+    post_slug TEXT NOT NULL REFERENCES posts(slug) ON DELETE CASCADE,
+    progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
+    last_read_position INTEGER DEFAULT 0,
+    scroll_percentage FLOAT DEFAULT 0.0,
+    word_count INTEGER DEFAULT 0,
+    words_read INTEGER DEFAULT 0,
+    is_completed BOOLEAN DEFAULT FALSE,
+    last_read_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, post_slug)
+);
+```
+
+### 搜索关键词 (search_keywords)
+```sql
+CREATE TABLE search_keywords (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    keyword TEXT NOT NULL,
+    search_count INTEGER DEFAULT 1,
+    last_searched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(keyword)
+);
+```
+
+### 搜索历史 (search_history)
+```sql
+CREATE TABLE search_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    keyword TEXT NOT NULL,
+    results_count INTEGER,
+    clicked_slug TEXT,
+    searched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+### 团队成员 (team_members)
+```sql
+CREATE TABLE team_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    name VARCHAR(255) NOT NULL,
+    name_en VARCHAR(255),
+    team_role VARCHAR(50) NOT NULL DEFAULT 'member',
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    title VARCHAR(255),
+    bio TEXT,
+    affiliation VARCHAR(255),
+    research_tags TEXT[],
+    email VARCHAR(255),
+    github VARCHAR(100),
+    website VARCHAR(500),
+    avatar_media_id UUID REFERENCES media(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### 文章-媒体关联 (post_media)
+```sql
+CREATE TABLE post_media (
+  post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  media_id UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+  position INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (post_id, media_id)
+);
+```
+
+### 密码重置令牌 (password_reset_tokens)
+```sql
+CREATE TABLE password_reset_tokens (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### 文章新表 (articles) — Phase B 双轨存储
+```sql
+CREATE TABLE articles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    summary TEXT,
+    cover_image_url TEXT,
+    content_json JSONB NOT NULL DEFAULT '{}',
+    content_mdx TEXT DEFAULT '',
+    mdx_compiled_at TIMESTAMPTZ,
+    author_id UUID NOT NULL REFERENCES users(id),
+    status VARCHAR(20) NOT NULL DEFAULT 'draft',
+    tags TEXT[] DEFAULT '{}',
+    layout VARCHAR(20) DEFAULT 'standard',
+    is_featured BOOLEAN DEFAULT false,
+    view_count INTEGER DEFAULT 0,
+    word_count INTEGER DEFAULT 0,
+    published_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 文章版本 (article_versions) — Phase B
+```sql
+CREATE TABLE article_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+    version_number INTEGER NOT NULL,
+    content_json JSONB NOT NULL,
+    title VARCHAR(255),
+    editor_id UUID NOT NULL REFERENCES users(id),
+    change_summary TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (article_id, version_number)
+);
+```
+
+### 媒体资产 (media_assets) — Phase B
+```sql
+CREATE TABLE media_assets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    filename VARCHAR(255) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    storage_path TEXT NOT NULL,
+    url TEXT NOT NULL,
+    width INTEGER,
+    height INTEGER,
+    duration FLOAT,
+    uploader_id UUID NOT NULL REFERENCES users(id),
+    article_id UUID REFERENCES articles(id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 

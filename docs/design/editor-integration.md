@@ -28,15 +28,15 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import dynamic from 'next/dynamic'
 
-// SSR 禁用
+// SSR 禁用 — 使用 Promise.resolve 模式直接引用组件
 const TiptapEditor = dynamic(
-  () => import('@/components/editor/TiptapEditor'),
+  () => Promise.resolve(RichTextEditorInner),
   { ssr: false }
 )
 
 export default function EditorPage({ params }: { params: { id: string } }) {
   return (
-    <div suppressHydrationWarning>
+    <div>
       <TiptapEditor articleId={params.id} />
     </div>
   )
@@ -49,14 +49,30 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 |------|------------|------|
 | 段落/标题 | StarterKit | ✅ |
 | 粗体/斜体 | StarterKit | ✅ |
+| 下划线 | Underline | ✅ |
 | 列表 (有序/无序) | StarterKit | ✅ |
+| 任务列表 | TaskList + TaskItem | ✅ |
 | 链接 | Link | ✅ |
-| 代码块 | CodeBlockLowlight | ✅ |
+| 代码块 | ShikiCodeBlock (高亮) | ✅ |
 | 引用 | Blockquote | ✅ |
-| 表格 | Table | ✅ |
+| 表格 | Table (reactjs-tiptap-editor) | ✅ |
 | 图片 | Image | ✅ |
-| 数学公式 | Mathematics | ✅ |
-| 历史撤销 | UndoHistory | ✅ |
+| 视频 | VideoExtension (reactjs-tiptap-editor) | ✅ |
+| 数学公式 | BlockMath + InlineMath (扩展自 @tiptap/extension-mathematics) | ✅ |
+| 历史撤销 | UndoHistory (StarterKit) | ✅ |
+| 文本对齐 | TextAlign | ✅ |
+| 占位符 | Placeholder | ✅ |
+| 排版优化 | Typography | ✅ |
+| 缩进 | Indent | ✅ |
+| 文字颜色 | Color | ✅ |
+| 字号 | FontSize | ✅ |
+| 行高 | LineHeight | ✅ |
+| 文本方向 | TextDirection | ✅ |
+| 更多标记 | MoreMark | ✅ |
+| 搜索替换 | SearchAndReplace | ✅ |
+| Twitter 嵌入 | TwitterExtension | ✅ |
+| 标注 | CalloutExtension | ✅ |
+| 提及 | Mention | ✅ |
 
 ## 保存/加载闭环
 
@@ -65,12 +81,15 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 const json = editor.getJSON()
 
 // 保存到后端
-await fetch('/api/v1/posts', {
+await fetch('/api/v1/admin/posts', {
   method: 'POST',
-  body: JSON.stringify({ content: json })
+  body: JSON.stringify({
+    content_json: json,
+    content_mdx: saveToMdx(editor.getHTML())
+  })
 })
 
 // 从后端加载
-const { content_json } = await fetch(`/api/v1/posts/${slug}`)
+const { content_json } = await fetch(`/api/v1/admin/posts/${slug}`)
 editor.commands.setContent(content_json)
 ```

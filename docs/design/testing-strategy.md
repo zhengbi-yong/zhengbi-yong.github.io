@@ -9,7 +9,7 @@
        ╱──────────╲
       ╱ 集成测试   ╲            前端 Vitest (188 tests), 后端 cargo test
      ╱──────────────╲
-    ╱   单元测试      ╲          后端: 28 个测试文件 (含 mdx_convert 的 16 个测试)
+    ╱   单元测试      ╲          后端: 19 个测试文件 (API tests 目录)
    ╱────────────────────╲
   ╱  类型检查 (编译时)    ╲       Rust cargo check, TypeScript ESLint
  ╱──────────────────────────╲
@@ -19,10 +19,10 @@
 
 | 层级 | 工具 | 目标 | 现状 |
 |------|------|------|------|
-| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 28 个测试文件，16 个 mdx_convert 测试 |
+| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 19 个测试文件（API tests 目录） |
 | Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
 | TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
-| 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
+| 前端组件测试 | Vitest | 组件 ≥70% | 188 个测试用例 |
 | E2E 流程 | Playwright | 12 条核心路径 | 97 个 E2E 测试用例 |
 
 ## E2E 核心路径
@@ -42,7 +42,6 @@
 | `codeblock-rendering.spec.ts` | 代码块渲染 |
 | `content-cqrs.spec.ts` | 内容 CQRS 双轨 |
 | `api-contract.spec.ts` | API 契约测试 |
-| `blog-rendering.spec.ts` | 博客渲染（Playwright 配置需调整） |
 
 ## 回归测试流程
 

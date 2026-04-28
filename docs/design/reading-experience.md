@@ -42,9 +42,9 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 ### 字体栈
 
 ```css
---font-sans: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
+--font-sans: 'Inter', 'Newsreader', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
 --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
---font-body: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
+--font-body: 'Inter', 'Newsreader', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
 ```
 
 ### 字号比例（Fibonacci-based）
@@ -63,6 +63,7 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 行高 1.75（vs Latin 1.6），中文字符无间距需更多呼吸空间
 - 段落间距：CJK 使用 `1.5em`（vs Latin `1em`）
 - 通过 CSS `:lang(zh)` 或 `.cjk-content` class 检测
+- **注意**：PingFang SC 和 Noto Sans SC 仅作为 Tailwind 字体栈的后备字体名声明（`fontFamily` 配置），未通过 `next/font` 显式加载。实际 CJK 渲染依赖系统已安装的中文字体。
 
 ## TOC 组件 (TableOfContents)
 
@@ -71,7 +72,7 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：1024px（Monograph 的 1280px 过晚，原 768px 过早）
+- 移动端断点：768px（Monograph 的 1280px 过晚）
 
 ## 阅读进度条 (ReadingProgressBar)
 

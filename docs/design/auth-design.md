@@ -38,12 +38,14 @@
 
 ```rust
 pub async fn auth_middleware(
-    request: Request,
+    State(state): State<AppState>,
+    mut request: Request,
     next: Next,
 ) -> Result<Response, AuthError> {
-    // 1. 从 Authorization: Bearer 提取 Token（优先）
+    // 1. 从 Authorization: Bearer *** Token（优先）
     // 2. 若没有则从 access_token Cookie 提取
     // 3. 验证 JWT 签名和过期时间（纯 CPU，无 I/O）
+    //    - 使用 state.jwt.verify_access_token(&token)
     // 4. 注入 AuthUser 到请求扩展
     // 注: 不查 Redis 黑名单，不查数据库
 }
@@ -53,7 +55,8 @@ pub async fn auth_middleware(
 
 ```rust
 pub async fn optional_auth_middleware(
-    request: Request,
+    State(state): State<AppState>,
+    mut request: Request,
     next: Next,
 ) -> Response {
     // 尝试解析 token，失败也继续
@@ -81,15 +84,25 @@ pub async fn optional_auth_middleware(
 - 检查在 auth handler 层（`is_token_blacklisted()`），不在中间件层
 - 登出时撤销当前 access_token，同时删除 refresh_token
 
+> **实现状态：** `is_token_blacklisted()` 函数已定义（`backend/crates/api/src/middleware/auth.rs`），但尚未在路由 handler 中实际调用。Redis 黑名单检查功能已就绪，`logout` handler 中的集成待完成。
+
+## family_id 令牌旋转
+
+- refresh_token 携带 `family_id` 用于令牌族追踪
+- `family_id` 已在 JWT claims 和 `refresh_tokens` 表中实现
+- 当前代码在 `blog_core::auth` 中生成并存储 `family_id`，但令牌旋转（检测重放攻击）逻辑尚未在 API handler 中完全接线
+
+> **实现状态：** `family_id` 已生成并存储在未来版本。旋转逻辑（使用 `replaced_by_hash` 链检测）定义为计划功能，尚未在 `POST /auth/refresh` handler 中激活。
+
 ## 技术决策
 
 | 决策点 | 当前方案 | 计划 |
 |--------|---------|------|
 | JWT 存储 | HttpOnly Cookie + Authorization Header | 维持双路径 |
 | 密码哈希 | Argon2id | 维持 |
-| 令牌黑名单 | Redis String `blacklist:{token_hash}` | 维持 |
+| 令牌黑名单 | 函数已实现，handler 接线待完成 | 完成 handler 集成 |
 | 登录方式 | 密码 + JWT | 远期规划 WebAuthn 无密码 |
-| 令牌刷新 | family_id 令牌旋转（防重放） | 维持 |
+| 令牌刷新 | family_id 已生成存储，旋转逻辑未接线 | 完成令牌旋转检测 |
 | 中间件职责 | 仅签名校验，无 I/O | 维持 |
 
 > **WebAuthn 无密码登录** — 尚未实施。当前为纯 JWT 密码方案。

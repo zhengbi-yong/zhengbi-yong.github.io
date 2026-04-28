@@ -17,22 +17,24 @@
 ```
 | 写入侧（Command Side）          读取侧（Query Side）
 |┌──────────────────┐           ┌──────────────────┐
-│ TipTap editor    │           │ Next.js SSG       │
-│ editor.getJSON() │           │ MDX → HTML        │
-└────────┬─────────┘           └────────▲─────────┘
-         │                              │
-         ▼                              │
-┌──────────────────┐           ┌────────┴─────────┐
-│ content_json     │  自动派生  │ content_mdx      │
-│ (JSONB, NULLABLE)│ ────────→ │ (TEXT, NULLABLE) │
-│ 单一事实来源       │           │ 高效读取/分发     │
-└──────────────────┘           └──────────────────┘
+|│ TipTap editor    │           │ Next.js SSG       │
+|│ editor.getJSON() │           │ MDX → HTML        │
+|└────────┬─────────┘           └────────▲─────────┘
+|         │                              │
+|         ▼                              │
+|┌──────────────────┐           ┌────────┴─────────┐
+|│ content_json     │  前端同时   │ content_mdx      │
+|│ (JSONB, NULLABLE)│ ──发送──→  │ (TEXT, NULLABLE) │
+|│ 单一事实来源       │           │ 高效读取/分发     │
+|└──────────────────┘           └──────────────────┘
 ```
 
-- **`content_json` (JSONB)** — 写入侧单一事实来源（Single Source of Truth）。可为 `NULL`，后端三级降级策略：`content_mdx` → 从 `content_json` 实时转换 → 旧 `content` 列
-- **`content_mdx` (TEXT)** — 读取侧优化视图，供 SSR/SSG 直读。可为 `NULL`，后端根据 `content_json` 自动派生
+- **`content_json` (JSONB)** — 写入侧单一事实来源（Single Source of Truth）。可为 `NULL`。
+- **`content_mdx` (TEXT)** — 读取侧优化视图，供 SSR/SSG 直读。可为 `NULL`。
+- 前端**客户端驱动双写模式**：前端计算 MDX（通过 `saveToMdx()`）并同时发送 `content_json`（TipTap JSON AST）和 `content_mdx`（MDX 文本）到后端。后端同时保存两者。
 - 写入绝对安全，格式转换永不丢数据
 - 未来可迁移：即使放弃 TipTap，MDX 依然是 Portable 标准格式
+- **三级降级策略（读取侧 `get_post`）：** 优先使用 `content_json`（JSON AST）供编辑器加载，其次从 `content`（MDX）通过 `loadToEditor()` 转换为编辑器可识别格式。`content_mdx` 主要用于后端 SSG 渲染和迁移管线。
 
 ## 数学公式节点名
 
@@ -83,9 +85,10 @@
 | 优先级 | 改造项 | 说明 |
 |-------|--------|------|
 | P0 | 正则量词修复 | `[\\s\\S]+` → `[\\s\\S]*`，支持空 math div |
-| P1 | saveToMdx 参与数学还原 | 让 saveToMdx 在 turndown 后处理数学公式 |
-| P1 | loadToEditor HTML 实体解码 | `data-latex="a&amp;b"` → `a&b` |
+| ✅ P1 | saveToMdx 参与数学还原 | 让 saveToMdx 在 turndown 后处理数学公式 — 已实现 |
+| ✅ P1 | loadToEditor HTML 实体解码 | `data-latex="a&amp;b"` → `a&b` — 已实现 |
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
 || ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
-|| P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
+| P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 — 前端 MDXContentBridge 已部分处理占位符 |
 || 已解决 ✅ | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理 |
+| 🐛 已知 Bug | InsertMathModal 使用 `'math'` 而非 `'blockMath'` | `InsertMathModal` 第 384 行 `node.type` 传的是 `'math'`，但后端 AST 转换期望 `'blockMath'`。后端映射表已用 `blockMath`，但前端模态框仍传旧名称，导致块级公式前端预览可能不匹配 |

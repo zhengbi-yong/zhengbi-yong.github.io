@@ -2,6 +2,9 @@
 
 > 来源：EDITOR_SYSTEM_DESIGN.md P8 — 扩展阶段，尚未实施
 
+> **注意**: 密码哈希部分（Argon2id）已在 `backend/crates/core/src/auth.rs` 中实现并投入生产使用。
+> 其余数据隐私 API（数据导出、删除、自动清除策略）仍处于规划阶段。
+
 ## 合规要求
 
 | 法规 | 适用范围 | 核心要求 |

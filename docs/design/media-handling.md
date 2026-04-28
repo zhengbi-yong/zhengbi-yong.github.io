@@ -8,7 +8,7 @@
 编辑器/管理界面中选择文件
        │
        ▼
-POST /admin/media/upload (Multipart POST)
+POST /api/v1/admin/media/upload (Multipart POST)
        │
        ├─ 文件类型检测 (MIME)
        ├─ 生成 UUID 文件名 (object_key，防冲突)
@@ -22,27 +22,24 @@ POST /admin/media/upload (Multipart POST)
 
 ### 上传端点
 
-- **`POST /admin/media/upload`** — 直接 Multipart POST 上传
-- **`POST /admin/media/presign-upload`** — 预签名直传 URL（前端直接传 S3）
-- **`POST /admin/media/finalize`** — 预签名上传完成后登记到数据库
+- **`POST /api/v1/admin/media/upload`** — 直接 Multipart POST 上传
+- **`POST /api/v1/admin/media/presign-upload`** — 预签名直传 URL（前端直接传 S3）
+- **`POST /api/v1/admin/media/finalize`** — 预签名上传完成后登记到数据库
 
 > 上传由 Rust Axum 直接处理，不经过 Next.js BFF 代理。
 
-### 存储后端抽象
+### 存储后端抽象（枚举分发）
 
 ```rust
-// 抽象存储层 (state.storage)
-pub trait StorageBackend {
-    async fn store(&self, key: &str, data: &[u8], content_type: &str) -> Result<()>;
-    async fn delete(&self, key: &str) -> Result<()>;
-    async fn presign_upload(&self, key: &str, expires_in: Duration) -> Result<String>;
-    async fn presign_download(&self, key: &str, expires_in: Duration) -> Result<String>;
+// storage.rs — 枚举而非 trait，避免动态分发 (dyn dispatch)
+pub enum StorageBackend {
+    Local(LocalStorage),
+    Minio(MinioStorage),
 }
 ```
 
-支持实现:
-- S3/MinIO (`S3StorageBackend`)
-- 本地文件系统 (`LocalStorageBackend`)
+每个变体（`LocalStorage` / `MinioStorage`）各自实现 `store`、`delete`、`head`、`object_url`、`presigned_upload_url` 等方法，
+通过 `StorageBackend` 的 `match self { ... }` 模式派发。
 
 ## 媒体表结构
 
@@ -51,19 +48,41 @@ pub trait StorageBackend {
 ```sql
 CREATE TABLE media (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    filename        TEXT NOT NULL,
-    url             TEXT NOT NULL,
+    filename        TEXT NOT NULL,              -- 原始文件名（显示用）
+    original_filename TEXT NOT NULL,             -- 上传时的原始文件名
     mime_type       TEXT NOT NULL,
-    size            BIGINT NOT NULL,
+    size_bytes      BIGINT NOT NULL,
     width           INTEGER,
     height          INTEGER,
+    storage_path    TEXT NOT NULL,               -- 存储路径（object key）
+    cdn_url         TEXT,                        -- CDN 加速 URL
     alt_text        TEXT,
-    uploader_id     UUID REFERENCES users(id),
-    article_id      UUID REFERENCES posts(id),
+    caption         TEXT,
+    uploaded_by     UUID REFERENCES users(id) ON DELETE SET NULL,
+    media_type      TEXT NOT NULL DEFAULT 'image',  -- image / video / document / other
+    usage_count     INTEGER NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at      TIMESTAMPTZ
 );
+
+-- 索引
+CREATE INDEX idx_media_uploaded_by ON media(uploaded_by);
+CREATE INDEX idx_media_media_type ON media(media_type);
+CREATE INDEX idx_media_created_at ON media(created_at DESC);
+CREATE INDEX idx_media_deleted_at ON media(deleted_at) WHERE deleted_at IS NOT NULL;
 ```
+
+> 注意：没有 `article_id` 列。文章-媒体关联通过 `post_media` 关联表实现。
+
+支持字段：
+- `original_filename` — 原始的、未经重命名的文件名
+- `storage_path` — 经过 UUID 重命名的存储路径（object key）
+- `cdn_url` — 如果配置了 CDN，这里存储可公开访问的加速 URL
+- `caption` — 图片说明文字
+- `uploaded_by` — 上传者
+- `media_type` — 媒体类型分类（image/video/document/other）
+- `usage_count` — 引用计数
 
 ## 尚未实施的功能
 

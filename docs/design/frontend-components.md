@@ -6,7 +6,7 @@
 
 | 文件 | 职责 |
 |------|------|
-| `frontend/src/app/layout.tsx` | 全局 CSS 入口、字体、主题层、suppressHydrationWarning |
+| `frontend/src/app/layout.tsx` | 全局 CSS 入口、字体（Inter, JetBrains Mono, Newsreader）、主题层、suppressHydrationWarning、providers 组装 |
 
 ## 2) 页眉模块 (Header)
 
@@ -45,6 +45,8 @@
 | `admin/AdminLayout.tsx` | 后台布局（侧栏 + 顶栏 + 内容区） |
 | `app/(admin)/admin/layout.tsx` | 后台布局入口 |
 
+> **关于 Contentlayer**：`AuthorLayout.tsx` 从 `contentlayer/generated` 导入 `Authors` 类型，但底层使用 **Velite** 数据兼容转换（详见 `src/lib/contentlayer/generated.ts`）。
+
 ## 5) 代码块 (CodeBlock)
 
 | 文件 | 职责 |
@@ -68,7 +70,22 @@
 | `home/LatestWriting.tsx` | 最新文章 |
 | `home/MegaFooter.tsx` | 尾页巨型 Footer |
 
-## 8) 主题与视觉 Token
+## 8) 根布局 Provider 组件
+
+以下组件在 `layout.tsx` 中被引用，属于全局基础设施：
+
+| 文件 | 职责 |
+|------|------|
+| `SkipLink.tsx` | 无障碍跳过导航 |
+| `ServiceWorkerRegister.tsx` | Service Worker 注册 |
+| `VisitorTracker.tsx` | 访客追踪 |
+| `I18nProvider.tsx` | 国际化上下文 |
+| `auth/AuthInitializer.tsx` | 认证状态初始化 |
+| `LazyLoadedComponents.tsx` | 延迟加载（Analytics, KeyboardNavigation, FocusManager） |
+| `shadcn/ui/sonner.tsx` | Toaster 通知组件 |
+| `lib/providers/query-provider.tsx` | React Query Provider |
+
+## 9) 主题与视觉 Token
 
 | 文件 | 用途 |
 |------|------|
@@ -80,7 +97,7 @@
 | `styles/admin-compact.css` | 后台紧凑模式 |
 | `styles/prism.css` | 代码高亮 |
 
-## 9) 设计交付规范
+## 10) 设计交付规范
 
 每个模块交付 5 个文件夹（Figma）：
 
@@ -97,3 +114,8 @@
 - [ ] 所有交互态齐全
 - [ ] 关键空态/异常态齐全
 - [ ] Token 命名与代码变量映射齐全
+
+> **注：并发 UI Store** — 代码中存在两个 UI 状态管理文件：
+> - `lib/store/ui-store.ts`（Zustand）：theme, sidebar, modal 等基础 UI 状态
+> - `lib/ui/UIStore.ts`（React Context）：loading, notifications, modals, sidebar, colorMode
+> 两者职责有重叠，维护时注意区分。
