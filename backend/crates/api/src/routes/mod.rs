@@ -20,6 +20,7 @@ pub mod versions; // 优化后的搜索模块
 pub use admin::*;
 pub use auth::*;
 pub use comments::*;
+pub use mdx_convert::*;
 pub use mdx_sync::*;
 pub use openapi::*;
 pub use posts::*;

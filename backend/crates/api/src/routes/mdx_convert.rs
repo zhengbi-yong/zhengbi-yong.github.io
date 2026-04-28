@@ -245,15 +245,6 @@ pub async fn migrate_all_content_json(
     .await
     .map_err(AppError::Database)?;
 
-    eprintln!("DEBUG migrate-all: rows_raw.len() = {}", rows_raw.len());
-    use std::io::Write;
-    let mut f = std::fs::File::options()
-        .append(true)
-        .create(true)
-        .open("/tmp/migrate-debug.log")
-        .unwrap();
-    writeln!(f, "DEBUG migrate-all: rows_raw.len() = {}", rows_raw.len()).unwrap();
-
     let rows_with_mdx: Vec<(String, String)> = rows_raw
         .iter()
         .map(|row| {

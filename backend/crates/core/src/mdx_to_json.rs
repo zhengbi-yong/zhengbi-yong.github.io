@@ -324,7 +324,7 @@ impl ParseContext {
                 }
                 Event::DisplayMath(text) => {
                     self.current_content().push(json!({
-                        "type": "math",
+                        "type": "blockMath",
                         "attrs": {"latex": text.as_ref()}
                     }));
                 }
@@ -697,7 +697,7 @@ mod tests {
             b["type"] == "paragraph"
                 && b.get("content")
                     .and_then(|c| c.as_array())
-                    .map(|a| a.iter().any(|t| t["type"] == "math"))
+                    .map(|a| a.iter().any(|t| t["type"] == "blockMath"))
                     .unwrap_or(false)
         });
         assert!(

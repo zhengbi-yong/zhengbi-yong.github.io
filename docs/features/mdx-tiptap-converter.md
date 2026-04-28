@@ -248,7 +248,6 @@ pub fn mdx_to_tiptap_json_with_stats(mdx_text: &str) -> (Value, ConversionStats)
 | `backend/crates/api/src/routes/mod.rs` | 🔧 修改 | 注册 mdx_convert 模块 |
 | `backend/crates/api/src/main.rs` | 🔧 修改 | 注册路由到 `admin_routes` 组 |
 | `docs/features/mdx-tiptap-converter.md` | 📝 本文档 | 设计文档 |
-| `backend/crates/core/tests/mdx_roundtrip.rs` | 🔧 测试 | Roundtrip 集成测试 |
 
 ## 注意事项
 

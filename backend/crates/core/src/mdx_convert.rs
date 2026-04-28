@@ -55,7 +55,7 @@ pub fn tiptap_json_to_mdx(json: &Value) -> String {
                 "image" => render_image(attrs),
                 "video" => render_video(attrs),
                 "inlineMath" => render_inline_math(json),
-                "math" => render_display_math(json),
+                "blockMath" => render_display_math(json),
                 "table" => render_table(content),
                 "tableRow" => render_table_row(content),
                 "tableCell" => render_table_cell(content),
@@ -556,7 +556,7 @@ fn render_inline_node(node: &Value) -> String {
             .map(|a| render_video(Some(a)))
             .unwrap_or_default(),
         "inlineMath" => render_inline_math(node),
-        "math" => render_display_math(node),
+        "blockMath" => render_display_math(node),
         _ => {
             // Unknown inline: try to render children
             node.get("content")
@@ -736,7 +736,7 @@ mod tests {
         let json = serde_json::json!({
             "type": "doc",
             "content": [
-                { "type": "math", "attrs": { "latex": "\\frac{-b}{a}" } }
+                { "type": "blockMath", "attrs": { "latex": "\\frac{-b}{a}" } }
             ]
         });
         assert_eq!(tiptap_json_to_mdx(&json), "$$\n\\frac{-b}{a}\n$$");

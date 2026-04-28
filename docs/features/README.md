@@ -13,6 +13,7 @@ Each document answers the same questions:
 ## Major features
 
 - [Content and MDX](../../../../../docs/features/content-and-mdx.md)
+- [MDX ↔ TipTap JSON Converter](../../../../../docs/features/mdx-tiptap-converter.md)
 - [Search and Discovery](../../../../../docs/features/search-and-discovery.md)
 - [Admin and Moderation](../../../../../docs/features/admin-and-moderation.md)
 - [Auth and Engagement](../../../../../docs/features/auth-and-engagement.md)
