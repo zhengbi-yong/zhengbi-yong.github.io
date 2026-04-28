@@ -22,7 +22,7 @@ id UUID PRIMARY KEY DEFAULT uuid_generate_v7()
 | 主键 | UUIDv7 | `id UUID PRIMARY KEY DEFAULT uuid_generate_v7()` |
 | 唯一约束+软删除 | 部分唯一索引 | `CREATE UNIQUE INDEX ... WHERE deleted_at IS NULL` |
 | 高频 UPDATE 表 | 禁止额外索引 | post_stats 不加索引 |
-| JSONB 查询 | jsonb_path_ops | `USING GIN (profile jsonb_path_ops)` |
+| JSONB 查询 | jsonb_path_ops | `USING GIN (profile jsonb_path_ops)` — 创建为 `idx_users_profile_gin` |
 | 树形结构 | ltree + GIST | `USING GIST (path)` |
 | 双轨存储 | JSONB GIN | `USING GIN (content_json jsonb_path_ops)` |
 
@@ -70,6 +70,8 @@ CREATE UNIQUE INDEX idx_users_username_active ON users (username) WHERE deleted_
 ```
 
 原因：标准 SQL 中 `NULL ≠ NULL`，软删除的行无法与活跃行区分唯一性。
+
+> 注：实际创建的名称为 `idx_users_profile_gin`（非 `idx_users_profile`）。
 
 ## 文章表 (posts) — 双轨存储核心
 
@@ -140,7 +142,9 @@ CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_
 | `content` | TEXT | 旧列，过渡期保留向后兼容 |
 | `content_html` | TEXT | 旧列，过渡期保留 |
 
-## 评论表 (comments)
+> 注：`comment_likes` 表的实际主键为 `id BIGSERIAL PRIMARY KEY`，并附加 `UNIQUE(comment_id, user_id)` 约束（非复合主键）。
+
+### 评论表 (comments)
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS ltree;
@@ -240,20 +244,37 @@ CREATE TABLE post_tags (
 ```
 
 ### 媒体 (media)
+
+> 注：实际 schema 与下方略有不同 — 见 migration 0004_create_cms_tables.sql。
+
 ```sql
 CREATE TABLE media (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    filename TEXT NOT NULL,
-    url TEXT NOT NULL,
-    mime_type TEXT NOT NULL,
-    size BIGINT NOT NULL,
-    width INTEGER,
-    height INTEGER,
-    alt_text TEXT,
-    uploader_id UUID REFERENCES users(id),
-    article_id UUID REFERENCES posts(id),
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    filename        TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
+    mime_type       TEXT NOT NULL,
+    size_bytes      BIGINT NOT NULL,
+    width           INTEGER,
+    height          INTEGER,
+    storage_path    TEXT NOT NULL,
+    cdn_url         TEXT,
+    alt_text        TEXT,
+    caption         TEXT,
+    uploaded_by     UUID REFERENCES users(id),
+    media_type      TEXT NOT NULL DEFAULT 'image',
+    usage_count     INTEGER NOT NULL DEFAULT 0,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at      TIMESTAMPTZ
+);
+
+-- 文章与媒体的多对多关系（替代 article_id 外键）
+CREATE TABLE post_media (
+    post_id  UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    media_id UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    PRIMARY KEY (post_id, media_id)
 );
 ```
 
@@ -265,9 +286,10 @@ CREATE TABLE post_versions (
     version_number INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    summary TEXT,
+    change_log TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by UUID REFERENCES users(id),
-    comment TEXT,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     UNIQUE (post_id, version_number)
 );
 ```
@@ -282,14 +304,18 @@ CREATE TABLE post_likes (
 );
 
 CREATE TABLE comment_likes (
+    id BIGSERIAL PRIMARY KEY,
     comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (comment_id, user_id)
+    UNIQUE (comment_id, user_id)
 );
 ```
 
 ### 浏览记录 (views)
+
+> 注意：该表尚未创建（无对应 migration 文件）。浏览计数当前通过 `post_stats` 表的 `view_count` 列追踪。
+
 ```sql
 CREATE TABLE views (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),

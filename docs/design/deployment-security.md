@@ -37,16 +37,11 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
 - 未设置 `securityContext`
-- 存活探针: `/.well-known/live:3000` (initialDelaySeconds: 20, periodSeconds: 20)
-- 就绪探针: `/.well-known/ready:3000` (initialDelaySeconds: 10, periodSeconds: 10)
+- 存活探针: `/livez:3000`（注：实际代码路由为 `/.well-known/live`，需要修正）
+- 就绪探针: `/readyz:3000`（注：实际代码路由为 `/.well-known/ready`，需要修正）
 - 密钥引用: `blog-runtime-secrets`
 
-K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
-- `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
-- `capabilities.drop: ["ALL"]`
-- `tmpfs` 卷挂载 `/tmp`
-
-> 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
+> 注：`deployments/k3s/blog-backend.yaml` 文件尚未创建。K3s 安全上下文配置（`runAsNonRoot`, `readOnlyRootFilesystem`, `capabilities.drop`）应补充到 K8s base 配置中。
 
 ## 健康检查
 
@@ -56,9 +51,10 @@ K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 |------|------|------|
 | `/.well-known/live` | 存活探针 | 只返回 200 |
 | `/.well-known/ready` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| `/health` | 基本健康 | 返回 "OK" |
 | `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
 | `/metrics` | Prometheus 指标 | 指标数据 |
+
+> 注：实际 Dockerfile HEALTHCHECK 使用 `/healthz`（需修正为 `/.well-known/live`）。Docker Compose 生产配置的 healthcheck 使用 `/livez`（也需修正）。K8s base api-deployment.yaml 的 liveness/readiness 探针使用 `/livez` 和 `/readyz`（均需修正为 `/.well-known/live` 和 `/.well-known/ready`）。`/health` 端点未在 main.rs 中注册。
 
 ## 环境变量与密钥管理
 
@@ -79,6 +75,8 @@ envFrom:
 - `RUST_LOG`
 - `ENVIRONMENT` (development/production)
 - SMTP 配置（可选）
+- `MEILISEARCH_MASTER_KEY`（搜索，可选）
+- `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY`（媒体存储，可选）
 
 ## 备份策略
 

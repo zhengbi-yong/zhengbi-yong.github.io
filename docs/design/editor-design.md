@@ -82,10 +82,10 @@
 
 | 优先级 | 改造项 | 说明 |
 |-------|--------|------|
-| P0 | 正则量词修复 | `[\\s\\S]+` → `[\\s\\S]*`，支持空 math div |
-| P1 | saveToMdx 参与数学还原 | 让 saveToMdx 在 turndown 后处理数学公式 |
-| P1 | loadToEditor HTML 实体解码 | `data-latex="a&amp;b"` → `a&b` |
+| P0 | 正则量词修复 | `[\\\\s\\\\S]+` → `[\\\\s\\\\S]*`，支持空 math div |
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
-|| ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
-|| P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
-|| 已解决 ✅ | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理 |
+||| ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
+||| P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
+||| 🚧 | insertMath 插入 'math' 而非 'blockMath' | TiptapEditor.tsx `insertMath` 插入 type:'math'，但 AST 转换器处理 'blockMath'（`@tiptap/extension-mathematics` 注册名），需统一 |
+
+> 注：`saveToMdx`/`loadToEditor` 函数未作为独立前端组件存在 — 前端通过 `editor.getJSON()` → API → Rust `tiptap_json_to_mdx()` 完成保存，通过 API → `editor.setContent(content_json)` 完成加载。

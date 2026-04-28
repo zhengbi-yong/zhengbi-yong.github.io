@@ -1,6 +1,11 @@
 # 首页沉浸式体验设计
 
 > 来源：superpowers/specs/2026-04-03-immersive-homepage-redesign.md
+>
+> **注**：当前首页实现（`src/app/Main.tsx`）使用了不同的组件结构：
+> AnimatedHeading + SocialCard + HeroCard + Explore + FeaturedWork + BlogSection + NewsletterSignup。
+> 以下文档描述的是目标设计，而非当前实现。HeroSection、BentoGrid、ProjectGallery、MusicExperience、
+> LatestWriting 等组件存在于代码中但未集成到首页。自定义鼠标指针和 GSAP 动画也未实现（使用 Framer Motion 替代）。
 
 ## 页面结构
 

@@ -270,6 +270,7 @@ async fn auth_middleware(
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | 基本健康检查 | 返回 "OK" |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |
+
+> 注：`/health` 基本端点当前未注册（handler 存在但 main.rs 未配置路由）。K8s base 配置中的 `/livez` 和 `/readyz` 路径需要修正为 `/.well-known/live` 和 `/.well-known/ready`。Swagger UI 因 stack overflow 测试被临时禁用。

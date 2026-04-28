@@ -31,18 +31,23 @@ POST /admin/media/upload (Multipart POST)
 ### 存储后端抽象
 
 ```rust
-// 抽象存储层 (state.storage)
-pub trait StorageBackend {
+// 存储层 — 枚举调度（非 trait 对象）
+pub enum StorageBackend {
+    Local(LocalStorage),
+    Minio(MinioStorage),
+}
+
+impl StorageBackend {
     async fn store(&self, key: &str, data: &[u8], content_type: &str) -> Result<()>;
     async fn delete(&self, key: &str) -> Result<()>;
-    async fn presign_upload(&self, key: &str, expires_in: Duration) -> Result<String>;
-    async fn presign_download(&self, key: &str, expires_in: Duration) -> Result<String>;
+    async fn presigned_upload_url(&self, key: &str, content_type: &str, expires_secs: u32) -> Result<Option<String>>;
+    async fn presigned_download_url(&self, key: &str, expires_secs: u32) -> Result<Option<String>>;
 }
 ```
 
 支持实现:
-- S3/MinIO (`S3StorageBackend`)
-- 本地文件系统 (`LocalStorageBackend`)
+- MinIO (`MinioStorage`)
+- 本地文件系统 (`LocalStorage`)
 
 ## 媒体表结构
 
@@ -50,18 +55,32 @@ pub trait StorageBackend {
 
 ```sql
 CREATE TABLE media (
-    id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    filename        TEXT NOT NULL,
-    url             TEXT NOT NULL,
-    mime_type       TEXT NOT NULL,
-    size            BIGINT NOT NULL,
-    width           INTEGER,
-    height          INTEGER,
-    alt_text        TEXT,
-    uploader_id     UUID REFERENCES users(id),
-    article_id      UUID REFERENCES posts(id),
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at      TIMESTAMPTZ
+    id                UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    filename          TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
+    mime_type         TEXT NOT NULL,
+    size_bytes        BIGINT NOT NULL,
+    width             INTEGER,
+    height            INTEGER,
+    storage_path      TEXT NOT NULL,
+    cdn_url           TEXT,
+    alt_text          TEXT,
+    caption           TEXT,
+    uploaded_by       UUID REFERENCES users(id),
+    media_type        TEXT NOT NULL DEFAULT 'image',
+    usage_count       INTEGER NOT NULL DEFAULT 0,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at        TIMESTAMPTZ
+);
+
+-- 文章与媒体多对多关系（替代 article_id 外键）
+CREATE TABLE post_media (
+    post_id    UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    media_id   UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (post_id, media_id)
 );
 ```
 

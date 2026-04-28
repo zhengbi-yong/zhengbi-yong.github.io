@@ -28,7 +28,7 @@
 1. 用户提交凭据 → POST /auth/login
 2. 后端验证凭据（Argon2id）
 3. 成功 → 签发 access_token(15min) + refresh_token(7天)
-4. 返回 JSON (含 access_token) + 设置两个 HttpOnly Cookie
+4. 返回 JSON (含 access_token) + 设置三个 HttpOnly Cookie（access_token、refresh_token、XSRF-TOKEN）
 5. 后续请求: Cookie → axum 读取 → extract_token() 决定来源
 ```
 
@@ -78,6 +78,12 @@ pub async fn optional_auth_middleware(
 ## 令牌黑名单
 
 - 撤销的 access_token 存入 Redis: `blacklist:{token_hash}` → `"1"`，TTL = 剩余有效期
+- 注：当前 logout handler 仅撤销 refresh_token（设置 `revoked_at`），未将 access_token 加入 Redis 黑名单。如需立即失效 access_token，需实现 `blacklist_token()` 调用。
+
+## 刷新令牌
+
+- POST /auth/refresh 验证 refresh_token 后签发新的 access_token
+- 注：当前未实现 refresh_token 旋转（创建新 refresh_token 并废除旧令牌）。每次刷新仅返回新 access_token。
 - 检查在 auth handler 层（`is_token_blacklisted()`），不在中间件层
 - 登出时撤销当前 access_token，同时删除 refresh_token
 

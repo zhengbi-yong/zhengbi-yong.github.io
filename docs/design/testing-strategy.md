@@ -19,7 +19,7 @@
 
 | 层级 | 工具 | 目标 | 现状 |
 |------|------|------|------|
-| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 28 个测试文件，16 个 mdx_convert 测试 |
+| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 27 个测试文件，16 个 mdx_convert 测试 |
 | Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
 | TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
 | 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
@@ -42,7 +42,7 @@
 | `codeblock-rendering.spec.ts` | 代码块渲染 |
 | `content-cqrs.spec.ts` | 内容 CQRS 双轨 |
 | `api-contract.spec.ts` | API 契约测试 |
-| `blog-rendering.spec.ts` | 博客渲染（Playwright 配置需调整） |
+| `editor-full-workflow.spec.ts` | 编辑器完整工作流 |
 
 ## 回归测试流程
 
@@ -55,15 +55,17 @@ cd backend && cargo test --workspace && cargo clippy
 # 2. 前端
 cd frontend && pnpm test && npx eslint . --max-warnings=600
 
-# 3. E2E（CI 环境）
+# 3. E2E（CI 环境，仅运行子集：abc-notation 和 search）
 pnpm test:e2e
 ```
+
+> 注：CI (`frontend-ci.yml`) 仅运行 `abc-notation.spec.ts` 和 `search.spec.ts` 两个 E2E 文件（因环境限制），全量 E2E 需在本地执行。`make test` 命令仅运行后端 `cargo test` 和前端 `pnpm test`（不含 clippy、eslint、E2E）。
 
 ## 性能基准
 
 | 指标 | 目标 | 工具 |
 |------|------|------|
-| API P95 响应时间 | < 200ms | k6 / autocannon |
-| 首屏加载 (FCP) | < 1.5s | Lighthouse CI |
+| API P95 响应时间 | < 200ms | k6 / autocannon（待实施，无基准脚本） |
+| 首屏加载 (FCP) | < 1.5s | Lighthouse CI（已配置，但无性能阈值） |
 | 交互时间 (TTI) | < 3s | Lighthouse CI |
-| API 吞吐 | > 1000 req/s | k6 |
+| API 吞吐 | > 1000 req/s | k6（待实施） |

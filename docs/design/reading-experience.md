@@ -73,12 +73,13 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
 - 移动端断点：1024px（Monograph 的 1280px 过晚，原 768px 过早）
 
-## 阅读进度条 (ReadingProgressBar)
+## 阅读进度条
 
+阅读进度条（非独立组件，内联于 `PostLayoutMonograph.tsx` 中）：
 - `position: fixed; top: 0; left: 0; z-index: 50;`
 - 高度：2px，品牌渐变背景
 - 宽度 = `scrollY / (scrollHeight - clientHeight)`
-- `requestAnimationFrame` 节流实现 60fps
+- `useReadingProgressWithApi` hook 驱动
 
 ## 代码块
 

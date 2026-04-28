@@ -6,7 +6,7 @@
 |------|------|------|
 | 前端框架 | Next.js | 16.2.2 (App Router) |
 | UI 库 | React | 19.2 |
-| 动画 | Framer Motion, GSAP | 最新 |
+| 动画 | Framer Motion | 最新（GSAP 可用但非首页主要工具） |
 | 后端通信 | `apiClient.ts` + `backend.ts` | — |
 | UI 状态 | Zustand (仅 UI 状态) | — |
 
@@ -21,14 +21,20 @@ frontend/src/
 │   │   ├── layout.tsx         # 公开页外壳
 │   │   └── blog/[...slug]/
 │   │
-│   ├── (admin)/                # 管理后台 - 严格 SSR+权限
-│   │   └── admin/
-│   │       ├── layout.tsx     # 侧边栏 + Auth 校验
-│   │       ├── posts/
-│   │       ├── users/
-│   │       ├── comments/
-│   │       └── media/
-│   │
+├── (admin)/                # 管理后台 - 严格 SSR+权限
+│   └── admin/
+│       ├── layout.tsx     # 侧边栏 + Auth 校验
+│       ├── posts/
+│       ├── users/
+│       ├── comments/
+│       └── media/
+│
+├── blog/                   # 博客公开路径（主力路由）
+│   └── [...slug]/          # 博客文章页面
+│
+├── page.tsx                # 首页（位于 app/ 级别，不在 (public) 下）
+│
+├── (auth)/                 # 认证相关路由
 │   └── api/
 │       └── v1/[...path]/      # BFF 代理（仅 Client 组件调用）
 │
@@ -93,17 +99,19 @@ export const postService = {
 
 | Store | 存什么 | 存哪里 | 原因 |
 |-------|--------|--------|------|
-| ui-store | theme, sidebar, modal | Zustand | 纯 UI，无敏感数据 |
-| UIStore | loading, notifications, modals, sidebar, colorMode | React Context | UI 层级管理 |
-| ~~auth-store~~ | ~~token~~ | ~~localStorage~~ | **禁止!** XSS 风险 |
-| ~~blog-store~~ | ~~posts~~ | ~~localStorage~~ | **禁止!** 用 API 获取 |
+| ui-store | sidebar, theme | Zustand | 纯 UI，无敏感数据 |
+| UIStore | loading, notifications, modals, sidebar, colorMode | Zustand | UI 层级管理（非 React Context） |
+| auth-store | user/auth state | Zustand | 内存状态，不含 token（token 在 HttpOnly Cookie） |
+| blog-store | 文章缓存 | Zustand | 内存缓存，非 localStorage 持久化 |
+
+> **注意**：不要在 localStorage 存 JWT（XSS 风险）。所有 token 走 HttpOnly Cookie 或内存状态。
 
 ## 搜索降级策略
 
 ```typescript
 // 默认: PG FTS，后端全文搜索
 // 前端触发: SearchDashboard.tsx 中实现
-const results = await postService.search(query)
+const results = await searchService.search(query)
 ```
 
 PG FTS 作为默认搜索引擎。Meilisearch 的集成在规划中但尚未实装。

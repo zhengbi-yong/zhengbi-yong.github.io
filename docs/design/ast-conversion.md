@@ -50,13 +50,14 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `image` | `![alt](src)` |
 | `video` | `<video src="...">` |
 | `inlineMath` (latex) | `$latex$` |
-| `math` (latex) | `$$\nlatex\n$$` |
+| `blockMath` (latex) | `$$\nlatex\n$$` |
+| `math` (latex) | `$$\nlatex\n$$`（别名兼容） |
 | `table` / `tableRow` / `tableCell` | Markdown 表格 |
 | `horizontalRule` | `---` |
 | `hardBreak` | 两个空格 + 换行 |
 | `mention` | `@username` |
 | `details` / `summary` | `<details>` / `<summary>` |
-| `callout` | `::: callout-type` |
+| `callout` | `> ℹ️ text` / `> ⚠️ text` / `> 🚨 text` / `> ✅ text` 根据类型（非 `::: callout-type`） |
 
 ### Mark 映射
 

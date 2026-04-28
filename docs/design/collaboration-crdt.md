@@ -58,3 +58,5 @@
 | P7-P1 | Yrs 集成 | Rust 端 CRDT 同步 |
 | P7-P2 | y-prosemirror 绑定 | 前端编辑器接入 |
 | P7-P3 | 光标/选区的意识协议 | 看到其他人正在编辑的位置 |
+
+> **当前状态**：`CollaborationEditor.tsx` 作为组件壳存在（添加 `data-collab-room` 属性），但未导入任何 Yjs/y-prosemirror 依赖。`frontend/scripts/hocuspocus-server.js` 作为独立 Hocuspocus 服务脚本存在。前端 package.json 无 Yjs/y-prosemirror 依赖，后端无 WebSocket handler（无 tungstenite/axum WS 支持）。所有功能均为 P7 规划阶段。

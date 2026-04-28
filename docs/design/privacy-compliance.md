@@ -1,6 +1,8 @@
 # 数据隐私与合规（规划）
 
 > 来源：EDITOR_SYSTEM_DESIGN.md P8 — 扩展阶段，尚未实施
+>
+> **当前状态**：以下所有功能均为规划阶段，代码中无对应实现。无 GDPR/PIPL/CCPA 数据处理逻辑，无数据导出/删除端点，无自动清除策略。
 
 ## 合规要求
 
@@ -32,9 +34,9 @@
 
 ## 用户数据导出 API
 
-```
+```text
 GET /api/v1/user/data-export
-Authorization: Bearer <token>
+Authorization: Bearer ***
 
 → 返回 ZIP，包含:
   ├── profile.json     (用户资料)
@@ -43,14 +45,18 @@ Authorization: Bearer <token>
   └── activity.json    (搜索/浏览历史)
 ```
 
+> 注：当前未实现 — 无 `/api/v1/user/data-export` 端点。
+
 ## 用户数据删除 API
 
 ```
 DELETE /api/v1/user/data
-Authorization: Bearer <token>
+Authorization: Bearer ***
 X-XSRF-TOKEN: <csrf_token>
 
 → 触发异步删除任务
 → 返回 task_id
 → 45天内完成所有数据清除
 ```
+
+> 注：当前未实现 — 无 `/api/v1/user/data` 删除端点。

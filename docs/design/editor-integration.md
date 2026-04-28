@@ -51,12 +51,14 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 粗体/斜体 | StarterKit | ✅ |
 | 列表 (有序/无序) | StarterKit | ✅ |
 | 链接 | Link | ✅ |
-| 代码块 | CodeBlockLowlight | ✅ |
+| 代码块 | ShikiCodeBlock | ✅ 自定义 shiki 扩展（替代 CodeBlockLowlight） |
 | 引用 | Blockquote | ✅ |
 | 表格 | Table | ✅ |
 | 图片 | Image | ✅ |
-| 数学公式 | Mathematics | ✅ |
+| 视频 | VideoExtension (reactjs-tiptap-editor) | ✅ |
+| 数学公式 | Mathematics (BlockMath/InlineMath) + KatexExtension | ✅ |
 | 历史撤销 | UndoHistory | ✅ |
+| Twitter 嵌入 | TwitterExtension (reactjs-tiptap-editor) | ✅ |
 
 ## 保存/加载闭环
 
@@ -64,13 +66,14 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 // 编辑器中提取 JSON
 const json = editor.getJSON()
 
-// 保存到后端
-await fetch('/api/v1/posts', {
+// 保存到后端（管理员端点）
+await fetch('/api/v1/admin/posts', {
   method: 'POST',
   body: JSON.stringify({ content: json })
 })
 
-// 从后端加载
-const { content_json } = await fetch(`/api/v1/posts/${slug}`)
+// 从后端加载（管理员端点）
+const post = await fetch(`/api/v1/admin/posts/${slug}`)
+const { content_json } = await post.json()
 editor.commands.setContent(content_json)
 ```
