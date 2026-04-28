@@ -59,11 +59,11 @@ function MyList() {
 - 智能预加载缓冲区
 - 内存占用恒定O(bufferSize)
 
-#### **ProgressiveImage** - 渐进式图片加载
+#### ~~**ProgressiveImage** - 渐进式图片加载~~ (removed in 2a94a65f: orphaned)
 ```typescript
-import { ProgressiveImage } from '@/components/performance/ProgressiveImage'
+// ~~import { ProgressiveImage } from '@/components/performance/ProgressiveImage'~~  // removed in 2a94a65f
 
-<ProgressiveImage
+<!-- ProgressiveImage removed in 2a94a65f -->
   src="/image.jpg"
   blurhash="L9K}e}%M9Fxu_4RP%MRPYIM{Rk%MRk"
   alt="Description"
@@ -253,12 +253,12 @@ export default function RootLayout({ children }) {
 #### 在文章页面使用渐进式图片
 
 ```typescript
-import { ProgressiveImage } from '@/components/performance/ProgressiveImage'
+// ~~import { ProgressiveImage } from '@/components/performance/ProgressiveImage'~~  // removed in 2a94a65f
 
 function PostPage({ post }) {
   return (
     <article>
-      <ProgressiveImage
+      <!-- ProgressiveImage removed in 2a94a65f -->
         src={post.coverImage}
         blurhash={post.blurhash}
         alt={post.title}

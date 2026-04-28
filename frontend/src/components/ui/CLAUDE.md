@@ -8,7 +8,7 @@ Reusable UI components including accessibility utilities, loading states, image 
 ### Scope
 - Accessibility components (LiveRegion, Status, Alert)
 - Loading indicators (Loader, Skeleton screens)
-- Image optimization (OptimizedImage, EnhancedImage)
+- Image optimization (EnhancedImage; ui/OptimizedImage.tsx removed in 2a94a65f as dead code)
 - Specialized modals (Excalidraw)
 - Interactive containers (SwipeContainer)
 
@@ -122,45 +122,9 @@ interface LoaderProps {
 
 ### Image Components
 
-#### `OptimizedImage`
-
-**Purpose**: Enhanced Next.js Image with loading states and error fallback
-
-**Props Interface**:
-```typescript
-interface OptimizedImageProps extends Omit<ImageProps, 'alt'> {
-  alt: string              // Mandatory for accessibility
-  fallbackSrc?: string     // Error fallback image
-  wrapperClassName?: string
-}
-```
-
-**Features**:
-- **Loading State**: Pulse animation while loading
-- **Load Transition**: Blur-to-clear with scale animation
-- **Error Handling**: Fallback to placeholder on error
-- **Accessibility**: Enforced `alt` attribute
-
-**Animation Classes**:
-```tsx
-className={`
-  duration-700 ease-in-out
-  ${isLoading ? 'scale-110 blur-2xl grayscale' : 'blur-0 scale-100 grayscale-0'}
-`}
-```
-
----
-
-#### `AccessibleImage`
-
-**Purpose**: Type-safe wrapper enforcing accessibility
-
-```typescript
-if (!props.alt) {
-  logger.warn('AccessibleImage: alt prop is required')
-  return <OptimizedImage {...props} alt="Image" />
-}
-```
+> **Note**: `ui/OptimizedImage.tsx` (which exported both `OptimizedImage` and `AccessibleImage`) was removed in commit 2a94a65f as dead code. No files imported either component.
+> The remaining image components are at `@/components/OptimizedImage.tsx` (root) and `@/components/ui/EnhancedImage.tsx`.
+> See `@/components/media/Image/CLAUDE.md` for the consolidation plan.
 
 ---
 
@@ -300,9 +264,9 @@ function BlogPage() {
 
 **Optimized Image**:
 ```tsx
-import { OptimizedImage } from '@/components/ui'
+# import { OptimizedImage } from '@/components/ui'  # removed in 2a94a65f
 
-<OptimizedImage
+<!-- <OptimizedImage ... removed in 2a94a65f -->
   src="/hero.jpg"
   alt="Blog hero image"
   width={1200}

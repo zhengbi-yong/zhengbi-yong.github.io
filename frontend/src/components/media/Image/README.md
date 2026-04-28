@@ -2,14 +2,14 @@
 
 ## 问题分析
 
-当前存在 6 个 Image 相关组件：
+当前存在 4 个 Image 相关组件（ProgressiveImage.tsx 和 ui/OptimizedImage.tsx 已在 commit 2a94a65f 中删除）：
 
 1. **Image.tsx** - 基础 Image 组件（带骨架屏）
 2. **OptimizedImage.tsx** (根目录) - 优化版本
-3. **ProgressiveImage.tsx** - 渐进式加载
+3. ~~**ProgressiveImage.tsx** - 渐进式加载~~ *(已删除：无引用)*
 4. **ImageSkeleton.tsx** - 骨架屏（工具组件，不算重复）
 5. **ui/EnhancedImage.tsx** - 增强版本
-6. **ui/OptimizedImage.tsx** - UI 优化版本
+6. ~~**ui/OptimizedImage.tsx** - UI 优化版本~~ *(已删除：无引用)*
 
 ## 统一组件设计
 

@@ -15,12 +15,12 @@ This module is currently in **design phase** with a comprehensive plan for creat
 
 1. **Image.tsx** - Base Image component with skeleton screen
 2. **OptimizedImage.tsx** (root) - Performance-optimized version
-3. **ProgressiveImage.tsx** - Progressive loading support
+3. ~~**ProgressiveImage.tsx** - Progressive loading support~~ *(deleted: orphaned)*
 4. **ImageSkeleton.tsx** - Skeleton screen utility (kept as sub-module)
 5. **ui/EnhancedImage.tsx** - Enhanced features version
-6. **ui/OptimizedImage.tsx** - UI-optimized version
+6. ~~**ui/OptimizedImage.tsx** - UI-optimized version~~ *(deleted: orphaned)*
 
-**Problem**: 6 components with ~800 lines of code, 59% redundancy
+**Problem**: 4 remaining components (~700 lines, high redundancy). 2 orphaned files (ProgressiveImage.tsx, ui/OptimizedImage.tsx) deleted in commit 2a94a65f.
 
 ### Module Contents
 
@@ -81,8 +81,8 @@ interface UnifiedImageProps extends Omit<ImageProps, 'src'> {
 |---------|-------------------|-------------------|
 | Basic Display | Image.tsx | ✅ |
 | Skeleton Screen | Image.tsx, ImageSkeleton | ✅ |
-| Progressive Loading | ProgressiveImage.tsx | ✅ |
-| Lazy Loading | OptimizedImage, ProgressiveImage | ✅ |
+| Progressive Loading | ~~ProgressiveImage.tsx~~ *(deleted)* | ❌ |
+| Lazy Loading | OptimizedImage (root) | ✅ |
 | Error Handling | Image.tsx, EnhancedImage | ✅ |
 | Performance Optimization | OptimizedImage, EnhancedImage | ✅ |
 | Blur Placeholder | Image.tsx, OptimizedImage | ✅ |
