@@ -16,16 +16,20 @@ import {
 import { Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api/apiClient'
+import { resolveBackendBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
 
 export default function MetricsPage() {
   const [autoRefresh, setAutoRefresh] = useState(true)
+
+  // Health check endpoints are at root level, not under /v1
+  const backendBaseUrl = resolveBackendBaseUrl()
 
   // 使用 useQuery 获取 Prometheus 指标
   // /metrics returns Prometheus text format (not JSON), so we use api.getText
   const { data, isLoading, error, refetch } = useQuery<string>({
     queryKey: ['metrics'],
     queryFn: async () => {
-      return api.getText('/metrics')
+      return api.getText(`${backendBaseUrl}/metrics`)
     },
     refetchInterval: autoRefresh ? 10000 : false, // 10秒自动刷新
   })

@@ -3,7 +3,6 @@
 import { useMemo } from 'react'
 import { ContentItem, CardSize } from './MasonryGrid'
 import BookCard from './BookCard'
-import ArticleCard from './ArticleCard'
 import ChapterCard from './ChapterCard'
 
 /**
@@ -22,8 +21,8 @@ interface SmartCardProps {
  *
  * 根据内容类型自动渲染对应的卡片组件
  * - book → BookCard
- * - article → ArticleCard
- * - chapter → ArticleCard (复用)
+ * - article → ArticleInline (内联渲染)
+ * - chapter → ChapterCard
  */
 export default function SmartCard({
   content,
@@ -64,8 +63,45 @@ export default function SmartCard({
         )
 
       case 'article':
+        return (
+          <div
+            onClick={() => onClick?.(content)}
+            className={`cursor-pointer rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-4 shadow-[var(--shadow-soft)] transition-all hover:shadow-[var(--shadow-raised)] ${className}`}
+          >
+            {content.image && (
+              <div className="mb-3 overflow-hidden rounded-lg">
+                <img
+                  src={content.image}
+                  alt={content.title}
+                  className="h-40 w-full object-cover transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+            )}
+            <h3 className="mb-2 text-base font-bold text-[var(--text-primary)] line-clamp-2">
+              {content.title}
+            </h3>
+            {content.summary && (
+              <p className="text-sm text-[var(--text-soft)] line-clamp-2">
+                {content.summary}
+              </p>
+            )}
+            {content.tags && content.tags.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {content.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-[var(--surface-active)] px-2 py-0.5 text-xs text-[var(--text-soft)]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+
       case 'chapter':
-        return content.type === 'chapter' ? (
+        return (
           <ChapterCard
             chapter={{
               id: content.id,
@@ -76,19 +112,6 @@ export default function SmartCard({
               chapterNumber: parseInt(content.id.split('-')[1] || '1'),
             }}
             compact={size === 'small'}
-            className={className}
-          />
-        ) : (
-          <ArticleCard
-            article={{
-              title: content.title,
-              summary: content.summary,
-              date: content.date || '',
-              tags: content.tags,
-              image: content.image,
-              slug: content.slug,
-            }}
-            layout="vertical"
             className={className}
           />
         )
