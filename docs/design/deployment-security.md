@@ -41,12 +41,21 @@ K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
 - 就绪探针: `/.well-known/ready:3000` (initialDelaySeconds: 10, periodSeconds: 10)
 - 密钥引用: `blog-runtime-secrets`
 
-K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
-- `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
-- `capabilities.drop: ["ALL"]`
-- `tmpfs` 卷挂载 `/tmp`
+> ⚠️ K3s 专用配置文件 `deployments/k3s/blog-backend.yaml` 不存在（`deployments/k3s/` 目录已移除）。安全上下文配置（`runAsNonRoot: true`、`readOnlyRootFilesystem: true`、`capabilities.drop`）应直接在 K8s base 配置中设置。
 
-> 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
+## 安全头
+
+Nginx 配置（`deployments/nginx/conf.d/blog.conf`）中的安全头目前**已注释掉**（第 48-53 行）：
+
+```nginx
+#     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+#     add_header X-Frame-Options "DENY" always;
+#     add_header X-Content-Type-Options "nosniff" always;
+#     add_header X-XSS-Protection "1; mode=block" always;
+#     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+```
+
+> ⚠️ 生产环境部署前需取消注释以上安全头配置。
 
 ## 健康检查
 
@@ -56,7 +65,7 @@ K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 |------|------|------|
 | `/.well-known/live` | 存活探针 | 只返回 200 |
 | `/.well-known/ready` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| `/health` | 基本健康 | 返回 "OK" |
+| `/health` | 基本健康 | 返回 "OK" — ⚠️ handler 已实现但未在路由表中注册（见 `metrics/health.rs`） |
 | `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
 | `/metrics` | Prometheus 指标 | 指标数据 |
 
@@ -76,9 +85,17 @@ envFrom:
 - `PASSWORD_PEPPER` — ≥32 字符
 - `SESSION_SECRET`
 - `CORS_ALLOWED_ORIGINS`
+- `SERVER_HOST` — 监听地址（默认 0.0.0.0）
+- `SERVER_PORT` — 监听端口（默认 3000）
 - `RUST_LOG`
 - `ENVIRONMENT` (development/production)
 - SMTP 配置（可选）
+
+> 注：`AGENTS.md` 提到生产环境 env 文件从 `.env.production.example` 生成。目前该文件存在于 `config/environments/backend/.env.production.example` 和 `config/environments/.env.production.example`，需确认生成流程是否正确引用路径。
+
+## CORS 配置说明
+
+`Settings.cors`（`CorsConfig` 结构体）包含三个字段：`allowed_origins`、`allowed_methods`、`allowed_headers`。但在 `main.rs` 的 `create_cors_layer()` 函数中，目前仅使用了 `allowed_origins` 字段；`allowed_methods` 和 `allowed_headers` 已在结构体中定义但未被 CorsLayer 创建时使用（方法列表和头列表被硬编码）。如需利用配置的字段，需修改 `create_cors_layer()`。
 
 ## 备份策略
 

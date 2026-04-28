@@ -8,21 +8,27 @@
 
 ```
 Desktop (>= 1280px):
-┌───────────────────────────────────────────────────────┐
-│  Progress Bar (2px, fixed top, brand gradient)         │
-├───────────────────────────────────────────────────────┤
-│                    Article Hero                         │
-├──────────────────────────────────┬────────────────────┤
-│                                 │                     │
-│    Main Content (62%)           │   TOC Sidebar (38%) │
-│    max-width: 680px             │   max-width: 320px  │
-│    optimal line length:         │   position: sticky  │
-│    65-75 chars/line             │   top: 2rem         │
-│                                 │   scroll-spy active │
-│                                 │                     │
-├──────────────────────────────────┴────────────────────┤
-│              Recommended Articles / Author Bio          │
-└───────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│  Progress Bar (2px, fixed top, brand gradient)             │
+├───────────────────────────────────────────────────────────┤
+│                    Article Hero                             │
+├──────────────────────────────────────┬────────────────────┤
+│                                      │                     │
+│    Main Content Column (62%)         │   TOC Sidebar (38%) │
+│    max-width: 680px                  │   max-width: 320px  │
+│    optimal line length:              │   position: sticky  │
+│    65-75 chars/line                  │   top: 2rem         │
+│                                      │   scroll-spy active │
+│    ┌─────────────────────────────┐   │                     │
+│    │   Recommended Articles      │   │                     │
+│    ├─────────────────────────────┤   │                     │
+│    │   Comments (inline section) │   │                     │
+│    ├─────────────────────────────┤   │                     │
+│    │   Prev / Next Navigation   │   │                     │
+│    └─────────────────────────────┘   │                     │
+│                                      │                     │
+├──────────────────────────────────────┴────────────────────┤
+└───────────────────────────────────────────────────────────┘
 ```
 
 Tablet (768-1279px)：内容全宽，TOC 折叠为浮动按钮
@@ -33,9 +39,6 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 | 组件 | 状态 |
 |------|------|
 | PostLayoutMonograph | ✅ 唯一活跃布局 |
-| PostSimple | ❌ 已废弃 |
-| PostBanner | ❌ 已废弃 |
-| PostLayout | ❌ 已废弃 |
 
 ## 排版系统
 
@@ -43,8 +46,10 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 
 ```css
 --font-sans: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
+--font-serif: 'Newsreader', 'Noto Serif SC', serif;
 --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
 --font-body: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
+--font-newsreader: 'Newsreader', serif;
 ```
 
 ### 字号比例（Fibonacci-based）
@@ -71,14 +76,14 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：1024px（Monograph 的 1280px 过晚，原 768px 过早）
+- 移动端断点：768px（Monograph 的 1280px 过晚）
 
 ## 阅读进度条 (ReadingProgressBar)
 
 - `position: fixed; top: 0; left: 0; z-index: 50;`
 - 高度：2px，品牌渐变背景
 - 宽度 = `scrollY / (scrollHeight - clientHeight)`
-- `requestAnimationFrame` 节流实现 60fps
+- 使用 debounce + requestAnimationFrame 组合实现节流：scroll 事件触发时 debounce 100ms + RAF 帧同步更新
 
 ## 代码块
 
@@ -101,7 +106,7 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 | TOC 指示器 | scroll | 左边框滑动到新位置 | 200ms |
 | 进度条 | scroll | 宽度过渡（GPU） | 100ms |
 | 复制按钮 | click | 图标切换 + 提示 | 150ms |
-| 评论抽屉 | click | 右侧滑入 | 250ms |
+| 评论区域 | scroll | 文章下方 inline 显示（非抽屉） | 200ms |
 | 暗色模式 | click | CSS 变量过渡 | 200ms |
 
 所有动画使用 `will-change: transform` 和 `transform: translateZ(0)` 开启 GPU 合成。

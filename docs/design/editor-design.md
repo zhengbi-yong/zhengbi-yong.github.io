@@ -29,14 +29,25 @@
 └──────────────────┘           └──────────────────┘
 ```
 
-- **`content_json` (JSONB)** — 写入侧单一事实来源（Single Source of Truth）。可为 `NULL`，后端三级降级策略：`content_mdx` → 从 `content_json` 实时转换 → 旧 `content` 列
-- **`content_mdx` (TEXT)** — 读取侧优化视图，供 SSR/SSG 直读。可为 `NULL`，后端根据 `content_json` 自动派生
+目前 CQRS 双轨存储同时存在于 **4 张表** 中，`content_json` + `content_mdx` 两列在所有表上共存：
+
+| 表 | 说明 |
+|----|------|
+| `posts` | 博客文章主表（已有生产数据） |
+| `post_versions` | 博客文章的版本历史快照 |
+| `articles` | 专栏/长文表（迁移 `2026042701_create_articles.sql` 中） |
+| `article_versions` | 专栏文章的版本历史快照 |
+
+**`content_json` (JSONB)** — 写入侧单一事实来源（Single Source of Truth）。可为 `NULL`，后端三级降级策略：`content_mdx` → 从 `content_json` 实时转换 → 旧 `content` 列。
+
+**`content_mdx` (TEXT)** — 读取侧优化视图，供 SSR/SSG 直读。可为 `NULL`，后端根据 `content_json` 自动派生。
+
 - 写入绝对安全，格式转换永不丢数据
 - 未来可迁移：即使放弃 TipTap，MDX 依然是 Portable 标准格式
 
 ## 数学公式节点名
 
-实际 TipTap 扩展注册的节点名为 `"blockMath"` 和 `"inlineMath"`（来自 `@tiptap/extension-mathematics`），而非旧文档中的 `"math"`。
+实际 TipTap 扩展注册的节点名为 `"blockMath"` 和 `"inlineMath"`（来自自定义 `mathematics-extended` 扩展），但编辑器中插入块级公式时使用的节点名是 `"math"`（来自 `reactjs-tiptap-editor/katex` 命令）。这意味着实际编辑器中同时存在三种数学节点：`"blockMath"`、`"inlineMath"`（自定义扩展）和 `"math"`（Katex 工具栏命令）。在 `mdx_convert.rs` 中，`"math"` 类型被映射为块公式 `$$...$$`，`"inlineMath"` 被映射为内联公式 `$...$`，而 `"blockMath"` 未被覆盖。
 
 ```json
 {
@@ -70,7 +81,8 @@
 | TipTap Node Type | MDX 输出格式 |
 |-----------------|-------------|
 | `inlineMath` (latex: "E=mc^2") | `$E=mc^2$` |
-| `blockMath` (latex: "\begin{bmatrix}...") | `$$\n\begin{bmatrix}...\n$$` |
+| `blockMath` (latex: "\\begin{bmatrix}...") | `$$\\n\\begin{bmatrix}...\\n$$` |
+| `math` (latex: "E=mc^2") | **⚠️ 无直接 MDX 映射** — 编辑器使用 `reactjs-tiptap-editor/katex` 插入的节点类型 `math` 未被转换代码直接覆盖。后端 `migrate_content_schema.rs` 中实际处理的是 `mathBlock` 和 `inlineMath` 节点。`math` 节点在转换时会静默丢失。 |
 
 ## 边界情况防护
 
@@ -88,4 +100,4 @@
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
 || ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
 || P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
-|| 已解决 ✅ | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理 |
+||| ✅ 已完成描述 | 4 表共存的双轨存储 | 已在本文档 CQRS 双轨存储章节中补充 `posts`、`post_versions`、`articles`、`article_versions` 四表描述。 |

@@ -92,15 +92,24 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 
 ## 测试覆盖
 
-`mdx_convert.rs` 包含 **16 个单元测试**，覆盖：
+`mdx_convert.rs` 包含 **16 个单元测试**（`mdx_to_json.rs` 另有 27 个测试），覆盖：
 - 空文档
-- 嵌套列表（bullet + ordered）
+- 标题（多级）
+- 段落
+- 内联数学公式（inlineMath → $...$）
+- 块级数学公式（blockMath → $$...$$）
 - 代码块（含语言标注）
-- 数学公式（inline + block）
-- HTML 转义
-- 表格
-- 任务列表
-- 引用块 + 嵌套
-- 多级标题
+- 粗体 + 斜体组合标记
+- 引用块（blockquote）
+- 无序列表（bulletList）
+- 图片（含 alt 文本）
+- 视频
+- 表格（含表头分隔符）
+- 分割线（horizontalRule）
+- 任务列表（taskList + taskItem, checked/unchecked）
+- HTML 特殊字符转义
+- 嵌套列表
+
+`mdx_to_json.rs` 包含额外的测试用于反向转换（MDX → TipTap JSON）。
 
 运行: `cargo test -p blog-core`

@@ -1,6 +1,6 @@
 # 实时协作与 CRDT 同步（规划）
 
-> 来源：EDITOR_SYSTEM_DESIGN.md P7 — 扩展阶段，尚未实施
+> 来源：EDITOR_SYSTEM_DESIGN.md P7 — 扩展阶段，**尚未实施。代码库中没有任何 CRDT、WebSocket 或实时协作代码。**
 
 ## 概述
 

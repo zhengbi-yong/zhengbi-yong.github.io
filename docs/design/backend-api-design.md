@@ -29,11 +29,13 @@ backend/
 │   │   │   │   ├── admin.rs
 │   │   │   │   ├── reading_progress.rs
 │   │   │   │   ├── search.rs
-│   │   │   │   ├── search_optimized.rs
+│   │   │   │   ├── search_optimized.rs      # ⚠️ 模块注册了但未在路由表中使用
 │   │   │   │   ├── mdx_sync.rs
 │   │   │   │   ├── versions.rs
 │   │   │   │   ├── openapi.rs
-│   │   │   │   └── team_members.rs
+│   │   │   │   ├── team_members.rs
+│   │   │   │   ├── articles.rs              # ⚠️ 未在 mod.rs 注册 - 死代码
+│   │   │   │   └── enhanced_posts.rs        # ⚠️ 未在 mod.rs 注册 - 死代码
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.rs
 │   │   │   │   ├── rate_limit.rs
@@ -147,8 +149,13 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/sync/mdx | 同步 MDX |
 | GET | /admin/stats | 仪表盘统计 |
 | GET | /admin/users | 用户列表 |
-| PUT | /admin/users/{id}/role | 更新角色 |
+| POST | /admin/users | 创建用户 |
+| GET | /admin/users/{id} | 获取用户详情 |
+| PUT | /admin/users/{id} | 更新用户 |
 | DELETE | /admin/users/{id} | 删除用户 |
+| PUT | /admin/users/{id}/role | 更新角色 |
+| POST | /admin/users:batchUpdateRole | 批量更新角色 |
+| POST | /admin/users:batchDelete | 批量删除用户 |
 | GET | /admin/user-growth | 用户增长 |
 | GET | /admin/comments | 评论列表 |
 | PUT | /admin/comments/{id}/status | 审核评论 |
@@ -156,11 +163,21 @@ GET    /tags/autocomplete      # 自动补全
 | GET | /admin/media | 媒体列表 |
 | GET | /admin/media/unused | 未使用媒体 |
 | GET | /admin/media/{id} | 媒体详情 |
+| GET | /admin/media/{id}/download-url | 获取下载链接 |
 | PATCH | /admin/media/{id} | 更新媒体 |
 | DELETE | /admin/media/{id} | 删除媒体 |
 | POST | /admin/media/upload | 上传媒体 |
 | POST | /admin/media/presign-upload | 预签名上传 |
 | POST | /admin/media/finalize | 完成上传 |
+| POST | /admin/categories | 创建分类 |
+| PATCH | /admin/categories/{slug} | 更新分类 |
+| DELETE | /admin/categories/{slug} | 删除分类 |
+| POST | /admin/tags | 创建标签 |
+| PATCH | /admin/tags/{slug} | 更新标签 |
+| DELETE | /admin/tags/{slug} | 删除标签 |
+| POST | /admin/mdx/convert | 转换 MDX 内容 |
+| POST | /admin/mdx/batch-convert | 批量转换 MDX |
+| POST | /admin/mdx/migrate-all | 迁移所有 content.json |
 | GET | /admin/posts/{postId}/versions | 版本列表 |
 | POST | /admin/posts/{postId}/versions | 创建版本 |
 | GET | /admin/posts/{postId}/versions/{versionNumber} | 版本详情 |
@@ -168,6 +185,66 @@ GET    /tags/autocomplete      # 自动补全
 | DELETE | /admin/posts/{postId}/versions/{versionNumber} | 删除版本 |
 | GET | /admin/posts/{postId}/versions/compare | 比较版本 |
 | POST | /admin/search/reindex | 重建搜索索引 |
+
+## API 响应格式
+
+### 错误响应
+
+所有错误返回统一格式：
+
+```json
+{
+  "error": "error_type",
+  "message": "人类可读的错误描述",
+  "status_code": 400
+}
+```
+
+类型定义在 `blog_shared::api_response::ApiError` 中。
+
+### 分页约定
+
+所有列表接口使用以下分页参数：
+
+| 参数 | 类型 | 默认值 | 最大值 | 说明 |
+|------|------|--------|--------|------|
+| `page` | u32 | 1 | - | 页码，从 1 开始 |
+| `per_page` | u32 | 20 | 100 | 每页条数 |
+
+分页响应包含 `meta` 字段：
+
+```json
+{
+  "data": [...],
+  "meta": {
+    "current_page": 1,
+    "per_page": 20,
+    "total_items": 100,
+    "total_pages": 5
+  }
+}
+```
+
+## CORS 策略
+
+| 环境 | 策略 | 配置方式 |
+|------|------|----------|
+| 开发环境 | 允许所有来源 (`Any`) | `CORS_ALLOWED_ORIGINS=*` |
+| 生产环境 | 仅允许指定域名 | `CORS_ALLOWED_ORIGINS=https://example.com,https://api.example.com` |
+
+CORS 层在 `main.rs` 的 `create_cors_layer()` 函数中实现。注意：`CorsConfig` 结构体包含 `allowed_methods` 和 `allowed_headers` 字段，但目前 `create_cors_layer()` 未使用这些字段（硬编码了允许的方法和头）。
+
+## 速率限制
+
+- **实现方式**: Redis-based 滑动窗口（`middleware/rate_limit.rs`）
+- **默认限制**: 60 请求/分钟
+- **突发**: 10
+- **配置**: 通过 `RATE_LIMIT_*` 环境变量或 `RateLimitConfig` 配置段
+- **影响路由**: 所有 `/api/v1/*` 路由
+
+## OpenAPI / Swagger UI
+
+OpenAPI 文档和 Swagger UI 目前**已禁用**（`main.rs` 第 219 行注释掉了 `.merge(blog_api::routes::openapi::swagger_ui())`），原因是为避免路由类型复杂度过高导致编译栈溢出。如需启用，取消 `main.rs` 中相关行注释。
 
 ## Axum 0.8 路由语法
 

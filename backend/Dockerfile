@@ -141,7 +141,7 @@ EXPOSE 3000
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3000/healthz || exit 1
+    CMD curl -f http://localhost:3000/.well-known/live || exit 1
 
 # 使用 dumb-init 作为 PID 1
 ENTRYPOINT ["dumb-init", "--"]

@@ -19,6 +19,10 @@
 | 内容数据 | 文章、评论 | 保留直到用户删除 |
 | 行为数据 | 浏览历史、搜索记录 | 匿名化、保留有限期 |
 
+## 隐私风险提醒
+
+> ⚠️ **访客追踪风险**：系统当前会记录访客的 IP 地址，但**缺少明确同意机制**（无 Cookie 同意横幅、无 IP 匿名化配置）。这与 GDPR 的「明确同意」要求存在差距，建议尽快补充 consent 流程。
+
 ## 自动清除策略 (DROP)
 
 ```
@@ -34,7 +38,7 @@
 
 ```
 GET /api/v1/user/data-export
-Authorization: Bearer <token>
+Authorization: Bearer ***
 
 → 返回 ZIP，包含:
   ├── profile.json     (用户资料)
@@ -47,7 +51,7 @@ Authorization: Bearer <token>
 
 ```
 DELETE /api/v1/user/data
-Authorization: Bearer <token>
+Authorization: Bearer ***
 X-XSRF-TOKEN: <csrf_token>
 
 → 触发异步删除任务

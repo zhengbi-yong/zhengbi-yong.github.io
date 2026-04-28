@@ -45,32 +45,63 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 
 ## 编辑器核心功能
 
-| 功能 | TipTap 扩展 | 状态 |
-|------|------------|------|
-| 段落/标题 | StarterKit | ✅ |
-| 粗体/斜体 | StarterKit | ✅ |
-| 列表 (有序/无序) | StarterKit | ✅ |
-| 链接 | Link | ✅ |
-| 代码块 | CodeBlockLowlight | ✅ |
-| 引用 | Blockquote | ✅ |
-| 表格 | Table | ✅ |
-| 图片 | Image | ✅ |
-| 数学公式 | Mathematics | ✅ |
-| 历史撤销 | UndoHistory | ✅ |
+| 功能 | TipTap 扩展 | 来源 | 状态 |
+|------|------------|------|------|
+| 段落/标题 | StarterKit 内置 | `@tiptap/starter-kit` | ✅ |
+| 粗体/斜体 | StarterKit 内置 | `@tiptap/starter-kit` | ✅ |
+| 下划线 | Underline | `@tiptap/extension-underline` | ✅ |
+| 删除线 | StarterKit 内置 | `@tiptap/starter-kit` | ✅ |
+| 列表 (有序/无序) | StarterKit 内置 | `@tiptap/starter-kit` | ✅ |
+| 任务列表 | TaskList + TaskItem | `@tiptap/extension-task-list` + `@tiptap/extension-task-item` | ✅ |
+| 链接 | Link | `@tiptap/extension-link` | ✅ |
+| 代码块 (Shiki 高亮) | ShikiCodeBlock (自定义) | `./extensions/ShikiCodeBlock` | ✅ |
+| 行内代码 | StarterKit 内置 | `@tiptap/starter-kit` | ✅ |
+| 引用 | StarterKit 内置 (Blockquote) | `@tiptap/starter-kit` | ✅ |
+| 表格 (可调整列宽) | Table | `reactjs-tiptap-editor/table` | ✅ |
+| 图片 | Image | `@tiptap/extension-image` | ✅ |
+| 视频 | VideoExtension | `reactjs-tiptap-editor/video` | ✅ |
+| 数学公式 | BlockMath + InlineMath (自定义 React NodeView) | `./extensions/mathematics-extended` | ✅ |
+| Katex 公式 | KatexExtension (工具栏命令) | `reactjs-tiptap-editor/katex` | ✅ |
+| 文本对齐 | TextAlign | `@tiptap/extension-text-align` | ✅ |
+| 文本颜色 | Color | `reactjs-tiptap-editor/color` | ✅ |
+| 字号 | FontSize | `reactjs-tiptap-editor/fontsize` | ✅ |
+| 行高 | LineHeight | `reactjs-tiptap-editor/lineheight` | ✅ |
+| 文字方向 | TextDirection | `reactjs-tiptap-editor/textdirection` | ✅ |
+| 缩进 | Indent | `reactjs-tiptap-editor/indent` | ✅ |
+| 提及 (@用户) | Mention | `reactjs-tiptap-editor/mention` | ✅ |
+| 嵌入式推文 | TwitterExtension | `reactjs-tiptap-editor/twitter` | ✅ |
+| 标注块 | CalloutExtension | `reactjs-tiptap-editor/callout` | ✅ |
+| 额外标记 | MoreMark | `reactjs-tiptap-editor/moremark` | ✅ |
+| 搜索替换 | SearchAndReplace | `reactjs-tiptap-editor/searchandreplace` | ✅ |
+| 排版美化 | Typography | `@tiptap/extension-typography` | ✅ |
+| 占位符 | Placeholder | `@tiptap/extension-placeholder` | ✅ |
+| 历史撤销 | StarterKit 内置 (UndoHistory) | `@tiptap/starter-kit` | ✅ |
 
 ## 保存/加载闭环
 
 ```typescript
 // 编辑器中提取 JSON
 const json = editor.getJSON()
+const mdxContent = await saveToMdx(json)  // TipTap JSON → MDX
 
-// 保存到后端
-await fetch('/api/v1/posts', {
-  method: 'POST',
-  body: JSON.stringify({ content: json })
+// 通过 PATCH 请求同时保存 JSON AST 和 MDX（双轨存储）
+// POST /api/v1/admin/posts/{slug} 使用 PATCH 语义
+await adminService.updatePost(postId, {
+  content_json: json,           // TipTap JSON AST（写入侧单一事实来源）
+  content_mdx: mdxContent,      // MDX 纯文本（读取侧优化视图）
+  content_format: 'mdx',        // 标记内容格式为 mdx
 })
 
-// 从后端加载
-const { content_json } = await fetch(`/api/v1/posts/${slug}`)
-editor.commands.setContent(content_json)
+// 从后端加载（优先使用 content_json 直接注入编辑器）
+const { content_json, content_mdx } = await postService.getPost(slug)
+if (content_json) {
+  // 优先使用 content_json 注入编辑器（无信息丢失）
+  editor.commands.setContent(content_json)
+} else if (content_mdx) {
+  // 降级：MDX → TipTap JSON（通过 loadToEditor 桥接）
+  const tiptapJson = loadToEditor(content_mdx)
+  editor.commands.setContent(tiptapJson)
+}
 ```
+
+> **注意**：当前未实现自动保存（autosave）。用户必须手动点击"保存草稿"或"更新并发布"按钮。编辑器修改后需主动触发保存操作，未保存更改在页面刷新后丢失。
