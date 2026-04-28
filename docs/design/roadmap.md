@@ -2,25 +2,29 @@
 
 > 来源：ultradesign.md (8章)
 
-| 阶段 | 内容 | 预期周期 | 关键交付 |
-|------|------|----------|----------|
-| 1 | 安全基线 | 1-2 周 | HttpOnly Cookie, CSRF 防护 |
-| 2 | 数据库优化 | 2-3 周 | UUIDv7 迁移, ltree 评论 |
-| 3 | API 契约 | 2 周 | Orval 配置, TS 客户端 |
-| 4 | 认证升级 | 2-3 周 | WebAuthn 集成 |
-| 5 | 搜索 CDC | 2 周 | MeiliBridge 部署 |
-| 6 | K3s 迁移 | 3-4 周 | 生产级集群 |
+## 已完成
 
-## 关键技术决策
+| 阶段 | 内容 | 说明 |
+|------|------|------|
+| 1 | 安全基线 ✅ | HttpOnly Cookie、CSRF 防护、CORS 均已实施 |
+| 5 | 搜索 CDC ✅ | MeiliBridge 已部署 |
+| — | UUIDv7 迁移 ✅ | 已完成 |
+| — | ltree 评论 ✅ | 已完成 |
+| — | 部分唯一索引 ✅ | 已完成 |
 
-| 决策点 | 旧方案 | 新方案 | 原因 |
-|--------|--------|--------|------|
-| 主键生成 | UUIDv4 (随机) | UUIDv7 (时间序) | B-Tree 插入效率，减少页分裂 |
-| 软删除+唯一 | 联合唯一索引 | 部分唯一索引 | NULL≠NULL 导致约束失效 |
-| 评论树 | 递归 CTE | ltree | CTE 在大数据量下指数衰减 |
-| 计数更新 | 实时 UPDATE | Redis 缓冲+HOT | 减少写放大 |
-| JWT 存储 | localStorage | HttpOnly Cookie | 防止 XSS 窃取 |
-| 搜索同步 | Outbox 轮询 | CDC MeiliBridge | 亚秒级同步 |
-| 内容处理 | Contentlayer | Velite | 活跃维护，Zod 验证 |
-| API 类型 | 手动维护 | Orval 自动生成 | 前后端类型一致 |
-| 部署方式 | Docker Compose | K3s | 探针自愈，滚动更新 |
+## 规划中
+
+| 阶段 | 内容 | 预期周期 | 关键交付 | 状态 |
+|------|------|----------|----------|------|
+| 2 | 数据库优化 | 2-3 周 | UUIDv7 迁移 ✅, ltree ✅, Redis 缓冲计数/HOT ⏳ | 部分完成 — 迁移存在但 `posts.rs`、`search.rs` 仍有直接 UPDATE 查询 |
+| 3 | API 契约 | 2 周 | Orval 配置, TS 客户端 | ❌ 未开始 — 无 Orval 引用，OpenAPI 导出二进制存在但未集成 |
+| 4 | 认证升级 | 2-3 周 | WebAuthn 集成 | ❌ 未开始 — 零引用 |
+| 6 | K3s 迁移 | 3-4 周 | 生产级集群 | ❌ 未开始 — 仅 Docker Compose |
+
+## 备注
+
+| 项目 | 说明 |
+|------|------|
+| Velite | ✅ 已使用 (`velite.config.ts`, `package.json` 中配置) |
+| Contentlayer | 遗留引用存在于脚本和类型中，实际已迁移至 Velite |
+| Orval | ❌ 未开始 — 尽管有生成的代码和脚本，但未集成到 CI/CD |

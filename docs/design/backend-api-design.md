@@ -26,14 +26,16 @@ backend/
 │   │   │   │   ├── categories.rs
 │   │   │   │   ├── tags.rs
 │   │   │   │   ├── media.rs
-│   │   │   │   ├── admin.rs
 │   │   │   │   ├── reading_progress.rs
 │   │   │   │   ├── search.rs
-│   │   │   │   ├── search_optimized.rs
 │   │   │   │   ├── mdx_sync.rs
+│   │   │   │   ├── mdx_convert.rs
 │   │   │   │   ├── versions.rs
 │   │   │   │   ├── openapi.rs
 │   │   │   │   └── team_members.rs
+│   │   │   │   ├── articles.rs         # Dead code — not registered in mod.rs or main.rs
+│   │   │   │   ├── enhanced_posts.rs    # Dead code — not registered in mod.rs or main.rs
+│   │   │   │   └── search_optimized.rs  # Registered in mod.rs but not wired in main.rs
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.rs
 │   │   │   │   ├── rate_limit.rs
@@ -147,8 +149,13 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/sync/mdx | 同步 MDX |
 | GET | /admin/stats | 仪表盘统计 |
 | GET | /admin/users | 用户列表 |
-| PUT | /admin/users/{id}/role | 更新角色 |
+| POST | /admin/users | 创建用户 |
+| GET | /admin/users/{id} | 获取用户详情 |
+| PUT | /admin/users/{id} | 更新用户 |
 | DELETE | /admin/users/{id} | 删除用户 |
+| PUT | /admin/users/{id}/role | 更新角色 |
+| POST | /admin/users:batchUpdateRole | 批量更新角色 |
+| POST | /admin/users:batchDelete | 批量删除用户 |
 | GET | /admin/user-growth | 用户增长 |
 | GET | /admin/comments | 评论列表 |
 | PUT | /admin/comments/{id}/status | 审核评论 |
@@ -156,6 +163,7 @@ GET    /tags/autocomplete      # 自动补全
 | GET | /admin/media | 媒体列表 |
 | GET | /admin/media/unused | 未使用媒体 |
 | GET | /admin/media/{id} | 媒体详情 |
+| GET | /admin/media/{id}/download-url | 获取媒体下载 URL |
 | PATCH | /admin/media/{id} | 更新媒体 |
 | DELETE | /admin/media/{id} | 删除媒体 |
 | POST | /admin/media/upload | 上传媒体 |
@@ -168,6 +176,18 @@ GET    /tags/autocomplete      # 自动补全
 | DELETE | /admin/posts/{postId}/versions/{versionNumber} | 删除版本 |
 | GET | /admin/posts/{postId}/versions/compare | 比较版本 |
 | POST | /admin/search/reindex | 重建搜索索引 |
+| POST | /admin/mdx/convert | 转换单篇 MDX |
+| POST | /admin/mdx/batch-convert | 批量转换 MDX |
+| POST | /admin/mdx/migrate-all | 迁移所有内容 |
+
+#### 团队成员管理（管理端）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /admin/team-members | 团队成员列表（管理端） |
+| POST | /admin/team-members | 创建团队成员 |
+| PUT | /admin/team-members/{id} | 更新团队成员 |
+| DELETE | /admin/team-members/{id} | 删除团队成员 |
 
 ## Axum 0.8 路由语法
 
@@ -188,11 +208,17 @@ Router::new()
 
 ```rust
 let pool = PgPoolOptions::new()
-    .max_connections(50)           // 单实例不超过 50
-    .min_connections(5)            // 保持最小连接
-    .acquire_timeout(Duration::from_secs(5))
-    .idle_timeout(Duration::from_secs(600))
-    .max_lifetime(Duration::from_secs(1800))
+    .max_connections(settings.database_pool.max_connections)  // 默认 50（通过 env 配置）
+    .min_connections(settings.database_pool.min_connections)   // 默认 5（通过 env 配置）
+    .acquire_timeout(Duration::from_secs(
+        settings.database_pool.acquire_timeout_secs,
+    ))
+    .max_lifetime(Duration::from_secs(
+        settings.database_pool.max_lifetime_secs,
+    ))
+    .idle_timeout(Duration::from_secs(
+        settings.database_pool.idle_timeout_secs,
+    ))
     .connect(&database_url)
     .await?;
 ```
@@ -254,7 +280,7 @@ async fn auth_middleware(
 | 状态码 | 场景 |
 |--------|------|
 | 200 | GET/PUT/PATCH 成功 |
-| 201 | POST 创建成功 |
+| 201 | POST 创建成功（⚠️ create_comment 当前返回默认 200，需要修复） |
 | 204 | DELETE 成功，或 NO_CONTENT 操作 |
 | 400 | 参数校验失败 |
 | 401 | 未认证 |
@@ -270,6 +296,9 @@ async fn auth_middleware(
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | 基本健康检查 | 返回 "OK" |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |
+
+> 注：OpenAPI/Swagger UI 当前已禁用（在 main.rs 中注释掉）
+
+> 注：`/health`（基本）端点不存在于代码中，已移除。

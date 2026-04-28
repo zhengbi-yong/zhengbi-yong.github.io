@@ -14,9 +14,22 @@ TipTap JSON (ProseMirror AST)
   MDX 纯文本 (字符串拼接)
 ```
 
+以及反向转换：
+
+```text
+MDX 纯文本
+        │
+        ▼
+  mdx_to_json 模块 (Rust)
+        │
+        ▼
+  TipTap JSON (ProseMirror AST)
+```
+
 - **不是** remark-prosemirror 转换器
 - **不是** MDAST 中间表示
-- 直接 JSON → Markdown 字符串拼接
+- 正向：直接 JSON → Markdown 字符串拼接
+- 反向：`mdx_to_json` 模块（844 行）解析 MDX 生成 TipTap JSON，提供 `mdx_to_tiptap_json()` 和 `mdx_to_tiptap_json_with_stats()` 两个入口函数
 
 ## 核心实现
 
@@ -33,7 +46,7 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 ### 调用位置
 - `backend/crates/api/src/routes/posts.rs` — `get_post` 中 fallback 转换
 - `backend/crates/api/src/routes/mdx_sync.rs` — MDX 同步管线
-- `backend/crates/api/src/routes/auth.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/articles.rs` — 文章写入时转换
 
 ## 节点类型映射
 
@@ -44,18 +57,19 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `heading` (level) | `#` × level |
 | `bulletList` | `- `（递归子节点） |
 | `orderedList` | `1. `（递归子节点） |
+| `listItem` | 列表项内容（递归子节点） |
 | `taskList` / `taskItem` | `- [x] ` / `- [ ] ` |
 | `codeBlock` | `` ```language \n code \n ``` `` |
 | `blockquote` | `> ` |
 | `image` | `![alt](src)` |
 | `video` | `<video src="...">` |
 | `inlineMath` (latex) | `$latex$` |
-| `math` (latex) | `$$\nlatex\n$$` |
+| `blockMath` (latex) | `$$\nlatex\n$$` |
 | `table` / `tableRow` / `tableCell` | Markdown 表格 |
 | `horizontalRule` | `---` |
 | `hardBreak` | 两个空格 + 换行 |
 | `mention` | `@username` |
-| `details` / `summary` | `<details>` / `<summary>` |
+| `details` / `detailsSummary` / `detailsContent` | `<details>` / `<summary>` / 内容 |
 | `callout` | `::: callout-type` |
 
 ### Mark 映射
@@ -64,9 +78,11 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 |------|-----|
 | `bold` | `**text**` |
 | `italic` | `*text*` |
+| `underline` | `__text__` |
 | `code` | `` `text` `` |
 | `link` | `[text](href)` |
 | `strike` | `~~text~~` |
+| `highlight` | `==text==` |
 
 ## 双向转换
 
@@ -92,7 +108,7 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 
 ## 测试覆盖
 
-`mdx_convert.rs` 包含 **16 个单元测试**，覆盖：
+`mdx_convert.rs` 包含 **16 个命名测试**，`mdx_to_json.rs` 包含额外测试，覆盖：
 - 空文档
 - 嵌套列表（bullet + ordered）
 - 代码块（含语言标注）
@@ -102,5 +118,6 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 - 任务列表
 - 引用块 + 嵌套
 - 多级标题
+- MDX→JSON 反向转换
 
 运行: `cargo test -p blog-core`

@@ -1,10 +1,21 @@
 # 首页沉浸式体验设计
 
-> 来源：superpowers/specs/2026-04-03-immersive-homepage-redesign.md
+> **来源**：superpowers/specs/2026-04-03-immersive-homepage-redesign.md
+>
+> **⚠️ 重要提示：本文档描述的是沉浸式首页的旧版/愿景设计，与实际首页实现存在显著差异。**
+>
+> 实际首页（`frontend/src/app/Main.tsx`）使用的组件：
+> - `AnimatedHeading`, `AnimatedParagraph`（来自 `visitor/typography/`）
+> - `SocialCard`（来自 `home/SocialCard.tsx`）
+> - `HeroCard`（来自 `home/HeroCard.tsx`）
+> - `Explore`, `FeaturedWork`, `BlogSection`（来自 `sections/`）
+> - `NewsletterSignup`
+>
+> 以下文档内容为**旧版愿景/未采纳的设计方案**，仅供参考，不反映当前代码状态。
 
 ## 页面结构
 
-首页由 6 个 section 组成，构成叙事弧线：
+首页由 6 个 section 组成，构成叙事弧线（⚠️ 以下为旧版设计，未实施）：
 
 ```
 1. Immersive Hero          — 全屏 WebGL 粒子 + 双语标题
@@ -107,6 +118,8 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 - 每个 Section 从下方淡入滑动
 
 ## 性能目标
+
+> ⚠️ 以下性能目标为旧版设计的**愿景指标**，当前首页未进行系统性的性能追踪。仅供参考。
 
 | 指标 | 目标 |
 |------|------|

@@ -14,14 +14,15 @@ Desktop (>= 1280px):
 │                    Article Hero                         │
 ├──────────────────────────────────┬────────────────────┤
 │                                 │                     │
-│    Main Content (62%)           │   TOC Sidebar (38%) │
-│    max-width: 680px             │   max-width: 320px  │
-│    optimal line length:         │   position: sticky  │
-│    65-75 chars/line             │   top: 2rem         │
-│                                 │   scroll-spy active │
+│    Main Content                 │   TOC Sidebar       │
+│    (CSS-driven via              │   (CSS-driven via   │
+│     monograph-grid)             │    monograph-grid)  │
+│    max-width: 680px             │   position: sticky  │
+│    optimal line length:         │   top: 2rem         │
+│    65-75 chars/line             │   scroll-spy active │
 │                                 │                     │
 ├──────────────────────────────────┴────────────────────┤
-│              Recommended Articles / Author Bio          │
+│              Related Posts + prev/next + Comments      │
 └───────────────────────────────────────────────────────┘
 ```
 
@@ -71,13 +72,14 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：1024px（Monograph 的 1280px 过晚，原 768px 过早）
+- 移动端断点：768px（PostLayoutMonograph.tsx 中 `window.innerWidth < 768`）
 
 ## 阅读进度条 (ReadingProgressBar)
 
+- **不是独立组件**，而是内联在 `PostLayoutMonograph.tsx` 中的 `div.monograph-reading-progress`
 - `position: fixed; top: 0; left: 0; z-index: 50;`
-- 高度：2px，品牌渐变背景
-- 宽度 = `scrollY / (scrollHeight - clientHeight)`
+- 高度：2px，品牌渐变背景（由 CSS class `monograph-reading-progress-bar` 控制）
+- 宽度 = `scrollPercentage * 100%`（由 `useReadingProgressWithApi` hook 计算）
 - `requestAnimationFrame` 节流实现 60fps
 
 ## 代码块
@@ -91,17 +93,19 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 ## 表格
 
 - 桌面：清水平线、交替行着色、header 底部边框
-- 移动端（< 768px）：卡片折叠模式，`data-label` 注入表头文本
+- 移动端（< 768px）：卡片折叠模式尚未实现（当前使用 `TableWrapper` 组件包裹，支持横向滚动）
 
 ## 微交互动效
 
 | 元素 | 触发器 | 动画 | 时长 |
 |------|--------|------|------|
-| 文章卡片 | hover | `translateY(-2px)` + 阴影扩展 | 200ms |
+| 文章卡片 | hover | `border-color` 过渡（非 translateY） | 200ms |
 | TOC 指示器 | scroll | 左边框滑动到新位置 | 200ms |
 | 进度条 | scroll | 宽度过渡（GPU） | 100ms |
 | 复制按钮 | click | 图标切换 + 提示 | 150ms |
-| 评论抽屉 | click | 右侧滑入 | 250ms |
+| 评论 | 页面加载 | 内联 `BackendComments` 组件，非抽屉式 | — |
 | 暗色模式 | click | CSS 变量过渡 | 200ms |
+| prev/next 链接 | hover | `border-color` 过渡 | 200ms |
+| 推荐卡片 | hover | `border-color` 过渡 | 200ms |
 
 所有动画使用 `will-change: transform` 和 `transform: translateZ(0)` 开启 GPU 合成。

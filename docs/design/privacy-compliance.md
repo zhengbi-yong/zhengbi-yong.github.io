@@ -1,6 +1,17 @@
 # 数据隐私与合规（规划）
 
+> ⚠️ **本文件为规划/前瞻文档，不代表当前状态。** 所列功能（数据导出/删除 API、自动清除策略等）均尚未实施。
+
 > 来源：EDITOR_SYSTEM_DESIGN.md P8 — 扩展阶段，尚未实施
+
+## ⚡ 已知隐私问题（已存在，需处理）
+
+以下问题存在于当前代码中，但尚未纳入合规框架：
+
+| 问题 | 位置 | 说明 |
+|------|------|------|
+| 访客 IP + 地理定位追踪 | `frontend/src/app/api/visitor/route.ts` | 生产环境中自动记录访客 IP、地理位置、访问时间。无用户同意提示，无数据删除/导出接口。存储在 `.data/visitors.json` 文件中。 |
+| Umami 分析 | `frontend/src/lib/security.ts` CSP 配置、`next.config.js`、`siteMetadata.data.mjs` | 引用了 `analytics.umami.is` 和 `cloud.umami.is`，但实际集成状态需确认。需确保遵守 GDPR 同意要求。 |
 
 ## 合规要求
 
