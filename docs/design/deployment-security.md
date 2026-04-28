@@ -25,7 +25,9 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:3000/.well-known/live
 ```
 
-- 构建 4 个二进制: `api`, `worker`, `migrate`, `create_admin`
+- `cargo build` 编译 `blog-api`, `blog-worker` 两个 crate，产生 `api` 和 `worker` 两个二进制
+- `migrate` 和 `create_admin` 二进制由项目提供预编译产物，直接从 builder 镜像复制到运行时镜像
+- 最终运行时镜像包含 4 个二进制: `api`, `worker`, `migrate`, `create_admin`
 - 复制 `migrations/` 目录到运行时镜像
 - 使用 `dumb-init` 确保信号正确转发
 

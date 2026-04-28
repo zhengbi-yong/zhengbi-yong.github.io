@@ -88,4 +88,4 @@
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
 || ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
 || P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
-|| 已解决 ✅ | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理 |
+||| P2 | 进行中 | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，但 `articles` 表仍存在，后端仍保留完整双轨逻辑 |

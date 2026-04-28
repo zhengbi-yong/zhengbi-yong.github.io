@@ -64,10 +64,10 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 // 编辑器中提取 JSON
 const json = editor.getJSON()
 
-// 保存到后端
-await fetch('/api/v1/posts', {
+// 保存到后端（管理端 API）
+await fetch('/api/v1/admin/posts', {
   method: 'POST',
-  body: JSON.stringify({ content: json })
+  body: JSON.stringify({ content_json: json, content_mdx: '' })
 })
 
 // 从后端加载

@@ -95,7 +95,9 @@ export const postService = {
 |-------|--------|--------|------|
 | ui-store | theme, sidebar, modal | Zustand | 纯 UI，无敏感数据 |
 | UIStore | loading, notifications, modals, sidebar, colorMode | React Context | UI 层级管理 |
-| ~~auth-store~~ | ~~token~~ | ~~localStorage~~ | **禁止!** XSS 风险 |
+| auth-store | 用户认证状态 | Zustand | 存在但仅管理登录状态，不存 token（token 仅在 HttpOnly Cookie） |
+| blog-store | 文章列表缓存 | Zustand | 存在但仅用 API 获取，不存 localStorage |
+| ~~auth-store~~ | ~~token~~ | ~~localStorage~~ | **禁止!** XSS 风险 — 已迁移至 HttpOnly Cookie |
 | ~~blog-store~~ | ~~posts~~ | ~~localStorage~~ | **禁止!** 用 API 获取 |
 
 ## 搜索降级策略

@@ -32,8 +32,8 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 
 ### 调用位置
 - `backend/crates/api/src/routes/posts.rs` — `get_post` 中 fallback 转换
-- `backend/crates/api/src/routes/mdx_sync.rs` — MDX 同步管线
-- `backend/crates/api/src/routes/auth.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/articles.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/admin/posts.rs` — 管理端文章保存时转换
 
 ## 节点类型映射
 
@@ -50,7 +50,7 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `image` | `![alt](src)` |
 | `video` | `<video src="...">` |
 | `inlineMath` (latex) | `$latex$` |
-| `math` (latex) | `$$\nlatex\n$$` |
+| `blockMath` (latex) | `$$\nlatex\n$$` |
 | `table` / `tableRow` / `tableCell` | Markdown 表格 |
 | `horizontalRule` | `---` |
 | `hardBreak` | 两个空格 + 换行 |

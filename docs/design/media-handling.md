@@ -31,18 +31,68 @@ POST /admin/media/upload (Multipart POST)
 ### 存储后端抽象
 
 ```rust
-// 抽象存储层 (state.storage)
-pub trait StorageBackend {
-    async fn store(&self, key: &str, data: &[u8], content_type: &str) -> Result<()>;
-    async fn delete(&self, key: &str) -> Result<()>;
-    async fn presign_upload(&self, key: &str, expires_in: Duration) -> Result<String>;
-    async fn presign_download(&self, key: &str, expires_in: Duration) -> Result<String>;
+/// 存储后端枚举（具体类型，无需 dyn 分发）
+pub enum StorageBackend {
+    Local(LocalStorage),
+    Minio(MinioStorage),
+}
+
+impl StorageBackend {
+    /// 存储文件并返回可访问的 URL
+    pub async fn store(
+        &self,
+        key: &str,
+        data: &[u8],
+        content_type: &str,
+    ) -> Result<String, StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.store(key, data, content_type).await,
+            StorageBackend::Minio(s) => s.store(key, data, content_type).await,
+        }
+    }
+
+    /// 删除文件
+    pub async fn delete(&self, key: &str) -> Result<(), StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.delete(key).await,
+            StorageBackend::Minio(s) => s.delete(key).await,
+        }
+    }
+
+    /// 获取预签名上传 URL（如果支持）
+    pub async fn presigned_upload_url(
+        &self,
+        key: &str,
+        content_type: &str,
+        expires_secs: u32,
+    ) -> Result<Option<String>, StorageError> {
+        match self {
+            StorageBackend::Local(s) => {
+                s.presigned_upload_url(key, content_type, expires_secs).await
+            }
+            StorageBackend::Minio(s) => {
+                s.presigned_upload_url(key, content_type, expires_secs).await
+            }
+        }
+    }
+
+    /// 获取预签名下载 URL（如果支持）
+    pub async fn presigned_download_url(
+        &self,
+        key: &str,
+        expires_secs: u32,
+    ) -> Result<Option<String>, StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.presigned_download_url(key, expires_secs).await,
+            StorageBackend::Minio(s) => s.presigned_download_url(key, expires_secs).await,
+        }
+    }
 }
 ```
 
 支持实现:
-- S3/MinIO (`S3StorageBackend`)
-- 本地文件系统 (`LocalStorageBackend`)
+- MinIO (`MinioStorage`)
+- 本地文件系统 (`LocalStorage`)
 
 ## 媒体表结构
 

@@ -49,6 +49,8 @@ CREATE TABLE users (
     role VARCHAR(20) NOT NULL DEFAULT 'user',
     profile JSONB NOT NULL DEFAULT '{}',
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    status TEXT NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'suspended', 'banned')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ             -- 软删除
@@ -110,7 +112,7 @@ CREATE TABLE posts (
     canonical_url TEXT,
     author_display_name TEXT,
     is_featured BOOLEAN NOT NULL DEFAULT FALSE,
-    post_type TEXT NOT NULL DEFAULT 'post',
+    post_type TEXT NOT NULL DEFAULT 'article',
     content_format TEXT,
     language TEXT NOT NULL DEFAULT 'zh-CN',
     copyright_info TEXT,
@@ -147,7 +149,7 @@ CREATE EXTENSION IF NOT EXISTS ltree;
 
 CREATE TABLE comments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    slug TEXT NOT NULL,
+    slug TEXT NOT NULL REFERENCES post_stats(slug) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
@@ -192,12 +194,10 @@ CREATE TABLE post_stats (
 ```sql
 CREATE TABLE outbox_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    event_type TEXT NOT NULL,               -- 原 topic
-    payload JSONB NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending',
-    run_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    retry_count INT NOT NULL DEFAULT 0,     -- 原 attempts
-    error TEXT,                              -- 原 last_error
+    event_type VARCHAR(100) NOT NULL,
+    payload JSONB NOT NULL DEFAULT '{}',
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    error TEXT,
     processed_at TIMESTAMPTZ,
     locked_at TIMESTAMPTZ,
     locked_by TEXT,
@@ -205,7 +205,7 @@ CREATE TABLE outbox_events (
 );
 ```
 
-> 注：当前无分区。`event_type`、`retry_count`、`error` 字段通过 `2026032201` 迁移重命名。
+> `event_type`、`retry_count`、`error` 字段通过 `2026032201` 迁移从 `topic`、`attempts`、`last_error` 重命名而来。`status` 和 `run_after` 列已在 `2026032201` 迁移中被移除，改用 `processed_at IS NULL` 判断待处理事件。
 
 ## 其他表
 
@@ -216,9 +216,13 @@ CREATE TABLE categories (
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     description TEXT,
-    parent_id UUID REFERENCES categories(id),
-    "order" INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    icon TEXT DEFAULT '',
+    color TEXT DEFAULT '',
+    display_order INTEGER NOT NULL DEFAULT 0,
+    post_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
 
@@ -228,6 +232,7 @@ CREATE TABLE tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
+    description TEXT,
     post_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -235,6 +240,7 @@ CREATE TABLE tags (
 CREATE TABLE post_tags (
     post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (post_id, tag_id)
 );
 ```
@@ -244,15 +250,20 @@ CREATE TABLE post_tags (
 CREATE TABLE media (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     filename TEXT NOT NULL,
-    url TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
     mime_type TEXT NOT NULL,
-    size BIGINT NOT NULL,
+    size_bytes BIGINT NOT NULL,
     width INTEGER,
     height INTEGER,
+    storage_path TEXT NOT NULL,
+    cdn_url TEXT,
     alt_text TEXT,
-    uploader_id UUID REFERENCES users(id),
-    article_id UUID REFERENCES posts(id),
+    caption TEXT,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    media_type TEXT NOT NULL DEFAULT 'image',
+    usage_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
 );
 ```
@@ -265,9 +276,10 @@ CREATE TABLE post_versions (
     version_number INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    summary TEXT DEFAULT '',
+    change_log TEXT,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by UUID REFERENCES users(id),
-    comment TEXT,
     UNIQUE (post_id, version_number)
 );
 ```
@@ -282,24 +294,17 @@ CREATE TABLE post_likes (
 );
 
 CREATE TABLE comment_likes (
+    id BIGSERIAL PRIMARY KEY,
     comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (comment_id, user_id)
+    UNIQUE (comment_id, user_id)
 );
 ```
 
-### 浏览记录 (views)
-```sql
-CREATE TABLE views (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    post_id UUID NOT NULL REFERENCES posts(id),
-    user_id UUID REFERENCES users(id),
-    ip_address INET NOT NULL,
-    user_agent TEXT,
-    viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-```
+### 浏览记录 (views) — 规划中尚未实施
+
+> 此表在 migration 中不存在，属于规划阶段，尚未在数据库中创建。
 
 ### 刷新令牌 (refresh_tokens)
 ```sql
@@ -321,12 +326,19 @@ CREATE TABLE refresh_tokens (
 ### 阅读进度 (reading_progress)
 ```sql
 CREATE TABLE reading_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    progress INTEGER NOT NULL DEFAULT 0,
+    post_slug TEXT NOT NULL REFERENCES posts(slug) ON DELETE CASCADE,
+    progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
+    last_read_position INTEGER DEFAULT 0,
+    scroll_percentage FLOAT DEFAULT 0.0,
+    word_count INTEGER DEFAULT 0,
+    words_read INTEGER DEFAULT 0,
+    is_completed BOOLEAN DEFAULT FALSE,
     last_read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    completed_at TIMESTAMPTZ,
-    PRIMARY KEY (user_id, post_id)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, post_slug)
 );
 ```
 

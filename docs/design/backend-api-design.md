@@ -270,6 +270,7 @@ async fn auth_middleware(
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | 基本健康检查 | 返回 "OK" |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |
+
+> 注：`/health` 端点不在路由表中，实际健康端点仅为 `/.well-known/live`、`/.well-known/ready`、`/health/detailed`。
