@@ -43,20 +43,35 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 }
 ```
 
-## 编辑器核心功能
+## 编辑器扩展列表（~25+ 扩展）
 
-| 功能 | TipTap 扩展 | 状态 |
-|------|------------|------|
-| 段落/标题 | StarterKit | ✅ |
-| 粗体/斜体 | StarterKit | ✅ |
-| 列表 (有序/无序) | StarterKit | ✅ |
-| 链接 | Link | ✅ |
-| 代码块 | CodeBlockLowlight | ✅ |
-| 引用 | Blockquote | ✅ |
-| 表格 | Table | ✅ |
-| 图片 | Image | ✅ |
-| 数学公式 | Mathematics | ✅ |
-| 历史撤销 | UndoHistory | ✅ |
+实际编辑器（`frontend/src/components/editor/TiptapEditor.tsx`）使用的扩展：
+
+| 功能 | 扩展来源 | 说明 |
+|------|---------|------|
+| 段落/标题/粗体/斜体/代码/引用/列表 | `StarterKit` | 禁用 `link`, `underline`，保留 `codeBlock` 命令 |
+| 下划线 | `@tiptap/extension-underline` | 独立扩展 |
+| 链接 | `@tiptap/extension-link` | 禁用 `openOnClick` |
+| 代码块（语法高亮） | `ShikiCodeBlock` | 自定义扩展，priority:100，替换 StarterKit 的 codeBlock 渲染 |
+| 块级/行内公式 | `BlockMath`, `InlineMath` | 自定义扩展，带 React NodeView 实时 KaTeX 渲染 |
+| 表格 | `reactjs-tiptap-editor/table` | 可调整大小 |
+| 任务列表 | `@tiptap/extension-task-list` + `@tiptap/extension-task-item` | 嵌套支持 |
+| 图片 | `@tiptap/extension-image` | 内联禁用 |
+| 视频 | `reactjs-tiptap-editor/video` | |
+| 提及 | `reactjs-tiptap-editor/mention` | |
+| 文本对齐 | `@tiptap/extension-text-align` | 左/中/右 |
+| 缩进 | `reactjs-tiptap-editor/indent` | |
+| 颜色/字号/行高 | `reactjs-tiptap-editor/color`, `fontsize`, `lineheight` | |
+| 文字方向 | `reactjs-tiptap-editor/textdirection` | |
+| 更多 Mark | `reactjs-tiptap-editor/moremark` | |
+| 搜索替换 | `reactjs-tiptap-editor/searchandreplace` | |
+| 排版 | `@tiptap/extension-typography` | 智能引号、em-dash 等 |
+| KaTeX 工具栏 | `reactjs-tiptap-editor/katex` | 工具栏命令 |
+| Twitter 嵌入 | `reactjs-tiptap-editor/twitter` | |
+| Callout 提示框 | `reactjs-tiptap-editor/callout` | |
+| 占位提示 | `@tiptap/extension-placeholder` | "开始写作..." |
+
+> 注：`ShikiCodeBlock` 为自定义扩展，替换了 StarterKit 的 codeBlock 渲染（而非命令），实现 Shiki 语法高亮。
 
 ## 保存/加载闭环
 
@@ -64,8 +79,8 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 // 编辑器中提取 JSON
 const json = editor.getJSON()
 
-// 保存到后端
-await fetch('/api/v1/posts', {
+// 保存到后端 (实际 API 路径)
+await fetch('/api/v1/admin/posts', {
   method: 'POST',
   body: JSON.stringify({ content: json })
 })
@@ -74,3 +89,5 @@ await fetch('/api/v1/posts', {
 const { content_json } = await fetch(`/api/v1/posts/${slug}`)
 editor.commands.setContent(content_json)
 ```
+
+> 注意：写 API 路径为 `/api/v1/admin/posts`（带 `admin`），读 API 路径为 `/api/v1/posts/{slug}`（公开）。

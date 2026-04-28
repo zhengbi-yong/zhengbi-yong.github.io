@@ -1,6 +1,8 @@
 # 实时协作与 CRDT 同步（规划）
 
 > 来源：EDITOR_SYSTEM_DESIGN.md P7 — 扩展阶段，尚未实施
+>
+> **注意**：另有一份竞争性设计文档 `docs/p4-websocket-collaboration.md`，描述了基于 **Hocuspocus**（而非 Yrs）的实时协作方案。两份文档均处于规划阶段，尚未实施。
 
 ## 概述
 

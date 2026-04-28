@@ -32,8 +32,8 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 
 ### 调用位置
 - `backend/crates/api/src/routes/posts.rs` — `get_post` 中 fallback 转换
-- `backend/crates/api/src/routes/mdx_sync.rs` — MDX 同步管线
-- `backend/crates/api/src/routes/auth.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/mdx_convert.rs` — MDX 同步管线
+- `backend/crates/api/src/routes/articles.rs` — 文章写入时转换
 
 ## 节点类型映射
 
@@ -50,13 +50,13 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `image` | `![alt](src)` |
 | `video` | `<video src="...">` |
 | `inlineMath` (latex) | `$latex$` |
-| `math` (latex) | `$$\nlatex\n$$` |
+| `blockMath` (latex) | `$$\nlatex\n$$` |
 | `table` / `tableRow` / `tableCell` | Markdown 表格 |
 | `horizontalRule` | `---` |
 | `hardBreak` | 两个空格 + 换行 |
 | `mention` | `@username` |
-| `details` / `summary` | `<details>` / `<summary>` |
-| `callout` | `::: callout-type` |
+| `details` / `detailsSummary` / `detailsContent` | 多行 blockquote 嵌套（非 `<details>` 标签） |
+| `callout` | `> ℹ️` / `> ⚠️` / `> 🚨` / `> ✅` 前缀 blockquote（非 `:::` 语法） |
 
 ### Mark 映射
 
@@ -64,9 +64,13 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 |------|-----|
 | `bold` | `**text**` |
 | `italic` | `*text*` |
+| `underline` | `__text__` |
+| `highlight` | `==text==` |
+| `strike` | `~~text~~` |
 | `code` | `` `text` `` |
 | `link` | `[text](href)` |
-| `strike` | `~~text~~` |
+
+> 注：所有 mark 类型（`underline`、`highlight` 等）已实现，按 `bold → code → italic → strike → highlight → underline` 顺序包裹。
 
 ## 双向转换
 

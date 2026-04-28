@@ -47,6 +47,7 @@ CREATE TABLE users (
     username CITEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,       -- Argon2id
     role VARCHAR(20) NOT NULL DEFAULT 'user',
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','suspended','banned')),
     profile JSONB NOT NULL DEFAULT '{}',
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -54,10 +55,10 @@ CREATE TABLE users (
     deleted_at TIMESTAMPTZ             -- 软删除
 );
 
-CREATE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
-CREATE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
-CREATE INDEX idx_users_profile ON users USING GIN (profile jsonb_path_ops);
+CREATE INDEX idx_users_profile_gin ON users USING GIN (profile jsonb_path_ops);
 ```
 
 ### 软删除下的唯一性
@@ -110,7 +111,7 @@ CREATE TABLE posts (
     canonical_url TEXT,
     author_display_name TEXT,
     is_featured BOOLEAN NOT NULL DEFAULT FALSE,
-    post_type TEXT NOT NULL DEFAULT 'post',
+    post_type TEXT NOT NULL DEFAULT 'article',
     content_format TEXT,
     language TEXT NOT NULL DEFAULT 'zh-CN',
     copyright_info TEXT,
@@ -147,7 +148,7 @@ CREATE EXTENSION IF NOT EXISTS ltree;
 
 CREATE TABLE comments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    slug TEXT NOT NULL,
+    slug TEXT NOT NULL REFERENCES post_stats(slug),
     user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
@@ -175,7 +176,7 @@ CREATE INDEX idx_comments_pending ON comments(created_at DESC) WHERE status = 'p
 
 ```sql
 CREATE TABLE post_stats (
-    slug TEXT PRIMARY KEY REFERENCES posts(slug) ON DELETE CASCADE,
+    slug TEXT PRIMARY KEY,
     view_count BIGINT NOT NULL DEFAULT 0,
     like_count INTEGER NOT NULL DEFAULT 0,
     comment_count INTEGER NOT NULL DEFAULT 0,
@@ -192,7 +193,7 @@ CREATE TABLE post_stats (
 ```sql
 CREATE TABLE outbox_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    event_type TEXT NOT NULL,               -- 原 topic
+    event_type VARCHAR(100) NOT NULL,               -- 原 topic
     payload JSONB NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
     run_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -217,8 +218,12 @@ CREATE TABLE categories (
     name TEXT NOT NULL,
     description TEXT,
     parent_id UUID REFERENCES categories(id),
-    "order" INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    icon TEXT,
+    color TEXT,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    post_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
 );
 ```
 
@@ -228,6 +233,7 @@ CREATE TABLE tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
+    description TEXT,
     post_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -244,15 +250,20 @@ CREATE TABLE post_tags (
 CREATE TABLE media (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     filename TEXT NOT NULL,
-    url TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
     mime_type TEXT NOT NULL,
-    size BIGINT NOT NULL,
+    size_bytes BIGINT NOT NULL,
     width INTEGER,
     height INTEGER,
+    storage_path TEXT NOT NULL,
+    cdn_url TEXT,
     alt_text TEXT,
-    uploader_id UUID REFERENCES users(id),
-    article_id UUID REFERENCES posts(id),
+    caption TEXT,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    media_type TEXT NOT NULL DEFAULT 'image',
+    usage_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
     deleted_at TIMESTAMPTZ
 );
 ```
@@ -265,9 +276,10 @@ CREATE TABLE post_versions (
     version_number INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    summary TEXT,
+    change_log TEXT,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by UUID REFERENCES users(id),
-    comment TEXT,
     UNIQUE (post_id, version_number)
 );
 ```
@@ -282,22 +294,11 @@ CREATE TABLE post_likes (
 );
 
 CREATE TABLE comment_likes (
+    id BIGSERIAL PRIMARY KEY,
     comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (comment_id, user_id)
-);
-```
-
-### 浏览记录 (views)
-```sql
-CREATE TABLE views (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    post_id UUID NOT NULL REFERENCES posts(id),
-    user_id UUID REFERENCES users(id),
-    ip_address INET NOT NULL,
-    user_agent TEXT,
-    viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    UNIQUE(comment_id, user_id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
 
@@ -321,12 +322,44 @@ CREATE TABLE refresh_tokens (
 ### 阅读进度 (reading_progress)
 ```sql
 CREATE TABLE reading_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    progress INTEGER NOT NULL DEFAULT 0,
+    post_slug TEXT NOT NULL REFERENCES posts(slug) ON DELETE CASCADE,
     last_read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    completed_at TIMESTAMPTZ,
-    PRIMARY KEY (user_id, post_id)
+    last_read_position INTEGER,
+    scroll_percentage FLOAT,
+    word_count INTEGER,
+    words_read INTEGER,
+    is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ,
+    UNIQUE(user_id, post_slug)
+);
+```
+
+### 密码重置令牌 (password_reset_tokens)
+```sql
+CREATE TABLE password_reset_tokens (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### 团队成员 (team_members)
+```sql
+CREATE TABLE team_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    name VARCHAR(100) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    bio TEXT,
+    avatar_url TEXT,
+    social_links JSONB,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ
 );
 ```
 

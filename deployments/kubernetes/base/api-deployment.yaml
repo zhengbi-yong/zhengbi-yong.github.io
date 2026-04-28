@@ -34,13 +34,13 @@ spec:
                 name: blog-runtime-secrets
           readinessProbe:
             httpGet:
-              path: /readyz
+              path: /.well-known/ready
               port: http
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /livez
+              path: /.well-known/live
               port: http
             initialDelaySeconds: 20
             periodSeconds: 20

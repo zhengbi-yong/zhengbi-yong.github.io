@@ -29,11 +29,14 @@ backend/
 │   │   │   │   ├── admin.rs
 │   │   │   │   ├── reading_progress.rs
 │   │   │   │   ├── search.rs
-│   │   │   │   ├── search_optimized.rs
+│   │   │   │   ├── search_optimized.rs   ← 已声明但未接入路由
 │   │   │   │   ├── mdx_sync.rs
+│   │   │   │   ├── mdx_convert.rs         ← MDX→TipTap JSON 转换
 │   │   │   │   ├── versions.rs
 │   │   │   │   ├── openapi.rs
-│   │   │   │   └── team_members.rs
+│   │   │   │   ├── team_members.rs
+│   │   │   │   ├── articles.rs            ← 未使用（dead code，未在 mod.rs 引用）
+│   │   │   │   └── enhanced_posts.rs      ← 未使用（dead code，未在 mod.rs 引用）
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.rs
 │   │   │   │   ├── rate_limit.rs
@@ -62,8 +65,12 @@ backend/
 GET    /posts                  # 获取列表
 POST   /posts                  # 创建（管理端）
 GET    /posts/{slug}           # 获取单个
-PATCH  /posts/{slug}           # 部分更新（管理端）
-DELETE /posts/{slug}           # 删除（管理端）
+PATCH  /posts/{slug}           # 部分更新（管理端）[公开端点仍用 slug]
+DELETE /posts/{slug}           # 删除（管理端）[公开端点仍用 slug]
+
+# 管理端文章使用 postId 参数
+PATCH  /admin/posts/{postId}   # 更新（管理端）
+DELETE /admin/posts/{postId}   # 删除（管理端）
 
 # 自定义操作: 斜杠子路径
 POST   /posts/{slug}/view      # 记录浏览
@@ -135,6 +142,7 @@ GET    /tags/autocomplete      # 自动补全
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /team-members | 团队成员列表 |
+| GET | /team-members/{id} | 团队成员详情 |
 
 ### 管理 API（需认证）
 
@@ -147,8 +155,13 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/sync/mdx | 同步 MDX |
 | GET | /admin/stats | 仪表盘统计 |
 | GET | /admin/users | 用户列表 |
-| PUT | /admin/users/{id}/role | 更新角色 |
+| POST | /admin/users | 创建用户 |
+| GET | /admin/users/{id} | 获取用户详情 |
+| PUT | /admin/users/{id} | 更新用户 |
 | DELETE | /admin/users/{id} | 删除用户 |
+| PUT | /admin/users/{id}/role | 更新角色 |
+| POST | /admin/users:batchUpdateRole | 批量更新角色 |
+| POST | /admin/users:batchDelete | 批量删除用户 |
 | GET | /admin/user-growth | 用户增长 |
 | GET | /admin/comments | 评论列表 |
 | PUT | /admin/comments/{id}/status | 审核评论 |
@@ -156,18 +169,33 @@ GET    /tags/autocomplete      # 自动补全
 | GET | /admin/media | 媒体列表 |
 | GET | /admin/media/unused | 未使用媒体 |
 | GET | /admin/media/{id} | 媒体详情 |
+| GET | /admin/media/{id}/download-url | 媒体下载链接 |
 | PATCH | /admin/media/{id} | 更新媒体 |
 | DELETE | /admin/media/{id} | 删除媒体 |
 | POST | /admin/media/upload | 上传媒体 |
 | POST | /admin/media/presign-upload | 预签名上传 |
 | POST | /admin/media/finalize | 完成上传 |
-| GET | /admin/posts/{postId}/versions | 版本列表 |
-| POST | /admin/posts/{postId}/versions | 创建版本 |
-| GET | /admin/posts/{postId}/versions/{versionNumber} | 版本详情 |
-| POST | /admin/posts/{postId}/versions/{versionNumber}/restore | 恢复版本 |
-| DELETE | /admin/posts/{postId}/versions/{versionNumber} | 删除版本 |
-| GET | /admin/posts/{postId}/versions/compare | 比较版本 |
+| GET | /admin/posts/{post_id}/versions | 版本列表 |
+| POST | /admin/posts/{post_id}/versions | 创建版本 |
+| GET | /admin/posts/{post_id}/versions/{version_number} | 版本详情 |
+| POST | /admin/posts/{post_id}/versions/{version_number}/restore | 恢复版本 |
+| DELETE | /admin/posts/{post_id}/versions/{version_number} | 删除版本 |
+| GET | /admin/posts/{post_id}/versions/compare | 比较版本 |
 | POST | /admin/search/reindex | 重建搜索索引 |
+| POST | /admin/mdx/convert | 转换单篇 MDX→TipTap JSON |
+| POST | /admin/mdx/batch-convert | 批量 MDX 转换 |
+| POST | /admin/mdx/migrate-all | 迁移所有内容为 JSON |
+
+### 团队成员管理（需认证）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /admin/team-members | 团队成员列表 |
+| POST | /admin/team-members | 创建成员 |
+| GET | /admin/team-members/{id} | 获取成员详情 |
+| PUT | /admin/team-members/{id} | 更新成员 |
+| DELETE | /admin/team-members/{id} | 删除成员 |
+| POST | /admin/team-members/batch/delete | 批量删除 |
 
 ## Axum 0.8 路由语法
 
@@ -264,12 +292,31 @@ async fn auth_middleware(
 | 429 | 限流触发 |
 | 500 | 服务器内部错误 |
 
+## 中间件
+
+### 中间件列表
+
+| 中间件 | 作用 | 应用位置 |
+|--------|------|----------|
+| `TraceLayer` (tower-http) | HTTP 请求/响应 tracing，包含 request_id 和 trace_id | 全局（最外层） |
+| `CompressionLayer` | Gzip 压缩 | 全局 |
+| `CorsLayer` | CORS（开发环境允许所有，生产环境严格验证） | 全局 |
+| `http_metrics_middleware` | 采集 HTTP 请求指标（Prometheus） | 全局 |
+| `trace_context_middleware` | W3C Trace Context 提取/生成（traceparent 头） | 全局 |
+| `request_id_middleware` | 请求 ID 分配 | 全局 |
+| `rate_limit_middleware` | 频率限制（按路由组区分） | API v1 路由 |
+| `auth_middleware` | JWT 认证 | 受保护的管理/认证路由 |
+| `csrf_middleware` | CSRF 保护 | 管理端浏览器表单路由 |
+
+> 注意：Swagger UI 当前被注释禁用（避免类型复杂度过高导致的编译栈溢出）。`search_optimized.rs` 虽然已声明为模块，但未接入路由表。
+
 ## 健康检查
 
 | 路径 | 说明 | 类型 |
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | 基本健康检查 | 返回 "OK" |
-| /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
+| /health | 基本健康检查 | 返回 JSON `{"status":"healthy","version":"...","uptime_seconds":...}` |
+| /health/detailed | 详细健康状态 | 返回 JSON 各组件状态（含内存/CPU/连接池/Outbox） |
+| /readyz | 就绪探针（别名） | 检查依赖服务，返回 200 或 503 |
 | /metrics | Prometheus 指标 | 返回指标数据 |

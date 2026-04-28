@@ -6,7 +6,7 @@
 
 - 不用 localStorage 存 JWT
 - 使用 HttpOnly Cookie 传递身份凭证（主路径）
-- 同时兼容 `Authorization: Bearer {token}` Header（调试与第三方集成）
+- 同时兼容 `Authorization: Bearer *** Header（调试与第三方集成）
 - JWT 仅作签名校验（CPU 运算），中间件不查数据库
 - 令牌黑名单检查在 handler 层，不在中间件层
 
@@ -28,9 +28,45 @@
 1. 用户提交凭据 → POST /auth/login
 2. 后端验证凭据（Argon2id）
 3. 成功 → 签发 access_token(15min) + refresh_token(7天)
-4. 返回 JSON (含 access_token) + 设置两个 HttpOnly Cookie
-5. 后续请求: Cookie → axum 读取 → extract_token() 决定来源
+4. **吊销用户所有旧的 refresh_token**（安全改进：登录时吊销旧 token）
+5. 返回 JSON (含 access_token) + 设置两个 HttpOnly Cookie
+6. 后续请求: Cookie → axum 读取 → extract_token() 决定来源
 ```
+
+## 令牌刷新流程
+
+```
+1. 用户提交 refresh_token cookie → POST /auth/refresh
+2. 后端验证 refresh_token（数据库查询 + 过期检查）
+3. 验证通过 → 仅生成新的 access_token（refresh_token 不轮转）
+4. 更新 refresh_token 的最后使用时间（last_used_at）
+5. 返回 JSON 包含新的 access_token
+```
+
+> 注意：refresh 端点**仅旋转 access_token**，不生成新的 refresh_token。这简化了令牌管理，但意味着 refresh_token 的泄露风险更高——安全依靠 HttpOnly Cookie 和短 TTL 补偿。
+
+## 密码重置流程
+
+```
+### 忘记密码
+1. 用户提交邮箱 → POST /auth/forgot-password
+2. 后端查找用户（始终返回成功，防止邮箱枚举）
+3. 生成 UUID 重置令牌，存储到 `password_reset_tokens` 表
+4. 发送包含令牌的密码重置邮件（异步）
+5. 用户点击邮件链接，进入重置密码页面
+
+### 重置密码
+1. 用户提交重置令牌 + 新密码 → POST /auth/reset-password
+2. 后端验证令牌（查询 `password_reset_tokens` 表，按 `token_hash` 查找）
+3. 验证新密码强度（PasswordValidator：≥8 字符，含大写/小写/数字/特殊字符）
+4. 事务内执行：
+   - 更新用户密码（Argon2id 哈希）
+   - 删除该用户的所有 `password_reset_tokens`
+   - **吊销该用户所有活跃的 refresh_token**（安全措施）
+5. 提交事务，返回成功消息
+```
+
+> `password_reset_tokens` 表字段：`id`, `user_id`, `token_hash`, `expires_at`, `created_at`。令牌过期时间：1 小时。每个用户只有一个有效重置令牌（`ON CONFLICT (user_id) DO UPDATE`）。
 
 ## 中间件设计
 

@@ -15,9 +15,8 @@ Desktop (>= 1280px):
 ├──────────────────────────────────┬────────────────────┤
 │                                 │                     │
 │    Main Content (62%)           │   TOC Sidebar (38%) │
-│    max-width: 680px             │   max-width: 320px  │
-│    optimal line length:         │   position: sticky  │
-│    65-75 chars/line             │   top: 2rem         │
+│    max-width: none, w-full    │   max-width: 320px  │
+│    全宽自适应                  │   position: sticky  │
 │                                 │   scroll-spy active │
 │                                 │                     │
 ├──────────────────────────────────┴────────────────────┤
@@ -37,15 +36,61 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 | PostBanner | ❌ 已废弃 |
 | PostLayout | ❌ 已废弃 |
 
+### 布局网格约束
+
+- 主内容区使用 `max-width: none` 和 `w-full` 实现全宽自适应
+- 内容宽度由内层容器控制（而非外层布局网格）
+- TOC 栏位：`position: sticky; top: 2rem`
+
+### 双博客详情路由
+
+实际代码中存在两套博客详情路由：
+
+| 路由 | 文件 | 说明 |
+|------|------|------|
+| `app/blog/[...slug]/page.tsx` | `/blog/[...slug]/` | 主要博客详情路由 |
+| `app/(public)/blog/[...slug]/` | `(public)/blog/[...slug]/` | 公开页面路由组中的博客详情 |
+
+两套路由均指向 `DynamicPostPage.tsx` 组件，提供相同的阅读体验。这是 App Router 路由组（Route Group）的设计模式。
+
 ## 排版系统
 
 ### 字体栈
 
 ```css
---font-sans: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
---font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
---font-body: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
+--font-sans: 'Inter', system-ui, sans-serif;
+--font-mono: 'JetBrains Mono', ui-monospace, monospace;
+--font-body: 'Inter', system-ui, sans-serif;
+/* 通过 next/font/google 加载: Inter, JetBrains Mono, Newsreader */
 ```
+
+字体通过 `next/font/google` 加载：
+
+```typescript
+import { JetBrains_Mono, Inter, Newsreader } from 'next/font/google'
+
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-inter',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
+})
+
+const newsreader = Newsreader({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-newsreader',
+  style: ['normal', 'italic'],
+  weight: ['400', '500', '600', '700'],
+})
+```
+
+> 注意：不再使用 PingFang SC、Noto Sans SC、Fira Code 等系统字体栈。使用 next/font/google 替代网络字体加载。
 
 ### 字号比例（Fibonacci-based）
 
@@ -71,7 +116,7 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：1024px（Monograph 的 1280px 过晚，原 768px 过早）
+- 移动端断点：768px（TOC 主组件使用响应式检测：`window.innerWidth < 768` 判定移动端）
 
 ## 阅读进度条 (ReadingProgressBar)
 
