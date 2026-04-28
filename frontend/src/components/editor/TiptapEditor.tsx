@@ -7,7 +7,8 @@ import { useEditor, EditorContent, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import Mathematics from '@tiptap/extension-mathematics'
+// Mathematics — extended with React NodeView for live KaTeX rendering
+import { BlockMath, InlineMath } from './extensions/mathematics-extended'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import TextAlign from '@tiptap/extension-text-align'
@@ -306,8 +307,9 @@ function RichTextEditorInner({
       // Media
       Image.configure({ inline: false, HTMLAttributes: { class: 'max-w-full rounded-lg' } }),
 
-      // Math (Mathematics = TipTap nodes; Katex = toolbar command)
-      Mathematics,
+      // Math (BlockMath + InlineMath = extended TipTap nodes with React NodeViews; Katex = toolbar command)
+      BlockMath,
+      InlineMath,
 
       // Table
       Table.configure({ resizable: true }),

@@ -157,11 +157,7 @@ fn render_code_block(content: Option<&Value>, attrs: Option<&Value>) -> String {
         .and_then(|v| v.as_str())
         .unwrap_or("");
 
-    if code.trim().is_empty() {
-        String::new()
-    } else {
-        format!("```{}\n{}\n```", language, code)
-    }
+    format!("```{}\n{}\n```", language, code)
 }
 
 fn render_blockquote(content: Option<&Value>) -> String {
@@ -474,7 +470,8 @@ fn render_details(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
             let inner: Vec<String> = arr.iter().map(tiptap_json_to_mdx).collect();
-            inner.join("\n")
+            let joined = inner.join("\n");
+            format!("{}\n", joined.trim_end())
         }
         _ => String::new(),
     }
@@ -484,7 +481,7 @@ fn render_details_summary(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
             let inner = render_inline_nodes(arr);
-            format!("<details><summary>{}</summary>", inner)
+            format!("> **📖 {}**  ", inner)
         }
         _ => String::new(),
     }
@@ -494,7 +491,13 @@ fn render_details_content(content: Option<&Value>) -> String {
     match content {
         Some(Value::Array(arr)) => {
             let inner: Vec<String> = arr.iter().map(tiptap_json_to_mdx).collect();
-            format!("{}\n</details>", inner.join("\n"))
+            let joined = inner.join("\n");
+            // Indent each line as a nested blockquote
+            joined
+                .split('\n')
+                .map(|line| format!("> {}", line))
+                .collect::<Vec<_>>()
+                .join("\n")
         }
         _ => String::new(),
     }

@@ -554,27 +554,30 @@ async fn get_post_response(
     // 尝试从缓存获取
     let cache_key = format!("post:{}", slug);
 
-    let mut conn = state
-        .redis
-        .get()
-        .await
-        .map_err(|_| AppError::InternalError)?;
-
-    if let Ok(Some(cached_str)) = redis::cmd("GET")
-        .arg(&cache_key)
-        .query_async::<Option<String>>(&mut conn)
-        .await
-    {
-        if let Ok(post) = serde_json::from_str::<PostDetail>(&cached_str) {
-            return Ok((
-                [(
-                    header::CACHE_CONTROL,
-                    "public, s-maxage=300, stale-while-revalidate=600",
-                )],
-                Json(post),
-            )
-                .into_response());
+    // Redis 不可用时降级为直接从数据库查询
+    let cached_post: Option<PostDetail> = match state.redis.get().await {
+        Ok(mut conn) => {
+            match redis::cmd("GET")
+                .arg(&cache_key)
+                .query_async::<Option<String>>(&mut conn)
+                .await
+            {
+                Ok(Some(cached_str)) => serde_json::from_str::<PostDetail>(&cached_str).ok(),
+                _ => None,
+            }
         }
+        Err(_) => None,
+    };
+
+    if let Some(post) = cached_post {
+        return Ok((
+            [(
+                header::CACHE_CONTROL,
+                "public, s-maxage=300, stale-while-revalidate=600",
+            )],
+            Json(post),
+        )
+            .into_response());
     }
 
     // 从数据库获取（使用读副本）
@@ -607,16 +610,32 @@ async fn get_post_response(
     match post_row {
         Some(row) => {
             // 解析 content：处理三种情况
-            // 1. content_mdx 为 NULL → 从 content_json 转换
+            // 1. content_mdx 为 NULL 或空 → 从 content_json 或 content 字段降级
             // 2. content_mdx 是 TipTap JSON 格式（脏数据）→ 实时转换
             // 3. content_mdx 是真正 MDX → 直接使用
             let content = {
                 let raw = row
                     .content_mdx
                     .clone()
-                    .unwrap_or_else(|| tiptap_json_to_mdx(&row.content_json));
+                    .filter(|s| !s.is_empty())
+                    .unwrap_or_else(|| {
+                        // fallback 1: content_json 有数据时用 TipTap 转换
+                        let json_str = serde_json::to_string(&row.content_json).unwrap_or_default();
+                        if json_str != "{}" && json_str.len() > 2 {
+                            if let Some(ref json_val) = row.content_json {
+                                tiptap_json_to_mdx(
+                                    &serde_json::from_value(json_val.clone()).unwrap_or_default(),
+                                )
+                            } else {
+                                row.content.clone()
+                            }
+                        } else {
+                            // fallback 2: 直接从 content 字段读取（旧数据导入路径）
+                            row.content.clone()
+                        }
+                    });
                 let trimmed = raw.trim_start();
-                if trimmed.starts_with("{\"type\":\"doc\"") {
+                if trimmed.starts_with("{\"type\":") {
                     serde_json::from_str::<serde_json::Value>(&raw)
                         .ok()
                         .map(|v| tiptap_json_to_mdx(&v))
@@ -655,7 +674,9 @@ async fn get_post_response(
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
                 reading_time: row.reading_time,
-                content_json: Some(row.content_json),
+                content_json: row
+                    .content_json
+                    .map(|v| serde_json::from_value(v).unwrap_or_default()),
                 content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
             };
@@ -676,14 +697,16 @@ async fn get_post_response(
 
             post_detail.tags = tags;
 
-            // 缓存
-            if let Ok(json) = serde_json::to_string(&post_detail) {
-                let _: () = redis::cmd("SETEX")
-                    .arg(&cache_key)
-                    .arg(300) // 5 分钟
-                    .arg(&json)
-                    .query_async(&mut conn)
-                    .await?;
+            // 缓存（Redis 不可用时跳过）
+            if let Ok(mut conn) = state.redis.get().await {
+                if let Ok(json) = serde_json::to_string(&post_detail) {
+                    let _: Result<(), _> = redis::cmd("SETEX")
+                        .arg(&cache_key)
+                        .arg(300) // 5 分钟
+                        .arg(&json)
+                        .query_async(&mut conn)
+                        .await;
+                }
             }
 
             Ok((

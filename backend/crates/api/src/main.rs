@@ -375,6 +375,13 @@ fn v1_routes(state: AppState) -> Router<AppState> {
                 ))
         )
         // 管理后台有受保护的 /admin/sync/mdx 端点，这里不再需要公开版本
+        .merge(
+            mdx_convert_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+        )
         .with_state(state)
 }
 
@@ -632,6 +639,24 @@ fn admin_routes() -> Router<AppState> {
         // MDX同步
         .route("/admin/sync/mdx", post(blog_api::routes::mdx_sync::sync_mdx_to_db))
         .route("/admin/search/reindex", post(blog_api::routes::search::reindex_posts))
+}
+
+// MDX 转换路由（只带 auth，不带 CSRF — 这是纯 API 端点，不是浏览器表单）
+fn mdx_convert_routes() -> Router<AppState> {
+    use axum::routing::post;
+    Router::new()
+        .route(
+            "/admin/mdx/convert",
+            post(blog_api::routes::mdx_convert::convert_mdx),
+        )
+        .route(
+            "/admin/mdx/batch-convert",
+            post(blog_api::routes::mdx_convert::batch_convert_mdx),
+        )
+        .route(
+            "/admin/mdx/migrate-all",
+            post(blog_api::routes::mdx_convert::migrate_all_content_json),
+        )
 }
 
 /// Kubernetes liveness probe handler

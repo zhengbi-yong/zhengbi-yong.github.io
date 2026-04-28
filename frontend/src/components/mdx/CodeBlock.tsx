@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
 import { Check, Copy, Terminal } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import { highlightCode } from '@/lib/shiki-highlighter'
 
 interface CodeBlockProps {
   children: ReactNode
@@ -33,11 +34,43 @@ function extractTextContent(children: ReactNode): string {
   return ''
 }
 
+/**
+ * Extract just the inner code content from Shiki's full HTML output.
+ * Shiki wraps in <pre><code>...</code></pre>; we need only the inner part.
+ */
+function extractShikiContent(html: string): string {
+  const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
+  return match ? match[1] : html
+}
+
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
+  const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const language = extractLanguage(className)
   const codeText = extractTextContent(children)
+
+  // E3: Async Shiki highlighting — yields to React's scheduler
+  useEffect(() => {
+    if (!language || !codeText.trim()) {
+      return
+    }
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      try {
+        const html = await highlightCode(codeText, language, 'github-dark')
+        if (!cancelled) {
+          setHighlightedHtml(html)
+        }
+      } catch {
+        // fallback to default rendering
+      }
+    }, 0)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [language, codeText])
 
   const handleCopy = useCallback(async () => {
     try {
@@ -142,13 +175,24 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
               ))}
             </div>
             <div className="flex-1 overflow-x-auto">
-              {children}
+              {highlightedHtml ? (
+                <pre
+                  className="p-4 text-sm leading-[1.7]"
+                  dangerouslySetInnerHTML={{
+                    __html: extractShikiContent(highlightedHtml),
+                  }}
+                />
+              ) : (
+                <div className="p-4 text-sm font-mono leading-[1.7] text-gray-800 dark:text-gray-200 opacity-90">
+                  {children}
+                </div>
+              )}
             </div>
           </div>
         ) : (
           <div className="flex items-center gap-2 px-4 py-3">
             <Terminal size={14} className="text-gray-500 flex-shrink-0" />
-            <div className="overflow-x-auto flex-1">
+            <div className="overflow-x-auto flex-1 font-mono text-sm">
               {children}
             </div>
           </div>
