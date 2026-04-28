@@ -1,6 +1,6 @@
 # 前端编辑器集成
 
-> 来源：EDITOR_SYSTEM_DESIGN.md P2
+> 来源：架构设计文档 P2
 
 ## 目标
 
@@ -30,7 +30,7 @@ import dynamic from 'next/dynamic'
 
 // SSR 禁用
 const TiptapEditor = dynamic(
-  () => import('@/components/editor/TiptapEditor'),
+  () => Promise.resolve(RichTextEditorInner),
   { ssr: false }
 )
 
@@ -45,18 +45,35 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 
 ## 编辑器核心功能
 
-| 功能 | TipTap 扩展 | 状态 |
-|------|------------|------|
-| 段落/标题 | StarterKit | ✅ |
-| 粗体/斜体 | StarterKit | ✅ |
-| 列表 (有序/无序) | StarterKit | ✅ |
-| 链接 | Link | ✅ |
-| 代码块 | CodeBlockLowlight | ✅ |
-| 引用 | Blockquote | ✅ |
-| 表格 | Table | ✅ |
-| 图片 | Image | ✅ |
-| 数学公式 | Mathematics | ✅ |
-| 历史撤销 | UndoHistory | ✅ |
+|| 功能 | TipTap 扩展 | 来源包 | 状态 |
+||------|------------|--------|------|
+|| 段落/标题 | StarterKit | `@tiptap/starter-kit` | ✅ |
+|| 粗体/斜体 | StarterKit | `@tiptap/starter-kit` | ✅ |
+|| 下划线 | Underline | `@tiptap/extension-underline` | ✅ |
+|| 列表 (有序/无序) | StarterKit | `@tiptap/starter-kit` | ✅ |
+|| 任务列表 | TaskList + TaskItem | `@tiptap/extension-task-list` + `@tiptap/extension-task-item` | ✅ |
+|| 链接 | Link | `@tiptap/extension-link` | ✅ |
+|| 代码块 (语法高亮) | ShikiCodeBlock | 自定义扩展 (替代 CodeBlockLowlight) | ✅ |
+|| 引用 | Blockquote (StarterKit) | `@tiptap/starter-kit` | ✅ |
+|| 表格 | Table | `reactjs-tiptap-editor/table` | ✅ |
+|| 图片 | Image | `@tiptap/extension-image` | ✅ |
+|| 数学公式 | BlockMath + InlineMath | 自定义扩展 (基于 `@tiptap/extension-mathematics`) | ✅ |
+|| 历史撤销 | UndoHistory (StarterKit) | `@tiptap/starter-kit` | ✅ |
+|| 排版增强 | Typography | `@tiptap/extension-typography` | ✅ |
+|| 文本对齐 | TextAlign | `@tiptap/extension-text-align` | ✅ |
+|| 占位符 | Placeholder | `@tiptap/extension-placeholder` | ✅ |
+|| 提及 | Mention | `reactjs-tiptap-editor/mention` | ✅ |
+|| 缩进 | Indent | `reactjs-tiptap-editor/indent` | ✅ |
+|| 颜色 | Color | `reactjs-tiptap-editor/color` | ✅ |
+|| 字号 | FontSize | `reactjs-tiptap-editor/fontsize` | ✅ |
+|| 行高 | LineHeight | `reactjs-tiptap-editor/lineheight` | ✅ |
+|| 文字方向 | TextDirection | `reactjs-tiptap-editor/textdirection` | ✅ |
+|| 更多标记 | MoreMark | `reactjs-tiptap-editor/moremark` | ✅ |
+|| 搜索替换 | SearchAndReplace | `reactjs-tiptap-editor/searchandreplace` | ✅ |
+|| KaTeX 工具栏 | KatexExtension | `reactjs-tiptap-editor/katex` | ✅ |
+|| 视频 | VideoExtension | `reactjs-tiptap-editor/video` | ✅ |
+|| Twitter 嵌入 | TwitterExtension | `reactjs-tiptap-editor/twitter` | ✅ |
+|| 标注框 | CalloutExtension | `reactjs-tiptap-editor/callout` | ✅ |
 
 ## 保存/加载闭环
 
@@ -65,12 +82,12 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 const json = editor.getJSON()
 
 // 保存到后端
-await fetch('/api/v1/posts', {
+await fetch('/api/v1/admin/posts', {
   method: 'POST',
   body: JSON.stringify({ content: json })
 })
 
 // 从后端加载
-const { content_json } = await fetch(`/api/v1/posts/${slug}`)
+const { content_json } = await fetch(`/api/v1/admin/posts/${slug}`)
 editor.commands.setContent(content_json)
 ```

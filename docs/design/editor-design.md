@@ -24,12 +24,13 @@
          ▼                              │
 ┌──────────────────┐           ┌────────┴─────────┐
 │ content_json     │  自动派生  │ content_mdx      │
-│ (JSONB, NULLABLE)│ ────────→ │ (TEXT, NULLABLE) │
-│ 单一事实来源       │           │ 高效读取/分发     │
+│ (JSONB, NOT NULL │ ────────→ │ (TEXT, NULLABLE) │
+│  DEFAULT '{}')   │           │ 高效读取/分发     │
+│ 单一事实来源       │           │
 └──────────────────┘           └──────────────────┘
 ```
 
-- **`content_json` (JSONB)** — 写入侧单一事实来源（Single Source of Truth）。可为 `NULL`，后端三级降级策略：`content_mdx` → 从 `content_json` 实时转换 → 旧 `content` 列
+- **`content_json` (JSONB)** — 写入侧单一事实来源（Single Source of Truth）。含 `NOT NULL DEFAULT '{}'` 约束，后端三级降级策略：`content_mdx` → 从 `content_json` 实时转换 → 旧 `content` 列
 - **`content_mdx` (TEXT)** — 读取侧优化视图，供 SSR/SSG 直读。可为 `NULL`，后端根据 `content_json` 自动派生
 - 写入绝对安全，格式转换永不丢数据
 - 未来可迁移：即使放弃 TipTap，MDX 依然是 Portable 标准格式
@@ -88,4 +89,4 @@
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
 || ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
 || P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
-|| 已解决 ✅ | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理 |
+||| Phase B | 重建 `articles`/`article_versions` 表 | 迁移 `2026042701_create_articles.sql` 新建 `articles`（双轨存储）、`article_versions`（审计追踪）、`media_assets` 表，替代原 `posts`/`post_versions`/`media` 体系 |

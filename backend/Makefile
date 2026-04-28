@@ -55,7 +55,7 @@ db-migrate:
 # 进入数据库shell
 db-shell:
 	@echo "🐘 进入PostgreSQL shell..."
-	docker-compose exec postgres psql -U blog_user -d blog_db
+	docker compose exec postgres psql -U blog_user -d blog_db
 
 # 安装依赖
 deps:

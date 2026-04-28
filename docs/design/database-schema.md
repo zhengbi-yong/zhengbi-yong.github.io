@@ -47,6 +47,7 @@ CREATE TABLE users (
     username CITEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,       -- Argon2id
     role VARCHAR(20) NOT NULL DEFAULT 'user',
+    status VARCHAR(20) NOT NULL DEFAULT 'active',  -- active | suspended | banned
     profile JSONB NOT NULL DEFAULT '{}',
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -216,9 +217,13 @@ CREATE TABLE categories (
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     description TEXT,
-    parent_id UUID REFERENCES categories(id),
-    "order" INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    icon TEXT,
+    color TEXT,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    post_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
 
@@ -228,6 +233,7 @@ CREATE TABLE tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
+    description TEXT,
     post_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -244,15 +250,20 @@ CREATE TABLE post_tags (
 CREATE TABLE media (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     filename TEXT NOT NULL,
-    url TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
     mime_type TEXT NOT NULL,
-    size BIGINT NOT NULL,
+    size_bytes BIGINT NOT NULL,
     width INTEGER,
     height INTEGER,
+    storage_path TEXT NOT NULL,
+    cdn_url TEXT,
     alt_text TEXT,
-    uploader_id UUID REFERENCES users(id),
-    article_id UUID REFERENCES posts(id),
+    caption TEXT,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    media_type TEXT NOT NULL DEFAULT 'image',
+    usage_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
 );
 ```
@@ -265,9 +276,10 @@ CREATE TABLE post_versions (
     version_number INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    summary TEXT,
+    change_log TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by UUID REFERENCES users(id),
-    comment TEXT,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     UNIQUE (post_id, version_number)
 );
 ```
@@ -282,10 +294,11 @@ CREATE TABLE post_likes (
 );
 
 CREATE TABLE comment_likes (
+    id BIGSERIAL PRIMARY KEY,
     comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (comment_id, user_id)
+    UNIQUE(comment_id, user_id)
 );
 ```
 
@@ -321,12 +334,144 @@ CREATE TABLE refresh_tokens (
 ### 阅读进度 (reading_progress)
 ```sql
 CREATE TABLE reading_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    progress INTEGER NOT NULL DEFAULT 0,
+    post_slug TEXT NOT NULL REFERENCES posts(slug) ON DELETE CASCADE,
+    progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
+    last_read_position INTEGER DEFAULT 0,
+    scroll_percentage FLOAT DEFAULT 0.0,
+    word_count INTEGER DEFAULT 0,
+    words_read INTEGER DEFAULT 0,
+    is_completed BOOLEAN DEFAULT FALSE,
     last_read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    completed_at TIMESTAMPTZ,
-    PRIMARY KEY (user_id, post_id)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(user_id, post_slug)
+);
+```
+
+### 密码重置令牌 (password_reset_tokens)
+```sql
+CREATE TABLE password_reset_tokens (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### 团队成员 (team_members)
+```sql
+CREATE TABLE team_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    name VARCHAR(255) NOT NULL,
+    name_en VARCHAR(255),
+    team_role VARCHAR(50) NOT NULL DEFAULT 'member',
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    title VARCHAR(255),
+    bio TEXT,
+    affiliation VARCHAR(255),
+    research_tags TEXT[],
+    email VARCHAR(255),
+    github VARCHAR(100),
+    website VARCHAR(500),
+    avatar_media_id UUID REFERENCES media(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### 文章-媒体关联 (post_media)
+```sql
+CREATE TABLE post_media (
+    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    media_id UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+    position INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (post_id, media_id)
+);
+```
+
+### 搜索关键词统计 (search_keywords)
+```sql
+CREATE TABLE search_keywords (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    keyword TEXT NOT NULL UNIQUE,
+    search_count INTEGER DEFAULT 1,
+    last_searched_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 搜索历史 (search_history)
+```sql
+CREATE TABLE search_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    keyword TEXT NOT NULL,
+    results_count INTEGER,
+    clicked_slug TEXT,
+    searched_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 新文章表 (articles) — Phase B 双轨存储
+```sql
+CREATE TABLE articles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    summary TEXT,
+    cover_image_url TEXT,
+    content_json JSONB NOT NULL DEFAULT '{}',
+    content_mdx TEXT DEFAULT '',
+    mdx_compiled_at TIMESTAMPTZ,
+    author_id UUID NOT NULL REFERENCES users(id),
+    status VARCHAR(20) NOT NULL DEFAULT 'draft',
+    tags TEXT[] DEFAULT '{}',
+    layout VARCHAR(20) DEFAULT 'standard',
+    is_featured BOOLEAN DEFAULT false,
+    view_count INTEGER DEFAULT 0,
+    word_count INTEGER DEFAULT 0,
+    published_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### 文章版本 (article_versions) — Phase B 审计追踪
+```sql
+CREATE TABLE article_versions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+    version_number INTEGER NOT NULL,
+    content_json JSONB NOT NULL,
+    title VARCHAR(255),
+    editor_id UUID NOT NULL REFERENCES users(id),
+    change_summary TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (article_id, version_number)
+);
+```
+
+### 媒体资产 (media_assets) — Phase B 替代 media
+```sql
+CREATE TABLE media_assets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    filename VARCHAR(255) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    storage_path TEXT NOT NULL,
+    url TEXT NOT NULL,
+    width INTEGER,
+    height INTEGER,
+    duration FLOAT,
+    uploader_id UUID NOT NULL REFERENCES users(id),
+    article_id UUID REFERENCES articles(id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 

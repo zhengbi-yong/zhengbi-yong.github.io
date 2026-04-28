@@ -34,6 +34,7 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 - `backend/crates/api/src/routes/posts.rs` — `get_post` 中 fallback 转换
 - `backend/crates/api/src/routes/mdx_sync.rs` — MDX 同步管线
 - `backend/crates/api/src/routes/auth.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/articles.rs` — articles 双轨存储写入
 
 ## 节点类型映射
 
@@ -50,7 +51,7 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `image` | `![alt](src)` |
 | `video` | `<video src="...">` |
 | `inlineMath` (latex) | `$latex$` |
-| `math` (latex) | `$$\nlatex\n$$` |
+| `blockMath` (latex) | `$$\nlatex\n$$` |
 | `table` / `tableRow` / `tableCell` | Markdown 表格 |
 | `horizontalRule` | `---` |
 | `hardBreak` | 两个空格 + 换行 |
@@ -87,8 +88,10 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `content_mdx` | TEXT | MDX 缓存（读取侧） |
 
 - 写入时：同时保存两者
-- 读取时：优先使用 `content_mdx`，若为 NULL 则实时从 `content_json` 转换
-- 脏数据处理：若 `content_mdx` 已是 TipTap JSON 格式（脏数据），实时转换为真正 MDX
+- 读取时实际三级降级逻辑（`posts.rs:612-646`）：
+  1. **content_mdx 非空** → 检查是否为 TipTap JSON 格式（脏数据），是则实时转换为真正 MDX
+  2. **content_mdx 为空** → 从 `content_json` 实时转换（fallback 1）
+  3. **content_json 无数据** → 直接从旧 `content` 字段读取（fallback 2，旧数据导入路径）
 
 ## 测试覆盖
 
@@ -103,4 +106,40 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 - 引用块 + 嵌套
 - 多级标题
 
+`mdx_to_json.rs` 包含 **27 个单元测试**，覆盖反向转换：
+- 空/空白输入
+- 标题、段落
+- 粗体/斜体/行内代码/链接/删除线
+- 有序/无序/任务列表
+- 代码块、引用、图片
+- 表格
+- 水平线、硬换行
+- 转义字符
+- 数学公式（inline + block）
+- 转换统计收集
+
 运行: `cargo test -p blog-core`
+
+## 反向转换：MDX → TipTap JSON
+
+`backend/crates/core/src/mdx_to_json.rs` (844 行) 提供逆向转换，使用 `pulldown-cmark` 解析 MDX 并映射为 TipTap 3.x JSONContent 格式。
+
+### 入口函数
+
+```rust
+/// 将 MDX/Markdown 文本转换为 TipTap ProseMirror JSON AST
+pub fn mdx_to_tiptap_json(mdx_text: &str) -> Value
+
+/// 带统计信息的转换
+pub fn mdx_to_tiptap_json_with_stats(mdx_text: &str) -> (Value, ConversionStats)
+```
+
+### 设计原则
+- 纯同步转换，无 IO，无外部副作用
+- 空输入返回 `{"type":"doc","content":[]}`
+- 所有节点严格遵循 TipTap 3.x JSONContent 格式
+- 内联标记 (marks) 通过栈上下文自动应用到文本节点
+
+### 调用位置
+- `backend/crates/api/src/routes/mdx_sync.rs` — MDX 文件同步管线
+- `backend/crates/api/src/routes/mdx_convert.rs` — 批量转换流程

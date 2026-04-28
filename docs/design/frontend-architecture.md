@@ -94,7 +94,7 @@ export const postService = {
 | Store | 存什么 | 存哪里 | 原因 |
 |-------|--------|--------|------|
 | ui-store | theme, sidebar, modal | Zustand | 纯 UI，无敏感数据 |
-| UIStore | loading, notifications, modals, sidebar, colorMode | React Context | UI 层级管理 |
+| UIStore | loading, notifications, modals, sidebar, colorMode | Zustand | UI 层级管理 |
 | ~~auth-store~~ | ~~token~~ | ~~localStorage~~ | **禁止!** XSS 风险 |
 | ~~blog-store~~ | ~~posts~~ | ~~localStorage~~ | **禁止!** 用 API 获取 |
 

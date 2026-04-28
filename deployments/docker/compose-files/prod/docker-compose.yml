@@ -204,7 +204,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/livez"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/.well-known/live"]
       interval: 15s
       timeout: 5s
       retries: 5

@@ -20,20 +20,21 @@ backend/
 │   │   ├── src/
 │   │   │   ├── main.rs         # 入口 + 路由组合 + 优雅停机
 │   │   │   ├── routes/
-│   │   │   │   ├── auth.rs
-│   │   │   │   ├── posts.rs
-│   │   │   │   ├── comments.rs
-│   │   │   │   ├── categories.rs
-│   │   │   │   ├── tags.rs
-│   │   │   │   ├── media.rs
 │   │   │   │   ├── admin.rs
+│   │   │   │   ├── auth.rs
+│   │   │   │   ├── categories.rs
+│   │   │   │   ├── comments.rs
+│   │   │   │   ├── mdx_convert.rs
+│   │   │   │   ├── mdx_sync.rs
+│   │   │   │   ├── media.rs
+│   │   │   │   ├── openapi.rs
+│   │   │   │   ├── posts.rs
 │   │   │   │   ├── reading_progress.rs
 │   │   │   │   ├── search.rs
 │   │   │   │   ├── search_optimized.rs
-│   │   │   │   ├── mdx_sync.rs
-│   │   │   │   ├── versions.rs
-│   │   │   │   ├── openapi.rs
-│   │   │   │   └── team_members.rs
+│   │   │   │   ├── tags.rs
+│   │   │   │   ├── team_members.rs
+│   │   │   │   └── versions.rs
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.rs
 │   │   │   │   ├── rate_limit.rs
@@ -60,7 +61,7 @@ backend/
 ```bash
 # 资源命名: 名词复数，斜杠子路径
 GET    /posts                  # 获取列表
-POST   /posts                  # 创建（管理端）
+POST   /admin/posts            # 创建（管理端）
 GET    /posts/{slug}           # 获取单个
 PATCH  /posts/{slug}           # 部分更新（管理端）
 DELETE /posts/{slug}           # 删除（管理端）
@@ -135,6 +136,7 @@ GET    /tags/autocomplete      # 自动补全
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /team-members | 团队成员列表 |
+| GET | /team-members/{id} | 团队成员详情 |
 
 ### 管理 API（需认证）
 
@@ -147,8 +149,13 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/sync/mdx | 同步 MDX |
 | GET | /admin/stats | 仪表盘统计 |
 | GET | /admin/users | 用户列表 |
+| POST | /admin/users | 创建用户 |
+| GET | /admin/users/{id} | 用户详情 |
+| PUT | /admin/users/{id} | 更新用户 |
 | PUT | /admin/users/{id}/role | 更新角色 |
 | DELETE | /admin/users/{id} | 删除用户 |
+| POST | /admin/users:batchUpdateRole | 批量更新角色 |
+| POST | /admin/users:batchDelete | 批量删除用户 |
 | GET | /admin/user-growth | 用户增长 |
 | GET | /admin/comments | 评论列表 |
 | PUT | /admin/comments/{id}/status | 审核评论 |
@@ -156,11 +163,21 @@ GET    /tags/autocomplete      # 自动补全
 | GET | /admin/media | 媒体列表 |
 | GET | /admin/media/unused | 未使用媒体 |
 | GET | /admin/media/{id} | 媒体详情 |
+| GET | /admin/media/{id}/download-url | 媒体下载链接 |
 | PATCH | /admin/media/{id} | 更新媒体 |
 | DELETE | /admin/media/{id} | 删除媒体 |
 | POST | /admin/media/upload | 上传媒体 |
 | POST | /admin/media/presign-upload | 预签名上传 |
 | POST | /admin/media/finalize | 完成上传 |
+| GET | /admin/team-members | 团队成员列表（管理端） |
+| POST | /admin/team-members | 创建团队成员 |
+| GET | /admin/team-members/{id} | 团队成员详情（管理端） |
+| PUT | /admin/team-members/{id} | 更新团队成员 |
+| DELETE | /admin/team-members/{id} | 删除团队成员 |
+| POST | /admin/team-members/batch/delete | 批量删除团队成员 |
+| POST | /admin/mdx/convert | MDX 转换 |
+| POST | /admin/mdx/batch-convert | MDX 批量转换 |
+| POST | /admin/mdx/migrate-all | MDX 全量迁移 |
 | GET | /admin/posts/{postId}/versions | 版本列表 |
 | POST | /admin/posts/{postId}/versions | 创建版本 |
 | GET | /admin/posts/{postId}/versions/{versionNumber} | 版本详情 |
@@ -270,6 +287,5 @@ async fn auth_middleware(
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | 基本健康检查 | 返回 "OK" |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |
