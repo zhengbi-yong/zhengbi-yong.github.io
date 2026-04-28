@@ -56,7 +56,6 @@ K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 |------|------|------|
 | `/.well-known/live` | 存活探针 | 只返回 200 |
 | `/.well-known/ready` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| `/health` | 基本健康 | 返回 "OK" |
 | `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
 | `/metrics` | Prometheus 指标 | 指标数据 |
 

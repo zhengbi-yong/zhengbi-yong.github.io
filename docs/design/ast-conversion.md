@@ -1,10 +1,17 @@
 # AST 转换管线
 
-> 当前实现：Rust 后端 `blog-core` crate 的纯递归 JSON 遍历，位于 `backend/crates/core/src/mdx_convert.rs`。
+> 当前实现：Rust 后端 `blog-core` crate，包含双向转换管线，位于 `backend/crates/core/src/mdx_convert.rs` (TipTap→MDX) 和 `backend/crates/core/src/mdx_to_json.rs` (MDX→TipTap JSON)。
 
 ## 转换方向
 
 ```text
+ ┌──────────────────────────────────────────────────┐
+ │                  双向转换管线                      │
+ ├──────────────────┬───────────────────────────────┤
+ │  TipTap JSON → MDX  (mdx_convert.rs)             │
+ │  MDX → TipTap JSON  (mdx_to_json.rs)             │
+ └──────────────────┴───────────────────────────────┘
+
 TipTap JSON (ProseMirror AST)
         │
         ▼
@@ -12,11 +19,25 @@ TipTap JSON (ProseMirror AST)
         │
         ▼
   MDX 纯文本 (字符串拼接)
+
+        ─── 以及逆方向 ───
+
+MDX 纯文本
+        │
+        ▼
+  pulldown-cmark 解析 (事件流)
+        │
+        ▼
+  栈式 AST 构造
+        │
+        ▼
+  TipTap JSON (ProseMirror AST)
 ```
 
+- `mdx_convert.rs`: 直接 JSON → Markdown 字符串拼接（纯递归遍历）
+- `mdx_to_json.rs`: 使用 pulldown-cmark 解析 MDX，栈式构造 TipTap JSONContent 格式
 - **不是** remark-prosemirror 转换器
 - **不是** MDAST 中间表示
-- 直接 JSON → Markdown 字符串拼接
 
 ## 核心实现
 
@@ -30,10 +51,14 @@ fn render_inline_node(node: &Value) -> String  // 内联节点
 fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 ```
 
-### 调用位置
+### 调用位置（TipTap→MDX）
 - `backend/crates/api/src/routes/posts.rs` — `get_post` 中 fallback 转换
-- `backend/crates/api/src/routes/mdx_sync.rs` — MDX 同步管线
-- `backend/crates/api/src/routes/auth.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/articles.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/mdx_convert.rs` — 转换管线（convert, batch_convert, migrate_all_content_json）
+- `backend/crates/api/src/routes/auth.rs` — 文章写入时转换（旧 posts 表路径）
+
+### 调用位置（MDX→TipTap JSON）
+- `backend/crates/api/src/routes/mdx_convert.rs` — `convert_mdx`, `batch_convert_mdx`, `migrate_all_content_json`
 
 ## 节点类型映射
 
@@ -50,12 +75,12 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `image` | `![alt](src)` |
 | `video` | `<video src="...">` |
 | `inlineMath` (latex) | `$latex$` |
-| `math` (latex) | `$$\nlatex\n$$` |
+| `blockMath` (latex) | `$$\nlatex\n$$` |
 | `table` / `tableRow` / `tableCell` | Markdown 表格 |
 | `horizontalRule` | `---` |
-| `hardBreak` | 两个空格 + 换行 |
+| `hardBreak` | 换行 |
 | `mention` | `@username` |
-| `details` / `summary` | `<details>` / `<summary>` |
+| `details` / `detailsSummary` / `detailsContent` | `<details>` / `<summary>` |
 | `callout` | `::: callout-type` |
 
 ### Mark 映射
@@ -64,9 +89,11 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 |------|-----|
 | `bold` | `**text**` |
 | `italic` | `*text*` |
+| `underline` | `__text__` |
 | `code` | `` `text` `` |
 | `link` | `[text](href)` |
 | `strike` | `~~text~~` |
+| `highlight` | `==text==` |
 
 ## 双向转换
 
@@ -92,7 +119,7 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 
 ## 测试覆盖
 
-`mdx_convert.rs` 包含 **16 个单元测试**，覆盖：
+`mdx_convert.rs` 包含 **16 个单元测试**（TipTap→MDX），`mdx_to_json.rs` 包含 **27 个单元测试**（MDX→TipTap JSON），合计 **43 个**，覆盖：
 - 空文档
 - 嵌套列表（bullet + ordered）
 - 代码块（含语言标注）
@@ -102,5 +129,11 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 - 任务列表
 - 引用块 + 嵌套
 - 多级标题
+- 内联格式（bold, italic, underline, strike, highlight, code, link）
+- 图片 / 视频
+- MDX 组件
+- 多语言文本（中文 / Unicode）
+- 双向转换一致性
+- 转换统计信息
 
 运行: `cargo test -p blog-core`

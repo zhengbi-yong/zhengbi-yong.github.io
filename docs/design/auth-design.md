@@ -75,11 +75,12 @@ pub async fn optional_auth_middleware(
 - ❌ 外部 API 调用
 - ❌ 复杂业务逻辑
 
-## 令牌黑名单
+## 令牌黑名单（计划中，尚未实现）
 
-- 撤销的 access_token 存入 Redis: `blacklist:{token_hash}` → `"1"`，TTL = 剩余有效期
-- 检查在 auth handler 层（`is_token_blacklisted()`），不在中间件层
+- 撤销的 access_token 计划存入 Redis: `blacklist:{token_hash}` → `"1"`，TTL = 剩余有效期
+- 检查将在 auth handler 层（`is_token_blacklisted()`），不在中间件层
 - 登出时撤销当前 access_token，同时删除 refresh_token
+- 当前实现：JWT 到期自动失效，未主动撤销
 
 ## 技术决策
 
@@ -87,7 +88,7 @@ pub async fn optional_auth_middleware(
 |--------|---------|------|
 | JWT 存储 | HttpOnly Cookie + Authorization Header | 维持双路径 |
 | 密码哈希 | Argon2id | 维持 |
-| 令牌黑名单 | Redis String `blacklist:{token_hash}` | 维持 |
+| 令牌黑名单 | Redis String `blacklist:{token_hash}` | **计划中**（当前未实现） |
 | 登录方式 | 密码 + JWT | 远期规划 WebAuthn 无密码 |
 | 令牌刷新 | family_id 令牌旋转（防重放） | 维持 |
 | 中间件职责 | 仅签名校验，无 I/O | 维持 |

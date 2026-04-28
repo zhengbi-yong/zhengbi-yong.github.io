@@ -49,6 +49,7 @@ CREATE TABLE users (
     role VARCHAR(20) NOT NULL DEFAULT 'user',
     profile JSONB NOT NULL DEFAULT '{}',
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'banned')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ             -- 软删除
@@ -57,7 +58,8 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
-CREATE INDEX idx_users_profile ON users USING GIN (profile jsonb_path_ops);
+CREATE INDEX idx_users_profile_gin ON users USING GIN (profile jsonb_path_ops);
+CREATE INDEX idx_users_status ON users(status);
 ```
 
 ### 软删除下的唯一性
@@ -85,14 +87,14 @@ CREATE TABLE posts (
     mdx_compiled_at TIMESTAMPTZ,                 -- MDX 最后编译时间
     summary TEXT,
     excerpt TEXT,
-    cover_image_id UUID REFERENCES media(id),
-    og_image_id UUID REFERENCES media(id),
+    cover_image_id UUID REFERENCES media(id) ON DELETE SET NULL,
+    og_image_id UUID REFERENCES media(id) ON DELETE SET NULL,
     status post_status NOT NULL DEFAULT 'draft',
     published_at TIMESTAMPTZ,
     scheduled_at TIMESTAMPTZ,
-    category_id UUID REFERENCES categories(id),
-    author_id UUID REFERENCES users(id),
-    last_edited_by UUID REFERENCES users(id),
+    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    last_edited_by UUID REFERENCES users(id) ON DELETE SET NULL,
     show_toc BOOLEAN NOT NULL DEFAULT TRUE,
     layout TEXT NOT NULL DEFAULT 'PostSimple',
     view_count BIGINT NOT NULL DEFAULT 0,
@@ -110,8 +112,8 @@ CREATE TABLE posts (
     canonical_url TEXT,
     author_display_name TEXT,
     is_featured BOOLEAN NOT NULL DEFAULT FALSE,
-    post_type TEXT NOT NULL DEFAULT 'post',
-    content_format TEXT,
+    post_type TEXT NOT NULL DEFAULT 'article',
+    content_format TEXT NOT NULL DEFAULT 'markdown',
     language TEXT NOT NULL DEFAULT 'zh-CN',
     copyright_info TEXT,
     license_type TEXT,
@@ -120,6 +122,11 @@ CREATE TABLE posts (
     content_hash TEXT,                           -- MDX 同步用
     rendered_at TIMESTAMPTZ,                     -- 最后渲染时间
     lastmod_at TIMESTAMPTZ,
+    search_vector tsvector GENERATED ALWAYS AS (
+        setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
+        setweight(to_tsvector('simple', coalesce(summary, '')), 'B') ||
+        setweight(to_tsvector('simple', coalesce(content, '')), 'C')
+    ) STORED,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
@@ -128,6 +135,9 @@ CREATE TABLE posts (
 CREATE INDEX idx_posts_status ON posts(status);
 CREATE INDEX idx_posts_published ON posts(published_at DESC) WHERE status = 'published';
 CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_ops);
+CREATE INDEX idx_posts_search_vector ON posts USING GIN (search_vector);
+CREATE INDEX idx_posts_title_trgm ON posts USING GIN (title gin_trgm_ops);
+CREATE INDEX idx_posts_content_trgm ON posts USING GIN (content gin_trgm_ops);
 ```
 
 ### 双轨存储说明
@@ -161,12 +171,14 @@ CREATE TABLE comments (
     moderation_reason TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at TIMESTAMPTZ
+    deleted_at TIMESTAMPTZ,
+    FOREIGN KEY (slug) REFERENCES post_stats(slug) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_comments_path ON comments USING GIST (path);
-CREATE INDEX idx_comments_post ON comments(slug);
-CREATE INDEX idx_comments_pending ON comments(created_at DESC) WHERE status = 'pending';
+CREATE INDEX idx_comments_post_created ON comments(slug, created_at DESC);
+CREATE INDEX idx_comments_post_status ON comments(slug, status);
+CREATE INDEX idx_comments_path_gist ON comments USING GIST (path);
+CREATE INDEX idx_comments_user ON comments(user_id);
 ```
 
 > 注：`slug` 字段（原 `post_slug`）通过 `0002_fix_column_names.sql` 重命名。
@@ -175,7 +187,7 @@ CREATE INDEX idx_comments_pending ON comments(created_at DESC) WHERE status = 'p
 
 ```sql
 CREATE TABLE post_stats (
-    slug TEXT PRIMARY KEY REFERENCES posts(slug) ON DELETE CASCADE,
+    slug TEXT PRIMARY KEY,
     view_count BIGINT NOT NULL DEFAULT 0,
     like_count INTEGER NOT NULL DEFAULT 0,
     comment_count INTEGER NOT NULL DEFAULT 0,
@@ -192,12 +204,10 @@ CREATE TABLE post_stats (
 ```sql
 CREATE TABLE outbox_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    event_type TEXT NOT NULL,               -- 原 topic
-    payload JSONB NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending',
-    run_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    retry_count INT NOT NULL DEFAULT 0,     -- 原 attempts
-    error TEXT,                              -- 原 last_error
+    event_type TEXT NOT NULL,
+    payload JSONB NOT NULL DEFAULT '{}',
+    retry_count INT NOT NULL DEFAULT 0,
+    error TEXT,
     processed_at TIMESTAMPTZ,
     locked_at TIMESTAMPTZ,
     locked_by TEXT,
@@ -205,7 +215,7 @@ CREATE TABLE outbox_events (
 );
 ```
 
-> 注：当前无分区。`event_type`、`retry_count`、`error` 字段通过 `2026032201` 迁移重命名。
+> 注：当前无分区。
 
 ## 其他表
 
@@ -216,10 +226,18 @@ CREATE TABLE categories (
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     description TEXT,
-    parent_id UUID REFERENCES categories(id),
-    "order" INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    icon TEXT,
+    color TEXT,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    post_count INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_categories_slug ON categories(slug);
+CREATE INDEX idx_categories_parent_id ON categories(parent_id);
+CREATE INDEX idx_categories_display_order ON categories(display_order);
 ```
 
 ### 标签 (tags)
@@ -228,9 +246,13 @@ CREATE TABLE tags (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
+    description TEXT,
     post_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_tags_slug ON tags(slug);
+CREATE INDEX idx_tags_post_count ON tags(post_count DESC);
 
 CREATE TABLE post_tags (
     post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
@@ -244,17 +266,27 @@ CREATE TABLE post_tags (
 CREATE TABLE media (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     filename TEXT NOT NULL,
-    url TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
     mime_type TEXT NOT NULL,
-    size BIGINT NOT NULL,
+    size_bytes BIGINT NOT NULL,
     width INTEGER,
     height INTEGER,
+    storage_path TEXT NOT NULL,
+    cdn_url TEXT,
     alt_text TEXT,
-    uploader_id UUID REFERENCES users(id),
-    article_id UUID REFERENCES posts(id),
+    caption TEXT,
+    uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    media_type TEXT NOT NULL DEFAULT 'image',
+    usage_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
 );
+
+CREATE INDEX idx_media_uploaded_by ON media(uploaded_by);
+CREATE INDEX idx_media_media_type ON media(media_type);
+CREATE INDEX idx_media_created_at ON media(created_at DESC);
+CREATE INDEX idx_media_deleted_at ON media(deleted_at) WHERE deleted_at IS NOT NULL;
 ```
 
 ### 版本 (post_versions)
@@ -265,11 +297,14 @@ CREATE TABLE post_versions (
     version_number INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    summary TEXT,
+    change_log TEXT,
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    created_by UUID REFERENCES users(id),
-    comment TEXT,
     UNIQUE (post_id, version_number)
 );
+
+CREATE INDEX idx_post_versions_post_id ON post_versions(post_id, version_number DESC);
 ```
 
 ### 点赞 (post_likes / comment_likes)
@@ -282,23 +317,25 @@ CREATE TABLE post_likes (
 );
 
 CREATE TABLE comment_likes (
+    id BIGSERIAL PRIMARY KEY,
     comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (comment_id, user_id)
+    UNIQUE(comment_id, user_id)
 );
 ```
 
-### 浏览记录 (views)
+### 文章媒体关联 (post_media)
 ```sql
-CREATE TABLE views (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    post_id UUID NOT NULL REFERENCES posts(id),
-    user_id UUID REFERENCES users(id),
-    ip_address INET NOT NULL,
-    user_agent TEXT,
-    viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+CREATE TABLE post_media (
+    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    media_id UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+    position INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (post_id, media_id)
 );
+
+CREATE INDEX idx_post_media_media ON post_media(media_id);
 ```
 
 ### 刷新令牌 (refresh_tokens)
@@ -318,16 +355,98 @@ CREATE TABLE refresh_tokens (
 );
 ```
 
+### 密码重置令牌 (password_reset_tokens)
+```sql
+CREATE TABLE password_reset_tokens (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    token_hash TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_password_reset_tokens_expires ON password_reset_tokens(expires_at);
+```
+
 ### 阅读进度 (reading_progress)
 ```sql
 CREATE TABLE reading_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    progress INTEGER NOT NULL DEFAULT 0,
-    last_read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    completed_at TIMESTAMPTZ,
-    PRIMARY KEY (user_id, post_id)
+    post_slug TEXT NOT NULL REFERENCES posts(slug) ON DELETE CASCADE,
+    progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
+    last_read_position INTEGER DEFAULT 0,
+    scroll_percentage FLOAT DEFAULT 0.0,
+    word_count INTEGER DEFAULT 0,
+    words_read INTEGER DEFAULT 0,
+    is_completed BOOLEAN DEFAULT FALSE,
+    last_read_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, post_slug)
 );
+
+CREATE INDEX idx_reading_progress_user_id ON reading_progress(user_id);
+CREATE INDEX idx_reading_progress_post_slug ON reading_progress(post_slug);
+CREATE INDEX idx_reading_progress_last_read ON reading_progress(last_read_at DESC);
+CREATE INDEX idx_reading_progress_completed ON reading_progress(is_completed, last_read_at DESC) WHERE is_completed = TRUE;
+```
+
+### 搜索关键词 (search_keywords)
+```sql
+CREATE TABLE search_keywords (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    keyword TEXT NOT NULL,
+    search_count INTEGER DEFAULT 1,
+    last_searched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(keyword)
+);
+
+CREATE INDEX idx_search_keywords_keyword ON search_keywords(keyword);
+CREATE INDEX idx_search_keywords_count ON search_keywords(search_count DESC, last_searched_at DESC);
+```
+
+### 搜索历史 (search_history)
+```sql
+CREATE TABLE search_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    keyword TEXT NOT NULL,
+    results_count INTEGER,
+    clicked_slug TEXT,
+    searched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_search_history_user_id ON search_history(user_id, searched_at DESC);
+CREATE INDEX idx_search_history_keyword ON search_history(keyword, searched_at DESC);
+```
+
+### 团队管理 (team_members)
+```sql
+CREATE TABLE team_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    name VARCHAR(255) NOT NULL,
+    name_en VARCHAR(255),
+    team_role VARCHAR(50) NOT NULL DEFAULT 'member',
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    title VARCHAR(255),
+    bio TEXT,
+    affiliation VARCHAR(255),
+    research_tags TEXT[],
+    email VARCHAR(255),
+    github VARCHAR(100),
+    website VARCHAR(500),
+    avatar_media_id UUID REFERENCES media(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_team_members_user_id ON team_members(user_id);
+CREATE INDEX idx_team_members_team_role ON team_members(team_role);
+CREATE INDEX idx_team_members_display_order ON team_members(display_order);
+CREATE INDEX idx_team_members_active ON team_members(is_active) WHERE is_active = true;
 ```
 
 ## Redis 数据结构

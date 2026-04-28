@@ -9,7 +9,7 @@
 | 后端框架 | Rust Axum | 0.8 |
 | 数据库 | PostgreSQL (SQLx) | 17+ |
 | 缓存 | Redis (deadpool-redis) | 7.4.x |
-| 搜索 | PG FTS + Meilisearch | 1.12 (Meilisearch 尚未实装) |
+| 搜索 | PG FTS + Meilisearch | 1.12 (Meilisearch 已实装，在 docker-compose `search` profile 下) |
 
 ## 项目结构
 
@@ -270,6 +270,5 @@ async fn auth_middleware(
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | 基本健康检查 | 返回 "OK" |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |

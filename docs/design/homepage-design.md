@@ -1,110 +1,115 @@
-# 首页沉浸式体验设计
+# 首页设计
 
-> 来源：superpowers/specs/2026-04-03-immersive-homepage-redesign.md
+> 当前首页采用 **访客主题 (Visitor Theme)**，基于实际代码库 `frontend/src/app/Main.tsx` 实现。
 
 ## 页面结构
 
-首页由 6 个 section 组成，构成叙事弧线：
+首页由以下 section 组成（从上到下）：
 
-```
-1. Immersive Hero          — 全屏 WebGL 粒子 + 双语标题
-2. Bento Grid Content Hub  — 模块化网格展示最新内容
-3. Projects Gallery        — 横向滚动项目展示
-4. Music Experience        — 音频响应乐谱可视化
-5. Latest Writing          — 编辑风格文章列表
-6. Mega Footer             — 全屏 CTA 页脚
+```text
+1. Hero Section              — 动画标题 + CTA 按钮（GitHub / Read Blog）
+2. SocialCard                — 社交媒体链接
+3. HeroCard                  — 英雄卡片（多层视差效果）
+4. Explore                   — 探索区域
+5. Featured Work             — 特色作品展示
+6. BlogSection               — 最新文章（Latest Articles）
+7. NewsletterSignup          — 邮件订阅
 ```
 
-## Section 1: Immersive Hero
+## Section 1: Hero Section
 
 ### 视觉
 
-- **背景**：Three.js 流体粒子云（桌面 2000-3000，移动端 500）
-- 粒子模拟有机波/数据流运动，颜色在靛蓝/紫/琥珀间渐变的
-- 自定义顶点着色器控制粒子位置（噪声位移）
-- 自定义片元着色器控制粒子大小和颜色（软圆形衰减）
+- **标题**：`clamp(3rem, 8vw, 8rem)`，衬线字体（font-visitor-serif）
+- **副标题**：双语（"探索技术、设计与艺术的交汇点"）
+- **文字动画**：使用 `AnimatedHeading` / `AnimatedParagraph`（Framer Motion，字符逐个揭示）
+- 两个 CTA 按钮："View GitHub"（品牌色）和 "Read Blog"（中性色）
 
-### 字体
+### 动画
 
-- 主标题：`clamp(3rem, 8vw, 8rem)`，衬线字体（Newsreader/Playfair Display）
-- 副标题：双语（英文 + 中文）
-- 文字使用 `mix-blend-mode: difference` 确保在粒子上可读
-- 入场动画：GSAP SplitText，逐字淡入+模糊→清晰
+- `AnimatedHeading` 延迟 0ms，`AnimatedParagraph` 延迟 300ms
+- 使用 Framer Motion `whileInView` 触发，非 GSAP ScrollTrigger
+- Easing: `cubic-bezier(0.16, 1, 0.3, 1)` (ease-visitor)
 
-### 性能
+## Section 2: SocialCard
 
-- Three.js `Points` + `ShaderMaterial` GPU 加速渲染
-- `IntersectionObserver` 暂停不可见区域的 WebGL
-- 移动端粒子减少到 500
-- `prefers-reduced-motion`：替换为静态渐变背景
+| 属性 | 值 |
+|------|-----|
+| 显示社交 ID | 1-7 |
+| 布局 | `max-w-2xl` 居中 |
 
-## Section 2: Bento Grid Content Hub
+## Section 3: HeroCard
 
-### 布局
+### 视差效果
 
-CSS Grid: 桌面 4 列、平板 2 列、移动端 1 列
+- 鼠标驱动多层视差（easing: 0.08）
+- 三层：WebCase (strength: 25), ColorPicker (strength: 40), Color (strength: 50)
+- 移动端（< 768px）禁用视差
 
-| 模块 | Grid 跨距 | 内容 |
-|------|-----------|------|
-| Featured Post | 2x2 | 最新/置顶文章 + 封面图 |
-| Recent Post 1 | 1x2 | 第二新文章 |
-| Recent Post 2 | 1x2 | 第三新文章 |
-| Featured Project | 2x1 | 特色项目 + 循环视频 |
-| Music Preview | 2x1 | SVG 乐谱 + 播放图标 |
+### 自定义光标
 
-### 视觉风格 — Glassmorphism 2.0
+- ⚠️ HeroCard 中包含自定义光标逻辑
+- 全局自定义鼠标指针**尚未实现**（仅 HeroCard 内部试验性支持）
+- 全局范围无自定义光标效果
 
-```css
-background: rgba(255,255,255,0.03);
-backdrop-filter: blur(20px);
-border: 1px solid rgba(255,255,255,0.08);
-border-radius: 24px;
-gap: 16px;
-transition: cubic-bezier(0.16, 1, 0.3, 1);
+## Section 4: Explore
+
+| 属性 | 值 |
+|------|-----|
+| 标题 | "Explore" |
+| 数据 | 从 API 获取 |
+
+## Section 5: Featured Work
+
+| 属性 | 值 |
+|------|-----|
+| 标题 | "Featured Work" |
+| 描述 | "I create innovative and purposeful designs..." |
+| 限制 | 5 个项目 |
+
+## Section 6: BlogSection (Latest Articles)
+
+| 属性 | 值 |
+|------|-----|
+| 标题 | "Latest Articles" |
+| 描述 | "These are my notes and articles on design, development and life thinking." |
+| 数据 | 通过 `usePosts` hook 从 API 获取，按 published_at 降序，显示 3 篇 |
+
+### 数据流
+
+```typescript
+usePosts({ status: 'Published', sort_by: 'published_at', sort_order: 'desc', limit: 6, page: 1 })
+→ postsData.posts.map(toBlogLikePost)
+→ 传入 BlogSection
 ```
 
-## Section 3: Projects Gallery
+## Section 7: NewsletterSignup
 
-- 横向滚动画廊：CSS `scroll-snap-type: x mandatory`
-- 卡片 4:5 宽高比，上半部封面图/视频，下半部信息
-- 拖拽滚动（Framer Motion gesture）
-- 3D 倾斜 Hover 效果
+| 属性 | 值 |
+|------|-----|
+| 布局 | `max-w-4xl` |
 
-## Section 4: Music Experience
+## 关于 HeroSection.tsx
 
-- 左右分屏：左 60% OSMD 矢量乐谱 + 右 40% 曲目信息+控制
-- Three.js 粒子系统作为背景层（音频响应）
-- Web Audio API `AnalyserNode` 提取实时频谱
-- 同步播放光标在乐谱上流动
-
-## Section 5: Latest Writing
-
-- 编辑风格布局：左 60% 特色卡片 + 右 40% 两个列表卡片
-- 衬线字体标题，慷慨留白
-- Hover 效果：行向右移动 8px
-
-## Section 6: Mega Footer
-
-- 全屏 `100vh`，深色背景 `#050505`
-- 巨幅声明文字："LET'S CREATE SOMETHING TOGETHER"
-- 导航链接 + 社交链接 + 版权信息
+- `home/HeroSection.tsx`（Three.js 粒子沉浸英雄区）**已实现但不在首页使用**
+- 该组件用于其他页面，首页使用轻量 `HeroCard` + 文字动画代替
 
 ## 全局交互
 
-### 自定义鼠标指针
-
-- 默认：小点 + 外圈
-- 文章卡片：读书图标
-- 项目卡片：箭头图标
-- 音乐区：音符图标
-- 可点击元素：指针圈放大
-
 ### 滚动动画
 
-- GSAP ScrollTrigger 驱动
-- 分阶段动效：标题先入（0ms）→ 内容（+100-200ms）
-- Easing: `cubic-bezier(0.16, 1, 0.3, 1)` (expo-out)
-- 每个 Section 从下方淡入滑动
+- Framer Motion `whileInView` 驱动（非 GSAP ScrollTrigger）
+- 各 section 进入视口时触发淡入/滑入
+- Easing: `cubic-bezier(0.16, 1, 0.3, 1)`
+
+### 自定义鼠标指针
+
+- **未实现**（全局范围）。HeroCard 内部有实验性自定义光标，但不影响全局。
+
+### 主题
+
+- 首页通过 `import '@/styles/visitor-theme.css'` 加载访客主题
+- 支持 Light/Dark 模式
 
 ## 性能目标
 
@@ -113,11 +118,9 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 | First Contentful Paint | < 1.5s |
 | Time to Interactive | < 3s |
 | Lighthouse Performance | > 85 |
-| Animation FPS | >= 60fps |
 
 ## 可访问性
 
-- `prefers-reduced-motion`：禁用所有 WebGL、视差、3D 效果
-- WCAG 2.2 AA 对比度
-- 键盘导航：所有焦点元素有明确 focus ring
-- 语义 HTML：`<section>`、`<article>`、`<nav>`、`aria-label`
+- `prefers-reduced-motion`：支持减少动画
+- 键盘导航
+- 语义 HTML

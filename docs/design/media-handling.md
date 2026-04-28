@@ -31,18 +31,27 @@ POST /admin/media/upload (Multipart POST)
 ### 存储后端抽象
 
 ```rust
-// 抽象存储层 (state.storage)
-pub trait StorageBackend {
-    async fn store(&self, key: &str, data: &[u8], content_type: &str) -> Result<()>;
-    async fn delete(&self, key: &str) -> Result<()>;
-    async fn presign_upload(&self, key: &str, expires_in: Duration) -> Result<String>;
-    async fn presign_download(&self, key: &str, expires_in: Duration) -> Result<String>;
+/// Storage backend enumeration (concrete types, no dyn dispatch needed)
+pub enum StorageBackend {
+    Local(LocalStorage),
+    Minio(MinioStorage),
+}
+
+/// Store a file and return the accessible URL
+impl StorageBackend {
+    pub async fn store(&self, key: &str, data: &[u8], content_type: &str) -> Result<String, StorageError> { ... }
+    pub async fn delete(&self, key: &str) -> Result<(), StorageError> { ... }
+    pub fn object_url(&self, key: &str) -> String { ... }
+    pub async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError> { ... }
+    pub async fn presigned_upload_url(&self, key: &str, expires_secs: u32) -> Result<String, StorageError> { ... }
+    pub async fn presigned_download_url(&self, key: &str, expires_secs: u32) -> Result<String, StorageError> { ... }
 }
 ```
 
 支持实现:
-- S3/MinIO (`S3StorageBackend`)
-- 本地文件系统 (`LocalStorageBackend`)
+- MinIO/S3 (`StorageBackend::Minio(MinioStorage)`)
+- 本地文件系统 (`StorageBackend::Local(LocalStorage)`)
+
 
 ## 媒体表结构
 
@@ -52,15 +61,20 @@ pub trait StorageBackend {
 CREATE TABLE media (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     filename        TEXT NOT NULL,
-    url             TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
     mime_type       TEXT NOT NULL,
-    size            BIGINT NOT NULL,
+    size_bytes      BIGINT NOT NULL,
     width           INTEGER,
     height          INTEGER,
+    storage_path    TEXT NOT NULL,
+    cdn_url         TEXT,
     alt_text        TEXT,
-    uploader_id     UUID REFERENCES users(id),
-    article_id      UUID REFERENCES posts(id),
+    caption         TEXT,
+    uploaded_by     UUID REFERENCES users(id) ON DELETE SET NULL,
+    media_type      TEXT NOT NULL DEFAULT 'image',
+    usage_count     INTEGER NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at      TIMESTAMPTZ
 );
 ```

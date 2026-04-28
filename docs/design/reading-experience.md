@@ -47,16 +47,18 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 --font-body: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
 ```
 
-### 字号比例（Fibonacci-based）
+### 字号比例（基于 clamp 的流式排版）
 
 | 元素 | 大小 | 行高 | 字间距 |
 |------|------|------|--------|
-| h1 | 2.25rem (36px) | 1.3 | -0.02em |
-| h2 | 1.75rem (28px) | 1.35 | -0.01em |
-| h3 | 1.375rem (22px) | 1.4 | 0 |
-| h4 | 1.125rem (18px) | 1.45 | 0 |
-| Body | 1rem (16px) | 1.75 (CJK) / 1.6 (Latin) | 0 |
-| Small | 0.875rem (14px) | 1.5 | 0.01em |
+| h1 | `clamp(1.75rem, 4vw, 2.25rem)` (28-36px) | 1.3 | -0.02em |
+| h2 | `clamp(1.375rem, 3vw, 1.75rem)` (22-28px) | 1.35 | -0.01em |
+| h3 | `clamp(1.125rem, 2.5vw, 1.375rem)` (18-22px) | 1.4 | 0 |
+| h4 | `clamp(1rem, 2vw, 1.125rem)` (16-18px) | 1.45 | 0 |
+| Body | `clamp(0.9375rem, 1.5vw, 1rem)` (15-16px) | 1.75 (CJK) / 1.6 (Latin) | 0 |
+| Small | `0.875rem` (14px) | 1.5 | 0.01em |
+
+> 使用 `clamp(MIN, PREFERRED, MAX)` 实现流式排版，而非静态 Fibonacci 比例。确保从小屏到大屏的平滑过渡。
 
 ### CJK 特殊处理
 
@@ -71,7 +73,7 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：1024px（Monograph 的 1280px 过晚，原 768px 过早）
+- 移动端断点：768px（TOC 折叠为浮动按钮/FAB）
 
 ## 阅读进度条 (ReadingProgressBar)
 
@@ -95,13 +97,16 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 
 ## 微交互动效
 
-| 元素 | 触发器 | 动画 | 时长 |
-|------|--------|------|------|
-| 文章卡片 | hover | `translateY(-2px)` + 阴影扩展 | 200ms |
-| TOC 指示器 | scroll | 左边框滑动到新位置 | 200ms |
-| 进度条 | scroll | 宽度过渡（GPU） | 100ms |
-| 复制按钮 | click | 图标切换 + 提示 | 150ms |
-| 评论抽屉 | click | 右侧滑入 | 250ms |
-| 暗色模式 | click | CSS 变量过渡 | 200ms |
+| 元素 | 触发器 | 动画 | 时长 | 实现状态 |
+|------|--------|------|------|----------|
+| 文章卡片 | hover | `translateY(-2px)` + 阴影扩展 | 200ms | ✅ 已实现 |
+| TOC 指示器 | scroll | 左边框滑动到新位置 | 200ms | ✅ 已实现 |
+| 进度条 | scroll | 宽度过渡（GPU） | 100ms | ✅ 已实现 |
+| 复制按钮 | click | 图标切换 + 提示 | 150ms | ✅ 已实现 |
+| 评论抽屉 | click | 右侧滑入 | 250ms | ✅ 已实现 |
+| 暗色模式 | click | CSS 变量过渡 | 200ms | ✅ 已实现 |
+| 页面过渡 | route change | Framer Motion 页面切换 | 300ms | 🚧 部分实现 |
+| 滚动揭示 | scroll | whileInView 触发淡入 | 400ms | ✅ 已实现 |
+| 平滑锚点 | click | `scroll-behavior: smooth` | 300ms | ✅ 已实现 |
 
 所有动画使用 `will-change: transform` 和 `transform: translateZ(0)` 开启 GPU 合成。
