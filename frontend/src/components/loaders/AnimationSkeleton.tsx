@@ -1,7 +1,6 @@
 'use client'
 
 import { memo } from 'react'
-import Skeleton from './Skeleton'
 
 interface AnimationSkeletonProps {
   className?: string
@@ -13,9 +12,7 @@ export const AnimationSkeleton = memo(function AnimationSkeleton({
   height = '200px',
 }: AnimationSkeletonProps) {
   return (
-    <div className={`animate-pulse ${className}`} style={{ height }}>
-      <Skeleton className="h-full w-full" />
-    </div>
+    <div className={`animate-pulse rounded-md bg-gray-200 dark:bg-gray-700 ${className}`} style={{ height }} />
   )
 })
 
