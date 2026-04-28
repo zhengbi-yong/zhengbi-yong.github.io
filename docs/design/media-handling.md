@@ -52,15 +52,20 @@ pub trait StorageBackend {
 CREATE TABLE media (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     filename        TEXT NOT NULL,
-    url             TEXT NOT NULL,
+    original_filename TEXT NOT NULL,
     mime_type       TEXT NOT NULL,
-    size            BIGINT NOT NULL,
+    size_bytes      BIGINT NOT NULL,
     width           INTEGER,
     height          INTEGER,
+    storage_path    TEXT NOT NULL,
+    cdn_url         TEXT,
     alt_text        TEXT,
-    uploader_id     UUID REFERENCES users(id),
-    article_id      UUID REFERENCES posts(id),
+    caption         TEXT,
+    uploaded_by     UUID REFERENCES users(id) ON DELETE SET NULL,
+    media_type      TEXT NOT NULL DEFAULT 'image',
+    usage_count     INTEGER NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at      TIMESTAMPTZ
 );
 ```

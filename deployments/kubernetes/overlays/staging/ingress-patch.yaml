@@ -21,15 +21,15 @@ spec:
                 name: blog-api
                 port:
                   number: 3000
-          - path: /livez
-            pathType: Prefix
+          - path: /.well-known/live
+            pathType: Exact
             backend:
               service:
                 name: blog-api
                 port:
                   number: 3000
-          - path: /readyz
-            pathType: Prefix
+          - path: /.well-known/ready
+            pathType: Exact
             backend:
               service:
                 name: blog-api

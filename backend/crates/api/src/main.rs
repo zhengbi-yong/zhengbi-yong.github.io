@@ -210,6 +210,8 @@ async fn run_server() -> anyhow::Result<()> {
 
     let app = Router::new()
         // 健康检查（无状态）
+        .route("/health", axum::routing::get(blog_api::metrics::health))
+        // 详细健康检查（检查外部依赖）
         .route("/health/detailed", axum::routing::get(blog_api::metrics::health_detailed))
         // Kubernetes-style 健康检查路径 (无外部依赖)
         .route("/.well-known/live", axum::routing::get(liveness))

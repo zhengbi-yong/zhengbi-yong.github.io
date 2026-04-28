@@ -1,0 +1,7 @@
+export { AppSidebar } from './app-sidebar'
+export { Header } from './header'
+export { Main } from './main'
+export { NavGroup } from './nav-group'
+export { NavUser } from './nav-user'
+export { TeamSwitcher } from './team-switcher'
+export type * from './types'

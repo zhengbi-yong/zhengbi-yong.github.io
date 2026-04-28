@@ -43,10 +43,13 @@ K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
 
 K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 - `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
-- `capabilities.drop: ["ALL"]`
-- `tmpfs` 卷挂载 `/tmp`
+- `runAsUser: 10000` + `runAsGroup: 10000`
+- `capabilities.drop: ["ALL"]` + `capabilities.add: ["NET_BIND_SERVICE"]`
+- `seccompProfile: RuntimeDefault`
+- `allowPrivilegeEscalation: false`
+- `emptyDir` 卷挂载 `/tmp` (Memory, 64Mi)
 
-> 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
+> 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。K8s Ingress 中的健康检查路径采用 Exact 匹配的 `/.well-known/live` 和 `/.well-known/ready`。
 
 ## 健康检查
 

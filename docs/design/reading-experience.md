@@ -71,7 +71,7 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：1024px（Monograph 的 1280px 过晚，原 768px 过早）
+- 移动端断点：768px（Monograph 的 1280px 过晚，原 768px 为实际实现值）
 
 ## 阅读进度条 (ReadingProgressBar)
 

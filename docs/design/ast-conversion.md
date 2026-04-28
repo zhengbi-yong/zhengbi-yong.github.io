@@ -49,14 +49,14 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `blockquote` | `> ` |
 | `image` | `![alt](src)` |
 | `video` | `<video src="...">` |
-| `inlineMath` (latex) | `$latex$` |
-| `math` (latex) | `$$\nlatex\n$$` |
-| `table` / `tableRow` / `tableCell` | Markdown 表格 |
-| `horizontalRule` | `---` |
-| `hardBreak` | 两个空格 + 换行 |
-| `mention` | `@username` |
-| `details` / `summary` | `<details>` / `<summary>` |
-| `callout` | `::: callout-type` |
+|| `inlineMath` (latex) | `$latex$` |
+|| `blockMath` (latex) | `$$\nlatex\n$$` |
+|| `table` / `tableRow` / `tableCell` | Markdown 表格 |
+|| `horizontalRule` | `---` |
+|| `hardBreak` | 两个空格 + 换行 |
+|| `mention` | `@username` |
+|| `details` / `summary` | `<details>` / `<summary>` |
+|| `callout` | `::: callout-type` |
 
 ### Mark 映射
 

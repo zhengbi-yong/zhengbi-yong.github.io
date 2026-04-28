@@ -126,7 +126,7 @@ spec:
           # Health check endpoints
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /.well-known/live
               port: http
             initialDelaySeconds: 10
             periodSeconds: 30
@@ -135,7 +135,7 @@ spec:
 
           readinessProbe:
             httpGet:
-              path: /readyz
+              path: /.well-known/ready
               port: http
             initialDelaySeconds: 5
             periodSeconds: 10

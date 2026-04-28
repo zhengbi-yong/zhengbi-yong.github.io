@@ -14,7 +14,7 @@ pub fn extract_auth_user<B>(request: &Request<B>) -> Option<AuthUser> {
 
 // Helper function to check if user is admin
 pub fn is_admin_user(user: &AuthUser) -> bool {
-    user.email_verified && user.username == "admin"
+    user.role == "admin"
 }
 
 /// Authenticated user context

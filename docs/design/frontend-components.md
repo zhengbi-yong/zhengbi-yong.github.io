@@ -36,8 +36,14 @@
 ### 业务布局
 | 文件 | 职责 | 状态 |
 |------|------|------|
-| `layouts/PostLayoutMonograph.tsx` | 长文阅读布局 | ✅ 唯一活跃 |
+| `layouts/PostLayoutMonograph.tsx` | 长文阅读布局（黄金比例双栏、sticky TOC、进度条） | ✅ 唯一活跃 |
 | `layouts/AuthorLayout.tsx` | 作者页 | ✅ |
+| `layouts/ListLayout.tsx` | 博客列表页（搜索、无限滚动、骨架屏） | ✅ |
+| `layouts/ListLayoutWithTags.tsx` | 带标签过滤的博客列表 | ✅ |
+| `layouts/MagazineLayout.tsx` | 杂志风格布局（Hero + 筛选 + 瀑布流） | ✅ |
+| `layouts/BookDetailLayout.tsx` | 书籍详情布局 | ✅ |
+| `layouts/BookShelfLayout.tsx` | 书架网格布局 | ✅ |
+| `layouts/PublicPageFrame.tsx` | 公开页通用框架 | ✅ |
 
 ### 管理后台布局
 | 文件 | 职责 |
@@ -59,14 +65,20 @@
 
 ## 7) 首页 Section 组件
 
-| 文件 | 职责 |
-|------|------|
-| `home/HeroSection.tsx` | Three.js 粒子沉浸英雄区 |
-| `home/BentoGrid.tsx` | 首页 Bento 网格 |
-| `home/ProjectGallery.tsx` | 项目展示 |
-| `home/MusicExperience.tsx` | 音乐体验区 |
-| `home/LatestWriting.tsx` | 最新文章 |
-| `home/MegaFooter.tsx` | 尾页巨型 Footer |
+| 文件 | 职责 | 备注 |
+|------|------|------|
+| `home/HeroSection.tsx` | Three.js 粒子沉浸英雄区 | 可用但未被主页直接引用 |
+| `home/HeroCard.tsx` | 主页英雄卡片（视差效果） | 被 `Main.tsx` 使用 |
+| `home/SocialCard.tsx` | 社交链接卡片 | 被 `Main.tsx` 使用 |
+| `home/ParticleBackground.tsx` | Three.js 粒子背景场景 | 被 `HeroSection` 动态加载 |
+| `home/BentoGrid.tsx` | 首页 Bento 网格 | 可用 |
+| `home/ProjectGallery.tsx` | 项目展示（横向滚动） | 可用 |
+| `home/MusicExperience.tsx` | 音乐体验区（OSMD+Tone.js） | 可用 |
+| `home/LatestWriting.tsx` | 最新文章 | 可用 |
+| `home/MegaFooter.tsx` | 尾页巨型 Footer | 被 `(public)/layout.tsx` 使用 |
+| `sections/Explore.tsx` | 探索区域 | 被 `Main.tsx` 使用 |
+| `sections/FeaturedWork.tsx` | 精选作品 | 被 `Main.tsx` 使用 |
+| `sections/BlogSection.tsx` | 博客文章区域 | 被 `Main.tsx` 使用 |
 
 ## 8) 主题与视觉 Token
 

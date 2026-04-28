@@ -85,7 +85,7 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /auth/logout | 登出 |
 | POST | /auth/forgot-password | 忘记密码 |
 | POST | /auth/reset-password | 重置密码 |
-| GET | /auth/me | 当前用户信息 |
+| GET | /auth/me | 当前用户信息（需认证） |
 
 #### 文章
 | 方法 | 路径 | 说明 |
@@ -100,7 +100,7 @@ GET    /tags/autocomplete      # 自动补全
 | GET | /posts/{slug}/comments | 评论列表 |
 | GET | /posts/{slug}/related | 相关文章 |
 
-#### 阅读进度
+#### 阅读进度（需认证）
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /posts/{slug}/reading-progress | 获取进度 |
@@ -112,8 +112,8 @@ GET    /tags/autocomplete      # 自动补全
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | POST | /posts/{slug}/comments | 创建评论 |
-| POST | /comments/{id}/like | 点赞评论 |
-| POST | /comments/{id}/unlike | 取消点赞评论 |
+| POST | /comments/{id}/like | 点赞评论（需认证） |
+| POST | /comments/{id}/unlike | 取消点赞评论（需认证） |
 
 #### 分类 / 标签 / 搜索
 | 方法 | 路径 | 说明 |
@@ -135,38 +135,97 @@ GET    /tags/autocomplete      # 自动补全
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /team-members | 团队成员列表 |
+| GET | /team-members/{id} | 团队成员详情 |
 
-### 管理 API（需认证）
+### 管理 API（需认证 + CSRF）
 
+#### 文章管理
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /admin/posts | 列表（含草稿） |
 | POST | /admin/posts | 创建 |
 | PATCH | /admin/posts/{postId} | 更新 |
 | DELETE | /admin/posts/{postId} | 删除 |
-| POST | /admin/sync/mdx | 同步 MDX |
+
+#### 分类管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /admin/categories | 创建分类 |
+| PATCH | /admin/categories/{slug} | 更新分类 |
+| DELETE | /admin/categories/{slug} | 删除分类 |
+
+#### 标签管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /admin/tags | 创建标签 |
+| PATCH | /admin/tags/{slug} | 更新标签 |
+| DELETE | /admin/tags/{slug} | 删除标签 |
+
+#### 仪表盘与用户管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | /admin/stats | 仪表盘统计 |
 | GET | /admin/users | 用户列表 |
+| POST | /admin/users | 创建用户 |
+| GET | /admin/users/{id} | 用户详情 |
+| PUT | /admin/users/{id} | 更新用户 |
 | PUT | /admin/users/{id}/role | 更新角色 |
 | DELETE | /admin/users/{id} | 删除用户 |
+| POST | /admin/users:batchUpdateRole | 批量更新角色 |
+| POST | /admin/users:batchDelete | 批量删除用户 |
 | GET | /admin/user-growth | 用户增长 |
+
+#### 评论管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | /admin/comments | 评论列表 |
 | PUT | /admin/comments/{id}/status | 审核评论 |
 | DELETE | /admin/comments/{id} | 删除评论 |
+
+#### 媒体管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | /admin/media | 媒体列表 |
 | GET | /admin/media/unused | 未使用媒体 |
 | GET | /admin/media/{id} | 媒体详情 |
+| GET | /admin/media/{id}/download-url | 媒体下载地址 |
 | PATCH | /admin/media/{id} | 更新媒体 |
 | DELETE | /admin/media/{id} | 删除媒体 |
 | POST | /admin/media/upload | 上传媒体 |
 | POST | /admin/media/presign-upload | 预签名上传 |
 | POST | /admin/media/finalize | 完成上传 |
+
+#### 版本控制
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | /admin/posts/{postId}/versions | 版本列表 |
 | POST | /admin/posts/{postId}/versions | 创建版本 |
 | GET | /admin/posts/{postId}/versions/{versionNumber} | 版本详情 |
 | POST | /admin/posts/{postId}/versions/{versionNumber}/restore | 恢复版本 |
 | DELETE | /admin/posts/{postId}/versions/{versionNumber} | 删除版本 |
 | GET | /admin/posts/{postId}/versions/compare | 比较版本 |
+
+#### MDX 转换（仅需认证，无需 CSRF）
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /admin/mdx/convert | 单篇 MDX → TipTap JSON |
+| POST | /admin/mdx/batch-convert | 批量转换 |
+| POST | /admin/mdx/migrate-all | 迁移所有文章 |
+
+#### 团队成员管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /admin/team-members | 成员列表（含非活跃） |
+| POST | /admin/team-members | 创建成员 |
+| GET | /admin/team-members/{id} | 成员详情 |
+| PUT | /admin/team-members/{id} | 更新成员 |
+| DELETE | /admin/team-members/{id} | 删除成员（软删除） |
+| POST | /admin/team-members/batch/delete | 批量删除 |
+
+#### 同步与索引
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /admin/sync/mdx | 同步 MDX |
 | POST | /admin/search/reindex | 重建搜索索引 |
 
 ## Axum 0.8 路由语法

@@ -88,4 +88,4 @@
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
 || ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
 || P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
-|| 已解决 ✅ | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理 |
+|| 已解决 ✅ `posts`/`post_versions` 已迁移到 `articles`/`article_versions` | 双轨存储全新 Schema：`articles` 使用 content_json (JSONB) + content_mdx (TEXT) 双轨，`article_versions` 跟踪审计版本 |

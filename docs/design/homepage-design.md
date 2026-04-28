@@ -1,8 +1,11 @@
 # 首页沉浸式体验设计
 
 > 来源：superpowers/specs/2026-04-03-immersive-homepage-redesign.md
+>
+> **状态**：设计已完成，组件已实现但尚未完整组装到首页。
+> 当前首页使用 `Main.tsx`（替代方案），见「当前实现」章节。
 
-## 页面结构
+## 页面结构（目标设计）
 
 首页由 6 个 section 组成，构成叙事弧线：
 
@@ -14,6 +17,31 @@
 5. Latest Writing          — 编辑风格文章列表
 6. Mega Footer             — 全屏 CTA 页脚
 ```
+
+## 当前实现
+
+| Section | 组件 | 状态 |
+|---------|------|------|
+| Hero | `home/HeroSection.tsx` + `home/ParticleBackground.tsx` | ✅ 已实现 |
+| Bento Grid | `home/BentoGrid.tsx` | ✅ 已实现 |
+| Projects Gallery | `home/ProjectGallery.tsx` | ✅ 已实现 |
+| Music Experience | `home/MusicExperience.tsx` | ✅ 已实现 |
+| Latest Writing | `home/LatestWriting.tsx` | ✅ 已实现 |
+| Mega Footer | `home/MegaFooter.tsx` | ✅ 已实现，在 `(public)/layout.tsx` 中用于首页 |
+
+### 当前首页实际结构（`Main.tsx`）
+
+```
+1. HeroCard (视差卡片)
+2. SocialCard (社交链接)
+3. HeroCard (头像卡片)
+4. Explore (探索)
+5. FeaturedWork (精选作品)
+6. BlogSection (博客文章)
+7. NewsletterSignup (邮件订阅)
+```
+
+> 目标设计的 6 个 section 组件均已实现，但尚未组装到 `Main.tsx` 中。当前首页使用了一套更简洁的布局。
 
 ## Section 1: Immersive Hero
 

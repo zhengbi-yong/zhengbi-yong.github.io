@@ -1,0 +1,74 @@
+[
+  {
+    "finding": "Health check endpoint `/health` is documented but not registered in code",
+    "doc_vs_code": "Doc (backend-api-design.md §Health Check table) lists `/health` as a route returning 'OK'. OpenAPI spec (openapi.json) also includes `/health`. The `health()` handler exists in backend/crates/api/src/metrics/health.rs but main.rs does NOT register `.route(\"/health\", ...)` — only `/health/detailed` is registered.",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Either add `.route(\"/health\", axum::routing::get(blog_api::metrics::health))` to main.rs or update the design doc and OpenAPI spec to remove/rename the `/health` endpoint. The simplest fix: add the missing route to main.rs."
+  },
+  {
+    "finding": "K8s base deployment uses `/livez` and `/readyz` probe paths, but code only registers `/.well-known/live` and `/.well-known/ready`",
+    "doc_vs_code": "Doc (deployment-security.md) says K8s base config uses `/.well-known/live:3000` and `/.well-known/ready:3000`. Actual K8s base config (api-deployment.yaml) uses livenessProbe path `/livez` and readinessProbe path `/readyz`. The code registers `/.well-known/live` and `/.well-known/ready` — neither `/livez` nor `/readyz` exist as routes.",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Update the K8s base api-deployment.yaml to use the correct paths: `/.well-known/live` for liveness and `/.well-known/ready` for readiness. The routes in code are the canonical source of truth."
+  },
+  {
+    "finding": "Docker Compose health check uses `/livez` which does not exist in code",
+    "doc_vs_code": "Doc (deployment-security.md) HEALTHCHECK shows `http://localhost:3000/.well-known/live`. Docker Compose (prod/docker-compose.yml line 207) uses `http://127.0.0.1:3000/livez`. The actual code only registers `/.well-known/live` — `/livez` is not a valid route.",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Update the Docker Compose health check from `/livez` to `/.well-known/live` to match the actual code route."
+  },
+  {
+    "finding": "Dockerfile HEALTHCHECK uses `/healthz` which does not exist in code",
+    "doc_vs_code": "Doc (deployment-security.md) shows HEALTHCHECK using `http://localhost:3000/.well-known/live`. The actual backend/Dockerfile (line 144) uses `CMD curl -f http://localhost:3000/healthz || exit 1`. No `/healthz` route exists in the code.",
+    "verdict": "doc_reasonable",
+    "suggested_fix": "Update the Dockerfile HEALTHCHECK to use `http://localhost:3000/.well-known/live` instead of `/healthz` to match the documented and real route."
+  },
+  {
+    "finding": "K8s base api-deployment.yaml lacks securityContext entirely (confirmed by doc, but K3s reference config does not exist)",
+    "doc_vs_code": "Doc (deployment-security.md) states K8s base config has no securityContext and references `deployments/k3s/blog-backend.yaml` with runAsNonRoot, readOnlyRootFilesystem, capabilities.drop. The actual K8s base deployment confirms no securityContext. However, the referenced `deployments/k3s/blog-backend.yaml` file does NOT exist in the repository.",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Either create `deployments/k3s/blog-backend.yaml` with the described security context, or update the doc to remove the mention of the non-existent K3s config and instead add securityContext to the base api-deployment.yaml directly."
+  },
+  {
+    "finding": "Design doc project structure lists route files that are dead/unused code",
+    "doc_vs_code": "Doc (backend-api-design.md §Project Structure) lists routes `search_optimized.rs` as a module. While it's imported in routes/mod.rs, it is NOT used anywhere in main.rs — no route function from it is called. Additionally, `articles.rs` and `enhanced_posts.rs` exist on disk but are not referenced in routes/mod.rs or main.rs at all.",
+    "verdict": "doc_reasonable",
+    "suggested_fix": "Update the design doc to remove `search_optimized.rs` from the file listing (or add a note that it's unused). Remove the dead `articles.rs`, `enhanced_posts.rs` files, or if they contain valuable logic, integrate them and wire up the routes."
+  },
+  {
+    "finding": "Backend Cargo.toml uses `edition = \"2021\"` but design doc says nothing about Rust edition; workspace package version is 2.0.0",
+    "doc_vs_code": "Doc (backend-api-design.md §Technology Stack) only lists Rust Axum 0.8, PostgreSQL 17+, Redis 7.4.x, Meilisearch 1.12. It doesn't mention Rust edition or workspace version. The actual Cargo.toml uses edition 2021 and workspace package version 2.0.0.",
+    "verdict": "doc_reasonable",
+    "suggested_fix": "Minor: Update the technology stack table to include `Rust 2021 edition` and note the workspace version."
+  },
+  {
+    "finding": "Backend Dockerfile builds only `blog-api` and `blog-worker` packages but copies 4 binaries; `migrate` and `create_admin` binaries may not exist",
+    "doc_vs_code": "Doc (deployment-security.md) says 4 binaries are built: `api`, `worker`, `migrate`, `create_admin`. Dockerfile line 62 builds only `-p blog-api -p blog-worker`. Lines 126-127 copy `/app/target/release/migrate` and `/app/target/release/create_admin` — these binaries may not exist if built from different workspace members (`blog-migrator`? `blog-create-admin`?). The Cargo.toml workspace members are `crates/api`, `crates/core`, `crates/db`, `crates/shared`, `crates/worker` — there is no `migrate` or `create_admin` crate listed.",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Either add `-p blog-migrator -p blog-create-admin` (or whatever the package names are) to the cargo build command in the Dockerfile, or remove the COPY instructions for those binaries and have separate build stages for migration/admin tools."
+  },
+  {
+    "finding": "Old `.env.production.example` at root is outdated vs production env example under config/",
+    "doc_vs_code": "The root `config/environments/.env.production.example` uses old variable names like `HOST`, `PORT`, `SMTP_USER`, `RATE_LIMIT_PER_MINUTE`, `CORS_ORIGIN`, `SESSION_TIMEOUT_HOURS`, `MAX_FILE_SIZE_MB`, `UPLOAD_PATH`, `SENTRY_DSN`, `PROMETHEUS_ENABLED`, `API_TITLE`, `API_VERSION`, `API_DESCRIPTION`. The actual Docker Compose and code use modern names like `SERVER_HOST`, `SERVER_PORT`, `SMTP_USERNAME`, `RATE_LIMIT_AUTH_RPS`, etc. The `config/environments/backend/.env.production.example` is the canonical one.",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Remove or update the stale `config/environments/.env.production.example` to match the canonical `config/environments/backend/.env.production.example`, or add a deprecation notice pointing to the backend-specific one."
+  },
+  {
+    "finding": "K8s base secret.example.yaml misses several required env vars that the code expects",
+    "doc_vs_code": "Doc (deployment-security.md) lists required env vars: DATABASE_URL, REDIS_URL, JWT_SECRET, PASSWORD_PEPPER, SESSION_SECRET, CORS_ALLOWED_ORIGINS, RUST_LOG, ENVIRONMENT, SMTP config. The actual K8s secret.example.yaml includes DATABASE_URL, REDIS_URL, JWT_SECRET, PASSWORD_PEPPER, SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM, but is MISSING: SESSION_SECRET, CORS_ALLOWED_ORIGINS, RUST_LOG, ENVIRONMENT. Also includes MEILISEARCH_MASTER_KEY, MINIO_ACCESS_KEY, MINIO_SECRET_KEY which are not in the doc's required list.",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Update the secret.example.yaml to include SESSION_SECRET, CORS_ALLOWED_ORIGINS, RUST_LOG, ENVIRONMENT (or note they're in the configmap). Also update the doc's required env vars list to include MEILISEARCH_MASTER_KEY, MINIO_ACCESS_KEY, MINIO_SECRET_KEY since they're used."
+  },
+  {
+    "finding": "OpenAPI spec lists `/readyz` path which is not a registered route in code; uses old variable names",
+    "doc_vs_code": "OpenAPI spec (openapi.json) includes `/readyz` as a health check path. The actual code only registers `/.well-known/ready` for readiness. The `readyz()` function exists in metrics/health.rs but is not wired to the `/readyz` route in main.rs (it's wired to `/.well-known/ready`).",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Update the OpenAPI spec to use `/.well-known/ready` instead of `/readyz`, or add `/readyz` as an alias route in main.rs pointing to the same handler."
+  },
+  {
+    "finding": "Design doc lists Swagger UI as `.merge(blog_api::routes::openapi::swagger_ui())` but it's commented out in code",
+    "doc_vs_code": "Doc (backend-api-design.md) doesn't explicitly mention Swagger UI as a route, but the code at main.rs line 219 has: `// .merge(blog_api::routes::openapi::swagger_ui())` — commented out with note 'TEMPORARILY DISABLED TO TEST STACK OVERFLOW'. The OpenAPI module and spec exist but are not served live.",
+    "verdict": "code_reasonable",
+    "suggested_fix": "Either re-enable the Swagger UI route, or document that Swagger UI is temporarily disabled due to stack overflow issues and planned for re-enablement."
+  }
+]

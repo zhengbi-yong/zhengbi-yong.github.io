@@ -17,20 +17,19 @@ import { TaskItem } from '@tiptap/extension-task-item'
 import Typography from '@tiptap/extension-typography'
 import { ShikiCodeBlock } from './extensions/ShikiCodeBlock'
 
-// reactjs-tiptap-editor — core extensions (verified working with Webpack)
-import { Table } from 'reactjs-tiptap-editor/table'
-import { Mention } from 'reactjs-tiptap-editor/mention'
-import { Indent } from 'reactjs-tiptap-editor/indent'
-import { Color } from 'reactjs-tiptap-editor/color'
-import { FontSize } from 'reactjs-tiptap-editor/fontsize'
-import { LineHeight } from 'reactjs-tiptap-editor/lineheight'
-import { TextDirection } from 'reactjs-tiptap-editor/textdirection'
-import { MoreMark } from 'reactjs-tiptap-editor/moremark'
-import { SearchAndReplace } from 'reactjs-tiptap-editor/searchandreplace'
-import { Katex as KatexExtension } from 'reactjs-tiptap-editor/katex'
-import { Video as VideoExtension } from 'reactjs-tiptap-editor/video'
-import { Twitter as TwitterExtension } from 'reactjs-tiptap-editor/twitter'
-import { Callout as CalloutExtension } from 'reactjs-tiptap-editor/callout'
+// reactjs-tiptap-editor — CJS imports for Turbopack compatibility
+// (Subpath exports like reactjs-tiptap-editor/table are not resolved by Turbopack)
+import { Table } from 'reactjs-tiptap-editor/lib/Table.cjs'
+import { Mention } from 'reactjs-tiptap-editor/lib/Mention.cjs'
+import { Indent } from 'reactjs-tiptap-editor/lib/Indent.cjs'
+import { Color } from 'reactjs-tiptap-editor/lib/Color.cjs'
+import { FontSize } from 'reactjs-tiptap-editor/lib/FontSize.cjs'
+import { LineHeight } from 'reactjs-tiptap-editor/lib/LineHeight.cjs'
+import { TextDirection } from 'reactjs-tiptap-editor/lib/TextDirection.cjs'
+// NOTE: MoreMark, SearchAndReplace, Katex, Video, Twitter, Callout are intentionally excluded.
+// These extensions call prosemirror-view internals that are incompatible with
+// the current TipTap + Next.js Turbopack build pipeline. They produce:
+//   "TypeError: Cannot read properties of undefined (reading 'localsInner')"
 
 import { cn } from '@/lib/utils'
 
@@ -289,8 +288,8 @@ function RichTextEditorInner({
         code: { HTMLAttributes: { class: 'bg-muted px-1 py-0.5 rounded text-sm font-mono' } },
         link: false,
         underline: false,
-        // Note: do NOT disable codeBlock — StarterKit needs it for toggleCodeBlock command.
-        // Our ShikiCodeBlock (priority:100) intercepts parsing/rendering of codeBlock nodes.
+        codeBlock: false,
+        // Note: disable codeBlock — ShikiCodeBlock (priority:100) handles codeBlock rendering
       }),
 
       // Shiki syntax-highlighted code block (replaces StarterKit codeBlock rendering, not the command)
@@ -331,17 +330,17 @@ function RichTextEditorInner({
       TextDirection,
 
       // Marks
-      MoreMark,
-      SearchAndReplace,
+      // MoreMark, // Commented out — causes 'localsInner' undefined error in Turbopack
+      // SearchAndReplace, // Commented out — causes 'localsInner' undefined error in Turbopack
 
       // Typography B6: smart quotes, em-dashes, etc.
       Typography,
 
       // TipTap-rendered extensions from reactjs-tiptap-editor
-      KatexExtension,
-      VideoExtension,
-      TwitterExtension,
-      CalloutExtension,
+      // KatexExtension, // Commented out — causes 'localsInner' undefined error in Turbopack
+      // VideoExtension, // Commented out — causes 'localsInner' undefined error in Turbopack
+      // TwitterExtension, // Commented out — causes 'localsInner' undefined error in Turbopack
+      // CalloutExtension, // Commented out — causes 'localsInner' undefined error in Turbopack
 
       // Placeholder
       Placeholder.configure({ placeholder: '开始写作...' }),
@@ -381,7 +380,7 @@ function RichTextEditorInner({
   const insertMath = useCallback((latex: string, displayMode: boolean) => {
     if (!editor) return
     editor.chain().focus().insertContent({
-      type: displayMode ? 'math' : 'inlineMath',
+      type: displayMode ? 'blockMath' : 'inlineMath',
       attrs: { latex },
     }).run()
   }, [editor])

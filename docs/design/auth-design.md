@@ -6,7 +6,7 @@
 
 - 不用 localStorage 存 JWT
 - 使用 HttpOnly Cookie 传递身份凭证（主路径）
-- 同时兼容 `Authorization: Bearer {token}` Header（调试与第三方集成）
+- 同时兼容 `Authorization: Bearer <token>` Header（调试与第三方集成）
 - JWT 仅作签名校验（CPU 运算），中间件不查数据库
 - 令牌黑名单检查在 handler 层，不在中间件层
 
