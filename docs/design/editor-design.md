@@ -15,36 +15,41 @@
 ## CQRS 双轨存储
 
 ```
-写入侧（Command Side）          读取侧（Query Side）
-┌──────────────────┐           ┌──────────────────┐
+| 写入侧（Command Side）          读取侧（Query Side）
+|┌──────────────────┐           ┌──────────────────┐
 │ TipTap editor    │           │ Next.js SSG       │
 │ editor.getJSON() │           │ MDX → HTML        │
 └────────┬─────────┘           └────────▲─────────┘
          │                              │
          ▼                              │
 ┌──────────────────┐           ┌────────┴─────────┐
-│ content_json     │  异步转换  │ content_mdx      │
-│ (JSONB)          │ ────────→ │ (TEXT)           │
+│ content_json     │  自动派生  │ content_mdx      │
+│ (JSONB, NULLABLE)│ ────────→ │ (TEXT, NULLABLE) │
 │ 单一事实来源       │           │ 高效读取/分发     │
 └──────────────────┘           └──────────────────┘
 ```
 
-- **content_json (JSONB)** — 写入侧单一事实来源（Single Source of Truth）
-- **content_mdx (TEXT)** — 读取侧优化视图，供 SSR/SSG 直读
+- **`content_json` (JSONB)** — 写入侧单一事实来源（Single Source of Truth）。可为 `NULL`，后端三级降级策略：`content_mdx` → 从 `content_json` 实时转换 → 旧 `content` 列
+- **`content_mdx` (TEXT)** — 读取侧优化视图，供 SSR/SSG 直读。可为 `NULL`，后端根据 `content_json` 自动派生
 - 写入绝对安全，格式转换永不丢数据
 - 未来可迁移：即使放弃 TipTap，MDX 依然是 Portable 标准格式
 
-## 数学公式存储
+## 数学公式节点名
 
+实际 TipTap 扩展注册的节点名为 `"blockMath"` 和 `"inlineMath"`（来自 `@tiptap/extension-mathematics`），而非旧文档中的 `"math"`。
+
+```json
+{
+  "type": "blockMath",
+  "attrs": { "latex": "E=mc^2" }
+}
 ```
-数据层（存储）          视图层（渲染）
-┌─────────────────┐    ┌─────────────────┐
-│ LaTeX 纯文本字符串 │ ──→ │ KaTeX HTML DOM  │
-│ JSON: {         │    │ <span class=    │
-│   type: "math", │    │   "katex">...  │
-│   attrs: { latex: "E=mc^2" } │   </span>    │
-│ }               │    └─────────────────┘
-└─────────────────┘
+
+```json
+{
+  "type": "inlineMath",
+  "attrs": { "latex": "E=mc^2" }
+}
 ```
 
 - 存储的永远是 **LaTeX 源码**（`attrs.latex`），不是渲染后图片或 HTML
@@ -65,7 +70,7 @@
 | TipTap Node Type | MDX 输出格式 |
 |-----------------|-------------|
 | `inlineMath` (latex: "E=mc^2") | `$E=mc^2$` |
-| `mathematics` (latex: "\\begin{bmatrix}...") | `$$\n\\begin{bmatrix}...\n$$` |
+| `blockMath` (latex: "\begin{bmatrix}...") | `$$\n\begin{bmatrix}...\n$$` |
 
 ## 边界情况防护
 
@@ -81,5 +86,6 @@
 | P1 | saveToMdx 参与数学还原 | 让 saveToMdx 在 turndown 后处理数学公式 |
 | P1 | loadToEditor HTML 实体解码 | `data-latex="a&amp;b"` → `a&b` |
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
-| P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 |
-| P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
+|| ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
+|| P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
+|| 已解决 ✅ | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理 |
