@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react'
+import { useSidebar } from '@/components/shadcn/ui/sidebar'
 
 const navItems = [
   { id: 'dashboard', label: '仪表板', icon: LayoutDashboard, href: '/admin' },
@@ -26,14 +27,21 @@ const navItems = [
 
 export function AppSidebar({ onLogout }: { onLogout?: () => void }) {
   const pathname = usePathname()
+  const { open } = useSidebar()
 
   return (
-    <aside className="fixed left-0 top-0 z-30 flex h-full w-64 flex-col border-r bg-background">
+    <aside
+      data-state={!open ? 'collapsed' : 'expanded'}
+      style={{ width: open ? '16rem' : '3rem' }}
+      className="fixed left-0 top-0 z-30 flex h-full flex-col border-r bg-background transition-[width] duration-200 ease-linear"
+    >
       <div className="flex h-14 items-center border-b px-4">
-        <Link href="/admin" className="text-lg font-bold">
-          管理后台
+        <Link href="/admin" className="flex items-center gap-2">
+          {open && <span className="text-lg font-bold">管理后台</span>}
+          {!open && <span className="text-lg font-bold mx-auto">A</span>}
         </Link>
       </div>
+
       <nav className="flex-1 overflow-y-auto p-2 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon
@@ -46,22 +54,29 @@ export function AppSidebar({ onLogout }: { onLogout?: () => void }) {
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                 isActive
                   ? 'bg-accent text-accent-foreground'
-                  : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                  : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground',
+                !open && 'justify-center px-2'
               )}
+              title={!open ? item.label : undefined}
             >
-              <Icon className="h-4 w-4" />
-              {item.label}
+              <Icon className="h-4 w-4 flex-shrink-0" />
+              {open && item.label}
             </Link>
           )
         })}
       </nav>
+
       <div className="border-t p-2">
         <button
           onClick={onLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors"
+          className={cn(
+            'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors',
+            !open && 'justify-center px-2'
+          )}
+          title={!open ? '退出登录' : undefined}
         >
-          <LogOut className="h-4 w-4" />
-          退出登录
+          <LogOut className="h-4 w-4 flex-shrink-0" />
+          {open && '退出登录'}
         </button>
       </div>
     </aside>

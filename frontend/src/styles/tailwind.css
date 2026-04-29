@@ -1114,8 +1114,14 @@ html.cursor-hidden .case-go {
 }
 
 /* Content width constraint for optimal reading */
-.prose {
+/* Applied to blog article reading layout, NOT to the editor */
+.prose:not(:has(.tiptap)) {
   max-width: 680px;
+}
+
+/* Editor container: full width, no constraint */
+.prose:has(.tiptap) {
+  max-width: none;
 }
 
 /* Paragraph spacing */
@@ -1240,7 +1246,46 @@ html.cursor-hidden .case-go {
   color: var(--foreground);
 }
 
-.prose pre {
+/* ProseMirror / TipTap Editor Code Block */
+.tiptap pre {
+  background: var(--geist-bg-secondary);
+  border: 1px solid var(--geist-border);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin: 1.25em 0;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  tab-size: 2;
+  overflow-x: auto;
+  position: relative;
+}
+
+.tiptap pre code {
+  display: block;
+  color: var(--geist-fg);
+  background: none;
+  font-size: inherit;
+  padding: 0;
+}
+
+/* Code block label badge */
+.tiptap pre::after {
+  content: 'CODE';
+  position: absolute;
+  top: 0.375rem;
+  right: 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--geist-fg-tertiary);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Fallback for standalone .prose pre (frontend reading) */
+.prose > pre,
+.prose pre:not(.tiptap pre) {
   background: transparent;
   padding: 0;
   margin: 0;
