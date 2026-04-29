@@ -37,6 +37,9 @@
 |------|------|------|
 | `layouts/PostLayoutMonograph.tsx` | 长文阅读布局 | ✅ 唯一活跃 |
 | `layouts/AuthorLayout.tsx` | 作者页 | ✅ |
+| `layouts/BookShelfLayout.tsx` | 书架网格布局 | ✅ |
+| `layouts/BookDetailLayout.tsx` | 书籍详情布局 | ✅ |
+| `layouts/PublicPageFrame.tsx` | 公开页通用外壳 | ✅ |
 
 ### 管理后台布局
 | 文件 | 职责 |
@@ -49,7 +52,9 @@
 | 文件 | 职责 |
 |------|------|
 | `CodeBlock.tsx` | 轻量级代码块（macOS 窗口装饰 + 复制按钮 + 终端模式） |
-| `mdx/CodeBlock.tsx` | 高级代码块（Shiki 语法高亮 + 深色主题 + macOS 窗口装饰 + 复制按钮 + 行号 + 终端模式） |
+| `mdx/CodeBlock.tsx` | 高级代码块（TipTap StarterKit 内置语法高亮 + 深色主题 + macOS 窗口装饰 + 复制按钮 + 行号 + 终端模式） |
+
+> **注意**：`MDXComponents` 同时存在为文件 (`MDXComponents.tsx`) 和目录 (`MDXComponents/`)。目录内含 `ExcalidrawEmbed.tsx` 等 MDX 渲染辅助组件。
 
 ## 6) 杂志风格组件 (Magazine)
 
@@ -87,13 +92,10 @@
 | `editor/ArticleMetadata.tsx` | 文章元数据编辑 |
 | `editor/SEOPreviewCard.tsx` | SEO 预览卡片 |
 | `editor/CollaborationEditor.tsx` | 协作编辑 |
-|| `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
-|| `editor/extensions/mathematics-extended.tsx` | 数学公式扩展 |
-|| ~~`editor/extensions/ShikiCodeBlockComponent.tsx`~~ | ~~Shiki 代码块组件~~ (已删除) |
-|| `editor/extensions/ShikiCodeBlock.ts` | Shiki 代码块定义 |
-| `editor/extensions/CodeBlockShikiNodeView.tsx` | 代码块节点视图 |
-| `editor/extensions/math-node-view.tsx` | 数学公式节点视图 |
+| `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
 | `editor/hooks/useImageUpload.ts` | 图片上传 Hook |
+
+> **注意**：`editor/extensions/` 目录不存在。所有编辑器扩展（如代码块高亮、数学公式）通过 TipTap StarterKit 或 `tiptap-extension-*` 包处理，非本地文件。
 
 ## 9) 认证组件 (Auth)
 
@@ -140,11 +142,13 @@
 | `chemistry/runtimeProps.ts` | 运行时属性类型 |
 | `chemistry/index.ts` | 统一导出 |
 
+> **注意**：`chemistry/index.ts` 作为 barrel export 统一导出 chemistry 目录下所有组件。
+
 ## 13) 自定义 UI 组件与 Shadcn 分离说明
 
 | 路径 | 内容 | 说明 |
 |------|------|------|
-| `components/shadcn/ui/` | button, card, dialog, input, tabs, dropdown-menu, alert, badge 等 | shadcn/ui 基础组件（基于 Radix UI + Tailwind） |
+| `components/shadcn/ui/` | accordion, alert, avatar, badge, button, card, dialog, dropdown-menu, input, label, progress, select, separator, sheet, sidebar, skeleton, sonner, tabs, textarea, tooltip | shadcn/ui 基础组件（基于 Radix UI + Tailwind） |
 | `components/ui/` | EnhancedImage, ExcalidrawModal, LoadingStates, Skeleton/, LiveRegion, Loader, SwipeContainer, FAB 等 | 项目自定义 UI 组件 |
 
 ## 14) 导航组件

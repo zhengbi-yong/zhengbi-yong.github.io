@@ -58,7 +58,7 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
-CREATE INDEX idx_users_profile ON users USING GIN (profile jsonb_path_ops);
+CREATE INDEX idx_users_profile_gin ON users USING GIN (profile jsonb_path_ops);
 ```
 
 ### 软删除下的唯一性
@@ -437,7 +437,7 @@ CREATE TABLE search_history (
 # 限流: 双窗口 Lua 脚本（秒级 + 分钟级）
 rl:s:{ip}:{route_hash}:{second_bucket} → Counter(INCR)
 rl:m:{ip}:{route_hash}:{minute_bucket} → Counter(INCR)
-TTL: 秒级窗口 2秒，分钟级窗口 60秒
+TTL: 秒级窗口 1秒，分钟级窗口 60秒
 
 # 令牌黑名单
 blacklist:{token_hash} → String("1")

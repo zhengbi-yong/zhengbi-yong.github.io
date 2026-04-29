@@ -32,6 +32,8 @@ POST /admin/media/upload (Multipart POST)
 
 存储后端使用 Rust **enum**（无动态分发），定义在 `backend/crates/api/src/storage.rs`：
 
+> `Minio(MinioStorage)` 实现的是通用 S3 协议（通过 `aws_sdk_s3` crate），兼容 MinIO、AWS S3 及其他 S3 兼容存储。
+
 ```rust
 pub enum StorageBackend {
     Local(LocalStorage),
@@ -82,16 +84,25 @@ CREATE TABLE media (
 
 ### `media_assets` 表（文章系统关联表）
 
+> ⚠️ **已废弃**：以下描述的 `media_assets` 表在迁移 `2026042701_create_articles.sql` 中的实际定义为独立资源表（而非多对多关联表）。该表包含 `filename`, `file_size`, `url`, `duration` 等字段，不含 `sort_order` 或 `media_id` 列。下方的旧文档已过时，保留仅作历史参考。
+
 除了 `media` 表外，文章系统中还使用 `media_assets` 表来建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
 
 ```sql
-CREATE TABLE media_assets (
-    id        UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
-    media_id   UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(article_id, media_id)
+CREATE TABLE IF NOT EXISTS media_assets (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    filename        VARCHAR(255) NOT NULL,
+    original_name   VARCHAR(255) NOT NULL,
+    mime_type       VARCHAR(100) NOT NULL,
+    file_size       BIGINT NOT NULL,
+    storage_path    TEXT NOT NULL,
+    url             TEXT NOT NULL,
+    width           INTEGER,
+    height          INTEGER,
+    duration        FLOAT,
+    uploader_id     UUID NOT NULL REFERENCES users(id),
+    article_id      UUID REFERENCES articles(id),
+    created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 

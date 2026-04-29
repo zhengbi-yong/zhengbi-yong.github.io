@@ -7,9 +7,8 @@
 ### 黄金比例非对称双栏
 
 ```
-Desktop (>= 1280px):
-┌───────────────────────────────────────────────────────┐
-│  Progress Bar (2px, fixed top, brand gradient)         │
+Desktop (>= 1024px):
+│  Progress Bar (3px, fixed top, --mono-accent solid)
 ├───────────────────────────────────────────────────────┤
 │                    Article Hero                         │
 ├──────────────────────────────────┬────────────────────┤
@@ -25,7 +24,7 @@ Desktop (>= 1280px):
 └───────────────────────────────────────────────────────┘
 ```
 
-Tablet (768-1279px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
+Tablet (768-1023px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
 Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 ### 当前实现
@@ -53,20 +52,20 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 > **全局样式文件**：项目不使用 `globals.css`。所有全局样式通过 `src/styles/tailwind.css` 管理，该文件在 `layout.tsx` 中通过 `import '@/styles/tailwind.css'` 引入。
 
-### 字号比例（Fibonacci-based）
+### 字号比例（Fibonacci-based，实际用了 clamp() 流体值）
 
-| 元素 | 大小 | 行高 | 字间距 |
-|------|------|------|--------|
-| h1 | 2.25rem (36px) | 1.3 | -0.02em |
-| h2 | 1.75rem (28px) | 1.35 | -0.01em |
-| h3 | 1.375rem (22px) | 1.4 | 0 |
-| h4 | 1.125rem (18px) | 1.45 | 0 |
-| Body | 1rem (16px) | 1.75 (CJK) / 1.6 (Latin) | 0 |
-| Small | 0.875rem (14px) | 1.5 | 0.01em |
+| 元素 | 大小（实际 CSS） | 行高 | 字间距 |
+|------|------------------|------|--------|
+| h1 | `clamp(1.875rem, 2.25rem + 1vw, 3rem)` | 1.3 | -0.02em |
+| h2 | `clamp(1.5rem, 1.75rem + 0.5vw, 2.25rem)` | 1.35 | -0.01em |
+| h3 | `clamp(1.25rem, 1.375rem + 0.3vw, 1.75rem)` | 1.4 | 0 |
+| h4 | `clamp(1.05rem, 1.125rem + 0.2vw, 1.375rem)` | 1.45 | 0 |
+| Body | `clamp(0.95rem, 1rem + 0.15vw, 1.125rem)` | **1.65**（统一值，不区分 CJK/Latin） | 0 |
+| Small | `0.875rem (14px)` | 1.5 | 0.01em |
 
 ### CJK 特殊处理
 
-- 行高 1.75（vs Latin 1.6），中文字符无间距需更多呼吸空间
+- 行高统一使用 **1.65**（不再分别设置 CJK 1.75 / Latin 1.6）
 - 段落间距：CJK 使用 `1.5em`（vs Latin `1em`）
 - 通过 CSS `:lang(zh)` 或 `.cjk-content` class 检测
 
@@ -77,14 +76,15 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：768px（Monograph 的 1280px 过晚，原 768px 为标准断点）
+- 移动端断点：768px（标准断点）
+- 从 `(public)/blog` 文章详情页传递 `showTOC` prop 时，若出现 TOC 显示/隐藏不同步，请检查父组件是否错误覆盖了该 prop（⚠️ 已知潜在 bug）
 
 ## 阅读进度条 (ReadingProgressBar)
 
 - `position: fixed; top: 0; left: 0; z-index: 50;`
-- 高度：2px，品牌渐变背景
+- 高度：**3px**，纯色 `--mono-accent`（非渐变）
 - 宽度 = `scrollY / (scrollHeight - clientHeight)`
-- `requestAnimationFrame` 节流实现 60fps
+- **防抖（debounce）** 更新，而非 requestAnimationFrame 60fps 高频更新
 
 ## 代码块
 

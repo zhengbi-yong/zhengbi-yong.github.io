@@ -5,11 +5,11 @@
 ## 测试金字塔
 
 ```text
-        ╱  E2E  ╲              Playwright: ~91 个测试用例覆盖 12 条核心路径
+|        ╱  E2E  ╲              Playwright: ~100 个测试用例覆盖 12 条核心路径（CI 仅运行 2/12 个 spec 文件）
        ╱──────────╲
       ╱ 集成测试   ╲            前端 Vitest (188 tests), 后端 cargo test
      ╱──────────────╲
-    ╱   单元测试      ╲          后端: 29 个测试文件 (含 mdx_convert 的 16 个测试)
+|    ╱   单元测试      ╲          后端: 20 个测试文件（含 mdx_convert 的 16 个测试函数）
    ╱────────────────────╲
   ╱  类型检查 (编译时)    ╲       Rust cargo check, TypeScript ESLint
  ╱──────────────────────────╲
@@ -19,11 +19,11 @@
 
 | 层级 | 工具 | 目标 | 现状 |
 |------|------|------|------|
-| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 29 个测试文件，16 个 mdx_convert 测试 |
+| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 20 个测试文件，16 个测试函数（内联在 mdx_convert.rs 中） |
 | Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
-| TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
-| 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
-| E2E 流程 | Playwright | 12 条核心路径 | ~91 个 E2E 测试用例 |
+| TypeScript 类型 | ESLint（`strict: false`，无独立 `tsc --noEmit`） | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查，CI 中无独立 tsc --noEmit 步骤） |
+| 前端组件测试 | Vitest | 组件 ≥70% | ~146-188 个测试用例 |
+| E2E 流程 | Playwright | 12 条核心路径 | ~100 个 E2E 测试用例（CI 仅运行 2/12 个 spec 文件） |
 
 ## E2E 核心路径
 
@@ -50,7 +50,7 @@
 
 ```bash
 # 1. 后端
-cd backend && cargo test --workspace && cargo clippy
+cd backend && cargo test --workspace
 
 # 2. 前端
 cd frontend && pnpm test && npx eslint . --max-warnings=600
@@ -58,6 +58,8 @@ cd frontend && pnpm test && npx eslint . --max-warnings=600
 # 3. E2E（CI 环境）
 pnpm test:e2e
 ```
+
+> **注意**: `cargo clippy` 当前未包含在 backend-ci.yml 中。建议在 CI 工作流中增加 clippy 检查步骤以保持代码质量。
 
 ## 性能基准
 

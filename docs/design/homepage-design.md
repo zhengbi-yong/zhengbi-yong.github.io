@@ -18,7 +18,7 @@
 
 ### Section 1: Hero Section
 
-> **注意**：`frontend/src/components/home/HeroSection.tsx` 是一个基于 Three.js 粒子系统的沉浸式英雄区组件，已实现但未接入当前活跃首页。当前活跃首页（`Main.tsx`）使用以下内联英雄区标记。
+> **注意**：`frontend/src/components/home/HeroSection.tsx` 是一个基于 Three.js 粒子系统的沉浸式英雄区组件，**已实现但未集成**。当前活跃首页（`Main.tsx`）使用以下内联英雄区标记。
 
 #### 视觉
 
@@ -79,20 +79,9 @@
 - 响应式间距：`px-4 sm:px-6 lg:px-8 2xl:px-10`
 - 深色模式支持（`dark:` 类）
 
-## 未来规划
+## 已实现但未接入
 
 > 以下设计组件已实现（位于 `frontend/src/components/home/`）但尚未接入首页（`Main.tsx`）。
-
-### 计划结构
-
-```
-1. Immersive Hero          — 全屏 WebGL 粒子 + 双语标题
-2. Bento Grid Content Hub  — 模块化网格展示最新内容
-3. Projects Gallery        — 横向滚动项目展示
-4. Music Experience        — 音频响应乐谱可视化
-5. Latest Writing          — 编辑风格文章列表
-6. Mega Footer             — 全屏 CTA 页脚
-```
 
 ### Section 1: Immersive Hero
 
@@ -108,7 +97,7 @@
 - 主标题：`clamp(3rem, 8vw, 8rem)`，衬线字体（Newsreader/Playfair Display）
 - 副标题：双语（英文 + 中文）
 - 文字使用 `mix-blend-mode: difference` 确保在粒子上可读
-- 入场动画：GSAP SplitText，逐字淡入+模糊→清晰
+- 入场动画：Framer Motion，逐字淡入+模糊→清晰
 
 #### 性能
 
@@ -156,21 +145,25 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 - Web Audio API `AnalyserNode` 提取实时频谱
 - 同步播放光标在乐谱上流动
 
+> **注**：音频响应粒子系统尚未实现，当前仅包含静态乐谱渲染和播放控制。
+
 ### Section 5: Latest Writing
 
 - 编辑风格布局：左 60% 特色卡片 + 右 40% 两个列表卡片
 - 衬线字体标题，慷慨留白
 - Hover 效果：行向右移动 8px
 
-### Section 6: Mega Footer
+## 已接入当前首页
+
+### Mega Footer
 
 - 全屏 `100vh`，深色背景 `#050505`
-- 巨幅声明文字："LET'S CREATE SOMETHING TOGETHER"
+- 巨幅声明文字：`「保持好奇，持续创造」`（中文格言，非英文 "LET'S CREATE SOMETHING TOGETHER"）
 - 导航链接 + 社交链接 + 版权信息
 
-### 全局交互
+## 全局交互
 
-#### 自定义鼠标指针（未实现）
+### 自定义鼠标指针（未实现）
 
 - 默认：小点 + 外圈
 - 文章卡片：读书图标
@@ -178,9 +171,9 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 - 音乐区：音符图标
 - 可点击元素：指针圈放大
 
-#### 滚动动画
+### 滚动动画
 
-- GSAP ScrollTrigger 驱动
+- Framer Motion `useInView` / `whileInView` 驱动
 - 分阶段动效：标题先入（0ms）→ 内容（+100-200ms）
 - Easing: `cubic-bezier(0.16, 1, 0.3, 1)` (expo-out)
 - 每个 Section 从下方淡入滑动

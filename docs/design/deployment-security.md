@@ -79,7 +79,7 @@ K3s 部署包含完整的零信任网络策略（`deployments/k3s/network-policy
 |------|------|------|
 | `/.well-known/live` | 存活探针 | 只返回 200 |
 | `/.well-known/ready` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| `/health` | 基本健康 | 返回 "OK" |
+| `/health` | 基本健康 | 返回 JSON HealthStatus（status/timestamp/version/uptime） |
 | `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
 | `/metrics` | Prometheus 指标 | 指标数据 |
 
@@ -91,6 +91,8 @@ K3s 部署包含完整的零信任网络策略（`deployments/k3s/network-policy
 > - **Axum**（`main.rs` 中 `create_cors_layer()`）：根据 `CORS_ALLOWED_ORIGINS` 环境变量配置（开发模式允许任意来源，生产模式严格校验）
 >
 > 当 Nginx 和 Axum 同时设置 CORS 头，浏览器可能因重复头导致行为异常或安全降级（Nginx 的 `*` 会覆盖 Axum 的严格限制）。建议只保留一层的 CORS 配置。另见 `backend/code-review-report.md`。
+
+> **Nginx upstream 与 Docker DNS**：Nginx 配置中的 `proxy_pass http://backend:3000` 使用 Docker Compose 网络中的服务名 `backend` 进行 DNS 解析。在 Compose 环境下，Docker 内置 DNS 自动将 `backend` 解析为对应容器的 IP。但在独立或 Kubernetes 环境中，此 DNS 名称解析可能失败。Compose 部署依赖 Docker DNS 自动解析，无需手动配置 upstream 块；K8s 部署则使用 Service 名称和 Cluster DNS。如果 nginx 以容器方式运行但不在同一 Docker 网络中（如系统级 nginx），则需手动配置 `/etc/hosts` 或使用 upstream 块指向具体容器 IP。
 
 ## 环境变量与密钥管理
 

@@ -12,6 +12,11 @@
 
 **采用 TipTap**：在"开发者自由度"与"开箱即用功能性"之间取得最佳平衡。
 
+> **扩展来源说明**：本项目混合使用两种扩展来源：
+> - **官方 `@tiptap/*` 包**：StarterKit、Link、Image、Underline、TextAlign、Typography、Placeholder 等基础扩展
+> - **社区 `reactjs-tiptap-editor`**：KaTeX（数学公式）、Mention、Indent、Color、FontSize、LineHeight、TextDirection、MoreMark、SearchAndReplace、Video、Twitter、Callout 等高级扩展
+> 两个来源的扩展在编辑器中共存，`reactjs-tiptap-editor` 的扩展通过其统一注册入口导入。
+
 ## CQRS 双轨存储
 
 ```
@@ -36,7 +41,7 @@
 
 ## 数学公式节点名
 
-实际 TipTap 扩展注册的节点名为 `"blockMath"` 和 `"inlineMath"`（来自 `@tiptap/extension-mathematics`），而非旧文档中的 `"math"`。
+实际 TipTap 扩展注册的节点名为 `"blockMath"` 和 `"inlineMath"`（来自 `reactjs-tiptap-editor/katex`），而非旧文档中的 `"math"`。
 
 ```json
 {
@@ -70,7 +75,13 @@
 | TipTap Node Type | MDX 输出格式 |
 |-----------------|-------------|
 | `inlineMath` (latex: "E=mc^2") | `$E=mc^2$` |
-| `blockMath` (latex: "\begin{bmatrix}...") | `$$\n\begin{bmatrix}...\n$$` |
+| `blockMath` (latex: "\\begin{bmatrix}...") | `$$\n\\begin{bmatrix}...\n$$` |
+| `details` | `<details>\n  <summary>...</summary>\n  ...\n</details>` |
+| `detailsSummary` | `<summary>...</summary>`（details 的子节点） |
+| `detailsContent` | 折叠面板内容区（details 的子节点） |
+| `callout` | `<Callout type="info|warning|danger">...</Callout>` |
+| `mention` (attrs: { id, label }) | `<Mention user={id}>@{label}</Mention>` |
+| `video` (attrs: { src }) | `<video src="..." controls />` |
 
 ## 边界情况防护
 
@@ -78,9 +89,11 @@
 2. **多行矩阵对齐**：`$$` 必须独占首尾行，保留所有 `\n`
 3. **粘贴清洗**：前置 Paste Handler，剔除零宽字符、Base64 等非纯文本节点
 
-## 快捷键 (Keyboard Shortcuts)
+## 快捷键说明
 
-编辑器工具栏 (`EditorToolbar.tsx`) 中定义的快捷键映射，使用 `Ctrl` (Windows/Linux) / `Cmd` (macOS) 组合键：
+> **注意**：当前实际激活的工具栏是 `TiptapEditor.tsx` 中的 **BubbleMenu（内联工具栏）**，仅在选中文本时浮动出现。`EditorToolbar.tsx`（固定顶部工具栏）文件存在于代码库中，但**未被实际使用**，属于死代码（dead code），尚未清理。
+
+编辑器内联工具栏 (`TiptapEditor.tsx` 中的 BubbleMenu) 中定义的快捷键映射，使用 `Ctrl` (Windows/Linux) / `Cmd` (macOS) 组合键：
 
 | 功能 | 快捷键 |
 |------|--------|
@@ -136,7 +149,7 @@
 | 解析方式 | 从 `data-language` 属性或 `class` 提取 |
 | 渲染方式 | ~~ReactNodeViewRenderer + ShikiCodeBlockComponent~~ |
 
-> **已于 2026-04-29 删除。** 该扩展未注册到编辑器，且其定义文件和 NodeView 组件均已从仓库中删除。Shiki 现在仅用于 MDX 静态渲染，编辑器中的代码块使用 StarterKit 内置的 codeBlock。
+> **已于 2026-04-29 删除。** 该扩展未注册到编辑器，且其定义文件和 NodeView 组件均已从仓库中删除。Shiki 现在仅用于 MDX 静态渲染，编辑器中的代码块使用 **StarterKit 内置的 codeBlock**（非自定义 Shiki 高亮扩展）。
 
 ## CollaborationEditor
 

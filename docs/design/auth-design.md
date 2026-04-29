@@ -97,7 +97,8 @@ pub async fn optional_auth_middleware(
 
 - 撤销的 access_token 存入 Redis: `blacklist:{token_hash}` → `"1"`，TTL = 剩余有效期
 - 检查在 auth handler 层（`is_token_blacklisted()`），不在中间件层
-- 登出时撤销当前 access_token，同时删除 refresh_token
+- 登出时应撤销当前 access_token（调用 `blacklist_token()`），同时删除 refresh_token
+- ⚠️ **已知差距**：当前 logout handler（`routes/auth.rs:logout`）**未调用 `blacklist_token()`**——只撤销了 refresh_token（设置 `revoked_at`）并清除 Cookie，但 access_token 在剩余有效期内仍然可用。这是一个已知安全差距，后续需补上 `blacklist_token()` 调用。
 
 ## 限流
 
@@ -109,17 +110,17 @@ pub async fn optional_auth_middleware(
   rl:m:{ip}:{route_hash}:{minute_bucket}  → 分钟级窗口
 
 各端点限额（默认值，可通过环境变量覆盖）:
-  POST /auth/login, /auth/register  → 5 次/分钟 + 1 次/秒  (RATE_LIMIT_AUTH_RPM / RATE_LIMIT_AUTH_RPS)
-  POST /posts/*/view                 → 100 次/分钟 + 10 次/秒 (RATE_LIMIT_VIEW_RPM / RATE_LIMIT_VIEW_RPS)
-  POST /posts/*/comments             → 10 次/分钟 + 2 次/秒  (RATE_LIMIT_COMMENT_RPM / RATE_LIMIT_COMMENT_RPS)
-  其他                               → 1000 次/分钟 + 100 次/秒 (RATE_LIMIT_DEFAULT_RPM / RATE_LIMIT_DEFAULT_RPS)
+  POST /auth/login, /auth/register  → 5 次/秒 + 100 次/分钟  (RATE_LIMIT_AUTH_RPS / RATE_LIMIT_AUTH_RPM)
+  POST /posts/*/view                 → 10 次/秒 + 1000 次/分钟 (RATE_LIMIT_VIEW_RPS / RATE_LIMIT_VIEW_RPM)
+  POST /posts/*/comments             → 2 次/秒 + 20 次/分钟  (RATE_LIMIT_COMMENT_RPS / RATE_LIMIT_COMMENT_RPM)
+  其他                               → 100 次/秒 + 6000 次/分钟 (RATE_LIMIT_DEFAULT_RPS / RATE_LIMIT_DEFAULT_RPM)
 
 失败模式（可配置）:
   fail_open  → 限流后端不可用时放行（默认，保证可用性）
   fail_close → 限流后端不可用时拒绝（安全优先）
 ```
 
-> 限流使用 Redis Lua 脚本保证原子性，非简单 INCR+EXPIRE。每个请求同时检查秒级和分钟级窗口，任一窗口超限即拒绝。TTL：秒级窗口 2 秒，分钟级窗口 60 秒。
+> 限流使用 Redis Lua 脚本保证原子性，非简单 INCR+EXPIRE。每个请求同时检查秒级和分钟级窗口，任一窗口超限即拒绝。TTL：秒级窗口 1 秒，分钟级窗口 60 秒。
 >
 > 以上限额均为**默认值**，可通过环境变量覆盖：
 > - `RATE_LIMIT_AUTH_RPM` / `RATE_LIMIT_AUTH_RPS` — 认证端点（登录/注册）每分钟/每秒允许次数

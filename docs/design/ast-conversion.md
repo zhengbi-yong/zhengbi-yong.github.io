@@ -36,6 +36,7 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 - `backend/crates/api/src/routes/posts.rs` — post CRUD 中 fallback 转换（content_json → content_mdx）
 - `backend/crates/api/src/routes/articles.rs` — 文章写入时转换
 - `backend/crates/api/src/routes/mdx_convert.rs` — MDX 同步管线
+- `backend/crates/api/src/routes/mdx_sync.rs` — 另一个调用站点（手动触发的 MDX 同步）
 
 ## 反向转换：MDX → TipTap JSON
 
@@ -66,10 +67,9 @@ pub fn mdx_to_tiptap_json_with_stats(mdx: &str) -> (Value, ConversionStats)
 
 // 转换统计结构
 pub struct ConversionStats {
-    pub total_blocks: usize,      // 总块级节点数
-    pub total_inlines: usize,     // 总内联节点数
-    pub error_count: usize,       // 转换错误数
-    pub warnings: Vec<String>,    // 警告信息
+    pub blocks: usize,           // 总块级节点数
+    pub text_nodes: usize,       // 总文本节点数
+    pub marks_used: Vec<String>, // 使用到的 Mark 类型列表
 }
 ```
 

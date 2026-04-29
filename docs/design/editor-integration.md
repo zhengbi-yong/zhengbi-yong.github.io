@@ -51,7 +51,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 粗体/斜体 | StarterKit | ✅ |
 | 列表 (有序/无序) | StarterKit | ✅ |
 | 链接 | Link | ✅ |
-| 代码块 | ShikiCodeBlock (自定义 Shiki 高亮扩展，替代 CodeBlockLowlight) | ✅ |
+| 代码块 | StarterKit 内置 codeBlock (Shiki 仅用于 MDX 静态渲染) | ✅ |
 | 引用 | Blockquote | ✅ |
 | 表格 | Table (来自 reactjs-tiptap-editor) | ❌ 注释待修复 |
 | 图片 | Image | ✅ |
@@ -205,6 +205,9 @@ export function useDraft(existingDraftId?: string) {
 | 方法 | 端点 | 说明 |
 |------|------|------|
 | `POST` | `/v1/admin/media/upload` | 上传媒体文件 (multipart/form-data) |
+| `POST` | `/v1/admin/media/presign-upload` | 获取预签名上传 URL（大文件直传 S3/MinIO） |
+| `POST` | `/v1/admin/media/finalize` | 确认预签名上传完成 |
+| `POST` | `/v1/admin/media/unused` | 清理未引用的媒体文件 |
 
 ### 上传流程
 

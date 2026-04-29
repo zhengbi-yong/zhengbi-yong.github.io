@@ -183,6 +183,23 @@ GET    /tags/autocomplete      # 自动补全
 
 ## 中间件
 
+### 中间件栈顺序
+
+中间件按以下顺序注册（外层 → 内层，在 `main.rs` 中通过 `ServiceBuilder` 组装）：
+
+| 优先级 | 中间件 | 说明 |
+|--------|--------|------|
+| 1（最外层） | `TraceLayer` | HTTP 请求日志和 W3C Trace Context 传播 |
+| 2 | `CorsLayer` | CORS 跨域配置 |
+| 3 | `RequestIdLayer` | 请求 ID 注入 |
+| 4 | `RateLimitLayer` | Redis 分布式限流 |
+| 5 | `AuthLayer` | JWT 认证（仅在 admin/* 路由组） |
+| 6 | `CsrfLayer` | CSRF 保护（仅在 admin/* 路由组） |
+
+> **为什么 Trace 在最外层**：确保所有请求（包括被限流和认证拒绝的）都有日志记录和追踪上下文。
+>
+> **为什么 RateLimit 在 Auth 之前**：防止恶意 IP 消耗认证资源的计算开销，在认证前即被限流拒绝。
+
 ### 限流中间件（Rate Limiting）
 
 限流中间件应用于所有 `/api/v1/*` 路由，基于 Redis 分布式限流，按 IP 和路由维度限制请求速率。超出限制返回 `429 Too Many Requests`。
@@ -191,7 +208,7 @@ GET    /tags/autocomplete      # 自动补全
 - `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 20）
 - `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 100）
 - `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 30）
-- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 60）
+- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 6000）
 
 ### CSRF 中间件
 
@@ -317,15 +334,79 @@ async fn auth_middleware(
 | 429 | 限流触发 |
 | 500 | 服务器内部错误 |
 
+### 错误响应格式
+
+所有错误响应统一返回 JSON 格式：
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Human-readable description",
+    "details": [
+      { "field": "title", "message": "Title is required" }
+    ]
+  }
+}
+```
+
+- `code`: 机器可读的错误码（大写蛇形）
+- `message`: 人类可读的错误描述
+- `details`: 可选，包含具体字段校验错误列表
+
+常见错误码：`VALIDATION_ERROR`、`UNAUTHORIZED`、`FORBIDDEN`、`NOT_FOUND`、`CONFLICT`、`RATE_LIMITED`、`INTERNAL_ERROR`。
+
+## 分页设计
+
+列表接口统一使用游标分页（Cursor-based Pagination），返回格式：
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "cursor": "eyJpZCI6MTAwfQ==",
+    "has_more": true,
+    "total": 156
+  }
+}
+```
+
+### 请求参数
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `cursor` | string | 无 | 分页游标（从上一响应获取） |
+| `limit` | integer | 20 | 每页条数（最大 100） |
+
+### 实现约定
+
+- 第一页请求不带 `cursor` 参数，服务端返回第一页数据并生成游标
+- 后续页请求携带上一页返回的 `cursor` 值
+- `has_more` 指示是否还有更多数据
+- `total` 为符合条件的总记录数（仅第一页返回，后续页为 `null` 以节省性能）
+- 游标使用 Base64 编码，内容为最后一条记录的排序字段值（通常是 `id` 或 `created_at`）
+- 最大返回条数硬限制为 100，超出返回 400
+
+### 使用游标分页而非偏移分页的原因
+
+| 对比项 | 游标分页 | 偏移分页 |
+|--------|----------|----------|
+| 新增数据时稳定性 | 稳定，不会因数据插入而重复 | 不稳定，偏移量变化导致重复/遗漏 |
+| 大偏移量性能 | O(1)，索引直接定位 | O(n)，需要扫描前 N 行 |
+| 随机跳页 | 不支持 | 支持 |
+| 实现复杂度 | 稍高 | 简单 |
+
+> 本项目的列表接口（文章列表、评论列表、用户列表、媒体列表等）均使用游标分页。管理端用户列表和仪表盘统计数据量较小，可使用偏移分页（page/pageSize）以支持随机跳页。
+
 ## 健康检查
 
-| 路径 | 说明 | 类型 |
-|------|------|------|
-| /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
-| /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | ~~基本健康检查~~（handler 存在但未注册为路由，参见下方状态说明） | 返回 JSON HealthStatus（status/timestamp/version/uptime） |
-| /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
-| /metrics | Prometheus 指标 | 返回指标数据 |
+| 路径 | 说明 | 类型 | K3s 探针配置 |
+|------|------|------|--------------|
+| /.well-known/live | Kubernetes 存活探针 | 只返回 200 | initialDelaySeconds: 20, periodSeconds: 20 |
+| /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 | initialDelaySeconds: 10, periodSeconds: 10 |
+| /health | ~~基本健康检查~~（handler 存在但未注册为路由，参见下方状态说明） | 返回 JSON HealthStatus（status/timestamp/version/uptime） | N/A（未注册） |
+| /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 | N/A |
+| /metrics | Prometheus 指标 | 返回指标数据 | N/A |
 
 ## 状态说明
 

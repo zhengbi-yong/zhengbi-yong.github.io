@@ -5,10 +5,12 @@
 | 层级 | 技术 | 版本 |
 |------|------|------|
 | 前端框架 | Next.js | 16.2.2 (App Router) |
-| UI 库 | React | 19.2 |
+| UI 库 | React | 19.2.4 |
 | 动画 | Framer Motion, GSAP | 最新 |
 | 后端通信 | `apiClient.ts` + `backend.ts` | — |
 | UI 状态 | Zustand (仅 UI 状态) | — |
+
+> **注意**：Turbopack 已禁用。由于 `reactjs-tiptap-editor` 包的不兼容性，实际使用 Webpack 而非 Turbopack。如果未来 Turbopack 兼容，可以重新启用。
 
 ## 目录结构
 
@@ -60,7 +62,7 @@ frontend/src/
 │   ├── navigation/            # TableOfContents 等导航组件
 │   ├── magazine/              # 杂志风格组件（MasonryGrid, FilterBar, HeroSection, RecommendedSection 等）
 │   ├── book/                  # 书籍组件（Book, Chapter, ArticleCard 等）
-│   ├── editor/                # 编辑器组件（TiptapEditor, MenuBar, SplitEditor, extensions/ 等）
+│   ├── editor/                # 编辑器组件（TiptapEditor, MenuBar, SplitEditor 等，无本地 extensions/ 目录）
 │   ├── auth/                  # 认证组件（AuthButton, AuthModal, AuthInitializer 等）
 │   ├── search/                # 搜索组件（ApiSearchBar, SmartSearchBar）
 │   ├── loaders/               # 加载状态组件（ComponentLoader, Spinner, Skeleton 系列等）
@@ -86,7 +88,7 @@ frontend/src/
 │   ├── admin/                 # 管理后台组件（AdminLayout 等）
 │   ├── media/                 # 媒体组件（Image 等）
 │   ├── hooks/                 # 自定义 Hooks
-│   └── MDXComponents/         # MDX 组件映射注册表
+│   └── MDXComponents/         # MDX 组件映射注册表（同时存在 MDXComponents.tsx 文件 + MDXComponents/ 目录）
 │
 ├── lib/
 │   ├── api/
@@ -132,8 +134,8 @@ class APIClient {
 
 // lib/api/backend.ts — 类型封装
 export const postService = {
-  async list(params): Promise<PaginatedResponse<PostListItem>>
-  async get(slug): Promise<PostDetail>
+  async getPosts(params): Promise<PaginatedResponse<PostListItem>>
+  async getPost(slug): Promise<PostDetail>
   async likePost(slug): Promise<void>    // POST /posts/{slug}/likes
   async unlikePost(slug): Promise<void>  // DELETE /posts/{slug}/likes
 }
@@ -141,7 +143,7 @@ export const postService = {
 
 - 使用 `withCredentials: true` 自动发送 HttpOnly Cookie
 - **不再从 localStorage 读取 token**
-- 401 时自动尝试刷新 token，失败后跳转登录页
+- 401 时**不会**尝试刷新 token（刷新通过独立的 `auth/refresh` 端点处理），直接跳转登录页
 
 ## 状态管理职责
 
@@ -194,6 +196,8 @@ Layer 1: tailwind.css              → 别名到 geist + 共享语义
 Layer 2: monograph-theme.css       → 长文阅读主题（--monograph-*）
 Layer 3: visitor-theme.css         → 访客主题（--visitor-*）
 Layer 4: admin-theme.css           → Admin 专用（--admin-*）
+Layer 5: admin-compact.css         → Admin 紧凑模式
+Layer 6: prism.css                 → 代码语法高亮
 ```
 
 ## 布局收敛
