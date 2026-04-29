@@ -101,6 +101,8 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
 
   return (
     <div className="group/code relative my-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700/50 bg-[#F5F3F0] dark:bg-gray-900/95">
+      {/* Force .line spans to block for proper line-height alignment with line numbers */}
+      <style>{`.code-block-content .line { display: block; }`}</style>
       {/* Header bar */}
       <div className="flex items-center justify-between border-b border-gray-300 dark:border-gray-700/50 px-4 py-2 bg-stone-200 dark:bg-gray-800/80">
         <div className="flex items-center gap-2">
@@ -168,7 +170,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       <div className="relative">
         <div className="flex">
           {/* Line numbers — hidden on very small screens */}
-          <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
+          <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-sm leading-[1.7] text-gray-600 dark:text-gray-500">
             {codeText.split('\n').map((_, i) => (
               <div key={i}>{i + 1}</div>
             ))}
@@ -176,7 +178,8 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
           <div className="flex-1 overflow-x-auto">
             {highlightedHtml ? (
               <pre
-                className="p-4 text-sm leading-[1.7]"
+                className="code-block-content text-sm"
+                style={{ padding: '1rem', lineHeight: '1.7' }}
                 dangerouslySetInnerHTML={{
                   __html: extractShikiContent(highlightedHtml),
                 }}
