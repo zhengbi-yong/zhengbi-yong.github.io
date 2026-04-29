@@ -45,7 +45,7 @@
 - 居中宽栏（`max-w-6xl`）
 - 显示 `/avatar.png` 头像
 - 标语：`Robotics & Multimodal Perception`
-- 点击跳转到 `/blog`
+- 点击跳转到 `/blog`（注意：HeroCard 使用 `window.open(link, '_blank')` 在新标签页打开，而非 Next.js `<Link>` 导航）
 
 ### Section 4: Explore
 
@@ -81,7 +81,7 @@
 
 ## 未来规划
 
-> 以下设计组件已实现（位于 `frontend/src/components/home/`）但尚未接入首页（`Main.tsx`）。
+> 以下设计组件已实现（位于 `frontend/src/components/home/`）但部分尚未接入首页（`Main.tsx`）。
 
 ### 计划结构
 
@@ -93,6 +93,8 @@
 5. Latest Writing          — 编辑风格文章列表
 6. Mega Footer             — 全屏 CTA 页脚
 ```
+
+> **注**：MegaFooter **已接入**当前首页——由 `(public)/layout.tsx` 通过 `useMegaFooter` 条件渲染，并非在 `Main.tsx` 内部。实际实现使用 `min-h-screen`（非 `100vh`），内容为中文佛经引句而非英文标语。
 
 ### Section 1: Immersive Hero
 
@@ -131,18 +133,11 @@ CSS Grid: 桌面 4 列、平板 2 列、移动端 1 列
 | Featured Project | 2x1 | 特色项目 + 循环视频 |
 | Music Preview | 2x1 | SVG 乐谱 + 播放图标 |
 
-#### 视觉风格 — Glassmorphism 2.0
+#### 视觉风格
 
-```css
-background: rgba(255,255,255,0.03);
-backdrop-filter: blur(20px);
-border: 1px solid rgba(255,255,255,0.08);
-border-radius: 24px;
-gap: 16px;
-transition: cubic-bezier(0.16, 1, 0.3, 1);
-```
+实际实现使用 CSS 变量管理系统（`--radius-panel`, `--border-subtle`, `--surface-elevated`, `--shadow-soft`, `--shadow-medium`），无 `backdrop-filter: blur()` 玻璃拟态效果。
 
-### Section 3: Projects Gallery
+### Section 3: Project Gallery
 
 - 横向滚动画廊：CSS `scroll-snap-type: x mandatory`
 - 卡片 4:5 宽高比，上半部封面图/视频，下半部信息
@@ -151,10 +146,10 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 ### Section 4: Music Experience
 
-- 左右分屏：左 60% OSMD 矢量乐谱 + 右 40% 曲目信息+控制
-- Three.js 粒子系统作为背景层（音频响应）
-- Web Audio API `AnalyserNode` 提取实时频谱
-- 同步播放光标在乐谱上流动
+- 竖排布局：标题 → OSMD 乐谱容器 → 播放控制 → 曲目选择器
+- 使用 **Tone.js** PolySynth 合成音频（非原生 Web Audio API AnalyserNode）
+- OSMD (OpenSheetMusicDisplay) 矢量乐谱渲染
+- 无 Three.js 粒子背景层（与实际实现不符）
 
 ### Section 5: Latest Writing
 
@@ -164,9 +159,7 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 ### Section 6: Mega Footer
 
-- 全屏 `100vh`，深色背景 `#050505`
-- 巨幅声明文字："LET'S CREATE SOMETHING TOGETHER"
-- 导航链接 + 社交链接 + 版权信息
+- 全屏 `min-h-screen`，深色背景（实际内容由 `MegaFooter.tsx` 渲染，通过 `(public)/layout.tsx` 接入）
 
 ### 全局交互
 
@@ -180,7 +173,7 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 #### 滚动动画
 
-- GSAP ScrollTrigger 驱动
+- 使用 **Framer Motion** 的 `whileInView` 实现滚动触发动效（非 GSAP ScrollTrigger）
 - 分阶段动效：标题先入（0ms）→ 内容（+100-200ms）
 - Easing: `cubic-bezier(0.16, 1, 0.3, 1)` (expo-out)
 - 每个 Section 从下方淡入滑动

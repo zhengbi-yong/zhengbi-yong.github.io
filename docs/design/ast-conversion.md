@@ -1,8 +1,12 @@
 # AST 转换管线
 
-> 当前实现：Rust 后端 `blog-core` crate 的双向转换器，位于两个文件中：
+> 当前实现：Rust 后端 `blog-core` crate 的双向转换器，位于两个核心文件中：
 > - `backend/crates/core/src/mdx_convert.rs` — TipTap JSON → MDX（正向转换）
 > - `backend/crates/core/src/mdx_to_json.rs` — MDX → TipTap JSON（反向转换）
+>
+> API 路由层有两个对应的文件：
+> - `backend/crates/api/src/routes/mdx_convert.rs` — 转换端点（`/admin/mdx/convert`、`/admin/mdx/batch-convert`、`/admin/mdx/migrate-all`）
+> - `backend/crates/api/src/routes/mdx_sync.rs` — MDX 同步端点（文件系统 ↔ 数据库同步）
 
 ## 正向转换：TipTap JSON → MDX
 
@@ -66,10 +70,9 @@ pub fn mdx_to_tiptap_json_with_stats(mdx: &str) -> (Value, ConversionStats)
 
 // 转换统计结构
 pub struct ConversionStats {
-    pub total_blocks: usize,      // 总块级节点数
-    pub total_inlines: usize,     // 总内联节点数
-    pub error_count: usize,       // 转换错误数
-    pub warnings: Vec<String>,    // 警告信息
+    pub blocks: usize,           // 总块级节点数
+    pub text_nodes: usize,       // 总文本节点数
+    pub marks_used: Vec<String>, // 使用的 Mark 类型列表
 }
 ```
 
@@ -122,7 +125,7 @@ pub struct ConversionStats {
 
 ## 双轨存储
 
-`posts` 表和 `articles` 表均采用 dual-track 模式：
+`articles` 表采用 dual-track 模式（`posts` 表仅有 `content TEXT, content_html TEXT`，无双轨）：
 
 | 列 | 类型 | 用途 |
 |----|------|------|
@@ -135,7 +138,7 @@ pub struct ConversionStats {
 
 ## 测试覆盖
 
-`mdx_convert.rs` 包含 **~16 个测试函数**，`mdx_to_json.rs` 包含 **~27 个测试函数**，总计 **~43 个测试函数**。覆盖：
+`mdx_convert.rs` 包含 **17 个测试函数**，`mdx_to_json.rs` 包含 **~27 个测试函数**，总计 **~43 个测试函数**。覆盖：
 
 正向转换（`mdx_convert.rs`）：
 - 空文档

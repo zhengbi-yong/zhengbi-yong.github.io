@@ -58,7 +58,7 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
-CREATE INDEX idx_users_profile ON users USING GIN (profile jsonb_path_ops);
+CREATE INDEX idx_users_profile_gin ON users USING GIN (profile jsonb_path_ops);
 ```
 
 ### 软删除下的唯一性
@@ -75,6 +75,8 @@ CREATE UNIQUE INDEX idx_users_username_active ON users (username) WHERE deleted_
 ## 文章表 (posts) — 双轨存储核心
 
 ```sql
+CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived', 'scheduled');
+
 CREATE TABLE posts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     slug TEXT NOT NULL UNIQUE,
@@ -146,6 +148,8 @@ CREATE INDEX idx_posts_title_exact ON posts (title) WHERE deleted_at IS NULL;
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS ltree;
+
+CREATE TYPE comment_status AS ENUM ('pending', 'approved', 'rejected', 'spam', 'deleted');
 
 CREATE TABLE comments (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
@@ -323,9 +327,12 @@ CREATE TABLE comment_likes (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(comment_id, user_id)
 );
-```
 
-### 刷新令牌 (refresh_tokens)
+CREATE INDEX idx_comment_likes_comment_id ON comment_likes(comment_id);
+CREATE INDEX idx_comment_likes_user_id ON comment_likes(user_id);
+```
+## 刷新令牌 (refresh_tokens)
+
 ```sql
 CREATE TABLE refresh_tokens (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
@@ -340,6 +347,10 @@ CREATE TABLE refresh_tokens (
     created_ip INET,
     user_agent_hash TEXT
 );
+
+CREATE INDEX idx_refresh_tokens_user ON refresh_tokens(user_id);
+CREATE INDEX idx_refresh_tokens_family ON refresh_tokens(family_id);
+CREATE INDEX idx_refresh_tokens_expires ON refresh_tokens(expires_at) WHERE revoked_at IS NULL;
 ```
 
 ### 阅读进度 (reading_progress)

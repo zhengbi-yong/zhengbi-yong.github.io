@@ -88,11 +88,11 @@
 | `editor/SEOPreviewCard.tsx` | SEO 预览卡片 |
 | `editor/CollaborationEditor.tsx` | 协作编辑 |
 || `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
-|| `editor/extensions/mathematics-extended.tsx` | 数学公式扩展 |
+|| ~~`editor/extensions/mathematics-extended.tsx`~~ | ~~数学公式扩展 (尚未实现)~~ |
 || ~~`editor/extensions/ShikiCodeBlockComponent.tsx`~~ | ~~Shiki 代码块组件~~ (已删除) |
-|| `editor/extensions/ShikiCodeBlock.ts` | Shiki 代码块定义 |
-| `editor/extensions/CodeBlockShikiNodeView.tsx` | 代码块节点视图 |
-| `editor/extensions/math-node-view.tsx` | 数学公式节点视图 |
+|| ~~`editor/extensions/ShikiCodeBlock.ts`~~ | ~~Shiki 代码块定义 (尚未实现)~~ |
+|| ~~`editor/extensions/CodeBlockShikiNodeView.tsx`~~ | ~~代码块节点视图 (尚未实现)~~ |
+|| ~~`editor/extensions/math-node-view.tsx`~~ | ~~数学公式节点视图 (尚未实现)~~ |
 | `editor/hooks/useImageUpload.ts` | 图片上传 Hook |
 
 ## 9) 认证组件 (Auth)
@@ -136,16 +136,16 @@
 | `chemistry/SMILESConverter.tsx` | SMILES 符号转换器 |
 | `chemistry/MoleculeFingerprint.tsx` | 分子指纹可视化 |
 | `chemistry/MhchemInit.tsx` | LaTeX mhchem 化学公式初始化 |
-| `chemistry/threeDmol.ts` | 3Dmol.js 工具函数 |
-| `chemistry/runtimeProps.ts` | 运行时属性类型 |
-| `chemistry/index.ts` | 统一导出 |
+| `chemistry/threeDmol.ts` | 3Dmol.js 工具函数（非组件，辅助模块） |
+| `chemistry/runtimeProps.ts` | 运行时属性类型（非组件，类型定义） |
+| `chemistry/index.ts` | 统一导出（barrel file） |
 
 ## 13) 自定义 UI 组件与 Shadcn 分离说明
 
 | 路径 | 内容 | 说明 |
 |------|------|------|
 | `components/shadcn/ui/` | button, card, dialog, input, tabs, dropdown-menu, alert, badge 等 | shadcn/ui 基础组件（基于 Radix UI + Tailwind） |
-| `components/ui/` | EnhancedImage, ExcalidrawModal, LoadingStates, Skeleton/, LiveRegion, Loader, SwipeContainer, FAB 等 | 项目自定义 UI 组件 |
+| `components/ui/` | EnhancedImage, ExcalidrawModal, LoadingStates, Skeleton/, LiveRegion, Loader, SwipeContainer, FAB, Toast/ 等 | 项目自定义 UI 组件 |
 
 ## 14) 导航组件
 

@@ -49,6 +49,7 @@ K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
 K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 - `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
 - `capabilities.drop: ["ALL"]`
+- `capabilities.add: ["NET_BIND_SERVICE"]` — 允许绑定特权端口（<1024），实际 K3s YAML 中已配置
 - `tmpfs` 卷挂载 `/tmp`
 
 > 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
@@ -79,7 +80,7 @@ K3s 部署包含完整的零信任网络策略（`deployments/k3s/network-policy
 |------|------|------|
 | `/.well-known/live` | 存活探针 | 只返回 200 |
 | `/.well-known/ready` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| `/health` | 基本健康 | 返回 "OK" |
+| `/health` | 基本健康 | Handler 存在（返回 JSON HealthStatus）但 **未在 main.rs 中注册为路由**（参见 backend-api-design.md 状态说明） |
 | `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
 | `/metrics` | Prometheus 指标 | 指标数据 |
 
@@ -133,3 +134,5 @@ envFrom:
 | 可视化 | Grafana | 预定仪表盘 |
 | 日志 | Loki | 集中日志聚合 |
 | 告警 | Alertmanager | Slack/邮件通知 |
+
+> **注**：上表所列 Prometheus、Grafana、Loki、Alertmanager 均为**外部依赖**，未包含在此代码库的 Docker Compose 或 Kubernetes 部署清单中。代码库中仅提供 `/metrics` 端点（后端暴露 Prometheus 格式指标）以及 Prometheus Operator 风格的 ServiceMonitor/PodMonitor CRD 定义。这些组件需要自行部署或使用已有基础设施。

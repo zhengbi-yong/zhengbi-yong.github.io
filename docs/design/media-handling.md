@@ -50,7 +50,7 @@ pub enum StorageBackend {
 | `presigned_upload_url` | `async fn presigned_upload_url(&self, key: &str, content_type: &str, expires_secs: u32) -> Result<Option<String>, StorageError>` | 预签名上传 URL（MinIO 支持，Local 返回 None） |
 | `presigned_download_url` | `async fn presigned_download_url(&self, key: &str, expires_secs: u32) -> Result<Option<String>, StorageError>` | 预签名下载 URL |
 
-`StorageService`（封装 `Arc<StorageBackend>`）作为应用状态注入。
+`StorageService`（内部封装 `Arc<StorageBackend>`）作为应用状态注入（`state.rs: Arc<crate::storage::StorageService>`）。
 
 通过 `STORAGE_BACKEND` 环境变量选择后端（`local` 或 `minio`，默认 `local`）。
 
@@ -80,18 +80,25 @@ CREATE TABLE media (
 );
 ```
 
-### `media_assets` 表（文章系统关联表）
+### `media_assets` 表（独立资产表）
 
-除了 `media` 表外，文章系统中还使用 `media_assets` 表来建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
+`media_assets` 是一个独立的资产表（非关联表），存储所有上传的多媒体文件。定义在迁移 `2026042701_create_articles.sql` 中，替代了旧的 `media` 表：
 
 ```sql
 CREATE TABLE media_assets (
-    id        UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
-    media_id   UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(article_id, media_id)
+    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    filename      VARCHAR(255) NOT NULL,        -- 存储键名（UUID 文件名）
+    original_name VARCHAR(255) NOT NULL,         -- 用户上传时的原始文件名
+    mime_type     VARCHAR(100) NOT NULL,
+    file_size     BIGINT NOT NULL,               -- 文件大小（字节）
+    storage_path  TEXT NOT NULL,                  -- 存储路径（后端对象键）
+    url           TEXT NOT NULL,                  -- 可访问 URL
+    width         INTEGER,                       -- 图片宽度（如有）
+    height        INTEGER,                       -- 图片高度（如有）
+    duration      FLOAT,                         -- 视频时长（如有）
+    uploader_id   UUID NOT NULL REFERENCES users(id),
+    article_id    UUID REFERENCES articles(id),   -- 关联的文章（可为空）
+    created_at    TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 

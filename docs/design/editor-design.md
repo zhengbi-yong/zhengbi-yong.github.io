@@ -12,25 +12,34 @@
 
 **采用 TipTap**：在"开发者自由度"与"开箱即用功能性"之间取得最佳平衡。
 
-## CQRS 双轨存储
+## CQRS 三轨存储
 
 ```
 | 写入侧（Command Side）          读取侧（Query Side）
 |┌──────────────────┐           ┌──────────────────┐
-│ TipTap editor    │           │ Next.js SSG       │
-│ editor.getJSON() │           │ MDX → HTML        │
-└────────┬─────────┘           └────────▲─────────┘
-         │                              │
-         ▼                              │
-┌──────────────────┐           ┌────────┴─────────┐
-│ content_json     │  自动派生  │ content_mdx      │
-│ (JSONB, NULLABLE)│ ────────→ │ (TEXT, NULLABLE) │
-│ 单一事实来源       │           │ 高效读取/分发     │
-└──────────────────┘           └──────────────────┘
+|│ TipTap editor    │           │ Next.js SSG       │
+|│ editor.getJSON() │           │ MDX → HTML        │
+|└────────┬─────────┘           └────────▲─────────┘
+|         │                              │
+|         ▼                              │
+|┌──────────────────┐           ┌────────┴──────────┐
+|│ content_json     │  自动派生  │ content_mdx       │
+|│ (JSONB, NULLABLE)│ ────────→ │ (TEXT, NULLABLE)  │
+|│ 单一事实来源       │           │ 高效读取/分发      │
+|└──────────────────┘           └───────────────────┘
+|                                      │
+|                                      │ 自动派生
+|                                      ▼
+|                               ┌──────────────────┐
+|                               │ content_html     │
+|                               │ (TEXT, NULLABLE) │
+|                               │ SSR/SSG 直接渲染  │
+|                               └──────────────────┘
 ```
 
 - **`content_json` (JSONB)** — 写入侧单一事实来源（Single Source of Truth）。可为 `NULL`，后端三级降级策略：`content_mdx` → 从 `content_json` 实时转换 → 旧 `content` 列
-- **`content_mdx` (TEXT)** — 读取侧优化视图，供 SSR/SSG 直读。可为 `NULL`，后端根据 `content_json` 自动派生
+- **`content_mdx` (TEXT)** — 读取侧中间视图，供 SSR/SSG 直读。可为 `NULL`，后端根据 `content_json` 自动派生
+- **`content_html` (TEXT)** — 读取侧预渲染视图，由迁移脚本 `backend/bin/add_content_columns.rs` 添加，存储预编译 HTML 供 SSR/SSG 直接渲染
 - 写入绝对安全，格式转换永不丢数据
 - 未来可迁移：即使放弃 TipTap，MDX 依然是 Portable 标准格式
 

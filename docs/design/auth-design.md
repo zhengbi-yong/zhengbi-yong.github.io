@@ -109,10 +109,10 @@ pub async fn optional_auth_middleware(
   rl:m:{ip}:{route_hash}:{minute_bucket}  → 分钟级窗口
 
 各端点限额（默认值，可通过环境变量覆盖）:
-  POST /auth/login, /auth/register  → 5 次/分钟 + 1 次/秒  (RATE_LIMIT_AUTH_RPM / RATE_LIMIT_AUTH_RPS)
-  POST /posts/*/view                 → 100 次/分钟 + 10 次/秒 (RATE_LIMIT_VIEW_RPM / RATE_LIMIT_VIEW_RPS)
-  POST /posts/*/comments             → 10 次/分钟 + 2 次/秒  (RATE_LIMIT_COMMENT_RPM / RATE_LIMIT_COMMENT_RPS)
-  其他                               → 1000 次/分钟 + 100 次/秒 (RATE_LIMIT_DEFAULT_RPM / RATE_LIMIT_DEFAULT_RPS)
+  POST /auth/login, /auth/register  → 100 次/分钟 + 5 次/秒  (RATE_LIMIT_AUTH_RPM / RATE_LIMIT_AUTH_RPS)
+  POST /posts/*/view                 → 1000 次/分钟 + 10 次/秒 (RATE_LIMIT_VIEW_RPM / RATE_LIMIT_VIEW_RPS)
+  POST /posts/*/comments             → 20 次/分钟 + 2 次/秒   (RATE_LIMIT_COMMENT_RPM / RATE_LIMIT_COMMENT_RPS)
+  其他                               → 6000 次/分钟 + 100 次/秒 (RATE_LIMIT_DEFAULT_RPM / RATE_LIMIT_DEFAULT_RPS)
 
 失败模式（可配置）:
   fail_open  → 限流后端不可用时放行（默认，保证可用性）

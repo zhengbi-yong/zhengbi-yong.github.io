@@ -188,10 +188,18 @@ GET    /tags/autocomplete      # 自动补全
 限流中间件应用于所有 `/api/v1/*` 路由，基于 Redis 分布式限流，按 IP 和路由维度限制请求速率。超出限制返回 `429 Too Many Requests`。
 
 配置项（通过环境变量）：
-- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 20）
-- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 100）
-- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 30）
-- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 60）
+
+**RPM（每分钟请求数）：**
+|- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 100）
+|- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 1000）
+|- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 20）
+|- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 6000）
+
+**RPS（每秒请求数）：**
+|- `RATE_LIMIT_AUTH_RPS` — 认证路由每秒每个 IP 最大请求数（默认: 5）
+|- `RATE_LIMIT_VIEW_RPS` — 浏览/展示路由每秒每个 IP 最大请求数（默认: 10）
+|- `RATE_LIMIT_COMMENT_RPS` — 评论相关路由每秒每个 IP 最大请求数（默认: 2）
+|- `RATE_LIMIT_DEFAULT_RPS` — 其余所有路由每秒每个 IP 最大请求数（默认: 100）
 
 ### CSRF 中间件
 
@@ -224,7 +232,7 @@ Router::new()
 
 ```rust
 let pool = PgPoolOptions::new()
-    .max_connections(50)           // 单实例不超过 50
+    .max_connections(50)           // 单实例不超过 50（Compose 默认 20，参见 docker-compose.yml 中 DATABASE_POOL_MAX_CONNECTIONS:-20）
     .min_connections(5)            // 保持最小连接
     .acquire_timeout(Duration::from_secs(5))
     .idle_timeout(Duration::from_secs(600))

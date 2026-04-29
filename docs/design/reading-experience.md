@@ -8,21 +8,20 @@
 
 ```
 Desktop (>= 1280px):
-┌───────────────────────────────────────────────────────┐
-│  Progress Bar (2px, fixed top, brand gradient)         │
-├───────────────────────────────────────────────────────┤
-│                    Article Hero                         │
-├──────────────────────────────────┬────────────────────┤
-│                                 │                     │
-│    Main Content (62%)           │   TOC Sidebar (38%) │
-│    max-width: 680px             │   max-width: 320px  │
-│    optimal line length:         │   position: sticky  │
-│    65-75 chars/line             │   top: 2rem         │
-│                                 │   scroll-spy active │
-│                                 │                     │
-├──────────────────────────────────┴────────────────────┤
-│              Recommended Articles / Author Bio          │
-└───────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│  Progress Bar (3px, fixed top, solid accent color)         │
+├───────────────────────────────────────────────────────────┤
+│                    Article Hero                             │
+├──────────────────────────────────┬────────────────────────┤
+│                                  │                         │
+│    Main Content (1fr)            │   TOC Sidebar (220px)   │
+│    optimal line length:          │   position: sticky      │
+│    65-75 chars/line              │   top: 5rem             │
+│                                  │   scroll-based active   │
+│                                  │                         │
+├──────────────────────────────────┴────────────────────────┤
+│              Recommended Articles / Author Bio              │
+└───────────────────────────────────────────────────────────┘
 ```
 
 Tablet (768-1279px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
@@ -61,18 +60,18 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 | h2 | 1.75rem (28px) | 1.35 | -0.01em |
 | h3 | 1.375rem (22px) | 1.4 | 0 |
 | h4 | 1.125rem (18px) | 1.45 | 0 |
-| Body | 1rem (16px) | 1.75 (CJK) / 1.6 (Latin) | 0 |
+| Body | 1rem (16px) | 1.8 (CJK) / 1.6 (Latin) | 0 |
 | Small | 0.875rem (14px) | 1.5 | 0.01em |
 
 ### CJK 特殊处理
 
-- 行高 1.75（vs Latin 1.6），中文字符无间距需更多呼吸空间
-- 段落间距：CJK 使用 `1.5em`（vs Latin `1em`）
+- 行高 1.8（vs Latin 1.6），中文字符无间距需更多呼吸空间
+- 段落间距：通用 `1.25em`（非 CJK/Latin 分离设置，代码中未区分）
 - 通过 CSS `:lang(zh)` 或 `.cjk-content` class 检测
 
 ## TOC 组件 (TableOfContents)
 
-- `IntersectionObserver` API 实现 scroll-spy
+- Scroll 事件监听实现 scroll-spy（注：设计文档曾计划使用 `IntersectionObserver`，但实际使用基于 scroll 的主动计算）
 - 当前活动 section 用品牌色左边框高亮
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
@@ -82,9 +81,9 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 ## 阅读进度条 (ReadingProgressBar)
 
 - `position: fixed; top: 0; left: 0; z-index: 50;`
-- 高度：2px，品牌渐变背景
+- 高度：3px，品牌色（非渐变，实色 `var(--mono-accent)`）
 - 宽度 = `scrollY / (scrollHeight - clientHeight)`
-- `requestAnimationFrame` 节流实现 60fps
+- `setTimeout`/`setInterval` 节流（100ms debounce，非 `requestAnimationFrame`）
 
 ## 代码块
 

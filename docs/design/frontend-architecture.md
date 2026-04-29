@@ -21,7 +21,28 @@ frontend/src/
 │   │   ├── layout.tsx         # 公开页外壳
 │   │   └── blog/[...slug]/    # 动态博客详情页
 │   │
-│   ├── blog/                   # 博客路由（直接位于 app/blog/，非路由组内）
+│   ├── about/                  # 关于页面
+│   ├── admin/                  # 管理后台（独立路由）
+│   ├── analytics/              # 分析页面
+│   ├── excalidraw/             # Excalidraw 白板
+│   ├── experiment/             # 实验性页面
+│   ├── geist/                  # Geist 字体展示
+│   ├── login/                  # 登录页面
+│   ├── music/                  # 音乐页面
+│   ├── notifications/          # 通知页面
+│   ├── offline/                # 离线页面
+│   ├── profile/                # 个人资料
+│   ├── projects/               # 项目展示
+│   ├── reading-history/        # 阅读历史
+│   ├── reading-list/           # 阅读列表
+│   ├── search/                 # 搜索页面
+│   ├── simple-test/            # 简单测试页面
+│   ├── tags/                   # 标签页
+│   ├── team/                   # 团队页面
+│   ├── test-abc/               # ABC 符号测试
+│   ├── visitors/               # 访客页面
+│   │
+│   ├── blog/                   # 博客路由
 │   │   ├── page.tsx           # 博客列表首页
 │   │   ├── loading.tsx
 │   │   ├── error.tsx
@@ -49,7 +70,19 @@ frontend/src/
 │   │       └── settings/      # 设置
 │   │
 │   └── api/
-│       └── v1/[...path]/      # BFF 代理（仅 Client 组件调用）
+│       ├── mdx/compile/        # MDX 编译 API
+│       ├── newsletter/         # 新闻通讯 API
+│       ├── v1/[...path]/       # BFF 代理（仅 Client 组件调用）
+│       ├── visitor/            # 访客跟踪 API
+│       └── visitors/           # 访客列表 API
+│
+├── examples/                 # 示例代码
+├── hooks/                    # 自定义 Hooks
+├── locales/                  # 国际化文件
+├── mocks/                    # Mock 数据
+├── payload/                  # Payload CMS 相关
+├── styles/                   # 样式文件（tailwind.css, geist-tokens.css 等）
+├── types/                    # TypeScript 类型定义
 │
 ├── components/
 │   ├── layouts/               # PostLayoutMonograph 等布局组件
@@ -72,6 +105,7 @@ frontend/src/
 │   ├── social-icons/          # 社交图标组件
 │   ├── seo/                   # SEO 相关组件
 │   ├── audio/                 # 音频/乐谱组件
+│   ├── mdx/                   # MDX 渲染组件（CodeBlock 等）
 │   ├── maps/                  # 地图组件
 │   ├── mobile/                # 移动端专用组件
 │   ├── visitor/               # 访客交互组件（micro-interactions 等）
@@ -82,17 +116,32 @@ frontend/src/
 │   ├── charts/                # 图表组件（Nivo, ECharts, Three.js 等）
 │   ├── animations/            # 动画包装组件（GSAP, Framer Motion）
 │   ├── Excalidraw/            # Excalidraw 白板组件
-│   ├── mdx/                   # MDX 渲染组件（CodeBlock 等）
 │   ├── admin/                 # 管理后台组件（AdminLayout 等）
 │   ├── media/                 # 媒体组件（Image 等）
-│   ├── hooks/                 # 自定义 Hooks
+│   ├── dev/                   # 开发工具组件
+│   ├── geist/                 # Geist 设计系统组件
+│   ├── lib/                   # 组件库工具函数
 │   └── MDXComponents/         # MDX 组件映射注册表
 │
 ├── lib/
+│   ├── adapters/              # 数据适配器
+│   ├── ai/                    # AI 相关工具
 │   ├── api/
 │   │   ├── generated/         # Orval 自动生成（严禁手改）
 │   │   ├── apiClient.ts       # 核心 HTTP 客户端（拦截器、刷新、缓存、重试）
 │   │   └── backend.ts         # 类型化 API 端点（auth/post/comment 等）
+│   ├── cache/                 # 缓存工具
+│   ├── chemistry/             # 化学计算工具
+│   ├── contentlayer/          # Contentlayer 配置
+│   ├── contexts/              # React Contexts
+│   ├── db/                    # 数据库工具
+│   ├── hooks/                 # 自定义 Hooks（主要位置）
+│   ├── mdx/                   # MDX 运行时渲染
+│   ├── performance/           # 性能监控工具
+│   ├── pliny/                 # Pliny 配置与工具
+│   ├── providers/             # React Providers
+│   ├── security/              # 安全工具
+│   ├── server/                # 服务端工具
 │   ├── store/
 │   │   ├── ui-store.ts        # Zustand UI 状态（theme/sidebar/modal）
 │   │   ├── auth-store.ts      # 用户会话状态（token 仅存 HttpOnly Cookie）
@@ -101,9 +150,11 @@ frontend/src/
 │   │   ├── comment-store.ts   # 评论管理（分页）
 │   │   ├── create-store.ts    # Store 创建工具
 │   │   └── core/              # Store 工具函数和类型
+│   ├── types/                 # 共享类型定义
 │   ├── ui/
 │   │   └── UIStore.ts         # UI 状态管理（loading/notifications/modal/sidebar/colorMode）
-│   └── utils/
+│   ├── utils/
+│   └── webgl/                 # WebGL 工具
 │
 ├── e2e/                       # Playwright E2E 测试
 ├── tests/                     # Vitest 单元测试

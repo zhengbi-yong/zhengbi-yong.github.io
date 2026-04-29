@@ -6,9 +6,9 @@
 |------|------|----------|----------|------|
 | 1 | 安全基线 | 1-2 周 | HttpOnly Cookie, CSRF 防护 | ✅ 已完成 |
 | 2 | 数据库优化 | 2-3 周 | UUIDv7 迁移, ltree 评论 | ✅ 已完成 |
-| 3 | API 契约 | 2 周 | Orval 配置, TS 客户端 | ❌ 未实施 |
+| 3 | API 契约 | 2 周 | Orval 配置, TS 客户端 | ✅ 已实施 (orval.config.js 已配置，generated types 在 frontend/src/lib/api/generated/，生成脚本在 package.json) |
 | 4 | 认证升级 | 2-3 周 | WebAuthn 集成 | ❌ 未实施 |
-| 5 | 搜索 CDC | 2 周 | MeiliBridge 部署 | 🔄 部分实施 |
+| 5 | 搜索 CDC | 2 周 | MeiliBridge 部署 | ⚠️ 基本完成 (cdc_main.rs 428 行，含 WAL streaming 和 poll 双模式) |
 | 6 | K3s 迁移 | 3-4 周 | 生产级集群 | 🔄 部分实施 |
 
 ## 关键技术决策

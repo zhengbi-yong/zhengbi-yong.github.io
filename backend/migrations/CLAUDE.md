@@ -31,7 +31,6 @@ backend/migrations/
 ├── 2026040901_uuidv7_migration.sql     # Phase 4.1: UUIDv4 → UUIDv7 migration
 ├── 2026040902_hot_optimization.sql     # Phase 4.3: HOT optimization
 ├── 2026040903_soft_delete_indexes.sql  # Phase 4.4: Soft delete + partial indexes
-└── 2026040904_citext_to_icu_collation.sql  # Phase 4.5: CITEXT → ICU collation
 ```
 
 ## Migration System
