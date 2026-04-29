@@ -5,11 +5,11 @@
 ## 测试金字塔
 
 ```text
-        ╱  E2E  ╲              Playwright: ~91 个测试用例覆盖 12 条核心路径
+        ╱  E2E  ╲              Playwright: ~134 个测试用例覆盖 12 条核心路径 (CI 仅运行 abc-notation.spec.ts 和 search.spec.ts)
        ╱──────────╲
-      ╱ 集成测试   ╲            前端 Vitest (188 tests), 后端 cargo test
+      ╱ 集成测试   ╲            前端 Vitest (~160 tests), 后端 cargo test
      ╱──────────────╲
-    ╱   单元测试      ╲          后端: 29 个测试文件 (含 mdx_convert 的 16 个测试)
+    ╱   单元测试      ╲          后端: 11 个测试文件 (mdx_convert 的 16 个测试为内联测试函数，不计为单独文件)
    ╱────────────────────╲
   ╱  类型检查 (编译时)    ╲       Rust cargo check, TypeScript ESLint
  ╱──────────────────────────╲
@@ -19,11 +19,11 @@
 
 | 层级 | 工具 | 目标 | 现状 |
 |------|------|------|------|
-| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 29 个测试文件，16 个 mdx_convert 测试 |
+| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 11 个测试文件，16 个 mdx_convert 内联测试 |
 | Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
 | TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
-| 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
-| E2E 流程 | Playwright | 12 条核心路径 | ~91 个 E2E 测试用例 |
+| 前端组件测试 | Vitest | 组件 ≥70% | ~160 个测试用例 |
+| E2E 流程 | Playwright | 12 条核心路径 | ~134 个 E2E 测试用例 (CI 仅运行 abc-notation.spec.ts 和 search.spec.ts) |
 
 ## E2E 核心路径
 
@@ -44,6 +44,8 @@
 | `api-contract.spec.ts` | API 契约测试 |
 | `article-crud.spec.ts` | 文章 CRUD（Playwright 配置需调整） |
 
+**注意**：CI 中仅运行 `abc-notation.spec.ts` 和 `search.spec.ts` 两个 E2E 测试文件，其余 10 个文件仅本地执行。
+
 ## 回归测试流程
 
 每次 main 合并前：
@@ -55,7 +57,7 @@ cd backend && cargo test --workspace && cargo clippy
 # 2. 前端
 cd frontend && pnpm test && npx eslint . --max-warnings=600
 
-# 3. E2E（CI 环境）
+# 3. E2E（CI 环境，仅运行 abc-notation.spec.ts 和 search.spec.ts）
 pnpm test:e2e
 ```
 
@@ -63,7 +65,7 @@ pnpm test:e2e
 
 | 指标 | 目标 | 工具 |
 |------|------|------|
-| API P95 响应时间 | < 200ms | 未配置工具链 |
+| API P95 响应时间 | < 200ms | 基准测试脚本已存在（api/tests/performance_benchmarks.rs），但标记为 #[ignore]（依赖运行中的后端服务），未接入 CI |
 | 首屏加载 (FCP) | < 1.5s | 未配置工具链 |
 | 交互时间 (TTI) | < 3s | 未配置工具链 |
 | API 吞吐 | > 1000 req/s | 未配置工具链 |

@@ -90,7 +90,7 @@
 
 | 优先级 | 功能 | 说明 |
 |-------|------|------|
-| P7-P0 | npm 依赖安装 | 安装 `@hocuspocus/provider`、`@hocuspocus/server`、`yjs` |
+| P7-P0 | npm 依赖安装 | 提升 `@hocuspocus/provider`、`yjs` 为直接依赖；安装 `@hocuspocus/server` |
 | P7-P1 | HocuspocusProvider 集成 | CollaborationEditor 接入 WebSocket 同步 |
 | P7-P2 | TipTap Collaboration 扩展 | 配置 `@tiptap/extension-collaboration`，替换原生 History |
 | P7-P3 | 光标/选区的意识协议 | 看到其他人正在编辑的位置 |
