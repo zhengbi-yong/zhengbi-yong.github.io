@@ -51,7 +51,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 粗体/斜体 | StarterKit | ✅ |
 | 列表 (有序/无序) | StarterKit | ✅ |
 | 链接 | Link | ✅ |
-| 代码块 | ShikiCodeBlock (自定义 Shiki 高亮扩展，替代 CodeBlockLowlight) | ✅ |
+| 代码块 | ~~ShikiCodeBlock~~ (已删除，编辑器改用 StarterKit 内置 codeBlock，MDX 渲染用 shiki-highlighter) | ❌ 已废弃 |
 | 引用 | Blockquote | ✅ |
 | 表格 | Table (来自 reactjs-tiptap-editor) | ❌ 注释待修复 |
 | 图片 | Image | ✅ |
