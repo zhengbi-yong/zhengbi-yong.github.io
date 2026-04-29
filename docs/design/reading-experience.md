@@ -4,28 +4,26 @@
 
 ## 布局系统
 
-### 黄金比例非对称双栏
+### 三栏非对称网格 (3-Column Asymmetric Grid)
 
 ```
-Desktop (>= 1280px):
+Desktop (>= 1024px):
 ┌───────────────────────────────────────────────────────┐
-│  Progress Bar (2px, fixed top, brand gradient)         │
+│  Progress Bar (3px, fixed top, solid accent color)     │
 ├───────────────────────────────────────────────────────┤
 │                    Article Hero                         │
-├──────────────────────────────────┬────────────────────┤
-│                                 │                     │
-│    Main Content (62%)           │   TOC Sidebar (38%) │
-│    max-width: 680px             │   max-width: 320px  │
-│    optimal line length:         │   position: sticky  │
-│    65-75 chars/line             │   top: 2rem         │
-│                                 │   scroll-spy active │
-│                                 │                     │
-├──────────────────────────────────┴────────────────────┤
+├──────────────────────────┬─────┬──────────────────────┤
+│                          │ 40px│  TOC Sidebar (220px)  │
+│    Main Content (1fr)    │ gap │  position: sticky     │
+│    minmax(0, 1fr)        │     │  top: 5rem            │
+│    no max-width cap      │     │  scroll-spy active    │
+│                          │     │                       │
+├──────────────────────────┴─────┴──────────────────────┤
 │              Recommended Articles / Author Bio          │
 └───────────────────────────────────────────────────────┘
 ```
 
-Tablet (768-1279px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
+Tablet (768-1023px)：同 Desktop 三栏布局（sticky sidebar 继续显示），无 FAB
 Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 ### 当前实现
@@ -61,38 +59,36 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 | h2 | 1.75rem (28px) | 1.35 | -0.01em |
 | h3 | 1.375rem (22px) | 1.4 | 0 |
 | h4 | 1.125rem (18px) | 1.45 | 0 |
-| Body | 1rem (16px) | 1.75 (CJK) / 1.6 (Latin) | 0 |
+| Body | 1rem (16px) | 1.65 (统一) | 0 |
 | Small | 0.875rem (14px) | 1.5 | 0.01em |
 
 ### CJK 特殊处理
 
-- 行高 1.75（vs Latin 1.6），中文字符无间距需更多呼吸空间
-- 段落间距：CJK 使用 `1.5em`（vs Latin `1em`）
-- 通过 CSS `:lang(zh)` 或 `.cjk-content` class 检测
+> **⚠️ 尚未实现**：本项目当前不包含 CJK 特殊处理。正文行高统一使用 `var(--line-height-body): 1.65`，未区分 CJK 与 Latin。`:lang(zh)` 选择器、`.cjk-content` class 及 CJK 特定段落间距均未在代码中实现。如后续需要，应添加对应的 CSS 规则。
 
 ## TOC 组件 (TableOfContents)
 
-- `IntersectionObserver` API 实现 scroll-spy
+- `scroll` 事件 + `getBoundingClientRect` API 实现 scroll-spy（**非** IntersectionObserver）
+- 算法：寻找视口顶部最近的 heading，根据其在视口上半部/下半部决定高亮自身或前一条
 - 当前活动 section 用品牌色左边框高亮
-- 点击平滑滚动（`scroll-behavior: smooth`）
-- 移动端折叠为浮动按钮+下拉
-- 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：768px（Monograph 的 1280px 过晚，原 768px 为标准断点）
+- 点击平滑滚动（`scroll-behavior: smooth`），80px 偏移补偿固定元素
+- 移动端折叠为浮动按钮+底部面板（Portal 渲染到 `document.body`）
+- 移动端断点：768px（`< 768px` = 移动端 FAB，`768-1023px` = 平板端 sticky sidebar，`>= 1024px` = 桌面端 sticky sidebar）
 
 ## 阅读进度条 (ReadingProgressBar)
 
-- `position: fixed; top: 0; left: 0; z-index: 50;`
-- 高度：2px，品牌渐变背景
-- 宽度 = `scrollY / (scrollHeight - clientHeight)`
-- `requestAnimationFrame` 节流实现 60fps
+- `position: fixed; top: 0; left: 0; z-index: 50;`，位于 `monograph-article` 容器顶部
+- 高度：**3px**，实色背景（使用 CSS 自定义属性 `var(--mono-accent)`，非渐变）
+- 背景轨道使用 `var(--mono-border)` 半透明底色
+- 宽度 = `scrollY / (scrollHeight - clientHeight)`，由 `useHeadingObserver` 中的 `updateProgress` 在 scroll 事件中计算
+- 进度条无 `requestAnimationFrame` 节流 — 直接绑定 `passive scroll` 事件，通过 `lastProgressRef` 过滤小于 1% 的变化
 
 ## 代码块
 
 - App 风格卡片 + macOS 窗口装饰
 - 红/黄/绿三色圆点 + 语言标签
 - 复制按钮（点击→勾号→2s 返回）
-- **代码块始终深色主题**，即使 light mode 也保持深色背景
-- 在长文章中创建视觉锚点，减少阅读疲劳
+- **代码块背景跟随主题**：light mode 使用 `--mono-code-bg: #F5F3F0`，dark mode 使用 `--mono-code-bg: #1E1E1E`（**非常深色**）。非文字背景色始终保持在 light mode 下为浅色，dark mode 下为深色，减少阅读疲劳。
 
 ## 表格
 

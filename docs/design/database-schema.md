@@ -126,7 +126,7 @@ CREATE TABLE posts (
     deleted_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_posts_status ON posts(status);
+CREATE INDEX idx_posts_status ON posts(status) WHERE deleted_at IS NULL;
 CREATE INDEX idx_posts_published ON posts(published_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_ops);
 CREATE INDEX idx_posts_title_exact ON posts (title) WHERE deleted_at IS NULL;
@@ -166,8 +166,8 @@ CREATE TABLE comments (
     deleted_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_comments_path ON comments USING GIST (path);
-CREATE INDEX idx_comments_post ON comments(slug);
+CREATE INDEX idx_comments_path_gist ON comments USING GIST (path);
+CREATE INDEX idx_comments_post ON comments(slug, created_at DESC);
 CREATE INDEX idx_comments_post_status ON comments(slug, status);
 CREATE INDEX idx_comments_user ON comments(user_id);
 ```
@@ -310,7 +310,7 @@ CREATE TABLE post_versions (
 ### 点赞 (post_likes / comment_likes)
 ```sql
 CREATE TABLE post_likes (
-    slug TEXT NOT NULL REFERENCES posts(slug) ON DELETE CASCADE,
+    slug TEXT NOT NULL,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (slug, user_id)
@@ -407,6 +407,9 @@ CREATE TABLE search_keywords (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(keyword)
 );
+
+CREATE INDEX idx_search_keywords_keyword ON search_keywords(keyword);
+CREATE INDEX idx_search_keywords_count ON search_keywords(search_count DESC, last_searched_at DESC);
 ```
 
 ### 搜索历史 (search_history)
@@ -419,6 +422,9 @@ CREATE TABLE search_history (
     clicked_slug TEXT,
     searched_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX idx_search_history_user_id ON search_history(user_id, searched_at DESC);
+CREATE INDEX idx_search_history_keyword ON search_history(keyword, searched_at DESC);
 ```
 
 ### articles / article_versions（遗留/待清理）

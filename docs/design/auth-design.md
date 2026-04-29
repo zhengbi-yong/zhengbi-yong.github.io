@@ -95,9 +95,33 @@ pub async fn optional_auth_middleware(
 
 ## 令牌黑名单
 
+### 实现状态
+
+| 函数 | 位置 | 调用方 | 状态 |
+|------|------|--------|------|
+| `is_token_blacklisted()` | `middleware/auth.rs` | 无 | ⚠️ **死代码** — 已实现但未被任何代码调用 |
+| `blacklist_token()` | `middleware/auth.rs` | 无 | ⚠️ **死代码** — 已实现但未被任何代码调用 |
+| `blacklist_all_user_tokens()` | `middleware/auth.rs` | `admin.rs`（用户停用/封禁时） | ✅ 活跃使用 |
+
+### 设计意图（未落地）
+
+最初设计：
 - 撤销的 access_token 存入 Redis: `blacklist:{token_hash}` → `"1"`，TTL = 剩余有效期
 - 检查在 auth handler 层（`is_token_blacklisted()`），不在中间件层
 - 登出时撤销当前 access_token，同时删除 refresh_token
+
+### 当前实际情况
+
+- `is_token_blacklisted()` 和 `blacklist_token()` 函数已实现但**没有任何调用方**——属于死代码
+- 登出 handler（`logout()`）仅执行以下操作：
+  1. 从 `refresh_token` Cookie 中提取令牌，在 DB 中将对应 `refresh_tokens` 记录标记为 `revoked_at = NOW()`
+  2. 清除 `refresh_token` Cookie（设为空值 + Max-Age=0）
+  3. **不调用 `blacklist_token()`** 将 access_token 加入黑名单
+  4. **不清除 `access_token` Cookie**
+- 后果：access_token 在剩余有效期（最长 15 分钟）内仍可被使用，因为中间件仅验证 JWT 签名和过期时间，不检查黑名单
+- **这是一个已知安全差距**：登出后 access_token 未被主动撤销
+
+> ⚠️ 需要注意的是，即使 `blacklist_token()` 被调用，中间件层也不会检查黑名单（中间件不做 I/O）。检查需要放在 handler 层。当前状态是既没有写入黑名单，也没有检查黑名单。
 
 ## 限流
 
@@ -212,7 +236,7 @@ Token 结构:
 |--------|---------|------|
 | JWT 存储 | HttpOnly Cookie + Authorization Header | 维持双路径 |
 | 密码哈希 | Argon2id | 维持 |
-| 令牌黑名单 | Redis String `blacklist:{token_hash}` | 维持 |
+| 令牌黑名单 | ⚠️ 死代码 — `is_token_blacklisted()` 和 `blacklist_token()` 已实现但无调用方。`logout()` 不撤销 access_token。仅 `blacklist_all_user_tokens()` 在 admin 封禁用户时使用 | 修复登出时撤销 access_token，或移除死代码 |
 | 登录方式 | 密码 + JWT | 远期规划 WebAuthn 无密码 |
 | 令牌刷新 | family_id 令牌旋转（防重放） | 维持 |
 | JWT 角色声明 | **不在 JWT 中包含 `role`**。中间件硬编码 `role: "user"`，按需调用 `load_user_from_db()` | 维持（避免角色变更滞后） |

@@ -139,6 +139,9 @@ GET    /tags/autocomplete      # 自动补全
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /team-members | 团队成员列表 |
+| GET | /team-members/{id} | 团队成员详情 |
+
+**注意**: `/admin/categories/*` 和 `/admin/tags/*` 的 POST/PATCH/DELETE 路由定义在 `category_routes()` 和 `tag_routes()` 分组函数中，但被 **merge** 到公开路由组而非受保护的管理路由组，因此 **没有认证中间件保护**（参见 `main.rs` 第 308-309 行与第 331-341 行的对比）。
 
 ### 管理 API（需认证）
 
@@ -155,6 +158,7 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/users:batchUpdateRole | 批量更新角色 |
 | POST | /admin/users:batchDelete | 批量删除用户 |
 | GET | /admin/users/{id} | 用户详情 |
+| PUT | /admin/users/{id} | 更新用户（文档缺失，代码中通过 `blog_api::routes::admin::update_user` 注册在 main.rs:610） |
 | PUT | /admin/users/{id}/role | 更新角色 |
 | DELETE | /admin/users/{id} | 删除用户 |
 | GET | /admin/user-growth | 用户增长 |
@@ -170,6 +174,20 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/media/upload | 上传媒体 |
 | POST | /admin/media/presign-upload | 预签名上传 |
 | POST | /admin/media/finalize | 完成上传 |
+
+#### 管理端 — 团队成员
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /admin/team-members | 团队成员列表（含未激活） |
+| POST | /admin/team-members | 创建团队成员 |
+| GET | /admin/team-members/{id} | 团队成员详情 |
+| PUT | /admin/team-members/{id} | 更新团队成员 |
+| DELETE | /admin/team-members/{id} | 删除团队成员 |
+| POST | /admin/team-members/batch/delete | 批量删除团队成员 |
+
+#### 管理端 — 版本控制
+| 方法 | 路径 | 说明 |
+|------|------|------|
 | GET | /admin/posts/{postId}/versions | 版本列表 |
 | POST | /admin/posts/{postId}/versions | 创建版本 |
 | GET | /admin/posts/{postId}/versions/{versionNumber} | 版本详情 |

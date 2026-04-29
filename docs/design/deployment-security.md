@@ -36,7 +36,54 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 ### 前端 Dockerfile
 
-`frontend/Dockerfile` — 使用 `node:22-alpine` 多阶段构建，独立部署。
+`frontend/Dockerfile` — 使用 `node:22-alpine` 多阶段构建（deps → builder → runner-base → runner），独立部署。
+
+```dockerfile
+# frontend/Dockerfile 关键安全配置
+FROM node:22-alpine AS runner-base
+WORKDIR /app
+
+ARG APP_VERSION=dev
+ARG VCS_REF=local
+ARG BUILD_DATE=unknown
+
+LABEL org.opencontainers.image.title="blog-frontend" \
+      org.opencontainers.image.description="Next.js frontend runtime for the blog platform" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.created="${BUILD_DATE}"
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3001
+ENV HOSTNAME=0.0.0.0
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs && \
+    mkdir -p /app/.data && \
+    touch /app/.data/visitors.json && \
+    chown -R nextjs:nodejs /app
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "const net=require('net');const s=net.createConnection({host:'127.0.0.1',port:3001},()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>{s.destroy();process.exit(1)},5000)"
+
+FROM runner-base AS runner
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+USER nextjs
+CMD ["node", "server.js"]
+```
+
+- 创建非 root 用户 `nextjs`（uid=1001, gid=1001），运行阶段以 `USER nextjs` 切换
+- 设置 `NEXT_TELEMETRY_DISABLED=1` 禁用 Next.js 遥测
+- 包含 OCI 标签（`org.opencontainers.image.title/description/version/revision/created`）
+- 使用 `HEALTHCHECK` 通过 TCP 连接检查 3001 端口可用性
+- 构建参数支持 `NEXT_IGNORE_BUILD_ERRORS` 和 `NEXT_IGNORE_ESLINT`
+- 提供 `prebuilt-runner` 阶段用于无构建环境部署
+- 可选扩展 `Dockerfile.curl-only`：基于已构建镜像添加 curl 用于调试
 
 ### Kubernetes 安全上下文
 
@@ -46,10 +93,21 @@ K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
 - 就绪探针: `/.well-known/ready:3000` (initialDelaySeconds: 10, periodSeconds: 10)
 - 密钥引用: `blog-runtime-secrets`
 
-K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
-- `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
-- `capabilities.drop: ["ALL"]`
-- `tmpfs` 卷挂载 `/tmp`
+K3s 部署 (`deployments/k3s/blog-backend.yaml`) — CIS Kubernetes Benchmark 合规安全配置：
+- **Pod 级 securityContext**:
+  - `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
+  - `allowPrivilegeEscalation: false` — CIS 5.2.6 禁用特权升级
+  - `runAsUser: 10000` / `runAsGroup: 10000` / `fsGroup: 10000` — CIS 5.2.7 非 root 用户运行（K3s 要求 UID > 10000）
+  - `seccompProfile: { type: RuntimeDefault }` — CIS 5.2.2 设置 seccomp 默认配置
+- **容器级 securityContext**:
+  - `capabilities.drop: ["ALL"]` — CIS 5.2.1 删除所有非必需能力
+  - `capabilities.add: ["NET_BIND_SERVICE"]` — 仅保留网络绑定能力
+- **卷**:
+  - `tmpfs` 卷挂载 `/tmp`（`emptyDir.medium: Memory`）
+  - `emptyDir.sizeLimit: 64Mi` — 限制 tmp 卷大小为 64MiB
+- **探针配置**: 存活探针 `/.well-known/live:3000` (initialDelaySeconds: 10, periodSeconds: 30)，就绪探针 `/.well-known/ready:3000` (initialDelaySeconds: 5, periodSeconds: 10)
+- **资源限制**: requests 100m CPU / 256Mi 内存，limits 500m CPU / 512Mi 内存
+- **密钥引用**: `blog-backend-secrets`（包含 DATABASE_URL、REDIS_URL、JWT_SECRET、PASSWORD_PEPPER、SESSION_SECRET）
 
 > 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
 

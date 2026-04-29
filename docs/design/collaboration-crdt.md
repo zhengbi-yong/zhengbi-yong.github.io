@@ -29,6 +29,12 @@
 | 光标/选区的意识协议 | ❌ 未实现 | |
 | 文档持久化 | ❌ 未实现 | 当前仅内存存储 |
 
+> **注意**：`frontend/scripts/hocuspocus-server.js` 的 `import { Server } from '@hocuspocus/server'` 语句引用了 `@hocuspocus/server` 包，但该包**未安装**（不在 `package.json` 或 `pnpm-lock.yaml` 中），因此该脚本当前不能运行。
+>
+> **注意**：`docs/p4-websocket-collaboration.md` 中声明 `@hocuspocus/provider@4.0.0` 和 `@hocuspocus/server@4.0.0`（第 196–197 行），但 lockfile 实际解析的版本为 `3.4.4`，与文档不符。
+>
+> **注意**：`package.json` 中缺少 `"collaboration:server"` 启动脚本，需手动添加才能通过 `pnpm collaboration:server` 启动 Hocuspocus 服务器。
+
 ## 已实现的服务器脚本
 
 `frontend/scripts/hocuspocus-server.js` 是一个独立 Node.js 进程：

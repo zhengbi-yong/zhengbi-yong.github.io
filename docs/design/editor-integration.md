@@ -51,7 +51,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 粗体/斜体 | StarterKit | ✅ |
 | 列表 (有序/无序) | StarterKit | ✅ |
 | 链接 | Link | ✅ |
-| 代码块 | ShikiCodeBlock (自定义 Shiki 高亮扩展，替代 CodeBlockLowlight) | ✅ |
+| 代码块 | ShikiCodeBlock (自定义 Shiki 高亮扩展，替代 CodeBlockLowlight) | ❌ 已删除（文件已从仓库移除） |
 | 引用 | Blockquote | ✅ |
 | 表格 | Table (来自 reactjs-tiptap-editor) | ❌ 注释待修复 |
 | 图片 | Image | ✅ |
@@ -85,9 +85,9 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 方法 | 端点 | 说明 |
 |------|------|------|
 | `POST` | `/v1/admin/posts` | 创建新文章 |
-| `PATCH` | `/v1/admin/posts/{postId}` | 更新已有文章 |
+| `PATCH` | `/v1/admin/posts/{slug}` | 更新已有文章 |
 | `GET` | `/v1/admin/posts` | 文章列表（管理后台） |
-| `DELETE` | `/v1/admin/posts/{postId}` | 删除文章 |
+| `DELETE` | `/v1/admin/posts/{slug}` | 删除文章 |
 
 ### 双轨存储模式 (Dual-track Pattern)
 
