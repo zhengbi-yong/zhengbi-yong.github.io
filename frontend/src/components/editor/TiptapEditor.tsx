@@ -2,23 +2,23 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Code2, Minus, AlignLeft, AlignCenter, AlignRight, Undo2, Redo2, Image as ImageIcon, Link as LinkIcon, Table2, Highlighter, Subscript as SubscriptIcon, Superscript as SuperscriptIcon, RemoveFormatting, Palette, Sigma } from 'lucide-react'
 import { useEditor, EditorContent, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-// Mathematics — extended with React NodeView for live KaTeX rendering
-import { BlockMath, InlineMath } from './extensions/mathematics-extended'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import TextAlign from '@tiptap/extension-text-align'
+import Highlight from '@tiptap/extension-highlight'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
 import TaskList from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 import Typography from '@tiptap/extension-typography'
-import { ShikiCodeBlock } from './extensions/ShikiCodeBlock'
 
 // reactjs-tiptap-editor — core extensions (verified working with Webpack)
-import { Table } from 'reactjs-tiptap-editor/table'
+// import { Table } from 'reactjs-tiptap-editor/table'
 import { Mention } from 'reactjs-tiptap-editor/mention'
 import { Indent } from 'reactjs-tiptap-editor/indent'
 import { Color } from 'reactjs-tiptap-editor/color'
@@ -43,18 +43,21 @@ function ToolbarButton({
   disabled,
   children,
   title,
+  ariaLabel,
 }: {
   onClick: () => void
   active?: boolean
   disabled?: boolean
   children: React.ReactNode
   title?: string
+  ariaLabel?: string
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={ariaLabel || title || ''}
       title={title}
       className={cn(
         'p-2 rounded hover:bg-accent transition-colors text-sm flex-shrink-0',
@@ -73,12 +76,19 @@ function Divider() {
 // =============================================================================
 // Toolbar (E2: isolated component with atomic useEditorState subscriptions)
 // =============================================================================
-function Toolbar({ editor, onInsertMath }: { editor: NonNullable<ReturnType<typeof useEditor>>, onInsertMath: () => void }) {
+function Toolbar({
+  editor,
+  onInsertMath,
+}: {
+  editor: NonNullable<ReturnType<typeof useEditor>>
+  onInsertMath: () => void
+}) {
   const isBold = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('bold') })
   const isItalic = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('italic') })
   const isUnderline = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('underline') })
   const isStrike = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('strike') })
   const isCode = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('code') })
+  const isHighlight = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('highlight') })
   const isH1 = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('heading', { level: 1 }) })
   const isH2 = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('heading', { level: 2 }) })
   const isH3 = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('heading', { level: 3 }) })
@@ -87,119 +97,209 @@ function Toolbar({ editor, onInsertMath }: { editor: NonNullable<ReturnType<type
   const isTaskList = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('taskList') })
   const isBlockquote = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('blockquote') })
   const isCodeBlock = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('codeBlock') })
+  const isTable = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('table') })
+  const isSubscript = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('subscript') })
+  const isSuperscript = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('superscript') })
+  const isLink = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('link') })
   const canUndo = useEditorState({ editor, selector: (ctx) => ctx.editor.can().undo() })
   const canRedo = useEditorState({ editor, selector: (ctx) => ctx.editor.can().redo() })
+  const [showLinkInput, setShowLinkInput] = useState(false)
+  const [showColorPicker, setShowColorPicker] = useState(false)
+  const linkUrl = useEditorState({ editor, selector: (ctx) => ctx.editor.getAttributes('link').href || '' })
 
   return (
-    <div className="flex flex-wrap items-center gap-1 p-2 border-b bg-muted/30">
-      {/* Bold */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={isBold} title="粗体 (Ctrl+B)">
-        <span className="font-bold">B</span>
+    <div className="flex flex-wrap items-center gap-0.5 p-1.5 border-b bg-muted/30 sticky top-0 z-20">
+      {/* ── 文本格式 ── */}
+      <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={isBold} ariaLabel="粗体 (Ctrl+B)" title="粗体 (Ctrl+B)">
+        <Bold className="h-4 w-4" />
       </ToolbarButton>
-
-      {/* Italic */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={isItalic} title="斜体 (Ctrl+I)">
-        <span className="italic">I</span>
+      <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={isItalic} ariaLabel="斜体 (Ctrl+I)" title="斜体 (Ctrl+I)">
+        <Italic className="h-4 w-4" />
       </ToolbarButton>
-
-      {/* Underline */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={isUnderline} title="下划线 (Ctrl+U)">
-        <span className="underline">U</span>
+      <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={isUnderline} ariaLabel="下划线 (Ctrl+U)" title="下划线 (Ctrl+U)">
+        <UnderlineIcon className="h-4 w-4" />
       </ToolbarButton>
-
-      {/* Strike */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={isStrike} title="删除线">
-        <span className="line-through">S</span>
+      <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={isStrike} ariaLabel="删除线" title="删除线">
+        <Strikethrough className="h-4 w-4" />
       </ToolbarButton>
-
-      {/* Code */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} active={isCode} title="行内代码">
-        <code className="text-xs">&lt;/&gt;</code>
+      <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} active={isCode} ariaLabel="行内代码" title="行内代码">
+        <Code className="h-4 w-4" />
+      </ToolbarButton>
+      <ToolbarButton onClick={() => editor.chain().focus().toggleHighlight().run()} active={isHighlight} ariaLabel="高亮" title="高亮">
+        <Highlighter className="h-4 w-4" />
       </ToolbarButton>
 
       <Divider />
 
-      {/* Heading 1 */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={isH1} title="一级标题">
-        H1
+      {/* ── 标题 ── */}
+      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={isH1} ariaLabel="一级标题" title="一级标题">
+        <Heading1 className="h-4 w-4" />
       </ToolbarButton>
-
-      {/* Heading 2 */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={isH2} title="二级标题">
-        H2
+      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={isH2} ariaLabel="二级标题" title="二级标题">
+        <Heading2 className="h-4 w-4" />
       </ToolbarButton>
-
-      {/* Heading 3 */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={isH3} title="三级标题">
-        H3
+      <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={isH3} ariaLabel="三级标题" title="三级标题">
+        <Heading3 className="h-4 w-4" />
       </ToolbarButton>
 
       <Divider />
 
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={isBulletList} title="无序列表">
-        • List
+      {/* ── 列表 ── */}
+      <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={isBulletList} ariaLabel="无序列表" title="无序列表">
+        <List className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={isOrderedList} title="有序列表">
-        1. List
+      <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={isOrderedList} ariaLabel="有序列表" title="有序列表">
+        <ListOrdered className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleTaskList().run()} active={isTaskList} title="任务列表">
-        ☑ Task
-      </ToolbarButton>
-
-      <Divider />
-
-      {/* Blockquote */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={isBlockquote} title="引用">
-        &ldquo;&rdquo;
-      </ToolbarButton>
-
-      {/* Code Block */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={isCodeBlock} title="代码块">
-        {'{ }'}
-      </ToolbarButton>
-
-      {/* Horizontal Rule */}
-      {/* @ts-ignore TipTap StarterKit types incomplete */}
-      <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} active={false} title="分隔线">
-        —
+      <ToolbarButton onClick={() => editor.chain().focus().toggleTaskList().run()} active={isTaskList} ariaLabel="任务列表" title="任务列表">
+        <ListChecks className="h-4 w-4" />
       </ToolbarButton>
 
       <Divider />
 
-      <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()} active={editor.isActive({ textAlign: 'left' })} title="左对齐">
-        ≡ L
+      {/* ── 区块 ── */}
+      <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={isBlockquote} ariaLabel="引用" title="引用">
+        <Quote className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('center').run()} active={editor.isActive({ textAlign: 'center' })} title="居中">
-        ≡ C
+      <ToolbarButton onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={isCodeBlock} ariaLabel="代码块" title="代码块">
+        <Code2 className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('right').run()} active={editor.isActive({ textAlign: 'right' })} title="右对齐">
-        ≡ R
-      </ToolbarButton>
-
-      <Divider />
-
-      <ToolbarButton onClick={onInsertMath} active={false} title="插入公式">
-        <span className="font-serif text-sm">Σ</span>
+      <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} ariaLabel="分隔线" title="分隔线">
+        <Minus className="h-4 w-4" />
       </ToolbarButton>
 
       <Divider />
 
-      <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!canUndo} active={false} title="撤销 (Ctrl+Z)">
-        ↩
+      {/* ── 表格 ── */}
+      {/* <ToolbarButton onClick={() => editor.chain().focus().insertTable().run()} active={isTable} ariaLabel="插入表格" title="插入表格">
+        <Table2 className="h-4 w-4" />
+      </ToolbarButton> */}
+
+      <Divider />
+
+      {/* ── 上标/下标 ── */}
+      <ToolbarButton onClick={() => editor.chain().focus().toggleSubscript().run()} active={isSubscript} ariaLabel="下标" title="下标">
+        <SubscriptIcon className="h-4 w-4" />
       </ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().redo().run()} disabled={!canRedo} active={false} title="重做 (Ctrl+Shift+Z)">
-        ↪
+      <ToolbarButton onClick={() => editor.chain().focus().toggleSuperscript().run()} active={isSuperscript} ariaLabel="上标" title="上标">
+        <SuperscriptIcon className="h-4 w-4" />
       </ToolbarButton>
+
+      <Divider />
+
+      {/* ── 对齐 ── */}
+      <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()} active={editor.isActive({ textAlign: 'left' })} ariaLabel="左对齐" title="左对齐">
+        <AlignLeft className="h-4 w-4" />
+      </ToolbarButton>
+      <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('center').run()} active={editor.isActive({ textAlign: 'center' })} ariaLabel="居中" title="居中">
+        <AlignCenter className="h-4 w-4" />
+      </ToolbarButton>
+      <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('right').run()} active={editor.isActive({ textAlign: 'right' })} ariaLabel="右对齐" title="右对齐">
+        <AlignRight className="h-4 w-4" />
+      </ToolbarButton>
+
+      <Divider />
+
+      {/* ── 链接 + 图片 ── */}
+      <div className="relative">
+        <ToolbarButton onClick={() => setShowLinkInput(!showLinkInput)} active={isLink} ariaLabel="链接" title="链接">
+          <LinkIcon className="h-4 w-4" />
+        </ToolbarButton>
+        {showLinkInput && (
+          <div className="absolute top-full left-0 z-50 mt-1 flex items-center gap-2 rounded-lg border bg-popover p-2 shadow-lg" onClick={(e) => e.stopPropagation()}>
+            <input
+              type="url"
+              defaultValue={linkUrl}
+              placeholder="输入 URL..."
+              className="h-7 w-48 rounded border bg-background px-2 text-xs outline-none focus:border-primary"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = (e.target as HTMLInputElement).value
+                  if (val) editor.chain().focus().setLink({ href: val }).run()
+                  else editor.chain().focus().unsetLink().run()
+                  setShowLinkInput(false)
+                }
+                if (e.key === 'Escape') setShowLinkInput(false)
+              }}
+            />
+            <button
+              type="button"
+              className="rounded bg-primary px-2 py-1 text-xs text-primary-foreground hover:bg-primary/90"
+              onClick={() => {
+                const input = document.activeElement as HTMLInputElement
+                const val = input?.value || ''
+                if (val) editor.chain().focus().setLink({ href: val }).run()
+                else editor.chain().focus().unsetLink().run()
+                setShowLinkInput(false)
+              }}
+            >
+              确认
+            </button>
+          </div>
+        )}
+      </div>
+      <ToolbarButton onClick={() => {
+        const url = window.prompt('输入图片 URL:')
+        if (url) editor.chain().focus().setImage({ src: url }).run()
+      }} ariaLabel="插入图片" title="插入图片">
+        <ImageIcon className="h-4 w-4" />
+      </ToolbarButton>
+
+      <Divider />
+
+      {/* ── 文字颜色 ── */}
+      <div className="relative">
+        <ToolbarButton onClick={() => setShowColorPicker(!showColorPicker)} title="文字颜色" ariaLabel="文字颜色">
+          <Palette className="h-4 w-4" />
+        </ToolbarButton>
+        {showColorPicker && (
+          <div className="absolute top-full left-0 z-50 mt-1 rounded-lg border bg-popover p-2 shadow-lg grid grid-cols-6 gap-1" onClick={(e) => e.stopPropagation()}>
+            {['#000000','#434343','#666666','#999999','#b7b7b7','#cccccc',
+              '#d9161c','#e83933','#ed6c47','#f5a623','#f7c948','#fce83a',
+              '#11a849','#33b749','#48c774','#74d89b','#b3e4c3','#d4edda',
+              '#2b7ff5','#5b9cf6','#74b9ff','#a3d5ff','#c8e6ff','#e3f2fd',
+              '#8e44ad','#a569bd','#bb8fce','#d2b4de','#e8daef','#f3e5f5',
+            ].map((color) => (
+              <button
+                key={color}
+                type="button"
+                className="h-5 w-5 rounded border"
+                style={{ backgroundColor: color }}
+                onClick={() => { editor.chain().focus().setColor(color).run(); setShowColorPicker(false) }}
+                title={color}
+              />
+            ))}
+            <button
+              type="button"
+              className="col-span-6 mt-1 rounded px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
+              onClick={() => { editor.chain().focus().unsetColor().run(); setShowColorPicker(false) }}
+            >
+              清除颜色
+            </button>
+          </div>
+        )}
+      </div>
+
+      <Divider />
+
+      {/* ── 清除格式 ── */}
+      <ToolbarButton onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()} ariaLabel="清除格式" title="清除格式">
+        <RemoveFormatting className="h-4 w-4" />
+      </ToolbarButton>
+
+      {/* ── 数学公式 ── */}
+      <div className="ml-auto flex items-center gap-0.5">
+        <ToolbarButton onClick={onInsertMath} ariaLabel="插入公式" title="数学公式">
+          <Sigma className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!canUndo} ariaLabel="撤销 (Ctrl+Z)" title="撤销 (Ctrl+Z)">
+          <Undo2 className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().redo().run()} disabled={!canRedo} ariaLabel="重做 (Ctrl+Shift+Z)" title="重做 (Ctrl+Shift+Z)">
+          <Redo2 className="h-4 w-4" />
+        </ToolbarButton>
+      </div>
     </div>
   )
 }
@@ -289,12 +389,7 @@ function RichTextEditorInner({
         code: { HTMLAttributes: { class: 'bg-muted px-1 py-0.5 rounded text-sm font-mono' } },
         link: false,
         underline: false,
-        // Note: do NOT disable codeBlock — StarterKit needs it for toggleCodeBlock command.
-        // Our ShikiCodeBlock (priority:100) intercepts parsing/rendering of codeBlock nodes.
       }),
-
-      // Shiki syntax-highlighted code block (replaces StarterKit codeBlock rendering, not the command)
-      ShikiCodeBlock,
 
       // Core formatting
       Underline,
@@ -307,12 +402,11 @@ function RichTextEditorInner({
       // Media
       Image.configure({ inline: false, HTMLAttributes: { class: 'max-w-full rounded-lg' } }),
 
-      // Math (BlockMath + InlineMath = extended TipTap nodes with React NodeViews; Katex = toolbar command)
-      BlockMath,
-      InlineMath,
+      // Math (Katex = toolbar command for formulas)
 
       // Table
-      Table.configure({ resizable: true }),
+      // Table.configure({ resizable: true }),
+      // TODO: Table moved — fix extension
 
       // Mention
       Mention,
@@ -332,6 +426,9 @@ function RichTextEditorInner({
 
       // Marks
       MoreMark,
+      Highlight.configure({ multicolor: true }),
+      Subscript,
+      Superscript,
       SearchAndReplace,
 
       // Typography B6: smart quotes, em-dashes, etc.

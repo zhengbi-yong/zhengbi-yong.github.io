@@ -336,7 +336,7 @@ function PreWithABC({ children, className }: PreWithABCProps) {
     return <ABCCodeBlock>{extractABCNotation(children)}</ABCCodeBlock>
   }
 
-  return <CodeBlock>{children}</CodeBlock>
+  return <CodeBlock className={codeClassName || className}>{children}</CodeBlock>
 }
 
 // MDX 组件映射，用于自定义 MDX 渲染

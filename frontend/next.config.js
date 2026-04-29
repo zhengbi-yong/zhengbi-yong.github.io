@@ -37,11 +37,10 @@ const sentryBuildOptions = {
 const nextConfig = {
   // 允许局域网其他机器访问开发服务器
   allowedDevOrigins: ['192.168.0.161', '192.168.0.100'],
-  // 解决 workspace 多个 lockfile 的警告
-  turbopack: {
-    // 指定项目根目录
-    root: __dirname,
-  },
+  // 解决 workspace 多个 lockfile 的警告 — 注释掉以强制使用 Webpack（Turbopack 对 reactjs-tiptap-editor 有 bug）
+  // turbopack: {
+  //   root: __dirname,
+  // },
   // 输出模式：standalone用于Docker，export用于静态导出
   output: process.env.EXPORT === '1' ? 'export' : 'standalone',
   // 静态导出时的基础路径
@@ -103,6 +102,8 @@ const nextConfig = {
     ]
 
     // 仅在客户端构建时优化
+
+    // 仅在客户端构建时优化
     if (!isServer) {
       config.optimization = {
         ...config.optimization,
@@ -152,6 +153,13 @@ const nextConfig = {
               name: 'utils',
               test: /[\\/]node_modules[\\/](lodash|date-fns|clsx|class-variance-authority)[\\/]/,
               priority: 20,
+              reuseExistingChunk: true,
+            },
+            // reactjs-tiptap-editor — keep ALL imports in ONE chunk to avoid void 0
+            rte: {
+              name: 'rte',
+              test: /[\\/]node_modules[\\/]reactjs-tiptap-editor[\\/]/,
+              priority: 60,
               reuseExistingChunk: true,
             },
           },

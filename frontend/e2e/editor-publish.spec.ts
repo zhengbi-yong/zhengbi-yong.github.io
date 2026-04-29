@@ -99,9 +99,14 @@ test.describe('TipTap Editor Load', () => {
     })
     page.on('pageerror', (err) => errors.push(err.message))
 
-    // Login using shared helper
+    // Login using shared helper — note: loginAdmin sets token but does NOT wait for auth
     await loginAdmin(page)
 
+    // Navigate to admin first to trigger AuthInitializer
+    await page.goto(`${BLOG_BASE}/admin`, { waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(2000)
+
+    // Now navigate to editor
     await page.goto(`${BLOG_BASE}/admin/posts/new`)
     await page.waitForTimeout(4000)
 

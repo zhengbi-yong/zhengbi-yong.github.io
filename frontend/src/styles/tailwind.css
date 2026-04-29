@@ -1247,7 +1247,6 @@ html.cursor-hidden .case-go {
   border-radius: 0;
 }
 
-
 /* Dark mode music score rendering: invert SVG colors */
 .dark-score-svg svg {
   filter: invert(1) hue-rotate(180deg);

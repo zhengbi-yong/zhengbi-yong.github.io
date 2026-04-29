@@ -64,6 +64,7 @@ describe('AdminDashboard', () => {
     total_comments: 500,
     pending_comments: 10,
     approved_comments: 490,
+    rejected_comments: 5,
   }
 
   it('should render loading state', () => {
@@ -101,7 +102,7 @@ describe('AdminDashboard', () => {
       expect(screen.getByText('总用户数')).toBeInTheDocument()
       expect(screen.getByText('100')).toBeInTheDocument()
       expect(screen.getByText('总评论数')).toBeInTheDocument()
-      expect(screen.getByText('500')).toBeInTheDocument()
+      expect(screen.getAllByText('500')).toHaveLength(2)
     })
   })
 
@@ -140,11 +141,13 @@ describe('AdminDashboard', () => {
       expect(screen.getByText('总用户数')).toBeInTheDocument()
       expect(screen.getByText('100')).toBeInTheDocument()
       expect(screen.getByText('总评论数')).toBeInTheDocument()
-      expect(screen.getByText('500')).toBeInTheDocument()
-      expect(screen.getByText('待审核评论')).toBeInTheDocument()
-      expect(screen.getByText('10')).toBeInTheDocument()
-      expect(screen.getByText('已通过评论')).toBeInTheDocument()
-      expect(screen.getByText('490')).toBeInTheDocument()
+      expect(screen.getAllByText('500')).toHaveLength(2)
+      expect(screen.getAllByText('待审核')).toHaveLength(2)
+      expect(screen.getAllByText('10')).toHaveLength(2)
+      expect(screen.getAllByText('已通过')).toHaveLength(2)
+      expect(screen.getAllByText('490')).toHaveLength(2)
+      expect(screen.getAllByText('已拒绝')).toHaveLength(2)
+      expect(screen.getAllByText('5')).toHaveLength(2)
     })
   })
 
@@ -161,11 +164,10 @@ describe('AdminDashboard', () => {
 
     renderWithProviders(<AdminDashboard />)
 
+    // Quick actions section was removed during admin refactoring
+    // Test that dashboard renders without errors instead
     await waitFor(() => {
-      expect(screen.getByText('快速操作')).toBeInTheDocument()
-      expect(screen.getByText('用户管理')).toBeInTheDocument()
-      expect(screen.getByText('评论审核')).toBeInTheDocument()
-      expect(screen.getByText('系统设置')).toBeInTheDocument()
+      expect(screen.getByText('仪表板')).toBeInTheDocument()
     })
   })
 })

@@ -183,8 +183,8 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
                   }}
                 />
               ) : (
-                <div className="p-4 text-sm font-mono leading-[1.7] text-gray-800 dark:text-gray-200 opacity-90">
-                  {children}
+                <div className="p-4 text-sm font-mono leading-[1.7] text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                  {codeText}
                 </div>
               )}
             </div>

@@ -6,9 +6,11 @@
 import { createHighlighter, createJavaScriptRegexEngine, type Highlighter } from 'shiki'
 
 // Languages required for a world-class technical blog
+// IDs must match shiki's registered language names exactly.
+// Use 'shellscript' (not 'bash'/'sh') — shiki maps the user's lang to its internals.
 const LANGUAGES = [
   'typescript', 'javascript', 'python', 'rust', 'go',
-  'java', 'cpp', 'c', 'bash', 'sh',
+  'java', 'cpp', 'c', 'shellscript',
   'json', 'yaml', 'toml',
   'markdown', 'mdx',
   'html', 'css', 'scss',

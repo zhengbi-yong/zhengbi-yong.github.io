@@ -80,7 +80,7 @@ function convertMathFormulas(content: string): string {
   // 转换块级公式 $$...$$ (支持跨行)
   content = content.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => {
     const escapedMath = escapeHtml(math.trim())
-    return `<KatexRenderer math="${escapedMath}" display={true} />`
+    return `<KatexRenderer math="${escapedMath}" display="true" />`
   })
 
   // 转换行内公式 $...$ (不跨行)

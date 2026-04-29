@@ -45,7 +45,7 @@ export async function loginAdmin(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(creds),
-        credentials: 'include', // Required for cookie to be set
+        credentials: 'include',
       })
       const data = await res.json()
       return { status: res.status, data }
@@ -77,49 +77,22 @@ export async function loginAdmin(
   await page.goto(`${BLOG_BASE}/admin`, { waitUntil: 'domcontentloaded' })
 
   // Step 5: Poll for successful authentication by checking DOM state.
-  // NOTE: .admin-sidebar uses position: fixed, so offsetParent returns null.
-  //   Use getComputedStyle visibility + size check instead.
-  await pollForAdminReady(page, 20000)
-}
-
-/**
- * Polls the page until the admin interface is ready.
- * Checks for admin sidebar visibility or waits if still loading.
- */
-async function pollForAdminReady(page: Page, timeoutMs: number): Promise<void> {
-  const startTime = Date.now()
-
-  while (Date.now() - startTime < timeoutMs) {
+  const maxAttempts = 30 // 15 seconds total
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const ready = await page.evaluate(() => {
-      // Check 1: Admin sidebar is visible (sidebare uses position: fixed, so
-      //   offsetParent is null. Use getComputedStyle visibility instead.)
       const sidebar = document.querySelector('.admin-sidebar') as HTMLElement | null
       if (sidebar) {
-        const style = window.getComputedStyle(sidebar)
-        if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
-          return 'ready'
-        }
+        return 'ready'
       }
 
-      // Check 2: Admin navigation links are visible — alternative signal
-      const navLinks = document.querySelector('aside a[href*="/admin/"]')
-      if (navLinks) {
-        const style = window.getComputedStyle(navLinks as HTMLElement)
+      const dialog = document.querySelector('[role="dialog"]') as HTMLElement | null
+      if (dialog) {
+        const style = window.getComputedStyle(dialog)
         if (style.display !== 'none' && style.visibility !== 'hidden') {
-          return 'ready'
+          return 'waiting'
         }
       }
 
-      // Check 3: Auth modal is visible → not yet authenticated
-      const modal = document.querySelector('[data-testid="auth-modal"]') as HTMLElement | null
-      if (modal) {
-        const style = window.getComputedStyle(modal)
-        if (style.display !== 'none' && style.visibility !== 'hidden') {
-          return 'waiting' // Keep polling, modal might disappear
-        }
-      }
-
-      // Neither sidebar nor modal → still loading initial state
       return 'waiting'
     })
 
@@ -127,11 +100,10 @@ async function pollForAdminReady(page: Page, timeoutMs: number): Promise<void> {
       return
     }
 
-    // Wait a bit before next poll
     await page.waitForTimeout(500)
   }
 
-  // Timeout reached — do a final diagnostic
+  // Timeout reached — diagnostic
   const sidebarReady = await page.evaluate(() => {
     const sidebar = document.querySelector('.admin-sidebar') as HTMLElement | null
     if (!sidebar) return { found: false, reason: 'no element' }
@@ -178,7 +150,7 @@ export async function logoutAdmin(page: Page): Promise<void> {
       localStorage.removeItem('access_token')
     })
   } catch {
-    // localStorage not accessible (about:blank or cross-origin)
+    // localStorage not accessible
   }
   await page.reload()
   await page.waitForLoadState('networkidle')

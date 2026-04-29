@@ -5,10 +5,12 @@ import katex from 'katex'
 
 interface KatexRendererProps {
   math: string
-  display?: boolean
+  display?: boolean | string
 }
 
 export function KatexRenderer({ math, display = false }: KatexRendererProps) {
+  // Normalize display prop: accept string ("true"/"false") or boolean
+  const isDisplay = display === true || display === 'true'
   const containerRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export function KatexRenderer({ math, display = false }: KatexRendererProps) {
         .replace(/&#x27;/g, "'")
 
       katex.render(decodedMath, container, {
-        displayMode: display,
+        displayMode: isDisplay,
         throwOnError: false,
       })
     } catch (error) {
@@ -49,7 +51,7 @@ export function KatexRenderer({ math, display = false }: KatexRendererProps) {
         container.textContent = ''
       }
     }
-  }, [math, display])
+  }, [math, isDisplay])
 
-  return <span ref={containerRef} />
+  return isDisplay ? <span ref={containerRef} className="block text-center" /> : <span ref={containerRef} />
 }

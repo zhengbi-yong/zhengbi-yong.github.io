@@ -228,7 +228,7 @@ export default function NewPostPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 页面头部 */}
       <div className="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">创建新文章</h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -313,7 +313,7 @@ export default function NewPostPage() {
       </div>
 
       {/* 主内容区 */}
-      <div className="flex flex-1 gap-6 mx-auto max-w-7xl px-4 py-8">
+      <div className="flex flex-1 gap-6 mx-auto max-w-7xl px-4 py-6">
         {/* 草稿列表侧边栏 */}
         {showDrafts && (
           <div className="w-64 flex-shrink-0 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 overflow-y-auto max-h-[calc(100vh-200px)]">

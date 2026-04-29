@@ -92,10 +92,11 @@ function buildPath(resource: string, params?: Record<string, string | number>): 
 export const dataProvider: DataProvider = {
   getList: async ({ resource, pagination, filters, sorters }) => {
     // 特殊处理 admin/stats
+    // 后端直接返回 JSON 对象（无 data 包裹），dataProvider 将其作为一个元素返回
     if (resource === 'admin/stats') {
-      const data = await bffFetch<ApiResponse>('/admin/stats')
+      const response = await bffFetch<Record<string, unknown>>('/admin/stats')
       return {
-        data: [data.data] as any,
+        data: [response] as any,
         total: 1,
       }
     }

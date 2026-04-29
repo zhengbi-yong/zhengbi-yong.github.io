@@ -8,7 +8,7 @@ Reusable UI components including accessibility utilities, loading states, image 
 ### Scope
 - Accessibility components (LiveRegion, Status, Alert)
 - Loading indicators (Loader, Skeleton screens)
-- Image optimization (EnhancedImage; ui/OptimizedImage.tsx removed in 2a94a65f as dead code)
+- Image optimization (EnhancedImage; ui/OptimizedImage.tsx removed in 2a94a65f as dead code, components/OptimizedImage.tsx removed in 079a963 as zero importers)
 - Specialized modals (Excalidraw)
 - Interactive containers (SwipeContainer)
 
@@ -123,7 +123,8 @@ interface LoaderProps {
 ### Image Components
 
 > **Note**: `ui/OptimizedImage.tsx` (which exported both `OptimizedImage` and `AccessibleImage`) was removed in commit 2a94a65f as dead code. No files imported either component.
-> The remaining image components are at `@/components/OptimizedImage.tsx` (root) and `@/components/ui/EnhancedImage.tsx`.
+> `components/OptimizedImage.tsx` (root) was removed in commit 079a963 as dead code (zero importers).
+> The remaining image component is `@/components/ui/EnhancedImage.tsx`.
 > See `@/components/media/Image/CLAUDE.md` for the consolidation plan.
 
 ---
