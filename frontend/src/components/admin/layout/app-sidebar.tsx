@@ -45,7 +45,9 @@ export function AppSidebar({ onLogout }: { onLogout?: () => void }) {
       <nav className="flex-1 overflow-y-auto p-2 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          const isActive = item.href === '/admin'
+            ? pathname === '/admin'
+            : pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link
               key={item.id}
