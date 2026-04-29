@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import dynamic from 'next/dynamic'
 import { Loader2, Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Code2, Minus, AlignLeft, AlignCenter, AlignRight, Undo2, Redo2, Image as ImageIcon, Link as LinkIcon, Highlighter, Subscript as SubscriptIcon, Superscript as SuperscriptIcon, RemoveFormatting, Palette, Sigma, ChevronDown } from 'lucide-react'
 import { useEditor, EditorContent, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -634,23 +633,7 @@ function RichTextEditorInner({
 }
 
 // =============================================================================
-// Dynamic import wrapper — forces client-only rendering (SSR defense)
+// Re-export from NovelEditor — TiptapEditor replaced by Novel
 // =============================================================================
-const DynamicEditor = dynamic(
-  () => Promise.resolve(RichTextEditorInner),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-[400px] text-muted-foreground border rounded-lg">
-        <Loader2 className="animate-spin mr-2" />
-        编辑器加载中...
-      </div>
-    ),
-  }
-)
 
-export { RichTextEditorInner }
-
-export default function TiptapEditor(props: { content?: string; onChange?: (v: string) => void }) {
-  return <DynamicEditor content={props.content ?? ''} onChange={props.onChange ?? (() => {})} />
-}
+export { default as default } from './NotionEditor'
