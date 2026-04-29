@@ -112,7 +112,7 @@ CREATE TABLE posts (
     author_display_name TEXT,
     is_featured BOOLEAN NOT NULL DEFAULT FALSE,
     post_type TEXT NOT NULL DEFAULT 'article',
-    content_format TEXT,
+    content_format TEXT NOT NULL DEFAULT 'markdown',
     language TEXT NOT NULL DEFAULT 'zh-CN',
     copyright_info TEXT,
     license_type TEXT,

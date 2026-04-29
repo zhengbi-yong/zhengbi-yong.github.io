@@ -110,14 +110,14 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
   }
 
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <Header fixed>
-          <div className='flex flex-1 items-center gap-2'>
-            {/* Breadcrumb could go here */}
-          </div>
-          <div className='flex items-center gap-2'>
+        <Header />
+        <div className='flex flex-1 items-center gap-2'>
+          {/* Breadcrumb could go here */}
+        </div>
+        <div className='flex items-center gap-2'>
             {/* Theme Toggle */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -182,7 +182,6 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </Header>
         <Main>{children}</Main>
       </SidebarInset>
     </SidebarProvider>

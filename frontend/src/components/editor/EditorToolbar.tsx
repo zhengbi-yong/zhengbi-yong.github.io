@@ -6,7 +6,8 @@
  * 提供富文本编辑的所有格式化工具
  */
 
-import { Editor } from '@tiptap/react'
+// We use `any` for the editor type to avoid @tiptap/core module resolution issues in CI
+// @tiptap/core v3.x exports `Editor` but the module resolution fails in some environments
 import {
   Bold,
   Italic,
@@ -33,7 +34,7 @@ import { cn } from '@/lib/utils'
 import { useState } from 'react'
 
 interface EditorToolbarProps {
-  editor: Editor | null
+  editor: any | null
 }
 
 // 快捷键映射
@@ -153,37 +154,30 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       </ToolbarGroup>
 
           {/* 标题 */}
-          {/* @ts-expect-error TipTap StarterKit types incomplete */}
           <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="一级标题">
             <Heading1 className="w-4 h-4" />
           </ToolbarButton>
-          {/* @ts-expect-error */}
           <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="二级标题">
             <Heading2 className="w-4 h-4" />
           </ToolbarButton>
-          {/* @ts-expect-error */}
           <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })} title="三级标题">
             <Heading3 className="w-4 h-4" />
           </ToolbarButton>
 
       {/* 文本格式 */}
       <ToolbarGroup>
-        {/* @ts-expect-error TipTap StarterKit types incomplete */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="粗体 (Ctrl+B)">
           <Bold className="w-4 h-4" />
         </ToolbarButton>
-        {/* @ts-expect-error */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="斜体 (Ctrl+I)">
           <Italic className="w-4 h-4" />
         </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="下划线 (Ctrl+U)">
           <Underline className="w-4 h-4" />
         </ToolbarButton>
-        {/* @ts-expect-error */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="删除线">
           <Strikethrough className="w-4 h-4" />
         </ToolbarButton>
-        {/* @ts-expect-error */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} active={editor.isActive('code')} title="行内代码">
           <Code className="w-4 h-4" />
         </ToolbarButton>
@@ -241,11 +235,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
 
       {/* 其他 */}
       <ToolbarGroup>
-        {/* @ts-expect-error TipTap StarterKit types incomplete */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="引用">
           <Quote className="w-4 h-4" />
         </ToolbarButton>
-        {/* @ts-expect-error */}
         <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} title="水平线">
           <Minus className="w-4 h-4" />
         </ToolbarButton>

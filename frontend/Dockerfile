@@ -29,7 +29,6 @@ COPY --from=deps /usr/local/lib/node_modules/pnpm /usr/local/lib/node_modules/pn
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN rm -rf .contentlayer/.cache
 RUN pnpm build
 
 FROM node:22-alpine AS runner-base
@@ -67,7 +66,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/.contentlayer ./.contentlayer
 
 USER nextjs
 

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader2, Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Code2, Minus, AlignLeft, AlignCenter, AlignRight, Undo2, Redo2, Image as ImageIcon, Link as LinkIcon, Table2, Highlighter, Subscript as SubscriptIcon, Superscript as SuperscriptIcon, RemoveFormatting, Palette, Sigma } from 'lucide-react'
+import { Loader2, Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Code2, Minus, AlignLeft, AlignCenter, AlignRight, Undo2, Redo2, Image as ImageIcon, Link as LinkIcon, Highlighter, Subscript as SubscriptIcon, Superscript as SuperscriptIcon, RemoveFormatting, Palette, Sigma } from 'lucide-react'
 import { useEditor, EditorContent, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -97,7 +97,7 @@ function Toolbar({
   const isTaskList = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('taskList') })
   const isBlockquote = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('blockquote') })
   const isCodeBlock = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('codeBlock') })
-  const isTable = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('table') })
+  // const isTable = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('table') })
   const isSubscript = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('subscript') })
   const isSuperscript = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('superscript') })
   const isLink = useEditorState({ editor, selector: (ctx) => ctx.editor.isActive('link') })

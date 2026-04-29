@@ -80,7 +80,7 @@
 | `editor/TiptapEditor.tsx` | TipTap 富文本编辑器核心 |
 | `editor/MenuBar.tsx` | 编辑器工具栏菜单 |
 | `editor/EditorToolbar.tsx` | 格式化工具栏 |
-| `editor/FloatingMenu.tsx` | 浮动菜单 |
+| `editor/FloatingMenu.tsx` | 浮动菜单 (不存在) |
 | `editor/SplitEditor.tsx` | 分屏编辑器 |
 | `editor/ImmersiveEditorLayout.tsx` | 沉浸式编辑布局 |
 | `editor/ArticleSettingsPanel.tsx` | 文章设置面板 |

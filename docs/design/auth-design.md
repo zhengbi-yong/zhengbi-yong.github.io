@@ -108,11 +108,11 @@ pub async fn optional_auth_middleware(
   rl:s:{ip}:{route_hash}:{second_bucket}  → 秒级窗口
   rl:m:{ip}:{route_hash}:{minute_bucket}  → 分钟级窗口
 
-各端点限额:
-  POST /auth/login, /auth/register  → 5 次/分钟 + 1 次/秒
-  POST /posts/*/view                 → 100 次/分钟 + 10 次/秒
-  POST /posts/*/comments             → 10 次/分钟 + 2 次/秒
-  其他                               → 1000 次/分钟 + 100 次/秒
+各端点限额（默认值，可通过环境变量覆盖）:
+  POST /auth/login, /auth/register  → 5 次/分钟 + 1 次/秒  (RATE_LIMIT_AUTH_RPM / RATE_LIMIT_AUTH_RPS)
+  POST /posts/*/view                 → 100 次/分钟 + 10 次/秒 (RATE_LIMIT_VIEW_RPM / RATE_LIMIT_VIEW_RPS)
+  POST /posts/*/comments             → 10 次/分钟 + 2 次/秒  (RATE_LIMIT_COMMENT_RPM / RATE_LIMIT_COMMENT_RPS)
+  其他                               → 1000 次/分钟 + 100 次/秒 (RATE_LIMIT_DEFAULT_RPM / RATE_LIMIT_DEFAULT_RPS)
 
 失败模式（可配置）:
   fail_open  → 限流后端不可用时放行（默认，保证可用性）
@@ -120,6 +120,12 @@ pub async fn optional_auth_middleware(
 ```
 
 > 限流使用 Redis Lua 脚本保证原子性，非简单 INCR+EXPIRE。每个请求同时检查秒级和分钟级窗口，任一窗口超限即拒绝。TTL：秒级窗口 2 秒，分钟级窗口 60 秒。
+>
+> 以上限额均为**默认值**，可通过环境变量覆盖：
+> - `RATE_LIMIT_AUTH_RPM` / `RATE_LIMIT_AUTH_RPS` — 认证端点（登录/注册）每分钟/每秒允许次数
+> - `RATE_LIMIT_VIEW_RPM` / `RATE_LIMIT_VIEW_RPS` — 查看文章每分钟/每秒允许次数
+> - `RATE_LIMIT_COMMENT_RPM` / `RATE_LIMIT_COMMENT_RPS` — 评论端点每分钟/每秒允许次数
+> - `RATE_LIMIT_DEFAULT_RPM` / `RATE_LIMIT_DEFAULT_RPS` — 其他所有端点每分钟/每秒允许次数
 
 ## CSRF 保护
 

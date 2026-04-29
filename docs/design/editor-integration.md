@@ -53,10 +53,10 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 链接 | Link | ✅ |
 | 代码块 | ShikiCodeBlock (自定义 Shiki 高亮扩展，替代 CodeBlockLowlight) | ✅ |
 | 引用 | Blockquote | ✅ |
-| 表格 | Table (来自 reactjs-tiptap-editor) | ✅ |
+| 表格 | Table (来自 reactjs-tiptap-editor) | ❌ 注释待修复 |
 | 图片 | Image | ✅ |
-| 数学公式 (行内) | InlineMath (imported from `./extensions/mathematics-extended`) | ✅ |
-| 数学公式 (块级) | BlockMath (imported from `./extensions/mathematics-extended`) | ✅ |
+| 数学公式 (行内) | InlineMath (imported from `reactjs-tiptap-editor/katex`) | ✅ |
+| 数学公式 (块级) | BlockMath (imported from `reactjs-tiptap-editor/katex`) | ✅ |
 | 下划线 | Underline | ✅ |
 | 文本对齐 | TextAlign | ✅ |
 | 任务列表 | TaskList + TaskItem | ✅ |
@@ -91,22 +91,21 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 
 ### 双轨存储模式 (Dual-track Pattern)
 
-编辑器中点击"保存"时，前端同时发送 `content_json` 和 `content_mdx` 两个字段：
+编辑器中点击"保存"时，前端仅发送 `content_json` 字段，后端根据 `content_json` 自动派生 `content_mdx`：
 
 ```json
 {
   "title": "文章标题",
   "content_json": { "type": "doc", "content": [...] },
-  "content_mdx": "## Markdown content...",
   "status": "draft"
 }
 ```
 
 - **`content_json`**: TipTap `editor.getJSON()` 输出的 ProseMirror AST（JSONB 列，单一事实来源）
-- **`content_mdx`**: 前端通过 `saveToMdx` 函数生成的 MDX 纯文本（TEXT 列，SSR/SSG 优化）
+- **`content_mdx`**: 后端通过 `tiptap_json_to_mdx()` 自动派生（TEXT 列，SSR/SSG 优化）
 
 后端行为：
-- 如果请求体包含 `content_mdx`，直接存入
+- 如果请求体包含 `content_mdx`（兼容旧客户端），直接存入
 - 如果 `content_mdx` 缺失但提供了 `content_json`，后端通过 `tiptap_json_to_mdx()` 自动派生
 - 三级降级策略：`content_mdx` → 从 `content_json` 实时转换 → 旧 `content` 列
 
@@ -178,7 +177,7 @@ export function useDraft(existingDraftId?: string) {
    })
    ```
 
-3. **CSRF 保护**：对于所有写请求（POST/PATCH/DELETE），前端需从 `XSRF-TOKEN` cookie 读取 token，并设置为 `X-XSRF-TOKEN` 请求头
+3. **CSRF 保护**：对于所有写请求（POST/PATCH/DELETE），前端需从 `XSRF-TOKEN` cookie 读取 token，并设置为 `X-CSRF-Token` 请求头（注意：实际代码使用 `X-CSRF-Token` 而非文档中常见的 `X-XSRF-TOKEN`）
    ```typescript
    const xsrfToken = document.cookie
      .split('; ')
@@ -224,7 +223,7 @@ const xsrfToken = document.cookie
 const response = await fetch('/api/v1/admin/media/upload', {
   method: 'POST',
   credentials: 'include',
-  headers: { 'X-XSRF-TOKEN': xsrfToken },
+  headers: { 'X-CSRF-Token': xsrfToken },
   body: formData,
 })
 ```

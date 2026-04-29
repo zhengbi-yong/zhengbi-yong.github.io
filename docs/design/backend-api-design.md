@@ -29,8 +29,8 @@ backend/
 │   │   │   │   ├── admin.rs
 │   │   │   │   ├── reading_progress.rs
 │   │   │   │   ├── search.rs
-│   │   │   │   ├── articles.rs           # 368 行 — 孤儿模块，未在 main.rs 注册
-│   │   │   │   ├── enhanced_posts.rs     # 303 行 — HATEOAS 示例，未在 main.rs 注册
+│   │   │   │   ├── articles.rs           # 368 行 — 孤儿模块，存在于文件系统中但未在 routes/mod.rs 中导入，完全死代码
+│   │   │   │   ├── enhanced_posts.rs     # 303 行 — HATEOAS 示例，存在于文件系统中但未在 routes/mod.rs 中导入，完全死代码
 │   │   │   │   ├── mdx_convert.rs        # 407 行 — 管理端 MDX 转换端点
 │   │   │   │   ├── mdx_sync.rs
 │   │   │   │   ├── versions.rs
@@ -188,7 +188,10 @@ GET    /tags/autocomplete      # 自动补全
 限流中间件应用于所有 `/api/v1/*` 路由，基于 Redis 分布式限流，按 IP 和路由维度限制请求速率。超出限制返回 `429 Too Many Requests`。
 
 配置项（通过环境变量）：
-- `RATE_LIMIT_PER_MINUTE` — 每分钟每个 IP 最大请求数（默认: 60）
+- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 20）
+- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 100）
+- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 30）
+- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 60）
 
 ### CSRF 中间件
 
@@ -217,7 +220,7 @@ Router::new()
 
 ## 数据库连接池
 
-主库连接池通过 `DATABASE_URL` 配置：
+主库连接池通过 `DATABASE_URL` 配置，池化参数现由 `DATABASE_POOL` 环境变量系列驱动（`DATABASE_POOL_MAX_CONNECTIONS`、`DATABASE_POOL_MIN_CONNECTIONS`、`DATABASE_POOL_ACQUIRE_TIMEOUT`、`DATABASE_POOL_IDLE_TIMEOUT`、`DATABASE_POOL_MAX_LIFETIME`）：
 
 ```rust
 let pool = PgPoolOptions::new()
