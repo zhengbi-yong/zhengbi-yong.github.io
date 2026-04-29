@@ -134,15 +134,16 @@ function CodeBlockLanguageSelector({
 
   const selectedLang = CODE_LANGUAGES.find((l) => l.value === currentLanguage)
 
-  if (!isCodeBlock) return null
-
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors border border-border/50 min-w-[80px]"
-        title="选择代码语言"
+        onClick={() => { if (isCodeBlock) setOpen(!open) }}
+        className={cn(
+          'flex items-center gap-1 px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors border min-w-[80px]',
+          isCodeBlock ? 'border-border/50' : 'border-transparent text-muted-foreground/60'
+        )}
+        title={isCodeBlock ? '选择代码语言' : '仅在代码块中可用'}
       >
         <span className="truncate max-w-[80px]">
           {selectedLang?.label || '无语言'}

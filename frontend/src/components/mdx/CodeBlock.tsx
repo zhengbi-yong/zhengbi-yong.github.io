@@ -70,7 +70,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [highlightLang, codeText])
+  }, [language, codeText])
 
   const handleCopy = useCallback(async () => {
     try {
