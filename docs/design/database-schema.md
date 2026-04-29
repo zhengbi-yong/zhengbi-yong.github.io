@@ -166,7 +166,7 @@ CREATE TABLE comments (
     deleted_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_comments_path ON comments USING GIST (path);
+CREATE INDEX idx_comments_path_gist ON comments USING GIST (path);
 CREATE INDEX idx_comments_post ON comments(slug);
 CREATE INDEX idx_comments_post_status ON comments(slug, status);
 CREATE INDEX idx_comments_user ON comments(user_id);

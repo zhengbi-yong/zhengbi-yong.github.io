@@ -48,7 +48,10 @@ K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
 
 K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 - `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
+- `runAsUser: 10000`, `runAsGroup: 10000`
+- `seccompProfile: RuntimeDefault`
 - `capabilities.drop: ["ALL"]`
+- `capabilities.add: ["NET_BIND_SERVICE"]` — 允许绑定特权端口（如 80/443）
 - `tmpfs` 卷挂载 `/tmp`
 
 > 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
@@ -70,6 +73,17 @@ K3s 部署包含完整的零信任网络策略（`deployments/k3s/network-policy
 ### 安全响应头
 
 > **已知缺口**：安全头（HSTS、X-Frame-Options、X-Content-Type-Options、X-XSS-Protection、Referrer-Policy）仅在 Nginx 配置中被注释掉的 HTTPS 服务器块中定义（第 49-53 行），当前激活的 HTTP 服务器（第 119-179 行）**未设置任何安全响应头**。生产环境切换到 HTTPS 时需要取消注释并确认生效。CSP（Content-Security-Policy）在任何 Nginx 块中均未配置。
+>
+> #### 双 Nginx 配置说明
+>
+> 仓库中包含两套独立的 Nginx 配置：
+>
+> | 配置文件 | 路径 | 用途 |
+> |----------|------|------|
+> | `blog.conf` | `deployments/nginx/conf.d/blog.conf` | 系统级 Nginx（`/etc/nginx/`），用于反向代理裸机或 Compose 部署 |
+> | `default.conf` | `deployments/docker/compose-files/prod/default.conf` | Compose 部署中内置于 Nginx 容器的配置 |
+>
+> 更新任一配置时需同步另一个，确保安全头、CORS 策略和行为一致。
 
 ## 健康检查
 

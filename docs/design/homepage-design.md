@@ -75,13 +75,23 @@
 
 ### 全局样式
 
-- 使用 `visitor-theme.css` 主题
+- `visitor-theme.css` 在 `Main.tsx` 中通过 import 引入（非全局样式），仅作用于首页 Visitor 布局
+- 全局统一主题由 `tailwind.css` + `geist-tokens.css` 管理
 - 响应式间距：`px-4 sm:px-6 lg:px-8 2xl:px-10`
 - 深色模式支持（`dark:` 类）
 
 ## 未来规划
 
 > 以下设计组件已实现（位于 `frontend/src/components/home/`）但尚未接入首页（`Main.tsx`）。
+
+### 已接入首页的组件
+
+#### Section 8: Mega Footer
+
+- 通过 `(public)/layout.tsx` 全局渲染到所有公开页面（包括首页）
+- 全屏 `min-h-screen`，深色背景 `#05080F`
+- 巨幅书法文字：`远离颠倒梦想，究竟涅槃`（中文楷书/行书风格）
+- 导航链接 + 社交链接 + 版权信息
 
 ### 计划结构
 
@@ -91,7 +101,6 @@
 3. Projects Gallery        — 横向滚动项目展示
 4. Music Experience        — 音频响应乐谱可视化
 5. Latest Writing          — 编辑风格文章列表
-6. Mega Footer             — 全屏 CTA 页脚
 ```
 
 ### Section 1: Immersive Hero
@@ -108,7 +117,7 @@
 - 主标题：`clamp(3rem, 8vw, 8rem)`，衬线字体（Newsreader/Playfair Display）
 - 副标题：双语（英文 + 中文）
 - 文字使用 `mix-blend-mode: difference` 确保在粒子上可读
-- 入场动画：GSAP SplitText，逐字淡入+模糊→清晰
+- 入场动画：Framer Motion，逐字淡入+模糊→清晰
 
 #### 性能
 
@@ -131,12 +140,11 @@ CSS Grid: 桌面 4 列、平板 2 列、移动端 1 列
 | Featured Project | 2x1 | 特色项目 + 循环视频 |
 | Music Preview | 2x1 | SVG 乐谱 + 播放图标 |
 
-#### 视觉风格 — Glassmorphism 2.0
+#### 视觉风格 — 纯色背景卡片
 
 ```css
-background: rgba(255,255,255,0.03);
-backdrop-filter: blur(20px);
-border: 1px solid rgba(255,255,255,0.08);
+background: var(--color-surface-card);   /* 纯色背景，无毛玻璃效果 */
+border: 1px solid var(--color-border-mono);
 border-radius: 24px;
 gap: 16px;
 transition: cubic-bezier(0.16, 1, 0.3, 1);
@@ -164,18 +172,18 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 ### Section 6: Mega Footer
 
-- 全屏 `100vh`，深色背景 `#050505`
-- 巨幅声明文字："LET'S CREATE SOMETHING TOGETHER"
+- 全屏 `min-h-screen`，深色背景 `#05080F`
+- 巨幅书法文字：`远离颠倒梦想，究竟涅槃`（中文楷书/行书风格）
 - 导航链接 + 社交链接 + 版权信息
 
 ### 全局交互
 
-#### 自定义鼠标指针（未实现）
+#### 自定义鼠标指针（已实现，但尚未接入首页）
 
 - 默认：小点 + 外圈
-- 文章卡片：读书图标
-- 项目卡片：箭头图标
-- 音乐区：音符图标
+- 文章卡片：📖 书本图标
+- 项目卡片：🔗 链接图标
+- 音乐区：🎵 音符图标
 - 可点击元素：指针圈放大
 
 #### 滚动动画

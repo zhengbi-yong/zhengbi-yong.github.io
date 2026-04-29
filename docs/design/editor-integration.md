@@ -84,10 +84,10 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 
 | 方法 | 端点 | 说明 |
 |------|------|------|
-| `POST` | `/v1/admin/posts` | 创建新文章 |
-| `PATCH` | `/v1/admin/posts/{postId}` | 更新已有文章 |
-| `GET` | `/v1/admin/posts` | 文章列表（管理后台） |
-| `DELETE` | `/v1/admin/posts/{postId}` | 删除文章 |
+| `POST` | `/api/v1/admin/posts` | 创建新文章 |
+| `PATCH` | `/api/v1/admin/posts/{postId}` | 更新已有文章 |
+| `GET` | `/api/v1/admin/posts` | 文章列表（管理后台） |
+| `DELETE` | `/api/v1/admin/posts/{postId}` | 删除文章 |
 
 ### 双轨存储模式 (Dual-track Pattern)
 
@@ -113,12 +113,12 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 
 | 方法 | 端点 | 说明 |
 |------|------|------|
-| `POST` | `/v1/admin/posts/{post_id}/versions` | 创建版本快照 |
-| `GET` | `/v1/admin/posts/{post_id}/versions` | 列出所有版本 |
-| `GET` | `/v1/admin/posts/{post_id}/versions/{version_number}` | 获取特定版本 |
-| `POST` | `/v1/admin/posts/{post_id}/versions/{version_number}/restore` | 回滚到某版本 |
-| `DELETE` | `/v1/admin/posts/{post_id}/versions/{version_number}` | 删除版本 |
-| `GET` | `/v1/admin/posts/{post_id}/versions/compare` | 比较两个版本 |
+| `POST` | `/api/v1/admin/posts/{post_id}/versions` | 创建版本快照 |
+| `GET` | `/api/v1/admin/posts/{post_id}/versions` | 列出所有版本 |
+| `GET` | `/api/v1/admin/posts/{post_id}/versions/{version_number}` | 获取特定版本 |
+| `POST` | `/api/v1/admin/posts/{post_id}/versions/{version_number}/restore` | 回滚到某版本 |
+| `DELETE` | `/api/v1/admin/posts/{post_id}/versions/{version_number}` | 删除版本 |
+| `GET` | `/api/v1/admin/posts/{post_id}/versions/compare` | 比较两个版本 |
 
 ## 自动保存 (Auto-save via useDraft)
 
@@ -162,14 +162,14 @@ export function useDraft(existingDraftId?: string) {
 
 ### 认证流程
 
-1. **登录**：`POST /v1/auth/login` 成功后，后端在响应中设置两个 HttpOnly cookie：
+1. **登录**：`POST /api/v1/auth/login` 成功后，后端在响应中设置两个 HttpOnly cookie：
    - `access_token` — 短期 token（15 分钟有效期，HttpOnly，Secure）
    - `refresh_token` — 长期 token（7 天有效期，HttpOnly，Secure，SameSite=Lax）
    - `XSRF-TOKEN` — CSRF 保护 token（HttpOnly=false，前端可读）
 
 2. **前端发送请求**：使用 `credentials: 'include'` 自动携带 cookies，无需手动设置 `Authorization` header
    ```typescript
-   fetch('/v1/admin/posts', {
+   fetch('/api/v1/admin/posts', {
      method: 'POST',
      credentials: 'include',  // 自动发送 HttpOnly cookies
      headers: { 'Content-Type': 'application/json' },
@@ -204,7 +204,7 @@ export function useDraft(existingDraftId?: string) {
 
 | 方法 | 端点 | 说明 |
 |------|------|------|
-| `POST` | `/v1/admin/media/upload` | 上传媒体文件 (multipart/form-data) |
+| `POST` | `/api/v1/admin/media/upload` | 上传媒体文件 (multipart/form-data)，前端调用 `/api/v1/admin/media/upload`，由 BFF 代理到后端 `/admin/media/upload` |
 
 ### 上传流程
 
@@ -229,10 +229,10 @@ const response = await fetch('/api/v1/admin/media/upload', {
 ```
 
 其他媒体管理端点：
-- `GET /v1/admin/media` — 媒体库列表
-- `GET /v1/admin/media/{id}` — 获取媒体详情
-- `PATCH /v1/admin/media/{id}` — 更新媒体信息
-- `DELETE /v1/admin/media/{id}` — 删除媒体
+- `GET /api/v1/admin/media` — 媒体库列表
+- `GET /api/v1/admin/media/{id}` — 获取媒体详情
+- `PATCH /api/v1/admin/media/{id}` — 更新媒体信息
+- `DELETE /api/v1/admin/media/{id}` — 删除媒体
 
 ## 版本历史字段名不一致
 

@@ -17,9 +17,9 @@ frontend/src/
 ├── app/
 │   ├── layout.tsx              # 根布局（全局字体/ThemeProvider/suppressHydrationWarning）
 │   │
-│   ├── (public)/               # 公开页面路由组
+│   ├── (public)/               # 公开页面路由组（仅含共享组件和布局）
 │   │   ├── layout.tsx         # 公开页外壳
-│   │   └── blog/[...slug]/    # 动态博客详情页
+│   │   └── blog/[...slug]/    # 共享组件目录（DynamicPostPage.tsx），非路由 — 实际路由在 app/blog/[...slug]/page.tsx
 │   │
 │   ├── blog/                   # 博客路由（直接位于 app/blog/，非路由组内）
 │   │   ├── page.tsx           # 博客列表首页
@@ -42,6 +42,11 @@ frontend/src/
 │   │       ├── posts/preview/     # 文章预览
 │   │       ├── posts-manage/      # 文章管理
 │   │       ├── users/         # 用户管理
+│   │       ├── users-refine/  # Refine 用户管理
+│   │       ├── team/          # 团队管理
+│   │       ├── team/new/      # 新建团队成员
+│   │       ├── team/edit/     # 编辑团队成员
+│   │       ├── test/          # 测试页面
 │   │       ├── comments/      # 评论管理
 │   │       ├── media/         # 媒体管理
 │   │       ├── analytics/     # 分析

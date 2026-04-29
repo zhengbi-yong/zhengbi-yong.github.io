@@ -25,7 +25,7 @@ Desktop (>= 1280px):
 └───────────────────────────────────────────────────────┘
 ```
 
-Tablet (768-1279px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
+Tablet (768-1023px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
 Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 ### 当前实现
@@ -77,14 +77,14 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：768px（Monograph 的 1280px 过晚，原 768px 为标准断点）
+- 移动端断点：1024px（Monograph 的 1280px 过晚，实际以 1024px 为标准断点）
 
 ## 阅读进度条 (ReadingProgressBar)
 
 - `position: fixed; top: 0; left: 0; z-index: 50;`
-- 高度：2px，品牌渐变背景
+- 高度：3px，纯色 `var(--mono-accent)` 背景（非渐变）
 - 宽度 = `scrollY / (scrollHeight - clientHeight)`
-- `requestAnimationFrame` 节流实现 60fps
+- `setTimeout` 节流实现流畅更新（非 requestAnimationFrame）
 
 ## 代码块
 

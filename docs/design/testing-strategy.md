@@ -5,11 +5,11 @@
 ## 测试金字塔
 
 ```text
-        ╱  E2E  ╲              Playwright: ~91 个测试用例覆盖 12 条核心路径
+        ╱  E2E  ╲              Playwright: ~100 个测试用例覆盖 12 条核心路径
        ╱──────────╲
-      ╱ 集成测试   ╲            前端 Vitest (188 tests), 后端 cargo test
+      ╱ 集成测试   ╲            前端 Vitest (~200 tests), 后端 cargo test
      ╱──────────────╲
-    ╱   单元测试      ╲          后端: 29 个测试文件 (含 mdx_convert 的 16 个测试)
+    ╱   单元测试      ╲          后端: 11 个集成/压力测试文件 + 4 个核心测试模块
    ╱────────────────────╲
   ╱  类型检查 (编译时)    ╲       Rust cargo check, TypeScript ESLint
  ╱──────────────────────────╲
@@ -19,11 +19,11 @@
 
 | 层级 | 工具 | 目标 | 现状 |
 |------|------|------|------|
-| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 29 个测试文件，16 个 mdx_convert 测试 |
+| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 11 个集成/压力测试文件 + 4 个核心测试模块 |
 | Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
 | TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
 | 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
-| E2E 流程 | Playwright | 12 条核心路径 | ~91 个 E2E 测试用例 |
+| E2E 流程 | Playwright | 12 条核心路径 | ~100 个 E2E 测试用例 |
 
 ## E2E 核心路径
 

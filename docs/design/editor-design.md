@@ -80,7 +80,7 @@
 
 ## 快捷键 (Keyboard Shortcuts)
 
-编辑器工具栏 (`EditorToolbar.tsx`) 中定义的快捷键映射，使用 `Ctrl` (Windows/Linux) / `Cmd` (macOS) 组合键：
+编辑器工具栏 (`TiptapEditor.tsx` 中内联) 中定义的快捷键映射，使用 `Ctrl` (Windows/Linux) / `Cmd` (macOS) 组合键：
 
 | 功能 | 快捷键 |
 |------|--------|

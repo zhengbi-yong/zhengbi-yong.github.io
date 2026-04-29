@@ -29,8 +29,6 @@ backend/
 │   │   │   │   ├── admin.rs
 │   │   │   │   ├── reading_progress.rs
 │   │   │   │   ├── search.rs
-│   │   │   │   ├── articles.rs           # 368 行 — 孤儿模块，存在于文件系统中但未在 routes/mod.rs 中导入，完全死代码
-│   │   │   │   ├── enhanced_posts.rs     # 303 行 — HATEOAS 示例，存在于文件系统中但未在 routes/mod.rs 中导入，完全死代码
 │   │   │   │   ├── mdx_convert.rs        # 407 行 — 管理端 MDX 转换端点
 │   │   │   │   ├── mdx_sync.rs
 │   │   │   │   ├── versions.rs
@@ -139,6 +137,7 @@ GET    /tags/autocomplete      # 自动补全
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /team-members | 团队成员列表 |
+| GET | /team-members/{id} | 团队成员详情 |
 
 ### 管理 API（需认证）
 
@@ -146,8 +145,8 @@ GET    /tags/autocomplete      # 自动补全
 |------|------|------|
 | GET | /admin/posts | 列表（含草稿） |
 | POST | /admin/posts | 创建 |
-| PATCH | /admin/posts/{postId} | 更新 |
-| DELETE | /admin/posts/{postId} | 删除 |
+| PATCH | /admin/posts/{post_id} | 更新 |
+| DELETE | /admin/posts/{post_id} | 删除 |
 | POST | /admin/sync/mdx | 同步 MDX |
 | GET | /admin/stats | 仪表盘统计 |
 | GET | /admin/users | 用户列表 |
@@ -170,16 +169,22 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/media/upload | 上传媒体 |
 | POST | /admin/media/presign-upload | 预签名上传 |
 | POST | /admin/media/finalize | 完成上传 |
-| GET | /admin/posts/{postId}/versions | 版本列表 |
-| POST | /admin/posts/{postId}/versions | 创建版本 |
-| GET | /admin/posts/{postId}/versions/{versionNumber} | 版本详情 |
-| POST | /admin/posts/{postId}/versions/{versionNumber}/restore | 恢复版本 |
-| DELETE | /admin/posts/{postId}/versions/{versionNumber} | 删除版本 |
-| GET | /admin/posts/{postId}/versions/compare | 比较版本 |
+| GET | /admin/posts/{post_id}/versions | 版本列表 |
+| POST | /admin/posts/{post_id}/versions | 创建版本 |
+| GET | /admin/posts/{post_id}/versions/{versionNumber} | 版本详情 |
+| POST | /admin/posts/{post_id}/versions/{versionNumber}/restore | 恢复版本 |
+| DELETE | /admin/posts/{post_id}/versions/{versionNumber} | 删除版本 |
+| POST | /admin/posts/{post_id}/versions/compare | 比较版本 |
 | POST | /admin/search/reindex | 重建搜索索引 |
 | POST | /admin/mdx/convert | MDX 内容转换 |
 | POST | /admin/mdx/batch-convert | MDX 批量转换 |
 | POST | /admin/mdx/migrate-all | 迁移所有内容为 JSON |
+| GET | /admin/team-members | 团队成员列表（含 inactive，支持分页/搜索/筛选） |
+| POST | /admin/team-members | 创建团队成员 |
+| GET | /admin/team-members/{id} | 团队成员详情 |
+| PUT | /admin/team-members/{id} | 更新团队成员 |
+| DELETE | /admin/team-members/{id} | 删除团队成员（软删除） |
+| POST | /admin/team-members/batch/delete | 批量删除团队成员 |
 
 ## 中间件
 
@@ -323,9 +328,11 @@ async fn auth_middleware(
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | ~~基本健康检查~~（handler 存在但未注册为路由，参见下方状态说明） | 返回 JSON HealthStatus（status/timestamp/version/uptime） |
+| /health | ~~基本健康检查~~（handler 存在但未注册为路由，见下方状态说明） | 返回 JSON HealthStatus（status/timestamp/version/uptime） |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |
+
+> **注意**：`/health`（基础）不是活跃路由（live route）—— handler 虽定义在 `metrics/health.rs` 中，但**未在 `main.rs` 中注册**。当前仅 `/health/detailed` 是活跃的健康检查端点，勿将 `/health` 用于探针配置。详情见下方「状态说明」。
 
 ## 状态说明
 
