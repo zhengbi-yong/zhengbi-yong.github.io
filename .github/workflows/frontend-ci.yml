@@ -28,7 +28,7 @@ jobs:
         run: pnpm lint
       - name: TypeScript check
         working-directory: ./frontend
-        run: pnpm tsc --noEmit
+        run: pnpm rebuild @tiptap/core && pnpm tsc --noEmit
 
   test:
     name: Unit Tests
@@ -44,6 +44,9 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
+      - name: Rebuild native deps (fix CI symlink issues)
+        working-directory: ./frontend
+        run: pnpm rebuild
       - name: Run tests
         working-directory: ./frontend
         run: pnpm test --coverage
@@ -63,6 +66,9 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
+      - name: Rebuild native deps (fix CI symlink issues)
+        working-directory: ./frontend
+        run: pnpm rebuild
       - name: Build
         working-directory: ./frontend
         run: pnpm build
@@ -84,6 +90,9 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
+      - name: Rebuild native deps (fix CI symlink issues)
+        working-directory: ./frontend
+        run: pnpm rebuild
       - name: Install Playwright browsers
         working-directory: ./frontend
         run: pnpm exec playwright install chromium
