@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader2, Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Code2, Minus, AlignLeft, AlignCenter, AlignRight, Undo2, Redo2, Image as ImageIcon, Link as LinkIcon, Highlighter, Subscript as SubscriptIcon, Superscript as SuperscriptIcon, RemoveFormatting, Palette, Sigma } from 'lucide-react'
+import { Loader2, Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, Heading1, Heading2, Heading3, List, ListOrdered, ListChecks, Quote, Code2, Minus, AlignLeft, AlignCenter, AlignRight, Undo2, Redo2, Image as ImageIcon, Link as LinkIcon, Highlighter, Subscript as SubscriptIcon, Superscript as SuperscriptIcon, RemoveFormatting, Palette, Sigma, ChevronDown } from 'lucide-react'
 import { useEditor, EditorContent, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -16,6 +16,8 @@ import Superscript from '@tiptap/extension-superscript'
 import TaskList from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 import Typography from '@tiptap/extension-typography'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import { common, createLowlight } from 'lowlight'
 
 // reactjs-tiptap-editor — core extensions (verified working with Webpack)
 // import { Table } from 'reactjs-tiptap-editor/table'
@@ -33,6 +35,42 @@ import { Twitter as TwitterExtension } from 'reactjs-tiptap-editor/twitter'
 import { Callout as CalloutExtension } from 'reactjs-tiptap-editor/callout'
 
 import { cn } from '@/lib/utils'
+
+// =============================================================================
+// Code block language definitions
+// =============================================================================
+
+const CODE_LANGUAGES = [
+  { label: '无语言', value: '' },
+  { label: 'TypeScript', value: 'typescript' },
+  { label: 'JavaScript', value: 'javascript' },
+  { label: 'Python', value: 'python' },
+  { label: 'Rust', value: 'rust' },
+  { label: 'Go', value: 'go' },
+  { label: 'Java', value: 'java' },
+  { label: 'C++', value: 'cpp' },
+  { label: 'C', value: 'c' },
+  { label: 'Shell / Bash', value: 'shellscript' },
+  { label: 'JSON', value: 'json' },
+  { label: 'YAML', value: 'yaml' },
+  { label: 'TOML', value: 'toml' },
+  { label: 'Markdown', value: 'markdown' },
+  { label: 'MDX', value: 'mdx' },
+  { label: 'HTML', value: 'html' },
+  { label: 'CSS', value: 'css' },
+  { label: 'SQL', value: 'sql' },
+  { label: 'PHP', value: 'php' },
+  { label: 'Ruby', value: 'ruby' },
+  { label: 'Swift', value: 'swift' },
+  { label: 'Kotlin', value: 'kotlin' },
+  { label: 'Lua', value: 'lua' },
+  { label: 'Haskell', value: 'haskell' },
+  { label: 'R', value: 'r' },
+  { label: 'Dockerfile', value: 'docker' },
+  { label: 'Nginx', value: 'nginx' },
+  { label: 'LaTeX', value: 'latex' },
+  { label: 'Vim', value: 'vim' },
+] as const
 
 // =============================================================================
 // ToolbarButton
@@ -71,6 +109,78 @@ function ToolbarButton({
 
 function Divider() {
   return <div className="w-px h-6 bg-border mx-0.5 flex-shrink-0" />
+}
+
+// =============================================================================
+// CodeBlockLanguageSelector — dropdown to choose code block language
+// =============================================================================
+function CodeBlockLanguageSelector({
+  editor,
+  isCodeBlock,
+}: {
+  editor: NonNullable<ReturnType<typeof useEditor>>
+  isCodeBlock: boolean
+}) {
+  const [open, setOpen] = useState(false)
+
+  const currentLanguage = useEditorState({
+    editor,
+    selector: (ctx) => {
+      if (!ctx.editor.isActive('codeBlock')) return ''
+      const attrs = ctx.editor.getAttributes('codeBlock')
+      return attrs?.language || ''
+    },
+  })
+
+  const selectedLang = CODE_LANGUAGES.find((l) => l.value === currentLanguage)
+
+  if (!isCodeBlock) return null
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1 px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors border border-border/50 min-w-[80px]"
+        title="选择代码语言"
+      >
+        <span className="truncate max-w-[80px]">
+          {selectedLang?.label || '无语言'}
+        </span>
+        <ChevronDown className="h-3 w-3 flex-shrink-0" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 z-50 mt-1 max-h-[280px] w-[160px] overflow-y-auto rounded-lg border bg-popover p-1 shadow-lg">
+            {CODE_LANGUAGES.map((lang) => (
+              <button
+                key={lang.value}
+                type="button"
+                className={cn(
+                  'flex w-full items-center rounded px-2.5 py-1.5 text-xs transition-colors',
+                  lang.value === currentLanguage
+                    ? 'bg-accent text-accent-foreground font-medium'
+                    : 'hover:bg-accent/50 text-muted-foreground'
+                )}
+                onClick={() => {
+                  if (lang.value) {
+                    editor.chain().focus().updateAttributes('codeBlock', { language: lang.value }).run()
+                  } else {
+                    // Clear language attribute — remove it
+                    editor.chain().focus().updateAttributes('codeBlock', { language: null }).run()
+                  }
+                  setOpen(false)
+                }}
+              >
+                {lang.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 // =============================================================================
@@ -167,6 +277,11 @@ function Toolbar({
       <ToolbarButton onClick={() => editor.chain().focus().setHorizontalRule().run()} ariaLabel="分隔线" title="分隔线">
         <Minus className="h-4 w-4" />
       </ToolbarButton>
+
+      <Divider />
+
+      {/* ── 代码块语言选择器 (仅在代码块激活时显示) ── */}
+      <CodeBlockLanguageSelector editor={editor} isCodeBlock={isCodeBlock} />
 
       <Divider />
 
@@ -389,6 +504,12 @@ function RichTextEditorInner({
         code: { HTMLAttributes: { class: 'bg-muted px-1 py-0.5 rounded text-sm font-mono' } },
         link: false,
         underline: false,
+        codeBlock: false, // We use CodeBlockLowlight instead
+      }),
+
+      // Code block with syntax highlighting support (lowlight)
+      CodeBlockLowlight.configure({
+        lowlight: createLowlight(common),
       }),
 
       // Core formatting

@@ -70,7 +70,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [language, codeText])
+  }, [highlightLang, codeText])
 
   const handleCopy = useCallback(async () => {
     try {
@@ -166,45 +166,28 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
 
       {/* Code content */}
       <div className="relative">
-        {language ? (
-          <div className="flex">
-            {/* Line numbers — hidden on very small screens */}
-            <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
-              {codeText.split('\n').map((_, i) => (
-                <div key={i}>{i + 1}</div>
-              ))}
-            </div>
-            <div className="flex-1 overflow-x-auto">
-              {highlightedHtml ? (
-                <pre
-                  className="p-4 text-sm leading-[1.7]"
-                  dangerouslySetInnerHTML={{
-                    __html: extractShikiContent(highlightedHtml),
-                  }}
-                />
-              ) : (
-                <div className="p-4 text-sm font-mono leading-[1.7] text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                  {codeText}
-                </div>
-              )}
-            </div>
+        <div className="flex">
+          {/* Line numbers — hidden on very small screens */}
+          <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
+            {codeText.split('\n').map((_, i) => (
+              <div key={i}>{i + 1}</div>
+            ))}
           </div>
-        ) : (
-          /* 无语言标识的代码块 — 带行号和 white-space 保留 */
-          <div className="flex">
-            {/* Line numbers — hidden on very small screens */}
-            <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
-              {codeText.split('\n').map((_, i) => (
-                <div key={i}>{i + 1}</div>
-              ))}
-            </div>
-            <div className="flex-1 overflow-x-auto">
+          <div className="flex-1 overflow-x-auto">
+            {highlightedHtml ? (
+              <pre
+                className="p-4 text-sm leading-[1.7]"
+                dangerouslySetInnerHTML={{
+                  __html: extractShikiContent(highlightedHtml),
+                }}
+              />
+            ) : (
               <div className="p-4 text-sm font-mono leading-[1.7] text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
                 {codeText}
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
