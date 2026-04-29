@@ -89,9 +89,6 @@
 | `editor/CollaborationEditor.tsx` | 协作编辑 |
 || `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
 || `editor/extensions/mathematics-extended.tsx` | 数学公式扩展 |
-|| ~~`editor/extensions/ShikiCodeBlockComponent.tsx`~~ | ~~Shiki 代码块组件~~ (已删除) |
-|| `editor/extensions/ShikiCodeBlock.ts` | Shiki 代码块定义 |
-| `editor/extensions/CodeBlockShikiNodeView.tsx` | 代码块节点视图 |
 | `editor/extensions/math-node-view.tsx` | 数学公式节点视图 |
 | `editor/hooks/useImageUpload.ts` | 图片上传 Hook |
 

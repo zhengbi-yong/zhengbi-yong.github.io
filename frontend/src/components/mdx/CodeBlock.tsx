@@ -37,10 +37,14 @@ function extractTextContent(children: ReactNode): string {
 /**
  * Extract just the inner code content from Shiki's full HTML output.
  * Shiki wraps in <pre><code>...</code></pre>; we need only the inner part.
+ * Also removes the raw newline text nodes between <span class="line"> elements
+ * that Shiki outputs — these cause blank lines when .line has display:block.
  */
 function extractShikiContent(html: string): string {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
-  return match ? match[1] : html
+  const inner = match ? match[1] : html
+  // Remove newline text nodes between .line spans (preserve other whitespace inside spans)
+  return inner.replace(/<\/span>\n<span/g, '</span><span')
 }
 
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
@@ -49,16 +53,18 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const language = extractLanguage(className)
   const codeText = extractTextContent(children)
+  // Trim trailing whitespace to prevent Shiki from generating an empty trailing .line span
+  const trimmedCode = codeText.trimEnd()
 
   // E3: Async Shiki highlighting — yields to React's scheduler
   useEffect(() => {
-    if (!language || !codeText.trim()) {
+    if (!language || !trimmedCode.trim()) {
       return undefined
     }
     let cancelled = false
     const timer = setTimeout(async () => {
       try {
-        const html = await highlightCode(codeText, language, 'github-dark')
+        const html = await highlightCode(trimmedCode, language, 'github-dark')
         if (!cancelled) {
           setHighlightedHtml(html)
         }
@@ -70,11 +76,11 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [language, codeText])
+  }, [language, trimmedCode])
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(codeText)
+      await navigator.clipboard.writeText(trimmedCode)
       setCopied(true)
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
       timeoutRef.current = setTimeout(() => setCopied(false), 2000)
@@ -171,7 +177,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
         <div className="flex">
           {/* Line numbers — hidden on very small screens */}
           <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-sm leading-[1.7] text-gray-600 dark:text-gray-500">
-            {codeText.split('\n').map((_, i) => (
+            {trimmedCode.split('\n').map((_, i) => (
               <div key={i}>{i + 1}</div>
             ))}
           </div>
