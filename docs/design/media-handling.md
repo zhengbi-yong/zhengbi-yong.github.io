@@ -80,9 +80,9 @@ CREATE TABLE media (
 );
 ```
 
-### `media_assets` 表（文章系统关联表）
+### `media_assets` 表（替代旧 `media` 表的主媒体表）
 
-除了 `media` 表外，文章系统中还使用 `media_assets` 表来建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
+`media_assets` 是 **替代旧 `media` 表** 的新主媒体表，不再使用旧的 `media` 表。文章系统中通过 `media_assets` 表建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
 
 ```sql
 CREATE TABLE media_assets (

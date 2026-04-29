@@ -48,7 +48,7 @@
 
 | 文件 | 职责 |
 |------|------|
-| `CodeBlock.tsx` | 轻量级代码块（macOS 窗口装饰 + 复制按钮 + 终端模式） |
+| ~~`CodeBlock.tsx`~~ | ~~轻量级代码块~~ (不存在；仅 `mdx/CodeBlock.tsx` 存在) |
 | `mdx/CodeBlock.tsx` | 高级代码块（Shiki 语法高亮 + 深色主题 + macOS 窗口装饰 + 复制按钮 + 行号 + 终端模式） |
 
 ## 6) 杂志风格组件 (Magazine)
@@ -60,8 +60,8 @@
 | `magazine/FilterBar.tsx` | 分类过滤 + 排序 + 搜索 |
 | `magazine/RecommendedSection.tsx` | 基于阅读历史的推荐引擎 |
 | `magazine/BookCard.tsx` | 书籍封面卡片 |
-| `magazine/SmartCard.tsx` | 智能内容卡片（自动适配类型） |
-| `magazine/ChapterCard.tsx` | 章节预览卡片 |
+| ~~`magazine/SmartCard.tsx`~~ | ~~智能内容卡片（自动适配类型）~~ (不存在) |
+| ~~`magazine/ChapterCard.tsx`~~ | ~~章节预览卡片~~ (不存在) |
 
 ## 7) 书籍组件 (Book)
 
@@ -71,7 +71,7 @@
 | `book/Chapter.tsx` | 章节展示（进度指示器） |
 | `book/ArticleCard.tsx` | 文章卡片（缩略图、元数据） |
 | `book/BackToShelfButton.tsx` | 返回书架导航按钮 |
-| `book/BookIcons.tsx` | 书籍分类图标映射 |
+| ~~`book/BookIcons.tsx`~~ | ~~书籍分类图标映射~~ (不存在) |
 
 ## 8) 编辑器组件 (Editor)
 
@@ -80,13 +80,13 @@
 | `editor/TiptapEditor.tsx` | TipTap 富文本编辑器核心 |
 | `editor/MenuBar.tsx` | 编辑器工具栏菜单 |
 | `editor/EditorToolbar.tsx` | 格式化工具栏 |
-| `editor/FloatingMenu.tsx` | 浮动菜单 |
+| `editor/FloatingMenu.tsx` | 浮动菜单 (不存在) |
 | `editor/SplitEditor.tsx` | 分屏编辑器 |
 | `editor/ImmersiveEditorLayout.tsx` | 沉浸式编辑布局 |
 | `editor/ArticleSettingsPanel.tsx` | 文章设置面板 |
 | `editor/ArticleMetadata.tsx` | 文章元数据编辑 |
 | `editor/SEOPreviewCard.tsx` | SEO 预览卡片 |
-| `editor/CollaborationEditor.tsx` | 协作编辑 |
+| ~~`editor/CollaborationEditor.tsx`~~ | ~~协作编辑~~ (未实现无实际同步逻辑) |
 | `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
 | `editor/extensions/mathematics-extended.tsx` | 数学公式扩展 |
 | `editor/extensions/ShikiCodeBlockComponent.tsx` | Shiki 代码块组件 |
@@ -119,12 +119,12 @@
 | `loaders/Spinner.tsx` | 旋转加载图标 |
 | `loaders/Skeleton.tsx` | 基础骨架屏（text/rect/circle） |
 | `loaders/ListSkeleton.tsx` | 文章列表骨架屏 |
-| `loaders/ArticleSkeleton.tsx` | 文章详情骨架屏 |
-| `loaders/CardSkeleton.tsx` | 卡片骨架屏 |
-| `loaders/ImageSkeleton.tsx` | 图片占位骨架屏 |
-| `loaders/AnimationSkeleton.tsx` | 动画组件骨架屏 |
-| `loaders/RouteTransition.tsx` | 路由切换过渡 |
-| `loaders/index.ts` | 统一导出 |
+| ~~`loaders/ArticleSkeleton.tsx`~~ | ~~文章详情骨架屏~~ (不存在) |
+| ~~`loaders/CardSkeleton.tsx`~~ | ~~卡片骨架屏~~ (不存在) |
+| ~~`loaders/ImageSkeleton.tsx`~~ | ~~图片占位骨架屏~~ (不存在) |
+| ~~`loaders/AnimationSkeleton.tsx`~~ | ~~动画组件骨架屏~~ (不存在) |
+| ~~`loaders/RouteTransition.tsx`~~ | ~~路由切换过渡~~ (不存在) |
+| ~~`loaders/index.ts`~~ | ~~统一导出~~ (不存在) |
 
 ## 12) 化学可视化组件 (Chemistry)
 
@@ -135,10 +135,10 @@
 | `chemistry/SimpleChemicalStructure.tsx` | 轻量级结构查看器 |
 | `chemistry/SMILESConverter.tsx` | SMILES 符号转换器 |
 | `chemistry/MoleculeFingerprint.tsx` | 分子指纹可视化 |
-| `chemistry/MhchemInit.tsx` | LaTeX mhchem 化学公式初始化 |
-| `chemistry/threeDmol.ts` | 3Dmol.js 工具函数 |
-| `chemistry/runtimeProps.ts` | 运行时属性类型 |
-| `chemistry/index.ts` | 统一导出 |
+| ~~`chemistry/MhchemInit.tsx`~~ | ~~LaTeX mhchem 化学公式初始化~~ (不存在) |
+| ~~`chemistry/threeDmol.ts`~~ | ~~3Dmol.js 工具函数~~ (不存在) |
+| ~~`chemistry/runtimeProps.ts`~~ | ~~运行时属性类型~~ (不存在) |
+| ~~`chemistry/index.ts`~~ | ~~统一导出~~ (不存在) |
 
 ## 13) 自定义 UI 组件与 Shadcn 分离说明
 

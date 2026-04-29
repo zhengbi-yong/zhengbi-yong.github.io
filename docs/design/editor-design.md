@@ -101,9 +101,9 @@
 
 这些快捷键由 TipTap 内置键盘处理器支持，工具栏按钮的 `title` 属性中会显示对应快捷键提示。
 
-## 斜杠命令 (Slash Commands)
+## 斜杠命令 (Slash Commands) ⚠️ 未实现
 
-浮动菜单 (`FloatingMenu.tsx`) 实现了完整的斜杠命令系统：在段落开头键入 `/` 时触发，弹出浮动菜单供用户快速插入块级元素。
+浮动菜单 (`FloatingMenu.tsx`) 计划实现完整的斜杠命令系统：在段落开头键入 `/` 时触发，弹出浮动菜单供用户快速插入块级元素。**当前未实际实现。**
 
 ### 触发条件
 
@@ -138,6 +138,8 @@
 
 该扩展以优先级 100 覆盖 StarterKit 内置的 `codeBlock`（优先级 50），确保 `<pre>` 标签的解析和渲染使用 Shiki 高亮。`toggleCodeBlock` 命令仍由 StarterKit 提供。
 
+**注意：ShikiCodeBlock 扩展未注册到编辑器；Shiki 仅用于 MDX 静态渲染。**
+
 ## CollaborationEditor
 
 `CollaborationEditor.tsx` 是一个透传（passthrough）包装组件，渲染 `TiptapEditor` 但不包含实际的 Yjs/Hocuspocus 同步逻辑。它是一个未来协作功能的占位符。
@@ -157,18 +159,18 @@ export default function CollaborationEditor({ roomId, ...props }) {
 
 | 组件 | 状态 | 路径 |
 |------|------|------|
-| Hocuspocus WebSocket 服务器 | ✅ 已实现 | `frontend/scripts/hocuspocus-server.js` (34 行，独立 Node.js 进程，端口 3002) |
-| npm 依赖 (`@hocuspocus/provider`, `@hocuspocus/server`, `yjs`) | ✅ 已安装 | 作为 reactjs-tiptap-editor 的 transitive 依赖存在于 `pnpm-lock.yaml` |
+| Hocuspocus WebSocket 服务器 | ❌ 未实现，依赖未安装 | `frontend/scripts/hocuspocus-server.js` (34 行，独立 Node.js 进程，端口 3002) |
+| npm 依赖 (`@hocuspocus/provider`, `@hocuspocus/server`, `yjs`) | ❌ 未实现，依赖未安装 | 作为 reactjs-tiptap-editor 的 transitive 依赖存在于 `pnpm-lock.yaml` |
 | 前端集成 (`CollaborationEditor.tsx`) | ⏳ 占位符 | 仅透传 props 到 `TiptapEditor`，无 Yjs 同步逻辑 |
 
-Hocuspocus 服务器目前处于 in-memory 模式（Phase 1），支持连接/断开事件，持久化尚未实现。
+Hocuspocus 服务器及协作功能目前未实现，相关依赖未安装。前端 `CollaborationEditor.tsx` 仅为未来协作功能的占位符包装组件。
 
 ## 待改造项
 
 | 优先级 | 改造项 | 说明 |
 |-------|--------|------|
 | P0 | 正则量词修复 | `[\\s\\S]+` → `[\\s\\S]*`，支持空 math div |
-| P1 | saveToMdx 参与数学还原 | 让 saveToMdx 在 turndown 后处理数学公式 |
+| P1 | ~~saveToMdx~~ 已废弃；MDX 转换由后端完成 | 让 saveToMdx 在 turndown 后处理数学公式 |
 | P1 | loadToEditor HTML 实体解码 | `data-latex="a&amp;b"` → `a&b` |
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
 || ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |

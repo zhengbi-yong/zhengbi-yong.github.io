@@ -122,7 +122,7 @@ pub struct ConversionStats {
 
 ## 双轨存储
 
-`posts` 表和 `articles` 表均采用 dual-track 模式：
+`articles` 表是 canonical 双轨存储表。`posts` 表虽也包含 `content_json` 和 `content_mdx` 列，但这是通过临时脚本后期加上的，并非原生双轨设计。`articles` 是原生双轨表：
 
 | 列 | 类型 | 用途 |
 |----|------|------|

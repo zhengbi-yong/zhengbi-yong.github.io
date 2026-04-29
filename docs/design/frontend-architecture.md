@@ -27,8 +27,8 @@ frontend/src/
 │   │   ├── error.tsx
 │   │   ├── [...slug]/         # 博客详情（动态路由）
 │   │   ├── category/[category]/ # 分类页面
-│   │   ├── popular/           # 热门文章
-│   │   └── page/[page]/       # 列表分页
+│   │   └── popular/           # 热门文章
+│   │   # 注意: page/[page]/ 分页路由未实现 —— 博客列表使用 SearchDashboard 客户端搜索
 │   │
 │   ├── (admin)/                # 管理后台 - 严格 SSR+权限
 │   │   └── admin/
@@ -148,7 +148,10 @@ export const postService = {
 | Store | 存什么 | 存哪里 | 原因 |
 |-------|--------|--------|------|
 | ui-store | theme, sidebar, modal | Zustand | 纯 UI，无敏感数据 |
-| UIStore (lib/ui/UIStore.ts) | global loading, notifications, modals, sidebar, colorMode | Zustand | UI 层级状态管理（非 React Context） |
+| | UIStore (lib/ui/UIStore.ts) | global loading, notifications, modals, sidebar, colorMode | Zustand | UI 层级状态管理（非 React Context）**建议合并至 lib/store/ui-store.ts** |
+
+> **注意**：`ui-store.ts` 和 `UIStore.ts` 功能重叠（都管理 theme/sidebar/modal）。建议合并为一个统一 UI Store 以避免状态分散。 (recommend: consolidation)
+
 | auth-store | user, isAuthenticated | Zustand | 存储用户会话状态，token 仅存 HttpOnly Cookie |
 | blog-store | posts cache | Zustand | 缓存博客数据，1 小时过期，减少 API 调用 |
 | post-store | post stats (likes, views), likedPosts | Zustand | 文章交互状态 |
