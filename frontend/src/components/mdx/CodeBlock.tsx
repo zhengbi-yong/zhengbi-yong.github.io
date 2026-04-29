@@ -169,7 +169,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
         {language ? (
           <div className="flex">
             {/* Line numbers — hidden on very small screens */}
-            <div className="hidden sm:flex flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
+            <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
               {codeText.split('\n').map((_, i) => (
                 <div key={i}>{i + 1}</div>
               ))}
@@ -193,7 +193,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
           /* 无语言标识的代码块 — 带行号和 white-space 保留 */
           <div className="flex">
             {/* Line numbers — hidden on very small screens */}
-            <div className="hidden sm:flex flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
+            <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
               {codeText.split('\n').map((_, i) => (
                 <div key={i}>{i + 1}</div>
               ))}
