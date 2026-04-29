@@ -88,12 +88,12 @@
 | `editor/SEOPreviewCard.tsx` | SEO 预览卡片 |
 | `editor/CollaborationEditor.tsx` | 协作编辑 |
 || `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
-|| `editor/extensions/mathematics-extended.tsx` | 数学公式扩展 |
+|| `editor/extensions/mathematics-extended.tsx` | 数学公式扩展 (不存在) |
 || ~~`editor/extensions/ShikiCodeBlockComponent.tsx`~~ | ~~Shiki 代码块组件~~ (已删除) |
-|| `editor/extensions/ShikiCodeBlock.ts` | Shiki 代码块定义 |
-| `editor/extensions/CodeBlockShikiNodeView.tsx` | 代码块节点视图 |
-| `editor/extensions/math-node-view.tsx` | 数学公式节点视图 |
-| `editor/hooks/useImageUpload.ts` | 图片上传 Hook |
+|| `editor/extensions/ShikiCodeBlock.ts` | Shiki 代码块定义 (不存在) |
+|| `editor/extensions/CodeBlockShikiNodeView.tsx` | 代码块节点视图 (不存在) |
+|| `editor/extensions/math-node-view.tsx` | 数学公式节点视图 (不存在) |
+|| `editor/hooks/useImageUpload.ts` | 图片上传 Hook (不存在) |
 
 ## 9) 认证组件 (Auth)
 
@@ -159,10 +159,18 @@
 |------|------|
 | `home/HeroSection.tsx` | Three.js 粒子沉浸英雄区 |
 | `home/BentoGrid.tsx` | 首页 Bento 网格 |
+| `home/BentoCard.tsx` | Bento 网格卡片 |
 | `home/ProjectGallery.tsx` | 项目展示 |
 | `home/MusicExperience.tsx` | 音乐体验区 |
+| `home/MusicOSMDRenderer.tsx` | 音乐 OSMD 渲染器 |
 | `home/LatestWriting.tsx` | 最新文章 |
 | `home/MegaFooter.tsx` | 尾页巨型 Footer |
+| `home/AnimatedText.tsx` | 动画文字 |
+| `home/CustomCursor.tsx` | 自定义光标 |
+| `home/HeroCard.tsx` | 英雄卡片（视差效果） |
+| `home/ParticleBackground.tsx` | 粒子背景 |
+| `home/SocialCard.tsx` | 社交链接卡片 |
+| `home/ToolsCard.tsx` | 工具技术展示卡片 |
 
 ## 16) 主题与视觉 Token
 

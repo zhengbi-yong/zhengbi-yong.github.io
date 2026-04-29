@@ -7,15 +7,16 @@
 ### 黄金比例非对称双栏
 
 ```
-Desktop (>= 1280px):
+
+Desktop (>= 1024px):
 ┌───────────────────────────────────────────────────────┐
-│  Progress Bar (2px, fixed top, brand gradient)         │
+|  Progress Bar (3px, fixed top, brand gradient)         |
 ├───────────────────────────────────────────────────────┤
 │                    Article Hero                         │
 ├──────────────────────────────────┬────────────────────┤
 │                                 │                     │
-│    Main Content (62%)           │   TOC Sidebar (38%) │
-│    max-width: 680px             │   max-width: 320px  │
+│    Main Content (1fr)           │   TOC Sidebar (220px) │
+│    max-width: 680px             │   padding-left: 40px │
 │    optimal line length:         │   position: sticky  │
 │    65-75 chars/line             │   top: 2rem         │
 │                                 │   scroll-spy active │
@@ -25,7 +26,7 @@ Desktop (>= 1280px):
 └───────────────────────────────────────────────────────┘
 ```
 
-Tablet (768-1279px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
+Tablet (768-1023px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
 Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 ### 当前实现
@@ -53,14 +54,14 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 > **全局样式文件**：项目不使用 `globals.css`。所有全局样式通过 `src/styles/tailwind.css` 管理，该文件在 `layout.tsx` 中通过 `import '@/styles/tailwind.css'` 引入。
 
-### 字号比例（Fibonacci-based）
+### 字号比例（clamp() fluid）
 
 | 元素 | 大小 | 行高 | 字间距 |
 |------|------|------|--------|
-| h1 | 2.25rem (36px) | 1.3 | -0.02em |
-| h2 | 1.75rem (28px) | 1.35 | -0.01em |
-| h3 | 1.375rem (22px) | 1.4 | 0 |
-| h4 | 1.125rem (18px) | 1.45 | 0 |
+| h1 | `clamp(2rem, 1.6rem + 2vw, 3.5rem)` | 1.3 | -0.02em |
+| h2 | `clamp(1.5rem, 1.3rem + 1vw, 2.25rem)` | 1.35 | -0.01em |
+| h3 | `clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem)` | 1.4 | 0 |
+| h4 | `clamp(1.1rem, 1rem + 0.5vw, 1.375rem)` | 1.45 | 0 |
 | Body | 1rem (16px) | 1.75 (CJK) / 1.6 (Latin) | 0 |
 | Small | 0.875rem (14px) | 1.5 | 0.01em |
 
@@ -82,9 +83,9 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 ## 阅读进度条 (ReadingProgressBar)
 
 - `position: fixed; top: 0; left: 0; z-index: 50;`
-- 高度：2px，品牌渐变背景
+- 高度：3px，品牌色实心背景（--mono-accent）
 - 宽度 = `scrollY / (scrollHeight - clientHeight)`
-- `requestAnimationFrame` 节流实现 60fps
+- `debounce` 节流（100ms）
 
 ## 代码块
 

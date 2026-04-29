@@ -126,8 +126,8 @@ CREATE TABLE posts (
     deleted_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_posts_status ON posts(status);
-CREATE INDEX idx_posts_published ON posts(published_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX idx_posts_status ON posts(status) WHERE deleted_at IS NULL;
+CREATE INDEX idx_posts_published_at ON posts(published_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_ops);
 CREATE INDEX idx_posts_title_exact ON posts (title) WHERE deleted_at IS NULL;
 ```
@@ -310,7 +310,7 @@ CREATE TABLE post_versions (
 ### 点赞 (post_likes / comment_likes)
 ```sql
 CREATE TABLE post_likes (
-    slug TEXT NOT NULL REFERENCES posts(slug) ON DELETE CASCADE,
+    slug TEXT NOT NULL,  -- REFERENCES posts(slug) in design only; not enforced in migration (post_stats.slug is the actual PK target)
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (slug, user_id)
@@ -397,7 +397,10 @@ CREATE TABLE password_reset_tokens (
 CREATE INDEX idx_password_reset_tokens_expires ON password_reset_tokens(expires_at);
 ```
 
-### 搜索关键词 (search_keywords)
+### 搜索关键词 (search_keywords) — 计划中，尚未实施
+
+> ⚠️ 以下两张表（search_keywords、search_history）为计划中的数据结构定义，**尚未通过 migration 创建**。实际搜索功能依赖现有的 PostgreSQL `pg_trgm` 扩展实现全文检索。
+
 ```sql
 CREATE TABLE search_keywords (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
@@ -409,7 +412,8 @@ CREATE TABLE search_keywords (
 );
 ```
 
-### 搜索历史 (search_history)
+### 搜索历史 (search_history) — 计划中，尚未实施
+
 ```sql
 CREATE TABLE search_history (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),

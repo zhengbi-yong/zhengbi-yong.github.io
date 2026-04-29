@@ -17,9 +17,9 @@ frontend/src/
 ├── app/
 │   ├── layout.tsx              # 根布局（全局字体/ThemeProvider/suppressHydrationWarning）
 │   │
-│   ├── (public)/               # 公开页面路由组
+│   ├── (public)/               # 仅包装 blog/[...slug]/ 的路由组（blog/page.tsx 在组外）
 │   │   ├── layout.tsx         # 公开页外壳
-│   │   └── blog/[...slug]/    # 动态博客详情页
+│   │   └── blog/[...slug]/    # 动态博客详情页（共享组件，实际 page.tsx 在 blog/ 下）
 │   │
 │   ├── blog/                   # 博客路由（直接位于 app/blog/，非路由组内）
 │   │   ├── page.tsx           # 博客列表首页
@@ -39,7 +39,7 @@ frontend/src/
 │   │       ├── posts/edit/[...slug]/  # 编辑文章
 │   │       ├── posts/versions/[...slug]/  # 版本历史
 │   │       ├── posts/show/[slug]/  # 查看文章
-│   │       ├── posts/preview/     # 文章预览
+│   │       ├── posts/preview/     # 文章预览（存在 page.tsx）
 │   │       ├── posts-manage/      # 文章管理
 │   │       ├── users/         # 用户管理
 │   │       ├── comments/      # 评论管理
@@ -49,7 +49,12 @@ frontend/src/
 │   │       └── settings/      # 设置
 │   │
 │   └── api/
-│       └── v1/[...path]/      # BFF 代理（仅 Client 组件调用）
+│       ├── v1/[...path]/route.ts  # BFF 代理（仅 Client 组件调用）
+│       ├── v1/posts/route.ts       # 文章 API
+│       ├── mdx/compile/route.ts    # MDX 编译
+│       ├── newsletter/route.ts     # 新闻通讯
+│       ├── visitor/route.ts        # 访客 API
+│       └── visitors/route.ts       # 访客列表 API
 │
 ├── components/
 │   ├── layouts/               # PostLayoutMonograph 等布局组件
@@ -110,7 +115,7 @@ frontend/src/
 └── data/blog/                 # MDX 静态内容源
 ```
 
-> **注意**：`e2e/`、`tests/`、`data/blog/` 实际位于 `frontend/` 根目录（而非 `frontend/src/` 下）。
+> **注意**：`e2e/`、`tests/` 和 `data/blog/` 实际均位于 `frontend/` 根目录，而非 `frontend/src/` 下。树中 `data/blog/` 置于 `src/` 块内仅为分组展示。
 
 ## 数据获取规范
 
@@ -194,6 +199,8 @@ Layer 1: tailwind.css              → 别名到 geist + 共享语义
 Layer 2: monograph-theme.css       → 长文阅读主题（--monograph-*）
 Layer 3: visitor-theme.css         → 访客主题（--visitor-*）
 Layer 4: admin-theme.css           → Admin 专用（--admin-*）
+Layer 5: admin-compact.css         → Admin 紧凑模式（--admin-compact-*）
+Layer 6: prism.css                 → 代码高亮主题
 ```
 
 ## 布局收敛

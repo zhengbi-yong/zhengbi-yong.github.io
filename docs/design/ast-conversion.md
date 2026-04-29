@@ -66,10 +66,9 @@ pub fn mdx_to_tiptap_json_with_stats(mdx: &str) -> (Value, ConversionStats)
 
 // 转换统计结构
 pub struct ConversionStats {
-    pub total_blocks: usize,      // 总块级节点数
-    pub total_inlines: usize,     // 总内联节点数
-    pub error_count: usize,       // 转换错误数
-    pub warnings: Vec<String>,    // 警告信息
+    pub blocks: usize,              // 总块级节点数
+    pub text_nodes: usize,          // 总文本节点数
+    pub marks_used: Vec<String>,    // 使用的 Mark 类型列表
 }
 ```
 
@@ -97,7 +96,7 @@ pub struct ConversionStats {
 | `hardBreak` | `\n`（单纯换行） |
 | `mention` | `@username` |
 | `details` / `detailsSummary` / `detailsContent` | 自定义 blockquote 格式：`> **📖 标题**`  + `> 内容` |
-| `callout` | `> ℹ️ text`（blockquote + emoji 前缀） |
+| `callout` | `> ℹ️ text` / `> ⚠️ text` / `> 🚨 text` / `> ✅ text`（blockquote + 多 emoji 前缀，根据 callout 类型选择） |
 
 ### Mark 映射
 
@@ -105,9 +104,11 @@ pub struct ConversionStats {
 |------|-----|
 | `bold` | `**text**` |
 | `italic` | `*text*` |
+| `underline` | `<u>text</u>` |
 | `code` | `` `text` `` |
-| `link` | `[text](href)` |
 | `strike` | `~~text~~` |
+| `link` | `[text](href)` |
+| `highlight` | `<mark>text</mark>` |
 
 ## 双向转换
 
@@ -135,7 +136,7 @@ pub struct ConversionStats {
 
 ## 测试覆盖
 
-`mdx_convert.rs` 包含 **~16 个测试函数**，`mdx_to_json.rs` 包含 **~27 个测试函数**，总计 **~43 个测试函数**。覆盖：
+`mdx_convert.rs` 包含 **19 个测试函数**，`mdx_to_json.rs` 包含 **22 个测试函数**，总计 **41 个测试函数**。覆盖：
 
 正向转换（`mdx_convert.rs`）：
 - 空文档

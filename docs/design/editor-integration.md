@@ -21,18 +21,25 @@
 
 ## 实现模式
 
-```typescript
-'use client'
+> `dynamic` 导入位于 `TiptapEditor.tsx` 组件内部，父页面只需常规导入。
 
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
+```typescript
+// TiptapEditor.tsx — 使用 dynamic 禁用 SSR
 import dynamic from 'next/dynamic'
 
-// SSR 禁用
-const TiptapEditor = dynamic(
-  () => import('@/components/editor/TiptapEditor'),
+const TiptapEditorWrapper = dynamic(
+  () => import('./TiptapEditorInner'),
   { ssr: false }
 )
+
+export default function TiptapEditor(props: EditorProps) {
+  return <TiptapEditorWrapper {...props} />
+}
+```
+
+```typescript
+// EditorPage.tsx — 父页面常规导入，无需 dynamic
+import TiptapEditor from '@/components/editor/TiptapEditor'
 
 export default function EditorPage({ params }: { params: { id: string } }) {
   return (
@@ -51,7 +58,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 粗体/斜体 | StarterKit | ✅ |
 | 列表 (有序/无序) | StarterKit | ✅ |
 | 链接 | Link | ✅ |
-| 代码块 | ShikiCodeBlock (自定义 Shiki 高亮扩展，替代 CodeBlockLowlight) | ✅ |
+| 代码块 | CodeBlock (StarterKit 内置) | ✅ |
 | 引用 | Blockquote | ✅ |
 | 表格 | Table (来自 reactjs-tiptap-editor) | ❌ 注释待修复 |
 | 图片 | Image | ✅ |
@@ -204,7 +211,7 @@ export function useDraft(existingDraftId?: string) {
 
 | 方法 | 端点 | 说明 |
 |------|------|------|
-| `POST` | `/v1/admin/media/upload` | 上传媒体文件 (multipart/form-data) |
+| `POST` | `/api/v1/admin/media/upload` | 上传媒体文件 (multipart/form-data) |
 
 ### 上传流程
 

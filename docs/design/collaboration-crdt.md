@@ -21,7 +21,7 @@
 
 | 组件 | 状态 | 位置 |
 |------|------|------|
-| Hocuspocus 服务器脚本 | ✅ 已实现 | `frontend/scripts/hocuspocus-server.js` (34 行) |
+| Hocuspocus 服务器脚本 | ✅ 已实现 | `frontend/scripts/hocuspocus-server.js` (35 行) |
 | 架构设计文档 | ✅ 已实现 | `docs/p4-websocket-collaboration.md` (231 行) |
 | CollaborationEditor 包装组件 | ✅ 已实现（透传占位符） | `frontend/src/components/editor/CollaborationEditor.tsx` |
 | npm 依赖 (`@hocuspocus/*`, `yjs`) | ⚠️ 部分可用 | `@hocuspocus/provider` 和 `yjs` 以传递依赖存在（来自 tiptap）；`@hocuspocus/server` 完全缺失（未在 `package.json` 或 lockfile 中） |

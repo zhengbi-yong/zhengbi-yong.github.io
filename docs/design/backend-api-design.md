@@ -139,6 +139,7 @@ GET    /tags/autocomplete      # 自动补全
 | 方法 | 路径 | 说明 |
 |------|------|------|
 | GET | /team-members | 团队成员列表 |
+| GET | /team-members/{id} | 团队成员详情 |
 
 ### 管理 API（需认证）
 
@@ -180,6 +181,19 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/mdx/convert | MDX 内容转换 |
 | POST | /admin/mdx/batch-convert | MDX 批量转换 |
 | POST | /admin/mdx/migrate-all | 迁移所有内容为 JSON |
+| GET | /admin/categories | 分类列表 |
+| POST | /admin/categories | 创建分类 |
+| PATCH | /admin/categories/{slug} | 更新分类 |
+| DELETE | /admin/categories/{slug} | 删除分类 |
+| GET | /admin/tags | 标签列表 |
+| POST | /admin/tags | 创建标签 |
+| PATCH | /admin/tags/{slug} | 更新标签 |
+| DELETE | /admin/tags/{slug} | 删除标签 |
+| GET | /admin/team-members | 团队成员列表 |
+| POST | /admin/team-members | 创建团队成员 |
+| PATCH | /admin/team-members/{id} | 更新团队成员 |
+| DELETE | /admin/team-members/{id} | 删除团队成员 |
+| PUT | /admin/users/{id} | 更新用户 |
 
 ## 中间件
 
@@ -188,10 +202,12 @@ GET    /tags/autocomplete      # 自动补全
 限流中间件应用于所有 `/api/v1/*` 路由，基于 Redis 分布式限流，按 IP 和路由维度限制请求速率。超出限制返回 `429 Too Many Requests`。
 
 配置项（通过环境变量）：
-- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 20）
-- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 100）
-- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 30）
-- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 60）
+- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 100），对应 5 秒窗口
+- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 1000），对应 10 秒窗口
+- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 20），对应 2 秒窗口
+- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 6000），对应 100 秒窗口
+
+每条限流规则同时支持 RPS（每秒请求数）维度：`AUTH` 允许 100 请求/5 秒（≈20 RPS），`VIEW` 允许 1000 请求/10 秒（≈100 RPS），`COMMENT` 允许 20 请求/2 秒（≈10 RPS），`DEFAULT` 允许 6000 请求/100 秒（≈60 RPS）。
 
 ### CSRF 中间件
 

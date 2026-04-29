@@ -81,7 +81,7 @@
 
 ## 未来规划
 
-> 以下设计组件已实现（位于 `frontend/src/components/home/`）但尚未接入首页（`Main.tsx`）。
+> 以下设计组件部分已实现（位于 `frontend/src/components/home/`），Mega Footer 已集成在 `(public)/layout.tsx` 中并在首页路径显示。其余组件尚未接入首页（`Main.tsx`）。
 
 ### 计划结构
 
@@ -170,7 +170,7 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 ### 全局交互
 
-#### 自定义鼠标指针（未实现）
+#### 自定义鼠标指针（已实现但未接入活跃首页）
 
 - 默认：小点 + 外圈
 - 文章卡片：读书图标
@@ -180,7 +180,7 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 #### 滚动动画
 
-- GSAP ScrollTrigger 驱动
+- GSAP ScrollTrigger 驱动（未实现 — 当前使用 Framer Motion whileInView）
 - 分阶段动效：标题先入（0ms）→ 内容（+100-200ms）
 - Easing: `cubic-bezier(0.16, 1, 0.3, 1)` (expo-out)
 - 每个 Section 从下方淡入滑动
@@ -189,10 +189,10 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 | 指标 | 目标 |
 |------|------|
-| First Contentful Paint | < 1.5s |
-| Time to Interactive | < 3s |
-| Lighthouse Performance | > 85 |
-| Animation FPS | >= 60fps |
+| First Contentful Paint | < 1.5s（目标值，尚未验证） |
+| Time to Interactive | < 3s（目标值，尚未验证） |
+| Lighthouse Performance | > 85（目标值，尚未验证） |
+| Animation FPS | >= 60fps（目标值，尚未验证） |
 
 ### 可访问性
 

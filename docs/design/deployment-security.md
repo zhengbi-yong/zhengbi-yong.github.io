@@ -38,6 +38,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 
 `frontend/Dockerfile` — 使用 `node:22-alpine` 多阶段构建，独立部署。
 
+> 注：`prebuilt-runner` 阶段依赖于 `.contentlayer` 目录中的数据。该目录由 `contentlayer generate` 命令在构建前生成，包含从 `data/blog/` 中的 MDX 文件解析出的类型化内容数据。如果 `.contentlayer` 目录缺失或过时，构建将失败或产生不正确的内容。CI/CD 流水线中需确保在构建 Docker 镜像前运行 `pnpm contentlayer:generate`。
+
 ### Kubernetes 安全上下文
 
 K8s base 配置 (`deployments/kubernetes/base/api-deployment.yaml`)：
@@ -64,6 +66,8 @@ K3s 部署包含完整的零信任网络策略（`deployments/k3s/network-policy
 | `allow-backend-to-postgres` | 允许 backend 访问 PostgreSQL（5432 端口） |
 | `allow-backend-to-redis` | 允许 backend 访问 Redis（6379 端口） |
 | `allow-frontend-to-backend` | 允许前端和 Ingress Controller（Traefik）访问 backend（3000 端口） |
+
+> 注：`allow-frontend-to-backend` 策略使用 `namespaceSelector` 而非 `podSelector`，属于跨命名空间策略。这意味着前端（`frontend` 命名空间）和 Ingress Controller（`kube-system` 命名空间或独立命名空间）均需显式匹配，以确保零信任网络策略生效。任何与该命名空间选择器不匹配的命名空间中的 Pod 将被拒绝访问 backend。
 
 > 注：Compose 部署无网络隔离，所有服务在同一 Docker 网络中互通。
 

@@ -11,6 +11,21 @@
 - JWT 仅作签名校验（CPU 运算），中间件不查数据库
 - 令牌黑名单检查在 handler 层，不在中间件层
 
+## 密码策略
+
+| 项目 | 规则 |
+|------|------|
+| 最小长度 | 12 字符 |
+| 最大长度 | 128 字符 |
+| 大写字母 | 至少 1 个 (`A-Z`) |
+| 小写字母 | 至少 1 个 (`a-z`) |
+| 数字 | 至少 1 个 (`0-9`) |
+| 特殊字符 | 至少 1 个 (`` !@#$%^&*()_+-=[]{}|;':\",./<>?` ``) |
+| 常见密码检查 | 通过 `PasswordValidator` 阻止弱密码/常见密码 |
+| 哈希算法 | Argon2id（注册/密码重置时） |
+
+> 上述策略在注册（`POST /auth/register`）和密码重置（`POST /auth/reset-password`）流程中统一校验。PasswordValidator 内置常见密码黑名单（如 "password123"、"qwerty" 等）。
+
 ## 令牌模型
 
 ```
@@ -109,10 +124,10 @@ pub async fn optional_auth_middleware(
   rl:m:{ip}:{route_hash}:{minute_bucket}  → 分钟级窗口
 
 各端点限额（默认值，可通过环境变量覆盖）:
-  POST /auth/login, /auth/register  → 5 次/分钟 + 1 次/秒  (RATE_LIMIT_AUTH_RPM / RATE_LIMIT_AUTH_RPS)
-  POST /posts/*/view                 → 100 次/分钟 + 10 次/秒 (RATE_LIMIT_VIEW_RPM / RATE_LIMIT_VIEW_RPS)
-  POST /posts/*/comments             → 10 次/分钟 + 2 次/秒  (RATE_LIMIT_COMMENT_RPM / RATE_LIMIT_COMMENT_RPS)
-  其他                               → 1000 次/分钟 + 100 次/秒 (RATE_LIMIT_DEFAULT_RPM / RATE_LIMIT_DEFAULT_RPS)
+  POST /auth/login, /auth/register  → 100 次/分钟 + 5 次/秒  (RPM=RATE_LIMIT_AUTH_RPM=100, RPS=RATE_LIMIT_AUTH_RPS=5)
+  POST /posts/*/view                 → 1000 次/分钟 + 10 次/秒 (RPM=RATE_LIMIT_VIEW_RPM=1000, RPS=RATE_LIMIT_VIEW_RPS=10)
+  POST /posts/*/comments             → 20 次/分钟 + 2 次/秒   (RPM=RATE_LIMIT_COMMENT_RPM=20, RPS=RATE_LIMIT_COMMENT_RPS=2)
+  其他                               → 6000 次/分钟 + 100 次/秒 (RPM=RATE_LIMIT_DEFAULT_RPM=6000, RPS=RATE_LIMIT_DEFAULT_RPS=100)
 
 失败模式（可配置）:
   fail_open  → 限流后端不可用时放行（默认，保证可用性）
