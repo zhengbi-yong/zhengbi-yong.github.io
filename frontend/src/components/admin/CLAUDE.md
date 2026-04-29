@@ -6,7 +6,7 @@ Reusable UI components for the admin dashboard interface.
 ## Files
 - `AdminLayout.tsx` - Main admin layout with sidebar navigation
 - `AdminStatsCard.tsx` - Statistics display card
-- `BreadcrumbNav.tsx` - Breadcrumb navigation component
+- 面包屑已内联至 `header.tsx`
 - `CommentModeration.tsx` - Comment moderation interface
 - `ThemeToggle.tsx` - Dark/light mode toggle
 - `UserManagement.tsx` - User management interface
@@ -25,7 +25,7 @@ AdminLayout (Client Component)
 │   └── User section (logout)
 ├── Top bar
 │   ├── Mobile menu toggle
-│   ├── BreadcrumbNav
+│   ├── 面包屑(header.tsx内联)
 │   └── ThemeToggle
 └── Main content area (children)
 ```
@@ -69,7 +69,7 @@ const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
 - Customizable label and value
 - Responsive sizing
 
-#### BreadcrumbNav
+#### 面包屑导航（header.tsx 内联）
 - Dynamic breadcrumb generation
 - Based on current pathname
 - Clickable navigation links
