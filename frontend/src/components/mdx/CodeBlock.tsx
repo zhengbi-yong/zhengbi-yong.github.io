@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
-import { Check, Copy, Terminal } from 'lucide-react'
+import { Check, Copy } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { highlightCode } from '@/lib/shiki-highlighter'
@@ -190,10 +190,18 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-4 py-3">
-            <Terminal size={14} className="text-gray-500 flex-shrink-0" />
-            <div className="overflow-x-auto flex-1 font-mono text-sm">
-              {children}
+          /* 无语言标识的代码块 — 带行号和 white-space 保留 */
+          <div className="flex">
+            {/* Line numbers — hidden on very small screens */}
+            <div className="hidden sm:flex flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-xs leading-[1.7] text-gray-600 dark:text-gray-500">
+              {codeText.split('\n').map((_, i) => (
+                <div key={i}>{i + 1}</div>
+              ))}
+            </div>
+            <div className="flex-1 overflow-x-auto">
+              <div className="p-4 text-sm font-mono leading-[1.7] text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                {codeText}
+              </div>
             </div>
           </div>
         )}
