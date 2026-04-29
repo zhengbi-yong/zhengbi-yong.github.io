@@ -176,6 +176,18 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/posts/{postId}/versions/{versionNumber}/restore | 恢复版本 |
 | DELETE | /admin/posts/{postId}/versions/{versionNumber} | 删除版本 |
 | GET | /admin/posts/{postId}/versions/compare | 比较版本 |
+| POST | /admin/categories | 创建分类 |
+| PATCH | /admin/categories/{slug} | 更新分类 |
+| DELETE | /admin/categories/{slug} | 删除分类 |
+| POST | /admin/tags | 创建标签 |
+| PATCH | /admin/tags/{slug} | 更新标签 |
+| DELETE | /admin/tags/{slug} | 删除标签 |
+| GET | /admin/team-members | 团队成员列表 |
+| POST | /admin/team-members | 创建成员 |
+| GET | /admin/team-members/{id} | 成员详情 |
+| PUT | /admin/team-members/{id} | 更新成员 |
+| DELETE | /admin/team-members/{id} | 删除成员 |
+| POST | /admin/team-members/batch/delete | 批量删除成员 |
 | POST | /admin/search/reindex | 重建搜索索引 |
 | POST | /admin/mdx/convert | MDX 内容转换 |
 | POST | /admin/mdx/batch-convert | MDX 批量转换 |
@@ -188,10 +200,10 @@ GET    /tags/autocomplete      # 自动补全
 限流中间件应用于所有 `/api/v1/*` 路由，基于 Redis 分布式限流，按 IP 和路由维度限制请求速率。超出限制返回 `429 Too Many Requests`。
 
 配置项（通过环境变量）：
-- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 20）
-- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 100）
-- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 30）
-- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 60）
+- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 100）
+- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 1000）
+- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 20）
+- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 6000）
 
 ### CSRF 中间件
 

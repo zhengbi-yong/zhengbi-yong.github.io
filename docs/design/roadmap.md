@@ -6,10 +6,10 @@
 |------|------|----------|----------|------|
 | 1 | 安全基线 | 1-2 周 | HttpOnly Cookie, CSRF 防护 | ✅ 已完成 |
 | 2 | 数据库优化 | 2-3 周 | UUIDv7 迁移, ltree 评论 | ✅ 已完成 |
-| 3 | API 契约 | 2 周 | Orval 配置, TS 客户端 | ❌ 未实施 |
+| 3 | API 契约 | 2 周 | Orval 配置, TS 客户端 | 🔄 部分实施（Orval 配置 + 依赖已安装，但 CI 未集成自动生成） |
 | 4 | 认证升级 | 2-3 周 | WebAuthn 集成 | ❌ 未实施 |
-| 5 | 搜索 CDC | 2 周 | MeiliBridge 部署 | 🔄 部分实施 |
-| 6 | K3s 迁移 | 3-4 周 | 生产级集群 | 🔄 部分实施 |
+| 5 | 搜索 CDC | 2 周 | MeiliBridge 部署 | 🔄 部分实施（CDC worker 代码存在，但独立的 MeiliBridge 服务未部署） |
+| 6 | Kubernetes 迁移 | 3-4 周 | 生产级集群 | 🔄 部分实施（K8s manifests 存在，K3s 特定配置待完善） |
 
 ## 关键技术决策
 

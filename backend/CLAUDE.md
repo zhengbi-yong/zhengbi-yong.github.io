@@ -32,7 +32,7 @@ backend/
 │   ├── api/               # Main API server (Axum)
 │   ├── blog-core/         # Core business logic
 │   ├── blog-models/       # Data models and types
-│   └── blog-tests/        # Integration tests
+│   └── api/tests/         # Integration, security, stress, fuzzing, E2E tests
 ├── migrations/            # Database migrations (SQLx)
 ├── openapi/               # OpenAPI specifications
 ├── Dockerfile             # Multi-stage build

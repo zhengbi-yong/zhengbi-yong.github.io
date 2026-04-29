@@ -55,7 +55,6 @@ CREATE TABLE users (
     deleted_at TIMESTAMPTZ             -- 软删除
 );
 
-CREATE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
 CREATE INDEX idx_users_profile ON users USING GIN (profile jsonb_path_ops);
@@ -167,7 +166,7 @@ CREATE TABLE comments (
 );
 
 CREATE INDEX idx_comments_path ON comments USING GIST (path);
-CREATE INDEX idx_comments_post ON comments(slug);
+CREATE INDEX idx_comments_post_created ON comments(slug);
 CREATE INDEX idx_comments_post_status ON comments(slug, status);
 CREATE INDEX idx_comments_user ON comments(user_id);
 ```
@@ -200,6 +199,7 @@ CREATE TABLE outbox_events (
     payload JSONB NOT NULL DEFAULT '{}',
     retry_count INTEGER NOT NULL DEFAULT 0,
     error TEXT,
+    run_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     processed_at TIMESTAMPTZ,
     locked_at TIMESTAMPTZ,
     locked_by TEXT,
@@ -315,6 +315,9 @@ CREATE TABLE post_likes (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (slug, user_id)
 );
+
+CREATE INDEX idx_post_likes_user ON post_likes(user_id);
+CREATE INDEX idx_post_likes_post ON post_likes(slug);
 
 CREATE TABLE comment_likes (
     id BIGSERIAL PRIMARY KEY,

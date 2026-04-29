@@ -23,7 +23,6 @@
 | 文件 | 职责 |
 |------|------|
 | `Footer.tsx` | 页脚整体布局（作者区、导航、社交、备案） |
-| `home/MegaFooter.tsx` | 首页全屏 CTA 页脚 |
 
 ## 4) 布局组件
 
@@ -144,7 +143,7 @@
 
 | 路径 | 内容 | 说明 |
 |------|------|------|
-| `components/shadcn/ui/` | button, card, dialog, input, tabs, dropdown-menu, alert, badge 等 | shadcn/ui 基础组件（基于 Radix UI + Tailwind） |
+| `components/shadcn/ui/` | accordion, alert, avatar, badge, button, card, dialog, dropdown-menu, input, label, progress, separator, sidebar, sonner, tabs, textarea | shadcn/ui 基础组件（基于 Radix UI + Tailwind） |
 | `components/ui/` | EnhancedImage, ExcalidrawModal, LoadingStates, Skeleton/, LiveRegion, Loader, SwipeContainer, FAB 等 | 项目自定义 UI 组件 |
 
 ## 14) 导航组件

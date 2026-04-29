@@ -50,6 +50,8 @@ K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 - `runAsNonRoot: true` + `readOnlyRootFilesystem: true`
 - `capabilities.drop: ["ALL"]`
 - `tmpfs` 卷挂载 `/tmp`
+- 存活探针: `/.well-known/live` (initialDelaySeconds: 10, periodSeconds: 30 — 与 K8s base 的 20/20 不同)
+- 就绪探针: `/.well-known/ready` (initialDelaySeconds: 5, periodSeconds: 10 — 与 K8s base 的 10/10 不同)
 
 > 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
 
@@ -79,7 +81,7 @@ K3s 部署包含完整的零信任网络策略（`deployments/k3s/network-policy
 |------|------|------|
 | `/.well-known/live` | 存活探针 | 只返回 200 |
 | `/.well-known/ready` | 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| `/health` | 基本健康 | 返回 "OK" |
+| `/health` | 基本健康 | 返回 JSON HealthStatus（status/timestamp/version/uptime） |
 | `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
 | `/metrics` | Prometheus 指标 | 指标数据 |
 

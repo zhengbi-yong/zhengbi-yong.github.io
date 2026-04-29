@@ -225,7 +225,7 @@ export default function PostVersionsPage({ params }: { params: Promise<{ slug: s
                     {new Date(version.created_at).toLocaleString('zh-CN')}
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
-                    {version.created_by_username || version.created_by}
+                    {version.created_by_name || version.created_by_username || version.created_by}
                   </td>
                   <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {version.comment || '-'}

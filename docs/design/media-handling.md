@@ -80,18 +80,25 @@ CREATE TABLE media (
 );
 ```
 
-### `media_assets` 表（文章系统关联表）
+### `media_assets` 表（文章媒体关联表）
 
-除了 `media` 表外，文章系统中还使用 `media_assets` 表来建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
+除了 `media` 表外，文章系统还使用 `media_assets` 表来存储文章关联的媒体资源。这是一个独立副本表而非关联表，直接从 `media` 迁移数据而来。定义在迁移 `2026042701_create_articles.sql` 中：
 
 ```sql
 CREATE TABLE media_assets (
-    id        UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
-    media_id   UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(article_id, media_id)
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    filename VARCHAR(255) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    storage_path TEXT NOT NULL,
+    url TEXT NOT NULL,
+    width INTEGER,
+    height INTEGER,
+    duration FLOAT,
+    uploader_id UUID NOT NULL REFERENCES users(id),
+    article_id UUID REFERENCES articles(id),
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
@@ -127,7 +134,7 @@ CREATE TABLE media_assets (
 ## 已知限制
 
 ### `get_image_dimensions` 存根
-`get_image_dimensions()` 当前返回 `(None, None)`（未实现图片尺寸提取）。TODO：集成 `image` crate 解析图片头以获取实际尺寸。
+`get_image_dimensions()` 当前返回 `(None, None)`（未实现图片尺寸提取）。详见 `backend/crates/api/src/routes/media.rs` 第 784 行。
 
 ### Redis 缓存
 媒体列表路由（`GET /admin/media`）在写入操作（上传、更新、删除）后调用 `clear_media_cache()` 清除 `media:list` 缓存键。列表读取当前未主动缓存；缓存层为未来优化预留。

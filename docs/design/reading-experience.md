@@ -53,16 +53,18 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 > **全局样式文件**：项目不使用 `globals.css`。所有全局样式通过 `src/styles/tailwind.css` 管理，该文件在 `layout.tsx` 中通过 `import '@/styles/tailwind.css'` 引入。
 
-### 字号比例（Fibonacci-based）
+### 字号比例（Fluid clamp-based，定义在 `monograph-theme.css`）
 
-| 元素 | 大小 | 行高 | 字间距 |
-|------|------|------|--------|
-| h1 | 2.25rem (36px) | 1.3 | -0.02em |
-| h2 | 1.75rem (28px) | 1.35 | -0.01em |
-| h3 | 1.375rem (22px) | 1.4 | 0 |
-| h4 | 1.125rem (18px) | 1.45 | 0 |
-| Body | 1rem (16px) | 1.75 (CJK) / 1.6 (Latin) | 0 |
-| Small | 0.875rem (14px) | 1.5 | 0.01em |
+| 元素 | CSS 变量 | 实际值 (clamp) | 行高 | 字间距 |
+|------|----------|---------------|------|--------|
+| h1 (实际使用 h2 大小) | `--font-size-h2` | `clamp(1.5rem, 1.3rem + 1vw, 2.25rem)` | 1.2 | -0.02em |
+| h2 | `--font-size-h2` | `clamp(1.5rem, 1.3rem + 1vw, 2.25rem)` | 1.2 | -0.01em |
+| h3 | `--font-size-h3` | `clamp(1.25rem, 1.1rem + 0.75vw, 1.75rem)` | 1.2 | 0 |
+| h4 | `--font-size-h4` | `clamp(1.1rem, 1rem + 0.5vw, 1.375rem)` | 1.2 | 0 |
+| Body | `--font-size-base` | `clamp(1rem, 0.95rem + 0.25vw, 1.125rem)` | 1.65 | 0 |
+| Small | `--font-size-sm` | `clamp(0.8125rem, 0.8rem + 0.06vw, 0.875rem)` | 1.5 | 0.01em |
+
+> **注意**：实际实现使用流体排版（fluid typography），通过 `clamp()` 函数实现响应式缩放。h1 在 `.monograph-content` 中被设置为与 h2 相同的大小（`--font-size-h2`），`--font-size-h1` 变量存在但未在文章正文中使用。行高统一使用 `--line-height-heading: 1.2`（标题）和 `--line-height-body: 1.65`（正文），与之前 Fibonacci 表的固定值不同。
 
 ### CJK 特殊处理
 

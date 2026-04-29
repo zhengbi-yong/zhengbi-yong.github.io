@@ -6,7 +6,7 @@
 |------|------|------|
 | 前端框架 | Next.js | 16.2.2 (App Router) |
 | UI 库 | React | 19.2 |
-| 动画 | Framer Motion, GSAP | 最新 |
+| 动画 | Framer Motion, GSAP | 3.14.2 |
 | 后端通信 | `apiClient.ts` + `backend.ts` | — |
 | UI 状态 | Zustand (仅 UI 状态) | — |
 
@@ -34,19 +34,23 @@ frontend/src/
 │   │   └── admin/
 │   │       ├── layout.tsx     # 侧边栏 + Auth 校验
 │   │       ├── page.tsx       # 后台首页
-│   │       ├── posts/         # 文章列表
-│   │       ├── posts/new/     # 新建文章
-│   │       ├── posts/edit/[...slug]/  # 编辑文章
-│   │       ├── posts/versions/[...slug]/  # 版本历史
-│   │       ├── posts/show/[slug]/  # 查看文章
-│   │       ├── posts/preview/     # 文章预览
-│   │       ├── posts-manage/      # 文章管理
-│   │       ├── users/         # 用户管理
-│   │       ├── comments/      # 评论管理
-│   │       ├── media/         # 媒体管理
-│   │       ├── analytics/     # 分析
-│   │       ├── monitoring/    # 监控（含 health/ 和 metrics/）
-│   │       └── settings/      # 设置
+│   │               ├── posts/         # 文章列表
+│   │               ├── posts/new/     # 新建文章
+│   │               ├── posts/edit/[...slug]/  # 编辑文章
+│   │               ├── posts/versions/[...slug]/  # 版本历史
+│   │               ├── posts/show/[slug]/  # 查看文章
+│   │               ├── posts/preview/     # 文章预览
+│   │               ├── posts-manage/      # 文章管理
+│   │               ├── users/         # 用户管理
+│   │               ├── users-refine/  # Refine 用户管理
+│   │               ├── team/          # 团队成员管理
+│   │               ├── comments/      # 评论管理
+│   │               ├── media/         # 媒体管理
+│   │               ├── analytics/     # 分析
+│   │               ├── monitoring/    # 监控（含 health/ 和 metrics/）
+│   │               ├── settings/      # 设置
+│   │               ├── test/          # 测试页面
+│   │               └── _components/   # 管理后台内部组件
 │   │
 │   └── api/
 │       └── v1/[...path]/      # BFF 代理（仅 Client 组件调用）
