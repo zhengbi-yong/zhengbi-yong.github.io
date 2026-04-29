@@ -17,7 +17,6 @@
 | `header/HeaderNavigation.tsx` | 导航链接结构 + 移动折叠 |
 | `header/HeaderActions.tsx` | 搜索/主题/语言/Auth 动作区 |
 | `header/MobileMenuButton.tsx` | 移动端菜单按钮 |
-| `Header.module.css` | 页眉样式 |
 
 ## 3) 页脚模块 (Footer)
 
@@ -51,13 +50,109 @@
 |------|------|
 | `mdx/CodeBlock.tsx` | 深色主题 + macOS 窗口装饰 + 复制按钮 + 行号 + 终端模式 |
 
-## 6) 导航组件
+## 6) 杂志风格组件 (Magazine)
+
+| 文件 | 职责 |
+|------|------|
+| `magazine/HeroSection.tsx` | 特色文章 + 书籍网格英雄区 |
+| `magazine/MasonryGrid.tsx` | 响应式瀑布流布局 + 无限滚动 |
+| `magazine/FilterBar.tsx` | 分类过滤 + 排序 + 搜索 |
+| `magazine/RecommendedSection.tsx` | 基于阅读历史的推荐引擎 |
+| `magazine/BookCard.tsx` | 书籍封面卡片 |
+| `magazine/SmartCard.tsx` | 智能内容卡片（自动适配类型） |
+| `magazine/ChapterCard.tsx` | 章节预览卡片 |
+
+## 7) 书籍组件 (Book)
+
+| 文件 | 职责 |
+|------|------|
+| `book/Book.tsx` | 书籍分类展示（动画优化、响应式） |
+| `book/Chapter.tsx` | 章节展示（进度指示器） |
+| `book/ArticleCard.tsx` | 文章卡片（缩略图、元数据） |
+| `book/BackToShelfButton.tsx` | 返回书架导航按钮 |
+| `book/BookIcons.tsx` | 书籍分类图标映射 |
+
+## 8) 编辑器组件 (Editor)
+
+| 文件 | 职责 |
+|------|------|
+| `editor/TiptapEditor.tsx` | TipTap 富文本编辑器核心 |
+| `editor/MenuBar.tsx` | 编辑器工具栏菜单 |
+| `editor/EditorToolbar.tsx` | 格式化工具栏 |
+| `editor/FloatingMenu.tsx` | 浮动菜单 |
+| `editor/SplitEditor.tsx` | 分屏编辑器 |
+| `editor/ImmersiveEditorLayout.tsx` | 沉浸式编辑布局 |
+| `editor/ArticleSettingsPanel.tsx` | 文章设置面板 |
+| `editor/ArticleMetadata.tsx` | 文章元数据编辑 |
+| `editor/SEOPreviewCard.tsx` | SEO 预览卡片 |
+| `editor/CollaborationEditor.tsx` | 协作编辑 |
+| `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
+| `editor/extensions/mathematics-extended.tsx` | 数学公式扩展 |
+| `editor/extensions/ShikiCodeBlockComponent.tsx` | Shiki 代码块组件 |
+| `editor/extensions/ShikiCodeBlock.ts` | Shiki 代码块定义 |
+| `editor/extensions/CodeBlockShikiNodeView.tsx` | 代码块节点视图 |
+| `editor/extensions/math-node-view.tsx` | 数学公式节点视图 |
+| `editor/hooks/useImageUpload.ts` | 图片上传 Hook |
+
+## 9) 认证组件 (Auth)
+
+| 文件 | 职责 |
+|------|------|
+| `auth/AuthButton.tsx` | 认证按钮（登录/登出） |
+| `auth/AuthModal.tsx` | 登录/注册模态框 |
+| `auth/AuthInitializer.tsx` | 认证状态初始化 |
+| `auth/PasswordStrengthIndicator.tsx` | 密码强度指示器 |
+
+## 10) 搜索组件 (Search)
+
+| 文件 | 职责 |
+|------|------|
+| `search/ApiSearchBar.tsx` | API 驱动搜索栏（防抖、自动补全、实时结果） |
+| `search/SmartSearchBar.tsx` | 智能搜索栏 |
+
+## 11) 加载状态组件 (Loaders)
+
+| 文件 | 职责 |
+|------|------|
+| `loaders/ComponentLoader.tsx` | 通用加载包装器 |
+| `loaders/Spinner.tsx` | 旋转加载图标 |
+| `loaders/Skeleton.tsx` | 基础骨架屏（text/rect/circle） |
+| `loaders/ListSkeleton.tsx` | 文章列表骨架屏 |
+| `loaders/ArticleSkeleton.tsx` | 文章详情骨架屏 |
+| `loaders/CardSkeleton.tsx` | 卡片骨架屏 |
+| `loaders/ImageSkeleton.tsx` | 图片占位骨架屏 |
+| `loaders/AnimationSkeleton.tsx` | 动画组件骨架屏 |
+| `loaders/RouteTransition.tsx` | 路由切换过渡 |
+| `loaders/index.ts` | 统一导出 |
+
+## 12) 化学可视化组件 (Chemistry)
+
+| 文件 | 职责 |
+|------|------|
+| `chemistry/ChemicalStructure.tsx` | 3D 分子结构查看器（3Dmol.js） |
+| `chemistry/RDKitStructure.tsx` | RDKit 2D 结构渲染 |
+| `chemistry/SimpleChemicalStructure.tsx` | 轻量级结构查看器 |
+| `chemistry/SMILESConverter.tsx` | SMILES 符号转换器 |
+| `chemistry/MoleculeFingerprint.tsx` | 分子指纹可视化 |
+| `chemistry/MhchemInit.tsx` | LaTeX mhchem 化学公式初始化 |
+| `chemistry/threeDmol.ts` | 3Dmol.js 工具函数 |
+| `chemistry/runtimeProps.ts` | 运行时属性类型 |
+| `chemistry/index.ts` | 统一导出 |
+
+## 13) 自定义 UI 组件与 Shadcn 分离说明
+
+| 路径 | 内容 | 说明 |
+|------|------|------|
+| `components/shadcn/ui/` | button, card, dialog, input, tabs, dropdown-menu, alert, badge 等 | shadcn/ui 基础组件（基于 Radix UI + Tailwind） |
+| `components/ui/` | EnhancedImage, ExcalidrawModal, LoadingStates, Skeleton/, LiveRegion, Loader, SwipeContainer, FAB 等 | 项目自定义 UI 组件 |
+
+## 14) 导航组件
 
 | 文件 | 职责 |
 |------|------|
 | `navigation/TableOfContents/` | IntersectionObserver scroll-spy TOC |
 
-## 7) 首页 Section 组件
+## 15) 首页 Section 组件
 
 | 文件 | 职责 |
 |------|------|
@@ -68,7 +163,7 @@
 | `home/LatestWriting.tsx` | 最新文章 |
 | `home/MegaFooter.tsx` | 尾页巨型 Footer |
 
-## 8) 主题与视觉 Token
+## 16) 主题与视觉 Token
 
 | 文件 | 用途 |
 |------|------|
@@ -80,7 +175,7 @@
 | `styles/admin-compact.css` | 后台紧凑模式 |
 | `styles/prism.css` | 代码高亮 |
 
-## 9) 设计交付规范
+## 17) 设计交付规范
 
 每个模块交付 5 个文件夹（Figma）：
 

@@ -78,6 +78,21 @@
 2. **多行矩阵对齐**：`$$` 必须独占首尾行，保留所有 `\n`
 3. **粘贴清洗**：前置 Paste Handler，剔除零宽字符、Base64 等非纯文本节点
 
+## CollaborationEditor
+
+`CollaborationEditor.tsx` 是一个透传（passthrough）包装组件，渲染 `TiptapEditor` 但不包含实际的 Yjs/Hocuspocus 同步逻辑。它是一个未来协作功能的占位符。
+
+```tsx
+// CollaborationEditor.tsx — 仅传递 props 到 TiptapEditor，无实际协作同步
+export default function CollaborationEditor({ roomId, ...props }) {
+  return (
+    <div data-collab-room={roomId}>
+      <TiptapEditor {...props} />
+    </div>
+  )
+}
+```
+
 ## 待改造项
 
 | 优先级 | 改造项 | 说明 |
@@ -88,4 +103,4 @@
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
 || ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |
 || P3 | JSX 组件往返 | `<FadeIn>`, `<Callout>` 等双向映射 |
-|| 已解决 ✅ | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理 |
+|| 遗留/待清理 | 删除废弃 `articles`/`article_versions` 表 | 双轨存储已迁移到 `posts`/`post_versions`，旧表残留待清理。迁移文件 `2026042701_create_articles.sql` 仍存在，`articles.rs` 路由未接入 `main.rs` |

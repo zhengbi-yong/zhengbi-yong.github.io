@@ -29,16 +29,20 @@ backend/
 │   │   │   │   ├── admin.rs
 │   │   │   │   ├── reading_progress.rs
 │   │   │   │   ├── search.rs
-│   │   │   │   ├── search_optimized.rs
+│   │   │   │   ├── articles.rs           # 368 行 — 孤儿模块，未在 main.rs 注册
+│   │   │   │   ├── enhanced_posts.rs     # 303 行 — HATEOAS 示例，未在 main.rs 注册
+│   │   │   │   ├── mdx_convert.rs        # 407 行 — 管理端 MDX 转换端点
 │   │   │   │   ├── mdx_sync.rs
 │   │   │   │   ├── versions.rs
 │   │   │   │   ├── openapi.rs
+│   │   │   │   ├── search_optimized.rs   # 草稿/实验模块，未在 main.rs 注册
 │   │   │   │   └── team_members.rs
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.rs
 │   │   │   │   ├── rate_limit.rs
 │   │   │   │   ├── csrf.rs
-│   │   │   │   └── request_id.rs
+│   │   │   │   ├── request_id.rs
+│   │   │   │   └── tracing.rs           # 272 行 — W3C Trace Context 传播
 │   │   │   ├── metrics/
 │   │   │   ├── state.rs
 │   │   │   └── outbox.rs
@@ -270,6 +274,26 @@ async fn auth_middleware(
 |------|------|------|
 | /.well-known/live | Kubernetes 存活探针 | 只返回 200 |
 | /.well-known/ready | Kubernetes 就绪探针 | 检查 DB/Redis/JWT/Email 连接 |
-| /health | 基本健康检查 | 返回 "OK" |
+| /health | ~~基本健康检查~~（handler 存在但未注册为路由，参见下方状态说明） | 返回 "OK" |
 | /health/detailed | 详细健康状态 | 返回 JSON 各组件状态 |
 | /metrics | Prometheus 指标 | 返回指标数据 |
+
+## 状态说明
+
+### Swagger UI — 暂时禁用
+
+```rust
+// main.rs:218-219
+// OpenAPI 文档 - TEMPORARILY DISABLED TO TEST STACK OVERFLOW
+// .merge(blog_api::routes::openapi::swagger_ui())
+```
+
+Swagger UI 因编译递归（compiler recursion / stack overflow）问题被暂时注释。OpenAPI 规范生成代码仍存在于 `routes/openapi.rs` 中，但不在路由表中注册。如需重新启用，取消 `main.rs` 中对应两行的注释即可。
+
+### `/health` 端点状态
+
+`GET /health` 的 handler 定义在 `metrics/health.rs`（返回纯文本 `"OK"`），但**未在 `main.rs` 中注册为路由**。当前仅注册了 `/health/detailed`（通过 `blog_api::metrics::health_detailed`）。
+
+### `search_optimized.rs` — 草稿/实验模块
+
+`routes/search_optimized.rs` 存在于文件系统中并在 `routes/mod.rs` 中声明为模块，但**未在 `main.rs` 中导入或组装为路由**。该模块是搜索优化的实验性草稿，不处于活跃使用状态，且有已知的 SQL 注入风险（参见 `backend/code-review-report.md`）。

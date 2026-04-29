@@ -120,7 +120,7 @@ docker build --target production -t blog-backend:prod .
 **Purpose**: HTTP server and route handlers
 
 **Endpoints**:
-- `GET /healthz` - Health check
+- `GET /health` - Health check (redirect to `/.well-known/live`)
 - `GET /metrics` - Prometheus metrics
 - `GET /api/v1/posts` - List posts
 - `POST /api/v1/posts` - Create post

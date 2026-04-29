@@ -19,15 +19,34 @@ frontend/src/
 │   │
 │   ├── (public)/               # 公开页面路由组
 │   │   ├── layout.tsx         # 公开页外壳
-│   │   └── blog/[...slug]/
+│   │   └── blog/[...slug]/    # 动态博客详情页
+│   │
+│   ├── blog/                   # 博客路由（直接位于 app/blog/，非路由组内）
+│   │   ├── page.tsx           # 博客列表首页
+│   │   ├── loading.tsx
+│   │   ├── error.tsx
+│   │   ├── [...slug]/         # 博客详情（动态路由）
+│   │   ├── category/[category]/ # 分类页面
+│   │   ├── popular/           # 热门文章
+│   │   └── page/[page]/       # 列表分页
 │   │
 │   ├── (admin)/                # 管理后台 - 严格 SSR+权限
 │   │   └── admin/
 │   │       ├── layout.tsx     # 侧边栏 + Auth 校验
-│   │       ├── posts/
-│   │       ├── users/
-│   │       ├── comments/
-│   │       └── media/
+│   │       ├── page.tsx       # 后台首页
+│   │       ├── posts/         # 文章列表
+│   │       ├── posts/new/     # 新建文章
+│   │       ├── posts/edit/[...slug]/  # 编辑文章
+│   │       ├── posts/versions/[...slug]/  # 版本历史
+│   │       ├── posts/show/[slug]/  # 查看文章
+│   │       ├── posts/preview/     # 文章预览
+│   │       ├── posts-manage/      # 文章管理
+│   │       ├── users/         # 用户管理
+│   │       ├── comments/      # 评论管理
+│   │       ├── media/         # 媒体管理
+│   │       ├── analytics/     # 分析
+│   │       ├── monitoring/    # 监控（含 health/ 和 metrics/）
+│   │       └── settings/      # 设置
 │   │
 │   └── api/
 │       └── v1/[...path]/      # BFF 代理（仅 Client 组件调用）
@@ -36,9 +55,16 @@ frontend/src/
 │   ├── layouts/               # PostLayoutMonograph 等布局组件
 │   ├── blog/                  # 博客组件（SearchDashboard 等）
 │   ├── home/                  # 首页 Section（HeroSection, BentoGrid, ProjectGallery 等）
-│   ├── ui/                    # shadcn/ui 基础组件
+│   ├── ui/                    # 自定义 UI 组件（EnhancedImage, ExcalidrawModal, LoadingStates, Skeleton, LiveRegion, SwipeContainer, FAB 等）
+│   ├── shadcn/ui/             # shadcn/ui 基础组件（button, card, dialog, input, tabs 等）
 │   ├── navigation/            # TableOfContents 等导航组件
-│   └── chemistry/             # 化学/乐谱等富媒体组件
+│   ├── magazine/              # 杂志风格组件（MasonryGrid, FilterBar, HeroSection, RecommendedSection 等）
+│   ├── book/                  # 书籍组件（Book, Chapter, ArticleCard 等）
+│   ├── editor/                # 编辑器组件（TiptapEditor, MenuBar, SplitEditor, extensions/ 等）
+│   ├── auth/                  # 认证组件（AuthButton, AuthModal, AuthInitializer 等）
+│   ├── search/                # 搜索组件（ApiSearchBar, SmartSearchBar）
+│   ├── loaders/               # 加载状态组件（ComponentLoader, Spinner, Skeleton 系列等）
+│   └── chemistry/             # 化学可视化组件（ChemicalStructure, RDKitStructure, MoleculeFingerprint 等）
 │
 ├── lib/
 │   ├── api/
@@ -46,7 +72,13 @@ frontend/src/
 │   │   ├── apiClient.ts       # 核心 HTTP 客户端（拦截器、刷新、缓存、重试）
 │   │   └── backend.ts         # 类型化 API 端点（auth/post/comment 等）
 │   ├── store/
-│   │   └── ui-store.ts        # Zustand 仅存 UI 状态
+│   │   ├── ui-store.ts        # Zustand UI 状态（theme/sidebar/modal）
+│   │   ├── auth-store.ts      # 用户会话状态（token 仅存 HttpOnly Cookie）
+│   │   ├── blog-store.ts      # 博客数据缓存（1h 过期）
+│   │   ├── post-store.ts      # 文章交互（likes/views）
+│   │   ├── comment-store.ts   # 评论管理（分页）
+│   │   ├── create-store.ts    # Store 创建工具
+│   │   └── core/              # Store 工具函数和类型
 │   ├── ui/
 │   │   └── UIStore.ts         # UI 状态管理（loading/notifications/modal/sidebar/colorMode）
 │   └── utils/
@@ -94,9 +126,19 @@ export const postService = {
 | Store | 存什么 | 存哪里 | 原因 |
 |-------|--------|--------|------|
 | ui-store | theme, sidebar, modal | Zustand | 纯 UI，无敏感数据 |
-| UIStore | loading, notifications, modals, sidebar, colorMode | React Context | UI 层级管理 |
-| ~~auth-store~~ | ~~token~~ | ~~localStorage~~ | **禁止!** XSS 风险 |
-| ~~blog-store~~ | ~~posts~~ | ~~localStorage~~ | **禁止!** 用 API 获取 |
+| UIStore (lib/ui/UIStore.ts) | global loading, notifications, modals, sidebar, colorMode | Zustand | UI 层级状态管理（非 React Context） |
+| auth-store | user, isAuthenticated | Zustand | 存储用户会话状态，token 仅存 HttpOnly Cookie |
+| blog-store | posts cache | Zustand | 缓存博客数据，1 小时过期，减少 API 调用 |
+| post-store | post stats (likes, views), likedPosts | Zustand | 文章交互状态 |
+| comment-store | comments per post, pagination cursor | Zustand | 评论数据分页管理 |
+| create-store | 通用 store 创建工具 | Zustand | 用于创建新 store 的辅助函数 |
+
+## 后端 Middleware 集成
+
+| Middleware | 位置 | 职责 |
+|-----------|------|------|
+| tracing.rs | `backend/crates/api/src/middleware/tracing.rs` | 请求追踪和日志记录中间件 |
+| tracing.rs | `backend/crates/api/src/observability/tracing.rs` | 可观测性基础设施（tracing 设置） |
 
 ## 搜索降级策略
 

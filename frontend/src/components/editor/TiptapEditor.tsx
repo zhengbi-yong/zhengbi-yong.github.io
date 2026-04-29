@@ -381,7 +381,7 @@ function RichTextEditorInner({
   const insertMath = useCallback((latex: string, displayMode: boolean) => {
     if (!editor) return
     editor.chain().focus().insertContent({
-      type: displayMode ? 'math' : 'inlineMath',
+      type: displayMode ? 'blockMath' : 'inlineMath',
       attrs: { latex },
     }).run()
   }, [editor])

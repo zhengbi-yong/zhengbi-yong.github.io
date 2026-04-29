@@ -14,7 +14,7 @@ POST /admin/media/upload (Multipart POST)
        ├─ 生成 UUID 文件名 (object_key，防冲突)
        ├─ 存储到后端存储层 (S3/MinIO/本地)
        ├─ 记录到 media 表 (persist_media_record)
-       └─ 返回 MediaListItem { id, url, filename, mime_type, size, alt_text, ... }
+       └─ 返回 MediaListItem { id, filename, original_filename, mime_type, size_bytes, width, height, url, media_type, usage_count, created_at }
               │
               ▼
        编辑器插入 <img src={url} />
@@ -23,45 +23,60 @@ POST /admin/media/upload (Multipart POST)
 ### 上传端点
 
 - **`POST /admin/media/upload`** — 直接 Multipart POST 上传
-- **`POST /admin/media/presign-upload`** — 预签名直传 URL（前端直接传 S3）
+- **`POST /admin/media/presign-upload`** — 预签名直传 URL（前端直接传 S3/MinIO）
 - **`POST /admin/media/finalize`** — 预签名上传完成后登记到数据库
 
 > 上传由 Rust Axum 直接处理，不经过 Next.js BFF 代理。
 
 ### 存储后端抽象
 
+存储后端使用 Rust **enum**（无动态分发），定义在 `backend/crates/api/src/storage.rs`：
+
 ```rust
-// 抽象存储层 (state.storage)
-pub trait StorageBackend {
-    async fn store(&self, key: &str, data: &[u8], content_type: &str) -> Result<()>;
-    async fn delete(&self, key: &str) -> Result<()>;
-    async fn presign_upload(&self, key: &str, expires_in: Duration) -> Result<String>;
-    async fn presign_download(&self, key: &str, expires_in: Duration) -> Result<String>;
+pub enum StorageBackend {
+    Local(LocalStorage),
+    Minio(MinioStorage),
 }
 ```
 
-支持实现:
-- S3/MinIO (`S3StorageBackend`)
-- 本地文件系统 (`LocalStorageBackend`)
+方法通过 `match` 分发到具体实现：
+
+| 方法 | 签名 | 说明 |
+|------|------|------|
+| `store` | `async fn store(&self, key: &str, data: &[u8], content_type: &str) -> Result<String, StorageError>` | 存储文件，返回可访问 URL |
+| `delete` | `async fn delete(&self, key: &str) -> Result<(), StorageError>` | 删除文件 |
+| `object_url` | `fn object_url(&self, key: &str) -> String` | 返回文件的持久对象 URL |
+| `head` | `async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError>` | 读取对象元数据 |
+| `presigned_upload_url` | `async fn presigned_upload_url(&self, key: &str, content_type: &str, expires_secs: u32) -> Result<Option<String>, StorageError>` | 预签名上传 URL（MinIO 支持，Local 返回 None） |
+| `presigned_download_url` | `async fn presigned_download_url(&self, key: &str, expires_secs: u32) -> Result<Option<String>, StorageError>` | 预签名下载 URL |
+
+`StorageService`（封装 `Arc<StorageBackend>`）作为应用状态注入。
+
+通过 `STORAGE_BACKEND` 环境变量选择后端（`local` 或 `minio`，默认 `local`）。
 
 ## 媒体表结构
 
-> 表名为 `media`（非 `media_assets`）。
+> 表名为 `media`。定义在 `backend/migrations/0004_create_cms_tables.sql`。
 
 ```sql
 CREATE TABLE media (
-    id              UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    filename        TEXT NOT NULL,
-    url             TEXT NOT NULL,
-    mime_type       TEXT NOT NULL,
-    size            BIGINT NOT NULL,
-    width           INTEGER,
-    height          INTEGER,
-    alt_text        TEXT,
-    uploader_id     UUID REFERENCES users(id),
-    article_id      UUID REFERENCES posts(id),
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    deleted_at      TIMESTAMPTZ
+    id                UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    filename          TEXT NOT NULL,               -- 存储键名（UUID 文件名）
+    original_filename TEXT NOT NULL,               -- 用户上传时的原始文件名
+    mime_type         TEXT NOT NULL,
+    size_bytes        BIGINT NOT NULL,             -- 文件大小（字节）
+    width             INTEGER,                     -- 图片宽度（如有）
+    height            INTEGER,                     -- 图片高度（如有）
+    storage_path      TEXT NOT NULL,               -- 存储路径（后端对象键）
+    cdn_url           TEXT,                        -- CDN 加速 URL（可选）
+    alt_text          TEXT,                        -- 替代文本
+    caption           TEXT,                        -- 标题/说明文字
+    uploaded_by       UUID REFERENCES users(id) ON DELETE SET NULL,  -- 上传者
+    media_type        TEXT NOT NULL DEFAULT 'image',  -- 类型：image, video, document, other
+    usage_count       INTEGER NOT NULL DEFAULT 0,     -- 被引用次数
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at        TIMESTAMPTZ                   -- 软删除标记
 );
 ```
 
@@ -82,3 +97,11 @@ CREATE TABLE media (
 
 ### 病毒扫描
 - ClamAV 集成（标注为可选）
+
+## 已知限制
+
+### `get_image_dimensions` 存根
+`get_image_dimensions()` 当前返回 `(None, None)`（未实现图片尺寸提取）。TODO：集成 `image` crate 解析图片头以获取实际尺寸。
+
+### Redis 缓存
+媒体列表路由（`GET /admin/media`）在写入操作（上传、更新、删除）后调用 `clear_media_cache()` 清除 `media:list` 缓存键。列表读取当前未主动缓存；缓存层为未来优化预留。

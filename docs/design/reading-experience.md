@@ -25,8 +25,8 @@ Desktop (>= 1280px):
 └───────────────────────────────────────────────────────┘
 ```
 
-Tablet (768-1279px)：内容全宽，TOC 折叠为浮动按钮
-Mobile (< 768px)：单栏，TOC 为右下 FAB
+Tablet (768-1279px)：内容全宽，TOC 折叠为浮动按钮（右下 FAB + 底部面板）
+Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 ### 当前实现
 
@@ -71,7 +71,7 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 - 点击平滑滚动（`scroll-behavior: smooth`）
 - 移动端折叠为浮动按钮+下拉
 - 从 MonographTOC 借鉴 rect-based 精确算法、`aria-current="location"`
-- 移动端断点：1024px（Monograph 的 1280px 过晚，原 768px 过早）
+- 移动端断点：768px（Monograph 的 1280px 过晚，原 768px 为标准断点）
 
 ## 阅读进度条 (ReadingProgressBar)
 
@@ -91,17 +91,17 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB
 ## 表格
 
 - 桌面：清水平线、交替行着色、header 底部边框
-- 移动端（< 768px）：卡片折叠模式，`data-label` 注入表头文本
+- 移动端（< 768px）：卡片折叠模式，`data-label` 注入表头文本（⚠️ 未实现 — 当前使用标准 prose 表格样式）
 
 ## 微交互动效
 
 | 元素 | 触发器 | 动画 | 时长 |
 |------|--------|------|------|
-| 文章卡片 | hover | `translateY(-2px)` + 阴影扩展 | 200ms |
+| 文章卡片 | hover | `border-color` 过渡 | 200ms |
 | TOC 指示器 | scroll | 左边框滑动到新位置 | 200ms |
 | 进度条 | scroll | 宽度过渡（GPU） | 100ms |
 | 复制按钮 | click | 图标切换 + 提示 | 150ms |
-| 评论抽屉 | click | 右侧滑入 | 250ms |
+| 评论区域 | scroll | 页面内联评论列表 | 150ms |
 | 暗色模式 | click | CSS 变量过渡 | 200ms |
 
 所有动画使用 `will-change: transform` 和 `transform: translateZ(0)` 开启 GPU 合成。

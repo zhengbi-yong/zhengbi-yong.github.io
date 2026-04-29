@@ -31,9 +31,9 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 ```
 
 ### 调用位置
-- `backend/crates/api/src/routes/posts.rs` — `get_post` 中 fallback 转换
-- `backend/crates/api/src/routes/mdx_sync.rs` — MDX 同步管线
-- `backend/crates/api/src/routes/auth.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/posts.rs` — post CRUD 中 fallback 转换（content_json → content_mdx）
+- `backend/crates/api/src/routes/articles.rs` — 文章写入时转换
+- `backend/crates/api/src/routes/mdx_convert.rs` — MDX 同步管线
 
 ## 节点类型映射
 
@@ -50,13 +50,13 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 | `image` | `![alt](src)` |
 | `video` | `<video src="...">` |
 | `inlineMath` (latex) | `$latex$` |
-| `math` (latex) | `$$\nlatex\n$$` |
+| `blockMath` (latex) | `$$\nlatex\n$$` |
 | `table` / `tableRow` / `tableCell` | Markdown 表格 |
 | `horizontalRule` | `---` |
-| `hardBreak` | 两个空格 + 换行 |
+| `hardBreak` | `\n`（单纯换行） |
 | `mention` | `@username` |
-| `details` / `summary` | `<details>` / `<summary>` |
-| `callout` | `::: callout-type` |
+| `details` / `detailsSummary` / `detailsContent` | 自定义 blockquote 格式：`> **📖 标题**`  + `> 内容` |
+| `callout` | `> ℹ️ text`（blockquote + emoji 前缀） |
 
 ### Mark 映射
 

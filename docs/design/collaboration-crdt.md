@@ -1,10 +1,10 @@
-# 实时协作与 CRDT 同步（规划）
+# 实时协作与 CRDT 同步（部分实施）
 
-> 来源：EDITOR_SYSTEM_DESIGN.md P7 — 扩展阶段，尚未实施
+> 来源：EDITOR_SYSTEM_DESIGN.md P7 — 扩展阶段，**部分实施**（Hocuspocus 服务器脚本已就绪，前端集成尚未完成）
 
 ## 概述
 
-使用 Yjs CRDT (Conflict-free Replicated Data Type) 实现多人实时协作编辑。
+使用 Yjs CRDT (Conflict-free Replicated Data Type) 实现多人实时协作编辑。当前处在**部分实施**阶段：后端 Hocuspocus WebSocket 服务器脚本已存在且可运行，但因缺少 npm 依赖（`@hocuspocus/provider`、`@hocuspocus/server`、`yjs`），前端尚未完成集成。详细架构文档见 [`docs/p4-websocket-collaboration.md`](../p4-websocket-collaboration.md)。
 
 ## 技术选型
 
@@ -12,27 +12,63 @@
 |------|------|------|
 | CRDT 引擎 | Yjs | 最成熟的 CRDT 库 |
 | 网络传输 | WebSocket | 双向实时通信 |
-| 后端同步 | Yrs (y-crdt) | Rust 原生实现 |
-| 文档绑定 | y-prosemirror | Yjs ↔ ProseMirror 绑定 |
-| 认证集成 | Axum middleware | WebSocket 升级时验证 JWT |
+| 后端同步 | Hocuspocus (Node.js) | 现有服务器脚本；原计划 Yrs (Rust) 搁置 |
+| 文档绑定 | `@tiptap/extension-collaboration` | TipTap 原生协作扩展 |
+| 前端提供者 | `@hocuspocus/provider` | 浏览器端 WebSocket 客户端（依赖待安装） |
+| 认证集成 | (待定) | 未来版本添加 JWT 验证 |
 
-## 架构
+## 当前实施状态
+
+| 组件 | 状态 | 位置 |
+|------|------|------|
+| Hocuspocus 服务器脚本 | ✅ 已实现 | `frontend/scripts/hocuspocus-server.js` (34 行) |
+| 架构设计文档 | ✅ 已实现 | `docs/p4-websocket-collaboration.md` (231 行) |
+| CollaborationEditor 包装组件 | ✅ 已实现（透传占位符） | `frontend/src/components/editor/CollaborationEditor.tsx` |
+| npm 依赖 (`@hocuspocus/*`, `yjs`) | ❌ 未安装 | `package.json` 中缺失 |
+| HocuspocusProvider 客户端集成 | ❌ 未完成 | CollaborationEditor 尚无实际同步逻辑 |
+| 光标/选区的意识协议 | ❌ 未实现 | |
+| 文档持久化 | ❌ 未实现 | 当前仅内存存储 |
+
+## 已实现的服务器脚本
+
+`frontend/scripts/hocuspocus-server.js` 是一个独立 Node.js 进程：
+
+- 监听 `ws://localhost:3002`
+- 使用 `@hocuspocus/server` 管理 WebSocket 连接
+- 按房间名 (`documentName`) 路由 Yjs 文档
+- 纯内存存储（无数据库持久化）
+- 支持 `onConnect`、`onDisconnect`、`onLoadDocument`、`onStoreDocument` 回调
+
+## 待完成的前端集成
+
+完成协作功能需要以下步骤：
+
+1. 安装 npm 依赖：`@hocuspocus/provider`、`@hocuspocus/server`、`yjs`
+2. 在 `CollaborationEditor.tsx` 中实例化 `HocuspocusProvider`，连接到 `ws://localhost:3002`
+3. 在 TipTap 编辑器中配置 `@tiptap/extension-collaboration` 扩展
+4. 添加启动脚本（`package.json` 中 `"collaboration:server"`）
+
+## 架构（当前方案）
 
 ```
-用户 A (TipTap + y-prosemirror)
+用户 A (TipTap + CollaborationExtension)
     │
-    ├── Yjs Doc ←── WebSocket ←──┐
-    │                             │
-用户 B (TipTap + y-prosemirror)   │
-    │                             │
-    └── Yjs Doc ←── WebSocket ←──┤
-                                  │
-                          ┌───────┴────────┐
-                          │  Yrs Server     │
-                          │ (Rust / Axum)   │
-                          │ 多路复用         │
-                          └────────────────┘
+    ├── Y.Doc ←── HocuspocusProvider (WebSocket) ←──┐
+    │                                                 │
+用户 B (TipTap + CollaborationExtension)               │
+    │                                                 │
+    └── Y.Doc ←── HocuspocusProvider (WebSocket) ←──┤
+                                                      │
+                                              ┌───────┴────────┐
+                                              │ Hocuspocus      │
+                                              │ Server          │
+                                              │ (Node.js)       │
+                                              │ Port 3002       │
+                                              │ 内存存储         │
+                                              └────────────────┘
 ```
+
+> **注**：原计划使用 Rust Yrs (y-crdt) + Axum middleware 实现后端同步，当前实际采用 Node.js Hocuspocus 方案。未来若迁移到 Rust 后端，可以从 Hocuspocus 过渡到 Yrs，架构变化见下方历史说明。
 
 ## 同步策略
 
@@ -50,11 +86,12 @@
 - CRDT 实时版本在设计上不持久化（仅缓存）
 - 只有显式保存操作才生成审计版本
 
-## 实施优先级
+## 实施优先级（更新）
 
 | 优先级 | 功能 | 说明 |
 |-------|------|------|
-| P7-P0 | WebSocket 连接管理 | Axum 升级、认证 |
-| P7-P1 | Yrs 集成 | Rust 端 CRDT 同步 |
-| P7-P2 | y-prosemirror 绑定 | 前端编辑器接入 |
+| P7-P0 | npm 依赖安装 | 安装 `@hocuspocus/provider`、`@hocuspocus/server`、`yjs` |
+| P7-P1 | HocuspocusProvider 集成 | CollaborationEditor 接入 WebSocket 同步 |
+| P7-P2 | TipTap Collaboration 扩展 | 配置 `@tiptap/extension-collaboration`，替换原生 History |
 | P7-P3 | 光标/选区的意识协议 | 看到其他人正在编辑的位置 |
+| P7-P4 | 持久化存储 | 实现 `onStoreDocument` 回调，保存到 PostgreSQL |
