@@ -124,7 +124,7 @@
 
 选择任一菜单项后，自动删除已键入的 `/` 字符（`deleteRange`），确保内容干净。
 
-## ShikiCodeBlock 扩展详情
+## ~~ShikiCodeBlock~~ 扩展（已删除）
 
 | 属性 | 值 |
 |------|-----|
@@ -132,13 +132,11 @@
 | 优先级 (`priority`) | 100 |
 | 组 | `block` |
 | 内容 | `text*` |
-| `language` 属性默认值 | `'typescript'` |
-| 解析方式 | 从 `data-language` 属性或 `class="language-*"` 提取 |
-| 渲染方式 | `ReactNodeViewRenderer` + `ShikiCodeBlockComponent` |
+| `language` 属性默认值 | `typescript` |
+| 解析方式 | 从 `data-language` 属性或 `class` 提取 |
+| 渲染方式 | ~~ReactNodeViewRenderer + ShikiCodeBlockComponent~~ |
 
-该扩展以优先级 100 覆盖 StarterKit 内置的 `codeBlock`（优先级 50），确保 `<pre>` 标签的解析和渲染使用 Shiki 高亮。`toggleCodeBlock` 命令仍由 StarterKit 提供。
-
-**注意：ShikiCodeBlock 扩展未注册到编辑器；Shiki 仅用于 MDX 静态渲染。**
+> **已于 2026-04-29 删除。** 该扩展未注册到编辑器，且其定义文件和 NodeView 组件均已从仓库中删除。Shiki 现在仅用于 MDX 静态渲染，编辑器中的代码块使用 StarterKit 内置的 codeBlock。
 
 ## CollaborationEditor
 
