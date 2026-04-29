@@ -53,7 +53,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   // E3: Async Shiki highlighting — yields to React's scheduler
   useEffect(() => {
     if (!language || !codeText.trim()) {
-      return
+      return undefined
     }
     let cancelled = false
     const timer = setTimeout(async () => {

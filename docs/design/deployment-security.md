@@ -28,6 +28,11 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 - 构建 4 个二进制: `api`, `worker`, `migrate`, `create_admin`
 - 复制 `migrations/` 目录到运行时镜像
 - 使用 `dumb-init` 确保信号正确转发
+- apt-get 安装含重试逻辑（最多 5 次尝试，支持 Acquire::Retries=10 和 No-Cache 选项），应对临时网络抖动
+- 运行时镜像安装 `ca-certificates` 和 `curl`（用于健康检查）
+- 使用 OCI 标签（org.opencontainers.image.title/description/version/revision/created）
+- 创建非 root 用户 `rustuser`（uid=1000），运行时以非 root 身份运行
+- 创建 `/app/uploads` 和 `/app/logs` 目录，权限归 `rustuser`
 
 ### 前端 Dockerfile
 
@@ -48,6 +53,24 @@ K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 
 > 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
 
+### 网络策略（Network Policy）
+
+K3s 部署包含完整的零信任网络策略（`deployments/k3s/network-policy.yaml`）：
+
+| 策略 | 作用 |
+|------|------|
+| `default-deny-all` | 默认拒绝所有入站和出站流量 |
+| `allow-dns` | 允许所有 Pod 的 DNS 解析（kube-system 的 53 端口） |
+| `allow-backend-to-postgres` | 允许 backend 访问 PostgreSQL（5432 端口） |
+| `allow-backend-to-redis` | 允许 backend 访问 Redis（6379 端口） |
+| `allow-frontend-to-backend` | 允许前端和 Ingress Controller（Traefik）访问 backend（3000 端口） |
+
+> 注：Compose 部署无网络隔离，所有服务在同一 Docker 网络中互通。
+
+### 安全响应头
+
+> **已知缺口**：安全头（HSTS、X-Frame-Options、X-Content-Type-Options、X-XSS-Protection、Referrer-Policy）仅在 Nginx 配置中被注释掉的 HTTPS 服务器块中定义（第 49-53 行），当前激活的 HTTP 服务器（第 119-179 行）**未设置任何安全响应头**。生产环境切换到 HTTPS 时需要取消注释并确认生效。CSP（Content-Security-Policy）在任何 Nginx 块中均未配置。
+
 ## 健康检查
 
 ### 后端健康端点
@@ -59,6 +82,15 @@ K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 | `/health` | 基本健康 | 返回 "OK" |
 | `/health/detailed` | 详细健康 | JSON 格式各组件状态 |
 | `/metrics` | Prometheus 指标 | 指标数据 |
+
+## CORS 配置
+
+> **重复 CORS 风险**：CORS 头同时在 Nginx（`deployments/nginx/conf.d/blog.conf`）和 Axum 应用层设置。
+>
+> - **Nginx**（HTTP 开发服务器，第 145-148 行）：对 `/api/v1/` 路径设置 `Access-Control-Allow-Origin *` 等头
+> - **Axum**（`main.rs` 中 `create_cors_layer()`）：根据 `CORS_ALLOWED_ORIGINS` 环境变量配置（开发模式允许任意来源，生产模式严格校验）
+>
+> 当 Nginx 和 Axum 同时设置 CORS 头，浏览器可能因重复头导致行为异常或安全降级（Nginx 的 `*` 会覆盖 Axum 的严格限制）。建议只保留一层的 CORS 配置。另见 `backend/code-review-report.md`。
 
 ## 环境变量与密钥管理
 
@@ -79,6 +111,10 @@ envFrom:
 - `RUST_LOG`
 - `ENVIRONMENT` (development/production)
 - SMTP 配置（可选）
+
+> **已知缺口**：`SESSION_SECRET` 在文档中列为必需环境变量，但：Kubernetes `secret.example.yaml` 中未包含；K3s `blog-backend.yaml` 使用 `${SESSION_SECRET}` 变量引用（需外部填充）；Compose 的 prod `docker-compose.yml` 和环境模板中均未配置。仅后端 `.env.example` 文件中有占位值。建议在所有部署配置中补全。另见 `docs/reference/environment-vars.md`。
+
+> **已知缺口**：Compose 的 prod `docker-compose.yml` 中 `DATABASE_URL` 直接硬编码 `***` 作为密码占位符（`postgresql://${POSTGRES_USER}:***@postgres:5432/${POSTGRES_DB}`），而非使用变量引用（如 `${DB_PASSWORD}`）。这意味着部署者必须手动替换该占位符，否则数据库连接将因密码无效而失败。
 
 ## 备份策略
 

@@ -64,7 +64,29 @@ frontend/src/
 │   ├── auth/                  # 认证组件（AuthButton, AuthModal, AuthInitializer 等）
 │   ├── search/                # 搜索组件（ApiSearchBar, SmartSearchBar）
 │   ├── loaders/               # 加载状态组件（ComponentLoader, Spinner, Skeleton 系列等）
-│   └── chemistry/             # 化学可视化组件（ChemicalStructure, RDKitStructure, MoleculeFingerprint 等）
+│   ├── chemistry/             # 化学可视化组件（ChemicalStructure, RDKitStructure, MoleculeFingerprint 等）
+│   ├── post/                  # 文章相关组件
+│   ├── header/                # 页眉组件（HeaderOptimized, HeaderNavigation, HeaderActions, MobileMenuButton 等）
+│   ├── sections/              # 页面区域组件（SectionHeader, PageHeader, Explore, BlogSection, ActionBar 等）
+│   ├── three/                 # Three.js 3D 组件
+│   ├── social-icons/          # 社交图标组件
+│   ├── seo/                   # SEO 相关组件
+│   ├── audio/                 # 音频/乐谱组件
+│   ├── maps/                  # 地图组件
+│   ├── mobile/                # 移动端专用组件
+│   ├── visitor/               # 访客交互组件（micro-interactions 等）
+│   ├── debug/                 # 调试工具组件
+│   ├── ai/                    # AI 相关组件
+│   ├── performance/           # 性能监控组件（PerformanceDashboard 等）
+│   ├── gaussian-splat/        # 3D Gaussian Splatting 组件
+│   ├── charts/                # 图表组件（Nivo, ECharts, Three.js 等）
+│   ├── animations/            # 动画包装组件（GSAP, Framer Motion）
+│   ├── Excalidraw/            # Excalidraw 白板组件
+│   ├── mdx/                   # MDX 渲染组件（CodeBlock 等）
+│   ├── admin/                 # 管理后台组件（AdminLayout 等）
+│   ├── media/                 # 媒体组件（Image 等）
+│   ├── hooks/                 # 自定义 Hooks
+│   └── MDXComponents/         # MDX 组件映射注册表
 │
 ├── lib/
 │   ├── api/

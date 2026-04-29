@@ -1,8 +1,10 @@
 # AST 转换管线
 
-> 当前实现：Rust 后端 `blog-core` crate 的纯递归 JSON 遍历，位于 `backend/crates/core/src/mdx_convert.rs`。
+> 当前实现：Rust 后端 `blog-core` crate 的双向转换器，位于两个文件中：
+> - `backend/crates/core/src/mdx_convert.rs` — TipTap JSON → MDX（正向转换）
+> - `backend/crates/core/src/mdx_to_json.rs` — MDX → TipTap JSON（反向转换）
 
-## 转换方向
+## 正向转换：TipTap JSON → MDX
 
 ```text
 TipTap JSON (ProseMirror AST)
@@ -18,7 +20,7 @@ TipTap JSON (ProseMirror AST)
 - **不是** MDAST 中间表示
 - 直接 JSON → Markdown 字符串拼接
 
-## 核心实现
+### 核心实现
 
 ```rust
 // 入口函数 (pub)
@@ -34,6 +36,45 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 - `backend/crates/api/src/routes/posts.rs` — post CRUD 中 fallback 转换（content_json → content_mdx）
 - `backend/crates/api/src/routes/articles.rs` — 文章写入时转换
 - `backend/crates/api/src/routes/mdx_convert.rs` — MDX 同步管线
+
+## 反向转换：MDX → TipTap JSON
+
+```text
+MDX 纯文本
+        │
+        ▼
+  pulldown-cmark 解析器（解析 Markdown 事件）
+        │
+        ▼
+  事件 → TipTap JSON 节点转换
+        │
+        ▼
+  TipTap JSON (ProseMirror AST)
+```
+
+- 使用 `pulldown-cmark` crate 解析 Markdown 为事件流，再转换为 TipTap JSON AST
+- **不同于**正向转换（纯字符串拼接），反向转换基于解析器事件
+
+### 核心实现
+
+位于 `backend/crates/core/src/mdx_to_json.rs`：
+
+```rust
+// 入口函数 (pub)
+pub fn mdx_to_tiptap_json(mdx: &str) -> Value
+pub fn mdx_to_tiptap_json_with_stats(mdx: &str) -> (Value, ConversionStats)
+
+// 转换统计结构
+pub struct ConversionStats {
+    pub total_blocks: usize,      // 总块级节点数
+    pub total_inlines: usize,     // 总内联节点数
+    pub error_count: usize,       // 转换错误数
+    pub warnings: Vec<String>,    // 警告信息
+}
+```
+
+`mdx_to_tiptap_json()` 返回纯 `Value`，适用于简单转换。
+`mdx_to_tiptap_json_with_stats()` 返回 `(Value, ConversionStats)` 元组，适用于需要监控和调试的场景。
 
 ## 节点类型映射
 
@@ -81,6 +122,8 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 
 ## 双轨存储
 
+`posts` 表和 `articles` 表均采用 dual-track 模式：
+
 | 列 | 类型 | 用途 |
 |----|------|------|
 | `content_json` | JSONB | TipTap 真相源（写入侧） |
@@ -92,7 +135,9 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 
 ## 测试覆盖
 
-`mdx_convert.rs` 包含 **16 个单元测试**，覆盖：
+`mdx_convert.rs` 包含 **~16 个测试函数**，`mdx_to_json.rs` 包含 **~27 个测试函数**，总计 **~43 个测试函数**。覆盖：
+
+正向转换（`mdx_convert.rs`）：
 - 空文档
 - 嵌套列表（bullet + ordered）
 - 代码块（含语言标注）
@@ -102,5 +147,16 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 - 任务列表
 - 引用块 + 嵌套
 - 多级标题
+
+反向转换（`mdx_to_json.rs`）：
+- 空字符串
+- 纯文本段落
+- 多级标题
+- 无序/有序列表
+- 代码块（含语言标注）
+- 引用块
+- 链接、图片
+- 加粗、斜体、行内代码标记
+- 复杂嵌套场景
 
 运行: `cargo test -p blog-core`

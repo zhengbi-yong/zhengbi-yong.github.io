@@ -37,15 +37,21 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 | PostBanner | ❌ 已废弃 |
 | PostLayout | ❌ 已废弃 |
 
+> **路由路径**：`app/blog/[...slug]/`（使用 catch-all 路由段，而非 `app/posts/[slug]/`）
+
 ## 排版系统
 
 ### 字体栈
 
 ```css
---font-sans: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
---font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
---font-body: 'Inter', 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
+--font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+--font-mono: var(--font-jetbrains-mono), 'SFMono-Regular', ui-monospace, monospace;
+--font-serif: var(--font-newsreader), Georgia, serif;
 ```
+
+> **说明**：实际加载的字体是 **Inter**（无衬线）、**JetBrains Mono**（等宽）和 **Newsreader**（衬线，正文/标题），通过 `next/font/google` 加载。文档此前提到的 PingFang SC 和 Noto Sans SC 不在当前字体栈中。衬线变量 `--font-serif` 通过 CSS 自定义属性在 `tailwind.css` 中引用，未出现在 `@theme` 的 `--font-serif` 配置中，但 Newsreader 字体已加载并可通过 CSS 变量 `var(--font-newsreader)` 使用。
+
+> **全局样式文件**：项目不使用 `globals.css`。所有全局样式通过 `src/styles/tailwind.css` 管理，该文件在 `layout.tsx` 中通过 `import '@/styles/tailwind.css'` 引入。
 
 ### 字号比例（Fibonacci-based）
 

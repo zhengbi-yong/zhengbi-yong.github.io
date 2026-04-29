@@ -56,7 +56,7 @@ pub enum StorageBackend {
 
 ## 媒体表结构
 
-> 表名为 `media`。定义在 `backend/migrations/0004_create_cms_tables.sql`。
+> 主媒体表 `media`。定义在 `backend/migrations/0004_create_cms_tables.sql`。
 
 ```sql
 CREATE TABLE media (
@@ -68,7 +68,7 @@ CREATE TABLE media (
     width             INTEGER,                     -- 图片宽度（如有）
     height            INTEGER,                     -- 图片高度（如有）
     storage_path      TEXT NOT NULL,               -- 存储路径（后端对象键）
-    cdn_url           TEXT,                        -- CDN 加速 URL（可选）
+    cdn_url           TEXT,                        -- CDN 加速 URL（可选；查询使用 COALESCE(cdn_url, storage_path) AS url，尚无实际 CDN 集成代码）
     alt_text          TEXT,                        -- 替代文本
     caption           TEXT,                        -- 标题/说明文字
     uploaded_by       UUID REFERENCES users(id) ON DELETE SET NULL,  -- 上传者
@@ -79,6 +79,32 @@ CREATE TABLE media (
     deleted_at        TIMESTAMPTZ                   -- 软删除标记
 );
 ```
+
+### `media_assets` 表（文章系统关联表）
+
+除了 `media` 表外，文章系统中还使用 `media_assets` 表来建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
+
+```sql
+CREATE TABLE media_assets (
+    id        UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
+    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+    media_id   UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(article_id, media_id)
+);
+```
+
+## 允许的 MIME 类型
+
+后端上传时会校验 MIME 类型，目前允许以下类型：
+
+| 类别 | MIME 类型 |
+|------|----------|
+| 图片 | `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml` |
+| 视频 | `video/mp4`, `video/webm`, `video/quicktime` |
+| 文档 | `application/pdf` |
+| 文本 | `text/plain` |
 
 ## 尚未实施的功能
 

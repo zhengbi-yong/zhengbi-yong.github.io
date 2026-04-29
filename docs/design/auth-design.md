@@ -1,6 +1,7 @@
 # 认证与授权设计
 
 > 当前实现：JWT 双令牌（access_token + refresh_token），HttpOnly Cookie 为主，Authorization Header 为辅。
+> 注：生产环境中所有路由前缀为 `/api/v1/`，例如实际路径为 `/api/v1/auth/login`。
 
 ## 核心原则
 
@@ -21,6 +22,21 @@
   access_token  → HttpOnly Cookie (access_token) + 可选 Authorization Header
   refresh_token → HttpOnly Cookie (refresh_token) + 可选 Body 返回
 ```
+
+## 注册流程
+
+```
+1. 用户提交注册信息 → POST /auth/register
+   { email, username, password }
+2. 后端校验输入（邮箱格式、用户名规则、密码复杂度）
+3. 检查邮箱和用户名唯一性
+4. Argon2id 哈希密码
+5. 创建用户记录（status='active'，email_verified=false）
+6. 签发 access_token(15min) + refresh_token(7天)
+7. 返回 JSON（含 access_token）+ 设置两个 HttpOnly Cookie
+```
+
+> 注册成功后自动登录（即签发令牌）。若需邮箱验证，待邮件系统就绪后补充 `email_verified` 流程。
 
 ## 登录流程
 
@@ -61,6 +77,8 @@ pub async fn optional_auth_middleware(
 }
 ```
 
+> ⚠️ `optional_auth_middleware` 定义在 `api/src/middleware/auth.rs` 中，但当前**未挂载到任何路由**——属于死代码。设计初衷是为公开路由提供可选的个性化数据（如根据登录状态展示不同视图），但尚未实现路由级接入。
+
 ## 中间件职责边界
 
 ### 中间件只做
@@ -80,6 +98,28 @@ pub async fn optional_auth_middleware(
 - 撤销的 access_token 存入 Redis: `blacklist:{token_hash}` → `"1"`，TTL = 剩余有效期
 - 检查在 auth handler 层（`is_token_blacklisted()`），不在中间件层
 - 登出时撤销当前 access_token，同时删除 refresh_token
+
+## 限流
+
+```
+全局限流策略（Lua 脚本原子执行，双窗口：秒级 + 分钟级）：
+
+密钥格式:
+  rl:s:{ip}:{route_hash}:{second_bucket}  → 秒级窗口
+  rl:m:{ip}:{route_hash}:{minute_bucket}  → 分钟级窗口
+
+各端点限额:
+  POST /auth/login, /auth/register  → 5 次/分钟 + 1 次/秒
+  POST /posts/*/view                 → 100 次/分钟 + 10 次/秒
+  POST /posts/*/comments             → 10 次/分钟 + 2 次/秒
+  其他                               → 1000 次/分钟 + 100 次/秒
+
+失败模式（可配置）:
+  fail_open  → 限流后端不可用时放行（默认，保证可用性）
+  fail_close → 限流后端不可用时拒绝（安全优先）
+```
+
+> 限流使用 Redis Lua 脚本保证原子性，非简单 INCR+EXPIRE。每个请求同时检查秒级和分钟级窗口，任一窗口超限即拒绝。TTL：秒级窗口 2 秒，分钟级窗口 60 秒。
 
 ## CSRF 保护
 
@@ -105,7 +145,9 @@ Token 结构:
 
 撤销:
   revoke_csrf_token() 将 nonce 写入 Redis，使后续携带该 token 的请求失效
-  登出时同时撤销当前 CSRF token
+  ⚠️ **已知差距**：`revoke_csrf_token()` 函数已实现（`api/src/middleware/csrf.rs`），但登出 handler **未调用它**——登出时不会撤销当前 CSRF token。这意味着登出后 CSRF token 在剩余有效期内仍可被使用。这是一个已知安全差距，需后续修复。
+
+⚠️ 已知限制 — 当前 CSRF 仅应用于 admin 路由（admin_routes、post_admin_routes、comment_admin_routes、admin_team_members_routes），未覆盖所有 state-changing 路由（如公开评论提交）。这是一个已知差距，后续应推广到所有非 GET|HEAD|OPTIONS 请求。
 ```
 
 ## 密码重置流程

@@ -78,6 +78,66 @@
 2. **多行矩阵对齐**：`$$` 必须独占首尾行，保留所有 `\n`
 3. **粘贴清洗**：前置 Paste Handler，剔除零宽字符、Base64 等非纯文本节点
 
+## 快捷键 (Keyboard Shortcuts)
+
+编辑器工具栏 (`EditorToolbar.tsx`) 中定义的快捷键映射，使用 `Ctrl` (Windows/Linux) / `Cmd` (macOS) 组合键：
+
+| 功能 | 快捷键 |
+|------|--------|
+| 粗体 (Bold) | `Ctrl+B` |
+| 斜体 (Italic) | `Ctrl+I` |
+| 下划线 (Underline) | `Ctrl+U` |
+| 删除线 (Strikethrough) | `Ctrl+Shift+X` |
+| 行内代码 (Inline Code) | `Ctrl+E` |
+| 一级标题 (Heading 1) | `Ctrl+Alt+1` |
+| 二级标题 (Heading 2) | `Ctrl+Alt+2` |
+| 三级标题 (Heading 3) | `Ctrl+Alt+3` |
+| 无序列表 (Bullet List) | `Ctrl+Shift+8` |
+| 有序列表 (Ordered List) | `Ctrl+Shift+7` |
+| 任务列表 (Task List) | `Ctrl+Shift+9` |
+| 引用 (Blockquote) | `Ctrl+Shift+B` |
+| 撤销 (Undo) | `Ctrl+Z` |
+| 重做 (Redo) | `Ctrl+Shift+Z` |
+
+这些快捷键由 TipTap 内置键盘处理器支持，工具栏按钮的 `title` 属性中会显示对应快捷键提示。
+
+## 斜杠命令 (Slash Commands)
+
+浮动菜单 (`FloatingMenu.tsx`) 实现了完整的斜杠命令系统：在段落开头键入 `/` 时触发，弹出浮动菜单供用户快速插入块级元素。
+
+### 触发条件
+
+- 光标位于**段落开头**（`$from.parentOffset === 0`）
+- 当前输入为纯文本 `/`（`isTextSelection && textBefore === '/'`）
+- 菜单显示在光标正下方，点击外部或按 Esc 关闭
+
+### 菜单项 (6 项)
+
+| # | 图标 | 功能 | TipTap 命令 |
+|---|------|------|------------|
+| 1 | Heading1 | 一级标题 | `toggleHeading({ level: 1 })` |
+| 2 | Heading2 | 二级标题 | `toggleHeading({ level: 2 })` |
+| 3 | List | 无序列表 | `toggleBulletList()` |
+| 4 | Quote | 引用 | `toggleBlockquote()` |
+| 5 | Code | 代码块 | `toggleCodeBlock()` |
+| 6 | ImageIcon | 图片 | `setImage()` (通过 prompt 输入 URL) |
+
+选择任一菜单项后，自动删除已键入的 `/` 字符（`deleteRange`），确保内容干净。
+
+## ShikiCodeBlock 扩展详情
+
+| 属性 | 值 |
+|------|-----|
+| 扩展名 (`name`) | `codeBlock` |
+| 优先级 (`priority`) | 100 |
+| 组 | `block` |
+| 内容 | `text*` |
+| `language` 属性默认值 | `'typescript'` |
+| 解析方式 | 从 `data-language` 属性或 `class="language-*"` 提取 |
+| 渲染方式 | `ReactNodeViewRenderer` + `ShikiCodeBlockComponent` |
+
+该扩展以优先级 100 覆盖 StarterKit 内置的 `codeBlock`（优先级 50），确保 `<pre>` 标签的解析和渲染使用 Shiki 高亮。`toggleCodeBlock` 命令仍由 StarterKit 提供。
+
 ## CollaborationEditor
 
 `CollaborationEditor.tsx` 是一个透传（passthrough）包装组件，渲染 `TiptapEditor` 但不包含实际的 Yjs/Hocuspocus 同步逻辑。它是一个未来协作功能的占位符。
@@ -92,6 +152,16 @@ export default function CollaborationEditor({ roomId, ...props }) {
   )
 }
 ```
+
+### 协作状态说明
+
+| 组件 | 状态 | 路径 |
+|------|------|------|
+| Hocuspocus WebSocket 服务器 | ✅ 已实现 | `frontend/scripts/hocuspocus-server.js` (34 行，独立 Node.js 进程，端口 3002) |
+| npm 依赖 (`@hocuspocus/provider`, `@hocuspocus/server`, `yjs`) | ✅ 已安装 | 作为 reactjs-tiptap-editor 的 transitive 依赖存在于 `pnpm-lock.yaml` |
+| 前端集成 (`CollaborationEditor.tsx`) | ⏳ 占位符 | 仅透传 props 到 `TiptapEditor`，无 Yjs 同步逻辑 |
+
+Hocuspocus 服务器目前处于 in-memory 模式（Phase 1），支持连接/断开事件，持久化尚未实现。
 
 ## 待改造项
 

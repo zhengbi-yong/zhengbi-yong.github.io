@@ -51,6 +51,8 @@ export function ShikiCodeBlockComponent({ node, updateAttributes }: ReactNodeVie
 
   // E3: async highlight with setTimeout — yields to React's scheduler
   useEffect(() => {
+    let cancelled = false
+
     if (!containerRef.current) {
       return undefined
     }
@@ -62,10 +64,15 @@ export function ShikiCodeBlockComponent({ node, updateAttributes }: ReactNodeVie
 
     const timer = setTimeout(async () => {
       const result = await highlightCode(text, language, 'github-dark')
-      setHighlighted(result)
+      if (!cancelled) {
+        setHighlighted(result)
+      }
     }, 0)
 
-    return () => clearTimeout(timer)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [language])
 
   const isDecorated = highlighted.includes('class="')
@@ -77,7 +84,7 @@ export function ShikiCodeBlockComponent({ node, updateAttributes }: ReactNodeVie
 
   // Close dropdown on outside click
   useEffect(() => {
-    if (!langOpen) return
+    if (!langOpen) return undefined
     const handler = () => setLangOpen(false)
     // Use mousedown instead of click for faster response
     document.addEventListener('mousedown', handler)

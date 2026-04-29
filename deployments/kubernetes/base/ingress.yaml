@@ -24,14 +24,14 @@ spec:
                 name: blog-api
                 port:
                   number: 3000
-          - path: /livez
+          - path: /.well-known/live
             pathType: Prefix
             backend:
               service:
                 name: blog-api
                 port:
                   number: 3000
-          - path: /readyz
+          - path: /.well-known/ready
             pathType: Prefix
             backend:
               service:

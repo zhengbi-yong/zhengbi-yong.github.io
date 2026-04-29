@@ -18,6 +18,8 @@
 
 ### Section 1: Hero Section
 
+> **注意**：`frontend/src/components/home/HeroSection.tsx` 是一个基于 Three.js 粒子系统的沉浸式英雄区组件，已实现但未接入当前活跃首页。当前活跃首页（`Main.tsx`）使用以下内联英雄区标记。
+
 #### 视觉
 
 - 居中布局，`min-h-[80vh]` 全屏高度
@@ -79,7 +81,7 @@
 
 ## 未来规划
 
-> 以下设计为未来扩展示意图，当前尚未实现。
+> 以下设计组件已实现（位于 `frontend/src/components/home/`）但尚未接入首页（`Main.tsx`）。
 
 ### 计划结构
 

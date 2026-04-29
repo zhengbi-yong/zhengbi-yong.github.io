@@ -48,7 +48,8 @@
 
 | 文件 | 职责 |
 |------|------|
-| `mdx/CodeBlock.tsx` | 深色主题 + macOS 窗口装饰 + 复制按钮 + 行号 + 终端模式 |
+| `CodeBlock.tsx` | 轻量级代码块（macOS 窗口装饰 + 复制按钮 + 终端模式） |
+| `mdx/CodeBlock.tsx` | 高级代码块（Shiki 语法高亮 + 深色主题 + macOS 窗口装饰 + 复制按钮 + 行号 + 终端模式） |
 
 ## 6) 杂志风格组件 (Magazine)
 

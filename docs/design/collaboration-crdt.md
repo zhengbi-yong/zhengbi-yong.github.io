@@ -4,7 +4,7 @@
 
 ## 概述
 
-使用 Yjs CRDT (Conflict-free Replicated Data Type) 实现多人实时协作编辑。当前处在**部分实施**阶段：后端 Hocuspocus WebSocket 服务器脚本已存在且可运行，但因缺少 npm 依赖（`@hocuspocus/provider`、`@hocuspocus/server`、`yjs`），前端尚未完成集成。详细架构文档见 [`docs/p4-websocket-collaboration.md`](../p4-websocket-collaboration.md)。
+使用 Yjs CRDT (Conflict-free Replicated Data Type) 实现多人实时协作编辑。当前处在**部分实施**阶段：后端 Hocuspocus WebSocket 服务器脚本已存在且可运行，但尚未直接安装 npm 依赖（`@hocuspocus/server` 完全缺失；`@hocuspocus/provider` 和 `yjs` 仅以传递依赖形式从 tiptap 协作扩展间接存在），前端尚未完成集成。详细架构文档见 [`docs/p4-websocket-collaboration.md`](../p4-websocket-collaboration.md)。
 
 ## 技术选型
 
@@ -14,7 +14,7 @@
 | 网络传输 | WebSocket | 双向实时通信 |
 | 后端同步 | Hocuspocus (Node.js) | 现有服务器脚本；原计划 Yrs (Rust) 搁置 |
 | 文档绑定 | `@tiptap/extension-collaboration` | TipTap 原生协作扩展 |
-| 前端提供者 | `@hocuspocus/provider` | 浏览器端 WebSocket 客户端（依赖待安装） |
+| 前端提供者 | `@hocuspocus/provider` | 浏览器端 WebSocket 客户端（仅以传递依赖存在；直接依赖未安装） |
 | 认证集成 | (待定) | 未来版本添加 JWT 验证 |
 
 ## 当前实施状态
@@ -24,7 +24,7 @@
 | Hocuspocus 服务器脚本 | ✅ 已实现 | `frontend/scripts/hocuspocus-server.js` (34 行) |
 | 架构设计文档 | ✅ 已实现 | `docs/p4-websocket-collaboration.md` (231 行) |
 | CollaborationEditor 包装组件 | ✅ 已实现（透传占位符） | `frontend/src/components/editor/CollaborationEditor.tsx` |
-| npm 依赖 (`@hocuspocus/*`, `yjs`) | ❌ 未安装 | `package.json` 中缺失 |
+| npm 依赖 (`@hocuspocus/*`, `yjs`) | ⚠️ 部分可用 | `@hocuspocus/provider` 和 `yjs` 以传递依赖存在（来自 tiptap）；`@hocuspocus/server` 完全缺失（未在 `package.json` 或 lockfile 中） |
 | HocuspocusProvider 客户端集成 | ❌ 未完成 | CollaborationEditor 尚无实际同步逻辑 |
 | 光标/选区的意识协议 | ❌ 未实现 | |
 | 文档持久化 | ❌ 未实现 | 当前仅内存存储 |
@@ -43,7 +43,7 @@
 
 完成协作功能需要以下步骤：
 
-1. 安装 npm 依赖：`@hocuspocus/provider`、`@hocuspocus/server`、`yjs`
+1. 安装 npm 依赖：`@hocuspocus/provider` 和 `yjs`（已作为传递依赖存在，可提升为直接依赖）；`@hocuspocus/server` 需额外 npm install
 2. 在 `CollaborationEditor.tsx` 中实例化 `HocuspocusProvider`，连接到 `ws://localhost:3002`
 3. 在 TipTap 编辑器中配置 `@tiptap/extension-collaboration` 扩展
 4. 添加启动脚本（`package.json` 中 `"collaboration:server"`）

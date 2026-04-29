@@ -111,7 +111,7 @@ CREATE TABLE posts (
     canonical_url TEXT,
     author_display_name TEXT,
     is_featured BOOLEAN NOT NULL DEFAULT FALSE,
-    post_type TEXT NOT NULL DEFAULT 'post',
+    post_type TEXT NOT NULL DEFAULT 'article',
     content_format TEXT,
     language TEXT NOT NULL DEFAULT 'zh-CN',
     copyright_info TEXT,
@@ -129,6 +129,7 @@ CREATE TABLE posts (
 CREATE INDEX idx_posts_status ON posts(status);
 CREATE INDEX idx_posts_published ON posts(published_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_ops);
+CREATE INDEX idx_posts_title_exact ON posts (title) WHERE deleted_at IS NULL;
 ```
 
 ### 双轨存储说明
@@ -167,10 +168,12 @@ CREATE TABLE comments (
 
 CREATE INDEX idx_comments_path ON comments USING GIST (path);
 CREATE INDEX idx_comments_post ON comments(slug);
-CREATE INDEX idx_comments_pending ON comments(created_at DESC) WHERE status = 'pending';
+CREATE INDEX idx_comments_post_status ON comments(slug, status);
+CREATE INDEX idx_comments_user ON comments(user_id);
 ```
 
 > 注：`slug` 字段（原 `post_slug`）通过 `0002_fix_column_names.sql` 重命名。
+> FK: `comments(slug) REFERENCES post_stats(slug)`（无 CASCADE，自 `2026041501` 迁移起）
 
 ## 统计表 (post_stats) — HOT 优化
 
@@ -356,7 +359,8 @@ CREATE TABLE reading_progress (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE(user_id, post_slug)
 );
-```
+
+> 同时创建了 `recently_read_posts` 视图（`20251229_add_reading_progress.sql`）：关联 `reading_progress` 与 `posts` 表，按最近阅读时间倒序展示用户阅读历史。
 
 ### 团队成员 (team_members)
 ```sql
@@ -389,6 +393,8 @@ CREATE TABLE password_reset_tokens (
     expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_password_reset_tokens_expires ON password_reset_tokens(expires_at);
 ```
 
 ### 搜索关键词 (search_keywords)
@@ -428,9 +434,10 @@ CREATE TABLE search_history (
 ## Redis 数据结构
 
 ```
-# 限流: 固定窗口 INCR+EXPIRE
-r:{ip}:{route_hash}:{minute_bucket} → Counter(INCR)
-TTL: 60 秒
+# 限流: 双窗口 Lua 脚本（秒级 + 分钟级）
+rl:s:{ip}:{route_hash}:{second_bucket} → Counter(INCR)
+rl:m:{ip}:{route_hash}:{minute_bucket} → Counter(INCR)
+TTL: 秒级窗口 2秒，分钟级窗口 60秒
 
 # 令牌黑名单
 blacklist:{token_hash} → String("1")
@@ -445,4 +452,4 @@ post_stats:{slug} → JSON(PostStatsResponse)
 TTL: 5 秒
 ```
 
-> 限流使用 INCR+EXPIRE 固定窗口方案（非 ZSET 滑动窗口）。WebAuthn 挑战码尚未实现。
+> 限流使用 Lua 脚本原子的双窗口方案（秒级 + 分钟级），非简单 INCR+EXPIRE 固定窗口。WebAuthn 挑战码尚未实现。
