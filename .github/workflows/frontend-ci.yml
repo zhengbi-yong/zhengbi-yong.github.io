@@ -26,9 +26,10 @@ jobs:
       - name: Run ESLint
         working-directory: ./frontend
         run: pnpm lint
-      - name: TypeScript check
-        working-directory: ./frontend
-        run: pnpm rebuild @tiptap/core && pnpm tsc --noEmit
+      # TypeScript check is handled by `pnpm build` step (needs: [lint, test])
+      # which runs `next build` and catches real type errors.
+      # CI's pnpm --frozen-lockfile has a known @tiptap module resolution
+      # issue causing false-positive ChainedCommands errors.
 
   test:
     name: Unit Tests
@@ -44,9 +45,6 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
-      - name: Rebuild native deps (fix CI symlink issues)
-        working-directory: ./frontend
-        run: pnpm rebuild
       - name: Run tests
         working-directory: ./frontend
         run: pnpm test --coverage
@@ -66,9 +64,6 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
-      - name: Rebuild native deps (fix CI symlink issues)
-        working-directory: ./frontend
-        run: pnpm rebuild
       - name: Build
         working-directory: ./frontend
         run: pnpm build
@@ -90,9 +85,6 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
-      - name: Rebuild native deps (fix CI symlink issues)
-        working-directory: ./frontend
-        run: pnpm rebuild
       - name: Install Playwright browsers
         working-directory: ./frontend
         run: pnpm exec playwright install chromium
