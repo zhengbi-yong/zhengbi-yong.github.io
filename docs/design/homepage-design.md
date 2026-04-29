@@ -81,20 +81,22 @@
 
 ## 未来规划
 
-> 以下设计组件已实现（位于 `frontend/src/components/home/`）但尚未接入首页（`Main.tsx`）。
+> 以下设计组件已实现（位于 `frontend/src/components/home/`）但尚未接入首页（`Main.tsx`），除 Mega Footer 已集成。
 
 ### 计划结构
 
 ```
-1. Immersive Hero          — 全屏 WebGL 粒子 + 双语标题
-2. Bento Grid Content Hub  — 模块化网格展示最新内容
-3. Projects Gallery        — 横向滚动项目展示
-4. Music Experience        — 音频响应乐谱可视化
-5. Latest Writing          — 编辑风格文章列表
-6. Mega Footer             — 全屏 CTA 页脚
+1. Immersive Hero          — 全屏 WebGL 粒子 + 双语标题 [已实现但未集成到活跃首页]
+2. Bento Grid Content Hub  — 模块化网格展示最新内容 [已实现但未集成]
+3. Projects Gallery        — 横向滚动项目展示 [已实现但未集成]
+4. Music Experience        — 音频响应乐谱可视化 [已实现但未集成]
+5. Latest Writing          — 编辑风格文章列表 [已实现但未集成]
+6. Mega Footer             — 全屏 CTA 页脚 [已集成到 (public)/layout.tsx]
 ```
 
 ### Section 1: Immersive Hero
+
+> **实现状态**：已实现但未集成到活跃首页 — `HeroSection.tsx` + `ParticleBackground.tsx` 存在于 `components/home/`
 
 #### 视觉
 
@@ -118,6 +120,8 @@
 - `prefers-reduced-motion`：替换为静态渐变背景
 
 ### Section 2: Bento Grid Content Hub
+
+> **实现状态**：已实现但未集成 — `BentoGrid.tsx` + `BentoCard.tsx` 存在于 `components/home/`
 
 #### 布局
 
@@ -144,12 +148,16 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 ### Section 3: Projects Gallery
 
+> **实现状态**：已实现但未集成 — `ProjectGallery.tsx` 存在于 `components/home/`
+
 - 横向滚动画廊：CSS `scroll-snap-type: x mandatory`
 - 卡片 4:5 宽高比，上半部封面图/视频，下半部信息
 - 拖拽滚动（Framer Motion gesture）
 - 3D 倾斜 Hover 效果
 
 ### Section 4: Music Experience
+
+> **实现状态**：已实现但未集成 — `MusicExperience.tsx` 存在于 `components/home/`（756 行！）
 
 - 左右分屏：左 60% OSMD 矢量乐谱 + 右 40% 曲目信息+控制
 - Three.js 粒子系统作为背景层（音频响应）
@@ -158,11 +166,15 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 ### Section 5: Latest Writing
 
+> **实现状态**：已实现但未集成 — `LatestWriting.tsx` 存在于 `components/home/`
+
 - 编辑风格布局：左 60% 特色卡片 + 右 40% 两个列表卡片
 - 衬线字体标题，慷慨留白
 - Hover 效果：行向右移动 8px
 
 ### Section 6: Mega Footer
+
+> **实现状态**：已集成到 `(public)/layout.tsx` — 已活跃在首页中，不应列为"未来规划"
 
 - 全屏 `100vh`，深色背景 `#050505`
 - 巨幅声明文字："LET'S CREATE SOMETHING TOGETHER"
@@ -170,7 +182,7 @@ transition: cubic-bezier(0.16, 1, 0.3, 1);
 
 ### 全局交互
 
-#### 自定义鼠标指针（未实现）
+#### 自定义鼠标指针（已实现但未集成 — `CustomCursor.tsx` 存在于 `components/home/`）
 
 - 默认：小点 + 外圈
 - 文章卡片：读书图标

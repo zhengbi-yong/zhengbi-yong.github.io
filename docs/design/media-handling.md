@@ -80,9 +80,11 @@ CREATE TABLE media (
 );
 ```
 
-### `media_assets` 表（文章系统关联表）
+### `media_assets` 表（文章系统关联表，⚠️ 已废弃）
 
 除了 `media` 表外，文章系统中还使用 `media_assets` 表来建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
+
+> **⚠️ 废弃警告**：`media_assets` 表引用 `articles(id)`，但 `articles`/`article_versions` 表属于旧版双轨存储尝试的遗留代码。当前系统使用 `posts` 表（通过 `post_media` 关联表）和 `post_versions` 表。`media_assets` 在当前基于 `posts` 的架构中无活跃使用，计划在后续清理迁移中移除。
 
 ```sql
 CREATE TABLE media_assets (

@@ -498,7 +498,7 @@ export interface PostVersion {
   summary?: string
   created_at: string
   created_by: string
-  created_by_username?: string
+  created_by_name?: string
   comment?: string
 }
 

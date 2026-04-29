@@ -35,7 +35,8 @@ fn render_marks(text: &str, marks: &[Value], node: &Value) -> String
 ### 调用位置
 - `backend/crates/api/src/routes/posts.rs` — post CRUD 中 fallback 转换（content_json → content_mdx）
 - `backend/crates/api/src/routes/articles.rs` — 文章写入时转换
-- `backend/crates/api/src/routes/mdx_convert.rs` — MDX 同步管线
+- `backend/crates/api/src/routes/mdx_convert.rs` — MDX 转换 API 端点（stateless convert、batch convert、migrate-all）
+- `backend/crates/api/src/routes/mdx_sync.rs` — MDX 同步管线（import MDX files to DB）
 
 ## 反向转换：MDX → TipTap JSON
 

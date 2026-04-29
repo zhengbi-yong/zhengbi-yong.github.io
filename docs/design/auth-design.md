@@ -97,7 +97,7 @@ pub async fn optional_auth_middleware(
 
 - 撤销的 access_token 存入 Redis: `blacklist:{token_hash}` → `"1"`，TTL = 剩余有效期
 - 检查在 auth handler 层（`is_token_blacklisted()`），不在中间件层
-- 登出时撤销当前 access_token，同时删除 refresh_token
+- ⚠️ 设计文档原描述"登出时撤销当前 access_token"，但实际 logout handler 仅从数据库删除/撤销 refresh_token，**并未调用 `blacklist_token()`**。这是已知差距：登出的 access_token 在其剩余 15 分钟有效期内仍可使用，需后续修复。
 
 ## 限流
 
@@ -119,7 +119,7 @@ pub async fn optional_auth_middleware(
   fail_close → 限流后端不可用时拒绝（安全优先）
 ```
 
-> 限流使用 Redis Lua 脚本保证原子性，非简单 INCR+EXPIRE。每个请求同时检查秒级和分钟级窗口，任一窗口超限即拒绝。TTL：秒级窗口 2 秒，分钟级窗口 60 秒。
+> 限流使用 Redis Lua 脚本保证原子性，非简单 INCR+EXPIRE。每个请求同时检查秒级和分钟级窗口，任一窗口超限即拒绝。TTL：秒级窗口 1 秒，分钟级窗口 60 秒。
 >
 > 以上限额均为**默认值**，可通过环境变量覆盖：
 > - `RATE_LIMIT_AUTH_RPM` / `RATE_LIMIT_AUTH_RPS` — 认证端点（登录/注册）每分钟/每秒允许次数

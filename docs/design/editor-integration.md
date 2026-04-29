@@ -51,7 +51,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 粗体/斜体 | StarterKit | ✅ |
 | 列表 (有序/无序) | StarterKit | ✅ |
 | 链接 | Link | ✅ |
-| 代码块 | ShikiCodeBlock (自定义 Shiki 高亮扩展，替代 CodeBlockLowlight) | ✅ |
+| 代码块 | StarterKit 内置 codeBlock (Shiki 仅用于 MDX 静态渲染) | ✅ |
 | 引用 | Blockquote | ✅ |
 | 表格 | Table (来自 reactjs-tiptap-editor) | ❌ 注释待修复 |
 | 图片 | Image | ✅ |
@@ -230,7 +230,10 @@ const response = await fetch('/api/v1/admin/media/upload', {
 
 其他媒体管理端点：
 - `GET /v1/admin/media` — 媒体库列表
+- `GET /v1/admin/media/unused` — 获取未使用的媒体
 - `GET /v1/admin/media/{id}` — 获取媒体详情
+- `POST /v1/admin/media/presign-upload` — 预签名上传
+- `POST /v1/admin/media/finalize` — 完成上传确认
 - `PATCH /v1/admin/media/{id}` — 更新媒体信息
 - `DELETE /v1/admin/media/{id}` — 删除媒体
 

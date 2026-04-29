@@ -58,7 +58,7 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
-CREATE INDEX idx_users_profile ON users USING GIN (profile jsonb_path_ops);
+CREATE INDEX idx_users_profile_gin ON users USING GIN (profile jsonb_path_ops);
 ```
 
 ### 软删除下的唯一性
@@ -131,6 +131,8 @@ CREATE INDEX idx_posts_published ON posts(published_at DESC) WHERE deleted_at IS
 CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_ops);
 CREATE INDEX idx_posts_title_exact ON posts (title) WHERE deleted_at IS NULL;
 ```
+
+> ⚠️ **`idx_posts_content_json` 可能不含 `jsonb_path_ops`**：迁移 `2026041601` 创建此索引时未使用 `jsonb_path_ops`（即 `USING GIN (content_json)`）。后续迁移 `2026042801` 尝试通过 `DROP INDEX IF EXISTS ...; CREATE INDEX ...` 重建为含 `jsonb_path_ops` 的版本，但由于该迁移使用了 `IF NOT EXISTS`，且从 `2026041601` 起索引已存在，重建被跳过。因此，实际数据库中的 `idx_posts_content_json` **可能仍然是不含 `jsonb_path_ops` 的普通 GIN 索引**，具体取决于初始迁移是否已执行。
 
 ### 双轨存储说明
 
@@ -437,7 +439,7 @@ CREATE TABLE search_history (
 # 限流: 双窗口 Lua 脚本（秒级 + 分钟级）
 rl:s:{ip}:{route_hash}:{second_bucket} → Counter(INCR)
 rl:m:{ip}:{route_hash}:{minute_bucket} → Counter(INCR)
-TTL: 秒级窗口 2秒，分钟级窗口 60秒
+TTL: 秒级窗口 1秒，分钟级窗口 60秒
 
 # 令牌黑名单
 blacklist:{token_hash} → String("1")

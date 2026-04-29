@@ -7,9 +7,9 @@
 ```text
         ╱  E2E  ╲              Playwright: ~91 个测试用例覆盖 12 条核心路径
        ╱──────────╲
-      ╱ 集成测试   ╲            前端 Vitest (188 tests), 后端 cargo test
+      ╱ 集成测试   ╲            前端 Vitest (~146-188 Vitest 测试用例), 后端 cargo test
      ╱──────────────╲
-    ╱   单元测试      ╲          后端: 29 个测试文件 (含 mdx_convert 的 16 个测试)
+    ╱   单元测试      ╲          后端: 19 个集成/单元测试文件 + 29 个内联测试模块（含 mdx_convert 16 个测试函数）
    ╱────────────────────╲
   ╱  类型检查 (编译时)    ╲       Rust cargo check, TypeScript ESLint
  ╱──────────────────────────╲
@@ -19,10 +19,10 @@
 
 | 层级 | 工具 | 目标 | 现状 |
 |------|------|------|------|
-| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 29 个测试文件，16 个 mdx_convert 测试 |
+| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 19 个集成/单元测试文件 + 29 个内联测试模块（含 mdx_convert 16 个测试函数） |
 | Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
 | TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
-| 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
+|| 前端组件测试 | Vitest | 组件 ≥70% | ~146-188 Vitest 测试用例 |
 | E2E 流程 | Playwright | 12 条核心路径 | ~91 个 E2E 测试用例 |
 
 ## E2E 核心路径
@@ -44,6 +44,8 @@
 | `api-contract.spec.ts` | API 契约测试 |
 | `article-crud.spec.ts` | 文章 CRUD（Playwright 配置需调整） |
 
+> **CI 运行范围**：CI 仅运行 `e2e/abc-notation.spec.ts` 和 `e2e/search.spec.ts`（2 个 spec 文件），完整 12 个 spec 文件套件在本地执行。
+
 ## 回归测试流程
 
 每次 main 合并前：
@@ -58,6 +60,8 @@ cd frontend && pnpm test && npx eslint . --max-warnings=600
 # 3. E2E（CI 环境）
 pnpm test:e2e
 ```
+
+> **注意**：`backend-ci.yml` 当前未包含 `cargo clippy` — 仅在 `backend-test.yml` 中运行。
 
 ## 性能基准
 
