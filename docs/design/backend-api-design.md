@@ -155,6 +155,7 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/users:batchUpdateRole | 批量更新角色 |
 | POST | /admin/users:batchDelete | 批量删除用户 |
 | GET | /admin/users/{id} | 用户详情 |
+| PUT | /admin/users/{id} | 更新用户信息 |
 | PUT | /admin/users/{id}/role | 更新角色 |
 | DELETE | /admin/users/{id} | 删除用户 |
 | GET | /admin/user-growth | 用户增长 |
@@ -180,6 +181,12 @@ GET    /tags/autocomplete      # 自动补全
 | POST | /admin/mdx/convert | MDX 内容转换 |
 | POST | /admin/mdx/batch-convert | MDX 批量转换 |
 | POST | /admin/mdx/migrate-all | 迁移所有内容为 JSON |
+| GET | /admin/team-members | 团队成员列表（管理端） |
+| POST | /admin/team-members | 创建团队成员 |
+| POST | /admin/team-members/batch/delete | 批量删除团队成员 |
+| GET | /admin/team-members/{id} | 团队成员详情（管理端） |
+| PUT | /admin/team-members/{id} | 更新团队成员 |
+| DELETE | /admin/team-members/{id} | 删除团队成员 |
 
 ## 中间件
 
@@ -308,7 +315,7 @@ async fn auth_middleware(
 |--------|------|
 | 200 | GET/PUT/PATCH 成功 |
 | 201 | POST 创建成功 |
-| 204 | DELETE 成功，或 NO_CONTENT 操作 |
+| 204 | DELETE 成功，或 POST 操作类端点成功（如点赞、浏览记录等 NO_CONTENT 操作） |
 | 400 | 参数校验失败 |
 | 401 | 未认证 |
 | 403 | 权限不足 |

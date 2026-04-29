@@ -80,20 +80,17 @@
 | `editor/TiptapEditor.tsx` | TipTap 富文本编辑器核心 |
 | `editor/MenuBar.tsx` | 编辑器工具栏菜单 |
 | `editor/EditorToolbar.tsx` | 格式化工具栏 |
-| `editor/FloatingMenu.tsx` | 浮动菜单 (不存在) |
+| `editor/FloatingMenu.tsx` | 浮动菜单 (⚠️ 不存在 — 文档与实际不符) |
 | `editor/SplitEditor.tsx` | 分屏编辑器 |
 | `editor/ImmersiveEditorLayout.tsx` | 沉浸式编辑布局 |
 | `editor/ArticleSettingsPanel.tsx` | 文章设置面板 |
 | `editor/ArticleMetadata.tsx` | 文章元数据编辑 |
 | `editor/SEOPreviewCard.tsx` | SEO 预览卡片 |
 | `editor/CollaborationEditor.tsx` | 协作编辑 |
-|| `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
-|| `editor/extensions/mathematics-extended.tsx` | 数学公式扩展 |
-|| ~~`editor/extensions/ShikiCodeBlockComponent.tsx`~~ | ~~Shiki 代码块组件~~ (已删除) |
-|| `editor/extensions/ShikiCodeBlock.ts` | Shiki 代码块定义 |
-| `editor/extensions/CodeBlockShikiNodeView.tsx` | 代码块节点视图 |
-| `editor/extensions/math-node-view.tsx` | 数学公式节点视图 |
+| `editor/EditorStatusBar.tsx` | 编辑器状态栏 |
 | `editor/hooks/useImageUpload.ts` | 图片上传 Hook |
+
+> **注意**：`editor/extensions/` 目录**不存在**。文档此前列出的扩展文件（`mathematics-extended.tsx`、`ShikiCodeBlockComponent.tsx`、`ShikiCodeBlock.ts`、`CodeBlockShikiNodeView.tsx`、`math-node-view.tsx`）均不存在。编辑器扩展由 TipTap 的 `@tiptap/*` npm 包直接提供，未在 `src/components/editor/extensions/` 下创建自定义扩展文件。
 
 ## 9) 认证组件 (Auth)
 
@@ -144,7 +141,7 @@
 
 | 路径 | 内容 | 说明 |
 |------|------|------|
-| `components/shadcn/ui/` | button, card, dialog, input, tabs, dropdown-menu, alert, badge 等 | shadcn/ui 基础组件（基于 Radix UI + Tailwind） |
+| `components/shadcn/ui/` | accordion, alert, avatar, badge, button, card, dialog, dropdown-menu, input, label, progress, select, separator, sheet, sidebar, skeleton, sonner, tabs, textarea, tooltip 等（共 20 个组件） | shadcn/ui 基础组件（基于 Radix UI + Tailwind） |
 | `components/ui/` | EnhancedImage, ExcalidrawModal, LoadingStates, Skeleton/, LiveRegion, Loader, SwipeContainer, FAB 等 | 项目自定义 UI 组件 |
 
 ## 14) 导航组件
@@ -164,7 +161,21 @@
 | `home/LatestWriting.tsx` | 最新文章 |
 | `home/MegaFooter.tsx` | 尾页巨型 Footer |
 
-## 16) 主题与视觉 Token
+## 16) CSS Modules 使用
+
+部分组件使用 CSS Modules（`.module.css`）实现样式隔离：
+
+| 文件 | 用途 |
+|------|------|
+| `components/Header.module.css` | 页眉组件样式 |
+| `components/Footer.module.css` | 页脚组件样式 |
+| `components/BackToTop.module.css` | 回到顶部按钮样式 |
+| `components/navigation/TableOfContents/TOC.module.css` | TOC 目录导航样式 |
+| `components/sections/Explore.module.css` | Explore 区域样式 |
+
+> **说明**：CSS Modules 与 Tailwind CSS 并行使用。前者用于复杂动画、媒体查询和精细控制，后者用于常规布局和基础样式。
+
+## 17) 主题与视觉 Token
 
 | 文件 | 用途 |
 |------|------|
@@ -176,7 +187,22 @@
 | `styles/admin-compact.css` | 后台紧凑模式 |
 | `styles/prism.css` | 代码高亮 |
 
-## 17) 设计交付规范
+## 18) 补充目录说明
+
+以下是文档未覆盖但实际存在的组件目录：
+
+| 目录 | 内容 | 说明 |
+|------|------|------|
+| `components/dev/` | ReactQueryDevtoolsLoader.tsx | 开发工具（仅在开发环境加载） |
+| `components/geist/` | GeistBadge, GeistButton, GeistFooter, GeistHeader, GeistInput, GeistLayout, GeistSkeleton, GeistThemeSwitcher 等共 9 个文件 | Geist 设计系统组件库 |
+| `components/lib/` | utils.ts（`cn()` 工具函数） | 通用工具组件 |
+| `components/hooks/` | 11 个自定义 Hook（useActiveHeading, useReadingProgressWithApi, useGSAP, useScrollAnimation 等） | 自定义 React Hooks |
+| `components/post/` | BackendComments, LikeButton, PostBackendIntegration, PostStats（共 4 个文件 + CLAUDE.md） | 文章交互组件（评论、点赞、统计） |
+| `components/visitor/` | micro-interactions/ElegantLink.tsx, micro-interactions/ElegantButton.tsx | 访客微交互动效 |
+
+> **说明**：以上目录中的组件未在前文各模块分类中列出，但它们属于 `components/` 下的独立功能模块。`components/hooks/` 和 `components/post/` 有各自独立的 CLAUDE.md 文档可供参考。`components/geist/` 下的组件在 `app/geist/` 路由中使用。
+
+## 19) 设计交付规范
 
 每个模块交付 5 个文件夹（Figma）：
 

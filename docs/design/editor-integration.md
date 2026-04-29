@@ -51,7 +51,7 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | 粗体/斜体 | StarterKit | ✅ |
 | 列表 (有序/无序) | StarterKit | ✅ |
 | 链接 | Link | ✅ |
-| 代码块 | ShikiCodeBlock (自定义 Shiki 高亮扩展，替代 CodeBlockLowlight) | ✅ |
+| 代码块 | StarterKit codeBlock (ShikiCodeBlock 扩展已删除，编辑器使用 StarterKit 内置 codeBlock) | ❌ |
 | 引用 | Blockquote | ✅ |
 | 表格 | Table (来自 reactjs-tiptap-editor) | ❌ 注释待修复 |
 | 图片 | Image | ✅ |
@@ -75,6 +75,8 @@ export default function EditorPage({ params }: { params: { id: string } }) {
 | Twitter 嵌入 | TwitterExtension (来自 reactjs-tiptap-editor) | ✅ |
 | 标注块 | CalloutExtension (来自 reactjs-tiptap-editor) | ✅ |
 | 历史撤销 | StarterKit 内置 (UndoHistory 是 StarterKit 的一部分) | ✅ |
+
+> **注意**：`editor/extensions/` 目录**不存在**。所有编辑器扩展由 TipTap 的 `@tiptap/*` 和 `reactjs-tiptap-editor` npm 包直接提供，未在 `src/components/editor/extensions/` 下创建自定义扩展文件。此前文档列出的自定义扩展文件（如 `ShikiCodeBlock`、`mathematics-extended` 等）均不存在于仓库中。
 
 ## 保存/发布数据流 (Save/Publish Data Flow)
 
@@ -196,22 +198,22 @@ export function useDraft(existingDraftId?: string) {
 | 移动端兼容 | 需额外适配 | ✅ 原生友好 |
 | 实现复杂度 | 较低（浏览器自动管理） | 较高（需手动刷新） |
 
-## 图片上传流程 (Image Upload)
+## 图片插入 (Image Insert)
 
-编辑器插入图片时，支持通过 XHR 上传到后端媒体存储：
+编辑器插入图片时，两个工具栏均仅支持 URL 输入，**不支持文件上传**：
 
-### API 端点
+- **EditorToolbar.tsx** (`EditorToolbar` 组件)：点击图片按钮展开 URL 输入框，输入图片 URL 后调用 `editor.chain().focus().setImage({ src: imageUrl }).run()`
+- **TiptapEditor.tsx**（内联工具栏）：通过 `window.prompt('输入图片 URL:')` 获取 URL 后调用 `editor.chain().focus().setImage({ src: url }).run()`
+
+目前两个工具栏均无文件选择/上传功能。后端虽然提供了 `POST /v1/admin/media/upload` 端点，但前端编辑器未与之集成。
+
+### API 端点（后端提供但前端编辑器未使用）
 
 | 方法 | 端点 | 说明 |
 |------|------|------|
 | `POST` | `/v1/admin/media/upload` | 上传媒体文件 (multipart/form-data) |
 
-### 上传流程
-
-1. 用户通过工具栏"图片"按钮或斜杠命令选择上传
-2. 前端构造 `multipart/form-data` 请求，包含文件数据和 CSRF token
-3. 后端接收并处理，返回 `MediaListItem`（含 `url`、`media_type`、`alt_text` 等）
-4. 前端将返回的 URL 插入编辑器内容
+### 上传端点参考（仅后端已实现）
 
 ```typescript
 const formData = new FormData()

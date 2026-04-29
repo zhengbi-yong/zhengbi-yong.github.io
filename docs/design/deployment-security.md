@@ -51,7 +51,7 @@ K3s 部署 (`deployments/k3s/blog-backend.yaml`)：
 - `capabilities.drop: ["ALL"]`
 - `tmpfs` 卷挂载 `/tmp`
 
-> 注：K8s base 配置的 securityContext 待补充到与 K3s 一致。
+> **注（仍未修复）**：K8s base 配置的 securityContext 待补充到与 K3s 一致，自上次审计以来仍为未设置状态。
 
 ### 网络策略（Network Policy）
 
@@ -69,7 +69,7 @@ K3s 部署包含完整的零信任网络策略（`deployments/k3s/network-policy
 
 ### 安全响应头
 
-> **已知缺口**：安全头（HSTS、X-Frame-Options、X-Content-Type-Options、X-XSS-Protection、Referrer-Policy）仅在 Nginx 配置中被注释掉的 HTTPS 服务器块中定义（第 49-53 行），当前激活的 HTTP 服务器（第 119-179 行）**未设置任何安全响应头**。生产环境切换到 HTTPS 时需要取消注释并确认生效。CSP（Content-Security-Policy）在任何 Nginx 块中均未配置。
+> **已知缺口（仍未实现）**：安全头（HSTS、X-Frame-Options、X-Content-Type-Options、X-XSS-Protection、Referrer-Policy）仅在 Nginx 配置中被注释掉的 HTTPS 服务器块中定义（第 49-53 行），当前激活的 HTTP 服务器（第 119-179 行）**未设置任何安全响应头**。自上次审计以来无进展，生产环境切换到 HTTPS 时需要取消注释并确认生效。CSP（Content-Security-Policy）在任何 Nginx 块中均未配置。
 
 ## 健康检查
 
@@ -112,7 +112,7 @@ envFrom:
 - `ENVIRONMENT` (development/production)
 - SMTP 配置（可选）
 
-> **已知缺口**：`SESSION_SECRET` 在文档中列为必需环境变量，但：Kubernetes `secret.example.yaml` 中未包含；K3s `blog-backend.yaml` 使用 `${SESSION_SECRET}` 变量引用（需外部填充）；Compose 的 prod `docker-compose.yml` 和环境模板中均未配置。仅后端 `.env.example` 文件中有占位值。建议在所有部署配置中补全。另见 `docs/reference/environment-vars.md`。
+> **已知缺口（仍未修复）**：`SESSION_SECRET` 在文档中列为必需环境变量，但：Kubernetes `secret.example.yaml` 中未包含；K3s `blog-backend.yaml` 使用 `${SESSION_SECRET}` 变量引用（需外部填充）；Compose 的 prod `docker-compose.yml` 和环境模板中均未配置。自上次审计以来 `secret.example.yaml` 和 compose prod 仍缺少该变量。仅后端 `.env.example` 文件中有占位值。建议在所有部署配置中补全。另见 `docs/reference/environment-vars.md`。
 
 > **已知缺口**：Compose 的 prod `docker-compose.yml` 中 `DATABASE_URL` 直接硬编码 `***` 作为密码占位符（`postgresql://${POSTGRES_USER}:***@postgres:5432/${POSTGRES_DB}`），而非使用变量引用（如 `${DB_PASSWORD}`）。这意味着部署者必须手动替换该占位符，否则数据库连接将因密码无效而失败。
 

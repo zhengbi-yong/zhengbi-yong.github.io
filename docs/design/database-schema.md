@@ -58,7 +58,7 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email_active ON users(email) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_username_active ON users(username) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_created_at ON users(created_at DESC);
-CREATE INDEX idx_users_profile ON users USING GIN (profile jsonb_path_ops);
+CREATE INDEX idx_users_profile_gin ON users USING GIN (profile jsonb_path_ops);
 ```
 
 ### 软删除下的唯一性
@@ -120,7 +120,14 @@ CREATE TABLE posts (
     featured_image_caption TEXT,
     content_hash TEXT,                           -- MDX 同步用
     rendered_at TIMESTAMPTZ,                     -- 最后渲染时间
+    CONSTRAINT posts_content_json_size_check CHECK (content_json IS NULL OR pg_column_size(content_json) < 104857600),  -- 100MB
+    CONSTRAINT posts_content_mdx_size_check CHECK (content_mdx IS NULL OR char_length(content_mdx) < 10485760),        -- 10MB
     lastmod_at TIMESTAMPTZ,
+    search_vector tsvector GENERATED ALWAYS AS (
+        setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
+        setweight(to_tsvector('simple', coalesce(summary, '')), 'B') ||
+        setweight(to_tsvector('simple', coalesce(content, '')), 'C')
+    ) STORED,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
@@ -130,6 +137,8 @@ CREATE INDEX idx_posts_status ON posts(status);
 CREATE INDEX idx_posts_published ON posts(published_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_ops);
 CREATE INDEX idx_posts_title_exact ON posts (title) WHERE deleted_at IS NULL;
+CREATE INDEX idx_posts_search_vector ON posts USING GIN (search_vector);
+CREATE INDEX idx_posts_title_trgm ON posts USING GIN (title gin_trgm_ops);
 ```
 
 ### 双轨存储说明
@@ -141,6 +150,42 @@ CREATE INDEX idx_posts_title_exact ON posts (title) WHERE deleted_at IS NULL;
 | `mdx_compiled_at` | TIMESTAMPTZ | MDX 最后编译时间，判断是否需要重新编译 |
 | `content` | TEXT | 旧列，过渡期保留向后兼容 |
 | `content_html` | TEXT | 旧列，过渡期保留 |
+
+### 全文搜索基础设施
+
+```sql
+-- 搜索向量列（自动维护）
+-- search_vector 为 GENERATED ALWAYS 列，由 title/summary/content 自动派生
+-- 权重：A=标题, B=摘要, C=正文
+
+-- GIN 索引加速全文搜索
+CREATE INDEX idx_posts_search_vector ON posts USING GIN (search_vector);
+
+-- Trigram 索引支持模糊搜索/自动补全
+CREATE INDEX idx_posts_title_trgm ON posts USING GIN (title gin_trgm_ops);
+CREATE INDEX idx_posts_content_trgm ON posts USING GIN (content gin_trgm_ops);
+
+-- 搜索辅助函数
+CREATE OR REPLACE FUNCTION search_posts_with_highlights(
+    search_query TEXT,
+    result_limit INTEGER DEFAULT 20,
+    result_offset INTEGER DEFAULT 0
+) RETURNS TABLE (
+    slug TEXT, title TEXT, summary TEXT,
+    title_highlight TEXT, summary_highlight TEXT,
+    content_preview TEXT, rank REAL
+);
+
+CREATE OR REPLACE FUNCTION fuzzy_search_suggestions(
+    search_query TEXT,
+    result_limit INTEGER DEFAULT 5
+) RETURNS TABLE (
+    slug TEXT, title TEXT, category TEXT,
+    similarity_score REAL
+);
+```
+
+> `search_vector` 使用 `simple` 文本搜索配置（逐词匹配），配合 `setweight` 给标题和摘要更高权重。Trigram 索引（`gin_trgm_ops`）用于搜索建议和自动完成功能。
 
 ## 评论表 (comments)
 
@@ -407,7 +452,12 @@ CREATE TABLE search_keywords (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(keyword)
 );
+
+CREATE INDEX idx_search_keywords_keyword ON search_keywords(keyword);
+CREATE INDEX idx_search_keywords_count ON search_keywords(search_count DESC, last_searched_at DESC);
 ```
+
+> `idx_search_keywords_keyword` 为 keyword 列的 B-Tree 索引，加速精确匹配查询。
 
 ### 搜索历史 (search_history)
 ```sql
@@ -423,6 +473,8 @@ CREATE TABLE search_history (
 
 ### articles / article_versions（遗留/待清理）
 > 此表由 `2026042701_create_articles.sql` 创建，属于旧版双轨存储尝试的遗留代码。当前系统使用 `posts` 表（双轨：`content_json` + `content_mdx`），`articles` 及相关表仅为迁移过程中保留的归档引用，无活跃代码路径引用。计划在后续清理迁移中移除。
+>
+> 注：`articles` 表使用 `gen_random_uuid()`（UUIDv4）作为主键默认值（而非本项目标准的 `uuid_generate_v7()`），因其属于遗留表且未参与 UUIDv7 迁移。
 
 ```sql
 -- 仅作归档参考，无活跃使用

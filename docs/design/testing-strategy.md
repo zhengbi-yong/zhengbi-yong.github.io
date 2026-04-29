@@ -5,13 +5,13 @@
 ## 测试金字塔
 
 ```text
-        ╱  E2E  ╲              Playwright: ~91 个测试用例覆盖 12 条核心路径
+        ╱  E2E  ╲              Playwright: ~91 个测试用例覆盖 12 条核心路径（CI 仅执行其中 2 个）
        ╱──────────╲
       ╱ 集成测试   ╲            前端 Vitest (188 tests), 后端 cargo test
      ╱──────────────╲
-    ╱   单元测试      ╲          后端: 29 个测试文件 (含 mdx_convert 的 16 个测试)
+    ╱   单元测试      ╲          后端: 19 个测试文件 (8 个独立测试模块)
    ╱────────────────────╲
-  ╱  类型检查 (编译时)    ╲       Rust cargo check, TypeScript ESLint
+  ╱  类型检查 (编译时)    ╲       Rust cargo check, TypeScript ESLint（CI 中不运行 cargo clippy）
  ╱──────────────────────────╲
 ```
 
@@ -19,11 +19,11 @@
 
 | 层级 | 工具 | 目标 | 现状 |
 |------|------|------|------|
-| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 29 个测试文件，16 个 mdx_convert 测试 |
-| Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
-| TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
-| 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
-| E2E 流程 | Playwright | 12 条核心路径 | ~91 个 E2E 测试用例 |
+| Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 19 个测试文件（8 个独立模块） |
+| Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests、data_consistency_tests |
+| TypeScript 类型 | ESLint（无 `tsc --noEmit`） | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查）；CI 中不运行 `tsc --noEmit` |
+| 前端组件测试 | Vitest | 组件 ≥70% | 188 个测试用例 |
+| E2E 流程 | Playwright | 12 条核心路径 | ~91 个 E2E 测试用例；CI 仅运行 2 个文件（`abc-notation.spec.ts`、`search.spec.ts`） |
 
 ## E2E 核心路径
 
@@ -50,14 +50,20 @@
 
 ```bash
 # 1. 后端
-cd backend && cargo test --workspace && cargo clippy
+cd backend && cargo test --workspace
 
 # 2. 前端
-cd frontend && pnpm test && npx eslint . --max-warnings=600
+cd frontend && pnpm test
 
 # 3. E2E（CI 环境）
-pnpm test:e2e
+pnpm exec playwright test e2e/abc-notation.spec.ts e2e/search.spec.ts --project=chromium --reporter=list
 ```
+
+> **审计 #22 注 — CI 实际行为**：
+> - 后端 CI（`backend-ci.yml`）仅运行 `cargo test --workspace --locked`，**不运行** `cargo clippy`
+> - 前端 CI（`frontend-ci.yml`）运行 `pnpm lint`（内部执行 `eslint . --max-warnings=600`）和 `pnpm test`，**但 `pnpm lint` 在 lint 作业中而非与 test 同作业**
+> - E2E 步骤仅执行 2 个 spec 文件（`abc-notation.spec.ts` 和 `search.spec.ts`），而非全部 12 个
+> - 同时运行 `pnpm build` 作为构建验证（捕获 TypeScript 类型错误替代独立的 `tsc --noEmit`）
 
 ## 性能基准
 

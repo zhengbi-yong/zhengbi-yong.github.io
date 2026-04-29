@@ -9,7 +9,7 @@
 ```
 Desktop (>= 1280px):
 ┌───────────────────────────────────────────────────────┐
-│  Progress Bar (2px, fixed top, brand gradient)         │
+|  Progress Bar (3px, fixed top, accent solid color)      |
 ├───────────────────────────────────────────────────────┤
 │                    Article Hero                         │
 ├──────────────────────────────────┬────────────────────┤
@@ -81,10 +81,13 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 
 ## 阅读进度条 (ReadingProgressBar)
 
-- `position: fixed; top: 0; left: 0; z-index: 50;`
-- 高度：2px，品牌渐变背景
-- 宽度 = `scrollY / (scrollHeight - clientHeight)`
+- `position: fixed; top: 0; left: 0; z-index: 50; height: 3px;`
+- 高度：3px，品牌色实心背景（`var(--mono-accent)`，非渐变）
+- 背景容器为 `var(--mono-border)` 色调
+- 宽度 = `scrollY / (scrollHeight - clientHeight)`，通过 `useReadingProgressWithApi` hook 计算
 - `requestAnimationFrame` 节流实现 60fps
+- `pointer-events: none` 确保不干扰点击
+- `transition: width 0.1s ease-out`
 
 ## 代码块
 
@@ -105,7 +108,7 @@ Mobile (< 768px)：单栏，TOC 为右下 FAB 按钮 + 底部滑出面板
 |------|--------|------|------|
 | 文章卡片 | hover | `border-color` 过渡 | 200ms |
 | TOC 指示器 | scroll | 左边框滑动到新位置 | 200ms |
-| 进度条 | scroll | 宽度过渡（GPU） | 100ms |
+| 进度条 | scroll | 宽度过渡 | 100ms |
 | 复制按钮 | click | 图标切换 + 提示 | 150ms |
 | 评论区域 | scroll | 页面内联评论列表 | 150ms |
 | 暗色模式 | click | CSS 变量过渡 | 200ms |

@@ -80,20 +80,29 @@ CREATE TABLE media (
 );
 ```
 
-### `media_assets` 表（文章系统关联表）
+### `media_assets` 表（独立媒体资源表）
 
-除了 `media` 表外，文章系统中还使用 `media_assets` 表来建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
+`media_assets` 表（定义在迁移 `2026042701_create_articles.sql` 中）是一个独立媒体资源表，**不是** junction 关联表。它存储媒体文件的元数据并关联到文章：
 
 ```sql
 CREATE TABLE media_assets (
-    id        UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
-    media_id   UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(article_id, media_id)
+    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    filename     VARCHAR(255) NOT NULL,         -- 存储文件名（UUID 格式）
+    original_name VARCHAR(255) NOT NULL,        -- 用户上传时的原始文件名
+    mime_type    VARCHAR(100) NOT NULL,         -- MIME 类型
+    file_size    BIGINT NOT NULL,               -- 文件大小（字节）
+    storage_path TEXT NOT NULL,                 -- 存储路径
+    url          TEXT NOT NULL,                 -- 可访问 URL
+    width        INTEGER,                       -- 图片宽度（如有）
+    height       INTEGER,                       -- 图片高度（如有）
+    duration     FLOAT,                         -- 视频时长（如有）
+    uploader_id  UUID NOT NULL REFERENCES users(id),  -- 上传者
+    article_id   UUID REFERENCES articles(id),  -- 关联文章（可空）
+    created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 ```
+
+> **注意**：`media_assets` 是独立的媒体资源表，每行代表一个媒体文件，而非多对多关联表。有别于主 `media` 表，`media_assets` 使用 `VARCHAR` 字段、无软删除列、有 `duration` 和 `article_id` 直接列。
 
 ## 允许的 MIME 类型
 

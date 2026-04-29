@@ -168,7 +168,7 @@ Hocuspocus 服务器及协作功能目前未实现，相关依赖未安装。前
 | 优先级 | 改造项 | 说明 |
 |-------|--------|------|
 | P0 | 正则量词修复 | `[\\s\\S]+` → `[\\s\\S]*`，支持空 math div |
-| P1 | ~~saveToMdx~~ 已废弃；MDX 转换由后端完成 | 让 saveToMdx 在 turndown 后处理数学公式 |
+| P1 | ~~saveToMdx~~ 标记为已废弃但仍在 EditPostPage.tsx 中使用；注意：code 调用 `saveToMdx(content, originalMdxRef.current)` 传的第一个参数是 JSON 字符串（编辑器输出），而非真正的 Markdown 文本 | 让 saveToMdx 在 turndown 后处理数学公式 |
 | P1 | loadToEditor HTML 实体解码 | `data-latex="a&amp;b"` → `a&b` |
 | P2 | Remark-prosemirror 集成 | 深层 AST 转换替代字符串拼接 |
 || ~~P2 | 双轨存储 Schema | 添加 content_mdx_sync 字段 — 已通过三级降级策略解决~~ |

@@ -6,9 +6,16 @@
 |------|------|------|
 | 前端框架 | Next.js | 16.2.2 (App Router) |
 | UI 库 | React | 19.2 |
+| CMS 集成 | Payload CMS | 3.78.0 |
+| 管理后台 | Refine (Admin Framework) | 5.x |
+| 数据获取 | TanStack React Query | 5.x |
+| 静态内容 | Velite | 0.3.1 |
+| 国际化 | i18next / react-i18next | 25.x / 16.x |
+| 主题切换 | next-themes | 0.4.6 |
 | 动画 | Framer Motion, GSAP | 最新 |
 | 后端通信 | `apiClient.ts` + `backend.ts` | — |
 | UI 状态 | Zustand (仅 UI 状态) | — |
+| 样式 | Tailwind CSS | 4.2.1 |
 
 ## 目录结构
 
@@ -19,13 +26,13 @@ frontend/src/
 │   │
 │   ├── (public)/               # 公开页面路由组
 │   │   ├── layout.tsx         # 公开页外壳
-│   │   └── blog/[...slug]/    # 动态博客详情页
+│   │   └── blog/[...slug]/    # 动态博客详情页（(public) 路由组内的共享布局版本）
 │   │
 │   ├── blog/                   # 博客路由（直接位于 app/blog/，非路由组内）
 │   │   ├── page.tsx           # 博客列表首页
 │   │   ├── loading.tsx
 │   │   ├── error.tsx
-│   │   ├── [...slug]/         # 博客详情（动态路由）
+│   │   ├── [...slug]/         # 博客详情（动态路由 — 实际博客详情入口，页面文件位于此）
 │   │   ├── category/[category]/ # 分类页面
 │   │   ├── popular/           # 热门文章
 │   │   └── page/[page]/       # 列表分页
@@ -111,6 +118,8 @@ frontend/src/
 ```
 
 > **注意**：`e2e/`、`tests/`、`data/blog/` 实际位于 `frontend/` 根目录（而非 `frontend/src/` 下）。
+>
+> **路由解析说明**：`app/blog/[...slug]/`（含有 `page.tsx`）为实际博客详情入口。`app/(public)/blog/[...slug]/`（仅含 `DynamicPostPage.tsx` 组件导出）提供路由组内的布局共享，但无 `page.tsx` 文件，不构成独立路由。
 
 ## 数据获取规范
 
@@ -194,6 +203,15 @@ Layer 1: tailwind.css              → 别名到 geist + 共享语义
 Layer 2: monograph-theme.css       → 长文阅读主题（--monograph-*）
 Layer 3: visitor-theme.css         → 访客主题（--visitor-*）
 Layer 4: admin-theme.css           → Admin 专用（--admin-*）
+Layer 5: admin-compact.css         → 后台紧凑模式
+
+其他 CSS 导入（在根 layout.tsx 中引入）：
+- pliny/search/algolia.css         → Pliny Algolia 搜索样式
+- leaflet/dist/leaflet.css         → Leaflet 地图样式
+- katex/dist/katex.min.css         → KaTeX 数学公式样式
+- abcjs/abcjs-audio.css            → ABCJS 乐谱样式
+- remark-github-blockquote-alert/alert.css → GitHub 风格的区块引用警告样式
+- prism.css                         → 代码高亮样式
 ```
 
 ## 布局收敛
@@ -202,3 +220,31 @@ Layer 4: admin-theme.css           → Admin 专用（--admin-*）
 - `PostSimple`、`PostBanner`、`PostLayout` 已废弃
 - 统一组件：`TableOfContents`（IntersectionObserver scroll-spy）
 - 阅读进度条：`useReadingProgressWithApi`
+
+## 其他应用路由
+
+除上述路由外，`app/` 下还包含以下独立路由页面：
+
+| 路由 | 功能 | 状态 |
+|------|------|------|
+| `/about/` | 关于页面 | ✅ |
+| `/analytics/` | 网站分析仪表盘（含独立 layout） | ✅ |
+| `/excalidraw/` | Excalidraw 白板（含独立 layout） | ✅ |
+| `/experiment/` | 实验性功能（含 spark-test 子路由） | ✅ |
+| `/geist/` | Geist 设计系统展示 | ✅ |
+| `/login/` | 用户登录页面 | ✅ |
+| `/music/` | 音乐页面（含 `[name]` 动态路由） | ✅ |
+| `/notifications/` | 用户通知页面 | ✅ |
+| `/offline/` | 离线页面（PWA） | ✅ |
+| `/profile/` | 用户个人资料 | ✅ |
+| `/projects/` | 项目展示页面 | ✅ |
+| `/reading-list/` | 阅读列表 | ✅ |
+| `/reading-history/` | 阅读历史 | ✅ |
+| `/search/` | 搜索结果页 | ✅ |
+| `/tags/` | 所有标签（含 `[tag]` 动态路由及分页） | ✅ |
+| `/team/` | 团队成员展示 | ✅ |
+| `/test-api/` | API 测试页面 | ⚠️ 开发辅助 |
+| `/test-abc/` | ABC 乐谱测试 | ⚠️ 开发辅助 |
+| `/test-abc-mdx/` | ABC MDX 测试 | ⚠️ 开发辅助 |
+| `/simple-test/` | 简单测试页面 | ⚠️ 开发辅助 |
+| `/visitors/` | 访客统计与地图 | ✅ |

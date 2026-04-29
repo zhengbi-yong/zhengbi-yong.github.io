@@ -109,10 +109,10 @@ pub async fn optional_auth_middleware(
   rl:m:{ip}:{route_hash}:{minute_bucket}  → 分钟级窗口
 
 各端点限额（默认值，可通过环境变量覆盖）:
-  POST /auth/login, /auth/register  → 5 次/分钟 + 1 次/秒  (RATE_LIMIT_AUTH_RPM / RATE_LIMIT_AUTH_RPS)
-  POST /posts/*/view                 → 100 次/分钟 + 10 次/秒 (RATE_LIMIT_VIEW_RPM / RATE_LIMIT_VIEW_RPS)
-  POST /posts/*/comments             → 10 次/分钟 + 2 次/秒  (RATE_LIMIT_COMMENT_RPM / RATE_LIMIT_COMMENT_RPS)
-  其他                               → 1000 次/分钟 + 100 次/秒 (RATE_LIMIT_DEFAULT_RPM / RATE_LIMIT_DEFAULT_RPS)
+  POST /auth/login, /auth/register  → 100 次/分钟 + 5 次/秒  (RATE_LIMIT_AUTH_RPM / RATE_LIMIT_AUTH_RPS)
+  POST /posts/*/view                 → 1000 次/分钟 + 10 次/秒 (RATE_LIMIT_VIEW_RPM / RATE_LIMIT_VIEW_RPS)
+  POST /posts/*/comments             → 20 次/分钟 + 2 次/秒  (RATE_LIMIT_COMMENT_RPM / RATE_LIMIT_COMMENT_RPS)
+  其他                               → 6000 次/分钟 + 100 次/秒 (RATE_LIMIT_DEFAULT_RPM / RATE_LIMIT_DEFAULT_RPS)
 
 失败模式（可配置）:
   fail_open  → 限流后端不可用时放行（默认，保证可用性）
@@ -136,8 +136,9 @@ Token 结构:
   HMAC-CSRF Token = base64(nonce(16B) || timestamp(8B) || HMAC-SHA256(nonce || timestamp))
 
 存储:
-  csrf_token Cookie  → HttpOnly; SameSite=Lax; Path=/; Max-Age=3600（浏览器自动发送）
-  X-CSRF-Token Header → 前端通过 JS 读取同值后附加（双提交验证）
+  csrf_token Cookie  → HttpOnly; SameSite=Lax; Path=/; Max-Age=3600（浏览器自动发送，用于服务端比对）
+  XSRF-TOKEN Cookie  → 非 HttpOnly; SameSite=Lax; Path=/; Max-Age=3600（前端 JS 可读取，值同 csrf_token）
+  X-CSRF-Token Header → 前端从 XSRF-TOKEN Cookie 读取值后附加（双提交验证）
 
 验证规则:
   GET | HEAD | OPTIONS → 跳过验证（安全方法）
@@ -151,7 +152,7 @@ Token 结构:
 
 撤销:
   revoke_csrf_token() 将 nonce 写入 Redis，使后续携带该 token 的请求失效
-  ⚠️ **已知差距**：`revoke_csrf_token()` 函数已实现（`api/src/middleware/csrf.rs`），但登出 handler **未调用它**——登出时不会撤销当前 CSRF token。这意味着登出后 CSRF token 在剩余有效期内仍可被使用。这是一个已知安全差距，需后续修复。
+  ⚠️ **已知差距**：`revoke_csrf_token()` 函数已实现（`api/src/middleware/csrf.rs`），但登出 handler **未调用它**——登出时不会撤销当前 CSRF token 也不会清除 XSRF-TOKEN Cookie。这意味着登出后 CSRF token 在剩余有效期内仍可被使用。这是一个已知安全差距，需后续修复。
 
 ⚠️ 已知限制 — 当前 CSRF 仅应用于 admin 路由（admin_routes、post_admin_routes、comment_admin_routes、admin_team_members_routes），未覆盖所有 state-changing 路由（如公开评论提交）。这是一个已知差距，后续应推广到所有非 GET|HEAD|OPTIONS 请求。
 ```
