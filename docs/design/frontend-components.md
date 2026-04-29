@@ -155,14 +155,14 @@
 
 ## 15) 首页 Section 组件
 
-| 文件 | 职责 |
-|------|------|
-| `home/HeroSection.tsx` | Three.js 粒子沉浸英雄区 |
-| `home/BentoGrid.tsx` | 首页 Bento 网格 |
-| `home/ProjectGallery.tsx` | 项目展示 |
-| `home/MusicExperience.tsx` | 音乐体验区 |
-| `home/LatestWriting.tsx` | 最新文章 |
-| `home/MegaFooter.tsx` | 尾页巨型 Footer |
+| 文件 | 职责 | 接入状态 |
+|------|------|---------|
+| `home/HeroSection.tsx` | Three.js 粒子沉浸英雄区 | ❌ 未接入首页 |
+| `home/BentoGrid.tsx` | 首页 Bento 网格 | ❌ 未接入首页 |
+| `home/ProjectGallery.tsx` | 项目展示 | ❌ 未接入首页 |
+| `home/MusicExperience.tsx` | 音乐体验区 | ❌ 未接入首页 |
+| `home/LatestWriting.tsx` | 最新文章 | ❌ 未接入首页 |
+| `home/MegaFooter.tsx` | 尾页巨型 Footer | ✅ 已在 `app/(public)/layout.tsx` 中接入（首页条件渲染） |
 
 ## 16) 主题与视觉 Token
 

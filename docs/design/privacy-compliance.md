@@ -2,6 +2,12 @@
 
 > 来源：EDITOR_SYSTEM_DESIGN.md P8 — 扩展阶段，尚未实施
 
+> ⚠️ 隐私政策页面不存在 — 需要创建 `/privacy` 页面
+
+## 已知缺口
+
+> ⚠️ 当前使用了 Umami（通过 pliny 注入）和 Sentry 等分析/监控服务，但未实现任何 Cookie 同意机制（cookie consent banner/notice）。
+
 ## 合规要求
 
 | 法规 | 适用范围 | 核心要求 |
@@ -19,7 +25,9 @@
 | 内容数据 | 文章、评论 | 保留直到用户删除 |
 | 行为数据 | 浏览历史、搜索记录 | 匿名化、保留有限期 |
 
-## 自动清除策略 (DROP)
+## 自动清除策略 (DROP) ❌ 未实现
+
+> ⚠️ 45天自动清理策略尚未在代码中实现。
 
 ```
 数据保留周期: 45 天
@@ -30,7 +38,9 @@
     └── 已删除文章: 45天后物理删除
 ```
 
-## 用户数据导出 API
+## 用户数据导出 API ❌ 未实现
+
+> ⚠️ 此 API 端点尚未在代码中实现。
 
 ```
 GET /api/v1/user/data-export
@@ -43,7 +53,9 @@ Authorization: Bearer <token>
   └── activity.json    (搜索/浏览历史)
 ```
 
-## 用户数据删除 API
+## 用户数据删除 API ❌ 未实现
+
+> ⚠️ 此 API 端点尚未在代码中实现。
 
 ```
 DELETE /api/v1/user/data

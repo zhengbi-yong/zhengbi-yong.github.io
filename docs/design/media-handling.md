@@ -80,18 +80,18 @@ CREATE TABLE media (
 );
 ```
 
-### `media_assets` 表（文章系统关联表）
+### `post_media` 表（文章系统关联表）
 
-除了 `media` 表外，文章系统中还使用 `media_assets` 表来建立文章与媒体的多对多关联。定义在迁移 `2026042701_create_articles.sql` 中：
+除了 `media` 表外，文章系统中还使用 `post_media` 表来建立文章与媒体的多对多关联。定义在迁移 `2026033101_post_media.sql` 中：
 
 ```sql
-CREATE TABLE media_assets (
-    id        UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
-    article_id UUID NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
-    media_id   UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
-    sort_order INTEGER NOT NULL DEFAULT 0,
+CREATE TABLE post_media (
+    id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    post_id   UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    media_id  UUID NOT NULL REFERENCES media(id) ON DELETE CASCADE,
+    position  INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(article_id, media_id)
+    UNIQUE(post_id, media_id)
 );
 ```
 

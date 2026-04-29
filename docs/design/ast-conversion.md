@@ -66,10 +66,9 @@ pub fn mdx_to_tiptap_json_with_stats(mdx: &str) -> (Value, ConversionStats)
 
 // 转换统计结构
 pub struct ConversionStats {
-    pub total_blocks: usize,      // 总块级节点数
-    pub total_inlines: usize,     // 总内联节点数
-    pub error_count: usize,       // 转换错误数
-    pub warnings: Vec<String>,    // 警告信息
+    pub blocks: usize,            // 总块级节点数（不含 horizontalRule、hardBreak）
+    pub text_nodes: usize,        // 总文本节点数
+    pub marks_used: Vec<String>,  // 使用到的 Mark 类型列表（去重排序后）
 }
 ```
 

@@ -18,14 +18,13 @@ frontend/src/
 │   ├── layout.tsx              # 根布局（全局字体/ThemeProvider/suppressHydrationWarning）
 │   │
 │   ├── (public)/               # 公开页面路由组
-│   │   ├── layout.tsx         # 公开页外壳
-│   │   └── blog/[...slug]/    # 动态博客详情页
+│   │   └── layout.tsx         # 公开页外壳（Header/Footer/MegaFooter）
 │   │
 │   ├── blog/                   # 博客路由（直接位于 app/blog/，非路由组内）
 │   │   ├── page.tsx           # 博客列表首页
 │   │   ├── loading.tsx
 │   │   ├── error.tsx
-│   │   ├── [...slug]/         # 博客详情（动态路由）
+│   │   ├── [...slug]/         # 博客详情（动态路由，包裹 PublicLayout）
 │   │   ├── category/[category]/ # 分类页面
 │   │   ├── popular/           # 热门文章
 │   │   └── page/[page]/       # 列表分页

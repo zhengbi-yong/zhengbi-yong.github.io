@@ -80,7 +80,12 @@
 
 ## 快捷键 (Keyboard Shortcuts)
 
-编辑器工具栏 (`EditorToolbar.tsx`) 中定义的快捷键映射，使用 `Ctrl` (Windows/Linux) / `Cmd` (macOS) 组合键：
+编辑器工具栏存在两套实现，均定义了快捷键映射，使用 `Ctrl` (Windows/Linux) / `Cmd` (macOS) 组合键：
+
+1. **内联工具栏** — 在 `TiptapEditor.tsx` 内定义的 `Toolbar` 组件，直接在按钮的 `title` 属性中嵌入快捷键提示（如 `title="粗体 (Ctrl+B)"`）
+2. **独立工具栏组件** — `EditorToolbar.tsx`，使用 `getFullTitle()` 函数将 `SHORTCUTS` 映射表附加到按钮 `title` 属性
+
+两套工具栏均提供相同的快捷键映射：
 
 | 功能 | 快捷键 |
 |------|--------|

@@ -6,10 +6,10 @@
 |------|------|----------|----------|------|
 | 1 | 安全基线 | 1-2 周 | HttpOnly Cookie, CSRF 防护 | ✅ 已完成 |
 | 2 | 数据库优化 | 2-3 周 | UUIDv7 迁移, ltree 评论 | ✅ 已完成 |
-| 3 | API 契约 | 2 周 | Orval 配置, TS 客户端 | ❌ 未实施 |
+| 3 | API 契约 | 2 周 | Orval 配置, TS 客户端 | ❌ 未实施（orval.config.js 已存在且 `package.json` 有 `generate:orval` 脚本，但生成流程未集成到构建管线） |
 | 4 | 认证升级 | 2-3 周 | WebAuthn 集成 | ❌ 未实施 |
-| 5 | 搜索 CDC | 2 周 | MeiliBridge 部署 | 🔄 部分实施 |
-| 6 | K3s 迁移 | 3-4 周 | 生产级集群 | 🔄 部分实施 |
+| 5 | 搜索 CDC | 2 周 | Meilisearch + Outbox 轮询 | 🔄 部分实施 |
+| 6 | Kubernetes 双路部署 | 3-4 周 | 生产级集群（Compose + K8s 双路径） | 🔄 部分实施 |
 
 ## 关键技术决策
 
@@ -20,7 +20,7 @@
 | 评论树 | 递归 CTE | ltree | CTE 在大数据量下指数衰减 |
 | 计数更新 | 实时 UPDATE | Redis 缓冲+HOT | 减少写放大 |
 | JWT 存储 | localStorage | HttpOnly Cookie | 防止 XSS 窃取 |
-| 搜索同步 | Outbox 轮询 | CDC MeiliBridge | 亚秒级同步 |
+| 搜索同步 | Outbox 轮询 | Meilisearch + Outbox 轮询（含 CDC 扩展计划） | 亚秒级同步 |
 | 内容处理 | Contentlayer | Velite | 活跃维护，Zod 验证 |
 | API 类型 | 手动维护 | Orval 自动生成 | 前后端类型一致 |
-| 部署方式 | Docker Compose | K3s | 探针自愈，滚动更新 |
+| 部署方式 | Docker Compose（单机） | Compose + Kubernetes 双路径 | 探针自愈，滚动更新 |

@@ -81,17 +81,20 @@
 
 ## 未来规划
 
-> 以下设计组件已实现（位于 `frontend/src/components/home/`）但尚未接入首页（`Main.tsx`）。
+> 以下设计组件已实现（位于 `frontend/src/components/home/`）。
+>
+> **MegaFooter** 已在 `frontend/src/app/(public)/layout.tsx` 中接入首页（`pathname === '/'` 时条件渲染）。
+> **Immersive Hero**、**BentoGrid**、**ProjectGallery**、**MusicExperience**、**LatestWriting** 尚未接入首页（`Main.tsx`）。
 
 ### 计划结构
 
 ```
-1. Immersive Hero          — 全屏 WebGL 粒子 + 双语标题
-2. Bento Grid Content Hub  — 模块化网格展示最新内容
-3. Projects Gallery        — 横向滚动项目展示
-4. Music Experience        — 音频响应乐谱可视化
-5. Latest Writing          — 编辑风格文章列表
-6. Mega Footer             — 全屏 CTA 页脚
+1. Immersive Hero          — 全屏 WebGL 粒子 + 双语标题（未接入）
+2. Bento Grid Content Hub  — 模块化网格展示最新内容（未接入）
+3. Projects Gallery        — 横向滚动项目展示（未接入）
+4. Music Experience        — 音频响应乐谱可视化（未接入）
+5. Latest Writing          — 编辑风格文章列表（未接入）
+6. Mega Footer             — 全屏 CTA 页脚（✅ 已接入首页）
 ```
 
 ### Section 1: Immersive Hero

@@ -21,8 +21,8 @@
 |------|------|------|------|
 | Rust 单元测试 | `cargo test` | 核心逻辑 ≥80% | 29 个测试文件，16 个 mdx_convert 测试 |
 | Rust API 测试 | `cargo test` (集成) | 端点 ≥90% | 含 advanced_security_tests |
-| TypeScript 类型 | `tsc --noEmit` + ESLint | 无 any 型 | `strict: false`（已知约束，ESLint 补充检查） |
-| 前端组件测试 | Vitest | 组件 ≥70% | 146 个测试用例 |
+| TypeScript 类型 | `tsc --noEmit` + ESLint | 减少 any 型使用 | `strict: false`（已知约束，通过 ESLint `no-explicit-any` 规则约束） |
+| 前端组件测试 | Vitest | statements ≥70%, branches ≥65%, functions ≥70%, lines ≥70% | 146 个测试用例 |
 | E2E 流程 | Playwright | 12 条核心路径 | ~91 个 E2E 测试用例 |
 
 ## E2E 核心路径

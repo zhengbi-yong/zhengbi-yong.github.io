@@ -88,6 +88,11 @@ CREATE TABLE posts (
     excerpt TEXT,
     cover_image_id UUID REFERENCES media(id),
     og_image_id UUID REFERENCES media(id),
+    search_vector tsvector GENERATED ALWAYS AS (
+        setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
+        setweight(to_tsvector('simple', coalesce(summary, '')), 'B') ||
+        setweight(to_tsvector('simple', coalesce(content, '')), 'C')
+    ) STORED,
     status post_status NOT NULL DEFAULT 'draft',
     published_at TIMESTAMPTZ,
     scheduled_at TIMESTAMPTZ,
@@ -130,6 +135,9 @@ CREATE INDEX idx_posts_status ON posts(status);
 CREATE INDEX idx_posts_published ON posts(published_at DESC) WHERE deleted_at IS NULL;
 CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json jsonb_path_ops);
 CREATE INDEX idx_posts_title_exact ON posts (title) WHERE deleted_at IS NULL;
+CREATE INDEX idx_posts_search_vector ON posts USING GIN (search_vector);
+CREATE INDEX idx_posts_title_trgm ON posts USING GIN (title gin_trgm_ops);
+CREATE INDEX idx_posts_content_trgm ON posts USING GIN (content gin_trgm_ops);
 ```
 
 ### 双轨存储说明

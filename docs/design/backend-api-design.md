@@ -188,10 +188,10 @@ GET    /tags/autocomplete      # 自动补全
 限流中间件应用于所有 `/api/v1/*` 路由，基于 Redis 分布式限流，按 IP 和路由维度限制请求速率。超出限制返回 `429 Too Many Requests`。
 
 配置项（通过环境变量）：
-- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 20）
-- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 100）
-- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 30）
-- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 60）
+- `RATE_LIMIT_AUTH_RPM` — 认证路由（登录、注册）每分钟每个 IP 最大请求数（默认: 100）
+- `RATE_LIMIT_VIEW_RPM` — 浏览/展示路由每分钟每个 IP 最大请求数（默认: 1000）
+- `RATE_LIMIT_COMMENT_RPM` — 评论相关路由每分钟每个 IP 最大请求数（默认: 20）
+- `RATE_LIMIT_DEFAULT_RPM` — 其余所有路由每分钟每个 IP 最大请求数（默认: 6000）
 
 ### CSRF 中间件
 
