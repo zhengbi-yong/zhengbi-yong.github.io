@@ -20,7 +20,7 @@ const navItems = [
   { id: 'dashboard', label: '仪表板', icon: LayoutDashboard, href: '/admin' },
   { id: 'users', label: '用户管理', icon: Users, href: '/admin/users' },
   { id: 'comments', label: '评论审核', icon: MessageSquare, href: '/admin/comments' },
-  { id: 'posts', label: '文章管理', icon: FileText, href: '/admin/posts' },
+  { id: 'posts', label: '文章管理', icon: FileText, href: '/admin/posts-manage', matchAlso: '/admin/posts' },
   { id: 'analytics', label: '数据分析', icon: BarChart3, href: '/admin/analytics' },
   { id: 'monitoring', label: '系统监控', icon: Activity, href: '/admin/monitoring' },
   { id: 'settings', label: '系统设置', icon: Settings, href: '/admin/settings' },
@@ -69,9 +69,10 @@ export function AppSidebar() {
       <nav className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
         {navItems.map((item) => {
           const Icon = item.icon
+          const matchPaths = [item.href, ...('matchAlso' in item && item.matchAlso ? [item.matchAlso] : [])]
           const isActive = item.href === '/admin'
             ? pathname === '/admin'
-            : pathname === item.href || pathname.startsWith(item.href + '/')
+            : matchPaths.some(p => pathname === p || pathname.startsWith(p + '/'))
           return (
             <Link
               key={item.id}
