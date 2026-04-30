@@ -109,7 +109,7 @@ export function SidebarInset({
 
   return (
     <div
-      style={{ paddingLeft: open ? '16rem' : '3rem' }}
+      style={{ paddingLeft: open ? '15rem' : '3.5rem' }}
       className={cn('flex-1 flex flex-col transition-[padding-left] duration-200 ease-linear', className)}
     >
       {children}

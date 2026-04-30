@@ -11,7 +11,8 @@ import {
   BarChart3,
   Activity,
   Settings,
-  LogOut,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react'
 import { useSidebar } from '@/components/shadcn/ui/sidebar'
 
@@ -25,24 +26,47 @@ const navItems = [
   { id: 'settings', label: '系统设置', icon: Settings, href: '/admin/settings' },
 ]
 
-export function AppSidebar({ onLogout }: { onLogout?: () => void }) {
+export function AppSidebar() {
   const pathname = usePathname()
-  const { open } = useSidebar()
+  const { open, setOpen } = useSidebar()
 
   return (
     <aside
       data-state={!open ? 'collapsed' : 'expanded'}
-      style={{ width: open ? '16rem' : '3rem' }}
-      className="fixed left-0 top-0 z-30 flex h-full flex-col border-r bg-background transition-[width] duration-200 ease-linear"
+      style={{ width: open ? '15rem' : '3.5rem' }}
+      className="fixed left-0 top-0 z-30 flex h-full flex-col border-r border-border/60 bg-background transition-[width] duration-200 ease-linear"
     >
-      <div className="flex h-14 items-center border-b px-4">
-        <Link href="/admin" className="flex items-center gap-2">
-          {open && <span className="text-lg font-bold">管理后台</span>}
-          {!open && <span className="text-lg font-bold mx-auto">A</span>}
-        </Link>
+      {/* Logo + collapse toggle */}
+      <div className="flex h-12 items-center justify-between border-b border-border/60 px-3">
+        {open ? (
+          <>
+            <Link href="/admin" className="flex items-center gap-2 min-w-0">
+              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground text-xs font-bold flex-shrink-0">
+                Z
+              </div>
+              <span className="text-sm font-semibold truncate">管理后台</span>
+            </Link>
+            <button
+              onClick={() => setOpen(false)}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors flex-shrink-0"
+              title="收起侧边栏"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setOpen(true)}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors mx-auto"
+            title="展开侧边栏"
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = item.href === '/admin'
@@ -53,34 +77,20 @@ export function AppSidebar({ onLogout }: { onLogout?: () => void }) {
               key={item.id}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                'flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm transition-colors',
                 isActive
-                  ? 'bg-accent text-accent-foreground'
-                  : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground',
-                !open && 'justify-center px-2'
+                  ? 'bg-accent text-accent-foreground font-medium'
+                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                !open && 'justify-center px-0'
               )}
               title={!open ? item.label : undefined}
             >
               <Icon className="h-4 w-4 flex-shrink-0" />
-              {open && item.label}
+              {open && <span className="truncate">{item.label}</span>}
             </Link>
           )
         })}
       </nav>
-
-      <div className="border-t p-2">
-        <button
-          onClick={onLogout}
-          className={cn(
-            'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors',
-            !open && 'justify-center px-2'
-          )}
-          title={!open ? '退出登录' : undefined}
-        >
-          <LogOut className="h-4 w-4 flex-shrink-0" />
-          {open && '退出登录'}
-        </button>
-      </div>
     </aside>
   )
 }
