@@ -19,7 +19,6 @@ Zustand-based client-side state management for authentication, blog data, commen
 - **blog-store.ts**: Blog content cache
 - **comment-store.ts**: Comment state
 - **post-store.ts**: Post interactions (likes, views)
-- **ui-store.ts**: UI state (theme, modals)
 - **core/**: Store utilities and types
 
 ### Store: Auth (auth-store.ts)
@@ -133,19 +132,7 @@ interface PostStats {
 
 ---
 
-### Store: UI (ui-store.ts)
-
-**State Interface**:
-```typescript
-interface UIState {
-  sidebarOpen: boolean
-
-  // Actions
-  setSidebarOpen: (open: boolean) => void
-}
-```
-
-> **注意**: 主题状态由 `next-themes` 管理(`useTheme()` hook),不在此 store 中.
+> **注意**: 主题状态由 `next-themes` 管理(`useTheme()` hook),不在 Zustand store 中. UI store 已删除(无消费者).
 
 ## Layer 3: Implementation Details
 
