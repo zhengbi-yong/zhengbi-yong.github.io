@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
+import { useTheme } from 'next-themes'
 import { Check, Copy } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -51,12 +52,14 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { resolvedTheme } = useTheme()
   const language = extractLanguage(className)
   const codeText = extractTextContent(children)
   // Trim trailing whitespace to prevent Shiki from generating an empty trailing .line span
   const trimmedCode = codeText.trimEnd()
+  const shikiTheme = resolvedTheme === 'dark' ? 'github-dark' : 'github-light'
 
-  // E3: Async Shiki highlighting — yields to React's scheduler
+  // E3: Async Shiki highlighting - yields to React's scheduler
   useEffect(() => {
     if (!language || !trimmedCode.trim()) {
       return undefined
@@ -64,7 +67,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
     let cancelled = false
     const timer = setTimeout(async () => {
       try {
-        const html = await highlightCode(trimmedCode, language, 'github-dark')
+        const html = await highlightCode(trimmedCode, language, shikiTheme)
         if (!cancelled) {
           setHighlightedHtml(html)
         }
@@ -76,7 +79,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [language, trimmedCode])
+  }, [language, trimmedCode, shikiTheme])
 
   const handleCopy = useCallback(async () => {
     try {
