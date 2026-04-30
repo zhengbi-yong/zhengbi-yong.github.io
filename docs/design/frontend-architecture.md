@@ -94,7 +94,7 @@ frontend/src/
 │   │   ├── apiClient.ts       # 核心 HTTP 客户端（拦截器、刷新、缓存、重试）
 │   │   └── backend.ts         # 类型化 API 端点（auth/post/comment 等）
 │   ├── store/
-│   │   ├── ui-store.ts        # Zustand UI 状态（theme/sidebar/modal）
+│   │   ├── ui-store.ts        # Zustand UI 状态(sidebar)
 │   │   ├── auth-store.ts      # 用户会话状态（token 仅存 HttpOnly Cookie）
 │   │   ├── blog-store.ts      # 博客数据缓存（1h 过期）
 │   │   ├── post-store.ts      # 文章交互（likes/views）
@@ -102,7 +102,7 @@ frontend/src/
 │   │   ├── create-store.ts    # Store 创建工具
 │   │   └── core/              # Store 工具函数和类型
 │   ├── ui/
-│   │   └── UIStore.ts         # UI 状态管理（loading/notifications/modal/sidebar/colorMode）
+
 │   └── utils/
 │
 ├── e2e/                       # Playwright E2E 测试
@@ -147,10 +147,9 @@ export const postService = {
 
 | Store | 存什么 | 存哪里 | 原因 |
 |-------|--------|--------|------|
-|| ui-store | theme, sidebar, modal | Zustand | 纯 UI，无敏感数据 |
-|| UIStore (lib/ui/UIStore.ts) | global loading, notifications, modals, sidebar, colorMode | Zustand | UI 层级状态管理（非 React Context） |
+|| ui-store | sidebarOpen | Zustand | 纯 UI,无敏感数据 |
 
-> **注意**：`ui-store.ts` 和 `UIStore.ts` 功能重叠（都管理 theme/sidebar/modal）。建议合并为一个统一 UI Store 以避免状态分散。 (recommend: consolidation)
+> **注意**:主题状态由 `next-themes` 统一管理(ThemeProvider + useTheme),不在 Zustand store 中.
 
 | auth-store | user, isAuthenticated | Zustand | 存储用户会话状态，token 仅存 HttpOnly Cookie |
 | blog-store | posts cache | Zustand | 缓存博客数据，1 小时过期，减少 API 调用 |

@@ -138,18 +138,14 @@ interface PostStats {
 **State Interface**:
 ```typescript
 interface UIState {
-  theme: 'light' | 'dark' | 'system'
   sidebarOpen: boolean
-  modalOpen: boolean
-  activeModal: string | null
 
   // Actions
-  setTheme: (theme: string) => void
-  toggleSidebar: () => void
-  openModal: (modal: string) => void
-  closeModal: () => void
+  setSidebarOpen: (open: boolean) => void
 }
 ```
+
+> **注意**: 主题状态由 `next-themes` 管理(`useTheme()` hook),不在此 store 中.
 
 ## Layer 3: Implementation Details
 
@@ -325,10 +321,12 @@ function PostActions({ slug }) {
 }
 ```
 
-**Theme Switcher**:
+**Theme Switcher** (使用 next-themes,非 Zustand):
 ```typescript
+import { useTheme } from 'next-themes'
+
 function ThemeToggle() {
-  const { theme, setTheme } = useUIStore()
+  const { theme, setTheme } = useTheme()
 
   return (
     <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
