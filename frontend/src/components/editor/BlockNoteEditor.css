@@ -137,3 +137,69 @@
   box-shadow: 0 0 0 2px #3b82f6;
   border-radius: 8px;
 }
+
+/* ============================================================
+ * 文件/视频/图片上传占位按钮 - 暗色模式适配
+ *
+ * BlockNote 的 .bn-add-file-button 使用硬编码浅色背景 rgb(242,241,238),
+ * 不跟随 data-color-scheme 切换.此处用 BlockNote CSS 变量覆盖.
+ * ============================================================ */
+
+/* ---------- 上传按钮(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-add-file-button {
+  background-color: var(--bn-colors-hovered-background, #161616) !important;
+  color: var(--bn-colors-editor-text, #cfcfcf) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- 上传按钮 hover(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-add-file-button:hover {
+  background-color: var(--bn-colors-selected-background, #0f0f0f) !important;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- 上传按钮图标(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-add-file-button-icon {
+  color: var(--bn-colors-side-menu, #7f7f7f) !important;
+}
+
+/* ---------- 上传按钮文字(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-add-file-button-text {
+  color: var(--bn-colors-editor-text, #cfcfcf) !important;
+}
+
+/* ============================================================
+ * 表格 - 暗色模式适配
+ *
+ * BlockNote 表格单元格边框使用硬编码 #ddd,不跟随暗色主题.
+ * ============================================================ */
+
+/* ---------- 表格单元格(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="table"] td,
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="table"] th {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: var(--bn-colors-editor-background, #1f1f1f) !important;
+  color: var(--bn-colors-editor-text, #cfcfcf) !important;
+}
+
+/* ---------- 表格单元格 hover(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="table"] td:hover,
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="table"] th:hover {
+  background-color: var(--bn-colors-hovered-background, #161616) !important;
+}
+
+/* ---------- 表格选中单元格(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="table"] .selectedCell {
+  background-color: var(--bn-colors-selected-background, #0f0f0f) !important;
+}
+
+/* ---------- 引用块(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="quote"] {
+  border-left-color: rgba(255, 255, 255, 0.2) !important;
+  color: var(--bn-colors-editor-text, #cfcfcf) !important;
+}
+
+/* ---------- 分割线(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="divider"] hr {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
