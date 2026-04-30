@@ -1,37 +1,26 @@
 /**
  * Theme Toggle Component
  * 主题切换组件 - 支持亮色/暗色/系统自动
+ *
+ * 统一使用 next-themes 管理主题状态:
+ * - 自动持久化到 localStorage
+ * - SSR 防闪烁(script 注入)
+ * - prefers-color-scheme 监听
+ * - 与全站 15+ 组件共享同一主题源
  */
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sun, Moon, Monitor } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useUIStore } from '@/lib/store/ui-store'
+import { useTheme } from 'next-themes'
 
 export default function ThemeToggle() {
-  const theme = useUIStore((s) => s.theme)
-  const setTheme = useUIStore((s) => s.setTheme)
+  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (!mounted) return
-
-    const root = window.document.documentElement
-    root.classList.remove('light', 'dark')
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      root.classList.add(systemTheme)
-    } else {
-      root.classList.add(theme)
-    }
-  }, [theme, mounted])
+  useEffect(() => setMounted(true), [])
 
   if (!mounted) {
     return (
@@ -80,7 +69,7 @@ export default function ThemeToggle() {
         'hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] hover:shadow-[var(--shadow-soft)]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)]/40'
       )}
-      aria-label={`切换主题：${getLabel()}`}
+      aria-label={`切换主题:${getLabel()}`}
       title={getLabel()}
     >
       {getIcon()}

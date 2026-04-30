@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
@@ -8,6 +8,7 @@ import '@blocknote/core/fonts/inter.css'
 import { Loader2 } from 'lucide-react'
 import { BlockNoteSchema, createCodeBlockSpec } from '@blocknote/core'
 import { codeBlockOptions } from '@blocknote/code-block'
+import { useTheme } from 'next-themes'
 import './BlockNoteEditor.css'
 
 // 带语法高亮和语言选择器的代码块 spec（使用 @blocknote/code-block 预配置）
@@ -43,6 +44,15 @@ function BlockNoteEditor({
 }) {
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+
+  // 跟随 next-themes 的主题设置
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  // BlockNote 的 theme prop: "light" | "dark"
+  // 未挂载前默认 light 避免 hydration mismatch
+  const bnTheme = mounted && resolvedTheme === 'dark' ? 'dark' : 'light'
 
   const editor = useCreateBlockNote({
     schema,
@@ -122,7 +132,7 @@ function BlockNoteEditor({
     <div className="min-h-[400px]">
       <BlockNoteView
         editor={editor}
-        theme="light"
+        theme={bnTheme}
       />
     </div>
   )

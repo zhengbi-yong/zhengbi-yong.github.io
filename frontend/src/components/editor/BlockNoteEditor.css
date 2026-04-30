@@ -1,18 +1,28 @@
 /* ============================================================
  * BlockNote 编辑器代码块样式增强
  *
- * 官方 BlockNote 的代码块样式定义在 @blocknote/core 的 Block.css 中，
- * 但某些环境下 Tailwind Preflight 或全局 CSS 可能会覆盖这些样式。
- * 此文件确保代码块在任何情况下都有正确的视觉效果。
+ * 官方 BlockNote 的代码块样式定义在 @blocknote/core 的 Block.css 中,
+ * 但某些环境下 Tailwind Preflight 或全局 CSS 可能会覆盖这些样式.
+ * 此文件确保代码块在任何情况下都有正确的视觉效果.
+ *
+ * 主题适配:
+ *   BlockNote 通过 data-color-scheme="light|dark" 切换主题.
+ *   代码块使用 CSS 变量实现亮/暗色自适应.
  * ============================================================ */
 
-/* ---------- 代码块容器 ---------- */
+/* ---------- 代码块容器(亮色) ---------- */
 .bn-block-content[data-content-type="codeBlock"] {
   position: relative;
-  background-color: #1e1e1e !important;
-  color: #d4d4d4 !important;
+  background-color: #f5f5f5 !important;
+  color: #1e1e1e !important;
   border-radius: 8px;
   margin: 16px 0;
+}
+
+/* ---------- 代码块容器(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"] {
+  background-color: #1e1e1e !important;
+  color: #d4d4d4 !important;
 }
 
 /* ---------- 代码块内的 pre 元素 ---------- */
@@ -28,7 +38,7 @@
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
   font-size: 0.875em;
   line-height: 1.6;
-  color: #d4d4d4 !important;
+  color: inherit !important;
   border-radius: 8px;
 }
 
@@ -40,13 +50,22 @@
 /* ---------- 语言选择器(select 下拉) ---------- */
 .bn-block-content[data-content-type="codeBlock"] > div > select {
   outline: none !important;
-  /* 保留原生 appearance 以确保点击能打开下拉菜单 */
-  appearance: auto;
-  -webkit-appearance: menulist;
-  -moz-appearance: auto;
-  border: none;
+
+  /* 移除原生下拉箭头,使用自定义 SVG 箭头(避免双三角) */
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+
+  /* 自定义下拉箭头(深色,适配亮色背景) */
+  /* 覆盖 @tailwindcss/forms 插件的默认 select 箭头 */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23555' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 6l4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 6px center !important;
+  background-size: 12px !important;
+
+  border: 1px solid rgba(0, 0, 0, 0.15);
   cursor: pointer;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
 
   position: absolute;
   top: 8px;
@@ -56,15 +75,24 @@
 
   font-size: 0.75em;
   font-family: inherit;
-  color: #ccc !important;
+  color: #333 !important;
 
   /* 始终半可见,hover 时更亮 */
   opacity: 0.7;
   transition: opacity 0.2s ease;
 
-  padding: 2px 4px;
+  padding: 2px 24px 2px 8px;
   border-radius: 4px;
   line-height: 1.6;
+}
+
+/* ---------- 暗色模式下的语言选择器 ---------- */
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"] > div > select {
+  /* 暗色箭头 */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ccc' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 6l4 4 4-4'/%3e%3c/svg%3e");
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ccc !important;
 }
 
 /* ---------- 语言选择器 option 文字颜色 ---------- */
@@ -73,24 +101,31 @@
   background-color: #fff !important;
 }
 
-/* ---------- hover 和 focus 状态 ---------- */
+/* ---------- hover 和 focus 状态(亮色) ---------- */
 .bn-block-content[data-content-type="codeBlock"]:hover > div > select,
 .bn-block-content[data-content-type="codeBlock"] > div > select:focus {
   opacity: 1;
   transition-delay: 0s;
+  background-color: rgba(0, 0, 0, 0.08) !important;
+  color: #222 !important;
+}
+
+/* ---------- hover 和 focus 状态(暗色) ---------- */
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"]:hover > div > select,
+.bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"] > div > select:focus {
   background-color: rgba(255, 255, 255, 0.15) !important;
   color: #e0e0e0 !important;
 }
 
 /* ---------- 代码块内部文字编辑区域 ---------- */
 .bn-block-content[data-content-type="codeBlock"] .bn-inline-content {
-  color: #d4d4d4 !important;
+  color: inherit !important;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
   font-size: 0.875em;
   line-height: 1.6;
 }
 
-/* ---------- Shiki 高亮样式（由 @blocknote/code-block 注入） ---------- */
+/* ---------- Shiki 高亮样式(由 @blocknote/code-block 注入) ---------- */
 .bn-block-content[data-content-type="codeBlock"] .shiki {
   background: transparent !important;
   margin: 0;
