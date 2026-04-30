@@ -22,13 +22,13 @@ const randomUUID = (): string => {
 /**
  * 新建文章页面
  *
- * 完整的文章创建流程：
- * 1. 编辑元数据（标题、摘要、分类、标签）
+ * 完整的文章创建流程:
+ * 1. 编辑元数据(标题,摘要,分类,标签)
  * 2. 使用富文本编辑器撰写内容
  * 3. 一键发布到数据库
  *
- * 草稿功能：
- * - 自动保存到 localStorage（停止输入 2 秒后）
+ * 草稿功能:
+ * - 自动保存到 localStorage(停止输入 2 秒后)
  * - 页面加载时自动恢复上次草稿
  * - 支持查看/恢复/删除历史草稿
  */
@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils'
 import { useDraft, Draft } from '@/lib/hooks/useDraft'
 import TiptapEditor from '@/components/editor/TiptapEditor'
 import { api } from '@/lib/api/apiClient'
+import { Button } from '@/components/shadcn/ui/button'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -55,8 +56,8 @@ export default function NewPostPage() {
   const [summary, setSummary] = useState('')
   const [category, setCategory] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [content, setContent] = useState('') // blocks JSON（编辑器原始数据 → content_json）
-  const [contentMdx, setContentMdx] = useState('') // Markdown/MDX（博客详情页消费 → content_mdx）
+  const [content, setContent] = useState('') // blocks JSON(编辑器原始数据 -> content_json)
+  const [contentMdx, setContentMdx] = useState('') // Markdown/MDX(博客详情页消费 -> content_mdx)
 
   // 草稿状态
   const [draftId] = useState(() => randomUUID())
@@ -77,7 +78,7 @@ export default function NewPostPage() {
     }
   }, [getCurrentDraft])
 
-  // 自动保存草稿（停止输入 2 秒后）
+  // 自动保存草稿(停止输入 2 秒后)
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -139,16 +140,16 @@ export default function NewPostPage() {
     setPublishStatus({ type: null, message: '' })
 
     try {
-      // 生成 slug：统一使用长 ID（UUID v4），保证全局唯一、可扩展
-      // 无论中英文标题，一律使用 UUID，确保 URL 格式统一美观
+      // 生成 slug:统一使用长 ID(UUID v4),保证全局唯一,可扩展
+      // 无论中英文标题,一律使用 UUID,确保 URL 格式统一美观
       const slug = randomUUID()
 
-      // BlockNote 输出双轨数据：content_json（blocks JSON）+ content_mdx（Markdown）
+      // BlockNote 输出双轨数据:content_json(blocks JSON)+ content_mdx(Markdown)
       let jsonPayload: Record<string, unknown> | undefined
       let mdxPayload: string | undefined
       try {
         jsonPayload = JSON.parse(content)
-        // 优先使用独立的 contentMdx（来自 onDualChange）
+        // 优先使用独立的 contentMdx(来自 onDualChange)
         mdxPayload = contentMdx || undefined
       } catch {
         jsonPayload = undefined
@@ -180,7 +181,7 @@ export default function NewPostPage() {
 
       setPublishStatus({
         type: 'success',
-        message: status === 'Published' ? '文章发布成功！' : '草稿保存成功！',
+        message: status === 'Published' ? '文章发布成功!' : '草稿保存成功!',
       })
 
       // 3秒后跳转到文章详情页
@@ -191,7 +192,7 @@ export default function NewPostPage() {
       console.error('[NewPostPage] 发布失败:', error)
       setPublishStatus({
         type: 'error',
-        message: error instanceof Error ? error.message : '发布失败，请重试',
+        message: error instanceof Error ? error.message : '发布失败,请重试',
       })
     } finally {
       setIsPublishing(false)
@@ -205,7 +206,7 @@ export default function NewPostPage() {
       return
     }
 
-    // 跳转到预览页，传递内容作为 URL 参数
+    // 跳转到预览页,传递内容作为 URL 参数
     const params = new URLSearchParams({
       title: title || '无标题',
       content: content || '',
@@ -227,76 +228,51 @@ export default function NewPostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* 页面头部 */}
-      <div className="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+      <div className="bg-card border-b border sticky top-0 z-30">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">创建新文章</h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              使用 Markdown 语法，享受流畅的写作体验
+            <h1 className="text-2xl font-bold text-foreground">创建新文章</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              使用 Markdown 语法,享受流畅的写作体验
             </p>
           </div>
 
           {/* 操作按钮 */}
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant={showDrafts ? 'outline' : 'ghost'}
               onClick={() => setShowDrafts(!showDrafts)}
               className={cn(
-                'flex items-center gap-2 rounded-md px-4 py-2',
-                showDrafts
-                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600',
-                'transition-colors'
+                showDrafts && 'bg-primary/10 text-primary border-primary/30'
               )}
             >
               <FileText className="h-4 w-4" />
               草稿 ({draftsWithTime.length})
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="ghost"
               onClick={handlePreview}
               disabled={isPublishing || !title}
-              className={cn(
-                'flex items-center gap-2 rounded-md px-4 py-2',
-                'bg-gray-100 dark:bg-gray-700',
-                'text-gray-700 dark:text-gray-300',
-                'hover:bg-gray-200 dark:hover:bg-gray-600',
-                'disabled:cursor-not-allowed disabled:opacity-50',
-                'transition-colors'
-              )}
             >
               <Eye className="h-4 w-4" />
               预览
-            </button>
+            </Button>
 
-            <button
+            <Button
+              variant="outline"
               onClick={() => handlePublish('Draft')}
               disabled={isPublishing}
-              className={cn(
-                'flex items-center gap-2 rounded-md px-4 py-2',
-                'bg-gray-200 dark:bg-gray-600',
-                'text-gray-700 dark:text-gray-300',
-                'hover:bg-gray-300 dark:hover:bg-gray-500',
-                'disabled:cursor-not-allowed disabled:opacity-50',
-                'transition-colors'
-              )}
             >
               <Save className="h-4 w-4" />
               保存草稿
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={() => handlePublish('Published')}
               disabled={isPublishing}
-              className={cn(
-                'flex items-center gap-2 rounded-md px-6 py-2',
-                'bg-blue-600 text-white',
-                'hover:bg-blue-700',
-                'disabled:cursor-not-allowed disabled:opacity-50',
-                'transition-colors',
-                'font-medium'
-              )}
             >
               {isPublishing ? (
                 <>
@@ -309,7 +285,7 @@ export default function NewPostPage() {
                   发布文章
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -318,18 +294,18 @@ export default function NewPostPage() {
       <div className="flex flex-1 gap-6 mx-auto max-w-7xl px-4 py-6">
         {/* 草稿列表侧边栏 */}
         {showDrafts && (
-          <div className="w-64 flex-shrink-0 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 overflow-y-auto max-h-[calc(100vh-200px)]">
+          <div className="w-64 flex-shrink-0 bg-card border rounded-lg p-4 shadow-sm overflow-y-auto max-h-[calc(100vh-200px)]">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">草稿列表</h3>
+              <h3 className="font-semibold text-foreground">草稿列表</h3>
               <button
                 onClick={() => setShowDrafts(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-muted-foreground hover:text-foreground"
               >
                 ✕
               </button>
             </div>
             {draftsWithTime.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">暂无草稿</p>
+              <p className="text-sm text-muted-foreground">暂无草稿</p>
             ) : (
               <div className="space-y-2">
                 {draftsWithTime.map(draft => (
@@ -338,15 +314,15 @@ export default function NewPostPage() {
                     className={cn(
                       'p-3 rounded-lg cursor-pointer transition-colors',
                       draft.id === draftId
-                        ? 'bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700'
-                        : 'bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        ? 'bg-primary/10 border border-primary/30'
+                        : 'bg-muted/50 hover:bg-muted'
                     )}
                     onClick={() => handleRestoreDraft(draft)}
                   >
-                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                    <div className="font-medium text-sm text-foreground truncate">
                       {draft.title || '无标题'}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <div className="text-xs text-muted-foreground mt-1">
                       {draft.timeAgo}
                     </div>
                     <div className="flex items-center gap-2 mt-2">
@@ -355,7 +331,7 @@ export default function NewPostPage() {
                           e.stopPropagation()
                           handleRestoreDraft(draft)
                         }}
-                        className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 flex items-center gap-1"
+                        className="text-xs text-primary hover:text-primary/80 flex items-center gap-1"
                         title="恢复此草稿"
                       >
                         <RotateCcw className="w-3 h-3" /> 恢复
@@ -363,11 +339,11 @@ export default function NewPostPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (confirm('确定删除此草稿？')) {
+                          if (confirm('确定删除此草稿?')) {
                             deleteDraft(draft.id)
                           }
                         }}
-                        className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1"
+                        className="text-xs text-destructive hover:text-destructive/80 flex items-center gap-1"
                         title="删除此草稿"
                       >
                         <Trash2 className="w-3 h-3" /> 删除
@@ -388,10 +364,10 @@ export default function NewPostPage() {
               className={cn(
                 'mb-6 rounded-md p-4',
                 publishStatus.type === 'success'
-                  ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+                  ? 'bg-emerald-500/10 text-emerald-600'
                   : publishStatus.type === 'error'
-                  ? 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300'
-                  : 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'
+                  ? 'bg-destructive/10 text-destructive'
+                  : 'bg-muted/50 text-primary'
               )}
             >
               {publishStatus.message}
@@ -399,7 +375,7 @@ export default function NewPostPage() {
           )}
 
           {/* 元数据编辑区 */}
-          <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="mb-6 bg-card rounded-lg border shadow-sm p-6">
             <ArticleMetadata
               title={title}
               summary={summary}
@@ -413,7 +389,7 @@ export default function NewPostPage() {
           </div>
 
           {/* 富文本编辑器 */}
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <div className="overflow-hidden bg-card rounded-lg border shadow-sm">
             <TiptapEditor
               content={content}
               onDualChange={(json: string, mdx: string) => {
@@ -424,32 +400,32 @@ export default function NewPostPage() {
           </div>
 
           {/* 底部提示 */}
-          <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-              <h3 className="mb-2 font-semibold">快速开始：</h3>
+          <div className="mt-6 text-sm text-muted-foreground">
+            <div className="bg-muted/50 border rounded-lg p-4">
+              <h3 className="mb-2 font-semibold">快速开始:</h3>
               <ul className="list-inside list-disc space-y-1">
                 <li>
                   输入{' '}
-                  <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700"># 标题</code>{' '}
+                  <code className="bg-muted rounded px-1 py-0.5"># 标题</code>{' '}
                   创建标题
                 </li>
                 <li>
                   输入{' '}
-                  <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">- 列表项</code>{' '}
+                  <code className="bg-muted rounded px-1 py-0.5">- 列表项</code>{' '}
                   创建列表
                 </li>
                 <li>
                   输入{' '}
-                  <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">```代码</code>{' '}
+                  <code className="bg-muted rounded px-1 py-0.5">```代码</code>{' '}
                   创建代码块
                 </li>
                 <li>
                   输入{' '}
-                  <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">$公式$</code>{' '}
+                  <code className="bg-muted rounded px-1 py-0.5">$公式$</code>{' '}
                   插入数学公式
                 </li>
                 <li>
-                  输入 <code className="rounded bg-gray-200 px-1 py-0.5 dark:bg-gray-700">/</code>{' '}
+                  输入 <code className="bg-muted rounded px-1 py-0.5">/</code>{' '}
                   打开快捷菜单
                 </li>
               </ul>
