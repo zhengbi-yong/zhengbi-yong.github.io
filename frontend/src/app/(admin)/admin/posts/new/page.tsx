@@ -55,7 +55,8 @@ export default function NewPostPage() {
   const [summary, setSummary] = useState('')
   const [category, setCategory] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [content, setContent] = useState('') // empty string; TiptapEditor renders placeholder via placeholder prop
+  const [content, setContent] = useState('') // blocks JSON（编辑器原始数据 → content_json）
+  const [contentMdx, setContentMdx] = useState('') // Markdown/MDX（博客详情页消费 → content_mdx）
 
   // 草稿状态
   const [draftId] = useState(() => randomUUID())
@@ -142,15 +143,16 @@ export default function NewPostPage() {
       // 无论中英文标题，一律使用 UUID，确保 URL 格式统一美观
       const slug = randomUUID()
 
-      // content 已经是 JSON.stringify(editor.getJSON())，从中提取双轨字段
-      let content_json: Record<string, unknown> | undefined
-      let content_mdx: string | undefined
+      // BlockNote 输出双轨数据：content_json（blocks JSON）+ content_mdx（Markdown）
+      let jsonPayload: Record<string, unknown> | undefined
+      let mdxPayload: string | undefined
       try {
-        content_json = JSON.parse(content)
-        // 新的 content_mdx 留空（后端会计算），或存储为 HTML fallback
-        content_mdx = undefined
+        jsonPayload = JSON.parse(content)
+        // 优先使用独立的 contentMdx（来自 onDualChange）
+        mdxPayload = contentMdx || undefined
       } catch {
-        // ignore parse errors
+        jsonPayload = undefined
+        mdxPayload = contentMdx || content
       }
 
       const requestBody = {
@@ -158,8 +160,8 @@ export default function NewPostPage() {
         slug,
         summary,
         content,
-        content_json,
-        content_mdx,
+        content_json: jsonPayload,
+        content_mdx: mdxPayload,
         content_format: 'mdx',
         status,
         category_id: category || null,
@@ -414,7 +416,10 @@ export default function NewPostPage() {
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <TiptapEditor
               content={content}
-              onChange={setContent}
+              onDualChange={(json: string, mdx: string) => {
+                setContent(json)
+                setContentMdx(mdx)
+              }}
             />
           </div>
 

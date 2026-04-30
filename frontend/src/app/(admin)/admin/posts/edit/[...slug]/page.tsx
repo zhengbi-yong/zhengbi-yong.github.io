@@ -12,7 +12,7 @@ import { ArticleMetadata } from '@/components/editor/ArticleMetadata'
 import { Loader2, Save, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { postService, adminService } from '@/lib/api/backend'
-import { loadToEditor, saveToMdx } from '@/lib/mdx/MDXContentBridge'
+import { loadToEditor } from '@/lib/mdx/MDXContentBridge'
 import type { PostDetail } from '@/lib/types/backend'
 
 import TiptapEditor from '@/components/editor/TiptapEditor'
@@ -32,7 +32,8 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
   const [summary, setSummary] = useState('')
   const [category, setCategory] = useState('')
   const [tags, setTags] = useState<string[]>([])
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState('') // blocks JSON（编辑器原始数据 → content_json）
+  const [contentMdx, setContentMdx] = useState('') // Markdown/MDX（博客详情页消费 → content_mdx）
   const [originalPost, setOriginalPost] = useState<PostDetail | null>(null)
   const [loadingPost, setLoadingPost] = useState(true)
   const [postStatus, setPostStatus] = useState<string>('Draft')
@@ -98,22 +99,22 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
 
     try {
       if (!originalPost) return
-      // 将编辑器输出（包含 placeholder）还原为 MDX 格式后再保存
-      const { content: mdxContent } = saveToMdx(content, originalMdxRef.current)
-      // Phase 3: 提取 content_json（Tiptap JSON AST）并同时发送 content_mdx
-      let content_json: Record<string, unknown> | undefined
-      let content_mdx: string | undefined
+      // BlockNote 输出双轨数据：content_json（blocks JSON）+ content_mdx（Markdown）
+      let jsonPayload: Record<string, unknown> | undefined
+      let mdxPayload: string | undefined
       try {
-        content_json = JSON.parse(content)
-        content_mdx = mdxContent
+        jsonPayload = JSON.parse(content)
+        // 优先使用独立的 contentMdx（来自 onDualChange）
+        mdxPayload = contentMdx || undefined
       } catch {
-        // ignore parse errors
+        jsonPayload = undefined
+        mdxPayload = contentMdx || content
       }
       await adminService.updatePost(originalPost.id, {
         title,
-        content: mdxContent,
-        content_json,
-        content_mdx,
+        content: contentMdx || content,
+        content_json: jsonPayload,
+        content_mdx: mdxPayload,
         content_format: 'mdx',
         summary: summary || undefined,
         status,
@@ -267,7 +268,10 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <TiptapEditor
             content={content}
-            onChange={setContent}
+            onDualChange={(json: string, mdx: string) => {
+              setContent(json)
+              setContentMdx(mdx)
+            }}
           />
         </div>
 

@@ -1,0 +1,104 @@
+/* ============================================================
+ * BlockNote 编辑器代码块样式增强
+ *
+ * 官方 BlockNote 的代码块样式定义在 @blocknote/core 的 Block.css 中，
+ * 但某些环境下 Tailwind Preflight 或全局 CSS 可能会覆盖这些样式。
+ * 此文件确保代码块在任何情况下都有正确的视觉效果。
+ * ============================================================ */
+
+/* ---------- 代码块容器 ---------- */
+.bn-block-content[data-content-type="codeBlock"] {
+  position: relative;
+  background-color: #1e1e1e !important;
+  color: #d4d4d4 !important;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+/* ---------- 代码块内的 pre 元素 ---------- */
+.bn-block-content[data-content-type="codeBlock"] > pre {
+  white-space: pre;
+  overflow-x: auto;
+  margin: 0;
+  width: 100%;
+  tab-size: 2;
+  /* 顶部留出空间给语言选择器 */
+  padding: 36px 24px 24px 24px;
+  background: transparent !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+  font-size: 0.875em;
+  line-height: 1.6;
+  color: #d4d4d4 !important;
+  border-radius: 8px;
+}
+
+/* ---------- 语言选择器外层容器 ---------- */
+.bn-block-content[data-content-type="codeBlock"] > div {
+  outline: none !important;
+}
+
+/* ---------- 语言选择器(select 下拉) ---------- */
+.bn-block-content[data-content-type="codeBlock"] > div > select {
+  outline: none !important;
+  /* 保留原生 appearance 以确保点击能打开下拉菜单 */
+  appearance: auto;
+  -webkit-appearance: menulist;
+  -moz-appearance: auto;
+  border: none;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  /* 确保 select 在 <pre> 元素之上(pre 是 position:relative) */
+  z-index: 10;
+
+  font-size: 0.75em;
+  font-family: inherit;
+  color: #ccc !important;
+
+  /* 始终半可见,hover 时更亮 */
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+
+  padding: 2px 4px;
+  border-radius: 4px;
+  line-height: 1.6;
+}
+
+/* ---------- 语言选择器 option 文字颜色 ---------- */
+.bn-block-content[data-content-type="codeBlock"] > div > select > option {
+  color: #333 !important;
+  background-color: #fff !important;
+}
+
+/* ---------- hover 和 focus 状态 ---------- */
+.bn-block-content[data-content-type="codeBlock"]:hover > div > select,
+.bn-block-content[data-content-type="codeBlock"] > div > select:focus {
+  opacity: 1;
+  transition-delay: 0s;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #e0e0e0 !important;
+}
+
+/* ---------- 代码块内部文字编辑区域 ---------- */
+.bn-block-content[data-content-type="codeBlock"] .bn-inline-content {
+  color: #d4d4d4 !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+  font-size: 0.875em;
+  line-height: 1.6;
+}
+
+/* ---------- Shiki 高亮样式（由 @blocknote/code-block 注入） ---------- */
+.bn-block-content[data-content-type="codeBlock"] .shiki {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- 聚焦指示器 ---------- */
+.bn-editor .bn-block-content[data-content-type="codeBlock"].ProseMirror-selectednode {
+  box-shadow: 0 0 0 2px #3b82f6;
+  border-radius: 8px;
+}
