@@ -1,10 +1,11 @@
-/**  Enhanced User Management - 增强的用户管理页面（使用新的紧凑型数据表格）
+/**  Enhanced User Management - 增强的用户管理页面(使用统一管理组件)
  *
- * 优化内容：
- * - 使用 EnhancedDataTable 组件（30%更高信息密度）
- * - 集成 DataTableToolbar（搜索、筛选）
- * - 集成 DataTablePagination（紧凑分页）
- * - 保留所有原有功能（批量操作、角色管理）
+ * 优化内容:
+ * - 使用 PageHeader, DataCard, StatusBadge, LoadingState 统一组件
+ * - 使用 EnhancedDataTable 组件(高信息密度)
+ * - 集成 DataTableToolbar(搜索,筛选)
+ * - 集成 DataTablePagination(紧凑分页)
+ * - 保留所有原有功能(批量操作,角色管理)
  */
 
 'use client'
@@ -12,7 +13,7 @@
 import { useState } from 'react'
 import { useList, useUpdate, useDelete, useInvalidate } from '@refinedev/core'
 import type { UserListItem } from '@/lib/types/backend'
-import { Loader2, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { logger } from '@/lib/utils/logger'
 import { cn } from '@/lib/utils'
 import {
@@ -21,10 +22,14 @@ import {
   DataTablePagination,
 } from '@/components/admin/data-table'
 import type { Column } from '@/components/admin/data-table'
+import { PageHeader } from '@/components/admin/page-header'
+import { DataCard } from '@/components/admin/data-card'
+import { StatusBadge } from '@/components/admin/status-badge'
+import { LoadingState } from '@/components/admin/empty-state'
 
 export default function UserManagementPage() {
   const [page, setPage] = useState(1)
-  const [pageSize] = useState(50) // 增加到50行/页（信息密度提升）
+  const [pageSize] = useState(50)
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, _setRoleFilter] = useState<string>('all')
 
@@ -55,7 +60,7 @@ export default function UserManagementPage() {
   const users = data || []
   const totalPages = Math.ceil(total / pageSize)
 
-  // 筛选用户（客户端筛选）
+  // 筛选用户(客户端筛选)
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       searchQuery === '' ||
@@ -79,7 +84,7 @@ export default function UserManagementPage() {
   }
 
   const handleDeleteUser = async (userId: string, username: string) => {
-    if (!confirm(`确定要删除用户 "${username}" 吗？此操作不可撤销。`)) {
+    if (!confirm(`确定要删除用户 "${username}" 吗?此操作不可撤销.`)) {
       return
     }
 
@@ -98,6 +103,19 @@ export default function UserManagementPage() {
     setSearchQuery(query)
   }
 
+  // 角色变体映射
+  const roleVariantMap: Record<string, 'default' | 'info' | 'warning'> = {
+    admin: 'default',
+    moderator: 'info',
+    user: 'warning',
+  }
+
+  const roleLabelMap: Record<string, string> = {
+    admin: '管理员',
+    moderator: '版主',
+    user: '用户',
+  }
+
   // 定义表格列
   const columns: Column<UserListItem>[] = [
     {
@@ -105,7 +123,7 @@ export default function UserManagementPage() {
       label: '用户名',
       width: '15%',
       sortable: true,
-      render: (value) => <span className="font-medium text-gray-900 dark:text-white">{value}</span>,
+      render: (value) => <span className="font-medium text-foreground">{value}</span>,
     },
     {
       key: 'email',
@@ -119,25 +137,28 @@ export default function UserManagementPage() {
       width: '15%',
       sortable: true,
       render: (value, user) => (
-        <select
-          value={value}
-          onChange={(e) => handleRoleChange(user.id, e.target.value)}
-          disabled={(updateMutation as any).isPending}
-          className={cn(
-            'px-2 py-1',
-            'text-admin-sm',
-            'border border-gray-300 dark:border-gray-600',
-            'rounded',
-            'bg-white dark:bg-gray-700',
-            'text-gray-900 dark:text-gray-100',
-            'focus:ring-1 focus:ring-blue-500 focus:outline-none',
-            'disabled:opacity-50'
-          )}
-        >
-          <option value="user">用户</option>
-          <option value="moderator">版主</option>
-          <option value="admin">管理员</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <StatusBadge variant={roleVariantMap[value] ?? 'muted'}>
+            {roleLabelMap[value] ?? value}
+          </StatusBadge>
+          <select
+            value={value}
+            onChange={(e) => handleRoleChange(user.id, e.target.value)}
+            disabled={(updateMutation as any).isPending}
+            className={cn(
+              'px-2 py-1 text-xs',
+              'border border-border',
+              'rounded',
+              'bg-background text-foreground',
+              'focus:ring-1 focus:ring-ring focus:outline-none',
+              'disabled:opacity-50'
+            )}
+          >
+            <option value="user">用户</option>
+            <option value="moderator">版主</option>
+            <option value="admin">管理员</option>
+          </select>
+        </div>
       ),
     },
     {
@@ -146,18 +167,9 @@ export default function UserManagementPage() {
       width: '10%',
       sortable: true,
       render: (value) => (
-        <span
-          className={cn(
-            'inline-flex items-center gap-1.5 px-2 py-0.5',
-            'text-admin-xs rounded-full font-semibold',
-            value
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-          )}
-        >
-          <span className={cn('h-1.5 w-1.5 rounded-full', value ? 'bg-green-500' : 'bg-red-500')} />
+        <StatusBadge variant={value ? 'success' : 'danger'} dot>
           {value ? '已验证' : '未验证'}
-        </span>
+        </StatusBadge>
       ),
     },
     {
@@ -166,7 +178,7 @@ export default function UserManagementPage() {
       width: '20%',
       sortable: true,
       render: (value) => (
-        <span className="text-admin-sm text-gray-600 dark:text-gray-400">
+        <span className="text-sm text-muted-foreground">
           {new Date(value).toLocaleDateString('zh-CN')}
         </span>
       ),
@@ -181,9 +193,9 @@ export default function UserManagementPage() {
           disabled={(deleteMutation as any).isPending}
           className={cn(
             'inline-flex items-center gap-1 px-2 py-1',
-            'text-admin-sm font-medium',
-            'text-red-600 dark:text-red-400',
-            'hover:bg-red-50 dark:hover:bg-red-900/20',
+            'text-sm font-medium',
+            'text-destructive',
+            'hover:bg-destructive/10',
             'rounded',
             'transition-colors duration-150',
             'disabled:cursor-not-allowed disabled:opacity-50'
@@ -198,43 +210,44 @@ export default function UserManagementPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+      <div className="space-y-6">
+        <PageHeader title="用户管理" description={`共 0 位用户`} />
+        <LoadingState message="正在加载用户列表..." />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-900/20">
-        <p className="text-red-600 dark:text-red-400">加载用户列表失败</p>
+      <div className="space-y-6">
+        <PageHeader title="用户管理" />
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6">
+          <p className="text-destructive">加载用户列表失败</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="admin-compact space-y-4">
-      {/* Header - 紧凑间距 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">用户管理</h1>
-          <p className="text-admin-sm mt-1 text-gray-600 dark:text-gray-400">
-            共 {total.toLocaleString()} 位用户
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="用户管理"
+        description={`共 ${total.toLocaleString()} 位用户`}
+      />
 
       {/* 工具栏 */}
       <DataTableToolbar
         onSearch={handleSearch}
         onRefresh={handleRefresh}
-        searchPlaceholder="搜索用户（邮箱或用户名）..."
+        searchPlaceholder="搜索用户(邮箱或用户名)..."
         isLoading={isLoading}
         totalCount={total}
       />
 
       {/* 数据表格 */}
-      <EnhancedDataTable data={filteredUsers as UserListItem[]} columns={columns} rowKey="id" compact={true} />
+      <DataCard>
+        <EnhancedDataTable data={filteredUsers as UserListItem[]} columns={columns} rowKey="id" compact={true} />
+      </DataCard>
 
       {/* 分页 */}
       {totalPages > 1 && (

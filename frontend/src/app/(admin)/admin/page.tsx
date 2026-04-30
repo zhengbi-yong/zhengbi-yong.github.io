@@ -2,17 +2,12 @@
 
 import { useAuthStore } from '@/lib/store/auth-store'
 import { useList } from '@refinedev/core'
-import { Loader2, Users, MessageSquare, Clock, CheckCircle, XCircle } from 'lucide-react'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/shadcn/ui/card'
+import { Users, MessageSquare, Clock, CheckCircle, XCircle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shadcn/ui/tabs'
-// Badge is unused — kept for reference in case dashboard adds badge display
-// import { Badge } from '@/components/shadcn/ui/badge'
+import { PageHeader } from '@/components/admin/page-header'
+import { StatCard } from '@/components/admin/stat-card'
+import { DataCard } from '@/components/admin/data-card'
+import { LoadingState } from '@/components/admin/empty-state'
 import { Overview } from './_components/overview'
 import { RecentComments } from './_components/recent-comments'
 
@@ -32,14 +27,7 @@ export default function AdminDashboard() {
   const stats = data?.[0]
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">加载中...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message="加载仪表板数据..." />
   }
 
   if (error) {
@@ -92,15 +80,10 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Page Heading */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">仪表板</h1>
-          <p className="text-sm text-muted-foreground">
-            欢迎回来，{user?.username || '管理员'}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="仪表板"
+        description={`欢迎回来，${user?.username || '管理员'}`}
+      />
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
@@ -117,58 +100,30 @@ export default function AdminDashboard() {
         <TabsContent value="overview" className="space-y-4">
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {cards.map((card) => {
-              const Icon = card.icon
-              return (
-                <Card key={card.title}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      {card.title}
-                    </CardTitle>
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {card.value.toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {card.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              )
-            })}
+            {cards.map((card) => (
+              <StatCard
+                key={card.title}
+                title={card.title}
+                value={card.value.toLocaleString()}
+                description={card.description}
+                icon={card.icon}
+              />
+            ))}
           </div>
 
           {/* Chart + Recent Comments */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
-            <Card className="col-span-1 lg:col-span-4">
-              <CardHeader>
-                <CardTitle>内容概览</CardTitle>
-                <CardDescription>
-                  过去 12 个月的内容数据趋势
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pl-2">
-                <Overview />
-              </CardContent>
-            </Card>
-            <Card className="col-span-1 lg:col-span-3">
-              <CardHeader>
-                <CardTitle>最近评论</CardTitle>
-                <CardDescription>
-                  按状态分类的评论概览
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RecentComments
-                  pending={stats.pending_comments}
-                  approved={stats.approved_comments}
-                  rejected={stats.rejected_comments}
-                  total={stats.total_comments}
-                />
-              </CardContent>
-            </Card>
+            <DataCard title="内容概览" description="过去 12 个月的内容数据趋势" className="col-span-1 lg:col-span-4" contentClassName="pl-2">
+              <Overview />
+            </DataCard>
+            <DataCard title="最近评论" description="按状态分类的评论概览" className="col-span-1 lg:col-span-3">
+              <RecentComments
+                pending={stats.pending_comments}
+                approved={stats.approved_comments}
+                rejected={stats.rejected_comments}
+                total={stats.total_comments}
+              />
+            </DataCard>
           </div>
         </TabsContent>
       </Tabs>

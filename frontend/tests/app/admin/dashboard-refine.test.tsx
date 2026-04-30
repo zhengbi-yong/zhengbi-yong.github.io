@@ -80,7 +80,7 @@ describe('AdminDashboard', () => {
 
     renderWithProviders(<AdminDashboard />)
 
-    expect(screen.getByText('加载中...')).toBeInTheDocument()
+    expect(screen.getByText('加载仪表板数据...')).toBeInTheDocument()
   })
 
   it('should render dashboard with stats', async () => {
