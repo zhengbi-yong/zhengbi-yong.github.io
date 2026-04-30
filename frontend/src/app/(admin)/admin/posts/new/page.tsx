@@ -36,7 +36,7 @@ const randomUUID = (): string => {
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArticleMetadata } from '@/components/editor/ArticleMetadata'
-import { Loader2, Save, Eye, FileText, Trash2, RotateCcw } from 'lucide-react'
+import { Loader2, Eye, FileText, Trash2, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDraft, Draft } from '@/lib/hooks/useDraft'
 import TiptapEditor from '@/components/editor/TiptapEditor'
@@ -229,61 +229,66 @@ export default function NewPostPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* 页面头部 */}
-      <div className="bg-card border-b border sticky top-0 z-30">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">创建新文章</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              使用 Markdown 语法,享受流畅的写作体验
-            </p>
+      {/* 极简 sticky 顶栏 - Notion/Ghost 风格 */}
+      <div className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+          {/* 左侧: 面包屑 */}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="hover:text-foreground transition-colors cursor-default">文章管理</span>
+            <span>/</span>
+            <span className="text-foreground font-medium">新建文章</span>
           </div>
 
-          {/* 操作按钮 */}
-          <div className="flex items-center gap-3">
+          {/* 右侧: 操作按钮 */}
+          <div className="flex items-center gap-2">
+            {publishStatus.type && (
+              <span className={cn(
+                'text-xs mr-1',
+                publishStatus.type === 'success' ? 'text-emerald-500' : 'text-destructive'
+              )}>
+                {publishStatus.message}
+              </span>
+            )}
             <Button
-              variant={showDrafts ? 'outline' : 'ghost'}
+              variant={showDrafts ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => setShowDrafts(!showDrafts)}
-              className={cn(
-                showDrafts && 'bg-primary/10 text-primary border-primary/30'
-              )}
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-3.5 w-3.5" />
               草稿 ({draftsWithTime.length})
             </Button>
 
             <Button
               variant="ghost"
+              size="sm"
               onClick={handlePreview}
               disabled={isPublishing || !title}
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="h-3.5 w-3.5" />
               预览
             </Button>
 
             <Button
-              variant="outline"
+              variant="ghost"
+              size="sm"
               onClick={() => handlePublish('Draft')}
               disabled={isPublishing}
             >
-              <Save className="h-4 w-4" />
               保存草稿
             </Button>
 
             <Button
+              size="sm"
               onClick={() => handlePublish('Published')}
               disabled={isPublishing}
             >
               {isPublishing ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   发布中...
                 </>
               ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  发布文章
-                </>
+                '发布文章'
               )}
             </Button>
           </div>
@@ -291,7 +296,7 @@ export default function NewPostPage() {
       </div>
 
       {/* 主内容区 */}
-      <div className="flex flex-1 gap-6 mx-auto max-w-7xl px-4 py-6">
+      <div className="flex flex-1 gap-6 mx-auto max-w-5xl px-4 py-6">
         {/* 草稿列表侧边栏 */}
         {showDrafts && (
           <div className="w-64 flex-shrink-0 bg-card border rounded-lg p-4 shadow-sm overflow-y-auto max-h-[calc(100vh-200px)]">
@@ -358,22 +363,6 @@ export default function NewPostPage() {
 
         {/* 主要编辑区 */}
         <div className="flex-1 min-w-0">
-          {/* 状态消息 */}
-          {publishStatus.type && (
-            <div
-              className={cn(
-                'mb-6 rounded-md p-4',
-                publishStatus.type === 'success'
-                  ? 'bg-emerald-500/10 text-emerald-600'
-                  : publishStatus.type === 'error'
-                  ? 'bg-destructive/10 text-destructive'
-                  : 'bg-muted/50 text-primary'
-              )}
-            >
-              {publishStatus.message}
-            </div>
-          )}
-
           {/* 元数据编辑区 */}
           <div className="mb-6 bg-card rounded-lg border shadow-sm p-6">
             <ArticleMetadata
@@ -397,39 +386,6 @@ export default function NewPostPage() {
                 setContentMdx(mdx)
               }}
             />
-          </div>
-
-          {/* 底部提示 */}
-          <div className="mt-6 text-sm text-muted-foreground">
-            <div className="bg-muted/50 border rounded-lg p-4">
-              <h3 className="mb-2 font-semibold">快速开始:</h3>
-              <ul className="list-inside list-disc space-y-1">
-                <li>
-                  输入{' '}
-                  <code className="bg-muted rounded px-1 py-0.5"># 标题</code>{' '}
-                  创建标题
-                </li>
-                <li>
-                  输入{' '}
-                  <code className="bg-muted rounded px-1 py-0.5">- 列表项</code>{' '}
-                  创建列表
-                </li>
-                <li>
-                  输入{' '}
-                  <code className="bg-muted rounded px-1 py-0.5">```代码</code>{' '}
-                  创建代码块
-                </li>
-                <li>
-                  输入{' '}
-                  <code className="bg-muted rounded px-1 py-0.5">$公式$</code>{' '}
-                  插入数学公式
-                </li>
-                <li>
-                  输入 <code className="bg-muted rounded px-1 py-0.5">/</code>{' '}
-                  打开快捷菜单
-                </li>
-              </ul>
-            </div>
           </div>
         </div>
       </div>

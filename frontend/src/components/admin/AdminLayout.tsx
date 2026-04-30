@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { LayoutDashboard } from 'lucide-react'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthModal } from '@/components/auth/AuthModal'
@@ -8,6 +9,11 @@ import { SidebarProvider, SidebarInset } from '@/components/shadcn/ui/sidebar'
 import { AppSidebar } from '@/components/admin/layout/app-sidebar'
 import { Header } from '@/components/admin/layout/header'
 import { Main } from '@/components/admin/layout/main'
+
+/** 编辑器路由使用全屏布局,不显示 sidebar 和 header */
+function isEditorRoute(pathname: string): boolean {
+  return pathname.startsWith('/admin/posts/edit/') || pathname === '/admin/posts/new'
+}
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -21,6 +27,8 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [showLoginModal, setShowLoginModal] = useState(false)
   const { user, logout, isAuthenticated, isInitialized, checkAuth } = useAuthStore()
+  const pathname = usePathname()
+  const isEditor = isEditorRoute(pathname)
 
   useEffect(() => {
     if (!isInitialized) return
@@ -74,6 +82,11 @@ function AdminLayoutInner({ children }: AdminLayoutProps) {
         </div>
       </div>
     )
+  }
+
+  // 编辑器路由: 全屏布局,无 sidebar/header
+  if (isEditor) {
+    return <>{children}</>
   }
 
   return (
