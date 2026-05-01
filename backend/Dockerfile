@@ -83,8 +83,8 @@ COPY crates/shared/Cargo.toml   crates/shared/
 COPY crates/worker/Cargo.toml   crates/worker/
 COPY crates/migrator/Cargo.toml crates/migrator/
 
-# 复制 SQLx 离线查询缓存
-COPY .sqlx .sqlx/
+# 确保 SQLx 离线缓存目录存在（可选，有则加速编译）
+RUN mkdir -p .sqlx
 
 # 为每个 crate 创建空的 src/lib.rs 或 src/main.rs，使 cargo 能解析 workspace
 RUN for crate in api core db shared worker migrator; do \

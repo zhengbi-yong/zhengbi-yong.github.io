@@ -28,6 +28,9 @@ pub enum StorageError {
 
     #[error("Permission denied: {0}")]
     PermissionDenied(String),
+
+    #[error("Invalid storage key: {0}")]
+    InvalidKey(String),
 }
 
 impl StorageBackend {
@@ -125,8 +128,13 @@ impl LocalStorage {
         })
     }
 
-    fn full_path(&self, key: &str) -> std::path::PathBuf {
-        self.base_path.join(normalize_key(key))
+    fn full_path(&self, key: &str) -> Result<std::path::PathBuf, StorageError> {
+        let safe_key = validate_key(key)?;
+        let path = self.base_path.join(safe_key);
+        if !path.starts_with(&self.base_path) {
+            return Err(StorageError::InvalidKey(key.to_string()));
+        }
+        Ok(path)
     }
 
     async fn store(
@@ -136,7 +144,7 @@ impl LocalStorage {
         _content_type: &str,
     ) -> Result<String, StorageError> {
         let key = normalize_key(key);
-        let path = self.full_path(key);
+        let path = self.full_path(key)?;
 
         if let Some(parent) = path.parent() {
             tokio::fs::create_dir_all(parent).await?;
@@ -149,7 +157,7 @@ impl LocalStorage {
 
     async fn delete(&self, key: &str) -> Result<(), StorageError> {
         let normalized_key = normalize_key(key);
-        let path = self.full_path(normalized_key);
+        let path = self.full_path(normalized_key)?;
 
         match tokio::fs::remove_file(&path).await {
             Ok(()) => Ok(()),
@@ -170,7 +178,7 @@ impl LocalStorage {
 
     async fn head(&self, key: &str) -> Result<StoredObjectMetadata, StorageError> {
         let normalized_key = normalize_key(key);
-        let path = self.full_path(normalized_key);
+        let path = self.full_path(normalized_key)?;
         let metadata = tokio::fs::metadata(&path)
             .await
             .map_err(|error| match error.kind() {
@@ -207,7 +215,7 @@ impl LocalStorage {
     }
 
     async fn read(&self, key: &str) -> Result<Vec<u8>, StorageError> {
-        let path = self.full_path(key);
+        let path = self.full_path(key)?;
         tokio::fs::read(&path).await.map_err(|error| match error.kind() {
             std::io::ErrorKind::NotFound => StorageError::NotFound(key.to_string()),
             _ => StorageError::Io(error),
@@ -410,6 +418,16 @@ impl MinioStorage {
 
 fn normalize_key(key: &str) -> &str {
     key.trim_start_matches('/')
+}
+
+/// Validate a storage key for path traversal safety.
+/// Rejects ".." components and absolute paths, then normalizes.
+fn validate_key(key: &str) -> Result<&str, StorageError> {
+    let normalized = key.trim_start_matches('/');
+    if normalized.contains("..") || normalized.starts_with('/') {
+        return Err(StorageError::InvalidKey(key.to_string()));
+    }
+    Ok(normalized)
 }
 
 /// Storage configuration
