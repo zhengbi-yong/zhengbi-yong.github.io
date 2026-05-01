@@ -1,0 +1,19 @@
+/**
+ * GitHub Dark Theme
+ *
+ * GitHub's iconic blue — familiar and developer-friendly.
+ */
+
+[data-theme="github-dark"] {
+  --theme-accent: #58a6ff;
+  --theme-accent-hover: #79c0ff;
+  --theme-accent-muted: rgba(88, 166, 255, 0.1);
+  --theme-accent-foreground: #0d1117;
+}
+
+.dark[data-theme="github-dark"] {
+  --theme-accent: #58a6ff;
+  --theme-accent-hover: #79c0ff;
+  --theme-accent-muted: rgba(88, 166, 255, 0.15);
+  --theme-accent-foreground: #ffffff;
+}

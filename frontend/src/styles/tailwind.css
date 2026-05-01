@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import './geist-tokens.css';
+@import './tokens.css';
+@import './themes/index.css';
 
 @plugin 'tailwindcss-animate';
 @config '../../tailwind.config.js';

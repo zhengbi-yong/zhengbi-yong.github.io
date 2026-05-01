@@ -1,0 +1,40 @@
+/**
+ * Midnight Indigo Theme (Default)
+ *
+ * The current blog color scheme — deep indigo + purple accents.
+ * This is the fallback theme when no other theme is selected.
+ */
+
+[data-theme="midnight-indigo"] {
+  /* Accent (Brand) Colors */
+  --theme-accent: #6366f1;
+  --theme-accent-hover: #818cf8;
+  --theme-accent-muted: rgba(99, 102, 241, 0.1);
+  --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors (optional — falls back to geist defaults) */
+  --theme-bg: #ffffff;
+  --theme-bg-secondary: #fafafa;
+  --theme-bg-tertiary: #f5f5f5;
+
+  /* Text Colors */
+  --theme-fg: #1a1a2e;
+  --theme-fg-secondary: #4a4a68;
+  --theme-fg-tertiary: #9ca3af;
+}
+
+/* Dark mode override */
+.dark[data-theme="midnight-indigo"] {
+  --theme-accent: #818cf8;
+  --theme-accent-hover: #a5b4fc;
+  --theme-accent-muted: rgba(129, 140, 248, 0.15);
+  --theme-accent-foreground: #0f0f23;
+
+  --theme-bg: #0f0f23;
+  --theme-bg-secondary: #1a1a3e;
+  --theme-bg-tertiary: #252542;
+
+  --theme-fg: #e8e8ff;
+  --theme-fg-secondary: #a8a8c8;
+  --theme-fg-tertiary: #6b7280;
+}

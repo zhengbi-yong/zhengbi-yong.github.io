@@ -1,0 +1,19 @@
+/**
+ * Cyber Neon Theme
+ *
+ * Matrix-inspired green neon — for the hacker aesthetic.
+ */
+
+[data-theme="cyber-neon"] {
+  --theme-accent: #00ff88;
+  --theme-accent-hover: #00ff88;
+  --theme-accent-muted: rgba(0, 255, 136, 0.08);
+  --theme-accent-foreground: #0a0a0a;
+}
+
+.dark[data-theme="cyber-neon"] {
+  --theme-accent: #00ff88;
+  --theme-accent-hover: #33ff99;
+  --theme-accent-muted: rgba(0, 255, 136, 0.12);
+  --theme-accent-foreground: #0a0a0a;
+}

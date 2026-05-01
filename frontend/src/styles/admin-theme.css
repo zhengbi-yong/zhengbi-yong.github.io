@@ -133,8 +133,7 @@
 
 /* ===== 暗色模式 ===== */
 
-@media (prefers-color-scheme: dark) {
-  :root {
+.dark {
     /* 背景色系统 - 暗色 */
     --admin-bg-primary: #0f172a;      /* 深蓝灰 */
     --admin-bg-secondary: #1e293b;    /* 次深色 */

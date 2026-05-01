@@ -1,0 +1,19 @@
+/**
+ * Rose Gold Theme
+ *
+ * Elegant rose and gold tones — sophisticated and warm.
+ */
+
+[data-theme="rose-gold"] {
+  --theme-accent: #e11d48;
+  --theme-accent-hover: #f43f5e;
+  --theme-accent-muted: rgba(225, 29, 72, 0.1);
+  --theme-accent-foreground: #ffffff;
+}
+
+.dark[data-theme="rose-gold"] {
+  --theme-accent: #fb7185;
+  --theme-accent-hover: #fda4af;
+  --theme-accent-muted: rgba(251, 113, 133, 0.15);
+  --theme-accent-foreground: #0a0a0a;
+}

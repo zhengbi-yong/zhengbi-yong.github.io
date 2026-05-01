@@ -9,6 +9,7 @@ import type { AnalyticsConfig } from 'pliny/analytics'
 import siteMetadata from '@/data/siteMetadata'
 import SkipLink from '@/components/SkipLink'
 import { ThemeProviders } from './theme-providers'
+import { ThemeInitializer } from '@/components/theme/ThemeInitializer'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister'
 import LazyLoadedComponents from '@/components/LazyLoadedComponents'
@@ -136,6 +137,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QueryProvider>
           <I18nProvider>
             <AuthInitializer />
+            <ThemeInitializer />
             <SkipLink />
             <ServiceWorkerRegister />
             <VisitorTracker />

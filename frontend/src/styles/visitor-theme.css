@@ -87,8 +87,7 @@
 }
 
 /* 暗色模式覆盖 */
-@media (prefers-color-scheme: dark) {
-  :root {
+.dark {
     --visitor-bg-primary: var(--visitor-dark-bg-primary);
     --visitor-bg-secondary: var(--visitor-dark-bg-secondary);
     --visitor-bg-tertiary: var(--visitor-dark-bg-tertiary);

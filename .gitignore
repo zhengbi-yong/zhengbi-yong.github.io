@@ -116,6 +116,10 @@ backend/.env
 backend/.env.local
 backend/swagger-ui-cache/
 
+# Docker compose environment files (auto-generated secrets)
+deployments/docker/compose-files/prod/.env
+deployments/docker/compose-files/dev/.env
+
 # SQLx query cache
 backend/.sqlx/
 *.sqlx/

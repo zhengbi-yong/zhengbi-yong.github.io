@@ -1,0 +1,19 @@
+/**
+ * Forest Emerald Theme
+ *
+ * Natural green palette — calm and grounded, inspired by forests.
+ */
+
+[data-theme="forest-emerald"] {
+  --theme-accent: #059669;
+  --theme-accent-hover: #10b981;
+  --theme-accent-muted: rgba(5, 150, 105, 0.1);
+  --theme-accent-foreground: #ffffff;
+}
+
+.dark[data-theme="forest-emerald"] {
+  --theme-accent: #34d399;
+  --theme-accent-hover: #6ee7b7;
+  --theme-accent-muted: rgba(52, 211, 153, 0.15);
+  --theme-accent-foreground: #0a0a0a;
+}

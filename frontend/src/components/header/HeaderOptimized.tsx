@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useTheme } from 'next-themes'
-import { Search, Sun, Moon } from 'lucide-react'
+import { Search, Sun, Moon, Palette } from 'lucide-react'
 import headerNavLinks from '@/data/headerNavLinks'
 import Link from '../Link'
 import { AuthButton } from '@/components/auth/AuthButton'
@@ -9,6 +9,7 @@ import { cn } from '../lib/utils'
 import styles from '../Header.module.css'
 import { MobileMenuButton } from './MobileMenuButton'
 import siteMetadata from '@/data/siteMetadata'
+import { ThemeSelector } from '@/components/theme/ThemeSelector'
 
 interface HeaderState {
   mounted: boolean
@@ -26,6 +27,7 @@ export default function Header() {
     isVisible: true,
   })
   const [currentPath, setCurrentPath] = useState('')
+  const [isThemeOpen, setIsThemeOpen] = useState(false)
   const { setTheme, resolvedTheme } = useTheme()
   const lastScrollYRef = useRef(0)
 
@@ -201,6 +203,37 @@ export default function Header() {
                     : <Moon className={actionIconClass} />
                   : <span className="block h-[18px] w-[18px]" />}
               </button>
+
+              {/* Color theme selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsThemeOpen(!isThemeOpen)}
+                  className={actionButtonClass}
+                  aria-label="选择配色主题"
+                >
+                  <Palette className={actionIconClass} />
+                </button>
+                {isThemeOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsThemeOpen(false)}
+                    />
+                    <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border border-border bg-background p-4 shadow-xl">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-sm font-medium">配色主题</span>
+                        <button
+                          onClick={() => setIsThemeOpen(false)}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          关闭
+                        </button>
+                      </div>
+                      <ThemeSelector compact />
+                    </div>
+                  </>
+                )}
+              </div>
 
               <AuthButton isDark={isDark} />
             </div>

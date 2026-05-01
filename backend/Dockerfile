@@ -70,21 +70,49 @@ RUN set -eux; \
 WORKDIR /app
 
 ENV SQLX_OFFLINE=${SQLX_OFFLINE}
-ENV DATABASE_URL=${DATABASE_URL}
 
-# 复制所有源代码（包括 Cargo 文件和 SQLx 缓存）
-COPY . .
+# ============================================================
+# Layer 1: 仅复制依赖清单文件 —— 构建依赖层 (缓存友好)
+# 只要 Cargo.toml 不变，此层始终命中缓存
+# ============================================================
+COPY Cargo.toml Cargo.lock ./
+COPY crates/api/Cargo.toml      crates/api/
+COPY crates/core/Cargo.toml     crates/core/
+COPY crates/db/Cargo.toml       crates/db/
+COPY crates/shared/Cargo.toml   crates/shared/
+COPY crates/worker/Cargo.toml   crates/worker/
+COPY crates/migrator/Cargo.toml crates/migrator/
 
-# Generate SQLx offline cache using the live database, then build
+# 复制 SQLx 离线查询缓存
+COPY .sqlx .sqlx/
+
+# 为每个 crate 创建空的 src/lib.rs 或 src/main.rs，使 cargo 能解析 workspace
+RUN for crate in api core db shared worker migrator; do \
+      mkdir -p crates/$crate/src; \
+      echo '#[allow(unused)] fn dummy() {}' > crates/$crate/src/lib.rs; \
+    done && \
+    echo 'fn main() {}' > crates/api/src/main.rs && \
+    echo 'fn main() {}' > crates/worker/src/main.rs && \
+    echo 'fn main() {}' > crates/migrator/src/main.rs
+
+# 构建所有依赖（此层被 Docker 缓存！仅 Cargo.toml 变化时重新构建）
+RUN SQLX_OFFLINE=true cargo build --locked --release -p blog-api -p blog-worker 2>&1 || \
+    SQLX_OFFLINE=true cargo build --locked --release -p blog-api -p blog-worker
+
+# ============================================================
+# Layer 2: 复制实际源代码 —— 仅变更文件触发重新编译
+# ============================================================
+COPY crates crates/
+COPY migrations migrations/
+COPY openapi openapi/
+
+# 最终构建（仅重新编译变更的源文件，增量编译极快）
 RUN set -eux; \
     if [ -n "${SWAGGER_UI_DOWNLOAD_URL}" ]; then \
-      export SWAGGER_UI_DOWNLOAD_URL="${SWAGGER_UI_DOWNLOAD_URL}"; \
-    else \
-      unset SWAGGER_UI_DOWNLOAD_URL; \
-    fi; \
-    if [ -n "${DATABASE_URL}" ]; then \
-      cargo install sqlx-cli --no-default-features --features postgres,native-tls; \
-      cargo sqlx prepare --workspace --database-url "${DATABASE_URL}"; \
+      curl -fsSL "${SWAGGER_UI_DOWNLOAD_URL}" -o /tmp/swagger-ui.zip && \
+      mkdir -p crates/api/openapi && \
+      unzip -o /tmp/swagger-ui.zip -d crates/api/openapi/swagger-ui/ && \
+      rm /tmp/swagger-ui.zip; \
     fi; \
     SQLX_OFFLINE=true cargo build --locked --release -p blog-api -p blog-worker
 

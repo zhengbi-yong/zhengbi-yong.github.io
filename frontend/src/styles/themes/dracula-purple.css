@@ -1,0 +1,19 @@
+/**
+ * Dracula Purple Theme
+ *
+ * Dracula theme's iconic purple — bold and stylish.
+ */
+
+[data-theme="dracula-purple"] {
+  --theme-accent: #bd93f9;
+  --theme-accent-hover: #ff79c6;
+  --theme-accent-muted: rgba(189, 147, 249, 0.1);
+  --theme-accent-foreground: #282a36;
+}
+
+.dark[data-theme="dracula-purple"] {
+  --theme-accent: #bd93f9;
+  --theme-accent-hover: #ff79c6;
+  --theme-accent-muted: rgba(189, 147, 249, 0.15);
+  --theme-accent-foreground: #f8f8f2;
+}

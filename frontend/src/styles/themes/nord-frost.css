@@ -1,0 +1,19 @@
+/**
+ * Nord Frost Theme
+ *
+ * Arctic ice blue from the Nord palette — crisp and modern.
+ */
+
+[data-theme="nord-frost"] {
+  --theme-accent: #88c0d0;
+  --theme-accent-hover: #8fbcbb;
+  --theme-accent-muted: rgba(136, 192, 208, 0.1);
+  --theme-accent-foreground: #2e3440;
+}
+
+.dark[data-theme="nord-frost"] {
+  --theme-accent: #88c0d0;
+  --theme-accent-hover: #81a1c1;
+  --theme-accent-muted: rgba(136, 192, 208, 0.15);
+  --theme-accent-foreground: #eceff4;
+}

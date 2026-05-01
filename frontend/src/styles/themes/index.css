@@ -1,0 +1,22 @@
+/**
+ * Theme Index
+ *
+ * Import this file to load all available color themes.
+ * Each theme is activated via the data-theme attribute on <html>.
+ *
+ * Usage:
+ *   <html data-theme="ocean-teal">  → activates Ocean Teal
+ *   <html data-theme="">             → uses default (midnight-indigo)
+ */
+
+@import './amber-warm.css';
+@import './cyber-neon.css';
+@import './dracula-purple.css';
+@import './forest-emerald.css';
+@import './github-dark.css';
+@import './lavender-dream.css';
+@import './midnight-indigo.css';
+@import './nord-frost.css';
+@import './ocean-teal.css';
+@import './rose-gold.css';
+@import './sunset-orange.css';

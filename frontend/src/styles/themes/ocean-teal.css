@@ -1,0 +1,19 @@
+/**
+ * Ocean Teal Theme
+ *
+ * Cool, calming teal palette — reminiscent of tropical waters.
+ */
+
+[data-theme="ocean-teal"] {
+  --theme-accent: #0d9488;
+  --theme-accent-hover: #14b8a6;
+  --theme-accent-muted: rgba(13, 148, 136, 0.1);
+  --theme-accent-foreground: #ffffff;
+}
+
+.dark[data-theme="ocean-teal"] {
+  --theme-accent: #2dd4bf;
+  --theme-accent-hover: #5eead4;
+  --theme-accent-muted: rgba(45, 212, 191, 0.15);
+  --theme-accent-foreground: #0a0a0a;
+}

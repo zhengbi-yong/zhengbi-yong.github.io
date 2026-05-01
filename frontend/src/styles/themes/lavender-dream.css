@@ -1,0 +1,19 @@
+/**
+ * Lavender Dream Theme
+ *
+ * Soft purple tones — dreamy and creative.
+ */
+
+[data-theme="lavender-dream"] {
+  --theme-accent: #a855f7;
+  --theme-accent-hover: #c084fc;
+  --theme-accent-muted: rgba(168, 85, 247, 0.1);
+  --theme-accent-foreground: #ffffff;
+}
+
+.dark[data-theme="lavender-dream"] {
+  --theme-accent: #c084fc;
+  --theme-accent-hover: #d8b4fe;
+  --theme-accent-muted: rgba(192, 132, 252, 0.15);
+  --theme-accent-foreground: #0a0a0a;
+}
