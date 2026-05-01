@@ -15,7 +15,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { adminService } from '@/lib/api/backend'
 import type { PostListItem } from '@/lib/types/backend'
 import Link from 'next/link'
-import { Eye, Heart, MessageSquare, Plus, Trash2, Download, Upload } from 'lucide-react'
+import { Eye, Heart, MessageSquare, Plus, Trash2, Download, Upload, Archive } from 'lucide-react'
 
 import { PageHeader } from '@/components/admin/page-header'
 import { DataCard } from '@/components/admin/data-card'
@@ -181,6 +181,38 @@ export default function AdminPostsManagePage() {
     }
   }
 
+  const handleBatchExport = async () => {
+    if (selectedPosts.size === 0) return
+    if (selectedPosts.size > 200) {
+      alert('单次最多导出 200 篇文章')
+      return
+    }
+
+    try {
+      const ids = Array.from(selectedPosts).join(',')
+      const resp = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/posts/export/batch-zip?ids=${ids}`,
+        { credentials: 'include' }
+      )
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error((err as any)?.error?.message || '批量导出失败')
+      }
+      const blob = await resp.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `posts-export-${new Date().toISOString().slice(0, 10)}.zip`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error('Batch export failed:', e)
+      alert('批量导出失败: ' + (e instanceof Error ? e.message : '未知错误'))
+    }
+  }
+
   const handleToggleStatus = async (postId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Published' ? 'Draft' : 'Published'
     try {
@@ -281,10 +313,16 @@ export default function AdminPostsManagePage() {
             <span className="text-sm font-medium text-foreground">
               已选择 {selectedPosts.size} 篇文章
             </span>
-            <Button variant="destructive" size="sm" onClick={handleBatchDelete}>
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              批量删除
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleBatchExport}>
+                <Archive className="mr-1.5 h-3.5 w-3.5" />
+                批量导出 ZIP
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleBatchDelete}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                批量删除
+              </Button>
+            </div>
           </div>
         </div>
       )}

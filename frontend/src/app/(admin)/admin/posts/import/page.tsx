@@ -45,6 +45,8 @@ import {
   BookOpen,
   Type,
   Loader2,
+  Files,
+  XCircle,
 } from 'lucide-react'
 
 type ImportMode = 'preview' | 'create' | 'upsert'
@@ -108,6 +110,10 @@ export default function ImportMdxPage() {
   const [success, setSuccess] = useState<ImportResult | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // ── Batch state ───────────────────────────────────────────────────
+  const [batchFiles, setBatchFiles] = useState<File[]>([])
+  const [batchResults, setBatchResults] = useState<any[] | null>(null)
+  const [batchLoading, setBatchLoading] = useState(false)
 
   // ── Handlers ───────────────────────────────────────────────────────
 
@@ -134,13 +140,40 @@ export default function ImportMdxPage() {
       setSuccess(null)
     }
     reader.readAsText(file)
+    // 也加入批量列表
+    setBatchFiles((prev) => {
+      if (prev.some((f) => f.name === file.name)) return prev
+      return [...prev, file]
+    })
+  }
+
+  const handleMultipleFiles = (files: FileList | File[]) => {
+    const validFiles = Array.from(files).filter(
+      (f) => f.name.endsWith('.mdx') || f.name.endsWith('.md')
+    )
+    if (validFiles.length === 0) {
+      setError('没有有效的 .mdx 或 .md 文件')
+      return
+    }
+    if (validFiles.length === 1) {
+      handleFileSelect(validFiles[0])
+    } else {
+      setBatchFiles((prev) => {
+        const names = new Set(prev.map((f) => f.name))
+        const newFiles = validFiles.filter((f) => !names.has(f.name))
+        return [...prev, ...newFiles].slice(0, 50)
+      })
+      setMdxText('')
+      setPreview(null)
+    }
+    setError(null)
+    setSuccess(null)
   }
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setDragOver(false)
-    const file = e.dataTransfer.files[0]
-    if (file) handleFileSelect(file)
+    handleMultipleFiles(e.dataTransfer.files)
   }, [])
 
   /** 预览 */
@@ -230,6 +263,53 @@ export default function ImportMdxPage() {
     setSuccess(null)
   }
 
+  /** 批量导入 */
+  const handleBatchImport = async () => {
+    if (batchFiles.length === 0) {
+      setError('请先添加文件')
+      return
+    }
+    if (mode === 'preview') {
+      setError('批量导入不支持预览模式')
+      return
+    }
+
+    setBatchLoading(true)
+    setError(null)
+    setBatchResults(null)
+
+    try {
+      const formData = new FormData()
+      batchFiles.forEach((f) => formData.append('files', f))
+      formData.append('mode', mode)
+
+      const resp = await fetch(
+        `${BACKEND_URL}/api/v1/admin/posts/import/batch`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        }
+      )
+      const data = await resp.json()
+      if (!resp.ok) {
+        throw new Error(data?.error?.message || data?.message || '批量导入失败')
+      }
+      setBatchResults(data.results || [])
+      setBatchFiles([])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '批量导入失败')
+    } finally {
+      setBatchLoading(false)
+    }
+  }
+
+  /** 清除批量文件列表 */
+  const handleClearBatch = () => {
+    setBatchFiles([])
+    setBatchResults(null)
+  }
+
   // ── Render ─────────────────────────────────────────────────────────
 
   return (
@@ -304,15 +384,20 @@ export default function ImportMdxPage() {
               ref={fileInputRef}
               type="file"
               accept=".mdx,.md"
+              multiple
               className="hidden"
               onChange={(e) => {
-                const f = e.target.files?.[0]
-                if (f) handleFileSelect(f)
+                if (e.target.files && e.target.files.length > 0) {
+                  handleMultipleFiles(e.target.files)
+                }
               }}
             />
             <FileText className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-sm text-foreground font-medium">
               拖拽 .mdx / .md 文件到此处
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              支持多文件（最多 50 个）
             </p>
             <p className="text-xs text-muted-foreground mt-1 mb-3">
               或
@@ -322,10 +407,61 @@ export default function ImportMdxPage() {
               size="sm"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="mr-1.5 h-3.5 w-3.5" />
+              <Files className="mr-1.5 h-3.5 w-3.5" />
               选择文件
             </Button>
           </div>
+
+          {/* 批量文件列表 */}
+          {batchFiles.length > 0 && (
+            <div className="rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Files className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    已选择 {batchFiles.length} 个文件
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {mode !== 'preview' && (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={handleBatchImport}
+                      disabled={batchLoading}
+                    >
+                      {batchLoading ? (
+                        <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="mr-1 h-3.5 w-3.5" />
+                      )}
+                      批量导入
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleClearBatch}
+                    disabled={batchLoading}
+                  >
+                    <XCircle className="mr-1 h-3.5 w-3.5" />
+                    清除
+                  </Button>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground space-y-1 max-h-32 overflow-y-auto">
+                {batchFiles.map((f, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <FileText className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{f.name}</span>
+                    <span className="text-muted-foreground/50">
+                      ({Math.round(f.size / 1024)}KB)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 粘贴区 */}
           <div className="space-y-2">
@@ -524,6 +660,61 @@ summary: '这是一篇示例文章'
                   </Badge>
                 )}
             </div>
+          </div>
+        </DataCard>
+      )}
+
+      {/* 批量导入结果 */}
+      {batchResults && batchResults.length > 0 && (
+        <DataCard title={`批量导入结果 (${batchResults.filter((r: any) => r.status === 'ok').length}/${batchResults.length} 成功)`}>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="py-2 pr-4 font-medium text-muted-foreground">文件</th>
+                  <th className="py-2 pr-4 font-medium text-muted-foreground">标题</th>
+                  <th className="py-2 pr-4 font-medium text-muted-foreground">状态</th>
+                  <th className="py-2 font-medium text-muted-foreground">详情</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {batchResults.map((r: any, i: number) => (
+                  <tr key={i}>
+                    <td className="py-2 pr-4 text-xs font-mono truncate max-w-[180px]">
+                      {r.filename}
+                    </td>
+                    <td className="py-2 pr-4">
+                      {r.status === 'ok' && r.title ? (
+                        <Link
+                          href={`/admin/posts/edit/${encodeURIComponent(r.slug || '')}`}
+                          className="text-primary hover:underline"
+                        >
+                          {r.title}
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="py-2 pr-4">
+                      {r.status === 'ok' ? (
+                        <Badge variant="success" className="text-xs">
+                          <CheckCircle className="mr-1 h-3 w-3" />
+                          成功
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive" className="text-xs">
+                          <XCircle className="mr-1 h-3 w-3" />
+                          失败
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="py-2 text-xs text-muted-foreground max-w-[200px] truncate">
+                      {r.error || r.slug || '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </DataCard>
       )}
