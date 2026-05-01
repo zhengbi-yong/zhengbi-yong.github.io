@@ -195,7 +195,7 @@ export function initFocusStyles() {
     }
 
     .js-focus-visible [data-focus-visible-added] {
-      outline: 2px solid var(--primary, #2563eb);
+      outline: 2px solid var(--theme-accent, #2563eb);
       outline-offset: 2px;
     }
 
@@ -211,7 +211,7 @@ export function initFocusStyles() {
       position: absolute;
       top: -40px;
       left: 6px;
-      background: var(--primary, #2563eb);
+      background: var(--theme-accent, #2563eb);
       color: white;
       padding: 8px;
       text-decoration: none;

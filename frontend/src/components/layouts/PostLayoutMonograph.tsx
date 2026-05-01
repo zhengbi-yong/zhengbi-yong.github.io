@@ -142,7 +142,7 @@ export default function PostLayoutMonograph({
                 position: 'absolute',
                 inset: 0,
               }}
-              className="!bg-gradient-to-b !from-stone-100/90 !to-stone-100/95 dark:!from-[#0D0D0D]/90 dark:!to-[#0D0D0D]/95"
+              className="!bg-gradient-to-b !from-stone-100/90 !to-stone-100/95 dark:!from-[var(--theme-bg)]/90 dark:!to-[var(--theme-bg)]/95"
               />
             </div>
           )}

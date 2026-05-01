@@ -269,7 +269,7 @@ export default function Header() {
             tabIndex={0}
             className={cn(
               'fixed inset-0 z-20 h-screen w-screen backdrop-blur-sm md:hidden',
-              isDark ? 'bg-[#05080F]/78' : 'bg-zinc-50/78'
+              isDark ? 'bg-[var(--theme-bg)]/78' : 'bg-zinc-50/78'
             )}
             onClick={closeMobileMenu}
             onKeyDown={(e) => handleKeyDown(e, closeMobileMenu)}

@@ -103,6 +103,10 @@ export default function GaussianSplat({
         clock = new THREE.Clock()
 
         const scene = new THREE.Scene()
+        // NOTE: These are Three.js 3D render colors used for WebGL scene background.
+        // CSS variables (var()) do not resolve in WebGL/Three.js contexts — actual color
+        // values are required. These are intentionally hardcoded per the task directive
+        // to skip Three.js/3D render colors.
         scene.background = new THREE.Color(backgroundColor ?? '#111111')
 
         const camera = new THREE.PerspectiveCamera(fov, canvas.width / canvas.height, 0.01, 1000)
@@ -117,6 +121,7 @@ export default function GaussianSplat({
         })
         renderer.setSize(canvas.width, canvas.height)
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+        // NOTE: Three.js 3D render color (see comment above).
         renderer.setClearColor(new THREE.Color(backgroundColor ?? '#111111'))
 
         // Recover from context loss (e.g. after HMR / tab backgrounding)

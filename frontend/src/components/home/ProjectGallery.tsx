@@ -174,7 +174,7 @@ function ProjectCard({ project, index, isDark, accentColor, mutedColor, textColo
           {/* Overlay */}
           <div className={`absolute inset-0 transition-opacity duration-500 ${
             isDark
-              ? 'bg-gradient-to-t from-[#0A0A0F]/90 via-[#0A0A0F]/30 to-transparent'
+              ? 'bg-gradient-to-t from-[var(--theme-bg)]/90 via-[var(--theme-bg)]/30 to-transparent'
               : 'bg-gradient-to-t from-white/90 via-white/30 to-transparent'
           }`} />
 

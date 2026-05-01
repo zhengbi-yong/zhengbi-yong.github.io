@@ -58,7 +58,7 @@ export default function MegaFooter() {
       className={cn(
         styles.footerRoot,
         'relative overflow-hidden',
-        isDark ? 'bg-[#05080F] text-slate-200' : 'bg-slate-50 text-slate-900'
+        isDark ? 'bg-[var(--theme-bg)] text-slate-200' : 'bg-slate-50 text-slate-900'
       )}
       aria-label="Footer"
       suppressHydrationWarning

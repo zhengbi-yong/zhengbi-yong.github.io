@@ -171,8 +171,8 @@ export default function AnalyticsPage() {
               <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
               <Tooltip content={<ChartTooltip />} />
               <Legend />
-              <Line type="monotone" dataKey="新增用户" stroke="#3b82f6" strokeWidth={2} />
-              <Line type="monotone" dataKey="累计用户" stroke="#10b981" strokeWidth={2} />
+              <Line type="monotone" dataKey="新增用户" stroke="var(--theme-info, #3b82f6)" strokeWidth={2} />
+              <Line type="monotone" dataKey="累计用户" stroke="var(--theme-success, #10b981)" strokeWidth={2} />
             </LineChart>
           </ResponsiveContainer>
         </DataCard>
@@ -186,9 +186,9 @@ export default function AnalyticsPage() {
               <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
               <Tooltip content={<ChartTooltip />} />
               <Legend />
-              <Bar dataKey="已通过" stackId="a" fill="#10b981" />
-              <Bar dataKey="待审核" stackId="a" fill="#f59e0b" />
-              <Bar dataKey="已拒绝" stackId="a" fill="#ef4444" />
+              <Bar dataKey="已通过" stackId="a" fill="var(--theme-success, #10b981)" />
+              <Bar dataKey="待审核" stackId="a" fill="var(--theme-warning, #f59e0b)" />
+              <Bar dataKey="已拒绝" stackId="a" fill="var(--theme-danger, #ef4444)" />
             </BarChart>
           </ResponsiveContainer>
         </DataCard>

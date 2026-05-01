@@ -19,7 +19,7 @@ interface HeroSectionProps {
 
 const themeSlots = {
   dark: {
-    overlay: 'bg-gradient-to-b from-[#0A0A0F]/60 via-transparent to-[#0A0A0F]/80',
+    overlay: 'bg-gradient-to-b from-[var(--theme-bg)]/60 via-transparent to-[var(--theme-bg)]/80',
     title: 'text-white',
     robotics: 'text-indigo-300/80',
     separator: 'text-[var(--text-tertiary)]',

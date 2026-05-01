@@ -59,13 +59,13 @@ export default function MusicOSMDRenderer({ musicUrl, isDark }: MusicOSMDRendere
               svg.querySelectorAll('g').forEach((g) => {
                 const el = g as SVGGElement
                 if (el.style) {
-                  el.style.fill = el.style.fill === 'black' ? '#d4a574' : el.style.fill
+                  el.style.fill = el.style.fill === 'black' ? 'var(--theme-accent)' : el.style.fill
                 }
               })
               svg.querySelectorAll('path').forEach((p) => {
                 const el = p as SVGPathElement
                 if (el.getAttribute('stroke') === 'black') {
-                  el.setAttribute('stroke', '#8b7355')
+                  el.setAttribute('stroke', 'var(--theme-accent-muted)')
                 }
               })
             }
@@ -98,7 +98,7 @@ export default function MusicOSMDRenderer({ musicUrl, isDark }: MusicOSMDRendere
     <div
       ref={containerRef}
       className="w-full min-h-[200px]"
-      style={{ color: isDark ? '#d4a574' : '#1a1a1a' }}
+      style={{ color: 'var(--theme-fg)' }}
     />
   )
 }

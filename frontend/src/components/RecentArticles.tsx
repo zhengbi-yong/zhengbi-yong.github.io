@@ -33,7 +33,7 @@ export function RecentArticles({ limit = 5, currentSlug }: RecentArticlesProps) 
   }
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-gray-200/60 bg-[#F5F3F0] shadow-sm dark:border-gray-700 dark:bg-gray-900">
+    <div className="flex h-full flex-col rounded-xl border border-gray-200/60 bg-[var(--theme-bg)] shadow-sm dark:border-gray-700 dark:bg-gray-900">
       <div className="flex-shrink-0 border-b border-gray-200/40 px-4 py-3 dark:border-gray-700">
         <h3
           className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"

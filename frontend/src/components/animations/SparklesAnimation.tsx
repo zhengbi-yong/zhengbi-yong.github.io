@@ -31,6 +31,12 @@ const SparklesAnimation = memo(function SparklesAnimation({
   const animationFrameRef = useRef<number | null>(null)
   const isVisibleRef = useRef(true)
 
+  // NOTE: These are Canvas 2D render colors for sparkle particles.
+  // CSS variables (var()) do not resolve in Canvas 2D context — actual color
+  // values are required. The canvas draws particles directly and cannot
+  // participate in the CSS cascade. These decorative colors are intentionally
+  // hardcoded; for theme-aware colors, read computed styles via
+  // getComputedStyle() at runtime and pass resolved values.
   const colors = useMemo(
     () => ['#FFD700', '#FFA500', '#FF6B6B', '#4ECDC4', '#45B7D1', '#98D8C8'],
     []
@@ -47,7 +53,7 @@ const SparklesAnimation = memo(function SparklesAnimation({
         life: 0,
         maxLife: 0,
         size: 0,
-        color: '#FFD700',
+        color: '#FFD700', // Canvas render default color (see note above)
       }
     }
 

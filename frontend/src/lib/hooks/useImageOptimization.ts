@@ -156,19 +156,31 @@ export function useWebPSupport() {
 export function useImagePlaceholder(
   width: number,
   height: number,
-  color: string = '#e5e7eb'
+  color?: string
 ) {
   const [placeholder, setPlaceholder] = useState<string>('')
 
   useEffect(() => {
+    // Resolve theme tokens at runtime; fall back to neutral grays
+    const resolvedColor =
+      color ||
+      (typeof window !== 'undefined'
+        ? getComputedStyle(document.documentElement).getPropertyValue('--theme-bg-secondary').trim() ||
+          '#e5e7eb'
+        : '#e5e7eb')
+    const gradientEnd =
+      typeof window !== 'undefined'
+        ? getComputedStyle(document.documentElement).getPropertyValue('--theme-bg').trim() ||
+          '#f9fafb'
+        : '#f9fafb'
     const svg = `
       <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="${color}"/>
+        <rect width="100%" height="100%" fill="${resolvedColor}"/>
         <rect width="100%" height="100%" fill="url(#gradient)"/>
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:${color};stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#f9fafb;stop-opacity:1" />
+            <stop offset="0%" style="stop-color:${resolvedColor};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${gradientEnd};stop-opacity:1" />
           </linearGradient>
         </defs>
       </svg>

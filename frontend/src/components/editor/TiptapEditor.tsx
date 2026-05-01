@@ -371,6 +371,10 @@ function Toolbar({
         </ToolbarButton>
         {showColorPicker && (
           <div className="absolute top-full left-0 z-50 mt-1 rounded-lg border bg-popover p-2 shadow-lg grid grid-cols-6 gap-1" onClick={(e) => e.stopPropagation()}>
+            {/* NOTE: These hex colors are a functional text-color palette for the rich-text editor.
+                They represent user-selectable content colors (black, red, green, blue, purple)
+                and are NOT theme UI colors. They must remain as actual color values so the
+                editor can apply them to document content independent of the active theme. */}
             {['#000000','#434343','#666666','#999999','#b7b7b7','#cccccc',
               '#d9161c','#e83933','#ed6c47','#f5a623','#f7c948','#fce83a',
               '#11a849','#33b749','#48c774','#74d89b','#b3e4c3','#d4edda',

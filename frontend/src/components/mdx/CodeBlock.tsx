@@ -109,7 +109,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   }, [])
 
   return (
-    <div className="group/code relative my-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700/50 bg-[#F5F3F0] dark:bg-gray-900/95">
+    <div className="group/code relative my-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700/50 bg-[var(--theme-bg)] dark:bg-gray-900/95">
       {/* Force .line spans to block for proper line-height alignment with line numbers */}
       <style>{`.code-block-content .line { display: block; }`}</style>
       {/* Header bar */}

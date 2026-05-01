@@ -626,7 +626,7 @@ export default function MusicExperience() {
               className={`
                 rounded-3xl overflow-hidden
                 border ${isDark ? 'border-white/[0.06]' : 'border-black/[0.06]'}
-                ${isDark ? 'bg-[#0D0D15]' : 'bg-gray-50'}
+                ${isDark ? 'bg-[var(--theme-bg-secondary)]' : 'bg-gray-50'}
                 min-h-[300px] sm:min-h-[400px]
               `}
             >
@@ -668,7 +668,7 @@ export default function MusicExperience() {
               className={`
                 rounded-3xl p-6 sm:p-8
                 border ${isDark ? 'border-white/[0.06]' : 'border-black/[0.06]'}
-                ${isDark ? 'bg-[#0D0D15]' : 'bg-gray-50'}
+                ${isDark ? 'bg-[var(--theme-bg-secondary)]' : 'bg-gray-50'}
               `}
             >
               <span className={`text-xs tracking-[0.2em] uppercase ${accentColor} block mb-4`}>
@@ -713,7 +713,7 @@ export default function MusicExperience() {
                       ? 'border-purple-400/30 bg-purple-400/10'
                       : 'border-purple-500/30 bg-purple-50'
                     : isDark
-                      ? 'border-white/[0.06] hover:border-purple-400/20 bg-[#0D0D15]'
+                      ? 'border-white/[0.06] hover:border-purple-400/20 bg-[var(--theme-bg-secondary)]'
                       : 'border-black/[0.06] hover:border-purple-500/20 bg-gray-50'
                 }
               `}

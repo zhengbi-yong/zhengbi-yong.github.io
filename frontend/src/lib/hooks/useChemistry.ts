@@ -56,14 +56,14 @@ export function useChemistry(options: UseChemistryOptions = {}): UseChemistryRet
               return `<svg width="400" height="250" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <style>
-                    .title { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; fill: #333; }
-                    .info { font-family: Arial, sans-serif; font-size: 12px; fill: #666; }
-                    .format { font-family: Arial, sans-serif; font-size: 11px; fill: #0066cc; font-weight: bold; }
-                    .warning { font-family: Arial, sans-serif; font-size: 10px; fill: #ff6600; }
-                    .input-box { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 1; }
+                    .title { font-family: Arial, sans-serif; font-size: 16px; font-weight: bold; fill: var(--theme-fg); }
+                    .info { font-family: Arial, sans-serif; font-size: 12px; fill: var(--theme-fg-secondary); }
+                    .format { font-family: Arial, sans-serif; font-size: 11px; fill: var(--theme-accent); font-weight: bold; }
+                    .warning { font-family: Arial, sans-serif; font-size: 10px; fill: var(--theme-warning, #ff6600); }
+                    .input-box { fill: var(--theme-bg-secondary); stroke: var(--theme-border); stroke-width: 1; }
                   </style>
                 </defs>
-                <rect width="400" height="250" fill="white" stroke="#ccc" stroke-width="2"/>
+                <rect width="400" height="250" fill="white" stroke="var(--theme-border)" stroke-width="2"/>
                 <text x="200" y="30" text-anchor="middle" class="title">Chemical Structure Viewer</text>
 
                 <rect x="20" y="50" width="360" height="80" class="input-box" rx="5"/>

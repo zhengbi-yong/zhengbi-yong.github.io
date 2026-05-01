@@ -33,6 +33,10 @@
   --theme-fg-link: #3b82f6;
   --theme-fg-link-hover: #2563eb;
 
+  /* Muted surface — subtle background for inactive/disables UI */
+  --theme-muted: var(--geist-muted);
+  --theme-muted-foreground: var(--geist-muted-foreground);
+
   /* ============================================
    * Accent / Brand (theme-swappable!)
    * ============================================ */
