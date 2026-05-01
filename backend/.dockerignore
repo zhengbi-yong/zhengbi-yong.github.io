@@ -85,7 +85,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build and local tooling artifacts
-openapi/
 scripts/
 add_ignore*.sh
 test_jwt.rs
