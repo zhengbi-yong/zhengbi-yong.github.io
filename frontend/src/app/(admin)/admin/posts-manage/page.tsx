@@ -11,7 +11,7 @@
  * - 删除文章
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { adminService } from '@/lib/api/backend'
 import type { PostListItem } from '@/lib/types/backend'
 import Link from 'next/link'
@@ -67,17 +67,40 @@ export default function AdminPostsManagePage() {
   const [total, setTotal] = useState(0)
   const [statusFilter, setStatusFilter] = useState<PostStatus>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
   const [deleting, setDeleting] = useState<Set<string>>(new Set())
+  const isFirstRender = useRef(true)
+
+  // Debounce search: only update debounced value 300ms after user stops typing
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value)
+    setPage(1)
+    if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedSearch(value)
+    }, 300)
+  }, [])
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current)
+    }
+  }, [])
 
   const loadPosts = async () => {
-    setLoading(true)
+    // Only show full loading state on the very first render
+    if (isFirstRender.current) {
+      setLoading(true)
+    }
     try {
       const data = await adminService.listAdminPosts({
         page,
         page_size: pageSize,
         status: statusFilter !== 'all' ? statusFilter : undefined,
-        search: searchQuery || undefined,
+        search: debouncedSearch || undefined,
       })
       // Handle both public and admin response shapes
       const postsList = (data as any).posts || (data as any).data || []
@@ -88,12 +111,13 @@ export default function AdminPostsManagePage() {
       console.error('Failed to load posts:', e)
     } finally {
       setLoading(false)
+      isFirstRender.current = false
     }
   }
 
   useEffect(() => {
     loadPosts()
-  }, [page, statusFilter, searchQuery])
+  }, [page, statusFilter, debouncedSearch])
 
   const handleSelectAll = () => {
     if (selectedPosts.size === posts.length) {
@@ -209,10 +233,7 @@ export default function AdminPostsManagePage() {
               type="text"
               placeholder="搜索文章..."
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setPage(1)
-              }}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
         </div>
