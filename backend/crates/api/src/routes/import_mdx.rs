@@ -3,7 +3,7 @@
 //! 将 MDX 文本解析并导入为数据库文章。
 
 use axum::{
-    extract::State,
+    extract::{Multipart, State},
     Extension, Json,
 };
 use blog_core::mdx_to_blocknote_json;
@@ -31,7 +31,7 @@ pub struct ImportMdxRequest {
     pub mode: ImportMode,
 }
 
-#[derive(Debug, Deserialize, ToSchema, Default, PartialEq)]
+#[derive(Debug, Deserialize, ToSchema, Default, PartialEq, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum ImportMode {
     /// 预览模式：返回解析结果但不写入数据库
@@ -61,6 +61,26 @@ pub struct ImportPreview {
     pub word_count: usize,
     pub reading_time_minutes: u32,
     pub has_content: bool,
+}
+
+/// 批量导入单文件结果
+#[derive(Debug, Serialize, ToSchema)]
+pub struct BatchFileResult {
+    pub filename: String,
+    pub status: String, // "ok" | "error"
+    pub title: Option<String>,
+    pub slug: Option<String>,
+    pub id: Option<Uuid>,
+    pub error: Option<String>,
+}
+
+/// 批量导入总响应
+#[derive(Debug, Serialize, ToSchema)]
+pub struct BatchImportResponse {
+    pub total: usize,
+    pub succeeded: usize,
+    pub failed: usize,
+    pub results: Vec<BatchFileResult>,
 }
 
 // ============================================================================
@@ -243,6 +263,126 @@ pub async fn import_mdx(
         // 兜底（不应到达）
         Err(AppError::InternalError)
     }
+}
+
+/// 批量导入 MDX 文件
+///
+/// 接受 multipart/form-data，字段:
+/// - `files`: 多个 .mdx/.md 文件
+/// - `mode`: 导入模式 (create/upsert，默认 upsert)
+///
+/// 每个文件独立处理，返回每个文件的结果。
+#[utoipa::path(
+    post,
+    path = "/admin/posts/import/batch",
+    tag = "admin/import",
+    security(("BearerAuth" = [])),
+    responses(
+        (status = 200, description = "批量导入完成", body = BatchImportResponse),
+    ),
+)]
+pub async fn batch_import_mdx(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    mut multipart: Multipart,
+) -> Result<Json<BatchImportResponse>, AppError> {
+    let mut mode = ImportMode::Upsert; // 默认 Upsert
+    let mut file_contents: Vec<(String, String)> = Vec::new(); // (filename, content)
+
+    // ── 解析 multipart ───────────────────────────────────────────────
+    while let Ok(Some(field)) = multipart.next_field().await {
+        let name = field.name().unwrap_or("").to_string();
+
+        match name.as_str() {
+            "mode" => {
+                let text = field.text().await.unwrap_or_default();
+                mode = match text.trim() {
+                    "create" => ImportMode::Create,
+                    "upsert" => ImportMode::Upsert,
+                    _ => ImportMode::Upsert,
+                };
+            }
+            "files" | "file" => {
+                let filename = field
+                    .file_name()
+                    .unwrap_or("untitled.mdx")
+                    .to_string();
+                if let Ok(bytes) = field.bytes().await {
+                    if let Ok(text) = String::from_utf8(bytes.to_vec()) {
+                        if !text.trim().is_empty() {
+                            file_contents.push((filename, text));
+                        }
+                    }
+                }
+            }
+            _ => {
+                // 忽略未知字段
+            }
+        }
+    }
+
+    if file_contents.is_empty() {
+        return Err(AppError::BadRequest("请上传至少一个 .mdx 或 .md 文件".into()));
+    }
+
+    // 限制最多 50 个文件
+    let max_files = 50usize;
+    if file_contents.len() > max_files {
+        return Err(AppError::BadRequest(
+            format!("最多支持 {} 个文件，当前 {} 个", max_files, file_contents.len()),
+        ));
+    }
+
+    let total = file_contents.len();
+    let mut results: Vec<BatchFileResult> = Vec::with_capacity(total);
+
+    for (filename, content) in file_contents {
+        let req = ImportMdxRequest {
+            mdx_text: content,
+            slug: None,
+            mode: mode.clone(),
+        };
+
+        match import_mdx(
+            State(state.clone()),
+            Extension(auth_user.clone()),
+            Json(req),
+        )
+        .await
+        {
+            Ok(json_resp) => {
+                let resp = json_resp.0;
+                results.push(BatchFileResult {
+                    filename,
+                    status: "ok".into(),
+                    title: Some(resp.title),
+                    slug: Some(resp.slug),
+                    id: resp.id,
+                    error: None,
+                });
+            }
+            Err(e) => {
+                results.push(BatchFileResult {
+                    filename,
+                    status: "error".into(),
+                    title: None,
+                    slug: None,
+                    id: None,
+                    error: Some(format!("{}", e)),
+                });
+            }
+        }
+    }
+
+    let succeeded = results.iter().filter(|r| r.status == "ok").count();
+    let failed = total - succeeded;
+
+    Ok(Json(BatchImportResponse {
+        total,
+        succeeded,
+        failed,
+        results,
+    }))
 }
 
 // ============================================================================

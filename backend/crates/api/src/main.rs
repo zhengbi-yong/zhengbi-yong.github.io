@@ -468,10 +468,18 @@ fn post_admin_routes() -> Router<AppState> {
             "/admin/posts/export/batch",
             post(blog_api::routes::export::batch_export_posts),
         )
+        .route(
+            "/admin/posts/export/batch-zip",
+            get(blog_api::routes::export::batch_export_zip),
+        )
         // ── 导入路由 ────────────────────────────────────────────────
         .route(
             "/admin/posts/import/mdx",
             post(blog_api::routes::import_mdx::import_mdx),
+        )
+        .route(
+            "/admin/posts/import/batch",
+            post(blog_api::routes::import_mdx::batch_import_mdx),
         )
 }
 

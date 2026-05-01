@@ -3,8 +3,11 @@
 //! 提供文章导出为 MDX/Markdown 的 REST API 端点。
 
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     Extension, Json,
+    http::{header, HeaderMap, StatusCode},
+    response::IntoResponse,
+    body::Body,
 };
 use blog_core::blocknote_json_to_mdx;
 use blog_shared::AppError;
@@ -12,6 +15,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::Row;
 use utoipa::ToSchema;
 use uuid::Uuid;
+use std::io::Write;
 
 use crate::state::AppState;
 use blog_shared::middleware::auth::AuthUser;
@@ -43,6 +47,12 @@ pub struct BatchExportQuery {
     pub tag_id: Option<Uuid>,
     /// 最多导出数（默认 100）
     pub limit: Option<u32>,
+}
+
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct BatchZipQuery {
+    /// 逗号分隔的 UUID 列表
+    pub ids: Option<String>,
 }
 
 // ============================================================================
@@ -344,6 +354,113 @@ pub async fn batch_export_posts(
     }
 
     Ok(Json(results))
+}
+
+/// 批量导出 ZIP（GET 请求，通过 query 参数传递 IDs）
+///
+/// 使用方式: `GET /admin/posts/export/batch-zip?ids=uuid1,uuid2,uuid3`
+/// 返回 ZIP 文件，每个文件名为 `{slug}.mdx`
+#[utoipa::path(
+    get,
+    path = "/admin/posts/export/batch-zip",
+    tag = "admin/export",
+    security(("BearerAuth" = [])),
+    params(
+        ("ids" = String, Query, description = "逗号分隔的文章 ID 列表"),
+    ),
+    responses(
+        (status = 200, description = "ZIP 文件下载"),
+        (status = 400, description = "参数错误"),
+    ),
+)]
+pub async fn batch_export_zip(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Query(params): Query<BatchZipQuery>,
+) -> Result<impl IntoResponse, AppError> {
+    let ids: Vec<Uuid> = match &params.ids {
+        Some(ids_str) if !ids_str.trim().is_empty() => {
+            ids_str
+                .split(',')
+                .filter_map(|s| Uuid::parse_str(s.trim()).ok())
+                .collect()
+        }
+        _ => {
+            return Err(AppError::BadRequest("请提供 ids 参数（逗号分隔的 UUID 列表）".into()));
+        }
+    };
+
+    if ids.is_empty() {
+        return Err(AppError::BadRequest("未提供有效的文章 ID".into()));
+    }
+
+    let limit = ids.len().min(200);
+
+    // 为每个 ID 生成 MDX 并打包
+    let mut zip_buf = std::io::Cursor::new(Vec::new());
+    {
+        let mut zip_writer = zip::ZipWriter::new(&mut zip_buf);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+
+        for (i, id) in ids.iter().take(limit).enumerate() {
+            match export_post_mdx(
+                State(state.clone()),
+                Extension(auth_user.clone()),
+                Path(*id),
+            )
+            .await
+            {
+                Ok(json_resp) => {
+                    let data = json_resp.0;
+                    let filename = format!("{}.mdx", data.slug.replace('/', "-"));
+                    zip_writer
+                        .start_file(&filename, options)
+                        .map_err(|e| {
+                            tracing::error!(error=%e, "ZIP add file failed");
+                            AppError::InternalError
+                        })?;
+                    zip_writer
+                        .write_all(data.mdx.as_bytes())
+                        .map_err(|e| {
+                            tracing::error!(error=%e, "ZIP write failed");
+                            AppError::InternalError
+                        })?;
+                }
+                Err(e) => {
+                    tracing::warn!(error=%e, ?id, "Skipped post in batch export");
+                    continue;
+                }
+            }
+
+            // 每 50 篇打印一次进度
+            if (i + 1) % 50 == 0 {
+                tracing::info!(count = i + 1, total = limit, "Batch ZIP export progress");
+            }
+        }
+
+        zip_writer.finish().map_err(|e| {
+            tracing::error!(error=%e, "ZIP finish failed");
+            AppError::InternalError
+        })?;
+    }
+
+    let zip_data = zip_buf.into_inner();
+    let zip_size = zip_data.len();
+    tracing::info!(size = zip_size, count = limit, "Batch ZIP export complete");
+
+    let disposition = format!(
+        "attachment; filename=\"posts-export-{}.zip\"",
+        chrono::Utc::now().format("%Y%m%d-%H%M%S")
+    );
+
+    let mut headers = HeaderMap::new();
+    headers.insert(header::CONTENT_TYPE, "application/zip".parse().unwrap());
+    headers.insert(header::CONTENT_DISPOSITION, disposition.parse().unwrap());
+
+    let response = (StatusCode::OK, headers, Body::from(zip_data));
+
+    Ok(response)
 }
 
 // ============================================================================
