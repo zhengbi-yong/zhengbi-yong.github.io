@@ -15,7 +15,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { adminService } from '@/lib/api/backend'
 import type { PostListItem } from '@/lib/types/backend'
 import Link from 'next/link'
-import { Eye, Heart, MessageSquare, Plus, Trash2 } from 'lucide-react'
+import { Eye, Heart, MessageSquare, Plus, Trash2, Download } from 'lucide-react'
 
 import { PageHeader } from '@/components/admin/page-header'
 import { DataCard } from '@/components/admin/data-card'
@@ -191,6 +191,33 @@ export default function AdminPostsManagePage() {
     }
   }
 
+  const handleExportMdx = async (postId: string) => {
+    try {
+      const resp = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/posts/${postId}/export/mdx`,
+        { credentials: 'include' }
+      )
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error((err as any)?.error?.message || '导出失败')
+      }
+      const data = await resp.json()
+      // 触发浏览器下载
+      const blob = new Blob([data.mdx], { type: 'text/markdown' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = data.filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error('Export failed:', e)
+      alert('导出失败: ' + (e instanceof Error ? e.message : '未知错误'))
+    }
+  }
+
   const totalPages = Math.ceil(total / pageSize)
 
   return (
@@ -360,6 +387,15 @@ export default function AdminPostsManagePage() {
                           >
                             编辑
                           </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleExportMdx(post.id)}
+                          title="导出为 MDX 文件"
+                        >
+                          <Download className="mr-1 h-3.5 w-3.5" />
+                          导出
                         </Button>
                         <Button
                           variant="ghost"
