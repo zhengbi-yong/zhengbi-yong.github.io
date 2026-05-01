@@ -86,13 +86,20 @@ COPY crates/migrator/Cargo.toml crates/migrator/
 # 确保 SQLx 离线缓存目录存在（可选，有则加速编译）
 RUN mkdir -p .sqlx
 
-# 为每个 crate 创建空的 src/lib.rs 或 src/main.rs，使 cargo 能解析 workspace
+# 为每个 crate 创建空的 src/lib.rs，使 cargo 能解析 workspace
+# api crate 有多二进制: api / migrate / create_admin / export_openapi
+# worker crate 有多二进制: worker / cdc-worker (cdc_main.rs)
 RUN for crate in api core db shared worker migrator; do \
       mkdir -p crates/$crate/src; \
       echo '#[allow(unused)] fn dummy() {}' > crates/$crate/src/lib.rs; \
     done && \
     echo 'fn main() {}' > crates/api/src/main.rs && \
+    mkdir -p crates/api/src/bin && \
+    echo 'fn main() {}' > crates/api/src/bin/migrate.rs && \
+    echo 'fn main() {}' > crates/api/src/bin/create_admin.rs && \
+    echo 'fn main() {}' > crates/api/src/bin/export_openapi.rs && \
     echo 'fn main() {}' > crates/worker/src/main.rs && \
+    echo 'fn main() {}' > crates/worker/src/cdc_main.rs && \
     echo 'fn main() {}' > crates/migrator/src/main.rs
 
 # 构建所有依赖（此层被 Docker 缓存！仅 Cargo.toml 变化时重新构建）
