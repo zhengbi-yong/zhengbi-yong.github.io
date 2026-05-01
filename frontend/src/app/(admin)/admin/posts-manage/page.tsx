@@ -15,7 +15,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { adminService } from '@/lib/api/backend'
 import type { PostListItem } from '@/lib/types/backend'
 import Link from 'next/link'
-import { Eye, Heart, MessageSquare, Plus, Trash2, Download } from 'lucide-react'
+import { Eye, Heart, MessageSquare, Plus, Trash2, Download, Upload } from 'lucide-react'
 
 import { PageHeader } from '@/components/admin/page-header'
 import { DataCard } from '@/components/admin/data-card'
@@ -223,12 +223,20 @@ export default function AdminPostsManagePage() {
   return (
     <div className="space-y-6">
       <PageHeader title="文章管理" description={`共 ${total} 篇文章`}>
-        <Button asChild>
-          <Link href="/admin/posts/new">
-            <Plus className="mr-1.5 h-4 w-4" />
-            创建文章
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/admin/posts/import">
+              <Upload className="mr-1.5 h-4 w-4" />
+              导入 MDX
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/admin/posts/new">
+              <Plus className="mr-1.5 h-4 w-4" />
+              创建文章
+            </Link>
+          </Button>
+        </div>
       </PageHeader>
 
       {/* 筛选和搜索 */}
