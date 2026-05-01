@@ -2,6 +2,7 @@ pub mod admin;
 pub mod auth;
 pub mod comments;
 pub mod export;
+pub mod import_mdx;
 pub mod mdx_convert;
 pub mod mdx_sync;
 pub mod openapi;

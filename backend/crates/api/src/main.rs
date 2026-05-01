@@ -468,6 +468,11 @@ fn post_admin_routes() -> Router<AppState> {
             "/admin/posts/export/batch",
             post(blog_api::routes::export::batch_export_posts),
         )
+        // ── 导入路由 ────────────────────────────────────────────────
+        .route(
+            "/admin/posts/import/mdx",
+            post(blog_api::routes::import_mdx::import_mdx),
+        )
 }
 
 // 分类路由
