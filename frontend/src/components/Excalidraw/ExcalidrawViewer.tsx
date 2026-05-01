@@ -247,7 +247,7 @@ export function ExcalidrawViewer({
         position: fixed;
         top: 20px;
         right: 20px;
-        background: #10b981;
+        background: var(--theme-success);
         color: white;
         padding: 10px 20px;
         border-radius: 5px;
@@ -303,7 +303,7 @@ export function ExcalidrawViewer({
             exportBackground: true,
             viewBackgroundColor:
               (appStateToExport as any)?.viewBackgroundColor ||
-              (currentTheme === 'dark' ? '#1a1a1a' : '#ffffff'),
+              'var(--theme-bg)',
           } as any,
           files: files || ({} as ExcalidrawFiles),
           mimeType: 'image/png',
@@ -328,7 +328,7 @@ export function ExcalidrawViewer({
         position: fixed;
         top: 20px;
         right: 20px;
-        background: #10b981;
+        background: var(--theme-success);
         color: white;
         padding: 10px 20px;
         border-radius: 5px;
@@ -383,7 +383,7 @@ export function ExcalidrawViewer({
             exportBackground: true,
             viewBackgroundColor:
               (appStateToExport as any)?.viewBackgroundColor ||
-              (currentTheme === 'dark' ? '#1a1a1a' : '#ffffff'),
+              'var(--theme-bg)',
           } as any,
           files: files || ({} as ExcalidrawFiles),
           exportPadding: 10,
@@ -410,7 +410,7 @@ export function ExcalidrawViewer({
         position: fixed;
         top: 20px;
         right: 20px;
-        background: #10b981;
+        background: var(--theme-success);
         color: white;
         padding: 10px 20px;
         border-radius: 5px;
@@ -492,7 +492,7 @@ export function ExcalidrawViewer({
         position: fixed;
         top: 20px;
         right: 20px;
-        background: #10b981;
+        background: var(--theme-success);
         color: white;
         padding: 10px 20px;
         border-radius: 5px;
@@ -595,7 +595,7 @@ export function ExcalidrawViewer({
       height: height ?? '100vh',
       display: 'flex',
         flexDirection: 'column',
-        backgroundColor: '#fff',
+        backgroundColor: 'var(--theme-bg)',
       zIndex: 9999,
       }}
       data-elements={elements?.length ?? 0}

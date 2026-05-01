@@ -96,8 +96,8 @@ RUN for crate in api core db shared worker migrator; do \
     echo 'fn main() {}' > crates/migrator/src/main.rs
 
 # 构建所有依赖（此层被 Docker 缓存！仅 Cargo.toml 变化时重新构建）
-RUN SQLX_OFFLINE=true cargo build --locked --release -p blog-api -p blog-worker 2>&1 || \
-    SQLX_OFFLINE=true cargo build --locked --release -p blog-api -p blog-worker
+RUN SQLX_OFFLINE=true cargo build --release -p blog-api -p blog-worker 2>&1 || \
+    SQLX_OFFLINE=true cargo build --release -p blog-api -p blog-worker
 
 # ============================================================
 # Layer 2: 复制实际源代码 —— 仅变更文件触发重新编译
@@ -114,7 +114,7 @@ RUN set -eux; \
       unzip -o /tmp/swagger-ui.zip -d crates/api/openapi/swagger-ui/ && \
       rm /tmp/swagger-ui.zip; \
     fi; \
-    SQLX_OFFLINE=true cargo build --locked --release -p blog-api -p blog-worker
+    SQLX_OFFLINE=true cargo build --release -p blog-api -p blog-worker
 
 # =============================================================================
 # Production Stage

@@ -10,7 +10,6 @@ frontend/node_modules
 # Rust
 target/
 backend/target/
-Cargo.lock
 
 # Claude Code
 .claude/
