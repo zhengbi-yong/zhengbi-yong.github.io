@@ -53,7 +53,7 @@ const socialComponents = {
   bluesky: Bluesky,
 }
 
-const socialNames: Record<string, string> = {
+const socialNames = {
   mail: 'Email',
   github: 'GitHub',
   facebook: 'Facebook',
@@ -66,7 +66,7 @@ const socialNames: Record<string, string> = {
   instagram: 'Instagram',
   medium: 'Medium',
   bluesky: 'Bluesky',
-}
+} as const
 
 const primaryLinks = [
   { href: '/blog', label: '博客' },

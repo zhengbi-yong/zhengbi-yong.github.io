@@ -278,9 +278,9 @@ export function DataTablePagination({
   // 生成页码数组
   const getPageNumbers = () => {
     const delta = 2
-    const range = []
-    const rangeWithDots = []
-    let l
+    const range: number[] = []
+    const rangeWithDots: (number | string)[] = []
+    let l: number | undefined
 
     range.push(1)
 

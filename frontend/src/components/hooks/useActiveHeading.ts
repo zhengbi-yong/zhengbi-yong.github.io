@@ -33,10 +33,10 @@ export function useActiveHeading(headingIds: string[]) {
 
     // 找到最接近视口顶部但还未滚过的标题
     const scrollPosition = window.scrollY + 100 // 偏移量，提前激活
-    let currentActive = headingIds[0]
+    let currentActive = headingIds[0]!
 
     for (let i = headingPositions.length - 1; i >= 0; i--) {
-      const heading = headingPositions[i]
+      const heading = headingPositions[i]!
       const elementTop = heading.element.offsetTop
 
       if (elementTop <= scrollPosition) {
@@ -45,7 +45,7 @@ export function useActiveHeading(headingIds: string[]) {
       }
     }
 
-    setActiveId((prev) => (prev !== currentActive ? currentActive : prev))
+    setActiveId((prev) => (prev !== currentActive ? currentActive! : prev))
   }, [headingIds])
 
   useEffect(() => {
@@ -72,11 +72,11 @@ export function useActiveHeading(headingIds: string[]) {
 
       if (intersectingEntries.length > 0) {
         // 选择最接近顶部的标题（优化：只排序必要的条目）
-        let topEntry = intersectingEntries[0]
+        let topEntry = intersectingEntries[0]!
         let minTop = topEntry.boundingClientRect.top
 
         for (let i = 1; i < intersectingEntries.length; i++) {
-          const entry = intersectingEntries[i]
+          const entry = intersectingEntries[i]!
           const top = entry.boundingClientRect.top
           if (top < minTop) {
             minTop = top
@@ -84,7 +84,7 @@ export function useActiveHeading(headingIds: string[]) {
           }
         }
 
-        const id = '#' + topEntry.target.id
+        const id = '#' + topEntry!.target.id
         if (headingIds.includes(id)) {
           setActiveId((prev) => (prev !== id ? id : prev))
         }

@@ -37,7 +37,7 @@ export function parsePrometheusMetrics(text: string): PrometheusMetrics {
       if (!match) return
 
       const [, name, labelsStr, valueStr] = match
-      const value = parseFloat(valueStr)
+      const value = parseFloat(valueStr!)
 
       // 解析标签
       const labels: Record<string, string> = {}

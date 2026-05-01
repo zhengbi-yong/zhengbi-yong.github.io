@@ -48,7 +48,7 @@ export function useGestures(handlers: GestureHandlers, options: GestureOptions =
     (e: ReactTouchEvent<HTMLElement>) => {
       if (e.touches.length !== 1) return
 
-      const touch = e.touches[0]
+      const touch = e.touches[0]!
       touchStartRef.current = {
         x: touch.clientX,
         y: touch.clientY,
@@ -66,9 +66,10 @@ export function useGestures(handlers: GestureHandlers, options: GestureOptions =
 
       // 启动长按计时器
       if (handlers.onLongPress) {
+        const onLongPress = handlers.onLongPress
         longPressTimerRef.current = setTimeout(() => {
           setIsLongPressing(true)
-          handlers.onLongPress()
+          onLongPress()
         }, longPressDelay)
       }
     },
@@ -88,8 +89,8 @@ export function useGestures(handlers: GestureHandlers, options: GestureOptions =
 
       // 检测捏合手势
       if (enablePinch && e.touches.length === 2) {
-        const touch1 = e.touches[0]
-        const touch2 = e.touches[1]
+        const touch1 = e.touches[0]!
+        const touch2 = e.touches[1]!
         const distance = Math.hypot(
           touch2.clientX - touch1.clientX,
           touch2.clientY - touch1.clientY
@@ -124,7 +125,7 @@ export function useGestures(handlers: GestureHandlers, options: GestureOptions =
       // 如果不是单指触摸，不处理滑动手势
       if (e.changedTouches.length !== 1 || !touchStartRef.current) return
 
-      const touch = e.changedTouches[0]
+      const touch = e.changedTouches[0]!
       const deltaX = touch.clientX - touchStartRef.current.x
       const deltaY = touch.clientY - touchStartRef.current.y
       // 检测滑动手势
@@ -193,13 +194,13 @@ export function usePullToRefresh(onRefresh: () => Promise<void>, threshold: numb
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (refreshing) return
-    touchStartY.current = e.touches[0].clientY
+    touchStartY.current = e.touches[0]!.clientY
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (refreshing) return
 
-    const currentY = e.touches[0].clientY
+    const currentY = e.touches[0]!.clientY
     const distance = currentY - touchStartY.current
 
     if (distance > 0) {
@@ -242,11 +243,11 @@ export function useSwipeBack(onSwipeBack: () => void) {
   const touchStartX = useRef<number>(0)
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
+    touchStartX.current = e.touches[0]!.clientX
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    const currentX = e.touches[0].clientX
+    const currentX = e.touches[0]!.clientX
     const deltaX = currentX - touchStartX.current
 
     // 只处理从左边缘开始的滑动

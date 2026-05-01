@@ -177,12 +177,12 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
 
       // Each particle gets a random palette index, used for both dark & light
       const colorIdx = Math.floor(Math.random() * COLORS_DARK.length)
-      const cd = COLORS_DARK[colorIdx]
+      const cd = COLORS_DARK[colorIdx]!
       colorsDark[i3] = cd.r
       colorsDark[i3 + 1] = cd.g
       colorsDark[i3 + 2] = cd.b
 
-      const cl = COLORS_LIGHT[colorIdx]
+      const cl = COLORS_LIGHT[colorIdx]!
       colorsLight[i3] = cl.r
       colorsLight[i3 + 1] = cl.g
       colorsLight[i3 + 2] = cl.b
@@ -217,13 +217,13 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
     if (!meshRef.current) return
 
     const material = meshRef.current.material as THREE.ShaderMaterial
-    material.uniforms.uTime.value = state.clock.elapsedTime
-    material.uniforms.uScroll.value = scrollProgress
+    material.uniforms.uTime!.value = state.clock.elapsedTime
+    material.uniforms.uScroll!.value = scrollProgress
 
     // Smooth theme blend transition
     const targetBlend = isDark ? 0.0 : 1.0
     themeBlendRef.current += (targetBlend - themeBlendRef.current) * 0.04
-    material.uniforms.uThemeBlend.value = themeBlendRef.current
+    material.uniforms.uThemeBlend!.value = themeBlendRef.current
 
     // Switch blending mode once blend passes midpoint
     material.blending = themeBlendRef.current < 0.5
@@ -234,8 +234,8 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
     // Smooth mouse interpolation
     mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.05
     mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.05
-    material.uniforms.uMouseX.value = mouseRef.current.x
-    material.uniforms.uMouseY.value = mouseRef.current.y
+    material.uniforms.uMouseX!.value = mouseRef.current.x
+    material.uniforms.uMouseY!.value = mouseRef.current.y
 
     // Slow rotation
     if (!reducedMotion) {
@@ -249,30 +249,35 @@ export default function ParticleBackground({ count = 2000, scrollProgress = 0 }:
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
+          args={[positions, 3]}
           count={effectiveCount}
           array={positions}
           itemSize={3}
         />
         <bufferAttribute
           attach="attributes-aScale"
+          args={[scales, 1]}
           count={effectiveCount}
           array={scales}
           itemSize={1}
         />
         <bufferAttribute
           attach="attributes-aRandomness"
+          args={[randomness, 1]}
           count={effectiveCount}
           array={randomness}
           itemSize={1}
         />
         <bufferAttribute
           attach="attributes-aColorDark"
+          args={[colorsDark, 3]}
           count={effectiveCount}
           array={colorsDark}
           itemSize={3}
         />
         <bufferAttribute
           attach="attributes-aColorLight"
+          args={[colorsLight, 3]}
           count={effectiveCount}
           array={colorsLight}
           itemSize={3}

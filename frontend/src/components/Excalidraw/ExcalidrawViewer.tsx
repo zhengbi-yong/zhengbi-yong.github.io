@@ -144,7 +144,7 @@ export function ExcalidrawViewer({
       link.id = 'excalidraw-css-link'
       link.rel = 'stylesheet'
       link.type = 'text/css'
-      link.href = cdnSources[index]
+      link.href = cdnSources[index]!
       link.crossOrigin = 'anonymous'
 
       link.onerror = () => {

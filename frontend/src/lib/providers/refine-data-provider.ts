@@ -134,7 +134,7 @@ export const dataProvider: DataProvider = {
 
     // 处理排序
     if (sorters && sorters.length > 0) {
-      const sorter = sorters[0]
+      const sorter = sorters[0]!
       if (sorter.order) {
         params.sort = sorter.order === 'asc' ? sorter.field : `-${sorter.field}`
       }

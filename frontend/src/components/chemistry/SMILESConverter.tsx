@@ -36,7 +36,7 @@ export function SMILESConverter({ molData, onSMILESGenerated }: SMILESConverterP
       lowerData.includes('caffeine') ||
       (lowerData.includes('5  4') && lowerData.includes('n') && lowerData.includes('o'))
     ) {
-      return knownMolecules.caffeine
+      return knownMolecules.caffeine!
     }
 
     // Check for aspirin patterns
@@ -44,12 +44,12 @@ export function SMILESConverter({ molData, onSMILESGenerated }: SMILESConverterP
       lowerData.includes('aspirin') ||
       (lowerData.includes('9  8') && lowerData.includes('o') && lowerData.includes('c'))
     ) {
-      return knownMolecules.aspirin
+      return knownMolecules.aspirin!
     }
 
     // Check for benzene patterns
     if (lowerData.includes('benzene') || (lowerData.includes('6') && lowerData.includes('c'))) {
-      return knownMolecules.benzene
+      return knownMolecules.benzene!
     }
 
     return null

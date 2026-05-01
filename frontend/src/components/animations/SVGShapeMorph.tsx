@@ -37,7 +37,7 @@ export default function SVGShapeMorph({
     const container = containerRef.current
 
     // 设置初始路径
-    pathElement.setAttribute('d', paths[0])
+    pathElement.setAttribute('d', paths[0]!)
 
     // 如果只有一个路径，不需要变形动画
     if (paths.length === 1) return undefined

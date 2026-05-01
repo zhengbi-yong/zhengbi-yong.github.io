@@ -25,7 +25,7 @@ export function MusicPlayer({ tracks, autoPlay = false, className = '' }: MusicP
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
 
-  const currentTrack = tracks[currentTrackIndex]
+  const currentTrack = tracks[currentTrackIndex]!
 
   useEffect(() => {
     const audio = audioRef.current

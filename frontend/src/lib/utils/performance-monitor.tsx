@@ -63,7 +63,7 @@ export function PerformanceMonitor({
       // FCP: First Contentful Paint
       const fcpEntries = window.performance.getEntriesByName('first-contentful-paint')
       if (fcpEntries.length > 0) {
-        metricsRef.current.fcp = fcpEntries[0].startTime
+        metricsRef.current.fcp = fcpEntries[0]!.startTime
       }
 
       // Resource metrics

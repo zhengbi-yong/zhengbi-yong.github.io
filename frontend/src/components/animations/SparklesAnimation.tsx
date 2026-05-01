@@ -59,7 +59,7 @@ const SparklesAnimation = memo(function SparklesAnimation({
       life: 60 + Math.random() * 60,
       maxLife: 60 + Math.random() * 60,
       size: 1 + Math.random() * 2,
-      color: colors[Math.floor(Math.random() * colors.length)],
+      color: colors[Math.floor(Math.random() * colors.length)]!,
     }
   }, [colors])
 

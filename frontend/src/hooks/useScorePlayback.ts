@@ -200,7 +200,7 @@ function parseMusicXML(xmlString: string): ParsedScore {
 
         // Calculate start time in seconds
         // For chord notes, use the same start time as the previous note
-        const noteStartDivs = isChord ? currentTime - (notes.length > 0 ? notes[notes.length - 1].duration * divisions / notes[notes.length - 1].divisions : 0) : currentTime
+        const noteStartDivs = isChord ? currentTime - (notes.length > 0 ? notes[notes.length - 1]!.duration * divisions / notes[notes.length - 1]!.divisions : 0) : currentTime
         const startTime = (noteStartDivs / measureDivs) * (60.0 / measureTempo)
 
         // Duration in seconds

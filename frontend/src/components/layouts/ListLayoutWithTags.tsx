@@ -84,7 +84,7 @@ export default function ListLayoutWithTags({
   const pathname = usePathname()
   const tagCounts = tagData as Record<string, number>
   const tagKeys = Object.keys(tagCounts)
-  const sortedTags = tagKeys.sort((a, b) => tagCounts[b] - tagCounts[a])
+  const sortedTags = tagKeys.sort((a, b) => tagCounts[b]! - tagCounts[a]!)
 
   const displayPosts = initialDisplayPosts.length > 0 ? initialDisplayPosts : posts
 
@@ -228,7 +228,7 @@ export default function ListLayoutWithTags({
               )}
               <ul className="mt-4 space-y-2.5">
                 {sortedTags.map((t) => {
-                  const isActive = decodeURI(pathname.split('/tags/')[1]) === slug(t)
+                  const isActive = decodeURI(pathname.split('/tags/')[1]!) === slug(t)
                   return (
                     <li key={t}>
                       {isActive ? (

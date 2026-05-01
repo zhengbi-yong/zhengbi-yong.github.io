@@ -64,7 +64,7 @@ export function sanitizeHtml(html: string): string {
     '/': '&#x2F;',
   }
 
-  return html.replace(/[&<>"'/]/g, (s) => map[s])
+  return html.replace(/[&<>"'/]/g, (s) => map[s] ?? s)
 }
 
 // URL 验证
@@ -204,7 +204,7 @@ export class RateLimiter {
   // 获取重置时间
   getResetTime(): number {
     if (this.requests.length === 0) return 0
-    return this.requests[0] + this.windowMs
+    return this.requests[0]! + this.windowMs
   }
 }
 

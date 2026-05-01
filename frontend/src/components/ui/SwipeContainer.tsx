@@ -33,13 +33,13 @@ export function SwipeContainer({
 
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0]
-      setTouchStart({ x: touch.clientX, y: touch.clientY })
-      setTouchEnd({ x: touch.clientX, y: touch.clientY })
+      setTouchStart({ x: touch!.clientX, y: touch!.clientY })
+      setTouchEnd({ x: touch!.clientX, y: touch!.clientY })
     }
 
     const handleTouchMove = (e: TouchEvent) => {
       const touch = e.touches[0]
-      setTouchEnd({ x: touch.clientX, y: touch.clientY })
+      setTouchEnd({ x: touch!.clientX, y: touch!.clientY })
     }
 
     const handleTouchEnd = () => {

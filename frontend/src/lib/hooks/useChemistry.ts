@@ -227,13 +227,13 @@ export function detectChemicalFormat(data: string): 'smiles' | 'mol' | 'sdf' | '
   // 第一行是原子数，第二行是注释，后面是原子坐标
   const lines = trimmedData.split('\n').filter((line) => line.trim())
   if (lines.length >= 3) {
-    const firstLine = lines[0].trim()
+      const firstLine = lines[0]!.trim()
     // 检查第一行是否为纯数字（原子数）
     if (/^\d+$/.test(firstLine) && parseInt(firstLine) > 0) {
       // 检查后续行是否包含原子坐标格式（元素符号 + 数字）
       const hasCoordinates = lines.slice(2).some((line) => {
         const parts = line.trim().split(/\s+/)
-        return parts.length >= 4 && /^[A-Z][a-z]?$/.test(parts[0])
+        return parts.length >= 4 && /^[A-Z][a-z]?$/.test(parts[0]!)
       })
       if (hasCoordinates) {
         return 'mol' // XYZ 格式可以按 MOL 处理

@@ -92,12 +92,12 @@ function convertMathFormulas(content: string): string {
 
   // 恢复被保护的表格行
   content = content.replace(/__TABLE_ROW_(\d+)__/g, (_, index) => {
-    return tableRows[parseInt(index)]
+    return tableRows[parseInt(index)] ?? ''
   })
 
   // 恢复被保护的内容
   content = content.replace(/__PROTECTED_BLOCK_(\d+)__/g, (_, index) => {
-    return protectedBlocks[parseInt(index)]
+    return protectedBlocks[parseInt(index)] ?? ''
   })
 
   return content

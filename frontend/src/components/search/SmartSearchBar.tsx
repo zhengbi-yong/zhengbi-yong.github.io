@@ -124,7 +124,7 @@ export function SmartSearchBar({
         e.preventDefault()
         if (selectedIndex >= 0) {
           const selected = suggestions[selectedIndex]
-          router.push(selected.url)
+          router.push(selected!.url)
           setIsOpen(false)
         } else {
           handleSearch()

@@ -206,7 +206,7 @@ export default function MasonryGrid({
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && visibleItems.length < items.length) {
+        if (entries[0]!.isIntersecting && visibleItems.length < items.length) {
           setPage((prev) => prev + 1)
         }
       },

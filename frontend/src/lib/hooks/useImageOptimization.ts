@@ -116,7 +116,7 @@ export function useImageOptimization(options: UseImageOptimizationOptions = {}):
     isLoaded,
     isLoading,
     hasError,
-    imageRef,
+    imageRef: imageRef as React.RefObject<HTMLDivElement>,
     retry,
   }
 }

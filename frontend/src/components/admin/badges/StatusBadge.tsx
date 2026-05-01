@@ -169,7 +169,7 @@ const roleConfig: Record<string, { color: string; label: string; bgColor: string
 }
 
 export function RoleBadge({ role, className }: RoleBadgeProps) {
-  const config = roleConfig[role] || roleConfig.user
+  const config = roleConfig[role]! || roleConfig.user!
 
   return (
     <span

@@ -78,7 +78,7 @@ export const usePostStore = create<PostStatsState>()(
         set((state) => {
           const newLikedPosts = new Set(state.likedPosts)
           newLikedPosts.add(slug)
-          const updatedStats = { ...state.stats[slug], like_count: (state.stats[slug]?.like_count || 0) + 1 }
+          const updatedStats = { ...state.stats[slug], like_count: (state.stats[slug]?.like_count || 0) + 1 } as PostStats
           return {
             likedPosts: newLikedPosts,
             stats: { ...state.stats, [slug]: updatedStats },
@@ -108,7 +108,7 @@ export const usePostStore = create<PostStatsState>()(
         set((state) => {
           const newLikedPosts = new Set(state.likedPosts)
           newLikedPosts.delete(slug)
-          const updatedStats = { ...state.stats[slug], like_count: Math.max((state.stats[slug]?.like_count || 0) - 1, 0) }
+          const updatedStats = { ...state.stats[slug], like_count: Math.max((state.stats[slug]?.like_count || 0) - 1, 0) } as PostStats
           return {
             likedPosts: newLikedPosts,
             stats: { ...state.stats, [slug]: updatedStats },

@@ -56,7 +56,7 @@ function fixSetCookieHeader(cookieValue: string): string {
 
   const domainIndex = parts.findIndex((p) => p.toLowerCase().startsWith('domain='))
   if (domainIndex !== -1) {
-    const domainValue = parts[domainIndex].substring('domain='.length)
+    const domainValue = parts[domainIndex]!.substring('domain='.length)
     // Strip invalid Domain values - let cookie be host-only instead
     if (domainValue === '0.0.0.0' || domainValue === 'localhost') {
       parts.splice(domainIndex, 1)

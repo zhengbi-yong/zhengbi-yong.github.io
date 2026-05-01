@@ -51,7 +51,7 @@ function inferFormatFromData(data?: string) {
     .map((line) => line.trim())
     .filter(Boolean)
 
-  if (lines.length >= 3 && /^\d+$/.test(lines[0])) {
+  if (lines.length >= 3 && /^\d+$/.test(lines[0]!)) {
     return 'xyz'
   }
 

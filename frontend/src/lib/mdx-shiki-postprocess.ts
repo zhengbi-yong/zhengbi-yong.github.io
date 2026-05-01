@@ -109,10 +109,10 @@ export async function highlightCodeBlocks(
       const childrenMatch = /children:\s*"((?:[^"\\]|\\.)*)"/.exec(block)
 
       if (classNameMatch && childrenMatch) {
-        const langClass = classNameMatch[1]
-        const rawCode = childrenMatch[1]
+        const langClass = classNameMatch[1]!
+        const rawCode = childrenMatch[1]!
         const lang = langClass.replace('language-', '').toLowerCase()
-        const code = unescapeMdx(rawCode)
+        const code = unescapeMdx(rawCode!)
         results.push({ startIdx, endIdx, lang, code })
       }
     }
@@ -123,7 +123,7 @@ export async function highlightCodeBlocks(
 
     // Replace in reverse order to preserve string positions
     for (let i = results.length - 1; i >= 0; i--) {
-      const { startIdx, endIdx, lang, code } = results[i]
+      const { startIdx, endIdx, lang, code } = results[i]!
 
       let html: string
       if (lang && h.getLoadedLanguages().includes(lang as any)) {

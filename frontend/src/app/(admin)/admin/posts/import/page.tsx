@@ -77,17 +77,6 @@ interface ImportResult {
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || ''
 
-function getModeLabel(mode: ImportMode) {
-  switch (mode) {
-    case 'preview':
-      return '预览'
-    case 'create':
-      return '创建'
-    case 'upsert':
-      return '创建/更新'
-  }
-}
-
 function getModeDescription(mode: ImportMode) {
   switch (mode) {
     case 'preview':
@@ -156,7 +145,7 @@ export default function ImportMdxPage() {
       return
     }
     if (validFiles.length === 1) {
-      handleFileSelect(validFiles[0])
+      handleFileSelect(validFiles[0]!)
     } else {
       setBatchFiles((prev) => {
         const names = new Set(prev.map((f) => f.name))
@@ -645,7 +634,7 @@ summary: '这是一篇示例文章'
             <div className="flex items-center gap-3">
               <Badge
                 variant={
-                  preview.preview.frontmatter?.draft ? 'warning' : 'success'
+                  (preview.preview.frontmatter?.draft ? 'warning' : 'success') as 'default'
                 }
               >
                 {preview.preview.frontmatter?.draft ? '草稿' : '已发布'}
@@ -697,7 +686,7 @@ summary: '这是一篇示例文章'
                     </td>
                     <td className="py-2 pr-4">
                       {r.status === 'ok' ? (
-                        <Badge variant="success" className="text-xs">
+                        <Badge variant={'success' as 'default'} className="text-xs">
                           <CheckCircle className="mr-1 h-3 w-3" />
                           成功
                         </Badge>

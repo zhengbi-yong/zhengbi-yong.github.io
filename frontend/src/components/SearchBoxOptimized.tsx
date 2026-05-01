@@ -171,7 +171,7 @@ export function SearchBoxOptimized({
       case 'Enter':
         e.preventDefault()
         if (selectedIndex >= 0) {
-          const item = items[selectedIndex]
+          const item = items[selectedIndex]!
           if ('slug' in item) {
             // 搜索结果
             router.push(`/blog/${item.slug}`)

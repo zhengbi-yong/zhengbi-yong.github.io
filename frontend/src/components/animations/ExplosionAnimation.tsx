@@ -57,7 +57,7 @@ const ExplosionAnimation = memo(function ExplosionAnimation({
           life,
           maxLife: life,
           size: 2 + Math.random() * 3,
-          color: colors[Math.floor(Math.random() * colors.length)],
+          color: colors[Math.floor(Math.random() * colors.length)]!,
         })
       }
 

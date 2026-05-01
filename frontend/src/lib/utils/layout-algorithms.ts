@@ -165,8 +165,8 @@ export function optimizeMasonryLayout(
   // 创建项目-高度-尺寸的配对数组
   const pairs = items.map((item, index) => ({
     item,
-    height: cardHeights[index],
-    size: sizes[index],
+    height: cardHeights[index]!,
+    size: sizes[index]!,
   }))
 
   // 按高度降序排序（大的先放）

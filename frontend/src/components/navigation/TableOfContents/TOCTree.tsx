@@ -19,16 +19,16 @@ export const TOCTree = memo(function TOCTree({
   onLinkClick,
 }: TOCTreeProps) {
   // 获取深度样式类
-  const getDepthClass = useCallback((depth: number) => {
+  const getDepthClass = useCallback((depth: number): string => {
     switch (depth) {
       case 1:
-        return styles.depth1
+        return styles.depth1!
       case 2:
-        return styles.depth2
+        return styles.depth2!
       case 3:
-        return styles.depth3
+        return styles.depth3!
       default:
-        return styles.depth3
+        return styles.depth3!
     }
   }, [])
 

@@ -184,14 +184,14 @@ export function useChemistryLocal(options: UseChemistryLocalOptions = {}): UseCh
       }
 
       const options = JSON.stringify({ radius, nBits: bits })
-      const fingerprint = mol.get_morgan_fp(options)
+      const fingerprint = (mol as any).get_morgan_fp(options)
 
       if (!fingerprint) {
-        mol.delete()
+        (mol as any).delete()
         throw new Error('Failed to generate Morgan fingerprint')
       }
 
-      mol.delete()
+      (mol as any).delete()
       return fingerprint
     } catch (err) {
       logger.error('Fingerprint generation error:', {
@@ -249,11 +249,11 @@ export function detectChemicalFormat(data: string): 'smiles' | 'mol' | 'sdf' | '
 
   const lines = trimmedData.split('\n').filter((line) => line.trim())
   if (lines.length >= 3) {
-    const firstLine = lines[0].trim()
+    const firstLine = lines[0]!.trim()
     if (/^\d+$/.test(firstLine) && parseInt(firstLine, 10) > 0) {
       const hasCoordinates = lines.slice(2).some((line) => {
         const parts = line.trim().split(/\s+/)
-        return parts.length >= 4 && /^[A-Z][a-z]?$/.test(parts[0])
+        return parts.length >= 4 && /^[A-Z][a-z]?$/.test(parts[0]!)
       })
 
       if (hasCoordinates) {

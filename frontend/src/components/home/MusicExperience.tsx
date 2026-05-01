@@ -33,7 +33,7 @@ export default function MusicExperience() {
   const synthRef = useRef<Tone.PolySynth | null>(null)
   const partRef = useRef<Tone.Part | null>(null)
 
-  const track = musicData[activeTrack]
+  const track = musicData[activeTrack]!
 
   const extractMXL = async (arrayBuffer: ArrayBuffer): Promise<string> => {
     const zip = await JSZip.loadAsync(arrayBuffer)
@@ -56,7 +56,7 @@ export default function MusicExperience() {
 
     if (!rootFilePath) {
       const xmlFiles = Object.keys(zip.files).filter(
-        (name) => name.endsWith('.xml') && !zip.files[name].dir && !name.startsWith('META-INF/')
+        (name) => name.endsWith('.xml') && !zip.files[name]!.dir && !name.startsWith('META-INF/')
       )
       if (xmlFiles.length === 0) {
         throw new Error('No MusicXML file found in MXL archive')
@@ -64,7 +64,7 @@ export default function MusicExperience() {
       rootFilePath =
         xmlFiles.find(
           (name) => name.toLowerCase().includes('score') || name.toLowerCase().includes('partwise')
-        ) || xmlFiles[0]
+        ) || xmlFiles[0]!
     }
 
     const rootFile = zip.files[rootFilePath]
@@ -108,7 +108,7 @@ export default function MusicExperience() {
     if (isMultiStaffSinglePart) {
       // Handle single-part multi-voice format (MuseScore style)
       // Voices are interleaved within measures, separated by <backup> elements
-      const part = parts[0]
+      const part = parts[0]!
       const measures = part.querySelectorAll('measure')
 
       // Calculate measure durations (max of all voices)
@@ -171,14 +171,14 @@ export default function MusicExperience() {
       // Calculate cumulative offsets
       const measureOffsets: number[] = [0]
       for (let i = 1; i < measureDurations.length; i++) {
-        measureOffsets[i] = measureOffsets[i - 1] + measureDurations[i - 1]
+        measureOffsets[i] = measureOffsets[i - 1]! + measureDurations[i - 1]!
       }
 
       // Second pass: extract notes with proper voice handling
       let currentVoiceTime = 0
 
       measures.forEach((measure, measureIdx) => {
-        const measureTime = measureOffsets[measureIdx]
+        const measureTime = measureOffsets[measureIdx]!
         currentVoiceTime = 0
 
         const childElements = measure.childNodes
@@ -199,7 +199,7 @@ export default function MusicExperience() {
                 const alter = parseInt(pitchElement.querySelector('alter')?.textContent || '0', 10)
 
                 const stepMap: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
-                const midiNote = (octave + 1) * 12 + stepMap[step] + alter
+                const midiNote = (octave + 1) * 12 + stepMap[step]! + alter
                 const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
                 const noteName = noteNames[midiNote % 12]
 
@@ -230,7 +230,7 @@ export default function MusicExperience() {
 
             // Convert to MIDI note number
             const stepMap: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
-            const midiNote = (octave + 1) * 12 + stepMap[step] + alter
+            const midiNote = (octave + 1) * 12 + stepMap[step]! + alter
             const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
             const noteName = noteNames[midiNote % 12]
 
@@ -284,7 +284,7 @@ export default function MusicExperience() {
       // Calculate cumulative offsets for each measure
       const measureOffsets: number[] = [0]
       for (let i = 1; i < measureMaxDurations.length; i++) {
-        measureOffsets[i] = measureOffsets[i - 1] + measureMaxDurations[i - 1]
+        measureOffsets[i] = measureOffsets[i - 1]! + measureMaxDurations[i - 1]!
       }
 
       // Second pass: extract notes from each part
@@ -293,7 +293,7 @@ export default function MusicExperience() {
 
         measures.forEach((measure, measureIdx) => {
           const noteElements = measure.querySelectorAll('note')
-          const measureTime = measureOffsets[measureIdx]
+          const measureTime = measureOffsets[measureIdx]!
           let rawTime = 0
 
           noteElements.forEach((note) => {
@@ -323,7 +323,7 @@ export default function MusicExperience() {
 
             // Convert to MIDI note number
             const stepMap: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
-            const midiNote = (octave + 1) * 12 + stepMap[step] + alter
+            const midiNote = (octave + 1) * 12 + stepMap[step]! + alter
 
             // Convert MIDI note to note name
             const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -561,7 +561,7 @@ export default function MusicExperience() {
       part.start(0)
 
       // Calculate total duration for fallback timeout
-      const lastNote = notes[notes.length - 1]
+      const lastNote = notes[notes.length - 1]!
       const totalDuration = (lastNote.time + lastNote.duration) * (60 / 120) + 0.5 // Convert beats to seconds
 
       // Set timeout to detect end of playback

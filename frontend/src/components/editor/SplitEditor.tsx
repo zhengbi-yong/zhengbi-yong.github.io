@@ -29,7 +29,7 @@ const md = new MarkdownIt({
 const defaultTextRender = md.renderer.rules.text
 
 md.renderer.rules.text = function (tokens, idx, options, env, self) {
-  const content = tokens[idx].content
+  const content = tokens[idx]!.content
 
   // Check for inline math: $...$
   const inlineMathRegex = /\$([^$]+)\$/g

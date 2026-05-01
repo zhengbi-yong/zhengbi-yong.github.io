@@ -82,7 +82,7 @@ export function BackendComments({ slug }: BackendCommentsProps) {
   }
 
   const handleLoadMore = () => {
-    const cursor = comments.length > 0 ? comments[comments.length - 1].id : undefined
+    const cursor = comments.length > 0 ? comments[comments.length - 1]!.id : undefined
     fetchComments(slug, cursor)
   }
 

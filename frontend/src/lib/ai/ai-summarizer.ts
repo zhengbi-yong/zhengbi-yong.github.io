@@ -303,9 +303,9 @@ class TextRankSummarizer {
 
     for (let i = 0; i < n; i++) {
       for (let j = i + 1; j < n; j++) {
-        const similarity = TextProcessor.calculateSentenceSimilarity(sentences[i], sentences[j])
-        matrix[i][j] = similarity
-        matrix[j][i] = similarity
+        const similarity = TextProcessor.calculateSentenceSimilarity(sentences[i]!, sentences[j]!)
+        matrix[i]![j] = similarity
+        matrix[j]![i] = similarity
       }
     }
 
@@ -331,9 +331,9 @@ class TextRankSummarizer {
 
         for (let j = 0; j < n; j++) {
           if (i !== j) {
-            const sum = matrix[j].reduce((acc, val) => acc + val, 0)
+            const sum = matrix[j]!.reduce((acc, val) => acc + val, 0)
             if (sum > 0) {
-              score += dampingFactor * (matrix[j][i] / sum) * scores[j]
+              score += dampingFactor * (matrix[j]![i]! / sum) * scores[j]!
             }
           }
         }
@@ -342,7 +342,7 @@ class TextRankSummarizer {
       }
 
       // 检查收敛
-      const diff = Math.max(...scores.map((s, i) => Math.abs(s - newScores[i])))
+      const diff = Math.max(...scores.map((s, i) => Math.abs(s - newScores[i]!)))
       scores = newScores
 
       if (diff < 0.0001) {
@@ -386,7 +386,7 @@ class TextRankSummarizer {
 
     // 提取并排序
     const ranked = sentences
-      .map((text, position) => ({ text, score: scores[position], position }))
+      .map((text, position) => ({ text, score: scores[position]!, position }))
       .sort((a, b) => b.score - a.score)
       .slice(0, count)
       .sort((a, b) => a.position - b.position)

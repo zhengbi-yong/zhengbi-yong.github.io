@@ -54,8 +54,8 @@ export function PerformanceMonitor({
     const lcpObserver = new PerformanceObserver((list) => {
       const entries = list.getEntries()
       const lastEntry = entries[entries.length - 1]
-      lcpEntry = lastEntry
-      metricsRef.current.lcp = lastEntry.startTime
+      lcpEntry = lastEntry ?? null
+      metricsRef.current.lcp = lastEntry!.startTime
     })
     lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] })
 

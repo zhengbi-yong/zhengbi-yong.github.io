@@ -48,7 +48,7 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
     isMobileRef,
     isMobileExpanded,
     setActiveHeadingId,
-    tocMobileContentRef,
+    tocMobileContentRef: tocMobileContentRef as React.RefObject<HTMLElement>,
     _tocContentRef: tocContentRef,
     tocContainerRef: tocContentRef,
     onProgressChange: setProgress,

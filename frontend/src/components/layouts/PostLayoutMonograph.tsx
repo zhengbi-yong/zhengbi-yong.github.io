@@ -57,7 +57,7 @@ export default function PostLayoutMonograph({
   // Related posts (same tag, for recommendation section)
   const { data: relatedPostsData } = usePosts({
     limit: 6,
-    tag_slug: tags[0],
+    tag_slug: tags[0]!,
   })
 
   const recommendedPosts = relatedPostsData?.posts
@@ -80,7 +80,7 @@ export default function PostLayoutMonograph({
         '@type': 'BlogPosting',
         headline: title,
         description: summary,
-        image: images[0] ? `${siteMetadata.siteUrl}${images[0]}` : siteMetadata.socialBanner,
+        image: images[0] ? `${siteMetadata.siteUrl}${images[0]!}` : siteMetadata.socialBanner,
         datePublished: isoDate,
         dateModified: isoDate,
         author: {
@@ -336,7 +336,7 @@ export default function PostLayoutMonograph({
             {(() => {
               const publishedPosts = allPosts.filter((p) => p.status === 'Published')
               const sorted = [...publishedPosts].sort(
-                (a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
+                (a, b) => new Date(b.published_at!).getTime() - new Date(a.published_at!).getTime()
               )
               const currentIndex = sorted.findIndex((p) => p.slug === slug)
               const prevPost = currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null

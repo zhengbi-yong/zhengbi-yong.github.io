@@ -160,7 +160,7 @@ export function loadToEditor(mdxContent: string): BridgeResult {
       const key = parseInt(id, 10)
       if (key < mathBlocks.length) {
         // 从原始内容解析出 LaTeX（去掉 $$...$$ 包装）
-        const original = mathBlocks[key].original
+        const original = mathBlocks[key]!.original
         const latex = original.slice(2, -2).trim()
         return `<div data-type="block-math" data-latex="${latexEncode(latex)}"></div>`
       }
@@ -175,7 +175,7 @@ export function loadToEditor(mdxContent: string): BridgeResult {
       const key = parseInt(id, 10)
       if (key < mathInlines.length) {
         // 从原始内容解析出 LaTeX（去掉 $...$ 包装）
-        const original = mathInlines[key].original
+        const original = mathInlines[key]!.original
         const latex = original.slice(1, -1).trim()
         return `<span data-type="inline-math" data-latex="${latexEncode(latex)}"></span>`
       }
@@ -193,7 +193,7 @@ export function loadToEditor(mdxContent: string): BridgeResult {
     const id = components.length
     const encoded = toBase64(match)
     components.push({ original: match, placeholder: makePlaceholder(COMPONENT_PREFIX, id, encoded) })
-    return components[id].placeholder
+    return components[id]!.placeholder
   })
 
   // 匹配带子元素的 JSX 组件标签：<ComponentName ...>...</ComponentName>
@@ -205,7 +205,7 @@ export function loadToEditor(mdxContent: string): BridgeResult {
     const id = components.length
     const encoded = toBase64(match)
     components.push({ original: match, placeholder: makePlaceholder(COMPONENT_PREFIX, id, encoded) })
-    return components[id].placeholder
+    return components[id]!.placeholder
   })
 
   return {
@@ -248,20 +248,10 @@ function latexDecodeHtmlEntities(encoded: string): string {
  */
 export function saveToMdx(markdownContent: string, originalMdxContent: string): RestoreResult {
   // 第一步：处理 Markdown 转义字符
-  // turndown 在转换时会对 Markdown 特殊字符进行转义：
-  //   \\*  → * (原本的星号)
-  //   \\_  → _ (原本的下划线)
-  //   \\.  → . (原本的点号，防止被当作列表标记)
-  //   \\-  → - (原本的连字符)
-  //   \\`  → ` (原本的反引号)
-  //   \\\\  → \\ (原本的反斜杠)
-  // 我们需要把它们还原回来
   let restoredContent = markdownContent
-    .replace(/\\\\([*_`~[\]()#>+=|\\])/g, '$1')
+    .replace(/\\([*_`~[\]()#>+=|\\])/g, '$1')
 
   // 第二步：从 markdownContent 中提取 math HTML 节点中的 LaTeX
-  // 这是关键：Tiptap getHTML() 输出的是数学公式的 HTML 表示，
-  // 而不是占位符。我们需要用这些 LaTeX 值从 originalMdxContent 中找回对应占位符
   type MathPlaceholder = { latex: string; placeholder: string; original: string }
   const mathBlockPlaceholders: MathPlaceholder[] = []
   const mathInlinePlaceholders: MathPlaceholder[] = []
@@ -275,16 +265,13 @@ export function saveToMdx(markdownContent: string, originalMdxContent: string): 
     const encoded = phMatch[3]
 
     if (type === 'MATHBLOCK' || type === 'MATHINLINE') {
-      // 占位符中存储的是完整的原始 MDX 片段（Base64 编码）
-      // 例如：$$\nx^2\n$$ 或 $E=mc^2$
       let decoded: string
       try {
-        decoded = fromBase64(encoded)
+        decoded = fromBase64(encoded!)
       } catch {
         continue
       }
 
-      // 提取 LaTeX 核心（去掉 $$ 或 $ 包装）
       let latex: string
       if (decoded.startsWith('$$')) {
         latex = decoded.slice(2, -2).trim()
@@ -298,24 +285,19 @@ export function saveToMdx(markdownContent: string, originalMdxContent: string): 
 
   // 第三步：从 markdownContent 中提取 math HTML 节点，并用 LaTeX 值匹配占位符
   // 处理块级公式：<div data-type="block-math" data-latex="...">...</div>
-  // 重要：使用 [\s\S]*?（0+字符，非贪婪）而非 [\s\S]+?（1+字符，非贪婪）
-  // 因为空的 math div（如 KaTeX 渲染后的占位容器）在 > 和 < 之间有 0 个字符
   restoredContent = restoredContent.replace(
     /<div[^>]*data-type="block-math"[^>]*data-latex="([^"]*)"[^>]*>[\s\S]*?<\/div>/g,
     (_fullMatch, latexAttr) => {
       const latex = latexDecodeHtmlEntities(latexAttr)
-      // 通过 LaTeX 值匹配占位符
       const match = mathBlockPlaceholders.find(ph => ph.latex === latex)
       if (match) {
         return match.placeholder
       }
-      // 如果找不到对应占位符（极少数情况），使用 LaTeX 构造 $$...$$
       return `\n$$\n${latex}\n$$\n`
     }
   )
 
   // 处理行内公式：<span data-type="inline-math" data-latex="...">...</span>
-  // 同样使用 [\s\S]*? 以支持空的 math span
   restoredContent = restoredContent.replace(
     /<span[^>]*data-type="inline-math"[^>]*data-latex="([^"]*)"[^>]*>[\s\S]*?<\/span>/g,
     (_fullMatch, latexAttr) => {
@@ -336,9 +318,9 @@ export function saveToMdx(markdownContent: string, originalMdxContent: string): 
 
   while ((m = extractRegex.exec(restoredContent)) !== null) {
     const type = m[1]
-    const id = parseInt(m[2], 10)
+    const id = parseInt(m[2]!, 10)
     const encoded = m[3]
-    const decoded = fromBase64(encoded)
+    const decoded = fromBase64(encoded!)
     placeholderMap.set(`${type}${id}`, decoded)
   }
 
@@ -348,9 +330,9 @@ export function saveToMdx(markdownContent: string, originalMdxContent: string): 
     const fallbackRegex = /\u0002([A-Z]+)\u0003(\d+):(.+?)\u0003/g
     while ((m = fallbackRegex.exec(originalMdxContent)) !== null) {
       const type = m[1]
-      const id = parseInt(m[2], 10)
+      const id = parseInt(m[2]!, 10)
       const encoded = m[3]
-      const decoded = fromBase64(encoded)
+      const decoded = fromBase64(encoded!)
       placeholderMap.set(`${type}${id}`, decoded)
     }
   }
@@ -373,16 +355,13 @@ export function saveToMdx(markdownContent: string, originalMdxContent: string): 
   )
 
   // 第五步：修正 turndown 的 Markdown 输出格式
-  // turndown 使用 setext 风格渲染 HTML 标题（标题\n=====\n），
-  // 需要转回 ATX 风格（# 标题）
   const finalResult = afterPlaceholderRestore
-    // h1 setext → ATX: 标题\n========\n → # 标题
+    // h1 setext → ATX
     .replace(/^(.+)\n={3,}\n/gm, (_match, text) => `# ${text}\n`)
-    // h2 setext → ATX: 标题\n-------\n → ## 标题
+    // h2 setext → ATX
     .replace(/^(.+)\n-{3,}\n/gm, (_match, text) => `## ${text}\n`)
 
   // 第六步：修正粗体/斜体标记
-  // turndown 默认使用 _ 而非 *，需要统一为 *（与原始 MDX 一致）
     .replace(/_(.+?)_/g, '*$1*')
 
   return { content: finalResult, restored }

@@ -232,7 +232,7 @@ export default function MatterAnimation({
     const iconsBodies: IconBody[] = []
 
     for (let i = 0; i < total; i++) {
-      iconsBodies.push(new IconBody(iconsImgs[i], domLayer))
+      iconsBodies.push(new IconBody(iconsImgs[i]!, domLayer))
     }
 
     iconsBodiesRef.current = iconsBodies

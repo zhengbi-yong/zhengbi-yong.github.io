@@ -81,21 +81,21 @@ function extractCategoryInfo(path: string): {
     return {
       book: null,
       chapter: null,
-      article: parts[0],
+      article: parts[0]!,
     }
   } else if (parts.length === 2) {
     // 有分类，没有子分类
     return {
-      book: parts[0],
+      book: parts[0]!,
       chapter: null,
-      article: parts[1],
+      article: parts[1]!,
     }
   } else {
     // 有分类和子分类
     return {
-      book: parts[0],
+      book: parts[0]!,
       chapter: parts.slice(1, -1).join('/'), // 支持多级子分类
-      article: parts[parts.length - 1],
+      article: parts[parts.length - 1]!,
     }
   }
 }

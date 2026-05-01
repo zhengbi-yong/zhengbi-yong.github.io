@@ -150,7 +150,7 @@ export default function FullscreenMusicSheet({
     const nextJsRoutes = ['_next', 'api', 'static']
 
     if (segments.length >= 1) {
-      const firstSegment = segments[0]
+      const firstSegment = segments[0]!
       if (nextJsRoutes.includes(firstSegment)) {
         return ''
       }
@@ -184,7 +184,7 @@ export default function FullscreenMusicSheet({
 
     if (!rootFilePath) {
       const xmlFiles = Object.keys(zip.files).filter(
-        (name) => name.endsWith('.xml') && !zip.files[name].dir && !name.startsWith('META-INF/')
+        (name) => name.endsWith('.xml') && !zip.files[name]!.dir && !name.startsWith('META-INF/')
       )
 
       if (xmlFiles.length === 0) {
@@ -194,7 +194,7 @@ export default function FullscreenMusicSheet({
       rootFilePath =
         xmlFiles.find(
           (name) => name.toLowerCase().includes('score') || name.toLowerCase().includes('partwise')
-        ) || xmlFiles[0]
+        ) || xmlFiles[0]!
     }
 
     const rootFile = zip.files[rootFilePath]
@@ -657,7 +657,7 @@ export default function FullscreenMusicSheet({
                   const osmd = osmdInstanceRef.current
                   if (osmd && osmd.cursor) {
                     // Move to the last measure
-                    for (let i = 0; i < parsedScore.measures; i++) {
+                    for (let i = 0; i < parsedScore!.measures; i++) {
                       osmd.cursor.nextMeasure()
                     }
                     osmd.cursor.update()

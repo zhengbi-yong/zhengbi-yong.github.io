@@ -38,7 +38,7 @@ export function parseMOLFormat(molData: string): ParseResult {
     // Find the counts line (contains number of atoms and bonds)
     let countsLineIndex = -1
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].includes('V2000') || lines[i].includes('V3000')) {
+      if (lines[i]!.includes('V2000') || lines[i]!.includes('V3000')) {
         countsLineIndex = i
         break
       }
@@ -49,7 +49,7 @@ export function parseMOLFormat(molData: string): ParseResult {
     }
 
     // Extract atom and bond counts
-    const countsLine = lines[countsLineIndex]
+    const countsLine = lines[countsLineIndex]!
     const numAtoms = parseInt(countsLine.substring(0, 3).trim())
     const numBonds = parseInt(countsLine.substring(3, 6).trim())
 
@@ -163,14 +163,14 @@ export function convertMOLToSMILES(molData: string): string | null {
 
   // For simple molecules without rings, we can try a linear approach
   if (bonds.length === 0 && atoms.length === 1) {
-    return atoms[0].symbol
+    return atoms[0]!.symbol
   }
 
   // Try to find a reasonable starting point (least connected atom)
   const connectivity = atoms.map(() => 0)
   bonds.forEach((bond) => {
-    connectivity[bond.from - 1]++
-    connectivity[bond.to - 1]++
+    connectivity[bond.from - 1]!++
+    connectivity[bond.to - 1]!++
   })
 
   const startAtomIndex = connectivity.indexOf(Math.min(...connectivity))
@@ -185,7 +185,7 @@ export function convertMOLToSMILES(molData: string): string | null {
     }
 
     visited.add(atomIndex)
-    const atom = atoms[atomIndex]
+    const atom = atoms[atomIndex]!
     let atomSmiles = atom.symbol
 
     // Find connected atoms
@@ -208,7 +208,7 @@ export function convertMOLToSMILES(molData: string): string | null {
       atomSmiles += branches.join('')
     } else if (connected.length === 1) {
       // Linear continuation
-      const nextIndex = connected[0]
+      const nextIndex = connected[0]!
       const bond = bonds.find(
         (b) =>
           (b.from === atomIndex + 1 && b.to === nextIndex + 1) ||
@@ -220,7 +220,7 @@ export function convertMOLToSMILES(molData: string): string | null {
       // In the middle of a chain
       const nextIndices = connected.filter((i) => !visited.has(i))
       if (nextIndices.length === 1) {
-        const nextIndex = nextIndices[0]
+        const nextIndex = nextIndices[0]!
         const bond = bonds.find(
           (b) =>
             (b.from === atomIndex + 1 && b.to === nextIndex + 1) ||

@@ -77,7 +77,7 @@ export default function MusicSheet({
     const nextJsRoutes = ['_next', 'api', 'static']
 
     if (segments.length >= 1) {
-      const firstSegment = segments[0]
+      const firstSegment = segments[0]!
       if (nextJsRoutes.includes(firstSegment)) {
         return ''
       }
@@ -116,7 +116,7 @@ export default function MusicSheet({
     // 如果没有找到 container.xml 或解析失败，查找所有 .xml 文件
     if (!rootFilePath) {
       const xmlFiles = Object.keys(zip.files).filter(
-        (name) => name.endsWith('.xml') && !zip.files[name].dir && !name.startsWith('META-INF/')
+        (name) => name.endsWith('.xml') && !zip.files[name]!.dir && !name.startsWith('META-INF/')
       )
 
       if (xmlFiles.length === 0) {
@@ -127,7 +127,7 @@ export default function MusicSheet({
       rootFilePath =
         xmlFiles.find(
           (name) => name.toLowerCase().includes('score') || name.toLowerCase().includes('partwise')
-        ) || xmlFiles[0]
+        ) || xmlFiles[0]!
     }
 
     // 提取根文件

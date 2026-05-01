@@ -151,10 +151,10 @@ export function useHeadingObserver({
       let minTop = Infinity
 
       for (let i = 0; i < headings.length; i++) {
-        const rect = headings[i].getBoundingClientRect()
+        const rect = headings[i]!.getBoundingClientRect()
         if (rect.top >= 0 && rect.top < minTop) {
           minTop = rect.top
-          topmostInViewport = headings[i]
+          topmostInViewport = headings[i]!
         }
       }
 
@@ -175,7 +175,7 @@ export function useHeadingObserver({
           activeId = topmostInViewport.id
         } else {
           // 已进入下半部，高亮上一条
-          activeId = idx > 0 ? headings[idx - 1].id : topmostInViewport.id
+          activeId = idx > 0 ? headings[idx - 1]!.id : topmostInViewport.id
         }
       }
 

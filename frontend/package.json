@@ -9,7 +9,7 @@
     "build": "pnpm velite && cross-env NODE_OPTIONS=--experimental-json-modules node ./scripts/generate/generate-search.mjs && node ./scripts/build/run-next-build.js && cross-env NODE_NO_WARNINGS=1 NODE_OPTIONS=--experimental-json-modules node ./scripts/build/postbuild.mjs",
     "serve": "next start -p 3001 -H 0.0.0.0",
     "analyze": "cross-env ANALYZE=true next build",
-    "lint": "eslint . --max-warnings=600",
+    "lint": "eslint . --max-warnings=0",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
@@ -240,6 +240,7 @@
     "eslint-plugin-react-hooks": "7",
     "eslint-plugin-storybook": "10.2.13",
     "globals": "^17.3.0",
+    "happy-dom": "^20.9.0",
     "husky": "^9.1.7",
     "isomorphic-dompurify": "^3.0.0",
     "jsdom": "^28.1.0",
@@ -258,7 +259,7 @@
   },
   "lint-staged": {
     "*.+(js|jsx|ts|tsx)": [
-      "eslint --fix --max-warnings=100 --no-warn-ignored"
+      "eslint --fix --max-warnings=0 --no-warn-ignored"
     ],
     "*.+(js|jsx|ts|tsx|json|css|md|mdx)": [
       "prettier --write"

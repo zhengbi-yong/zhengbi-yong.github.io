@@ -16,7 +16,7 @@ interface CodeBlockProps {
 function extractLanguage(className?: string): string {
   if (!className) return ''
   const match = className.match(/language-(\w+)/)
-  return match ? match[1] : ''
+  return match ? match[1]! : ''
 }
 
 /**
@@ -43,7 +43,7 @@ function extractTextContent(children: ReactNode): string {
  */
 function extractShikiContent(html: string): string {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
-  const inner = match ? match[1] : html
+  const inner = match ? match[1]! : html
   // Remove newline text nodes between .line spans (preserve other whitespace inside spans)
   return inner.replace(/<\/span>\n<span/g, '</span><span')
 }
