@@ -3,7 +3,7 @@ FROM rust:1.92-slim-bookworm AS builder
 ARG APP_VERSION=dev
 ARG VCS_REF=local
 ARG BUILD_DATE=unknown
-ARG SQLX_OFFLINE=true
+ARG SQLX_OFFLINE=false
 ARG DATABASE_URL=
 ARG SWAGGER_UI_DOWNLOAD_URL=
 ARG DEBIAN_APT_FORCE_HTTPS=false
@@ -70,6 +70,7 @@ RUN set -eux; \
 WORKDIR /app
 
 ENV SQLX_OFFLINE=${SQLX_OFFLINE}
+ENV DATABASE_URL=${DATABASE_URL}
 
 # ============================================================
 # Layer 1: 仅复制依赖清单文件 —— 构建依赖层 (缓存友好)
@@ -83,7 +84,7 @@ COPY crates/shared/Cargo.toml   crates/shared/
 COPY crates/worker/Cargo.toml   crates/worker/
 COPY crates/migrator/Cargo.toml crates/migrator/
 
-# 确保 SQLx 离线缓存目录存在（可选，有则加速编译）
+# 确保 SQLx 离线缓存目录存在
 RUN mkdir -p .sqlx
 
 # 为每个 crate 创建空的 src/lib.rs，使 cargo 能解析 workspace
@@ -103,8 +104,8 @@ RUN for crate in api core db shared worker migrator; do \
     echo 'fn main() {}' > crates/migrator/src/main.rs
 
 # 构建所有依赖（此层被 Docker 缓存！仅 Cargo.toml 变化时重新构建）
-RUN SQLX_OFFLINE=true cargo build --release -p blog-api -p blog-worker 2>&1 || \
-    SQLX_OFFLINE=true cargo build --release -p blog-api -p blog-worker
+RUN cargo build --release -p blog-api -p blog-worker 2>&1 || \
+    cargo build --release -p blog-api -p blog-worker
 
 # ============================================================
 # Layer 2: 复制实际源代码 —— 仅变更文件触发重新编译
@@ -123,7 +124,7 @@ RUN set -eux; \
       unzip -o /tmp/swagger-ui.zip -d crates/api/openapi/swagger-ui/ && \
       rm /tmp/swagger-ui.zip; \
     fi; \
-    SQLX_OFFLINE=true cargo build --release -p blog-api -p blog-worker
+    cargo build --release -p blog-api -p blog-worker
 
 # =============================================================================
 # Production Stage
@@ -239,7 +240,7 @@ FROM production AS local-runtime
 # =============================================================================
 FROM rust:1.92-slim-bookworm AS development
 
-ARG SQLX_OFFLINE=true
+ARG SQLX_OFFLINE=false
 ARG DATABASE_URL=
 ARG SWAGGER_UI_DOWNLOAD_URL=
 ARG DEBIAN_APT_FORCE_HTTPS=false
