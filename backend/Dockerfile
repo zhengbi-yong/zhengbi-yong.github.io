@@ -114,7 +114,9 @@ COPY migrations migrations/
 COPY openapi openapi/
 
 # 最终构建（仅重新编译变更的源文件，增量编译极快）
+# touch 确保 cargo 检测到源文件变化，即使 target/ 中有 Layer 1 的 dummy 产物
 RUN set -eux; \
+    find crates -name '*.rs' -exec touch {} +; \
     if [ -n "${SWAGGER_UI_DOWNLOAD_URL}" ]; then \
       curl -fsSL "${SWAGGER_UI_DOWNLOAD_URL}" -o /tmp/swagger-ui.zip && \
       mkdir -p crates/api/openapi && \
