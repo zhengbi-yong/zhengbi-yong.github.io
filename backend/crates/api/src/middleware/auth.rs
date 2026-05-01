@@ -240,6 +240,30 @@ pub async fn optional_auth_middleware(
     next.run(request).await
 }
 
+/// 便捷函数：从请求中提取 token 并检查黑名单
+///
+/// 用于需要确保 token 未被吊销的处理器（如管理员操作）。
+/// 由于黑名单检查需要 Redis I/O，此函数不应在中间件中调用，
+/// 而是在具体 handler 中按需调用。
+///
+/// # 用法
+/// ```no_run
+/// let request = ...;
+/// require_token_not_blacklisted(&state, &request).await?;
+/// // 继续处理请求...
+/// ```
+pub async fn require_token_not_blacklisted(
+    state: &AppState,
+    request: &Request,
+) -> Result<(), AuthError> {
+    let token = extract_token(request).ok_or(AuthError::MissingToken)?;
+    if is_token_blacklisted(state, &token).await? {
+        tracing::warn!("Token blacklisted, rejecting request");
+        return Err(AuthError::InvalidToken);
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
