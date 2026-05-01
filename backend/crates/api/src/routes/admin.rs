@@ -102,6 +102,10 @@ pub struct AdminStats {
 pub struct PostListQuery {
     pub page: Option<u32>,
     pub page_size: Option<u32>,
+    #[serde(default)]
+    pub search: Option<String>,
+    #[serde(default)]
+    pub status: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
@@ -1019,6 +1023,8 @@ pub async fn get_admin_stats(
     params(
         ("page" = Option<u32>, Query, description = "页码，从1开始", example = 1),
         ("page_size" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
+        ("search" = Option<String>, Query, description = "搜索关键词（标题和摘要）"),
+        ("status" = Option<String>, Query, description = "文章状态筛选：Published/Draft/Archived"),
     ),
     responses(
         (status = 200, description = "成功获取文章列表", body = PostListResponse),
@@ -1040,34 +1046,70 @@ pub async fn list_posts_admin(
     let page_size = query.page_size.unwrap_or(20).min(100);
     let offset = (page - 1) * page_size;
 
-    // 获取总数（只统计未删除的）
-    let total: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM posts WHERE deleted_at IS NULL")
-        .fetch_one(&state.db)
-        .await?;
-
-    // 获取文章列表（关联 post_stats 获取统计数据）
-    let posts = sqlx::query_as::<_, PostAdminItem>(
+    // Build dynamic WHERE clause
+    use sqlx::QueryBuilder;
+    let mut count_builder: QueryBuilder<'_, sqlx::Postgres> =
+        QueryBuilder::new("SELECT COUNT(*) FROM posts p WHERE p.deleted_at IS NULL");
+    let mut list_builder: QueryBuilder<'_, sqlx::Postgres> = QueryBuilder::new(
         "SELECT p.id, p.slug, p.title, p.summary,
                 COALESCE(m.cdn_url, m.storage_path)::text as cover_image_url,
                 INITCAP(p.status::text) as status, p.published_at::text, cat.name as category_name,
                 COALESCE(p.author_display_name, u.username) as author_name,
-                p.view_count,
-                p.like_count,
-                p.comment_count,
+                p.view_count, p.like_count, p.comment_count,
                 p.created_at::text, p.updated_at::text,
                 p.reading_time, p.is_featured
          FROM posts p
          LEFT JOIN media m ON p.cover_image_id = m.id
          LEFT JOIN categories cat ON p.category_id = cat.id
          LEFT JOIN users u ON p.author_id = u.id
-         WHERE p.deleted_at IS NULL
-         ORDER BY p.updated_at DESC
-         LIMIT $1 OFFSET $2",
-    )
-    .bind(page_size as i64)
-    .bind(offset as i64)
-    .fetch_all(&state.db)
-    .await?;
+         WHERE p.deleted_at IS NULL",
+    );
+
+    if let Some(ref search) = query.search {
+        let search_clean = search.trim();
+        if !search_clean.is_empty() {
+            let pattern = format!("%{}%", search_clean);
+            count_builder.push(" AND (p.title ILIKE ");
+            count_builder.push_bind(pattern.clone());
+            count_builder.push(" OR p.summary ILIKE ");
+            count_builder.push_bind(pattern.clone());
+            count_builder.push(")");
+
+            list_builder.push(" AND (p.title ILIKE ");
+            list_builder.push_bind(pattern.clone());
+            list_builder.push(" OR p.summary ILIKE ");
+            list_builder.push_bind(pattern);
+            list_builder.push(")");
+        }
+    }
+
+    if let Some(ref status) = query.status {
+        let status_clean = status.trim();
+        if !status_clean.is_empty() {
+            count_builder.push(" AND INITCAP(p.status::text) = ");
+            count_builder.push_bind(status_clean);
+
+            list_builder.push(" AND INITCAP(p.status::text) = ");
+            list_builder.push_bind(status_clean);
+        }
+    }
+
+    // Execute count
+    let total: (i64,) = count_builder
+        .build_query_as()
+        .fetch_one(&state.db)
+        .await?;
+
+    // Execute list query
+    list_builder.push(" ORDER BY p.updated_at DESC LIMIT ");
+    list_builder.push_bind(page_size as i64);
+    list_builder.push(" OFFSET ");
+    list_builder.push_bind(offset as i64);
+
+    let posts = list_builder
+        .build_query_as::<PostAdminItem>()
+        .fetch_all(&state.db)
+        .await?;
 
     Ok(Json(PostListResponse {
         posts,
