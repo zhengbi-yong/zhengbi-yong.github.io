@@ -4,9 +4,9 @@
 
 **Goal:** 实现「离线 MDX 文件 ↔ 在线数据库文章」的双向闭环，支持单篇/批量导入导出、媒体资产联动、多种格式互转、Git 同步，打造完整的多模态内容创作平台。
 
-**Architecture:** 基于已有的 `tiptap_json_to_mdx()` 和 `mdx_to_tiptap_json()` 转换核心，新增 REST API 端点 + 管理后台 UI，打通「本地文件 → 数据库 → TipTap 编辑器 → MDX 渲染」全链路。
+**Architecture:** 基于已有的 `mdx_to_blocknote_json()`（MDX→BlockNote JSON）和 `editor.blocksToMarkdownLossy()`（BlockNote→Markdown lossy）转换核心。编辑器使用 **BlockNote**（非 TipTap），存储格式为 BlockNote JSON 数组 `[{id, type, props, content, children}]`。新增 REST API 端点 + 管理后台 UI，打通「本地 MDX 文件 → BlockNote JSON → PostgreSQL → 前端渲染」全链路。
 
-**Tech Stack:** Rust/Axum 后端、Next.js/React 前端、TipTap 编辑器、PostgreSQL、MinIO/S3 媒体存储、YAML frontmatter。
+**Tech Stack:** Rust/Axum 后端、Next.js/React 前端、**BlockNote 编辑器**、PostgreSQL、MinIO/S3 媒体存储、YAML frontmatter。
 
 ---
 
@@ -14,16 +14,21 @@
 
 | 能力 | 实现 | 状态 |
 |------|------|------|
-| MDX → TipTap JSON | `mdx_to_tiptap_json()` / `mdx_to_blocknote_json()` | ✅ 已有 |
-| TipTap JSON → MDX | `tiptap_json_to_mdx()` | ✅ 已有 |
+| MDX → BlockNote JSON（导入用） | `mdx_to_blocknote_json()` | ✅ 已有 |
+| BlockNote → Markdown lossy（编辑时实时生成） | `editor.blocksToMarkdownLossy()`，保存为 `content_mdx` | ✅ 已有 |
+| BlockNote JSON → MDX 精确转换（导出用） | **待实现 `blocknote_json_to_mdx()`** | ❌ 缺失 |
 | 文件系统扫描同步 | `POST /admin/sync/mdx` — 扫描 `frontend/data/blog/` | ✅ 已有 |
-| 单篇批量 MDX 转换 | `POST /admin/mdx/convert`, `/batch-convert`, `/migrate-all` | ✅ 已有 |
+| 单篇批量 MDX 转换 | `POST /admin/mdx/convert`, `/batch-convert`（用 `mdx_to_blocknote_json`） | ✅ 已有 |
 | 媒体上传/管理 | `POST /admin/media/upload`, MinIO/LocalStorage | ✅ 已有 |
 | 文章 CRUD | `POST/PATCH/DELETE /admin/posts`, `GET /posts/{slug}` | ✅ 已有 |
 | 搜索索引 | Meilisearch + PostgreSQL FTS | ✅ 已有 |
 | 版本历史 | `post_versions` 表 + CRUD API | ✅ 已有 |
 
-> **现状缺口：** 没有「从 API 导出完整 MDX」「从 UI 上传/粘贴 MDX 导入」「媒体与文章联动导出」「批量操作 UI」的能力。
+> **格式关键差异：**
+> - **BlockNote JSON**（当前编辑器格式）：数组 `[{id, type, props, content, children}]`，使用 `props`/`styles`
+> - **TipTap JSON**（旧格式，legacy `tiptap_json_to_mdx()` 仅处理此格式）：对象 `{type:"doc", content:[...]}`，使用 `attrs`/`marks`
+> - **`content_json` 列**存储的是 BlockNote JSON 数组
+> - **`content_mdx` 列**存储的是 `editor.blocksToMarkdownLossy()` 输出（lossy Markdown）
 
 ---
 
@@ -61,13 +66,221 @@
 
 ## 分阶段实施计划
 
-### Phase 1: 核心导入导出（最小闭环）— 4 个任务
+### Phase 1: 核心导入导出（最小闭环）— 5 个任务
 
 这是用户的核心诉求，先打通最基本的链路。
 
+> **⚠️ 关键前提：** 当前编辑器是 BlockNote，`content_json` 存储的是 BlockNote JSON 数组格式。现有的 `tiptap_json_to_mdx()` 只能处理 TipTap JSON 格式（`{type:"doc",...}`），无法处理 BlockNote JSON。因此导出前需要先实现 BlockNote JSON → MDX 转换。
+
 ---
 
-### Task 1: 后端 — 文章导出为 MDX API
+### Task 0: 核心转换器 — `blocknote_json_to_mdx()`
+
+**Objective:** 实现 BlockNote JSON 数组 → 精确 MDX 文本的转换器。这是导出功能的基石。
+
+**Files:**
+- Create: `backend/crates/core/src/blocknote_json_to_mdx.rs`
+- Modify: `backend/crates/core/src/lib.rs`（导出 `pub mod blocknote_json_to_mdx`）
+
+**Step 1: 实现转换器**
+
+BlockNote JSON 格式与 TipTap JSON 的关键差异：
+
+| 特征 | BlockNote JSON | TipTap JSON |
+|------|---------------|-------------|
+| 根结构 | `[{...}, {...}]` 数组 | `{"type":"doc","content":[...]}` |
+| 块属性 | `props`（如 `props.textAlignment`） | `attrs` |
+| 内联样式 | `styles`（如 `styles.bold: true`） | `marks: [{type:"bold"}]` |
+| 子块 | `children: []` | `content: []` |
+| 链接 | inline node `{type:"link"}` | mark `{type:"link"}` |
+
+需要处理的 BlockNote 块类型（从 `mdx_to_blocknote_json.rs` 逆向）：
+
+```rust
+// blocknote_json_to_mdx.rs
+/// 将 BlockNote JSON blocks 数组转换为 MDX 文本
+pub fn blocknote_json_to_mdx(blocks: &Value) -> String {
+    match blocks {
+        Value::Array(arr) => {
+            arr.iter()
+                .map(block_to_mdx)
+                .collect::<Vec<_>>()
+                .join("\n\n")
+        }
+        _ => String::new(),
+    }
+}
+
+fn block_to_mdx(block: &Value) -> String {
+    let btype = block["type"].as_str().unwrap_or("paragraph");
+    match btype {
+        "heading" => {
+            let level = block["props"]["level"].as_u64().unwrap_or(1);
+            let prefix = "#".repeat(level as usize);
+            format!("{} {}", prefix, inline_content_to_mdx(&block["content"]))
+        }
+        "paragraph" => inline_content_to_mdx(&block["content"]),
+        "codeBlock" => {
+            let lang = block["props"]["language"].as_str().unwrap_or("");
+            let code = inline_content_to_mdx(&block["content"]);
+            format!("```{}\n{}\n```", lang, code)
+        }
+        "bulletListItem" => {
+            let text = inline_content_to_mdx(&block["content"]);
+            format!("- {}", text)
+        }
+        "numberedListItem" => {
+            let text = inline_content_to_mdx(&block["content"]);
+            format!("1. {}", text)
+        }
+        "blockquote" => {
+            let text = inline_content_to_mdx(&block["content"]);
+            text.lines().map(|l| format!("> {}", l)).collect::<Vec<_>>().join("\n")
+        }
+        "image" => {
+            let src = block["props"]["url"].as_str().unwrap_or("");
+            let alt = block["props"]["caption"].as_str().unwrap_or("");
+            format!("![{}]({})", alt, src)
+        }
+        "table" => blocknote_table_to_mdx(block),
+        "divider" => "---".to_string(),
+        // ... 其他类型
+        _ => inline_content_to_mdx(&block["content"]),
+    }
+}
+
+fn inline_content_to_mdx(content: &Value) -> String {
+    match content {
+        Value::Array(items) => {
+            items.iter().map(inline_node_to_mdx).collect()
+        }
+        _ => String::new(),
+    }
+}
+
+fn inline_node_to_mdx(node: &Value) -> String {
+    let ntype = node["type"].as_str().unwrap_or("text");
+    match ntype {
+        "text" => {
+            let text = node["text"].as_str().unwrap_or("");
+            let styles = &node["styles"];
+            let mut result = text.to_string();
+            // 应用内联样式（注意嵌套顺序：bold > italic > code > strikethrough > link）
+            if is_style(styles, "bold") { result = format!("**{}**", result); }
+            if is_style(styles, "italic") { result = format!("*{}*", result); }
+            if is_style(styles, "code") { result = format!("`{}`", result); }
+            if is_style(styles, "strikethrough") { result = format!("~~{}~~", result); }
+            result
+        }
+        "link" => {
+            let href = node["props"]["href"].as_str().unwrap_or("");
+            let text = inline_content_to_mdx(&node["content"]);
+            format!("[{}]({})", text, href)
+        }
+        "mention" => format!("@{}", node["props"]["name"].as_str().unwrap_or("")),
+        _ => inline_content_to_mdx(&node.get("content").unwrap_or(&Value::Null)),
+    }
+}
+
+fn is_style(styles: &Value, name: &str) -> bool {
+    styles.get(name).and_then(|v| v.as_bool()).unwrap_or(false)
+}
+```
+
+**Step 2: 注册并添加测试**
+
+```rust
+// lib.rs
+pub mod blocknote_json_to_mdx;
+pub use blocknote_json_to_mdx::blocknote_json_to_mdx;
+```
+
+```rust
+// 测试（在 blocknote_json_to_mdx.rs 底部）
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_paragraph() {
+        let input = json!([{
+            "id": "1", "type": "paragraph", "props": {},
+            "content": [{"type": "text", "text": "Hello World", "styles": {}}],
+            "children": []
+        }]);
+        assert_eq!(blocknote_json_to_mdx(&input), "Hello World");
+    }
+
+    #[test]
+    fn test_heading() {
+        let input = json!([{
+            "id": "1", "type": "heading", "props": {"level": 2},
+            "content": [{"type": "text", "text": "标题", "styles": {}}],
+            "children": []
+        }]);
+        assert_eq!(blocknote_json_to_mdx(&input), "## 标题");
+    }
+
+    #[test]
+    fn test_bold_italic() {
+        let input = json!([{
+            "id": "1", "type": "paragraph", "props": {},
+            "content": [{"type": "text", "text": "bold", "styles": {"bold": true}}],
+            "children": []
+        }]);
+        assert_eq!(blocknote_json_to_mdx(&input), "**bold**");
+    }
+
+    #[test]
+    fn test_code_block() {
+        let input = json!([{
+            "id": "1", "type": "codeBlock", "props": {"language": "rust"},
+            "content": [{"type": "text", "text": "fn main() {}", "styles": {}}],
+            "children": []
+        }]);
+        assert_eq!(blocknote_json_to_mdx(&input), "```rust\nfn main() {}\n```");
+    }
+
+    #[test]
+    fn test_link() {
+        let input = json!([{
+            "id": "1", "type": "paragraph", "props": {},
+            "content": [{"type": "link", "props": {"href": "https://example.com"},
+              "content": [{"type": "text", "text": "click", "styles": {}}]}],
+            "children": []
+        }]);
+        assert_eq!(blocknote_json_to_mdx(&input), "[click](https://example.com)");
+    }
+
+    #[test]
+    fn test_roundtrip() {
+        // MDX → BlockNote JSON → MDX 应保持一致（除去格式差异）
+        let original = "# Hello\n\n**Bold** and *italic* text.\n\n```rust\nfn main() {}\n```";
+        let bn_json = crate::mdx_to_blocknote_json(original);
+        let roundtrip = blocknote_json_to_mdx(&bn_json);
+        // 注意：roundtrip 可能不完全等于 original（格式规范化差异），
+        // 但语义应等价
+        assert!(roundtrip.contains("Hello"));
+        assert!(roundtrip.contains("Bold"));
+        assert!(roundtrip.contains("fn main"));
+    }
+}
+```
+
+**Step 3: 构建验证**
+
+```bash
+cd backend && cargo test -p blog-core -- blocknote
+```
+
+**Verification:**
+- 所有单元测试通过
+- Roundtrip 测试：`MDX → mdx_to_blocknote_json() → blocknote_json_to_mdx()` 语义等价
+
+---
+
+### Task 1: 后端 — 文章导出为 MDX API（使用 blocknote_json_to_mdx）
 
 **Objective:** 新增 `GET /admin/posts/{id}/export/mdx` 端点，返回完整的 MDX 文本（含 YAML frontmatter + MDX body）。
 
@@ -106,9 +319,10 @@ pub struct ExportMdxResponse {
 /// 导出单篇文章为 MDX 文本
 ///
 /// 从数据库读取文章，组装 YAML frontmatter + MDX 正文，返回完整 MDX 文本。
-/// 支持两种来源：
-/// - 如果有 content_mdx → 直接使用（已是最佳 MDX 表示）
-/// - 否则从 content_json 通过 tiptap_json_to_mdx() 转换
+/// MDX 正文获取策略（按优先级）：
+/// 1. 如果 content_json 存在 → 用 blocknote_json_to_mdx() 精确转换（从 SSOT 导出）
+/// 2. 否则如果 content_mdx 存在 → 直接使用（编辑器保存时实时生成）
+/// 3. 都没有 → 空字符串
 #[utoipa::path(
     get,
     path = "/admin/posts/{id}/export/mdx",
@@ -186,14 +400,20 @@ pub async fn export_post_mdx(
     .fetch_all(&state.db)
     .await?;
 
-    // 获取 MDX 正文
-    let body_mdx = match &content_mdx {
-        Some(mdx) if !mdx.trim().is_empty() => mdx.clone(),
-        _ => {
-            match &content_json {
-                Some(json) => blog_core::tiptap_json_to_mdx(json),
-                None => String::new(),
+    // 获取 MDX 正文：优先用 blocknote_json_to_mdx 从 content_json（SSOT）精确转换
+    let body_mdx = match &content_json {
+        Some(json) if !json.is_null() => {
+            // 判断格式类型：数组 = BlockNote，对象 = TipTap（legacy）
+            if json.is_array() {
+                blog_core::blocknote_json_to_mdx(json)
+            } else {
+                // Legacy TipTap 格式 — 用旧的转换器
+                blog_core::tiptap_json_to_mdx(json)
             }
+        }
+        _ => {
+            // 没有 content_json 时降级使用 content_mdx
+            content_mdx.as_deref().unwrap_or("").to_string()
         }
     };
 
@@ -275,7 +495,7 @@ pub async fn export_post_md(
     Path(post_id): Path<Uuid>,
 ) -> Result<Json<ExportMdxResponse>, AppError> {
     // 与 export_post_mdx 类似，但只返回 body（不含 frontmatter），
-    // 且通过 tiptap_json_to_mdx() 获取纯 Markdown 表示
+    // 且通过 blocknote_json_to_mdx() 获取纯 Markdown 表示
     let ExportMdxResponse { slug, mdx, .. } = 
         export_post_mdx(State(state), Extension(_auth_user), Path(post_id)).await?.0;
     
@@ -863,8 +1083,8 @@ frontend/data/blog/*.mdx  ──watch──> 自动同步到 PostgreSQL
 
 ```
 🔥 立即实施（核心闭环）:
-  Task 1 → Task 2 → Task 3 → Task 4
-  完成后即可实现「导出 MDX → 本地编辑 → 导入 MDX」的基本闭环
+  Task 0 → Task 1 → Task 2 → Task 3 → Task 4
+  完成后即可实现「导出精确 MDX → 本地编辑 → 重新导入 BlockNote」的完整闭环
 
 ⭐ 尽快实施（生产效率）:
   Task 5 + Task 6（批量操作）
@@ -887,9 +1107,9 @@ frontend/data/blog/*.mdx  ──watch──> 自动同步到 PostgreSQL
 
 | Phase | 任务数 | 估计工时 | 核心价值 |
 |-------|--------|---------|---------|
-| Phase 1 (核心闭环) | 4 | 6-8h | 打通导入导出基本链路 |
+| Phase 1 (核心闭环) | 5 | 8-10h | 打通导入导出基本链路 |
 | Phase 2 (批量操作) | 2 | 3-4h | 批量处理效率提升 |
 | Phase 3 (媒体联动) | 1 | 3-4h | 图片资产随文章流转 |
 | Phase 4 (Git 同步) | 1 | 2-3h | 对接 CI/CD 发布流程 |
 | Phase 5 (高级功能) | 3 | 6-10h | 模板/自动同步/多格式 |
-| **合计** | **11** | **20-29h** | — |
+| **合计** | **12** | **22-31h** | — |
