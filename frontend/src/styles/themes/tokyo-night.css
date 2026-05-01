@@ -1,0 +1,19 @@
+/**
+ * Tokyo Night Theme
+ *
+ * Tokyo Night — neon blue on deep dark. Urban cyberpunk feel.
+ */
+
+[data-theme="tokyo-night"] {
+  --theme-accent: #7aa2f7;
+  --theme-accent-hover: #9ece6a;
+  --theme-accent-muted: rgba(122,162,247,0.1);
+  --theme-accent-foreground: #1a1b26;
+}
+
+.dark[data-theme="tokyo-night"] {
+  --theme-accent: #7aa2f7;
+  --theme-accent-hover: #9ece6a;
+  --theme-accent-muted: rgba(122,162,247,0.15);
+  --theme-accent-foreground: #c0caf5;
+}

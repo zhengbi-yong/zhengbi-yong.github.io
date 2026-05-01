@@ -1,0 +1,19 @@
+/**
+ * Discord Blurple Theme
+ *
+ * Discord Blurple — signature blurple. Community platform feel.
+ */
+
+[data-theme="discord-blurple"] {
+  --theme-accent: #5865f2;
+  --theme-accent-hover: #4752c4;
+  --theme-accent-muted: rgba(88,101,242,0.1);
+  --theme-accent-foreground: #ffffff;
+}
+
+.dark[data-theme="discord-blurple"] {
+  --theme-accent: #5865f2;
+  --theme-accent-hover: #7983f5;
+  --theme-accent-muted: rgba(88,101,242,0.15);
+  --theme-accent-foreground: #313338;
+}

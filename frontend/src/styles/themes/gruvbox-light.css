@@ -1,0 +1,19 @@
+/**
+ * Gruvbox Light Theme
+ *
+ * Gruvbox Light — warm amber on cream. Vintage paper feel.
+ */
+
+[data-theme="gruvbox-light"] {
+  --theme-accent: #b57614;
+  --theme-accent-hover: #af3a03;
+  --theme-accent-muted: rgba(181,118,20,0.1);
+  --theme-accent-foreground: #fbf1c7;
+}
+
+.dark[data-theme="gruvbox-light"] {
+  --theme-accent: #b57614;
+  --theme-accent-hover: #af3a03;
+  --theme-accent-muted: rgba(181,118,20,0.1);
+  --theme-accent-foreground: #3c3836;
+}

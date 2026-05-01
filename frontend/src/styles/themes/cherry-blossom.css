@@ -1,0 +1,19 @@
+/**
+ * Cherry Blossom Theme
+ *
+ * Cherry Blossom — soft pink on blush white. Spring romance.
+ */
+
+[data-theme="cherry-blossom"] {
+  --theme-accent: #f472b6;
+  --theme-accent-hover: #fb7185;
+  --theme-accent-muted: rgba(244,114,182,0.1);
+  --theme-accent-foreground: #fff1f2;
+}
+
+.dark[data-theme="cherry-blossom"] {
+  --theme-accent: #f472b6;
+  --theme-accent-hover: #fb7185;
+  --theme-accent-muted: rgba(244,114,182,0.15);
+  --theme-accent-foreground: #1a1a2e;
+}

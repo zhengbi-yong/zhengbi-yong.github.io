@@ -1,0 +1,19 @@
+/**
+ * Nord Aurora Theme
+ *
+ * Nord Aurora — purple on dark slate. Northern lights inspired.
+ */
+
+[data-theme="nord-aurora"] {
+  --theme-accent: #b48ead;
+  --theme-accent-hover: #88c0d0;
+  --theme-accent-muted: rgba(180,142,173,0.1);
+  --theme-accent-foreground: #2e3440;
+}
+
+.dark[data-theme="nord-aurora"] {
+  --theme-accent: #b48ead;
+  --theme-accent-hover: #88c0d0;
+  --theme-accent-muted: rgba(180,142,173,0.15);
+  --theme-accent-foreground: #eceff4;
+}

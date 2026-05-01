@@ -1,0 +1,19 @@
+/**
+ * Spotify Green Theme
+ *
+ * Spotify Green — iconic green on black. Music platform aesthetic.
+ */
+
+[data-theme="spotify-green"] {
+  --theme-accent: #1ed760;
+  --theme-accent-hover: #1fdf64;
+  --theme-accent-muted: rgba(30,215,96,0.1);
+  --theme-accent-foreground: #121212;
+}
+
+.dark[data-theme="spotify-green"] {
+  --theme-accent: #1ed760;
+  --theme-accent-hover: #1fdf64;
+  --theme-accent-muted: rgba(30,215,96,0.15);
+  --theme-accent-foreground: #ffffff;
+}

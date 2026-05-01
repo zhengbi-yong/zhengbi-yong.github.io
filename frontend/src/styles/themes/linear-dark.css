@@ -1,0 +1,19 @@
+/**
+ * Linear Dark Theme
+ *
+ * Linear Dark — subtle purple on deep black. Elite project management feel.
+ */
+
+[data-theme="linear-dark"] {
+  --theme-accent: #5e6ad2;
+  --theme-accent-hover: #6b75d6;
+  --theme-accent-muted: rgba(94,106,210,0.1);
+  --theme-accent-foreground: #0d0d0d;
+}
+
+.dark[data-theme="linear-dark"] {
+  --theme-accent: #5e6ad2;
+  --theme-accent-hover: #6b75d6;
+  --theme-accent-muted: rgba(94,106,210,0.15);
+  --theme-accent-foreground: #e6e6e6;
+}

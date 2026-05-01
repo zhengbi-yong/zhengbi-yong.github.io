@@ -1,0 +1,19 @@
+/**
+ * Matcha Latte Theme
+ *
+ * Matcha Latte — fresh green on cream. Japanese tea ceremony vibes.
+ */
+
+[data-theme="matcha-latte"] {
+  --theme-accent: #65a30d;
+  --theme-accent-hover: #84cc16;
+  --theme-accent-muted: rgba(101,163,13,0.1);
+  --theme-accent-foreground: #f7fee7;
+}
+
+.dark[data-theme="matcha-latte"] {
+  --theme-accent: #84cc16;
+  --theme-accent-hover: #a3e635;
+  --theme-accent-muted: rgba(132,204,22,0.15);
+  --theme-accent-foreground: #1a1a2e;
+}

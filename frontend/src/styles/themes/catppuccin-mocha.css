@@ -1,0 +1,19 @@
+/**
+ * Catppuccin Mocha Theme
+ *
+ * Catppuccin Mocha — warm pastel purple on dark base. Cozy coding vibe.
+ */
+
+[data-theme="catppuccin-mocha"] {
+  --theme-accent: #cba6f7;
+  --theme-accent-hover: #f5c2e7;
+  --theme-accent-muted: rgba(203,166,247,0.1);
+  --theme-accent-foreground: #1e1e2e;
+}
+
+.dark[data-theme="catppuccin-mocha"] {
+  --theme-accent: #cba6f7;
+  --theme-accent-hover: #f5c2e7;
+  --theme-accent-muted: rgba(203,166,247,0.15);
+  --theme-accent-foreground: #cdd6f4;
+}

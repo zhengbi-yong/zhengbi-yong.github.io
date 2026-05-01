@@ -1,0 +1,19 @@
+/**
+ * Plum Noir Theme
+ *
+ * Plum Noir — deep purple on dark indigo. Regal, mysterious elegance.
+ */
+
+[data-theme="plum-noir"] {
+  --theme-accent: #7e22ce;
+  --theme-accent-hover: #a855f7;
+  --theme-accent-muted: rgba(126,34,206,0.1);
+  --theme-accent-foreground: #0f0f1a;
+}
+
+.dark[data-theme="plum-noir"] {
+  --theme-accent: #a855f7;
+  --theme-accent-hover: #c084fc;
+  --theme-accent-muted: rgba(168,85,247,0.15);
+  --theme-accent-foreground: #e0d5f5;
+}

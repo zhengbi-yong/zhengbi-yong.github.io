@@ -1,0 +1,19 @@
+/**
+ * Catppuccin Latte Theme
+ *
+ * Catppuccin Latte — soft mauve on cream. Light and elegant.
+ */
+
+[data-theme="catppuccin-latte"] {
+  --theme-accent: #8839ef;
+  --theme-accent-hover: #ea76cb;
+  --theme-accent-muted: rgba(136,57,239,0.1);
+  --theme-accent-foreground: #eff1f5;
+}
+
+.dark[data-theme="catppuccin-latte"] {
+  --theme-accent: #8839ef;
+  --theme-accent-hover: #ea76cb;
+  --theme-accent-muted: rgba(136,57,239,0.1);
+  --theme-accent-foreground: #4c4f69;
+}

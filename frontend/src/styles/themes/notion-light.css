@@ -1,0 +1,19 @@
+/**
+ * Notion Light Theme
+ *
+ * Notion Light — text-as-accent minimalism. Productivity tool aesthetic.
+ */
+
+[data-theme="notion-light"] {
+  --theme-accent: #37352f;
+  --theme-accent-hover: #9b9a97;
+  --theme-accent-muted: rgba(55,53,47,0.06);
+  --theme-accent-foreground: #ffffff;
+}
+
+.dark[data-theme="notion-light"] {
+  --theme-accent: #37352f;
+  --theme-accent-hover: #9b9a97;
+  --theme-accent-muted: rgba(55,53,47,0.06);
+  --theme-accent-foreground: #37352f;
+}

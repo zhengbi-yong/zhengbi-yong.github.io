@@ -1,0 +1,19 @@
+/**
+ * Monokai Pro Theme
+ *
+ * Monokai Pro — vivid pink on dark charcoal. Iconic code editor aesthetic.
+ */
+
+[data-theme="monokai-pro"] {
+  --theme-accent: #ff6188;
+  --theme-accent-hover: #fc9867;
+  --theme-accent-muted: rgba(255,97,136,0.1);
+  --theme-accent-foreground: #2d2a2e;
+}
+
+.dark[data-theme="monokai-pro"] {
+  --theme-accent: #ff6188;
+  --theme-accent-hover: #fc9867;
+  --theme-accent-muted: rgba(255,97,136,0.15);
+  --theme-accent-foreground: #fcfcfa;
+}

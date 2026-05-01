@@ -20,7 +20,7 @@ export const AVAILABLE_THEMES: ThemeDefinition[] = [
   {
     id: 'midnight-indigo',
     name: '午夜靛蓝',
-    description: '默认配色 — 深靛蓝 + 紫色',
+    description: '默认 — 深靛蓝+紫色',
     colors: ['#6366f1', '#818cf8', '#a855f7', '#1a1a2e', '#0f0f23'],
   },
   {
@@ -56,7 +56,7 @@ export const AVAILABLE_THEMES: ThemeDefinition[] = [
   {
     id: 'github-dark',
     name: 'GitHub 暗色',
-    description: '开发者最爱 — GitHub 蓝',
+    description: '开发者最爱 — GitHub蓝',
     colors: ['#58a6ff', '#79c0ff', '#1f6feb', '#0d1117', '#161b22'],
   },
   {
@@ -68,7 +68,7 @@ export const AVAILABLE_THEMES: ThemeDefinition[] = [
   {
     id: 'dracula-purple',
     name: 'Dracula 紫',
-    description: '大胆风格 — 经典 Dracula',
+    description: '大胆风格 — 经典Dracula',
     colors: ['#bd93f9', '#ff79c6', '#50fa7b', '#282a36', '#44475a'],
   },
   {
@@ -83,8 +83,133 @@ export const AVAILABLE_THEMES: ThemeDefinition[] = [
     description: '黑客美学 — 荧光绿',
     colors: ['#00ff88', '#33ff99', '#00cc66', '#0a0a0a', '#111111'],
   },
+  {
+    id: 'catppuccin-mocha',
+    name: 'Catppuccin Mocha',
+    description: '温暖粉紫 — 暗底柔和',
+    colors: ['#cba6f7', '#f5c2e7', '#89b4fa', '#1e1e2e', '#313244'],
+  },
+  {
+    id: 'catppuccin-latte',
+    name: 'Catppuccin Latte',
+    description: '柔和淡紫 — 亮底奶油',
+    colors: ['#8839ef', '#ea76cb', '#04a5e5', '#eff1f5', '#e6e9ef'],
+  },
+  {
+    id: 'tokyo-night',
+    name: 'Tokyo Night',
+    description: '霓虹蓝 — 都市暗',
+    colors: ['#7aa2f7', '#9ece6a', '#f7768e', '#1a1b26', '#24283b'],
+  },
+  {
+    id: 'gruvbox-dark',
+    name: 'Gruvbox Dark',
+    description: '复古暖黄 — 暗底',
+    colors: ['#fabd2f', '#fe8019', '#83a598', '#282828', '#3c3836'],
+  },
+  {
+    id: 'gruvbox-light',
+    name: 'Gruvbox Light',
+    description: '琥珀暖 — 纸色底',
+    colors: ['#b57614', '#af3a03', '#076678', '#fbf1c7', '#ebdbb2'],
+  },
+  {
+    id: 'solarized-dark',
+    name: 'Solarized Dark',
+    description: '科学蓝 — 暗绿底',
+    colors: ['#268bd2', '#2aa198', '#b58900', '#002b36', '#073642'],
+  },
+  {
+    id: 'solarized-light',
+    name: 'Solarized Light',
+    description: '精确蓝 — 纸色底',
+    colors: ['#268bd2', '#2aa198', '#b58900', '#fdf6e3', '#eee8d5'],
+  },
+  {
+    id: 'monokai-pro',
+    name: 'Monokai Pro',
+    description: '粉红 — 暗炭底',
+    colors: ['#ff6188', '#fc9867', '#a9dc76', '#2d2a2e', '#403e41'],
+  },
+  {
+    id: 'nord-aurora',
+    name: 'Nord Aurora',
+    description: '紫 — 北极光',
+    colors: ['#b48ead', '#88c0d0', '#81a1c1', '#2e3440', '#3b4252'],
+  },
+  {
+    id: 'everforest',
+    name: 'Everforest',
+    description: '苔绿 — 森林系',
+    colors: ['#a7c080', '#7fbbb3', '#e69875', '#2b3339', '#323c41'],
+  },
+  {
+    id: 'apple-slate',
+    name: 'Apple Slate',
+    description: '苹果蓝 — 极简白',
+    colors: ['#0071e3', '#2997ff', '#86868b', '#ffffff', '#f5f5f7'],
+  },
+  {
+    id: 'stripe-blue',
+    name: 'Stripe Blue',
+    description: '电子靛蓝 — 科技白',
+    colors: ['#635bff', '#7a73ff', '#0a2540', '#ffffff', '#f6f9fc'],
+  },
+  {
+    id: 'spotify-green',
+    name: 'Spotify Green',
+    description: '经典绿 — 暗黑底',
+    colors: ['#1ed760', '#1fdf64', '#b3b3b3', '#121212', '#282828'],
+  },
+  {
+    id: 'discord-blurple',
+    name: 'Discord Blurple',
+    description: '蓝紫 — 社区风',
+    colors: ['#5865f2', '#4752c4', '#eb459e', '#ffffff', '#f2f3f5'],
+  },
+  {
+    id: 'notion-light',
+    name: 'Notion Light',
+    description: '文字即点缀 — 极简',
+    colors: ['#37352f', '#9b9a97', '#e16259', '#ffffff', '#fbfbfa'],
+  },
+  {
+    id: 'linear-dark',
+    name: 'Linear Dark',
+    description: '紫 — 精英黑',
+    colors: ['#5e6ad2', '#6b75d6', '#828282', '#0d0d0d', '#1a1a1a'],
+  },
+  {
+    id: 'cherry-blossom',
+    name: 'Cherry Blossom',
+    description: '粉白 — 春樱',
+    colors: ['#f472b6', '#fb7185', '#fda4af', '#fff1f2', '#ffe4e6'],
+  },
+  {
+    id: 'matcha-latte',
+    name: 'Matcha Latte',
+    description: '抹茶绿 — 清新',
+    colors: ['#65a30d', '#84cc16', '#a3e635', '#f7fee7', '#ecfccb'],
+  },
+  {
+    id: 'midnight-aurora',
+    name: 'Midnight Aurora',
+    description: '深蓝霓虹 — 深海',
+    colors: ['#06b6d4', '#22d3ee', '#67e8f9', '#020617', '#0f172a'],
+  },
+  {
+    id: 'terracotta-earth',
+    name: 'Terracotta Earth',
+    description: '赤陶 — 大地色',
+    colors: ['#c2410c', '#ea580c', '#f97316', '#fef2f2', '#fee2e2'],
+  },
+  {
+    id: 'plum-noir',
+    name: 'Plum Noir',
+    description: '深紫 — 暗黑优雅',
+    colors: ['#7e22ce', '#a855f7', '#c084fc', '#0f0f1a', '#1a1a2e'],
+  },
 ]
-
 interface ThemeState {
   /** The active theme ID. '' means default (midnight-indigo) */
   themeId: string

@@ -1,22 +1,36 @@
 /**
- * Theme Index
- *
- * Import this file to load all available color themes.
- * Each theme is activated via the data-theme attribute on <html>.
- *
- * Usage:
- *   <html data-theme="ocean-teal">  → activates Ocean Teal
- *   <html data-theme="">             → uses default (midnight-indigo)
+ * Theme Index — 32 curated color themes
  */
 
 @import './amber-warm.css';
+@import './apple-slate.css';
+@import './catppuccin-latte.css';
+@import './catppuccin-mocha.css';
+@import './cherry-blossom.css';
 @import './cyber-neon.css';
+@import './discord-blurple.css';
 @import './dracula-purple.css';
+@import './everforest.css';
 @import './forest-emerald.css';
 @import './github-dark.css';
+@import './gruvbox-dark.css';
+@import './gruvbox-light.css';
 @import './lavender-dream.css';
+@import './linear-dark.css';
+@import './matcha-latte.css';
+@import './midnight-aurora.css';
 @import './midnight-indigo.css';
+@import './monokai-pro.css';
+@import './nord-aurora.css';
 @import './nord-frost.css';
+@import './notion-light.css';
 @import './ocean-teal.css';
+@import './plum-noir.css';
 @import './rose-gold.css';
+@import './solarized-dark.css';
+@import './solarized-light.css';
+@import './spotify-green.css';
+@import './stripe-blue.css';
 @import './sunset-orange.css';
+@import './terracotta-earth.css';
+@import './tokyo-night.css';

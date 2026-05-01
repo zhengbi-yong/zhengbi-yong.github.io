@@ -1,0 +1,19 @@
+/**
+ * Solarized Light Theme
+ *
+ * Solarized Light — blue on warm paper. Reading-optimized palette.
+ */
+
+[data-theme="solarized-light"] {
+  --theme-accent: #268bd2;
+  --theme-accent-hover: #2aa198;
+  --theme-accent-muted: rgba(38,139,210,0.1);
+  --theme-accent-foreground: #fdf6e3;
+}
+
+.dark[data-theme="solarized-light"] {
+  --theme-accent: #268bd2;
+  --theme-accent-hover: #2aa198;
+  --theme-accent-muted: rgba(38,139,210,0.1);
+  --theme-accent-foreground: #657b83;
+}

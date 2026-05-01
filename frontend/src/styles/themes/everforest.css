@@ -1,0 +1,19 @@
+/**
+ * Everforest Theme
+ *
+ * Everforest — moss green on dark bark. Natural, calming woodland palette.
+ */
+
+[data-theme="everforest"] {
+  --theme-accent: #a7c080;
+  --theme-accent-hover: #7fbbb3;
+  --theme-accent-muted: rgba(167,192,128,0.1);
+  --theme-accent-foreground: #2b3339;
+}
+
+.dark[data-theme="everforest"] {
+  --theme-accent: #a7c080;
+  --theme-accent-hover: #7fbbb3;
+  --theme-accent-muted: rgba(167,192,128,0.15);
+  --theme-accent-foreground: #d3c6aa;
+}

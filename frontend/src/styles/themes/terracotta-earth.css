@@ -1,0 +1,19 @@
+/**
+ * Terracotta Earth Theme
+ *
+ * Terracotta Earth — burnt orange on warm cream. Mediterranean pottery.
+ */
+
+[data-theme="terracotta-earth"] {
+  --theme-accent: #c2410c;
+  --theme-accent-hover: #ea580c;
+  --theme-accent-muted: rgba(194,65,12,0.1);
+  --theme-accent-foreground: #fef2f2;
+}
+
+.dark[data-theme="terracotta-earth"] {
+  --theme-accent: #ea580c;
+  --theme-accent-hover: #f97316;
+  --theme-accent-muted: rgba(234,88,12,0.15);
+  --theme-accent-foreground: #1a1a2e;
+}

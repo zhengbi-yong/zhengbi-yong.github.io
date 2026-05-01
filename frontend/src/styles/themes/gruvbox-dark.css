@@ -1,0 +1,19 @@
+/**
+ * Gruvbox Dark Theme
+ *
+ * Gruvbox Dark — warm yellow on rich brown-black. Retro terminal aesthetic.
+ */
+
+[data-theme="gruvbox-dark"] {
+  --theme-accent: #fabd2f;
+  --theme-accent-hover: #fe8019;
+  --theme-accent-muted: rgba(250,189,47,0.12);
+  --theme-accent-foreground: #282828;
+}
+
+.dark[data-theme="gruvbox-dark"] {
+  --theme-accent: #fabd2f;
+  --theme-accent-hover: #fe8019;
+  --theme-accent-muted: rgba(250,189,47,0.12);
+  --theme-accent-foreground: #ebdbb2;
+}
