@@ -8,13 +8,7 @@ import { cn } from './lib/utils'
 import { useScorePlayback } from '@/hooks/useScorePlayback'
 // Theme is detected from DOM via MutationObserver (portal is outside React context)
 
-// Simple logger for development
-const logger = {
-  log: (...args: unknown[]) => console.log(...args),
-  error: (...args: unknown[]) => console.error(...args),
-  warn: (...args: unknown[]) => console.warn(...args),
-  debug: (...args: unknown[]) => console.debug(...args),
-}
+import { logger } from '@/lib/utils/logger'
 
 // Type for OpenSheetMusicDisplay (loaded dynamically)
 interface OpenSheetMusicDisplay {

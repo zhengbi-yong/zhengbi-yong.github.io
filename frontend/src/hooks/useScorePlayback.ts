@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import * as Tone from 'tone'
+import { logger } from '@/lib/utils/logger'
 
 export interface ParsedNote {
   id: string
@@ -278,7 +279,7 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
 
     try {
       const score = parseMusicXML(xmlContent)
-      console.log('[playback] parsed score:', { notes: score.notes.length, measures: score.measures, tempo: score.tempo,
+      logger.log('[playback] parsed score:', { notes: score.notes.length, measures: score.measures, tempo: score.tempo,
         first3: score.notes.slice(0, 3).map(n => ({ m: n.midi, p: n.pitch, t: n.startTime.toFixed(2) })) })
       setParsedScore(score)
       setPlaybackState((prev) => ({
@@ -287,7 +288,7 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
         loopEnd: score.measures - 1,
       }))
     } catch (err) {
-      console.error('Failed to parse MusicXML:', err)
+      logger.error('Failed to parse MusicXML:', err)
     }
   }, [xmlContent])
 
@@ -333,7 +334,7 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
 
   const play = useCallback(async () => {
     if (!parsedScore || parsedScore.notes.length === 0) {
-      console.log('[playback] early return: parsedScore=', parsedScore?.notes.length)
+      logger.log('[playback] early return: parsedScore=', parsedScore?.notes.length)
       return
     }
 
@@ -345,11 +346,11 @@ export function useScorePlayback(xmlContent: string | null): UseScorePlaybackRet
 
     const synth = synthRef.current
     if (!synth) {
-      console.log('[playback] synth not initialized')
+      logger.log('[playback] synth not initialized')
       return
     }
 
-    console.log('[playback] playing, notes count:', parsedScore.notes.length,
+    logger.log('[playback] playing, notes count:', parsedScore.notes.length,
       'first 3:', parsedScore.notes.slice(0, 3).map(n => ({ t: n.startTime.toFixed(2), d: n.duration.toFixed(2), m: n.midi, p: n.pitch })))
 
     // Stop any existing playback

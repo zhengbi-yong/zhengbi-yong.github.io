@@ -58,7 +58,7 @@ impl JwtService {
         let argon2 = Argon2::new(
             argon2::Algorithm::Argon2id,
             argon2::Version::V0x13,
-            argon2::Params::new(65536, 3, 4, None).unwrap(),
+            argon2::Params::new(65536, 3, 4, None).expect("argon2 params must be valid"),
         );
         let password_hash = argon2
             .hash_password(password.as_bytes(), &salt)
@@ -77,7 +77,7 @@ impl JwtService {
         let argon2 = Argon2::new(
             argon2::Algorithm::Argon2id,
             argon2::Version::V0x13,
-            argon2::Params::new(65536, 3, 4, None).unwrap(),
+            argon2::Params::new(65536, 3, 4, None).expect("argon2 params must be valid"),
         );
         Ok(argon2
             .verify_password(password.as_bytes(), &parsed_hash)

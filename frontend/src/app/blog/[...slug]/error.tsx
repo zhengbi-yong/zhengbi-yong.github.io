@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { logger } from '@/lib/utils/logger'
 
 /**
  * 文章详情页错误边界
@@ -16,7 +17,7 @@ export default function PostError({
 }) {
   useEffect(() => {
     // 记录错误到错误报告服务
-    console.error('Post page error:', error)
+    logger.error('Post page error:', error)
   }, [error])
 
   return (

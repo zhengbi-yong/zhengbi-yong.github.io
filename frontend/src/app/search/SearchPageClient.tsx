@@ -5,6 +5,7 @@ import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api/apiClient'
 import { resolveBackendApiBaseUrl } from '@/lib/api/resolveBackendApiBaseUrl'
+import { logger } from '@/lib/utils/logger'
 
 interface SearchResult {
   id: string
@@ -53,7 +54,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
         }
       } catch (fetchError) {
         if (!cancelled) {
-          console.error('Failed to load trending keywords:', fetchError)
+          logger.error('Failed to load trending keywords:', fetchError)
         }
       }
     }
@@ -106,7 +107,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
         }
       } catch (fetchError) {
         if (!cancelled) {
-          console.error('Search request failed:', fetchError)
+          logger.error('Search request failed:', fetchError)
           setError('Search is temporarily unavailable.')
           setResults([])
           setSuggestions([])

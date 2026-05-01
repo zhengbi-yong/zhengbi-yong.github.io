@@ -234,7 +234,7 @@ fn rate_limited_response(policy: RateLimitPolicy, outcome: RateLimitOutcome) -> 
         response.headers_mut().insert(
             RETRY_AFTER,
             HeaderValue::from_str(&outcome.retry_after_secs.to_string())
-                .expect("retry-after header should be valid"),
+                .unwrap_or_else(|_| HeaderValue::from_static("0")),
         );
     }
 
@@ -248,21 +248,21 @@ fn apply_rate_limit_headers(
 ) {
     headers.insert(
         RATE_LIMIT_LIMIT_SECOND,
-        HeaderValue::from_str(&policy.rps.to_string()).expect("rate-limit second should be valid"),
+        HeaderValue::from_str(&policy.rps.to_string()).unwrap_or_else(|_| HeaderValue::from_static("0")),
     );
     headers.insert(
         RATE_LIMIT_LIMIT_MINUTE,
-        HeaderValue::from_str(&policy.rpm.to_string()).expect("rate-limit minute should be valid"),
+        HeaderValue::from_str(&policy.rpm.to_string()).unwrap_or_else(|_| HeaderValue::from_static("0")),
     );
     headers.insert(
         RATE_LIMIT_REMAINING_SECOND,
         HeaderValue::from_str(&outcome.remaining_second(policy).to_string())
-            .expect("remaining second should be valid"),
+            .unwrap_or_else(|_| HeaderValue::from_static("0")),
     );
     headers.insert(
         RATE_LIMIT_REMAINING_MINUTE,
         HeaderValue::from_str(&outcome.remaining_minute(policy).to_string())
-            .expect("remaining minute should be valid"),
+            .unwrap_or_else(|_| HeaderValue::from_static("0")),
     );
 }
 

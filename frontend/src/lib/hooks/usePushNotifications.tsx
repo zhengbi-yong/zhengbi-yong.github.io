@@ -13,6 +13,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { logger } from '@/lib/utils/logger'
 
 interface PushNotificationOptions {
   title: string
@@ -93,7 +94,7 @@ export function usePushNotifications() {
    */
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!isSupported) {
-      console.warn('Push notifications are not supported')
+      logger.warn('Push notifications are not supported')
       return false
     }
 
@@ -102,7 +103,7 @@ export function usePushNotifications() {
     }
 
     if (permission.state === 'denied') {
-      console.warn('Notification permission denied')
+      logger.warn('Notification permission denied')
       return false
     }
 
@@ -114,7 +115,7 @@ export function usePushNotifications() {
       })
       return result === 'granted'
     } catch (_err) {
-      console.error('Failed to request notification permission:', _err)
+      logger.error('Failed to request notification permission:', _err)
       return false
     }
   }, [isSupported, permission.state])
@@ -151,7 +152,7 @@ export function usePushNotifications() {
 
       return subscription
     } catch (_err) {
-      console.error('Failed to subscribe to push notifications:', _err)
+      logger.error('Failed to subscribe to push notifications:', _err)
       throw _err
     }
   }, [isSupported, permission.state, requestPermission])
@@ -161,7 +162,7 @@ export function usePushNotifications() {
    */
   const unsubscribe = useCallback(async (): Promise<void> => {
     if (!subscription) {
-      console.warn('No active subscription to unsubscribe')
+      logger.warn('No active subscription to unsubscribe')
       return
     }
 
@@ -172,7 +173,7 @@ export function usePushNotifications() {
       // 通知服务器取消订阅
       await removeSubscriptionFromServer(subscription)
     } catch (_err) {
-      console.error('Failed to unsubscribe from push notifications:', _err)
+      logger.error('Failed to unsubscribe from push notifications:', _err)
       throw _err
     }
   }, [subscription])
@@ -183,7 +184,7 @@ export function usePushNotifications() {
   const sendLocalNotification = useCallback(
     async (options: PushNotificationOptions): Promise<void> => {
       if (permission.state !== 'granted') {
-        console.warn('Notification permission not granted')
+        logger.warn('Notification permission not granted')
         return
       }
 
@@ -210,7 +211,7 @@ export function usePushNotifications() {
 
         await registration.showNotification(options.title, notificationOptions)
       } catch (_err) {
-        console.error('Failed to show notification:', _err)
+        logger.error('Failed to show notification:', _err)
         throw _err
       }
     },

@@ -40,7 +40,7 @@ impl HmacCsrfToken {
 
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or_default()
             .as_secs();
 
         // Calculate HMAC signature
@@ -52,7 +52,7 @@ impl HmacCsrfToken {
         Self {
             nonce: nonce_arr,
             timestamp,
-            signature: result.into_bytes().as_slice().try_into().unwrap(),
+            signature: result.into_bytes().as_slice().try_into().expect("HMAC-SHA256 must produce 32 bytes"),
         }
     }
 
@@ -101,7 +101,7 @@ impl HmacCsrfToken {
     pub fn is_fresh(&self) -> bool {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or_default()
             .as_secs();
 
         // Token valid for 1 hour

@@ -10,6 +10,8 @@
  * - Idempotent pause/resume for Activity cleanup semantics
  */
 
+import { logger } from '@/lib/utils/logger'
+
 interface ManagedContext {
   id: string
   canvas: HTMLCanvasElement
@@ -78,7 +80,7 @@ class WebGLContextManager {
       }) as WebGLRenderingContext | null)
 
     if (!gl) {
-      console.warn(`[WebGLContextManager] Failed to acquire context for ${id}`)
+      logger.warn(`[WebGLContextManager] Failed to acquire context for ${id}`)
       return null
     }
 
@@ -95,7 +97,7 @@ class WebGLContextManager {
     this.contexts.set(id, managedContext)
     this.setupContextHandlers(id, canvas)
 
-    console.debug(`[WebGLContextManager] Acquired context ${id} (total: ${this.contexts.size})`)
+    logger.debug(`[WebGLContextManager] Acquired context ${id} (total: ${this.contexts.size})`)
     return gl
   }
 
@@ -139,7 +141,7 @@ class WebGLContextManager {
     this.contexts.delete(id)
     this.eventCallbacks.delete(id)
 
-    console.debug(`[WebGLContextManager] Released context ${id} (total: ${this.contexts.size})`)
+    logger.debug(`[WebGLContextManager] Released context ${id} (total: ${this.contexts.size})`)
   }
 
   /**
@@ -161,7 +163,7 @@ class WebGLContextManager {
       }
     }
 
-    console.debug(`[WebGLContextManager] Paused context ${id}`)
+    logger.debug(`[WebGLContextManager] Paused context ${id}`)
     return snapshot
   }
 
@@ -173,12 +175,12 @@ class WebGLContextManager {
     if (!managed) return false
 
     if (managed.isLost) {
-      console.warn(`[WebGLContextManager] Cannot resume lost context ${id}`)
+      logger.warn(`[WebGLContextManager] Cannot resume lost context ${id}`)
       return false
     }
 
     this.touch(id)
-    console.debug(`[WebGLContextManager] Resumed context ${id}`)
+    logger.debug(`[WebGLContextManager] Resumed context ${id}`)
     return true
   }
 
@@ -227,7 +229,7 @@ class WebGLContextManager {
     }
 
     if (oldestId) {
-      console.debug(`[WebGLContextManager] Evicting LRU context ${oldestId}`)
+      logger.debug(`[WebGLContextManager] Evicting LRU context ${oldestId}`)
       this.release(oldestId)
     }
   }
@@ -241,7 +243,7 @@ class WebGLContextManager {
       const managed = this.contexts.get(id)
       if (managed) {
         managed.isLost = true
-        console.warn(`[WebGLContextManager] Context ${id} lost`)
+        logger.warn(`[WebGLContextManager] Context ${id} lost`)
       }
       this.notifyCallbacks(id, event)
     }
@@ -250,7 +252,7 @@ class WebGLContextManager {
       const managed = this.contexts.get(id)
       if (managed) {
         managed.isLost = false
-        console.info(`[WebGLContextManager] Context ${id} restored`)
+        logger.info(`[WebGLContextManager] Context ${id} restored`)
       }
       this.notifyCallbacks(id, event)
     }
@@ -279,7 +281,7 @@ class WebGLContextManager {
    * Global context lost handler
    */
   private handleGlobalContextLost = (event: Event): void => {
-    console.warn('[WebGLContextManager] Global webglcontextlost event')
+    logger.warn('[WebGLContextManager] Global webglcontextlost event')
     // Mark all contexts as lost
     for (const [id, managed] of this.contexts) {
       managed.isLost = true
@@ -291,7 +293,7 @@ class WebGLContextManager {
    * Global context restored handler
    */
   private handleGlobalContextRestored = (_event: Event): void => {
-    console.info('[WebGLContextManager] Global webglcontextrestored event')
+    logger.info('[WebGLContextManager] Global webglcontextrestored event')
     // Note: Individual contexts may still be lost
     // Each context needs individual restoration
   }
@@ -323,7 +325,7 @@ class WebGLContextManager {
       try {
         callback(id, event)
       } catch (e) {
-        console.error(`[WebGLContextManager] Callback error for ${id}:`, e)
+        logger.error(`[WebGLContextManager] Callback error for ${id}:`, e)
       }
     }
   }
@@ -358,7 +360,7 @@ class WebGLContextManager {
     }
 
     WebGLContextManager.instance = null
-    console.debug('[WebGLContextManager] Disposed')
+    logger.debug('[WebGLContextManager] Disposed')
   }
 }
 
