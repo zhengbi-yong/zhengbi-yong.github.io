@@ -95,7 +95,6 @@
     --visitor-text-primary: var(--visitor-dark-text-primary);
     --visitor-text-secondary: var(--visitor-dark-text-secondary);
     --visitor-text-muted: var(--visitor-dark-text-muted);
-  }
 }
 
 /* 游客内容容器 - 最佳阅读宽度 */
