@@ -455,6 +455,19 @@ fn post_admin_routes() -> Router<AppState> {
             "/admin/posts/{postId}",
             delete(blog_api::routes::posts::delete_post),
         )
+        // ── 导出路由 ────────────────────────────────────────────────
+        .route(
+            "/admin/posts/{postId}/export/mdx",
+            get(blog_api::routes::export::export_post_mdx),
+        )
+        .route(
+            "/admin/posts/{postId}/export/md",
+            get(blog_api::routes::export::export_post_md),
+        )
+        .route(
+            "/admin/posts/export/batch",
+            post(blog_api::routes::export::batch_export_posts),
+        )
 }
 
 // 分类路由

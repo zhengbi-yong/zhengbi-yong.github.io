@@ -1,6 +1,7 @@
 pub mod admin;
 pub mod auth;
 pub mod comments;
+pub mod export;
 pub mod mdx_convert;
 pub mod mdx_sync;
 pub mod openapi;
@@ -20,6 +21,7 @@ pub mod versions; // 优化后的搜索模块
 pub use admin::*;
 pub use auth::*;
 pub use comments::*;
+pub use export::*;
 pub use mdx_convert::*;
 pub use mdx_sync::*;
 pub use openapi::*;
