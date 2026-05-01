@@ -45,6 +45,11 @@ async function bffFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     throw error
   }
 
+  // Handle 204 No Content and other empty responses
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return undefined as unknown as T
+  }
+
   return response.json()
 }
 

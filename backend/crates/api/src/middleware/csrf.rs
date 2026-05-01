@@ -236,11 +236,17 @@ pub async fn csrf_middleware(
 
     // 响应拦截：如果 extensions 中有 NewCsrfToken，注入 Set-Cookie
     if let Some(new_csrf) = new_csrf_token {
-        let (_, xsrf_cookie) = set_csrf_cookie(&new_csrf.token);
+        let (csrf_cookie, xsrf_cookie) = set_csrf_cookie(&new_csrf.token);
         let mut resp = response.into_response();
+        // 同时注入 HttpOnly csrf_token 和 JavaScript 可读的 XSRF-TOKEN
         resp.headers_mut()
-            .insert(axum::http::header::SET_COOKIE, xsrf_cookie.parse().unwrap_or_else(|e| {
-                tracing::error!(error = %e, cookie = %xsrf_cookie, "Failed to parse CSRF cookie as HeaderValue");
+            .append(axum::http::header::SET_COOKIE, csrf_cookie.parse().unwrap_or_else(|e| {
+                tracing::error!(error = %e, cookie = %csrf_cookie, "Failed to parse csrf_token cookie as HeaderValue");
+                HeaderValue::from_static("")
+            }));
+        resp.headers_mut()
+            .append(axum::http::header::SET_COOKIE, xsrf_cookie.parse().unwrap_or_else(|e| {
+                tracing::error!(error = %e, cookie = %xsrf_cookie, "Failed to parse XSRF-TOKEN cookie as HeaderValue");
                 HeaderValue::from_static("")
             }));
         Ok(resp)

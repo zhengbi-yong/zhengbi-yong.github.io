@@ -14,9 +14,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: production
+      network: host
       args:
         APP_VERSION: dev
-        DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+        DATABASE_URL: postgresql://blog_user:blog_password@127.0.0.1:5432/blog_db
         SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
     command: ["migrate"]
     restart: "no"
@@ -49,9 +50,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: production
+      network: host
       args:
         APP_VERSION: dev
-        DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+        DATABASE_URL: postgresql://blog_user:blog_password@127.0.0.1:5432/blog_db
         SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
     command: ["api"]
     restart: unless-stopped
@@ -96,9 +98,10 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: production
+      network: host
       args:
         APP_VERSION: dev
-        DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+        DATABASE_URL: postgresql://blog_user:blog_password@127.0.0.1:5432/blog_db
         SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
     command: ["worker"]
     restart: unless-stopped

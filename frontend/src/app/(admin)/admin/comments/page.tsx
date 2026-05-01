@@ -8,6 +8,7 @@
 import { useState } from 'react'
 import { useList, useUpdate, useDelete, useInvalidate } from '@refinedev/core'
 import { Search, Filter, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { logger } from '@/lib/utils/logger'
 
 import { PageHeader } from '@/components/admin/page-header'
@@ -88,9 +89,11 @@ export default function CommentManagementPage() {
         id: commentId,
         values: { status: newStatus },
       })
-      // Refine 会自动刷新列表
-    } catch (err) {
+      toast.success(`已将评论状态改为「${statusLabels[newStatus] || newStatus}」`)
+    } catch (err: any) {
+      const message = err?.message || '未知错误'
       logger.error('Failed to update comment status:', err)
+      toast.error(`状态更新失败: ${message}`)
     }
   }
 
@@ -104,9 +107,11 @@ export default function CommentManagementPage() {
         resource: 'admin/comments',
         id: commentId,
       })
-      // Refine 会自动刷新列表
-    } catch (err) {
+      toast.success('评论已删除')
+    } catch (err: any) {
+      const message = err?.message || '未知错误'
       logger.error('Failed to delete comment:', err)
+      toast.error(`删除失败: ${message}`)
     }
   }
 

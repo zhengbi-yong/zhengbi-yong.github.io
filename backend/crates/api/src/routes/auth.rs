@@ -166,7 +166,8 @@ pub async fn register(
         tracing::error!("Failed to generate CSRF token: {}", e);
         AppError::InternalError
     })?;
-    let (_, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
+    let (csrf_cookie, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
+    headers.append(header::SET_COOKIE, cookie_to_header_value(&csrf_cookie));
     headers.append(header::SET_COOKIE, cookie_to_header_value(&xsrf_cookie));
 
     Ok((
@@ -340,7 +341,8 @@ pub async fn login(
         tracing::error!("Failed to generate CSRF token: {}", e);
         AppError::InternalError
     })?;
-    let (_, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
+    let (csrf_cookie, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
+    headers.append(header::SET_COOKIE, cookie_to_header_value(&csrf_cookie));
     headers.append(header::SET_COOKIE, cookie_to_header_value(&xsrf_cookie));
 
     Ok((
