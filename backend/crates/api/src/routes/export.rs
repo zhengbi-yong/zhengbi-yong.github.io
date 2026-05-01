@@ -53,6 +53,9 @@ pub struct BatchExportQuery {
 pub struct BatchZipQuery {
     /// 逗号分隔的 UUID 列表
     pub ids: Option<String>,
+    /// 是否将引用的媒体文件打包进 ZIP（默认 false）
+    #[serde(default)]
+    pub include_media: bool,
 }
 
 // ============================================================================
@@ -358,8 +361,8 @@ pub async fn batch_export_posts(
 
 /// 批量导出 ZIP（GET 请求，通过 query 参数传递 IDs）
 ///
-/// 使用方式: `GET /admin/posts/export/batch-zip?ids=uuid1,uuid2,uuid3`
-/// 返回 ZIP 文件，每个文件名为 `{slug}.mdx`
+/// 使用方式: `GET /admin/posts/export/batch-zip?ids=uuid1,uuid2,uuid3&include_media=true`
+/// 返回 ZIP 文件，每篇文章一个 .mdx 文件，可选打包引用的媒体文件
 #[utoipa::path(
     get,
     path = "/admin/posts/export/batch-zip",
@@ -367,6 +370,7 @@ pub async fn batch_export_posts(
     security(("BearerAuth" = [])),
     params(
         ("ids" = String, Query, description = "逗号分隔的文章 ID 列表"),
+        ("include_media" = Option<bool>, Query, description = "是否打包媒体文件到 ZIP"),
     ),
     responses(
         (status = 200, description = "ZIP 文件下载"),
@@ -395,6 +399,10 @@ pub async fn batch_export_zip(
     }
 
     let limit = ids.len().min(200);
+    let include_media = params.include_media;
+
+    // 收集所有 MDX 数据用于媒体提取
+    let mut mdx_entries: Vec<(String, String)> = Vec::new(); // (filename, mdx_text)
 
     // 为每个 ID 生成 MDX 并打包
     let mut zip_buf = std::io::Cursor::new(Vec::new());
@@ -414,6 +422,7 @@ pub async fn batch_export_zip(
                 Ok(json_resp) => {
                     let data = json_resp.0;
                     let filename = format!("{}.mdx", data.slug.replace('/', "-"));
+                    mdx_entries.push((filename.clone(), data.mdx.clone()));
                     zip_writer
                         .start_file(&filename, options)
                         .map_err(|e| {
@@ -433,9 +442,30 @@ pub async fn batch_export_zip(
                 }
             }
 
-            // 每 50 篇打印一次进度
             if (i + 1) % 50 == 0 {
                 tracing::info!(count = i + 1, total = limit, "Batch ZIP export progress");
+            }
+        }
+
+        // ── 打包媒体文件 ──────────────────────────────────────────────
+        if include_media && !mdx_entries.is_empty() {
+            let image_urls = extract_image_urls(&mdx_entries);
+            if !image_urls.is_empty() {
+                let added = pack_media_files(
+                    &mut zip_writer,
+                    &state,
+                    &image_urls,
+                    options,
+                )
+                .await;
+                if let Err(ref e) = added {
+                    tracing::warn!(error=%e, "Some media files could not be packed");
+                }
+                tracing::info!(
+                    count = added.unwrap_or(0),
+                    total = image_urls.len(),
+                    "Media files packed into ZIP"
+                );
             }
         }
 
@@ -461,6 +491,154 @@ pub async fn batch_export_zip(
     let response = (StatusCode::OK, headers, Body::from(zip_data));
 
     Ok(response)
+}
+
+// ============================================================================
+// 媒体提取和打包
+// ============================================================================
+
+/// 从多个 MDX 文本中提取所有图片 URL
+fn extract_image_urls(entries: &[(String, String)]) -> Vec<String> {
+    use regex::Regex;
+    let re = Regex::new(r"!\[.*?\]\(([^)]+)\)").unwrap();
+    let mut urls = Vec::new();
+
+    for (_filename, mdx_text) in entries {
+        for cap in re.captures_iter(mdx_text) {
+            let url = cap[1].to_string();
+            if !urls.contains(&url) && !url.is_empty() {
+                urls.push(url);
+            }
+        }
+    }
+
+    urls
+}
+
+/// 将媒体文件从存储读取并写入 ZIP
+///
+/// 根据 URL 查找 media 表记录，读取文件内容，写入 ZIP 的 `media/` 目录。
+/// 返回成功打包的文件数量。
+async fn pack_media_files<W: std::io::Write + std::io::Seek>(
+    zip_writer: &mut zip::ZipWriter<W>,
+    state: &AppState,
+    urls: &[String],
+    options: zip::write::SimpleFileOptions,
+) -> Result<usize, AppError> {
+    if urls.is_empty() {
+        return Ok(0);
+    }
+
+    // 批量查询 media 表 — 匹配 cdn_url 或 storage_path
+    use sqlx::Row;
+
+    // 构造 IN 子句
+    let n = urls.len();
+    let cdn_placeholders: Vec<String> = (1..=n)
+        .map(|i| format!("${}", i))
+        .collect();
+    let storage_placeholders: Vec<String> = ((n + 1)..=(2 * n))
+        .map(|i| format!("${}", i))
+        .collect();
+    let query = format!(
+        r#"SELECT id, original_filename, cdn_url, storage_path, mime_type
+           FROM media
+           WHERE deleted_at IS NULL
+           AND (
+               cdn_url IN ({cdn}) OR storage_path IN ({storage})
+           )"#,
+        cdn = cdn_placeholders.join(","),
+        storage = storage_placeholders.join(","),
+    );
+
+    let mut db_query = sqlx::query(&query);
+    for url in urls {
+        db_query = db_query.bind(url);
+    }
+    for url in urls {
+        db_query = db_query.bind(url);
+    }
+
+    let rows = db_query.fetch_all(&state.db).await.map_err(|e| {
+        tracing::error!(error=%e, "Failed to query media records");
+        AppError::InternalError
+    })?;
+
+    // 构建 url → (original_filename, storage_path) 映射
+    let mut url_to_path: std::collections::HashMap<String, (String, String)> =
+        std::collections::HashMap::new();
+
+    for row in &rows {
+        let original_filename: String = row.get("original_filename");
+        let storage_path: String = row.get("storage_path");
+
+        if let Some(cdn_url) = row.get::<Option<String>, _>("cdn_url") {
+            url_to_path.insert(cdn_url, (original_filename.clone(), storage_path.clone()));
+        }
+        // 也以 storage_path 作为 key（兼容无 cdn_url 的情况）
+        url_to_path.insert(
+            storage_path.clone(),
+            (original_filename.clone(), storage_path.clone()),
+        );
+    }
+
+    let mut added = 0usize;
+    let storage = &state.storage;
+
+    for url in urls {
+        let (original_filename, storage_path) = match url_to_path.get(url) {
+            Some(v) => v,
+            None => {
+                // 尝试直接以 URL 路径作为 storage key 读取
+                tracing::debug!(url, "No media record found, trying direct storage read");
+                let direct_key = url
+                    .trim_start_matches(|c: char| c == '/')
+                    .to_string();
+                match storage.read(&direct_key).await {
+                    Ok(_data) => {
+                        // Fall through — use direct URL as key
+                    }
+                    Err(_) => continue,
+                }
+                // If direct read works, use URL-derived filename
+                let fname = std::path::Path::new(url)
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_else(|| format!("image_{}.bin", added));
+                match storage.read(&direct_key).await {
+                    Ok(data) => {
+                        let zip_name = format!("media/{}", fname);
+                        if zip_writer.start_file(&zip_name, options).is_ok() {
+                            if zip_writer.write_all(&data).is_ok() {
+                                added += 1;
+                            }
+                        }
+                    }
+                    Err(_) => continue,
+                }
+                continue;
+            }
+        };
+
+        // 从存储读取文件
+        match storage.read(storage_path).await {
+            Ok(data) => {
+                let zip_name = format!("media/{}", original_filename);
+                if zip_writer.start_file(&zip_name, options).is_ok() {
+                    if zip_writer.write_all(&data).is_err() {
+                        tracing::warn!(filename=original_filename, "Failed to write media to ZIP");
+                    } else {
+                        added += 1;
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::warn!(url, error=%e, "Failed to read media file");
+            }
+        }
+    }
+
+    Ok(added)
 }
 
 // ============================================================================

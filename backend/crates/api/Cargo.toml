@@ -88,6 +88,9 @@ aws-sdk-s3 = { version = "1.0", features = ["rt-tokio"] }
 # ZIP
 zip = { version = "2", default-features = false, features = ["deflate"] }
 
+# Regex for image URL extraction
+regex = "1"
+
 [dev-dependencies]
 # Testing
 axum-test = { workspace = true }

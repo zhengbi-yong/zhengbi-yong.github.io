@@ -69,6 +69,7 @@ export default function AdminPostsManagePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set())
+  const [includeMedia, setIncludeMedia] = useState(false)
   const [deleting, setDeleting] = useState<Set<string>>(new Set())
   const isFirstRender = useRef(true)
 
@@ -190,8 +191,9 @@ export default function AdminPostsManagePage() {
 
     try {
       const ids = Array.from(selectedPosts).join(',')
+      const mediaParam = includeMedia ? '&include_media=true' : ''
       const resp = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/posts/export/batch-zip?ids=${ids}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/posts/export/batch-zip?ids=${ids}${mediaParam}`,
         { credentials: 'include' }
       )
       if (!resp.ok) {
@@ -314,6 +316,15 @@ export default function AdminPostsManagePage() {
               已选择 {selectedPosts.size} 篇文章
             </span>
             <div className="flex items-center gap-2">
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includeMedia}
+                  onChange={(e) => setIncludeMedia(e.target.checked)}
+                  className="rounded border-input"
+                />
+                包含媒体
+              </label>
               <Button variant="outline" size="sm" onClick={handleBatchExport}>
                 <Archive className="mr-1.5 h-3.5 w-3.5" />
                 批量导出 ZIP

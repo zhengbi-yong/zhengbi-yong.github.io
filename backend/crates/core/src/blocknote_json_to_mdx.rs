@@ -271,6 +271,22 @@ fn inline_node_to_mdx(node: &Value) -> String {
                 .unwrap_or("");
             format!("@{}", name)
         }
+        "image" => {
+            // 内联图片（BlockNote 可能在段落内包含图片节点）
+            let url = node["props"]["url"]
+                .as_str()
+                .or_else(|| node["url"].as_str())
+                .unwrap_or("");
+            let caption = node["props"]["caption"]
+                .as_str()
+                .or_else(|| node["caption"].as_str())
+                .unwrap_or("");
+            if caption.is_empty() {
+                format!("![]({})", url)
+            } else {
+                format!("![{}]({})", caption, url)
+            }
+        }
         _ => {
             // 未知内联类型：尝试提取内容
             inline_content_to_mdx(

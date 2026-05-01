@@ -98,6 +98,14 @@ impl StorageBackend {
             StorageBackend::Minio(s) => s.presigned_download_url(key, expires_secs).await,
         }
     }
+
+    /// Read object content into bytes
+    pub async fn read(&self, key: &str) -> Result<Vec<u8>, StorageError> {
+        match self {
+            StorageBackend::Local(s) => s.read(key).await,
+            StorageBackend::Minio(s) => s.read(key).await,
+        }
+    }
 }
 
 /// Local filesystem storage backend
@@ -196,6 +204,14 @@ impl LocalStorage {
         _expires_secs: u32,
     ) -> Result<Option<String>, StorageError> {
         Ok(Some(self.object_url(key)))
+    }
+
+    async fn read(&self, key: &str) -> Result<Vec<u8>, StorageError> {
+        let path = self.full_path(key);
+        tokio::fs::read(&path).await.map_err(|error| match error.kind() {
+            std::io::ErrorKind::NotFound => StorageError::NotFound(key.to_string()),
+            _ => StorageError::Io(error),
+        })
     }
 }
 
@@ -370,6 +386,26 @@ impl MinioStorage {
 
         Ok(Some(url.uri().to_string()))
     }
+
+    async fn read(&self, key: &str) -> Result<Vec<u8>, StorageError> {
+        let key = normalize_key(key);
+        let response = self
+            .client
+            .get_object()
+            .bucket(&self.bucket)
+            .key(key)
+            .send()
+            .await
+            .map_err(|error| StorageError::S3(format!("Failed to read object: {}", error)))?;
+
+        let bytes = response
+            .body
+            .collect()
+            .await
+            .map_err(|error| StorageError::S3(format!("Failed to read object body: {}", error)))?;
+
+        Ok(bytes.into_bytes().to_vec())
+    }
 }
 
 fn normalize_key(key: &str) -> &str {
@@ -518,6 +554,10 @@ impl StorageService {
         expires_secs: u32,
     ) -> Result<Option<String>, StorageError> {
         self.backend.presigned_download_url(key, expires_secs).await
+    }
+
+    pub async fn read(&self, key: &str) -> Result<Vec<u8>, StorageError> {
+        self.backend.read(key).await
     }
 }
 
