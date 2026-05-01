@@ -1,4 +1,5 @@
 // 安全相关工具函数
+import DOMPurify from 'isomorphic-dompurify'
 
 // 内容安全策略配置
 export const CSP_CONFIG = {
@@ -51,20 +52,25 @@ export function generateCSP(environment: 'development' | 'production' = 'product
     .join('; ')
 }
 
-// XSS 防护
+// XSS 防护 — 使用 DOMPurify 进行完整的 HTML 清理
 export function sanitizeHtml(html: string): string {
-  // 基本的 HTML 清理
-  // 在生产环境中建议使用 DOMPurify
-  const map: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '/': '&#x2F;',
-  }
-
-  return html.replace(/[&<>"'/]/g, (s) => map[s] ?? s)
+  // DOMPurify 提供完整的 HTML 清理:
+  // - 移除 <script>, <iframe>, <object> 等危险标签
+  // - 移除 onerror, onclick 等事件处理器
+  // - 保留安全的 HTML 标签和属性
+  // - 同时兼容浏览器和 Node.js (SSR)
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li',
+      'code', 'pre', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'span', 'div', 'img', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
+      'hr', 'sub', 'sup', 'del', 'ins', 'mark',
+    ],
+    ALLOWED_ATTR: [
+      'href', 'src', 'alt', 'title', 'class', 'id', 'target', 'rel',
+      'width', 'height', 'loading', 'decoding',
+    ],
+  })
 }
 
 // URL 验证
