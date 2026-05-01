@@ -15,6 +15,8 @@ use std::path::{Path, PathBuf};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+use blog_core::mdx_to_blocknote_json;
+
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct MdxSyncRequest {
     #[serde(default)]
@@ -85,6 +87,14 @@ pub async fn sync_mdx_to_db(
         .map_err(|error| AppError::BadRequest(format!("刷新分类或标签统计失败: {error}")))?;
 
     clear_cache(&state).await?;
+
+    // 回填历史文章的 content_json（如果之前未生成）
+    if stats.created + stats.updated > 0 || stats.unchanged > 0 {
+        let (total, backfilled) = backfill_blocknote_json(&state).await.unwrap_or((0, 0));
+        if backfilled > 0 {
+            tracing::info!(total, backfilled, "MDX 同步: 回填 BlockNote JSON 完成");
+        }
+    }
 
     if stats.created + stats.updated > 0 {
         crate::outbox::add_search_index_rebuild(&state.db)
@@ -205,6 +215,11 @@ async fn process_mdx_file(
     .await
     .map_err(|error| format!("查询文章失败: {error}"))?;
 
+    // Compute BlockNote JSON from the MDX body (used by both UPDATE and INSERT)
+    let content_json = mdx_to_blocknote_json(&body);
+    // Also compute content_mdx (raw MDX for SSR read cache)
+    let content_mdx = &body;
+
     match existing_post {
         Some(existing) => {
             let current_tag_slugs = fetch_tag_slugs(pool, existing.id).await?;
@@ -229,19 +244,23 @@ async fn process_mdx_file(
                 UPDATE posts
                 SET title = $1,
                     content = $2,
-                    summary = $3,
-                    status = $4::post_status,
-                    published_at = $5,
-                    category_id = $6,
-                    show_toc = $7,
-                    layout = $8,
+                    content_json = $3,
+                    content_mdx = $4,
+                    summary = $5,
+                    status = $6::post_status,
+                    published_at = $7,
+                    category_id = $8,
+                    show_toc = $9,
+                    layout = $10,
                     deleted_at = NULL,
                     updated_at = NOW()
-                WHERE id = $9
+                WHERE id = $11
                 "#,
             )
             .bind(&frontmatter.title)
             .bind(&body)
+            .bind(&content_json)
+            .bind(content_mdx)
             .bind(&frontmatter.summary)
             .bind(status)
             .bind(published_at)
@@ -273,16 +292,18 @@ async fn process_mdx_file(
             sqlx::query(
                 r#"
                 INSERT INTO posts (
-                    id, slug, title, content, summary, status,
+                    id, slug, title, content, content_json, content_mdx, summary, status,
                     published_at, category_id, show_toc, layout,
                     reading_time
-                ) VALUES ($1, $2, $3, $4, $5, $6::post_status, $7, $8, $9, $10, $11)
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::post_status, $9, $10, $11, $12, $13)
                 "#,
             )
             .bind(post_id)
             .bind(&frontmatter.slug)
             .bind(&frontmatter.title)
             .bind(&body)
+            .bind(&content_json)
+            .bind(content_mdx)
             .bind(&frontmatter.summary)
             .bind(status)
             .bind(published_at)
@@ -828,4 +849,69 @@ fn unique_strings(values: Vec<String>) -> Vec<String> {
         .filter(|value| !value.trim().is_empty())
         .filter(|value| seen.insert(value.clone()))
         .collect()
+}
+
+/// 回填现有文章的 content_json 和 content_mdx
+///
+/// 对已有文章（content_json 为空或为 {}）批量转换 content → BlockNote JSON。
+pub async fn backfill_blocknote_json(state: &AppState) -> Result<(usize, usize), AppError> {
+    #[derive(sqlx::FromRow)]
+    struct PostRow {
+        id: Uuid,
+        content: String,
+    }
+
+    let rows: Vec<PostRow> = sqlx::query_as(
+        r#"SELECT id, content FROM posts
+           WHERE (content_json IS NULL OR content_json = '{}'::jsonb
+                  OR jsonb_array_length(content_json) = 0)
+             AND content IS NOT NULL AND content != ''"#
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    let total = rows.len();
+    let mut updated = 0_usize;
+
+    for row in rows {
+        let bn_json = mdx_to_blocknote_json(&row.content);
+        if bn_json.as_array().map_or(true, |a| a.is_empty()) {
+            continue;
+        }
+
+        sqlx::query(
+            r#"UPDATE posts
+               SET content_json = $2, content_mdx = $3
+               WHERE id = $1"#,
+        )
+        .bind(row.id)
+        .bind(&bn_json)
+        .bind(&row.content)
+        .execute(&state.db)
+        .await?;
+
+        updated += 1;
+    }
+
+    tracing::info!(
+        total = total,
+        updated = updated,
+        "回填 content_json（BlockNote 格式）完成"
+    );
+
+    Ok((total, updated))
+}
+
+/// Axum handler wrapper — 暴露为 HTTP 端点
+#[derive(Serialize)]
+struct BackfillResponse {
+    total: usize,
+    updated: usize,
+}
+
+pub async fn backfill_blocknote_json_handler(
+    State(state): State<AppState>,
+) -> Result<impl IntoResponse, AppError> {
+    let (total, updated) = backfill_blocknote_json(&state).await?;
+    Ok((StatusCode::OK, Json(BackfillResponse { total, updated })))
 }

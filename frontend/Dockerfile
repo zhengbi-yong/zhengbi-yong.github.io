@@ -2,8 +2,12 @@ FROM node:22-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 ENV HUSKY=0
+ENV COREPACK_ENABLE_STRICT=0
 
-RUN npm install -g pnpm
+ARG http_proxy
+ARG https_proxy
+
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
@@ -16,16 +20,20 @@ ARG VCS_REF=local
 ARG BUILD_DATE=unknown
 ARG NEXT_IGNORE_BUILD_ERRORS=0
 ARG NEXT_IGNORE_ESLINT=0
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG http_proxy
+ARG https_proxy
 
 ENV HUSKY=0
+ENV COREPACK_ENABLE_STRICT=0
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NEXT_IGNORE_BUILD_ERRORS=${NEXT_IGNORE_BUILD_ERRORS}
 ENV NEXT_IGNORE_ESLINT=${NEXT_IGNORE_ESLINT}
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY --from=deps /usr/local/bin/pnpm /usr/local/bin/pnpm
-COPY --from=deps /usr/local/bin/pnpx /usr/local/bin/pnpx
-COPY --from=deps /usr/local/lib/node_modules/pnpm /usr/local/lib/node_modules/pnpm
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 

@@ -213,6 +213,19 @@ pub async fn csrf_middleware(
                 return Err(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
+    } else {
+        // 对于 GET/HEAD/OPTIONS 等安全方法，下发一个新的 CSRF token
+        // 解决"鸡生蛋"问题：确保浏览器在发起写操作之前已经获得有效的 CSRF cookie
+        match generate_csrf_token(&state).await {
+            Ok(new_csrf) => {
+                request.extensions_mut().insert(NewCsrfToken {
+                    token: new_csrf.token,
+                });
+            }
+            Err(e) => {
+                tracing::error!("Failed to generate CSRF token on GET: {}", e);
+            }
+        }
     }
 
     // 在调用 next.run(request) 之前，提前提取 NewCsrfToken

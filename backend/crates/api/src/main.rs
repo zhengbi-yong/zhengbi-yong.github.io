@@ -637,7 +637,6 @@ fn admin_routes() -> Router<AppState> {
         .route("/admin/posts/{post_id}/versions/{version_number}", delete(blog_api::routes::versions::delete_version))
         .route("/admin/posts/{post_id}/versions/compare", get(blog_api::routes::versions::compare_versions))
         // MDX同步
-        .route("/admin/sync/mdx", post(blog_api::routes::mdx_sync::sync_mdx_to_db))
         .route("/admin/search/reindex", post(blog_api::routes::search::reindex_posts))
 }
 
@@ -645,6 +644,10 @@ fn admin_routes() -> Router<AppState> {
 fn mdx_convert_routes() -> Router<AppState> {
     use axum::routing::post;
     Router::new()
+        .route(
+            "/admin/sync/mdx",
+            post(blog_api::routes::mdx_sync::sync_mdx_to_db),
+        )
         .route(
             "/admin/mdx/convert",
             post(blog_api::routes::mdx_convert::convert_mdx),
@@ -656,6 +659,10 @@ fn mdx_convert_routes() -> Router<AppState> {
         .route(
             "/admin/mdx/migrate-all",
             post(blog_api::routes::mdx_convert::migrate_all_content_json),
+        )
+        .route(
+            "/admin/mdx/migrate-all-blocknote",
+            post(blog_api::routes::mdx_sync::backfill_blocknote_json_handler),
         )
 }
 
@@ -680,10 +687,10 @@ fn create_cors_layer(allowed_origins: Vec<String>) -> CorsLayer {
     let is_dev = allowed_origins.iter().any(|origin| origin.trim() == "*");
 
     if is_dev {
-        // 开发环境：允许所有来源
-        tracing::warn!("⚠️  CORS 开发模式已启用：允许所有来源（仅用于本地开发）");
+        // 开发环境：反射所有来源（兼容 credentials）
+        tracing::warn!("⚠️  CORS 开发模式已启用：反射所有来源（仅用于本地开发）");
         CorsLayer::new()
-            .allow_origin(Any)
+            .allow_origin(tower_http::cors::AllowOrigin::mirror_request())
             .allow_methods([
                 axum::http::Method::GET,
                 axum::http::Method::POST,
@@ -696,6 +703,7 @@ fn create_cors_layer(allowed_origins: Vec<String>) -> CorsLayer {
                 axum::http::header::AUTHORIZATION,
                 axum::http::header::ACCEPT,
                 axum::http::header::CONTENT_TYPE,
+                axum::http::HeaderName::from_static("x-csrf-token"),
             ])
             .allow_credentials(true)
     } else {
@@ -726,6 +734,7 @@ fn create_cors_layer(allowed_origins: Vec<String>) -> CorsLayer {
                         axum::http::header::AUTHORIZATION,
                         axum::http::header::ACCEPT,
                         axum::http::header::CONTENT_TYPE,
+                        axum::http::HeaderName::from_static("x-csrf-token"),
                     ])
                     .allow_credentials(true)
             }

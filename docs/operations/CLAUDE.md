@@ -9,7 +9,8 @@ Procedures for system maintenance, troubleshooting, and operational workflows.
 docs/operations/
 ├── restart-guide.md            # Complete restart and testing procedures
 ├── RESTRUCTURE_GUIDE.md        # Codebase restructuring guide
-└── TROUBLESHOOTING.md          # Common issues and solutions
+├── TROUBLESHOOTING.md          # Common issues and solutions
+└── docker-local-build.md       # Docker local build & deploy pitfalls (China network)
 ```
 
 ## Content Scope
@@ -116,6 +117,14 @@ docker exec blog-postgres psql -U blog_user -d blog_db -c "SELECT COUNT(*) FROM 
 - ✅ Admin panel accessible
 
 ## Troubleshooting
+
+### Docker Build Issues
+See [docker-local-build.md](docker-local-build.md) for comprehensive guide on:
+- China network restrictions (Docker Hub, GitHub, crates.io)
+- USTC mirror configuration
+- SQLx offline mode setup
+- pnpm symlink issues in Docker
+- SMTP configuration for Mailpit
 
 ### Issue: Backend Start Failure
 **Symptom**: `cargo run --bin api` errors

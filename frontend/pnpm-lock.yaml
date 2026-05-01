@@ -7,9 +7,10 @@ settings:
 overrides:
   dompurify: ^3.2.4
   mermaid: ^10.9.4
-  nanoid: ^5.0.9
+  nanoid: ^3.3.9
   gray-matter>js-yaml: ^3.14.1
   pliny>js-yaml: ^4.1.1
+  postcss: ^8.5.6
 
 importers:
 
@@ -10552,9 +10553,9 @@ packages:
     resolution: {integrity: sha512-tacvGzUY5o2D8CBh2rrwxyNojUsZNU2zjNTzKQrkgGJQTbGAfArVWXSKMBokBeeg6C7OLRGUEyoFlYbfeWQIqw==}
     engines: {node: '>=20.17'}
 
-  nanoid@5.1.6:
-    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
-    engines: {node: ^18 || >=20}
+  nanoid@3.3.11:
+    resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
+    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
   napi-build-utils@2.0.0:
@@ -11186,10 +11187,6 @@ packages:
   postcss-selector-parser@7.1.1:
     resolution: {integrity: sha512-orRsuYpJVw8LdAwqqLykBj9ecS5/cRHlI5+nvTo8LcCKmzDmqVORXtOIYEEQuL9D4BxtA1lm5isAqzQZCoQ6Eg==}
     engines: {node: '>=4'}
-
-  postcss@8.4.31:
-    resolution: {integrity: sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ==}
-    engines: {node: ^10 || ^12 || >=14}
 
   postcss@8.5.6:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
@@ -15547,7 +15544,7 @@ snapshots:
       jotai-scope: 0.7.2(jotai@2.11.0(@types/react@19.2.14)(react@19.2.4))(react@19.2.4)
       lodash.debounce: 4.0.8
       lodash.throttle: 4.1.1
-      nanoid: 5.1.6
+      nanoid: 3.3.11
       open-color: 1.9.1
       pako: 2.0.3
       perfect-freehand: 1.2.0
@@ -15576,7 +15573,7 @@ snapshots:
     dependencies:
       '@excalidraw/markdown-to-text': 0.1.2
       mermaid: 10.9.5
-      nanoid: 5.1.6
+      nanoid: 3.3.11
     transitivePeerDependencies:
       - supports-color
 
@@ -22174,7 +22171,7 @@ snapshots:
       '@types/node': 25.3.2
       hash.js: 1.1.7
       jszip: 3.10.1
-      nanoid: 5.1.6
+      nanoid: 3.3.11
       xml: 1.0.1
       xml-js: 1.6.11
 
@@ -25577,7 +25574,7 @@ snapshots:
 
   nano-spawn@2.0.0: {}
 
-  nanoid@5.1.6: {}
+  nanoid@3.3.11: {}
 
   napi-build-utils@2.0.0:
     optional: true
@@ -25666,7 +25663,7 @@ snapshots:
       '@swc/helpers': 0.5.15
       baseline-browser-mapping: 2.10.16
       caniuse-lite: 1.0.30001774
-      postcss: 8.4.31
+      postcss: 8.5.6
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
       styled-jsx: 5.1.6(@babel/core@7.29.0)(babel-plugin-macros@3.1.0)(react@19.2.4)
@@ -26407,15 +26404,9 @@ snapshots:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
 
-  postcss@8.4.31:
-    dependencies:
-      nanoid: 5.1.6
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
-
   postcss@8.5.6:
     dependencies:
-      nanoid: 5.1.6
+      nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
 

@@ -272,9 +272,10 @@
     "overrides": {
       "dompurify": "^3.2.4",
       "mermaid": "^10.9.4",
-      "nanoid": "^5.0.9",
+      "nanoid": "^3.3.9",
       "gray-matter>js-yaml": "^3.14.1",
-      "pliny>js-yaml": "^4.1.1"
+      "pliny>js-yaml": "^4.1.1",
+      "postcss": "^8.5.6"
     }
   }
 }

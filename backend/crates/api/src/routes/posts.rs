@@ -622,13 +622,7 @@ async fn get_post_response(
                         // fallback 1: content_json 有数据时用 TipTap 转换
                         let json_str = serde_json::to_string(&row.content_json).unwrap_or_default();
                         if json_str != "{}" && json_str.len() > 2 {
-                            if let Some(ref json_val) = row.content_json {
-                                tiptap_json_to_mdx(
-                                    &serde_json::from_value(json_val.clone()).unwrap_or_default(),
-                                )
-                            } else {
-                                row.content.clone()
-                            }
+                            tiptap_json_to_mdx(&row.content_json)
                         } else {
                             // fallback 2: 直接从 content 字段读取（旧数据导入路径）
                             row.content.clone()
@@ -674,9 +668,7 @@ async fn get_post_response(
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
                 reading_time: row.reading_time,
-                content_json: row
-                    .content_json
-                    .map(|v| serde_json::from_value(v).unwrap_or_default()),
+                content_json: Some(row.content_json),
                 content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
             };

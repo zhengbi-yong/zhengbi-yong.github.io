@@ -128,7 +128,11 @@ export class CSRFTokenManager {
 
     const cookies = document.cookie.split(';')
     for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split('=')
+      const trimmed = cookie.trim()
+      const eqIdx = trimmed.indexOf('=')
+      if (eqIdx === -1) continue
+      const name = trimmed.substring(0, eqIdx)
+      const value = trimmed.substring(eqIdx + 1)
       if (name === this.COOKIE_NAME) {
         return decodeURIComponent(value)
       }

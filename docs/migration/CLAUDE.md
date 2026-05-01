@@ -7,7 +7,8 @@ Documents system migration procedures, version upgrades, and data transformation
 
 ```
 docs/migration/
-└── payload-cms-migration.md    # Contentlayer → Payload CMS 3.0 migration
+├── payload-cms-migration.md            # Contentlayer → Payload CMS 3.0 migration
+└── sqlx-checksum-troubleshooting.md    # SQLx migration checksum issues and fixes
 ```
 
 ## Content Scope
@@ -80,6 +81,14 @@ pnpm install && pnpm build
 2. **TypeScript Errors**: Partial `// @ts-ignore` workarounds
 3. **Lexical Integration**: Chemical formula nodes partial
 4. **Port Conflicts**: Detection and resolution pending
+
+## SQLx Migration Troubleshooting
+
+See [sqlx-checksum-troubleshooting.md](sqlx-checksum-troubleshooting.md) for:
+- SQLx checksum mismatch diagnosis and fixes
+- SHA-384 checksum calculation
+- `_sqlx_migrations` table management
+- Prevention: offline mode, `cargo sqlx prepare`, consistent line endings
 
 ## Related Modules
 - `frontend/payload.config.ts` - Payload configuration

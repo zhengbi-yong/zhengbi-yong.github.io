@@ -3,14 +3,29 @@ function runtimeBackendOrigin(configuredUrl?: string) {
     return configuredUrl
   }
 
+  // 优先使用环境变量中的后端地址（SSR 和客户端都适用）
+  const envUrl =
+    process.env.BACKEND_INTERNAL_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL
+
+  if (envUrl) {
+    return envUrl
+  }
+
+  // 仅在没有配置时才回退到浏览器 origin（开发环境 localhost）
   if (typeof window !== 'undefined') {
-    return window.location.origin
+    // 开发环境下 frontend 和 backend 可能同端口（通过 docker-compose 端口映射）
+    const isLocalDev = window.location.hostname === 'localhost' ||
+                       window.location.hostname === '127.0.0.1'
+    if (isLocalDev) {
+      // 开发环境：frontend 3001，backend 3000
+      return window.location.protocol + '//' + window.location.hostname + ':3000'
+    }
   }
 
   return (
-    process.env.BACKEND_INTERNAL_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
+    envUrl ||
     'http://localhost:3000'
   )
 }

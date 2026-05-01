@@ -7,6 +7,28 @@ ARG SQLX_OFFLINE=true
 ARG DATABASE_URL=
 ARG SWAGGER_UI_DOWNLOAD_URL=
 ARG DEBIAN_APT_FORCE_HTTPS=false
+ARG http_proxy
+ARG https_proxy
+
+# Use USTC mirrors for Debian and Cargo (China-friendly)
+RUN set -eux; \
+    # Replace Debian sources with USTC mirror
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+      sed -i 's|http://deb.debian.org|http://mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources; \
+      sed -i 's|https://deb.debian.org|http://mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources; \
+    elif [ -f /etc/apt/sources.list ]; then \
+      sed -i 's|http://deb.debian.org|http://mirrors.ustc.edu.cn|g' /etc/apt/sources.list; \
+      sed -i 's|https://deb.debian.org|http://mirrors.ustc.edu.cn|g' /etc/apt/sources.list; \
+    fi; \
+    # Configure Cargo to use USTC mirror
+    mkdir -p /usr/local/cargo && \
+    cat > /usr/local/cargo/config.toml << 'CARGO_EOF'
+[source.crates-io]
+replace-with = 'ustc'
+
+[source.ustc]
+registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
+CARGO_EOF
 
 RUN if [ "${DEBIAN_APT_FORCE_HTTPS}" = "true" ]; then \
       if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
@@ -53,13 +75,18 @@ ENV DATABASE_URL=${DATABASE_URL}
 # 复制所有源代码（包括 Cargo 文件和 SQLx 缓存）
 COPY . .
 
+# Generate SQLx offline cache using the live database, then build
 RUN set -eux; \
     if [ -n "${SWAGGER_UI_DOWNLOAD_URL}" ]; then \
       export SWAGGER_UI_DOWNLOAD_URL="${SWAGGER_UI_DOWNLOAD_URL}"; \
     else \
       unset SWAGGER_UI_DOWNLOAD_URL; \
     fi; \
-    cargo build --locked --release -p blog-api -p blog-worker
+    if [ -n "${DATABASE_URL}" ]; then \
+      cargo install sqlx-cli --no-default-features --features postgres,native-tls; \
+      cargo sqlx prepare --workspace --database-url "${DATABASE_URL}"; \
+    fi; \
+    SQLX_OFFLINE=true cargo build --locked --release -p blog-api -p blog-worker
 
 # =============================================================================
 # Production Stage
@@ -70,6 +97,18 @@ ARG APP_VERSION=dev
 ARG VCS_REF=local
 ARG BUILD_DATE=unknown
 ARG DEBIAN_APT_FORCE_HTTPS=false
+ARG http_proxy
+ARG https_proxy
+
+# Use USTC mirrors for Debian (China-friendly)
+RUN set -eux; \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
+      sed -i 's|http://deb.debian.org|http://mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources; \
+      sed -i 's|https://deb.debian.org|http://mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources; \
+    elif [ -f /etc/apt/sources.list ]; then \
+      sed -i 's|http://deb.debian.org|http://mirrors.ustc.edu.cn|g' /etc/apt/sources.list; \
+      sed -i 's|https://deb.debian.org|http://mirrors.ustc.edu.cn|g' /etc/apt/sources.list; \
+    fi
 
 LABEL org.opencontainers.image.title="blog-backend" \
       org.opencontainers.image.description="Rust API, worker, and migration runtime for the blog platform" \

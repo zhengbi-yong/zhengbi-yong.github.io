@@ -36,7 +36,7 @@ const sentryBuildOptions = {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // 允许局域网其他机器访问开发服务器
-  allowedDevOrigins: ['192.168.0.161', '192.168.0.100'],
+  allowedDevOrigins: ['10.24.23.53', '192.168.0.161', '192.168.0.100'],
   // 解决 workspace 多个 lockfile 的警告 — 注释掉以强制使用 Webpack（Turbopack 对 reactjs-tiptap-editor 有 bug）
   // turbopack: {
   //   root: __dirname,
@@ -70,7 +70,7 @@ const nextConfig = {
   // 实验性功能
   experimental: {
     // 优化 CSS 处理
-    optimizeCss: true,
+    // optimizeCss: true, // Disabled: causes nanoid ESM/CJS conflict with postcss
     optimizePackageImports: [
       'lodash',
       'date-fns',
@@ -190,7 +190,7 @@ const generateSecurityHeaders = () => {
         'img-src': "'self' data: https: avatars.githubusercontent.com picsum.photos",
         'font-src': "'self' data: blob: https://fonts.gstatic.com https:",
         'connect-src':
-          "'self' https: http://localhost:3000 http://192.168.0.161:3000 https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://cloud.umami.is https://o1046881.ingest.sentry.io",
+          "'self' https: http://localhost:3000 http://10.24.23.53:3000 http://192.168.0.161:3000 https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://cloud.umami.is https://o1046881.ingest.sentry.io",
         'frame-src': 'giscus.app excalidraw.com',
         'worker-src': "'self' blob:",
         'media-src': "'self'",
@@ -216,7 +216,7 @@ const generateSecurityHeaders = () => {
         'font-src': "'self' data: blob: https://fonts.gstatic.com https:",
         'worker-src': "'self' blob:",
         'connect-src':
-          "'self' data: https: http://localhost:3000 http://192.168.0.161:3000 ws://localhost:3000 ws://localhost:3001 ws://192.168.0.161:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
+          "'self' data: https: http://localhost:3000 http://10.24.23.53:3000 http://192.168.0.161:3000 ws://localhost:3000 ws://localhost:3001 ws://10.24.23.53:3001 ws://192.168.0.161:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
         'frame-src': 'giscus.app excalidraw.com',
       }
 

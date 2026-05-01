@@ -12,6 +12,8 @@ import { ArticleMetadata } from '@/components/editor/ArticleMetadata'
 import { Loader2, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { postService, adminService } from '@/lib/api/backend'
+import { apiClient } from '@/lib/api/apiClient'
+import { useQueryClient } from '@tanstack/react-query'
 import { loadToEditor } from '@/lib/mdx/MDXContentBridge'
 import type { PostDetail } from '@/lib/types/backend'
 import { Button } from '@/components/shadcn/ui/button'
@@ -23,6 +25,7 @@ import TiptapEditor from '@/components/editor/TiptapEditor'
 export default function EditPostPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug: slugArray } = use(params)
   const slug = decodeURIComponent(slugArray.join('/'))
+  const queryClient = useQueryClient()
   const [isSaving, setIsSaving] = useState(false)
   const [saveStatus, setSaveStatus] = useState<{
     type: 'success' | 'error' | null
@@ -113,6 +116,9 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
         type: 'success',
         message: status === 'Published' ? '文章已更新并发布!' : '草稿已保存!',
       })
+      // 清除缓存，确保前端文章页面立即显示更新内容
+      apiClient.clearCache()
+      queryClient.invalidateQueries({ queryKey: ['post', slug] })
     } catch (error) {
       console.error('Failed to save post:', error)
       setSaveStatus({

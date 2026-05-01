@@ -1,0 +1,158 @@
+# Local development compose - runs from project root
+# Reuses existing dev infrastructure (postgres/redis/meilisearch/minio/mailpit)
+# but builds api/worker/migrate/frontend from local source
+
+name: blog-local
+
+services:
+  # =============================================
+  # Database Migration
+  # =============================================
+  migrate:
+    image: blog-backend:local
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+      args:
+        APP_VERSION: dev
+        DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+        SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
+    command: ["migrate"]
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+      REDIS_URL: redis://host.docker.internal:6379
+      JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
+      PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=
+      SESSION_SECRET: dev-session-secret-key-for-testing
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: noreply@blog.local
+      SMTP_ENCRYPTION: none
+      FRONTEND_BLOG_DIR: /frontend/data/blog
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./frontend/data:/frontend/data:ro
+    networks:
+      - blog-dev-network
+
+  # =============================================
+  # API Server
+  # =============================================
+  api:
+    image: blog-backend:local
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+      args:
+        APP_VERSION: dev
+        DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+        SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
+    command: ["api"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+      REDIS_URL: redis://host.docker.internal:6379
+      JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
+      PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=
+      SESSION_SECRET: dev-session-secret-key-for-testing
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: noreply@blog.local
+      SMTP_ENCRYPTION: none
+      FRONTEND_BLOG_DIR: /frontend/data/blog
+      CORS_ALLOWED_ORIGINS: "http://localhost:3001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./frontend/data:/frontend/data:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/.well-known/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - blog-dev-network
+
+  # =============================================
+  # Background Worker
+  # =============================================
+  worker:
+    image: blog-backend:local
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+      args:
+        APP_VERSION: dev
+        DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+        SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
+    command: ["worker"]
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+      REDIS_URL: redis://host.docker.internal:6379
+      JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
+      PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=
+      SESSION_SECRET: dev-session-secret-key-for-testing
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
+      SMTP_FROM: noreply@blog.local
+      SMTP_ENCRYPTION: none
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - api
+    networks:
+      - blog-dev-network
+
+  # =============================================
+  # Frontend (Next.js)
+  # =============================================
+  frontend:
+    image: blog-frontend:local
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        APP_VERSION: dev
+        NEXT_IGNORE_BUILD_ERRORS: 1
+        NEXT_IGNORE_ESLINT: 1
+        NEXT_PUBLIC_BACKEND_URL: http://localhost:3000
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      HOSTNAME: 0.0.0.0
+      BACKEND_INTERNAL_URL: http://api:3000
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3001
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - blog-dev-network
+
+networks:
+  blog-dev-network:
+    external: true
+    name: dev_blog-network
