@@ -70,15 +70,15 @@ export function ImmersiveEditorLayout({
     : []
 
   return (
-    <div className={cn('fixed inset-0 z-40 flex flex-col bg-white dark:bg-gray-900', className)}>
+    <div className={cn('fixed inset-0 z-40 flex flex-col bg-white', className)}>
       {/* Top bar with back button and menu */}
-      <div className="flex h-10 flex-shrink-0 items-center gap-2 border-b border-gray-200 bg-gray-100 px-3 dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex h-10 flex-shrink-0 items-center gap-2 border-b border-[var(--theme-border)] bg-[var(--theme-bg-tertiary)] px-3 dark:border-gray-700">
         {/* Back button */}
         <Link
           href="/admin/posts-manage"
           className={cn(
             'flex items-center gap-1.5 rounded-md px-2 py-1.5 transition-colors',
-            'text-gray-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700'
+            'text-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700'
           )}
           title="返回列表"
         >
@@ -98,7 +98,7 @@ export function ImmersiveEditorLayout({
       <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
 
       {/* Status bar */}
-      <div className="flex h-6 flex-shrink-0 items-center gap-4 border-t border-gray-200 bg-gray-100 px-3 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+      <div className="flex h-6 flex-shrink-0 items-center gap-4 border-t border-[var(--theme-border)] bg-[var(--theme-bg-tertiary)] px-3 text-xs text-[var(--theme-fg-secondary)] dark:border-gray-700 dark:text-[var(--theme-fg-tertiary)]">
         <span>{wordCount.toLocaleString()} 字</span>
         <span>{charCount.toLocaleString()} 字符</span>
         <span>{lineCount.toLocaleString()} 行</span>
@@ -112,13 +112,13 @@ export function ImmersiveEditorLayout({
           {/* Backdrop */}
           <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setSettingsOpen(false)} />
           {/* Modal */}
-          <div className="fixed inset-4 z-50 flex flex-col rounded-lg border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-800 overflow-hidden">
+          <div className="fixed inset-4 z-50 flex flex-col rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] shadow-2xl dark:border-gray-700 overflow-hidden">
             {/* Modal header */}
-            <div className="flex h-12 flex-shrink-0 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-700">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white">文章设置</h2>
+            <div className="flex h-12 flex-shrink-0 items-center justify-between border-b border-[var(--theme-border)] px-4 dark:border-gray-700">
+              <h2 className="text-base font-semibold text-[var(--theme-fg)] dark:text-white">文章设置</h2>
               <button
                 onClick={() => setSettingsOpen(false)}
-                className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                className="rounded-md p-1.5 text-[var(--theme-fg-tertiary)] transition-colors hover:bg-[var(--theme-bg-tertiary)] hover:text-[var(--theme-fg-secondary)] dark:hover:bg-gray-700 dark:hover:text-gray-300"
               >
                 <X className="h-5 w-5" />
               </button>

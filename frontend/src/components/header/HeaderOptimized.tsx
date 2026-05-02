@@ -115,20 +115,14 @@ export default function Header() {
     return cn(
       'inline-flex items-center border-b pb-1 text-sm font-medium tracking-[0.08em] transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
       isActive
-        ? isDark
-          ? 'border-white/70 text-white'
-          : 'border-zinc-900 text-zinc-950'
-        : isDark
-          ? 'border-transparent text-zinc-400 hover:border-white/20 hover:text-zinc-100'
-          : 'border-transparent text-zinc-500 hover:border-black/10 hover:text-zinc-900'
+        ? 'border-[var(--theme-fg)]/70 text-[var(--theme-fg)]'
+        : 'border-transparent text-[var(--theme-fg-tertiary)] hover:border-[var(--theme-border)] hover:text-[var(--theme-fg)]'
     )
   }
 
   const actionButtonClass = cn(
-    'inline-flex h-10 w-10 items-center justify-center rounded-full border text-current transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97]',
-    isDark
-      ? 'border-white/10 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.08]'
-      : 'border-black/8 bg-white/75 hover:border-black/12 hover:bg-black/[0.04]'
+    'inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97]',
+    'border-[var(--theme-border)] bg-[var(--theme-surface-hover)] text-[var(--theme-fg-secondary)] hover:border-[var(--theme-border-hover)] hover:text-[var(--theme-fg)]'
   )
 
   const actionIconClass = 'h-[18px] w-[18px]'
@@ -146,9 +140,7 @@ export default function Header() {
         className={cn(
           styles.header,
           'fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl',
-          isDark
-            ? 'border-[var(--border-subtle)] bg-[var(--shell-elevated)] text-zinc-100 shadow-[var(--shadow-soft)]'
-            : 'border-[var(--border-subtle)] bg-[var(--shell-elevated)] text-zinc-700 shadow-[var(--shadow-soft)]'
+          'border-[var(--theme-border)] bg-[var(--theme-header-bg)] text-[var(--theme-fg)] shadow-sm'
         )}
       >
         <div className="container-shell flex min-h-[var(--header-height)] items-center justify-between gap-6 py-3">
@@ -156,7 +148,7 @@ export default function Header() {
             href="/"
             className={cn(
               'shrink-0 text-[15px] font-semibold tracking-[-0.02em] transition-colors duration-[var(--motion-fast)] md:text-base',
-              isDark ? 'text-zinc-100 hover:text-zinc-300' : 'text-zinc-950 hover:text-zinc-600'
+              'text-[var(--theme-fg)] hover:text-[var(--theme-fg-secondary)]'
             )}
           >
             {siteMetadata.author}
@@ -181,7 +173,7 @@ export default function Header() {
             <div
               className={cn(
                 'flex items-center gap-2.5 border-l pl-5',
-                isDark ? 'border-white/10 text-zinc-300' : 'border-zinc-200 text-zinc-600'
+                'border-[var(--theme-border)] text-[var(--theme-fg-secondary)]'
               )}
             >
               <Link
@@ -240,10 +232,7 @@ export default function Header() {
           </div>
 
           <div
-            className={cn(
-              'flex items-center gap-3 md:hidden',
-              isDark ? 'text-zinc-300' : 'text-zinc-600'
-            )}
+            className="flex items-center gap-3 text-[var(--theme-fg-secondary)] md:hidden"
           >
             <Link
               href="/search"
@@ -269,7 +258,7 @@ export default function Header() {
             tabIndex={0}
             className={cn(
               'fixed inset-0 z-20 h-screen w-screen backdrop-blur-sm md:hidden',
-              isDark ? 'bg-[var(--theme-bg)]/78' : 'bg-zinc-50/78'
+              'bg-[var(--theme-bg)]/78'
             )}
             onClick={closeMobileMenu}
             onKeyDown={(e) => handleKeyDown(e, closeMobileMenu)}
@@ -288,9 +277,7 @@ export default function Header() {
           <div
             className={cn(
               'absolute inset-0 top-0 right-0 block h-full w-full rounded-[var(--radius-panel)] border shadow-[var(--shadow-soft)] backdrop-blur-xl',
-              isDark
-                ? 'border-white/10 bg-[var(--surface-elevated)]'
-                : 'border-black/8 bg-[var(--surface-elevated)]'
+              'border-[var(--theme-border)] bg-[var(--theme-card-bg)]'
             )}
           />
 
@@ -304,12 +291,8 @@ export default function Header() {
                   className={cn(
                     'relative flex min-h-11 w-full items-center justify-center rounded-2xl px-5 py-3 text-center font-inter text-sm uppercase tracking-[0.18rem] transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] active:scale-[0.98]',
                     isActive
-                      ? isDark
-                        ? 'bg-white/10 text-zinc-100 opacity-100'
-                        : 'bg-black/5 text-zinc-900 opacity-100'
-                      : isDark
-                        ? 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100'
-                        : 'text-zinc-500 hover:bg-black/[0.03] hover:text-zinc-900'
+                      ? 'bg-[var(--theme-accent-muted)] text-[var(--theme-fg)] opacity-100'
+                      : 'text-[var(--theme-fg-tertiary)] hover:bg-[var(--theme-surface-hover)] hover:text-[var(--theme-fg)]'
                   )}
                   onClick={closeMobileMenu}
                 >
@@ -318,7 +301,7 @@ export default function Header() {
               )
             })}
 
-            <div className="mt-4 flex items-center gap-4 border-t border-white/10 pt-4 dark:border-white/10">
+            <div className="mt-4 flex items-center gap-4 border-t border-[var(--theme-border)] pt-4">
               <button
                 onClick={toggleTheme}
                 className={actionButtonClass}

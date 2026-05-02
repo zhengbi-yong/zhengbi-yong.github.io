@@ -45,8 +45,8 @@ export default function MetricsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Prometheus 指标监控</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">实时监控系统性能指标</p>
+          <h1 className="text-3xl font-bold text-[var(--theme-fg)] dark:text-white">Prometheus 指标监控</h1>
+          <p className="mt-2 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">实时监控系统性能指标</p>
         </div>
         <div className="flex items-center space-x-3">
           <button
@@ -54,17 +54,17 @@ export default function MetricsPage() {
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               autoRefresh
                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                : 'bg-gray-100 text-gray-700 '
             }`}
           >
             {autoRefresh ? '自动刷新：开' : '自动刷新：关'}
           </button>
           <button
             onClick={() => refetch()}
-            className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-lg p-2 transition-colors hover:bg-[var(--theme-bg-tertiary)] dark:hover:bg-gray-700"
             title="手动刷新"
           >
-            <RefreshCw className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <RefreshCw className="h-5 w-5 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" />
           </button>
         </div>
       </div>
@@ -74,7 +74,7 @@ export default function MetricsPage() {
         <div className="flex items-center justify-center p-12">
           <div className="flex flex-col items-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
-            <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+            <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">加载中...</p>
           </div>
         </div>
       )}
@@ -163,8 +163,8 @@ export default function MetricsPage() {
       {metrics && durationStats && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* 请求延迟详情 */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+          <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] p-6 dark:border-gray-700">
+            <h3 className="mb-4 text-lg font-semibold text-[var(--theme-fg)] dark:text-white">
               HTTP请求延迟统计
             </h3>
             <div className="space-y-3">
@@ -179,8 +179,8 @@ export default function MetricsPage() {
 
           {/* 数据库详情 */}
           {dbStats && (
-            <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+            <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] p-6 dark:border-gray-700">
+              <h3 className="mb-4 text-lg font-semibold text-[var(--theme-fg)] dark:text-white">
                 数据库连接池
               </h3>
               <div className="space-y-3">
@@ -197,8 +197,8 @@ export default function MetricsPage() {
 
           {/* Redis详情 */}
           {redisStats && (
-            <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+            <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] p-6 dark:border-gray-700">
+              <h3 className="mb-4 text-lg font-semibold text-[var(--theme-fg)] dark:text-white">
                 Redis缓存
               </h3>
               <div className="space-y-3">
@@ -210,8 +210,8 @@ export default function MetricsPage() {
 
           {/* 活跃会话 */}
           {metrics.active_sessions && (
-            <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
-              <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">会话统计</h3>
+            <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] p-6 dark:border-gray-700">
+              <h3 className="mb-4 text-lg font-semibold text-[var(--theme-fg)] dark:text-white">会话统计</h3>
               <div className="space-y-3">
                 <StatRow label="当前活跃" value={metrics.active_sessions.value} />
                 {metrics.active_sessions.labels && (
@@ -239,14 +239,14 @@ interface MetricCardProps {
 
 function MetricCard({ title, icon, value, label }: MetricCardProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-800">
+    <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] p-6 dark:border-gray-700">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="rounded-lg bg-blue-100 p-2 dark:bg-blue-900/20">{icon}</div>
           <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">{label}</p>
+            <p className="text-sm font-medium text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">{title}</p>
+            <p className="mt-1 text-2xl font-bold text-[var(--theme-fg)] dark:text-white">{value}</p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-[var(--theme-fg-secondary)]">{label}</p>
           </div>
         </div>
       </div>
@@ -262,8 +262,8 @@ interface StatRowProps {
 function StatRow({ label, value }: StatRowProps) {
   return (
     <div className="flex items-center justify-between border-b border-gray-100 py-2 last:border-0 dark:border-gray-700">
-      <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
-      <span className="text-sm font-medium text-gray-900 dark:text-white">{value}</span>
+      <span className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">{label}</span>
+      <span className="text-sm font-medium text-[var(--theme-fg)] dark:text-white">{value}</span>
     </div>
   )
 }

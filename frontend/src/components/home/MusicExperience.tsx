@@ -635,7 +635,7 @@ export default function MusicExperience() {
                 <div className="flex items-center justify-center h-[400px]">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-gray-400 text-sm">Loading score...</span>
+                    <span className="text-[var(--theme-fg-tertiary)] text-sm">Loading score...</span>
                   </div>
                 </div>
               )}

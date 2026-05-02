@@ -17,12 +17,12 @@ services:
       network: host
       args:
         APP_VERSION: dev
-        DATABASE_URL: postgresql://blog_user:blog_password@127.0.0.1:5432/blog_db
-        SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
+        DATABASE_URL: postgresql://blog_user:blog_dev_2024@127.0.0.1:5432/blog_db
+        SWAGGER_UI_DOWNLOAD_URL: http://127.0.0.1:8888/swagger-ui-v5.17.14.zip
     command: ["migrate"]
     restart: "no"
     environment:
-      DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+      DATABASE_URL: postgresql://blog_user:blog_dev_2024@host.docker.internal:5432/blog_db
       REDIS_URL: redis://host.docker.internal:6379
       JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
       PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=
@@ -53,14 +53,14 @@ services:
       network: host
       args:
         APP_VERSION: dev
-        DATABASE_URL: postgresql://blog_user:blog_password@127.0.0.1:5432/blog_db
-        SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
+        DATABASE_URL: postgresql://blog_user:blog_dev_2024@127.0.0.1:5432/blog_db
+        SWAGGER_UI_DOWNLOAD_URL: http://127.0.0.1:8888/swagger-ui-v5.17.14.zip
     command: ["api"]
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+      DATABASE_URL: postgresql://blog_user:blog_dev_2024@host.docker.internal:5432/blog_db
       REDIS_URL: redis://host.docker.internal:6379
       JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
       PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=
@@ -102,12 +102,12 @@ services:
       network: host
       args:
         APP_VERSION: dev
-        DATABASE_URL: postgresql://blog_user:blog_password@127.0.0.1:5432/blog_db
-        SWAGGER_UI_DOWNLOAD_URL: http://172.19.0.1:8888/swagger-ui-v5.17.14.zip
+        DATABASE_URL: postgresql://blog_user:blog_dev_2024@127.0.0.1:5432/blog_db
+        SWAGGER_UI_DOWNLOAD_URL: http://127.0.0.1:8888/swagger-ui-v5.17.14.zip
     command: ["worker"]
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
+      DATABASE_URL: postgresql://blog_user:blog_dev_2024@host.docker.internal:5432/blog_db
       REDIS_URL: redis://host.docker.internal:6379
       JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
       PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=

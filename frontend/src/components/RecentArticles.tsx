@@ -33,13 +33,13 @@ export function RecentArticles({ limit = 5, currentSlug }: RecentArticlesProps) 
   }
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-gray-200/60 bg-[var(--theme-bg)] shadow-sm dark:border-gray-700 dark:bg-gray-900">
-      <div className="flex-shrink-0 border-b border-gray-200/40 px-4 py-3 dark:border-gray-700">
+    <div className="flex h-full flex-col rounded-xl border border-[var(--theme-border)]/60 bg-[var(--theme-bg)] shadow-sm dark:border-gray-700">
+      <div className="flex-shrink-0 border-b border-[var(--theme-border)]/40 px-4 py-3 dark:border-gray-700">
         <h3
-          className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"
+          className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[var(--theme-fg-secondary)] "
           suppressHydrationWarning
         >
-          <FileText size={16} className="text-gray-400 dark:text-gray-500" />
+          <FileText size={16} className="text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]" />
           相关文章
         </h3>
       </div>
@@ -49,20 +49,20 @@ export function RecentArticles({ limit = 5, currentSlug }: RecentArticlesProps) 
           <Link
             key={article.slug}
             href={`/blog/${article.slug}`}
-            className="group block px-4 py-2.5 transition-colors hover:bg-white/50 dark:hover:bg-gray-800/50"
+            className="group block px-4 py-2.5 transition-colors hover:bg-[var(--theme-bg)]/50 dark:hover:bg-gray-800/50"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <div className="mb-2 flex items-start gap-2">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--theme-bg-tertiary)] text-xs font-semibold text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                     {index + 1}
                   </span>
-                  <h4 className="line-clamp-2 text-sm font-medium leading-snug text-gray-900 transition-colors group-hover:text-primary-600 dark:text-gray-100 dark:group-hover:text-primary-400">
+                  <h4 className="line-clamp-2 text-sm font-medium leading-snug text-[var(--theme-fg)] transition-colors group-hover:text-primary-600 dark:group-hover:text-primary-400">
                     {article.title}
                   </h4>
                 </div>
 
-                <div className="ml-7 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                <div className="ml-7 flex items-center gap-1 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                   <Clock size={12} className="opacity-60" />
                   <span suppressHydrationWarning>
                     {formatDate(article.published_at || article.created_at)}

@@ -912,7 +912,7 @@ pub async fn get_user_posts(
         view_count: Option<i64>,
         like_count: Option<i32>,
         comment_count: Option<i32>,
-        reading_time: Option<i64>,
+        reading_time: Option<i32>,
     }
 
     let posts: Vec<UserPostRow> = sqlx::query_as(

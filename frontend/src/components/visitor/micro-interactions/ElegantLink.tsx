@@ -42,7 +42,7 @@ export function ElegantLink({
 
   const classes = cn(
     'relative inline-block',
-    'text-gray-900 dark:text-gray-100',
+    'text-gray-900',
     'hover:text-indigo-600 dark:hover:text-indigo-400',
     'transition-colors duration-200',
     className

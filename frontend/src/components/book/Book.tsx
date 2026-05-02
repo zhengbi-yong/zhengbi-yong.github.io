@@ -73,7 +73,7 @@ export default function Book({ book, index }: BookProps) {
             <div className="relative h-full">
               {/* 书籍封面 - 添加边缘发光和按下效果 */}
               <motion.div
-                className="relative flex h-full flex-col justify-between overflow-hidden rounded-xl border-2 border-gray-200 bg-card p-4 shadow-lg transition-all duration-300 dark:border-gray-700"
+                className="relative flex h-full flex-col justify-between overflow-hidden rounded-xl border-2 border-[var(--theme-border)] bg-card p-4 shadow-lg transition-all duration-300 dark:border-gray-700"
                 whileHover={
                   disableComplexAnimations
                     ? {}

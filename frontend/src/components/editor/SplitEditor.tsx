@@ -164,20 +164,20 @@ export function SplitEditor({
   const lineNumbers = Array.from({ length: lineCount }, (_, i) => i + 1)
 
   return (
-    <div className={cn('flex h-full flex-col bg-white dark:bg-gray-900', className)}>
+    <div className={cn('flex h-full flex-col bg-white', className)}>
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Editor area */}
         {viewMode !== 'preview' && (
           <div
             className={cn(
-              'flex border-r border-gray-200 dark:border-gray-700',
+              'flex border-r border-[var(--theme-border)] dark:border-gray-700',
               viewMode === 'edit' ? 'w-full' : 'w-1/2'
             )}
           >
             {/* Line numbers */}
-            <div className="w-14 flex-shrink-0 overflow-hidden border-r border-gray-200 bg-gray-50 select-none dark:border-gray-700 dark:bg-gray-800">
-              <div className="py-4 pr-4 text-right font-mono text-xs leading-[1.6rem] text-gray-400 dark:text-gray-500">
+            <div className="w-14 flex-shrink-0 overflow-hidden border-r border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] select-none dark:border-gray-700">
+              <div className="py-4 pr-4 text-right font-mono text-xs leading-[1.6rem] text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]">
                 {lineNumbers.map((num) => (
                   <div key={num} className="h-[1.6rem]">
                     {num}
@@ -195,7 +195,7 @@ export function SplitEditor({
                 onKeyDown={handleKeyDown}
                 onScroll={handleScroll}
                 placeholder={placeholder}
-                className="absolute inset-0 h-full w-full resize-none border-none bg-white p-6 font-mono text-base leading-[1.6rem] text-gray-900 placeholder-gray-300 focus:ring-0 focus:outline-none dark:bg-gray-900 dark:text-gray-100 dark:placeholder-gray-600"
+                className="absolute inset-0 h-full w-full resize-none border-none bg-[var(--theme-bg)] p-6 font-mono text-base leading-[1.6rem] text-[var(--theme-fg)] placeholder-gray-300 focus:ring-0 focus:outline-none dark:placeholder-gray-600"
                 spellCheck={false}
               />
             </div>
@@ -208,16 +208,16 @@ export function SplitEditor({
             ref={rightPaneRef}
             onScroll={handleRightScroll}
             className={cn(
-              'overflow-auto bg-white dark:bg-gray-900',
+              'overflow-auto bg-white',
               viewMode === 'preview' ? 'w-full' : 'w-1/2'
             )}
           >
             <div className="mx-auto max-w-3xl p-8">
-              <div className="mb-4 flex items-center justify-between text-xs text-gray-400">
+              <div className="mb-4 flex items-center justify-between text-xs text-[var(--theme-fg-tertiary)]">
                 <span>{text.split(/\s+/).filter(Boolean).length} 字</span>
               </div>
               <div
-                className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-3xl prose-h1:mb-4 prose-h1:mt-8 prose-h2:text-2xl prose-h2:mb-3 prose-h2:mt-6 prose-h3:text-xl prose-h3:mb-2 prose-h3:mt-4 prose-p:leading-relaxed prose-p:mb-4 prose-strong:font-semibold prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-4 prose-blockquote:border-gray-300 dark:prose-blockquote:border-gray-600 prose-blockquote:pl-4 prose-blockquote:italic prose-ul:list-disc prose-ul:ml-6 prose-ol:list-decimal prose-ol:ml-6 prose-li:mb-1 prose-img:rounded-lg prose-img:shadow-md prose-hr:border-gray-200 dark:prose-hr:border-gray-700 prose-table:border-collapse prose-th:border prose-th:border-gray-300 prose-th:px-3 prose-th:py-2 prose-th:bg-gray-100 dark:prose-th:bg-gray-700 prose-td:border prose-td:border-gray-300 prose-td:px-3 prose-td:py-2 max-w-none"
+                className="prose prose-lg dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-h1:text-3xl prose-h1:mb-4 prose-h1:mt-8 prose-h2:text-2xl prose-h2:mb-3 prose-h2:mt-6 prose-h3:text-xl prose-h3:mb-2 prose-h3:mt-4 prose-p:leading-relaxed prose-p:mb-4 prose-strong:font-semibold prose-strong:text-[var(--theme-fg)] dark:prose-strong:text-gray-100 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-pre:bg-gray-900 dark:prose-pre:bg-gray-950 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-4 prose-blockquote:border-[var(--theme-border)] dark:prose-blockquote:border-gray-600 prose-blockquote:pl-4 prose-blockquote:italic prose-ul:list-disc prose-ul:ml-6 prose-ol:list-decimal prose-ol:ml-6 prose-li:mb-1 prose-img:rounded-lg prose-img:shadow-md prose-hr:border-[var(--theme-border)] dark:prose-hr:border-gray-700 prose-table:border-collapse prose-th:border prose-th:border-[var(--theme-border)] prose-th:px-3 prose-th:py-2 prose-th:bg-[var(--theme-bg-tertiary)] dark:prose-th:bg-gray-700 prose-td:border prose-td:border-[var(--theme-border)] prose-td:px-3 prose-td:py-2 max-w-none"
                 dangerouslySetInnerHTML={{ __html: renderedHtml }}
               />
             </div>

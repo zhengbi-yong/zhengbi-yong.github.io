@@ -22,10 +22,10 @@ const ChemicalStructure = dynamic(
   () => import('@/components/chemistry/ChemicalStructure').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-[var(--theme-border)] dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading 3D structure viewer...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-[var(--theme-border)]" />
+          <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">Loading 3D structure viewer...</p>
         </div>
       </div>
     ),
@@ -36,10 +36,10 @@ const SimpleChemicalStructure = dynamic(
   () => import('@/components/chemistry/SimpleChemicalStructure').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-[var(--theme-border)] dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading 3D structure viewer...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-[var(--theme-border)]" />
+          <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">Loading 3D structure viewer...</p>
         </div>
       </div>
     ),
@@ -50,10 +50,10 @@ const RDKitStructure = dynamic(
   () => import('@/components/chemistry/RDKitStructure').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-[var(--theme-border)] dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading 2D structure viewer...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-[var(--theme-border)]" />
+          <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">Loading 2D structure viewer...</p>
         </div>
       </div>
     ),
@@ -64,10 +64,10 @@ const MoleculeFingerprint = dynamic(
   () => import('@/components/chemistry/MoleculeFingerprint').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 items-center justify-center rounded-lg border border-dashed border-gray-200 p-4 dark:border-gray-700">
+      <div className="my-6 items-center justify-center rounded-lg border border-dashed border-[var(--theme-border)] p-4 dark:border-gray-700">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-6 w-6 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="border-t-primary-500 h-6 w-6 animate-spin rounded-full border-4 border-[var(--theme-border)]" />
+          <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             Loading molecular fingerprint...
           </p>
         </div>
@@ -181,10 +181,10 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
 function MDXLoadingSkeleton() {
   return (
     <span className="animate-pulse inline-flex flex-col gap-1">
-      <span className="inline-block h-6 w-48 rounded bg-gray-200 dark:bg-gray-700 align-middle"></span>
+      <span className="inline-block h-6 w-48 rounded bg-gray-200 align-middle"></span>
       <span className="inline-flex flex-col gap-1">
-        <span className="inline-block h-4 w-72 rounded bg-gray-200 dark:bg-gray-700 align-middle"></span>
-        <span className="inline-block h-4 w-60 rounded bg-gray-200 dark:bg-gray-700 align-middle"></span>
+        <span className="inline-block h-4 w-72 rounded bg-gray-200 align-middle"></span>
+        <span className="inline-block h-4 w-60 rounded bg-gray-200 align-middle"></span>
       </span>
     </span>
   )
@@ -197,7 +197,7 @@ function MDXErrorMessage({ error }: { error: Error }) {
       <p className="text-sm">{error.message}</p>
       <details className="mt-2">
         <summary className="cursor-pointer text-sm">Show stack trace</summary>
-        <pre className="mt-2 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800">
+        <pre className="mt-2 overflow-auto rounded bg-[var(--theme-bg-tertiary)] p-2 text-xs">
           {error.stack}
         </pre>
       </details>
@@ -207,7 +207,7 @@ function MDXErrorMessage({ error }: { error: Error }) {
 
 function MDXEmptyState() {
   return (
-    <div className="rounded-lg border border-gray-300 p-4 text-gray-500 dark:border-gray-700 dark:text-gray-400">
+    <div className="rounded-lg border border-[var(--theme-border)] p-4 text-[var(--theme-fg-secondary)] dark:border-gray-700 dark:text-[var(--theme-fg-tertiary)]">
       Article content is empty.
     </div>
   )

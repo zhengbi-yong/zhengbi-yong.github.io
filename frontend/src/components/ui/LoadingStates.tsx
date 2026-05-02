@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react'
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('animate-pulse rounded-md bg-gray-200 dark:bg-gray-700', className)}
+      className={cn('animate-pulse rounded-md bg-gray-200 ', className)}
       {...props}
     />
   )
@@ -45,7 +45,7 @@ export function ArticleCardSkeleton() {
 // 列表项骨架屏
 export function ListItemSkeleton() {
   return (
-    <div className="border-b border-gray-200 py-4 dark:border-gray-700">
+    <div className="border-b border-[var(--theme-border)] py-4 dark:border-gray-700">
       <div className="space-y-2">
         <Skeleton className="h-5 w-2/3" />
         <Skeleton className="h-4 w-full" />
@@ -59,7 +59,7 @@ export function ListItemSkeleton() {
 export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
   return (
     <div className="w-full">
-      <div className="mb-3 border-b border-gray-200 pb-3 dark:border-gray-700">
+      <div className="mb-3 border-b border-[var(--theme-border)] pb-3 dark:border-gray-700">
         <div className="grid" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
           {Array.from({ length: columns }).map((_, i) => (
             <Skeleton key={i} className="h-4 w-20" />
@@ -100,7 +100,7 @@ export function PageLoader({
     <div className={cn('flex items-center justify-center p-8', className)}>
       <div className="flex flex-col items-center space-y-2">
         <Loader2 className={cn('animate-spin text-blue-600', sizeClasses[size])} />
-        {text && <span className="text-sm text-gray-600 dark:text-gray-400">{text}</span>}
+        {text && <span className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">{text}</span>}
       </div>
     </div>
   )
@@ -148,12 +148,12 @@ export function ProgressBar({
   return (
     <div className={cn('w-full', className)}>
       {showLabel && (
-        <div className="mb-1 flex justify-between text-sm text-gray-600 dark:text-gray-400">
+        <div className="mb-1 flex justify-between text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
           <span>Progress</span>
           <span>{Math.round(percentage)}%</span>
         </div>
       )}
-      <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+      <div className="h-2 w-full rounded-full bg-gray-200 ">
         <div
           className={cn(
             'h-2 rounded-full transition-all duration-300 ease-out',
@@ -183,8 +183,8 @@ export function EmptyState({
   return (
     <div className={cn('py-12 text-center', className)}>
       {icon && <div className="mb-4 flex justify-center">{icon}</div>}
-      <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">{title}</h3>
-      <p className="mb-4 text-gray-600 dark:text-gray-400">{description}</p>
+      <h3 className="mb-2 text-lg font-medium text-[var(--theme-fg)]">{title}</h3>
+      <p className="mb-4 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">{description}</p>
       {action}
     </div>
   )

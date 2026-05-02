@@ -78,10 +78,10 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
 
       <div className={styles.tocTitle}>
         <div className="flex items-center gap-2">
-          <List size={16} className="text-gray-400 dark:text-gray-500" />
-          <span className={cn(styles.tocTitleText, 'dark:text-gray-300')}>目录</span>
+          <List size={16} className="text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]" />
+          <span className={cn(styles.tocTitleText, '')}>目录</span>
         </div>
-        <span className={cn(styles.tocProgressLabel, 'dark:text-gray-500')}>
+        <span className={cn(styles.tocProgressLabel, '')}>
           {Math.round(progress)}%
         </span>
       </div>
@@ -102,7 +102,7 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
         aria-label="Toggle table of contents"
         className={cn(
           styles.tocFloatingButton,
-          'dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700'
+          'dark:hover:bg-gray-700'
         )}
       >
         <svg
@@ -128,13 +128,13 @@ export function TableOfContents({ toc, enabled = true, mobileOnly = false }: Tab
       {/* 底部面板 */}
       <div className={cn(styles.tocMobilePanel, isMobileExpanded && styles.tocMobilePanelOpen)}>
         <div className={styles.tocMobilePanelHeader}>
-          <span className={cn(styles.tocMobilePanelTitle, 'font-brand dark:text-gray-100')}>
+          <span className={cn(styles.tocMobilePanelTitle, 'font-brand')}>
             目录
           </span>
           <button
             onClick={() => setIsMobileExpanded(false)}
             aria-label="Close table of contents"
-            className={cn(styles.tocCloseButton, 'dark:text-gray-400 dark:hover:text-gray-200')}
+            className={cn(styles.tocCloseButton, 'dark:hover:text-gray-200')}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

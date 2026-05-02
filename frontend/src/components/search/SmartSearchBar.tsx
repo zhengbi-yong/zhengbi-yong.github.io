@@ -174,12 +174,12 @@ export function SmartSearchBar({
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder || (t('search.placeholder') || '搜索文章...')}
           autoFocus={autoFocus}
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 pl-12 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-3 pl-12 text-[var(--theme-fg)] placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400"
         />
 
         {/* 搜索图标 */}
         <svg
-          className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
+          className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--theme-fg-tertiary)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -193,8 +193,8 @@ export function SmartSearchBar({
         </svg>
 
         {/* 快捷键提示 */}
-        <div className="absolute right-4 top-1/2 hidden -translate-y-1/2 text-xs text-gray-400 sm:block">
-          <kbd className="rounded border border-gray-300 bg-gray-100 px-2 py-1 dark:border-gray-600 dark:bg-gray-700">
+        <div className="absolute right-4 top-1/2 hidden -translate-y-1/2 text-xs text-[var(--theme-fg-tertiary)] sm:block">
+          <kbd className="rounded border border-[var(--theme-border)] bg-[var(--theme-bg-tertiary)] px-2 py-1 dark:border-gray-600 ">
             ⌘K
           </kbd>
         </div>
@@ -202,7 +202,7 @@ export function SmartSearchBar({
 
       {/* 搜索建议下拉框 */}
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-full rounded-lg bg-white shadow-lg dark:bg-gray-800">
+        <div className="absolute z-50 mt-2 w-full rounded-lg bg-[var(--theme-bg)] shadow-lg">
           {loading && (
             <div className="flex items-center justify-center p-4">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
@@ -230,7 +230,7 @@ export function SmartSearchBar({
                     >
                       {/* 类型图标 */}
                       {suggestion.type === 'post' && (
-                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="h-5 w-5 text-[var(--theme-fg-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -242,11 +242,11 @@ export function SmartSearchBar({
 
                       {/* 文本内容 */}
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <div className="text-sm font-medium text-[var(--theme-fg)]">
                           {suggestion.title}
                         </div>
                         {suggestion.subtitle && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                          <div className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                             {suggestion.subtitle}
                           </div>
                         )}
@@ -258,17 +258,17 @@ export function SmartSearchBar({
 
               {/* 搜索历史 */}
               {!loading && query.trim() === '' && searchHistory.length > 0 && (
-                <div className="border-t border-gray-200 dark:border-gray-700 py-2">
-                  <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                <div className="border-t border-[var(--theme-border)] dark:border-gray-700 py-2">
+                  <div className="px-4 py-2 text-xs font-medium text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                     {t('search.recentSearches') || '最近搜索'}
                   </div>
                   {searchHistory.slice(0, 5).map((historyItem, index) => (
                     <div
                       key={index}
-                      className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-[var(--theme-bg-secondary)] dark:hover:bg-gray-700"
                       onClick={() => handleSearch(historyItem)}
                     >
-                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-4 w-4 text-[var(--theme-fg-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -276,7 +276,7 @@ export function SmartSearchBar({
                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{historyItem}</span>
+                      <span className="text-sm text-[var(--theme-fg)] ">{historyItem}</span>
                     </div>
                   ))}
                 </div>
@@ -284,20 +284,20 @@ export function SmartSearchBar({
 
               {/* 热门搜索 */}
               {!loading && query.trim() === '' && (
-                <div className="border-t border-gray-200 dark:border-gray-700 py-2">
-                  <div className="px-4 py-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                <div className="border-t border-[var(--theme-border)] dark:border-gray-700 py-2">
+                  <div className="px-4 py-2 text-xs font-medium text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                     {t('search.trending') || '热门搜索'}
                   </div>
                   {['React', 'Next.js', 'TypeScript', 'Rust', '机器学习'].slice(0, 5).map((trending, index) => (
                     <div
                       key={index}
-                      className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="flex cursor-pointer items-center gap-3 px-4 py-2 transition-colors hover:bg-[var(--theme-bg-secondary)] dark:hover:bg-gray-700"
                       onClick={() => handleSearch(trending)}
                     >
                       <svg className="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M17.66 11.2C17.43 10.9 17.15 10.64 16.89 10.38C16.22 9.78 15.46 9.35 14.82 8.72C13.33 7.26 11 7 9 7c-1.63 0-3.01.71-3.91 1.87C5.04 8.06 4.5 8.55 4.5 9c0 .5.31 1.08.61 1.5.89.62.42 1.25.74 1.89.95.47-.01.95-.38 1.66-1.19.61-.7 1.17-1.36 1.7-2.05.19-.25.38-.5.56-.72.26-.28.51-.57.77-.92C9.95 6.48 10.64 5 9 5c-1.32 0-2.31.61-2.85 1.64C6.17 6.54 5.65 7.38 5.35 8.26c-.06.18-.13.35-.2.53-.23-.61-.4-1.23-.54-1.87-.08-.36.05-.74.12-1.08.27-.26.13-.49.28-.69.46-.23.2-.43.43-.59.69-.19.31-.35.65-.48 1-.1.23-.15.49-.16.76v-.01c-.01-.26.04-.53.13-.78.17-.46.44-.88.77-1.25.03-.03.05-.07.07-.1.2-.17.42-.33.64-.47.95-.01.03-.01.06-.01.09.07-.28.17-.55.29-.82.08-.26.2-.5.36-.73.23-.32.5-.59.8-.98.27-.36.55-.7.84-1.02.03-.03.07-.06.1-.08.36-.18.69-.31 1-.39.35-.07.69-.12 1.01-.15.69.17 1.17.44 1.6.82.31.28.68.44 1.09.5.03-.09.07-.18.1-.28.07-.51.05-1.03-.04-1.51-.15-.31-.06-.61-.16-.89-.29-.32-.15-.6-.36-.84-.63-.26-.28-.48-.61-.65-.97-.17-.35-.3-.73-.38-1.12-.06-.3-.08-.61-.06-.92.06-.33.2-.63.43-.89.7-.37.2-.77.34-1.19.41-.31.06-.62.08-.93.07-.36-.02-.71-.11-1.04-.27-.32-.15-.6-.36-.84-.63-.26-.28-.48-.61-.65-.97-.17-.35-.3-.73-.38-1.12-.06-.3-.08-.61-.06-.92.06-.33.2-.63.43-.89.7-.37.2-.77.34-1.19.41-.31.06-.62.08-.93.07z" />
                       </svg>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{trending}</span>
+                      <span className="text-sm text-[var(--theme-fg)] ">{trending}</span>
                     </div>
                   ))}
                 </div>
@@ -305,8 +305,8 @@ export function SmartSearchBar({
 
               {/* 无结果 */}
               {!loading && suggestions.length === 0 && query.trim() !== '' && (
-                <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                  <svg className="mx-auto mb-2 h-12 w-12 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="px-4 py-8 text-center text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
+                  <svg className="mx-auto mb-2 h-12 w-12 text-gray-300 dark:text-[var(--theme-fg-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"

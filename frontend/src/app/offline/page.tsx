@@ -11,7 +11,7 @@ import Link from 'next/link'
 
 export default function OfflinePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--theme-bg-secondary)] px-4">
       <div className="max-w-md w-full text-center space-y-8">
         {/* 图标 */}
         <div className="flex justify-center">
@@ -25,23 +25,23 @@ export default function OfflinePage() {
 
         {/* 标题和描述 */}
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-3xl font-bold text-[var(--theme-fg)]">
             您当前离线
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             请检查您的网络连接后重试
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-[var(--theme-fg-secondary)]">
             部分内容可能仍可从缓存中访问
           </p>
         </div>
 
         {/* 缓存的文章列表 */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 text-left">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        <div className="bg-[var(--theme-bg)] rounded-lg shadow-lg p-6 text-left">
+          <h2 className="text-lg font-semibold text-[var(--theme-fg)] mb-4">
             缓存的文章
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] mb-4">
             您之前访问过的文章可能仍可离线查看：
           </p>
           <ul className="space-y-2 text-sm">
@@ -83,7 +83,7 @@ export default function OfflinePage() {
           >
             重新连接
           </button>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             或者稍后刷新页面
           </p>
         </div>

@@ -228,7 +228,7 @@ export default function SimpleChemicalStructure({
   if (snapshot && !isActive) {
     return (
       <div
-        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 ${className}`}
+        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-[var(--theme-border)] bg-gray-50 dark:border-gray-700 ${className}`}
         style={{
           width,
           height: typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight,
@@ -247,7 +247,7 @@ export default function SimpleChemicalStructure({
   if (!isClient) {
     return (
       <div
-        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 ${className}`}
+        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-[var(--theme-border)] bg-gray-50 dark:border-gray-700 ${className}`}
         style={{
           width,
           height: typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight,
@@ -255,8 +255,8 @@ export default function SimpleChemicalStructure({
         }}
       >
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载3D结构查看器...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-[var(--theme-border)]" />
+          <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">正在加载3D结构查看器...</p>
         </div>
       </div>
     )

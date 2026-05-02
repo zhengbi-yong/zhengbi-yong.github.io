@@ -90,8 +90,8 @@
 
   /* Header */
   --geist-header-height: 64px;
-  --geist-header-bg: rgba(255, 255, 255, 0.8);
-  --geist-header-border: var(--geist-border);
+  --geist-header-bg: color-mix(in srgb, var(--theme-bg) 80%, transparent 20%);
+  --geist-header-border: var(--theme-border);
 
   /* Footer */
   --geist-footer-bg: transparent;
@@ -154,8 +154,8 @@
   --geist-shadow-lg: rgba(0, 0, 0, 0.5);
 
   /* Header */
-  --geist-header-bg: rgba(10, 10, 10, 0.8);
-  --geist-header-border: var(--geist-border);
+  --geist-header-bg: color-mix(in srgb, var(--theme-bg) 80%, transparent 20%);
+  --geist-header-border: var(--theme-border);
 }
 
 [data-theme='system'],

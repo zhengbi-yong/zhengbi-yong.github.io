@@ -21,12 +21,12 @@ export default function Page() {
             Biography · Research · Writing
           </p>
           <h1
-            className="text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 md:text-6xl"
+            className="text-4xl font-semibold tracking-tight text-[var(--theme-fg)] md:text-6xl"
             style={{ fontFamily: 'var(--font-newsreader)' }}
           >
             About
           </h1>
-          <p className="max-w-2xl text-base leading-8 text-zinc-600 dark:text-zinc-400 md:text-lg">
+          <p className="max-w-2xl text-base leading-8 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] md:text-lg">
             以更统一的公共页面框架呈现个人背景、研究方向与写作方法，同时保留原有 MDX 内容结构。
           </p>
         </section>

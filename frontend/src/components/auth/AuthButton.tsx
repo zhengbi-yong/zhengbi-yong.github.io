@@ -101,7 +101,7 @@ export function AuthButton({ isDark = true }: AuthButtonProps) {
         )}
         aria-label="用户菜单"
       >
-        <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-secondary dark:border-gray-600 dark:bg-gray-700">
+        <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-secondary dark:border-gray-600 ">
           {avatarUrl ? (
             <img
               src={avatarUrl}

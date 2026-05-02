@@ -22,10 +22,10 @@ export default function TeamPage() {
                   .filter((m) => m.role === 'Advisor')
                   .map((member) => (
                     <article key={member.id} className="group">
-                      <div className="border border-zinc-200/70 bg-zinc-50/90 p-8 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-700/30 group-hover:bg-white dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-amber-500/20 dark:group-hover:bg-zinc-900/90 md:p-10">
+                      <div className="border border-[var(--theme-border)]/70 bg-[var(--theme-bg-secondary)]/90 p-8 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-700/30 group-hover:bg-[var(--theme-bg)] dark:border-zinc-800/80 /60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-amber-500/20 dark:group-hover:bg-zinc-900/90 md:p-10">
                         <div className="flex gap-8">
                           {member.avatar ? (
-                            <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                            <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 ">
                               <Image
                                 alt={member.name}
                                 src={member.avatar}
@@ -46,13 +46,13 @@ export default function TeamPage() {
                           )}
                           <div className="min-w-0 flex-1">
                             <h3
-                              className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100"
+                              className="text-2xl font-semibold tracking-tight text-[var(--theme-fg)] "
                               style={{ fontFamily: 'var(--font-newsreader)' }}
                             >
                               {member.name}
                             </h3>
                             {member.nameEn && (
-                              <p className="mt-0.5 text-sm text-zinc-400 dark:text-zinc-500">
+                              <p className="mt-0.5 text-sm text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]">
                                 {member.nameEn}
                               </p>
                             )}
@@ -63,7 +63,7 @@ export default function TeamPage() {
                           </div>
                         </div>
                         <div className="mt-6">
-                          <p className="max-w-xl text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                          <p className="max-w-xl text-sm leading-relaxed text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                             {member.bio}
                           </p>
                           {member.research && (
@@ -71,7 +71,7 @@ export default function TeamPage() {
                               {member.research.map((tag) => (
                                 <span
                                   key={tag}
-                                  className="border border-zinc-200 bg-white/60 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-400"
+                                  className="border border-[var(--theme-border)] bg-[var(--theme-bg)]/60 px-2 py-0.5 text-[10px] font-medium text-[var(--theme-fg-secondary)] dark:border-zinc-700 /30 dark:text-[var(--theme-fg-tertiary)]"
                                 >
                                   {tag}
                                 </span>
@@ -119,10 +119,10 @@ export default function TeamPage() {
                   .filter((m) => m.role === 'Lead' || m.role === 'Member')
                   .map((member) => (
                     <article key={member.id} className="group">
-                      <div className="h-full border border-zinc-200/70 bg-zinc-50/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-700/30 group-hover:bg-white dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-amber-500/20 dark:group-hover:bg-zinc-900/90 md:p-8">
+                      <div className="h-full border border-[var(--theme-border)]/70 bg-[var(--theme-bg-secondary)]/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-700/30 group-hover:bg-[var(--theme-bg)] dark:border-zinc-800/80 /60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-amber-500/20 dark:group-hover:bg-zinc-900/90 md:p-8">
                         <div className="flex items-center gap-5">
                           {member.avatar ? (
-                            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 ">
                               <Image
                                 alt={member.name}
                                 src={member.avatar}
@@ -143,13 +143,13 @@ export default function TeamPage() {
                           )}
                           <div className="min-w-0">
                             <h3
-                              className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100"
+                              className="text-lg font-semibold tracking-tight text-[var(--theme-fg)] "
                               style={{ fontFamily: 'var(--font-newsreader)' }}
                             >
                               {member.name}
                             </h3>
                             {member.nameEn && (
-                              <p className="text-xs text-zinc-400 dark:text-zinc-500">{member.nameEn}</p>
+                              <p className="text-xs text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]">{member.nameEn}</p>
                             )}
                           </div>
                         </div>
@@ -161,7 +161,7 @@ export default function TeamPage() {
                           </p>
                         </div>
 
-                        <p className="mt-3 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                        <p className="mt-3 text-sm leading-relaxed text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                           {member.bio}
                         </p>
 
@@ -170,7 +170,7 @@ export default function TeamPage() {
                             {member.research.map((tag) => (
                               <span
                                 key={tag}
-                                className="border border-zinc-200 bg-white/60 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800/30 dark:text-zinc-400"
+                                className="border border-[var(--theme-border)] bg-[var(--theme-bg)]/60 px-2 py-0.5 text-[10px] font-medium text-[var(--theme-fg-secondary)] dark:border-zinc-700 /30 dark:text-[var(--theme-fg-tertiary)]"
                               >
                                 {tag}
                               </span>
@@ -179,7 +179,7 @@ export default function TeamPage() {
                         )}
 
                         {(member.email || member.github || member.website) && (
-                          <div className="mt-4 flex items-center gap-4 border-t border-zinc-200/60 pt-3 dark:border-zinc-700/40">
+                          <div className="mt-4 flex items-center gap-4 border-t border-[var(--theme-border)]/60 pt-3 dark:border-zinc-700/40">
                             {member.email && (
                               <a
                                 href={`mailto:${member.email}`}
@@ -220,7 +220,7 @@ export default function TeamPage() {
           {/* Empty state */}
           {teamMembers.length === 0 && (
             <div className="py-32 text-center">
-              <p className="text-zinc-400 dark:text-zinc-500">暂无团队成员</p>
+              <p className="text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]">暂无团队成员</p>
             </div>
           )}
         </section>

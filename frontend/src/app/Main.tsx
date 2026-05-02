@@ -43,7 +43,7 @@ export default function Home() {
 
             <AnimatedParagraph
               delay={0.3}
-              className="text-visitor-lg mx-auto mb-12 max-w-4xl text-gray-600 dark:text-gray-400"
+              className="text-visitor-lg mx-auto mb-12 max-w-4xl text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]"
             >
               探索技术、设计与艺术的交汇点
             </AnimatedParagraph>
@@ -59,7 +59,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/blog"
-                className="inline-flex items-center justify-center rounded-visitor-md bg-gray-100 px-8 py-4 text-lg font-medium text-gray-900 transition-all duration-300 ease-visitor hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
+                className="inline-flex items-center justify-center rounded-visitor-md bg-[var(--theme-bg-tertiary)] px-8 py-4 text-lg font-medium text-[var(--theme-fg)] transition-all duration-300 ease-visitor hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:hover:bg-gray-700"
               >
                 Read Blog
               </Link>

@@ -109,11 +109,11 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   }, [])
 
   return (
-    <div className="group/code relative my-6 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700/50 bg-[var(--theme-bg)] dark:bg-gray-900/95">
+    <div className="group/code relative my-6 overflow-hidden rounded-lg border border-[var(--theme-border)] dark:border-gray-700/50 bg-[var(--theme-bg)]/95">
       {/* Force .line spans to block for proper line-height alignment with line numbers */}
       <style>{`.code-block-content .line { display: block; }`}</style>
       {/* Header bar */}
-      <div className="flex items-center justify-between border-b border-gray-300 dark:border-gray-700/50 px-4 py-2 bg-stone-200 dark:bg-gray-800/80">
+      <div className="flex items-center justify-between border-b border-[var(--theme-border)] dark:border-gray-700/50 px-4 py-2 bg-stone-200/80">
         <div className="flex items-center gap-2">
           {/* Traffic lights */}
           <div className="flex items-center gap-1.5">
@@ -122,12 +122,12 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
             <span className="h-3 w-3 rounded-full bg-green-500/80" />
           </div>
           {title && (
-            <span className="ml-2 text-xs text-gray-400 font-mono truncate max-w-[200px]">
+            <span className="ml-2 text-xs text-[var(--theme-fg-tertiary)] font-mono truncate max-w-[200px]">
               {title}
             </span>
           )}
           {!title && language && (
-            <span className="ml-2 text-xs text-gray-400 font-mono uppercase tracking-wide">
+            <span className="ml-2 text-xs text-[var(--theme-fg-tertiary)] font-mono uppercase tracking-wide">
               {language}
             </span>
           )}
@@ -179,7 +179,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       <div className="relative">
         <div className="flex">
           {/* Line numbers — hidden on very small screens */}
-          <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-sm leading-[1.7] text-gray-600 dark:text-gray-500">
+          <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-sm leading-[1.7] text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-secondary)]">
             {trimmedCode.split('\n').map((_, i) => (
               <div key={i}>{i + 1}</div>
             ))}
@@ -194,7 +194,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
                 }}
               />
             ) : (
-              <div className="p-4 text-sm font-mono leading-[1.7] text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+              <div className="p-4 text-sm font-mono leading-[1.7] text-[var(--theme-fg)] whitespace-pre-wrap">
                 {codeText}
               </div>
             )}

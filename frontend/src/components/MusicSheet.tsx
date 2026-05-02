@@ -315,10 +315,10 @@ export default function MusicSheet({
   return (
     <div className={`my-6 ${className}`}>
       {isLoading && (
-        <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+        <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-[var(--theme-border)] dark:border-gray-700">
           <div className="flex flex-col items-center gap-3">
             <Spinner size="lg" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">正在加载乐谱...</p>
+            <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">正在加载乐谱...</p>
           </div>
         </div>
       )}
@@ -331,7 +331,7 @@ export default function MusicSheet({
 
       <div
         ref={containerRef}
-        className={`overflow-x-auto rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/50 ${
+        className={`overflow-x-auto rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] p-4 dark:border-gray-700/50 ${
           isLoading || error ? 'hidden' : ''
         }`}
       />

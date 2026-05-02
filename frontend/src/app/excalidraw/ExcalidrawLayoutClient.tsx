@@ -28,7 +28,7 @@ export default function ExcalidrawLayoutClient({ children }: { children: React.R
   }, [])
 
   return (
-    <div className="fixed inset-0 z-[9999] h-screen w-screen overflow-hidden bg-white">
+    <div className="fixed inset-0 z-[9999] h-screen w-screen overflow-hidden bg-[var(--theme-bg)]">
       {children}
     </div>
   )

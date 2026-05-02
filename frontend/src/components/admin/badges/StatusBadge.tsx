@@ -84,7 +84,7 @@ export function StatusBadge({
           ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
           : status === 'pending' || status === 'info'
           ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-          : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+          : 'bg-gray-100 text-gray-800/30 ',
         className
       )}
     >
@@ -131,7 +131,7 @@ export function StatusDot({ status, size = 'md', showLabel = false, className }:
         )}
       />
       {showLabel && (
-        <span className="text-admin-xs text-gray-600 dark:text-gray-400">
+        <span className="text-admin-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
           {config.label}
         </span>
       )}
@@ -163,8 +163,8 @@ const roleConfig: Record<string, { color: string; label: string; bgColor: string
   user: {
     color: 'bg-gray-500',
     label: '用户',
-    bgColor: 'bg-gray-100 dark:bg-gray-800',
-    textColor: 'text-gray-800 dark:text-gray-300',
+    bgColor: 'bg-gray-100',
+    textColor: 'text-gray-800 ',
   },
 }
 

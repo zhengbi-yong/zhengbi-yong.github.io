@@ -17,7 +17,7 @@ export const MobileMenuButton = memo(function MobileMenuButton({
   onKeyDown,
   isDark = true,
 }: MobileMenuButtonProps) {
-  const iconClass = isDark ? 'text-zinc-200' : 'text-zinc-700'
+  const iconClass = isDark ? 'text-zinc-200' : 'text-[var(--theme-fg)]'
   const buttonClass = cn(
     'inline-flex h-10 w-10 items-center justify-center rounded-full border text-current transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.96]',
     isDark

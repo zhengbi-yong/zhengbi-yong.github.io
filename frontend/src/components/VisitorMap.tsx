@@ -53,18 +53,18 @@ export default function VisitorMap({ visitors }: VisitorMapProps) {
 
   if (!isMounted) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-        <p className="text-gray-500 dark:text-gray-400">加载地图中...</p>
+      <div className="flex h-96 items-center justify-center rounded-lg bg-[var(--theme-bg-tertiary)]">
+        <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">加载地图中...</p>
       </div>
     )
   }
 
   if (validVisitors.length === 0) {
     return (
-      <div className="flex h-96 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+      <div className="flex h-96 items-center justify-center rounded-lg bg-[var(--theme-bg-tertiary)]">
         <div className="text-center">
-          <p className="mb-2 text-gray-500 dark:text-gray-400">暂无访客数据</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500">
+          <p className="mb-2 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">暂无访客数据</p>
+          <p className="text-xs text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]">
             当有访客访问网站时，他们的位置会显示在这里
           </p>
         </div>
@@ -73,7 +73,7 @@ export default function VisitorMap({ visitors }: VisitorMapProps) {
   }
 
   return (
-    <div className="relative h-96 w-full overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="relative h-96 w-full overflow-hidden rounded-lg border border-[var(--theme-border)] dark:border-gray-700">
       <style jsx global>{`
         .leaflet-container {
           height: 100%;
@@ -100,14 +100,14 @@ export default function VisitorMap({ visitors }: VisitorMapProps) {
                 <p className="mb-1 font-semibold">
                   {visitor.city}, {visitor.country}
                 </p>
-                <p className="mb-1 text-xs text-gray-600 dark:text-gray-400">IP: {visitor.ip}</p>
-                <p className="mb-1 text-xs text-gray-600 dark:text-gray-400">
+                <p className="mb-1 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">IP: {visitor.ip}</p>
+                <p className="mb-1 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                   时区: {visitor.timezone}
                 </p>
-                <p className="mb-1 text-xs text-gray-600 dark:text-gray-400">
+                <p className="mb-1 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                   首次访问: {new Date(visitor.firstVisit).toLocaleString('zh-CN')}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                   访问次数: {visitor.visitCount}
                 </p>
               </div>

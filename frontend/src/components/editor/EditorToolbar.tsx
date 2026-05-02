@@ -119,8 +119,8 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         'p-2 rounded-md transition-colors',
         'hover:bg-gray-100 dark:hover:bg-gray-700',
         'disabled:opacity-50 disabled:cursor-not-allowed',
-        active && 'bg-gray-200 dark:bg-gray-600',
-        'text-gray-700 dark:text-gray-300'
+        active && 'bg-gray-200 ',
+        'text-gray-700 '
       )}
     >
       {children}
@@ -128,13 +128,13 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   )
 
   const ToolbarGroup = ({ children }: { children: React.ReactNode }) => (
-    <div className="flex items-center gap-1 pr-2 border-r border-gray-200 dark:border-gray-700 last:border-r-0">
+    <div className="flex items-center gap-1 pr-2 border-r border-[var(--theme-border)] dark:border-gray-700 last:border-r-0">
       {children}
     </div>
   )
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-t-lg bg-gray-50 dark:bg-gray-800 p-2 flex items-center gap-2 flex-wrap">
+    <div className="border border-[var(--theme-border)] dark:border-gray-700 rounded-t-lg bg-[var(--theme-bg-secondary)] p-2 flex items-center gap-2 flex-wrap">
       {/* 撤销/重做 */}
       <ToolbarGroup>
         <ToolbarButton
@@ -252,7 +252,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               placeholder="输入链接..."
-              className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              className="px-2 py-1 text-sm border border-[var(--theme-border)] dark:border-gray-600 rounded bg-[var(--theme-bg)] text-[var(--theme-fg)]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') addLink()
                 if (e.key === 'Escape') {
@@ -288,7 +288,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="图片 URL..."
-              className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              className="px-2 py-1 text-sm border border-[var(--theme-border)] dark:border-gray-600 rounded bg-[var(--theme-bg)] text-[var(--theme-fg)]"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') addImage()
                 if (e.key === 'Escape') {
@@ -316,7 +316,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       </ToolbarGroup>
 
       {/* 数学公式提示 */}
-      <div className="ml-auto text-xs text-gray-500 dark:text-gray-400">
+      <div className="ml-auto text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
         提示: 使用 $...$ 表示行内公式，$$...$$ 表示块级公式
       </div>
     </div>

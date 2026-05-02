@@ -20,16 +20,16 @@ export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
         // 例如：显示全局通知、发送到分析服务等
       }}
       fallback={({ error: _error, retry, reset }) => (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-[var(--theme-bg-secondary)]">
           <div className="flex min-h-[400px] items-center justify-center p-4">
             <div className="w-full max-w-2xl">
               <ErrorBoundaryV2
                 fallback={({ error: _error, retry }) => (
-                  <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+                  <div className="rounded-lg bg-[var(--theme-bg)] p-6 shadow-lg">
                     <h1 className="mb-4 text-2xl font-bold text-red-600 dark:text-red-400">
                       Application Error
                     </h1>
-                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                    <p className="mb-6 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       The application encountered a critical error. Please try refreshing the page.
                     </p>
                     <button
@@ -41,12 +41,12 @@ export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
                   </div>
                 )}
               >
-                <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+                <div className="rounded-lg bg-[var(--theme-bg)] p-6 shadow-lg">
                   <div className="mb-6 text-center">
-                    <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <h1 className="mb-2 text-2xl font-bold text-[var(--theme-fg)]">
                       Something went wrong
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       We're sorry, but something unexpected happened. Our team has been notified.
                     </p>
                   </div>
@@ -60,20 +60,20 @@ export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
                     </button>
                     <button
                       onClick={reset}
-                      className="flex items-center gap-2 rounded bg-gray-200 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                      className="flex items-center gap-2 rounded bg-gray-200 px-4 py-2 text-[var(--theme-fg)] transition-colors hover:bg-gray-300 dark:hover:bg-gray-600"
                     >
                       Reset
                     </button>
                     <a
                       href="/"
-                      className="flex items-center gap-2 rounded bg-gray-200 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                      className="flex items-center gap-2 rounded bg-gray-200 px-4 py-2 text-[var(--theme-fg)] transition-colors hover:bg-gray-300 dark:hover:bg-gray-600"
                     >
                       Go Home
                     </a>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
-                    <p className="mb-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <div className="border-t border-[var(--theme-border)] pt-4 dark:border-gray-700">
+                    <p className="mb-2 text-center text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       Help us improve by reporting this issue
                     </p>
                     <div className="flex justify-center">

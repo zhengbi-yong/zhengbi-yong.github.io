@@ -43,7 +43,7 @@ export default function ComponentLoader({
             ) : (
               <>
                 {spinner && <Spinner size="lg" />}
-                {message && <p className="text-gray-600 dark:text-gray-400">{message}</p>}
+                {message && <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">{message}</p>}
               </>
             )}
           </motion.div>

@@ -72,10 +72,10 @@ export function ApiSearchBar() {
           onChange={handleInputChange}
           onFocus={() => setShowSuggestions(true)}
           placeholder="搜索文章..."
-          className="w-full px-4 py-2 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600"
+          className="w-full px-4 py-2 pl-10 pr-4 text-[var(--theme-fg)] bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:border-gray-600"
         />
         <svg
-          className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+          className="absolute left-3 top-2.5 h-5 w-5 text-[var(--theme-fg-tertiary)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -96,11 +96,11 @@ export function ApiSearchBar() {
 
       {/* Suggestions Dropdown */}
       {showSuggestions && query.length >= 2 && (
-        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-[var(--theme-bg)] rounded-lg shadow-lg border border-[var(--theme-border)] dark:border-gray-700 max-h-96 overflow-y-auto">
           {/* Search Suggestions */}
           {suggestions && suggestions.length > 0 && !debouncedQuery && (
             <div className="p-2">
-              <p className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+              <p className="px-3 py-1 text-xs font-semibold text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] uppercase">
                 建议
               </p>
               {suggestions.map((suggestion, index) => (
@@ -111,7 +111,7 @@ export function ApiSearchBar() {
                     e.stopPropagation()
                     handleSuggestionClick(suggestion)
                   }}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  className="w-full text-left px-3 py-2 text-sm text-[var(--theme-fg)] hover:bg-[var(--theme-bg-tertiary)] dark:hover:bg-gray-700 rounded"
                 >
                   {suggestion}
                 </button>
@@ -122,7 +122,7 @@ export function ApiSearchBar() {
           {/* Search Results */}
           {searchResults && searchResults.results.length > 0 && (
             <div className="p-2">
-              <p className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+              <p className="px-3 py-1 text-xs font-semibold text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] uppercase">
                 搜索结果 ({searchResults.total})
               </p>
               {searchResults.results.map((result) => (
@@ -133,13 +133,13 @@ export function ApiSearchBar() {
                     e.stopPropagation()
                     handleResultClick(result.slug)
                   }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  className="w-full text-left px-3 py-2 hover:bg-[var(--theme-bg-tertiary)] dark:hover:bg-gray-700 rounded"
                 >
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <div className="text-sm font-medium text-[var(--theme-fg)]">
                     {result.title}
                   </div>
                   {result.summary && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                    <div className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] mt-1 line-clamp-2">
                       {result.summary}
                     </div>
                   )}
@@ -150,7 +150,7 @@ export function ApiSearchBar() {
 
           {/* No Results */}
           {searchResults && searchResults.results.length === 0 && (
-            <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="p-4 text-center text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
               未找到相关文章
             </div>
           )}

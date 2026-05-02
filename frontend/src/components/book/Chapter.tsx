@@ -38,7 +38,7 @@ export default function Chapter({
       {chapter.name && (
         <button
           onClick={toggleOpen}
-          className="mb-4 ml-6 flex w-full items-center justify-between rounded-xl border border-gray-200/60 bg-gradient-to-r from-white/80 to-gray-50/80 px-6 py-4 text-left shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:from-white hover:to-gray-100 hover:shadow-lg dark:border-gray-700/60 dark:from-gray-800/80 dark:to-gray-900/80 dark:hover:from-gray-700 dark:hover:to-gray-800"
+          className="mb-4 ml-6 flex w-full items-center justify-between rounded-xl border border-[var(--theme-border)]/60 bg-gradient-to-r from-white/80 to-gray-50/80 px-6 py-4 text-left shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:from-white hover:to-gray-100 hover:shadow-lg dark:border-gray-700/60 dark:from-gray-800/80 dark:to-gray-900/80 dark:hover:from-gray-700 dark:hover:to-gray-800"
           aria-expanded={isOpen}
         >
           <div className="flex items-center gap-4">
@@ -47,12 +47,12 @@ export default function Chapter({
               className={`h-3 w-3 rounded-full transition-all duration-300 ${
                 isOpen
                   ? 'bg-primary-500 shadow-primary-500/50 scale-125 shadow-lg'
-                  : 'bg-gray-400 dark:bg-gray-500'
+                  : 'bg-gray-400 '
               }`}
             ></div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">{chapter.name}</h3>
+            <h3 className="text-base font-bold text-[var(--theme-fg)]">{chapter.name}</h3>
           </div>
-          <span className="rounded-full bg-gray-100/80 px-4 py-1.5 text-sm font-semibold text-gray-600 dark:bg-gray-800/80 dark:text-gray-300">
+          <span className="rounded-full bg-[var(--theme-bg-tertiary)]/80 px-4 py-1.5 text-sm font-semibold text-[var(--theme-fg-secondary)]/80 ">
             {chapter.articles.length} 篇
           </span>
         </button>

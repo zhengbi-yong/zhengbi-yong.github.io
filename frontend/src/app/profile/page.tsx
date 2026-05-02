@@ -290,7 +290,7 @@ export default function ProfilePage() {
                   type="text"
                   value={activeProfile.username}
                   disabled
-                  className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-foreground opacity-60 dark:border-gray-700 dark:bg-gray-800"
+                  className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-foreground opacity-60 dark:border-gray-700"
                 />
               </div>
               <div>
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                   type="text"
                   value={activeProfile.email}
                   disabled
-                  className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-foreground opacity-60 dark:border-gray-700 dark:bg-gray-800"
+                  className="w-full rounded-lg border border-border bg-secondary px-4 py-2.5 text-foreground opacity-60 dark:border-gray-700"
                 />
               </div>
 
@@ -313,7 +313,7 @@ export default function ProfilePage() {
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="介绍一下你自己..."
                   rows={3}
-                  className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
+                  className="w-full rounded-lg border border-border bg-[var(--theme-bg)] px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700"
                 />
               </div>
               <div>
@@ -325,7 +325,7 @@ export default function ProfilePage() {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="例如: Beijing, China"
-                  className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
+                  className="w-full rounded-lg border border-border bg-[var(--theme-bg)] px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700"
                 />
               </div>
               <div>
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                   value={website}
                   onChange={(e) => setWebsite(e.target.value)}
                   placeholder="https://..."
-                  className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
+                  className="w-full rounded-lg border border-border bg-[var(--theme-bg)] px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700"
                 />
               </div>
               <div>
@@ -349,7 +349,7 @@ export default function ProfilePage() {
                   value={github}
                   onChange={(e) => setGithub(e.target.value)}
                   placeholder="用户名 (不含 @)"
-                  className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
+                  className="w-full rounded-lg border border-border bg-[var(--theme-bg)] px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700"
                 />
               </div>
               <div>
@@ -361,7 +361,7 @@ export default function ProfilePage() {
                   value={twitter}
                   onChange={(e) => setTwitter(e.target.value)}
                   placeholder="用户名 (不含 @)"
-                  className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-gray-800"
+                  className="w-full rounded-lg border border-border bg-[var(--theme-bg)] px-4 py-2.5 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700"
                 />
               </div>
             </div>

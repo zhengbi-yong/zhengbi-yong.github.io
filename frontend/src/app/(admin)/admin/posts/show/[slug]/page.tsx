@@ -51,15 +51,15 @@ export default function PostDetailPage() {
       <div className="flex items-center space-x-4">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 rounded-lg hover:bg-[var(--theme-bg-tertiary)] dark:hover:bg-gray-700 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          <ArrowLeft className="w-5 h-5 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" />
         </button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-[var(--theme-fg)] dark:text-white">
             文章详情
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             Slug: {slug}
           </p>
         </div>
@@ -70,7 +70,7 @@ export default function PostDetailPage() {
         <div className="flex items-center justify-center p-12">
           <div className="flex flex-col items-center space-y-4">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
-            <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+            <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">加载中...</p>
           </div>
         </div>
       )}
@@ -109,12 +109,12 @@ export default function PostDetailPage() {
       )}
 
       {/* Comments Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+      <div className="bg-[var(--theme-bg)] rounded-lg border border-[var(--theme-border)] dark:border-gray-700">
+        <div className="p-6 border-b border-[var(--theme-border)] dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-[var(--theme-fg)] dark:text-white">
             评论列表
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] mt-1">
             共 {comments.length} 条评论
           </p>
         </div>
@@ -124,7 +124,7 @@ export default function PostDetailPage() {
             <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400 mx-auto" />
           </div>
         ) : comments.length === 0 ? (
-          <div className="p-12 text-center text-gray-600 dark:text-gray-400">
+          <div className="p-12 text-center text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             暂无评论
           </div>
         ) : (
@@ -139,18 +139,18 @@ export default function PostDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <p className="text-sm font-medium text-[var(--theme-fg)] dark:text-white">
                         {comment.user?.username || '匿名用户'}
                       </p>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                         {new Date(comment.created_at).toLocaleString('zh-CN')}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                    <p className="mt-2 text-sm text-[var(--theme-fg)] ">
                       {comment.content}
                     </p>
                     {comment.like_count > 0 && (
-                      <div className="mt-2 flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="mt-2 flex items-center space-x-1 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                         <Heart className="w-3 h-3" />
                         <span>{comment.like_count} 点赞</span>
                       </div>
@@ -175,7 +175,7 @@ export default function PostDetailPage() {
         </a>
         <button
           onClick={() => router.push('/admin/posts')}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="px-4 py-2 border border-[var(--theme-border)] dark:border-gray-600 text-[var(--theme-fg)] rounded-lg hover:bg-[var(--theme-bg-secondary)] dark:hover:bg-gray-700 transition-colors"
         >
           返回列表
         </button>
@@ -199,13 +199,13 @@ function StatCard({ title, value, icon, color }: StatCardProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-[var(--theme-bg)] rounded-lg border border-[var(--theme-border)] dark:border-gray-700 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <p className="text-sm font-medium text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             {title}
           </p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
+          <p className="text-3xl font-bold text-[var(--theme-fg)] dark:text-white mt-2">
             {value?.toLocaleString() || 0}
           </p>
         </div>
