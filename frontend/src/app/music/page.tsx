@@ -14,7 +14,7 @@ export default function MusicPage() {
         <div className="mb-12 mt-4">
           <div className="flex items-end justify-between gap-8">
             <div>
-              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-500">
+              <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.3em] text-primary dark:text-primary">
                 Sheet Music Collection
               </p>
               <h1
@@ -23,7 +23,7 @@ export default function MusicPage() {
               >
                 乐谱库
               </h1>
-              <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="mt-3 text-sm text-muted-foreground dark:text-zinc-400">
                 共 {musicSheets.length} 张乐谱
               </p>
             </div>
@@ -58,7 +58,7 @@ export default function MusicPage() {
           {musicSheets.map((music) => (
             <article key={music.id} className="group">
               <Link href={`/music/${music.id}`} className="block">
-                <div className="relative overflow-hidden border border-zinc-200/70 bg-zinc-50/90 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-700/30 group-hover:bg-white group-hover:shadow-[0_30px_90px_-58px_rgba(180,83,9,0.28)] dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-amber-500/20 dark:group-hover:bg-zinc-900/90 dark:group-hover:shadow-[0_30px_90px_-58px_rgba(245,158,11,0.14)]">
+                <div className="relative overflow-hidden border border-border/70 bg-background/90 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-primary/30 group-hover:bg-background group-hover:shadow-[0_30px_90px_-58px_rgba(180,83,9,0.28)] dark:border-border/80 dark:dark:bg-card/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-primary/20 dark:group-hover:dark:bg-card/90 dark:group-hover:shadow-[0_30px_90px_-58px_rgba(245,158,11,0.14)]">
                   <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-b from-zinc-200 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900">
                     {/* 五线谱音符 SVG 占位图 */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-6 opacity-[0.08] dark:opacity-[0.06]">
@@ -106,7 +106,7 @@ export default function MusicPage() {
 
                     {music.category && (
                       <div className="absolute left-4 top-4">
-                        <span className="inline-block bg-amber-700/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-50 dark:bg-amber-600/80 dark:text-amber-50">
+                        <span className="inline-block bg-primary/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-50 dark:bg-amber-600/80 dark:text-amber-50">
                           {music.category}
                         </span>
                       </div>
@@ -114,7 +114,7 @@ export default function MusicPage() {
 
                     {music.difficulty && (
                       <div className="absolute right-4 top-4">
-                        <span className="inline-block border border-zinc-300/60 bg-white/80 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-zinc-600 dark:border-zinc-600/40 dark:bg-zinc-800/80 dark:text-zinc-400">
+                        <span className="inline-block border border-border/60 bg-background/80 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground dark:border-border/40 dark:bg-zinc-800/80 dark:text-zinc-400">
                           {music.difficulty}
                         </span>
                       </div>
@@ -123,7 +123,7 @@ export default function MusicPage() {
                     {/* 乐器标签 */}
                     {music.instrument && (
                       <div className="absolute left-4 bottom-4">
-                        <span className="inline-block bg-black/40 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white/90 dark:bg-white/10 dark:text-white/80">
+                        <span className="inline-block bg-black/40 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white/90 dark:bg-background/10 dark:text-white/80">
                           {music.instrument}
                         </span>
                       </div>
@@ -131,8 +131,8 @@ export default function MusicPage() {
 
                     {/* 悬停时显示播放指示 */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-white/90 dark:bg-zinc-800/90 shadow-lg backdrop-blur-sm">
-                        <svg className="w-6 h-6 text-amber-700 dark:text-amber-400 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-background/90 dark:bg-zinc-800/90 shadow-lg backdrop-blur-sm">
+                        <svg className="w-6 h-6 text-primary dark:text-primary ml-1" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M8 5v14l11-7z" />
                         </svg>
                       </div>
@@ -150,35 +150,35 @@ export default function MusicPage() {
                     {(music.composer || music.year) && (
                       <div className="mb-3 flex items-center gap-2">
                         {music.composer && (
-                          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                          <span className="text-xs font-medium text-muted-foreground dark:text-zinc-400">
                             {music.composer}
                           </span>
                         )}
                         {music.composer && music.year && (
-                          <span className="text-zinc-300 dark:text-zinc-600">|</span>
+                          <span className="text-zinc-300 dark:text-muted-foreground">|</span>
                         )}
                         {music.year && (
-                          <span className="text-xs text-zinc-400 dark:text-zinc-500">{music.year}</span>
+                          <span className="text-xs text-zinc-400 dark:text-muted-foreground">{music.year}</span>
                         )}
                       </div>
                     )}
 
                     {music.description && (
-                      <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                      <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-foreground dark:text-zinc-400">
                         {music.description}
                       </p>
                     )}
 
                     {music.instrument && (
                       <div className="mb-3">
-                        <span className="inline-block text-[10px] font-medium uppercase tracking-[0.12em] text-amber-700/70 dark:text-amber-500/60">
+                        <span className="inline-block text-[10px] font-medium uppercase tracking-[0.12em] text-primary/70 dark:text-primary/60">
                           {music.instrument}
                         </span>
                       </div>
                     )}
 
                     <div className="border-t border-zinc-200/60 pt-3 dark:border-zinc-700/40">
-                      <span className="text-xs font-medium uppercase tracking-[0.16em] text-amber-700 transition-colors duration-300 group-hover:text-amber-600 dark:text-amber-500 dark:group-hover:text-amber-400">
+                      <span className="text-xs font-medium uppercase tracking-[0.16em] text-primary transition-colors duration-300 group-hover:text-primary dark:text-primary dark:group-hover:text-amber-400">
                         查看乐谱 →
                       </span>
                     </div>
@@ -191,7 +191,7 @@ export default function MusicPage() {
 
         {musicSheets.length === 0 && (
           <div className="py-32 text-center">
-            <p className="text-zinc-400 dark:text-zinc-500">暂无乐谱</p>
+            <p className="text-zinc-400 dark:text-muted-foreground">暂无乐谱</p>
           </div>
         )}
       </PublicPageFrame>

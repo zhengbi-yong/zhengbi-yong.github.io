@@ -104,33 +104,33 @@ export default function PostVersionsPage({ params }: { params: Promise<{ slug: s
       <div className="mb-8">
         <button
           onClick={() => router.back()}
-          className="mb-4 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          className="mb-4 text-sm text-primary hover:text-primary dark:text-primary"
         >
           ← {t('back') || '返回'}
         </button>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-3xl font-bold text-foreground dark:text-foreground">
           {t('blog.versions') || '版本历史'}
         </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
           {post ? `《${post.title}》` : '加载中...'} · 共 {versions.length} 个版本
         </p>
       </div>
 
       {/* 操作栏 */}
       {selectedCount > 0 && (
-        <div className="mb-6 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+        <div className="mb-6 rounded-lg bg-[var(--theme-info-muted)] p-4 dark:bg-[var(--theme-info-muted)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
+              <p className="text-sm font-medium text-blue-900 dark:text-[var(--theme-fg)]">
                 已选择 {selectedCount} 个版本
               </p>
               {comparison.version1 && (
-                <p className="text-xs text-blue-700 dark:text-blue-300">
+                <p className="text-xs text-primary dark:text-blue-300">
                   版本 {comparison.version1.version_number}: {comparison.version1.title}
                 </p>
               )}
               {comparison.version2 && (
-                <p className="text-xs text-blue-700 dark:text-blue-300">
+                <p className="text-xs text-primary dark:text-blue-300">
                   版本 {comparison.version2.version_number}: {comparison.version2.title}
                 </p>
               )}
@@ -139,13 +139,13 @@ export default function PostVersionsPage({ params }: { params: Promise<{ slug: s
               <button
                 onClick={handleCompare}
                 disabled={selectedCount !== 2}
-                className="rounded bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded bg-primary px-4 py-2 text-sm text-white transition-colors hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t('blog.compare') || '对比版本'}
               </button>
               <button
                 onClick={() => setComparison({ version1: null, version2: null, showDiff: false })}
-                className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-border px-4 py-2 text-sm text-foreground transition-colors hover:bg-muted dark:border-border dark:text-foreground dark:hover:bg-secondary"
               >
                 {t('cancel') || '取消'}
               </button>
@@ -159,32 +159,32 @@ export default function PostVersionsPage({ params }: { params: Promise<{ slug: s
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
         </div>
       ) : versions.length === 0 ? (
-        <div className="rounded-lg bg-white p-12 text-center shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-background p-12 text-center shadow dark:bg-card">
           <div className="mb-4 text-6xl">📝</div>
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="mb-2 text-2xl font-semibold text-foreground dark:text-foreground">
             暂无版本历史
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground dark:text-muted-foreground">
             文章首次创建后，每次修改都会自动创建新版本
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+        <div className="overflow-hidden rounded-lg bg-background shadow dark:bg-card">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
+            <thead className="bg-muted dark:bg-background">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">选择</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">版本号</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">标题</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">创建时间</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">创建者</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">备注</th>
-                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">操作</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">选择</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">版本号</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">标题</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">创建时间</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">创建者</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">备注</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground dark:text-muted-foreground">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {versions.map((version) => (
-                <tr key={version.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <tr key={version.id} className="hover:bg-muted dark:hover:bg-secondary/50">
                   <td className="px-4 py-4">
                     <input
                       type="checkbox"
@@ -206,7 +206,7 @@ export default function PostVersionsPage({ params }: { params: Promise<{ slug: s
                           return prev
                         })
                       }}
-                      className="rounded border-gray-300"
+                      className="rounded border-border"
                       disabled={
                         comparison.version1 !== null &&
                         comparison.version2 !== null &&
@@ -215,26 +215,26 @@ export default function PostVersionsPage({ params }: { params: Promise<{ slug: s
                       }
                     />
                   </td>
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <td className="px-4 py-4 text-sm font-medium text-foreground dark:text-foreground">
                     #{version.version_number}
                   </td>
-                  <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <td className="px-4 py-4 text-sm font-medium text-foreground dark:text-foreground">
                     {version.title}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
+                  <td className="px-4 py-4 text-sm text-muted-foreground dark:text-muted-foreground">
                     {new Date(version.created_at).toLocaleString('zh-CN')}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-900 dark:text-gray-100">
+                  <td className="px-4 py-4 text-sm text-foreground dark:text-foreground">
                     {version.created_by_username || version.created_by}
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
+                  <td className="px-4 py-4 text-sm text-muted-foreground dark:text-muted-foreground">
                     {version.comment || '-'}
                   </td>
                   <td className="px-4 py-4 text-sm">
                     <button
                       onClick={() => handleRestore(version.version_number.toString(), version.title)}
                       disabled={restoring === version.version_number.toString()}
-                      className="rounded bg-green-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-600 disabled:opacity-50"
+                      className="rounded bg-[var(--theme-success)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--theme-success)] disabled:opacity-50"
                     >
                       {restoring === version.version_number.toString()
                         ? t('loading') || '恢复中...'
@@ -250,45 +250,45 @@ export default function PostVersionsPage({ params }: { params: Promise<{ slug: s
 
       {/* 版本对比视图 */}
       {comparison.showDiff && comparison.version1 && comparison.version2 && (
-        <div className="mt-8 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-          <h3 className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
+        <div className="mt-8 rounded-lg bg-background p-6 shadow dark:bg-card">
+          <h3 className="mb-4 text-xl font-semibold text-foreground dark:text-foreground">
             {t('blog.versionComparison') || '版本对比'}
           </h3>
           <div className="mb-6 grid grid-cols-2 gap-4">
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-              <p className="mb-2 text-sm font-medium text-blue-900 dark:text-blue-200">
+            <div className="rounded-lg border border-[var(--theme-info)]/20 bg-[var(--theme-info-muted)] p-4 dark:border-blue-800 dark:bg-[var(--theme-info-muted)]">
+              <p className="mb-2 text-sm font-medium text-blue-900 dark:text-[var(--theme-fg)]">
                 版本 {comparison.version1.version_number}
               </p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">{comparison.version1.title}</p>
+              <p className="text-sm text-foreground dark:text-foreground">{comparison.version1.title}</p>
             </div>
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
-              <p className="mb-2 text-sm font-medium text-green-900 dark:text-green-200">
+            <div className="rounded-lg border border-[var(--theme-success)]/20 bg-green-50 p-4 dark:border-[var(--theme-success)]/20 dark:bg-[var(--theme-success)]/15/20">
+              <p className="mb-2 text-sm font-medium text-green-900 dark:text-[var(--theme-success)]">
                 版本 {comparison.version2.version_number}
               </p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">{comparison.version2.title}</p>
+              <p className="text-sm text-foreground dark:text-foreground">{comparison.version2.title}</p>
             </div>
           </div>
           <div className="space-y-4">
             {comparison.version1.title !== comparison.version2.title && (
               <div>
-                <h4 className="mb-2 font-medium text-gray-900 dark:text-gray-100">标题变更</h4>
-                <div className="rounded border border-red-300 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
-                  <p className="mb-1 text-xs text-red-600 dark:text-red-400">旧版本</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 line-through">
+                <h4 className="mb-2 font-medium text-foreground dark:text-foreground">标题变更</h4>
+                <div className="rounded border border-destructive/30 bg-destructive/5 p-3 dark:border-destructive/20 dark:bg-destructive/15">
+                  <p className="mb-1 text-xs text-destructive dark:text-destructive">旧版本</p>
+                  <p className="text-sm text-foreground dark:text-foreground line-through">
                     {comparison.version1.title}
                   </p>
                 </div>
-                <div className="mt-2 rounded border border-green-300 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
-                  <p className="mb-1 text-xs text-green-600 dark:text-green-400">新版本</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{comparison.version2.title}</p>
+                <div className="mt-2 rounded border border-green-300 bg-green-50 p-3 dark:border-[var(--theme-success)]/20 dark:bg-[var(--theme-success)]/15/20">
+                  <p className="mb-1 text-xs text-[var(--theme-success)] dark:text-[var(--theme-success)]">新版本</p>
+                  <p className="text-sm text-foreground dark:text-foreground">{comparison.version2.title}</p>
                 </div>
               </div>
             )}
             {comparison.version1.content !== comparison.version2.content && (
               <div>
-                <h4 className="mb-2 font-medium text-gray-900 dark:text-gray-100">内容变更</h4>
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
-                  <p className="mb-2 text-xs text-gray-600 dark:text-gray-400">
+                <h4 className="mb-2 font-medium text-foreground dark:text-foreground">内容变更</h4>
+                <div className="rounded-lg border border-border bg-muted p-4 dark:border-border dark:bg-background">
+                  <p className="mb-2 text-xs text-muted-foreground dark:text-muted-foreground">
                     内容长度: {comparison.version1.content.length} → {comparison.version2.content.length} 字符 (
                     {comparison.version2.content.length > comparison.version1.content.length ? '+' : ''}
                     {comparison.version2.content.length - comparison.version1.content.length})

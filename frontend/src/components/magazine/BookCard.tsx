@@ -206,7 +206,7 @@ export default function BookCard({
                   {book.tags.slice(0, 3).map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-white/20 bg-white/85 px-2.5 py-1 text-xs font-semibold text-slate-900 backdrop-blur-sm dark:bg-slate-900/75 dark:text-white"
+                      className="rounded-full border border-white/20 bg-background/85 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur-sm dark:bg-slate-900/75 dark:text-white"
                     >
                       {tag}
                     </span>
@@ -233,7 +233,7 @@ export default function BookCard({
             {/* 阅读进度条 */}
             {book.readProgress !== undefined && book.readProgress > 0 && (
               <div className="mt-2">
-                <div className="h-1 w-full overflow-hidden rounded-full bg-white/30">
+                <div className="h-1 w-full overflow-hidden rounded-full bg-background/30">
                   <div
                     className="h-full bg-primary-500 transition-all duration-300"
                     style={{ width: `${book.readProgress}%` }}

@@ -140,8 +140,8 @@ export function EnhancedDataTable<T extends Record<string, any>>({
   return (
     <div className={cn(
       'admin-compact border rounded-lg overflow-hidden',
-      'bg-white dark:bg-gray-800',
-      'border-gray-200 dark:border-gray-700',
+      'bg-background dark:bg-card',
+      'border-border dark:border-border',
       className
     )}>
       {/* 表格 */}
@@ -149,14 +149,14 @@ export function EnhancedDataTable<T extends Record<string, any>>({
         <table className="w-full border-collapse">
           {/* 表头 */}
           <thead>
-            <tr className="data-table-header border-b border-gray-200 dark:border-gray-700">
+            <tr className="data-table-header border-b border-border dark:border-border">
               {/* 复选框列 */}
               <th className="w-8 px-2 py-2 text-left">
                 <input
                   type="checkbox"
                   checked={selectedRows.size === data.length && data.length > 0}
                   onChange={handleSelectAll}
-                  className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+                  className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
                 />
               </th>
 
@@ -166,10 +166,10 @@ export function EnhancedDataTable<T extends Record<string, any>>({
                   key={String(column.key)}
                   className={cn(
                     'px-3 py-2 text-left font-semibold text-admin-xs uppercase tracking-wider',
-                    'text-gray-500 dark:text-gray-400',
-                    'whitespace-nowrap cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50',
+                    'text-muted-foreground dark:text-muted-foreground',
+                    'whitespace-nowrap cursor-pointer hover:bg-muted dark:hover:bg-secondary/50',
                     'transition-colors select-none',
-                    column.sortable && 'hover:text-gray-700 dark:hover:text-gray-300',
+                    column.sortable && 'hover:text-foreground dark:hover:text-gray-300',
                     column.className
                   )}
                   style={{ width: column.width }}
@@ -194,10 +194,10 @@ export function EnhancedDataTable<T extends Record<string, any>>({
                 <tr
                   key={key}
                   className={cn(
-                    'data-table-row border-b border-gray-200 dark:border-gray-700 last:border-b-0',
+                    'data-table-row border-b border-border dark:border-border last:border-b-0',
                     'transition-colors duration-150',
-                    onRowClick && 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50',
-                    isSelected && 'bg-blue-50 dark:bg-blue-900/10'
+                    onRowClick && 'cursor-pointer hover:bg-muted dark:hover:bg-secondary/50',
+                    isSelected && 'bg-[var(--theme-info-muted)] dark:bg-blue-900/10'
                   )}
                   onClick={() => onRowClick?.(row, index)}
                 >
@@ -210,7 +210,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
                         e.stopPropagation()
                         handleRowSelect(key)
                       }}
-                      className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+                      className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
                     />
                   </td>
 
@@ -220,7 +220,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
                       key={String(column.key)}
                       className={cn(
                         'px-3 py-2 text-admin-sm',
-                        'text-gray-900 dark:text-gray-100',
+                        'text-foreground dark:text-foreground',
                         'whitespace-nowrap overflow-hidden text-ellipsis',
                         column.className
                       )}
@@ -238,7 +238,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
               <tr>
                 <td
                   colSpan={columns.length + 1}
-                  className="px-4 py-12 text-center text-gray-500 dark:text-gray-400"
+                  className="px-4 py-12 text-center text-muted-foreground dark:text-muted-foreground"
                 >
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <p className="text-admin-base font-medium">暂无数据</p>
@@ -253,7 +253,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
 
       {/* 批量操作栏 */}
       {selectedRows.size > 0 && (
-        <div className="sticky bottom-0 z-10 bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-800 px-4 py-2">
+        <div className="sticky bottom-0 z-10 bg-[var(--theme-info-muted)] dark:bg-[var(--theme-info-muted)] border-t border-[var(--theme-info)]/20 dark:border-blue-800 px-4 py-2">
           <div className="flex items-center justify-between">
             <span className="text-admin-sm font-medium text-blue-900 dark:text-blue-100">
               已选择 {selectedRows.size} 项
@@ -261,7 +261,7 @@ export function EnhancedDataTable<T extends Record<string, any>>({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedRows(new Set())}
-                className="px-3 py-1.5 text-admin-sm font-medium text-blue-700 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-800/50 rounded transition-colors"
+                className="px-3 py-1.5 text-admin-sm font-medium text-primary dark:text-[var(--theme-fg)] hover:bg-[var(--theme-info-muted)] dark:hover:bg-blue-800/50 rounded transition-colors"
               >
                 取消选择
               </button>
@@ -296,10 +296,10 @@ export function DataTableRow<T extends Record<string, any>>({
   return (
     <tr
       className={cn(
-        'data-table-row border-b border-gray-200 dark:border-gray-700',
+        'data-table-row border-b border-border dark:border-border',
         'transition-colors duration-150',
-        onClick && 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50',
-        isSelected && 'bg-blue-50 dark:bg-blue-900/10'
+        onClick && 'cursor-pointer hover:bg-muted dark:hover:bg-secondary/50',
+        isSelected && 'bg-[var(--theme-info-muted)] dark:bg-blue-900/10'
       )}
       onClick={onClick}
     >
@@ -309,7 +309,7 @@ export function DataTableRow<T extends Record<string, any>>({
           type="checkbox"
           checked={isSelected}
           onChange={onToggleSelect}
-          className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+          className="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
         />
       </td>
 
@@ -323,7 +323,7 @@ export function DataTableRow<T extends Record<string, any>>({
             key={String(column.key)}
             className={cn(
               'px-3 py-2 text-admin-sm',
-              'text-gray-900 dark:text-gray-100',
+              'text-foreground dark:text-foreground',
               'whitespace-nowrap overflow-hidden text-ellipsis',
               column.className
             )}

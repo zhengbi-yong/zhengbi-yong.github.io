@@ -16,7 +16,7 @@ export function FAB({ onClick, icon, label, className }: FABProps) {
       aria-label={label}
       className={cn(
         'fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95',
-        'bg-purple-600 text-white hover:bg-purple-700',
+        'bg-primary text-white hover:bg-purple-700',
         className
       )}
     >

@@ -91,12 +91,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       // 默认错误 UI
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
-          <div className="w-full max-w-md rounded-lg border border-red-200 bg-white p-6 shadow-lg dark:border-red-800 dark:bg-gray-800">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-muted px-4 dark:bg-background">
+          <div className="w-full max-w-md rounded-lg border border-destructive/20 bg-background p-6 shadow-lg dark:border-destructive/20 dark:bg-card">
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 dark:bg-destructive/20">
                 <svg
-                  className="h-6 w-6 text-red-600 dark:text-red-400"
+                  className="h-6 w-6 text-destructive dark:text-destructive"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -110,16 +110,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                <h2 className="text-xl font-semibold text-foreground dark:text-foreground">
                   出现了一些问题
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">应用程序遇到了意外错误</p>
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">应用程序遇到了意外错误</p>
               </div>
             </div>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
-              <div className="mb-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
-                <p className="font-mono text-xs text-red-800 dark:text-red-200">
+              <div className="mb-4 rounded-md bg-destructive/5 p-3 dark:bg-destructive/15">
+                <p className="font-mono text-xs text-destructive dark:text-destructive">
                   {this.state.error.toString()}
                 </p>
               </div>
@@ -128,13 +128,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <div className="flex gap-3">
               <button
                 onClick={this.handleReset}
-                className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600"
+                className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none dark:bg-primary dark:hover:bg-primary"
               >
                 重试
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                className="flex-1 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none dark:border-border dark:bg-secondary dark:text-foreground dark:hover:bg-secondary"
               >
                 刷新页面
               </button>

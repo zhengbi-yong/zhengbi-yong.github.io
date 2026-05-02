@@ -31,33 +31,33 @@ export function SEOPreviewCard({
 
   return (
     <div className="space-y-2">
-      <div className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+      <div className="text-[10px] font-medium text-muted-foreground dark:text-muted-foreground uppercase tracking-wider">
         Google 搜索预览
       </div>
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-1">
+      <div className="bg-background dark:bg-background border border-border dark:border-border rounded-lg p-3 space-y-1">
         {/* URL */}
-        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+        <p className="text-xs text-muted-foreground dark:text-muted-foreground truncate">
           {truncatedUrl}
         </p>
         {/* Title */}
         <p className={cn(
           'text-[15px] leading-snug line-clamp-2',
           displayTitle.length > 60
-            ? 'text-blue-700 dark:text-blue-300'
-            : 'text-blue-600 dark:text-blue-400'
+            ? 'text-primary dark:text-blue-300'
+            : 'text-primary dark:text-primary'
         )}>
           {displayTitle}
         </p>
         {/* Description */}
         {displayDescription ? (
           <p className={cn(
-            'text-xs leading-relaxed line-clamp-2 text-gray-600 dark:text-gray-400',
-            displayDescription.length > 160 && 'text-gray-500'
+            'text-xs leading-relaxed line-clamp-2 text-muted-foreground dark:text-muted-foreground',
+            displayDescription.length > 160 && 'text-muted-foreground'
           )}>
             {displayDescription}
           </p>
         ) : (
-          <p className="text-xs text-gray-300 dark:text-gray-600 italic">
+          <p className="text-xs text-gray-300 dark:text-muted-foreground italic">
             未设置描述，搜索引擎将自动提取
           </p>
         )}

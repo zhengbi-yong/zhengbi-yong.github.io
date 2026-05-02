@@ -8,19 +8,19 @@ interface AdminStatsCardProps {
 }
 
 const colorClasses = {
-  blue: 'bg-blue-500 dark:bg-blue-600',
-  green: 'bg-green-500 dark:bg-green-600',
-  yellow: 'bg-yellow-500 dark:bg-yellow-600',
+  blue: 'bg-primary dark:bg-primary',
+  green: 'bg-[var(--theme-success)] dark:bg-[var(--theme-success)]',
+  yellow: 'bg-[var(--theme-warning)] dark:bg-[var(--theme-warning)]',
   emerald: 'bg-emerald-500 dark:bg-emerald-600',
-  red: 'bg-red-500 dark:bg-red-600',
+  red: 'bg-destructive/50 dark:bg-destructive',
 }
 
 const bgColorClasses = {
-  blue: 'bg-blue-50 dark:bg-blue-900/20',
-  green: 'bg-green-50 dark:bg-green-900/20',
-  yellow: 'bg-yellow-50 dark:bg-yellow-900/20',
+  blue: 'bg-[var(--theme-info-muted)] dark:bg-[var(--theme-info-muted)]',
+  green: 'bg-green-50 dark:bg-[var(--theme-success)]/15/20',
+  yellow: 'bg-yellow-50 dark:bg-[var(--theme-warning)]/15',
   emerald: 'bg-emerald-50 dark:bg-emerald-900/20',
-  red: 'bg-red-50 dark:bg-red-900/20',
+  red: 'bg-destructive/5 dark:bg-destructive/15',
 }
 
 const cardBaseClassName =

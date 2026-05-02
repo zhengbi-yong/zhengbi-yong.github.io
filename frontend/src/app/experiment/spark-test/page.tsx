@@ -4,7 +4,7 @@ export default function SparkTestPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="mb-2 text-3xl font-bold">Spark 2.0 — 3D Gaussian Splatting Demo</h1>
-      <p className="mb-8 text-zinc-500">
+      <p className="mb-8 text-muted-foreground">
         Powered by{' '}
         <a href="https://sparkjs.dev" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
           Spark 2.0
@@ -24,7 +24,7 @@ export default function SparkTestPage() {
           startPosition={[0, 0, -3]}
           lookAt={[0, 0, 0]}
         />
-        <p className="mt-3 text-sm text-zinc-500">
+        <p className="mt-3 text-sm text-muted-foreground">
           A small butterfly scan rendered with 3D Gaussian Splatting. Drag to rotate, scroll to zoom.
         </p>
       </section>
@@ -55,7 +55,7 @@ export default function SparkTestPage() {
                 <th className="py-2 text-left font-medium">Description</th>
               </tr>
             </thead>
-            <tbody className="text-zinc-600 dark:text-zinc-400">
+            <tbody className="text-muted-foreground dark:text-zinc-400">
               <tr className="border-b border-zinc-100 dark:border-zinc-800">
                 <td className="py-2 font-mono text-xs">url</td>
                 <td className="py-2 font-mono text-xs">(required)</td>

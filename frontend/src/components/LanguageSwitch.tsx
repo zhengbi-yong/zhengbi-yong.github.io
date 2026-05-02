@@ -82,14 +82,14 @@ export default function LanguageSwitch() {
       </Button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="absolute top-full right-0 z-50 mt-1 w-48 rounded-md border border-border bg-background py-1 shadow-lg dark:border-border dark:bg-card">
           {languages.map((language) => (
             <button
               key={language.code}
               onClick={() => changeLanguage(language.code)}
               className={cn(
-                'w-full px-4 py-2 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-700',
-                (i18n?.language || 'en') === language.code && 'bg-blue-50 text-blue-600 dark:bg-blue-900/20'
+                'w-full px-4 py-2 text-left transition-colors hover:bg-secondary dark:hover:bg-secondary',
+                (i18n?.language || 'en') === language.code && 'bg-[var(--theme-info-muted)] text-primary dark:bg-[var(--theme-info-muted)]'
               )}
             >
               <span className="mr-2">{language.flag}</span>

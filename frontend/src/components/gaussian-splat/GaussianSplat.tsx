@@ -240,8 +240,8 @@ export default function GaussianSplat({
       {state === 'loading' && showLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-zinc-100/80 dark:bg-zinc-900/80">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-primary-500" />
-            <p className="text-sm text-zinc-500">Loading 3D Gaussian Splat...</p>
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary-500" />
+            <p className="text-sm text-muted-foreground">Loading 3D Gaussian Splat...</p>
           </div>
         </div>
       )}
@@ -257,7 +257,7 @@ export default function GaussianSplat({
       )}
 
       {state === 'ready' && (
-        <div className="absolute bottom-2 right-2 text-[10px] text-zinc-300 bg-zinc-900/60 px-2 py-1 rounded backdrop-blur">
+        <div className="absolute bottom-2 right-2 text-[10px] text-zinc-300 dark:bg-card/60 px-2 py-1 rounded backdrop-blur">
           Drag to rotate · Scroll to zoom
         </div>
       )}

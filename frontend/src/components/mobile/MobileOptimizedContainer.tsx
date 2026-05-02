@@ -184,7 +184,7 @@ export function PullToRefresh({
     <div {...pullToRefreshHandlers} style={{ position: 'relative' }}>
       {pulling && (
         <div
-          className="fixed left-0 right-0 z-50 flex items-center justify-center bg-blue-500 text-white transition-all"
+          className="fixed left-0 right-0 z-50 flex items-center justify-center bg-primary text-white transition-all"
           style={{
             top: 0,
             height: `${Math.min(pullDistance, 100)}px`,

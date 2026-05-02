@@ -72,17 +72,17 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-background p-8 text-center shadow dark:bg-card">
           <div className="mb-4 text-6xl">👤</div>
-          <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="mb-4 text-3xl font-bold text-foreground dark:text-foreground">
             {t('profile.loginRequired') || '请先登录'}
           </h1>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <p className="mb-6 text-muted-foreground dark:text-muted-foreground">
             {t('profile.loginToViewProfile') || '登录后即可查看个人资料。'}
           </p>
           <Link
             href="/"
-            className="inline-block rounded-lg bg-blue-500 px-6 py-3 text-white transition-colors hover:bg-blue-600"
+            className="inline-block rounded-lg bg-primary px-6 py-3 text-white transition-colors hover:bg-primary"
           >
             {t('auth.login') || '返回首页登录'}
           </Link>
@@ -107,10 +107,10 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="mb-2 text-4xl font-bold text-foreground dark:text-foreground">
           {t('profile.title') || '个人资料'}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-muted-foreground dark:text-muted-foreground">
           {t('profile.subtitle') || '当前页面基于已登录会话展示账户信息。'}
         </p>
       </div>
@@ -119,8 +119,8 @@ export default function ProfilePage() {
         <div
           className={`mb-6 rounded-lg p-4 ${
             message.type === 'error'
-              ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-              : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+              ? 'bg-destructive/10 text-destructive dark:bg-destructive/15 dark:text-destructive'
+              : 'bg-[var(--theme-info-muted)] text-primary dark:bg-[var(--theme-info-muted)] dark:text-primary'
           }`}
         >
           {message.text}
@@ -129,9 +129,9 @@ export default function ProfilePage() {
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-1">
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+          <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
             <div className="mb-6 text-center">
-              <div className="mx-auto mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-700">
+              <div className="mx-auto mb-4 flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-4 border-border bg-secondary dark:border-border dark:bg-secondary">
                 {activeProfileView.avatarUrl ? (
                   <img
                     src={activeProfileView.avatarUrl}
@@ -139,16 +139,16 @@ export default function ProfilePage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="text-4xl font-semibold text-gray-700 dark:text-gray-200">
+                  <span className="text-4xl font-semibold text-foreground dark:text-foreground">
                     {activeProfile.username.charAt(0).toUpperCase()}
                   </span>
                 )}
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              <h3 className="text-xl font-semibold text-foreground dark:text-foreground">
                 {activeProfile.username}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{activeProfile.email}</p>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+              <p className="text-sm text-muted-foreground dark:text-muted-foreground">{activeProfile.email}</p>
+              <p className="mt-1 text-xs text-muted-foreground dark:text-muted-foreground">
                 {t('profile.role')}: {activeProfile.role === 'admin' ? (t('profile.admin') || '管理员') : (t('profile.user') || '用户')}
               </p>
             </div>
@@ -156,7 +156,7 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Link
                 href="/reading-history"
-                className="flex items-center gap-2 rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-foreground transition-colors hover:bg-secondary dark:text-foreground dark:hover:bg-secondary"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -165,7 +165,7 @@ export default function ProfilePage() {
               </Link>
               <Link
                 href="/reading-list"
-                className="flex items-center gap-2 rounded-lg px-4 py-2 text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-foreground transition-colors hover:bg-secondary dark:text-foreground dark:hover:bg-secondary"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -177,66 +177,66 @@ export default function ProfilePage() {
         </div>
 
         <div className="lg:col-span-2">
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+          <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
             <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <h2 className="text-2xl font-semibold text-foreground dark:text-foreground">
                 {t('profile.basicInfo') || '基本信息'}
               </h2>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              <p className="mt-2 text-sm text-muted-foreground dark:text-muted-foreground">
                 {t('profile.readOnlyNotice') || '当前后端仅提供资料读取接口，编辑、头像上传、密码修改和阅读统计功能暂未开放。'}
               </p>
             </div>
 
             <dl className="grid gap-6 sm:grid-cols-2">
               <div>
-                <dt className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <dt className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
                   {t('profile.username') || '用户名'}
                 </dt>
-                <dd className="text-base text-gray-900 dark:text-gray-100">{activeProfile.username}</dd>
+                <dd className="text-base text-foreground dark:text-foreground">{activeProfile.username}</dd>
               </div>
               <div>
-                <dt className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <dt className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
                   {t('profile.email') || '邮箱'}
                 </dt>
-                <dd className="text-base text-gray-900 dark:text-gray-100">{activeProfile.email}</dd>
+                <dd className="text-base text-foreground dark:text-foreground">{activeProfile.email}</dd>
               </div>
               <div>
-                <dt className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <dt className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
                   {t('profile.bio') || '个人简介'}
                 </dt>
-                <dd className="text-base text-gray-900 dark:text-gray-100">
+                <dd className="text-base text-foreground dark:text-foreground">
                   {activeProfileView.bio || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <dt className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
                   {t('profile.location') || '所在地'}
                 </dt>
-                <dd className="text-base text-gray-900 dark:text-gray-100">
+                <dd className="text-base text-foreground dark:text-foreground">
                   {activeProfileView.location || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <dt className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
                   Website
                 </dt>
-                <dd className="text-base text-gray-900 dark:text-gray-100">
+                <dd className="text-base text-foreground dark:text-foreground">
                   {activeProfileView.website || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <dt className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
                   GitHub
                 </dt>
-                <dd className="text-base text-gray-900 dark:text-gray-100">
+                <dd className="text-base text-foreground dark:text-foreground">
                   {activeProfileView.github || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <dt className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">
                   Twitter
                 </dt>
-                <dd className="text-base text-gray-900 dark:text-gray-100">
+                <dd className="text-base text-foreground dark:text-foreground">
                   {activeProfileView.twitter || '—'}
                 </dd>
               </div>

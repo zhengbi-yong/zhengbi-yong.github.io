@@ -348,10 +348,10 @@ export function PerformanceDashboard({
 
   if (!data) {
     return (
-      <div className={`rounded-lg bg-white p-6 shadow dark:bg-gray-800 ${className}`}>
+      <div className={`rounded-lg bg-background p-6 shadow dark:bg-card ${className}`}>
         <div className="flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent" />
-          <span className="ml-3 text-gray-600 dark:text-gray-400">
+          <span className="ml-3 text-muted-foreground dark:text-muted-foreground">
             {t('performance.loading') || '正在加载性能数据...'}
           </span>
         </div>
@@ -394,7 +394,7 @@ export function PerformanceDashboard({
     <div className={`space-y-6 ${className}`}>
       {/* 头部 */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="text-2xl font-bold text-foreground dark:text-foreground">
           {t('performance.title') || '性能监控仪表板'}
         </h2>
 
@@ -403,10 +403,10 @@ export function PerformanceDashboard({
           <div className="flex items-center gap-2">
             <div
               className={`h-3 w-3 rounded-full ${
-                isRecording ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                isRecording ? 'bg-[var(--theme-success)] animate-pulse' : 'bg-gray-400'
               }`}
             />
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className="text-sm text-muted-foreground dark:text-muted-foreground">
               {isRecording
                 ? t('performance.recording') || '监控中'
                 : t('performance.stopped') || '已停止'}
@@ -417,14 +417,14 @@ export function PerformanceDashboard({
           {isRecording ? (
             <button
               onClick={stopMonitoring}
-              className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+              className="rounded-lg bg-destructive/50 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive"
             >
               {t('performance.stop') || '停止'}
             </button>
           ) : (
             <button
               onClick={() => startMonitoring(refreshInterval)}
-              className="rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-600"
+              className="rounded-lg bg-[var(--theme-success)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--theme-success)]"
             >
               {t('performance.start') || '开始'}
             </button>
@@ -443,47 +443,47 @@ export function PerformanceDashboard({
           </div>
 
           {/* FCP */}
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
+            <div className="text-sm text-muted-foreground dark:text-muted-foreground">
               {t('performance.fcp') || 'FCP'}
             </div>
             <div className={`mt-2 text-2xl font-bold ${getScoreColor(data.score.fcp)}`}>
               {data.vitals.fcp !== null ? formatTime(data.vitals.fcp) : '-'}
             </div>
-            <div className="mt-1 text-sm text-gray-500">{data.score.fcp}/100</div>
+            <div className="mt-1 text-sm text-muted-foreground">{data.score.fcp}/100</div>
           </div>
 
           {/* LCP */}
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
+            <div className="text-sm text-muted-foreground dark:text-muted-foreground">
               {t('performance.lcp') || 'LCP'}
             </div>
             <div className={`mt-2 text-2xl font-bold ${getScoreColor(data.score.lcp)}`}>
               {data.vitals.lcp !== null ? formatTime(data.vitals.lcp) : '-'}
             </div>
-            <div className="mt-1 text-sm text-gray-500">{data.score.lcp}/100</div>
+            <div className="mt-1 text-sm text-muted-foreground">{data.score.lcp}/100</div>
           </div>
 
           {/* FID */}
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
+            <div className="text-sm text-muted-foreground dark:text-muted-foreground">
               {t('performance.fid') || 'FID'}
             </div>
             <div className={`mt-2 text-2xl font-bold ${getScoreColor(data.score.fid)}`}>
               {data.vitals.fid !== null ? formatTime(data.vitals.fid) : '-'}
             </div>
-            <div className="mt-1 text-sm text-gray-500">{data.score.fid}/100</div>
+            <div className="mt-1 text-sm text-muted-foreground">{data.score.fid}/100</div>
           </div>
 
           {/* CLS */}
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
+            <div className="text-sm text-muted-foreground dark:text-muted-foreground">
               {t('performance.cls') || 'CLS'}
             </div>
             <div className={`mt-2 text-2xl font-bold ${getScoreColor(data.score.cls)}`}>
               {data.vitals.cls !== null ? data.vitals.cls.toFixed(3) : '-'}
             </div>
-            <div className="mt-1 text-sm text-gray-500">{data.score.cls}/100</div>
+            <div className="mt-1 text-sm text-muted-foreground">{data.score.cls}/100</div>
           </div>
         </div>
       )}
@@ -492,16 +492,16 @@ export function PerformanceDashboard({
       <div className="grid gap-4 md:grid-cols-2">
         {/* FPS */}
         {metrics.includes('fps') && (
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">
+          <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
+            <h3 className="mb-4 font-semibold text-foreground dark:text-foreground">
               {t('performance.fps') || '帧率'}
             </h3>
             <div className="flex items-end justify-between">
               <div>
-                <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+                <div className="text-4xl font-bold text-foreground dark:text-foreground">
                   {data.fps}
                 </div>
-                <div className="text-sm text-gray-500">FPS</div>
+                <div className="text-sm text-muted-foreground">FPS</div>
               </div>
               <div
                 className={`text-sm font-medium ${
@@ -518,32 +518,32 @@ export function PerformanceDashboard({
 
         {/* 内存 */}
         {metrics.includes('memory') && data.memory && (
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">
+          <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
+            <h3 className="mb-4 font-semibold text-foreground dark:text-foreground">
               {t('performance.memory') || '内存'}
             </h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                   {t('performance.used') || '已使用'}
                 </span>
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-medium text-foreground dark:text-foreground">
                   {formatBytes(data.memory.usedJSHeapSize)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                   {t('performance.total') || '总计'}
                 </span>
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-medium text-foreground dark:text-foreground">
                   {formatBytes(data.memory.totalJSHeapSize)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                   {t('performance.limit') || '限制'}
                 </span>
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <span className="text-sm font-medium text-foreground dark:text-foreground">
                   {formatBytes(data.memory.jsHeapSizeLimit)}
                 </span>
               </div>
@@ -554,45 +554,45 @@ export function PerformanceDashboard({
 
       {/* 资源加载 */}
       {metrics.includes('resources') && (
-        <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-          <h3 className="mb-4 font-semibold text-gray-900 dark:text-gray-100">
+        <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
+          <h3 className="mb-4 font-semibold text-foreground dark:text-foreground">
             {t('performance.resources') || '资源加载'}
           </h3>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-400">
+                <tr className="border-b border-border dark:border-border">
+                  <th className="px-4 py-2 text-left text-muted-foreground dark:text-muted-foreground">
                     {t('performance.resource') || '资源'}
                   </th>
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-400">
+                  <th className="px-4 py-2 text-left text-muted-foreground dark:text-muted-foreground">
                     {t('performance.type') || '类型'}
                   </th>
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-400">
+                  <th className="px-4 py-2 text-left text-muted-foreground dark:text-muted-foreground">
                     {t('performance.duration') || '时长'}
                   </th>
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-400">
+                  <th className="px-4 py-2 text-left text-muted-foreground dark:text-muted-foreground">
                     {t('performance.size') || '大小'}
                   </th>
-                  <th className="px-4 py-2 text-left text-gray-600 dark:text-gray-400">
+                  <th className="px-4 py-2 text-left text-muted-foreground dark:text-muted-foreground">
                     {t('performance.status') || '状态'}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {data.resources.slice(0, 10).map((resource, index) => (
-                  <tr key={index} className="border-b border-gray-100 dark:border-gray-800">
-                    <td className="px-4 py-2 text-gray-900 dark:text-gray-100">
+                  <tr key={index} className="border-b border-border dark:border-border">
+                    <td className="px-4 py-2 text-foreground dark:text-foreground">
                       {resource.name.slice(0, 50)}...
                     </td>
-                    <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
+                    <td className="px-4 py-2 text-muted-foreground dark:text-muted-foreground">
                       {resource.type}
                     </td>
-                    <td className="px-4 py-2 text-gray-900 dark:text-gray-100">
+                    <td className="px-4 py-2 text-foreground dark:text-foreground">
                       {formatTime(resource.duration)}
                     </td>
-                    <td className="px-4 py-2 text-gray-900 dark:text-gray-100">
+                    <td className="px-4 py-2 text-foreground dark:text-foreground">
                       {formatBytes(resource.size)}
                     </td>
                     <td className="px-4 py-2">

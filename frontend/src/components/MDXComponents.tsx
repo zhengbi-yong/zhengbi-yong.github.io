@@ -52,10 +52,10 @@ const ConfettiOnView = dynamic(
 // 动态导入乐谱组件
 const MusicSheet = dynamic(() => import('./MusicSheet').then((mod) => mod.default), {
   loading: () => (
-    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
-        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载乐谱组件...</p>
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载乐谱组件...</p>
       </div>
     </div>
   ),
@@ -66,10 +66,10 @@ const ChemicalStructure = dynamic(
   () => import('./chemistry/ChemicalStructure').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载3D结构查看器...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载3D结构查看器...</p>
         </div>
       </div>
     ),
@@ -80,10 +80,10 @@ const SimpleChemicalStructure = dynamic(
   () => import('./chemistry/SimpleChemicalStructure').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载3D结构查看器...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载3D结构查看器...</p>
         </div>
       </div>
     ),
@@ -95,10 +95,10 @@ const RDKitStructure = dynamic(
   () => import('./chemistry/RDKitStructure').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载2D结构查看器...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载2D结构查看器...</p>
         </div>
       </div>
     ),
@@ -109,10 +109,10 @@ const MoleculeFingerprint = dynamic(
   () => import('./chemistry/MoleculeFingerprint').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 items-center justify-center rounded-lg border border-dashed border-gray-200 p-4 dark:border-gray-700">
+      <div className="my-6 items-center justify-center rounded-lg border border-dashed border-border p-4 dark:border-border">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-6 w-6 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载分子指纹...</p>
+          <div className="border-t-primary-500 h-6 w-6 animate-spin rounded-full border-4 border-border" />
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载分子指纹...</p>
         </div>
       </div>
     ),
@@ -124,10 +124,10 @@ const GaussianSplat = dynamic(
   () => import('./gaussian-splat/GaussianSplat').then((mod) => mod.default),
   {
     loading: () => (
-      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+      <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading 3D Gaussian Splat viewer...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">Loading 3D Gaussian Splat viewer...</p>
         </div>
       </div>
     ),
@@ -137,10 +137,10 @@ const GaussianSplat = dynamic(
 // 动态导入图表组件
 const EChartsComponent = dynamic(() => import('./charts').then((mod) => mod.EChartsComponent), {
   loading: () => (
-    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
-        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载图表组件...</p>
       </div>
     </div>
   ),
@@ -148,10 +148,10 @@ const EChartsComponent = dynamic(() => import('./charts').then((mod) => mod.ECha
 
 const NivoBarChart = dynamic(() => import('./charts').then((mod) => mod.NivoBarChart), {
   loading: () => (
-    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
-        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载图表组件...</p>
       </div>
     </div>
   ),
@@ -159,10 +159,10 @@ const NivoBarChart = dynamic(() => import('./charts').then((mod) => mod.NivoBarC
 
 const NivoLineChart = dynamic(() => import('./charts').then((mod) => mod.NivoLineChart), {
   loading: () => (
-    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
-        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载图表组件...</p>
       </div>
     </div>
   ),
@@ -170,10 +170,10 @@ const NivoLineChart = dynamic(() => import('./charts').then((mod) => mod.NivoLin
 
 const NivoPieChart = dynamic(() => import('./charts').then((mod) => mod.NivoPieChart), {
   loading: () => (
-    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
-        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载图表组件...</p>
       </div>
     </div>
   ),
@@ -181,10 +181,10 @@ const NivoPieChart = dynamic(() => import('./charts').then((mod) => mod.NivoPieC
 
 const AntVChart = dynamic(() => import('./charts').then((mod) => mod.AntVChart), {
   loading: () => (
-    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+    <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
-        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">正在加载图表组件...</p>
+        <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载图表组件...</p>
       </div>
     </div>
   ),

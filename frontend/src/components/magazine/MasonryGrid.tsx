@@ -91,9 +91,9 @@ function MasonryCell({ item, size, index, onClick }: MasonryCellProps) {
       <div
         className={`
           group relative h-full w-full overflow-hidden rounded-2xl
-          border-2 bg-white shadow-md transition-all duration-300
-          hover:shadow-xl dark:border-gray-700 dark:bg-gray-800
-          ${isHovered ? 'border-primary-400 dark:border-primary-600' : 'border-gray-200'}
+          border-2 bg-background shadow-md transition-all duration-300
+          hover:shadow-xl dark:border-border dark:bg-card
+          ${isHovered ? 'border-primary-400 dark:border-primary-600' : 'border-border'}
           cursor-pointer
         `}
         onMouseEnter={() => setIsHovered(true)}
@@ -102,7 +102,7 @@ function MasonryCell({ item, size, index, onClick }: MasonryCellProps) {
         {/* 图片 */}
         <div
           className={`
-            relative overflow-hidden bg-gray-100 dark:bg-gray-900
+            relative overflow-hidden bg-secondary dark:bg-background
             ${size === 'tall' ? 'aspect-[3/8]' : size === 'large' ? 'aspect-square' : size === 'wide' ? 'aspect-[2/1]' : 'aspect-[3/4]'}
           `}
         >
@@ -131,7 +131,7 @@ function MasonryCell({ item, size, index, onClick }: MasonryCellProps) {
               {item.tags.slice(0, size === 'large' ? 4 : 2).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-semibold text-gray-900 backdrop-blur-sm dark:bg-gray-800/90 dark:text-white sm:text-xs"
+                  className="rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm dark:bg-card/90 dark:text-white sm:text-xs"
                 >
                   {tag}
                 </span>
@@ -166,7 +166,7 @@ function MasonryCell({ item, size, index, onClick }: MasonryCellProps) {
         </div>
 
         {/* 类型指示器 */}
-        <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm dark:bg-gray-800/90">
+        <div className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-background/90 backdrop-blur-sm dark:bg-card/90">
           <span className="text-xs font-bold text-primary-600 dark:text-primary-400">
             {item.type === 'book' ? '📚' : item.type === 'article' ? '📄' : '📖'}
           </span>
@@ -247,7 +247,7 @@ export default function MasonryGrid({
       {/* 加载更多指示器 */}
       {visibleItems.length < items.length && (
         <div ref={loadMoreRef} className="py-8 text-center" data-testid="masonry-load-more">
-          <div className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-600 border-t-transparent" />
             <span>加载更多内容...</span>
           </div>

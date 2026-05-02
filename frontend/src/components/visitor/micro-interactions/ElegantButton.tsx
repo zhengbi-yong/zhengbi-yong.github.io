@@ -34,10 +34,10 @@ export function ElegantButton({
 
   const variantStyles = {
     primary:
-      'bg-indigo-600 text-white hover:bg-indigo-700 shadow-visitor-soft hover:shadow-visitor-glow',
+      'bg-primary text-white hover:bg-primary shadow-visitor-soft hover:shadow-visitor-glow',
     secondary:
-      'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
-    ghost: 'bg-transparent text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800',
+      'bg-secondary text-foreground hover:bg-gray-200 dark:bg-card dark:text-foreground dark:hover:bg-secondary',
+    ghost: 'bg-transparent text-foreground hover:bg-secondary dark:text-foreground dark:hover:bg-gray-800',
   }
 
   return (
@@ -46,7 +46,7 @@ export function ElegantButton({
         'inline-flex items-center justify-center',
         'font-medium rounded-visitor-md',
         'transition-all duration-300 ease-visitor',
-        'focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2',
+        'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
         sizeStyles[size],
         variantStyles[variant],
         className

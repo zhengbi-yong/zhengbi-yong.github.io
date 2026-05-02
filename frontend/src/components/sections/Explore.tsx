@@ -166,7 +166,7 @@ export default function Explore({ title, description }: ExploreProps) {
               className={cn(
                 styles.exploreItem,
                 styles.exploreItem1,
-                'border-primary/15 relative h-[200px] overflow-hidden rounded-xl border bg-gray-50/75 sm:h-[220px] md:h-[264px] dark:border-neutral-700/50 dark:bg-gray-900/75'
+                'border-primary/15 relative h-[200px] overflow-hidden rounded-xl border bg-muted/75 sm:h-[220px] md:h-[264px] dark:border-neutral-700/50 dark:bg-background/75'
               )}
             >
               <div className={styles.content}>
@@ -196,7 +196,7 @@ export default function Explore({ title, description }: ExploreProps) {
               className={cn(
                 styles.exploreItem,
                 styles.exploreItem2,
-                'border-primary/15 relative h-[180px] overflow-hidden rounded-xl border bg-gray-50/75 sm:h-[200px] dark:border-neutral-700/50 dark:bg-gray-900/75'
+                'border-primary/15 relative h-[180px] overflow-hidden rounded-xl border bg-muted/75 sm:h-[200px] dark:border-neutral-700/50 dark:bg-background/75'
               )}
             >
               <div className={styles.content}>
@@ -244,7 +244,7 @@ export default function Explore({ title, description }: ExploreProps) {
               className={cn(
                 styles.exploreItem,
                 styles.exploreItem3,
-                'border-primary/15 relative h-[180px] overflow-hidden rounded-xl border bg-gray-50/75 sm:h-[200px] dark:border-neutral-700/50 dark:bg-gray-900/75'
+                'border-primary/15 relative h-[180px] overflow-hidden rounded-xl border bg-muted/75 sm:h-[200px] dark:border-neutral-700/50 dark:bg-background/75'
               )}
             >
               <div className={styles.content}>
@@ -289,7 +289,7 @@ export default function Explore({ title, description }: ExploreProps) {
               className={cn(
                 styles.exploreItem,
                 styles.exploreItem4,
-                'border-primary/15 relative h-[200px] overflow-hidden rounded-xl border bg-gray-50/75 sm:h-[220px] md:h-[264px] dark:border-neutral-700/50 dark:bg-gray-900/75'
+                'border-primary/15 relative h-[200px] overflow-hidden rounded-xl border bg-muted/75 sm:h-[220px] md:h-[264px] dark:border-neutral-700/50 dark:bg-background/75'
               )}
             >
               <div className={styles.content}>
@@ -313,7 +313,7 @@ export default function Explore({ title, description }: ExploreProps) {
             <div
               className={cn(
                 styles.exploreItem,
-                'border-primary/15 relative overflow-hidden rounded-xl border bg-gray-50/75 dark:border-neutral-700/50 dark:bg-gray-900/75'
+                'border-primary/15 relative overflow-hidden rounded-xl border bg-muted/75 dark:border-neutral-700/50 dark:bg-background/75'
               )}
             >
               <div

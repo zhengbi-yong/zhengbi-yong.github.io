@@ -94,59 +94,59 @@ export default function MoleculeFingerprint({
 
   if (rdkitError) {
     return (
-      <div className={`rounded-lg border border-red-300 p-4 ${className}`}>
+      <div className={`rounded-lg border border-destructive/30 p-4 ${className}`}>
         <div className="text-sm text-red-500">⚠️ Chemistry Engine Error</div>
-        <div className="mt-1 text-xs text-gray-600">{rdkitError}</div>
+        <div className="mt-1 text-xs text-muted-foreground">{rdkitError}</div>
       </div>
     )
   }
 
   if (isLoading) {
     return (
-      <div className={`rounded-lg border border-gray-200 p-4 ${className}`}>
-        <div className="text-sm text-gray-600">Generating fingerprint...</div>
+      <div className={`rounded-lg border border-border p-4 ${className}`}>
+        <div className="text-sm text-muted-foreground">Generating fingerprint...</div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className={`rounded-lg border border-red-200 p-4 ${className}`}>
+      <div className={`rounded-lg border border-destructive/20 p-4 ${className}`}>
         <div className="text-sm text-red-500">❌ Fingerprint Error</div>
-        <div className="mt-1 text-xs text-gray-600">{error}</div>
+        <div className="mt-1 text-xs text-muted-foreground">{error}</div>
       </div>
     )
   }
 
   if (!resolvedShowDetails) {
     return (
-      <div className={`rounded bg-gray-50 p-2 font-mono text-xs break-all ${className}`}>
+      <div className={`rounded bg-muted p-2 font-mono text-xs break-all ${className}`}>
         {fingerprint}
       </div>
     )
   }
 
   return (
-    <div className={`rounded-lg border border-gray-200 p-4 ${className}`}>
+    <div className={`rounded-lg border border-border p-4 ${className}`}>
       <div className="grid grid-cols-1 gap-4">
         {/* 基本信息 */}
         <div className="flex items-center justify-between">
           <div>
             <span className="font-semibold">Morgan Fingerprint</span>
-            <span className="ml-2 text-sm text-gray-500">
+            <span className="ml-2 text-sm text-muted-foreground">
               (radius: {resolvedRadius}, bits: {resolvedBits})
             </span>
           </div>
-          <div className="text-sm text-gray-600">Bit Density: {getBitDensity()}%</div>
+          <div className="text-sm text-muted-foreground">Bit Density: {getBitDensity()}%</div>
         </div>
 
         {/* 指纹可视化 */}
-        <div className="rounded bg-gray-50 p-3">
+        <div className="rounded bg-muted p-3">
           <div className="font-mono text-xs leading-relaxed break-all">
             {fingerprint.split('').map((bit, index) => (
               <span
                 key={index}
-                className={`${bit === '1' ? 'font-semibold text-green-600' : 'text-gray-400'}`}
+                className={`${bit === '1' ? 'font-semibold text-[var(--theme-success)]' : 'text-muted-foreground'}`}
               >
                 {bit}
               </span>
@@ -157,28 +157,28 @@ export default function MoleculeFingerprint({
         {/* 统计信息 */}
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div className="text-center">
-            <div className="font-semibold text-green-600">{bitCount}</div>
-            <div className="text-xs text-gray-500">Set Bits</div>
+            <div className="font-semibold text-[var(--theme-success)]">{bitCount}</div>
+            <div className="text-xs text-muted-foreground">Set Bits</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold text-gray-600">{fingerprint.length - bitCount}</div>
-            <div className="text-xs text-gray-500">Unset Bits</div>
+            <div className="font-semibold text-muted-foreground">{fingerprint.length - bitCount}</div>
+            <div className="text-xs text-muted-foreground">Unset Bits</div>
           </div>
           <div className="text-center">
             <div className="font-semibold">{fingerprint.length}</div>
-            <div className="text-xs text-gray-500">Total Bits</div>
+            <div className="text-xs text-muted-foreground">Total Bits</div>
           </div>
         </div>
 
         {/* 位密度条 */}
         <div>
-          <div className="mb-1 flex justify-between text-xs text-gray-600">
+          <div className="mb-1 flex justify-between text-xs text-muted-foreground">
             <span>Bit Density</span>
             <span>{getBitDensity()}%</span>
           </div>
           <div className="h-2 w-full rounded-full bg-gray-200">
             <div
-              className="h-2 rounded-full bg-green-500 transition-all duration-300"
+              className="h-2 rounded-full bg-[var(--theme-success)] transition-all duration-300"
               style={{ width: `${getBitDensity()}%` }}
             />
           </div>

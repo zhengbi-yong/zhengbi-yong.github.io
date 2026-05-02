@@ -122,7 +122,7 @@ export default function MonitoringOverviewPage() {
                     className={`mb-4 inline-block rounded-lg p-3 ${
                       module.color === 'green'
                         ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                        : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                        : 'bg-primary/10 text-primary dark:text-primary'
                     }`}
                   >
                     {module.icon}

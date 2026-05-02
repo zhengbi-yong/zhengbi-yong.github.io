@@ -33,7 +33,7 @@ export function MenuBar({ items, className }: MenuBarProps) {
   return (
     <div
       className={cn(
-        'flex items-center h-8 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
+        'flex items-center h-8 bg-secondary dark:bg-card border-b border-border dark:border-border',
         'text-sm',
         className
       )}
@@ -98,8 +98,8 @@ function MenuButton({ item }: { item: MenuItem }) {
           className={cn(
             'px-3 h-8 flex items-center gap-1 transition-colors',
             open
-              ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-gray-200 dark:bg-secondary text-foreground dark:text-white'
+              : 'text-foreground dark:text-foreground hover:bg-gray-200 dark:hover:bg-secondary'
           )}
         >
           <span>{item.label}</span>
@@ -113,8 +113,8 @@ function MenuButton({ item }: { item: MenuItem }) {
             className={cn(
               'absolute top-full left-0 z-50',
               'min-w-[180px] py-1',
-              'bg-white dark:bg-gray-800',
-              'border border-gray-200 dark:border-gray-700',
+              'bg-background dark:bg-card',
+              'border border-border dark:border-border',
               'shadow-lg rounded-md'
             )}
           >
@@ -149,10 +149,10 @@ function MenuButton({ item }: { item: MenuItem }) {
         className={cn(
           'px-3 h-8 flex items-center gap-2 transition-colors',
           item.disabled
-            ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
+            ? 'text-muted-foreground dark:text-muted-foreground cursor-not-allowed'
             : open
-              ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-gray-200 dark:bg-secondary text-foreground dark:text-white'
+              : 'text-foreground dark:text-foreground hover:bg-gray-200 dark:hover:bg-secondary'
         )}
       >
         {item.checked !== undefined && (
@@ -166,7 +166,7 @@ function MenuButton({ item }: { item: MenuItem }) {
         )}
         <span>{item.label}</span>
         {item.shortcut && (
-          <span className="ml-auto pl-4 text-xs text-gray-400 dark:text-gray-500">
+          <span className="ml-auto pl-4 text-xs text-muted-foreground dark:text-muted-foreground">
             {item.shortcut}
           </span>
         )}
@@ -204,7 +204,7 @@ function SubMenuItem({
   }, [])
 
   if (item.separator) {
-    return <div className="w-full h-px bg-gray-200 dark:bg-gray-700 my-1" />
+    return <div className="w-full h-px bg-gray-200 dark:bg-secondary my-1" />
   }
 
   if (hasSubmenu) {
@@ -219,8 +219,8 @@ function SubMenuItem({
           className={cn(
             'w-full px-3 py-1.5 flex items-center gap-2 text-left transition-colors',
             item.disabled
-              ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              ? 'text-muted-foreground dark:text-muted-foreground cursor-not-allowed'
+              : 'text-foreground dark:text-foreground hover:bg-secondary dark:hover:bg-secondary'
           )}
         >
           <span className="flex-1">{item.label}</span>
@@ -234,8 +234,8 @@ function SubMenuItem({
             className={cn(
               'absolute top-0 left-full z-50',
               'min-w-[160px] py-1',
-              'bg-white dark:bg-gray-800',
-              'border border-gray-200 dark:border-gray-700',
+              'bg-background dark:bg-card',
+              'border border-border dark:border-border',
               'shadow-lg rounded-md'
             )}
           >
@@ -267,8 +267,8 @@ function SubMenuItem({
       className={cn(
         'w-full px-3 py-1.5 flex items-center gap-2 text-left transition-colors',
         item.disabled
-          ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
-          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          ? 'text-muted-foreground dark:text-muted-foreground cursor-not-allowed'
+          : 'text-foreground dark:text-foreground hover:bg-secondary dark:hover:bg-secondary'
       )}
     >
       {item.checked !== undefined && (
@@ -282,7 +282,7 @@ function SubMenuItem({
       )}
       <span className="flex-1">{item.label}</span>
       {item.shortcut && (
-        <span className="text-xs text-gray-400 dark:text-gray-500">
+        <span className="text-xs text-muted-foreground dark:text-muted-foreground">
           {item.shortcut}
         </span>
       )}

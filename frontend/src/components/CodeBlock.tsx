@@ -29,9 +29,9 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
       {/* Title bar - macOS window chrome */}
       <div className="code-block-header flex items-center justify-between bg-background dark:bg-background px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-red-500/80" />
-          <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
-          <span className="w-3 h-3 rounded-full bg-green-500/80" />
+          <span className="w-3 h-3 rounded-full bg-destructive/50/80" />
+          <span className="w-3 h-3 rounded-full bg-[var(--theme-warning)]/80" />
+          <span className="w-3 h-3 rounded-full bg-[var(--theme-success)]/80" />
           <span className="text-xs text-muted-foreground ml-2 font-mono uppercase tracking-wide">
             {lang}
           </span>

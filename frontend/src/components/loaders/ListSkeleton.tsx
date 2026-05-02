@@ -16,7 +16,7 @@ export default function ListSkeleton({ className, itemCount = 5 }: ListSkeletonP
   return (
     <div className={cn('space-y-4', className)}>
       {Array.from({ length: itemCount }).map((_, index) => (
-        <div key={index} className="space-y-3 border-b border-gray-200 pb-4 dark:border-gray-700">
+        <div key={index} className="space-y-3 border-b border-border pb-4 dark:border-border">
           {/* 标题骨架 */}
           <Skeleton height={20} width="60%" />
 

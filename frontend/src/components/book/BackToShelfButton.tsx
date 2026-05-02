@@ -30,7 +30,7 @@ export default function BackToShelfButton({ className = '' }: BackToShelfButtonP
   return (
     <motion.button
       onClick={handleBack}
-      className={`group flex items-center gap-2 rounded-lg border border-gray-200/50 bg-white/80 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-md dark:border-gray-700/50 dark:bg-gray-900/80 dark:text-gray-300 dark:hover:bg-gray-800 ${className}`}
+      className={`group flex items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-4 py-2 text-sm font-medium text-foreground shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-background hover:shadow-md dark:border-border/50 dark:bg-background/80 dark:text-foreground dark:hover:bg-gray-800 ${className}`}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       initial={{ opacity: 0, x: -20 }}

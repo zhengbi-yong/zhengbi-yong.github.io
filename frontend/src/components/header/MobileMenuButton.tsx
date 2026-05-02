@@ -21,8 +21,8 @@ export const MobileMenuButton = memo(function MobileMenuButton({
   const buttonClass = cn(
     'inline-flex h-10 w-10 items-center justify-center rounded-full border text-current transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.96]',
     isDark
-      ? 'border-white/10 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.08]'
-      : 'border-black/8 bg-white/75 hover:border-black/12 hover:bg-black/[0.04]'
+      ? 'border-white/10 bg-background/[0.04] hover:border-white/16 hover:bg-background/[0.08]'
+      : 'border-black/8 bg-background/75 hover:border-black/12 hover:bg-black/[0.04]'
   )
 
   return (

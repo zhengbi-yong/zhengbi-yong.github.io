@@ -21,18 +21,18 @@ export interface StatusBadgeProps {
 
 const statusConfig: Record<string, { color: string; label: string }> = {
   // 文章状态
-  published: { color: 'bg-green-500', label: '已发布' },
-  draft: { color: 'bg-yellow-500', label: '草稿' },
-  pending: { color: 'bg-blue-500', label: '待审核' },
-  rejected: { color: 'bg-red-500', label: '已拒绝' },
-  approved: { color: 'bg-green-500', label: '已通过' },
+  published: { color: 'bg-[var(--theme-success)]', label: '已发布' },
+  draft: { color: 'bg-[var(--theme-warning)]', label: '草稿' },
+  pending: { color: 'bg-primary', label: '待审核' },
+  rejected: { color: 'bg-destructive/50', label: '已拒绝' },
+  approved: { color: 'bg-[var(--theme-success)]', label: '已通过' },
   spam: { color: 'bg-purple-500', label: '垃圾' },
 
   // 通用状态
-  success: { color: 'bg-green-500', label: '成功' },
-  warning: { color: 'bg-yellow-500', label: '警告' },
-  error: { color: 'bg-red-500', label: '错误' },
-  info: { color: 'bg-blue-500', label: '信息' },
+  success: { color: 'bg-[var(--theme-success)]', label: '成功' },
+  warning: { color: 'bg-[var(--theme-warning)]', label: '警告' },
+  error: { color: 'bg-destructive/50', label: '错误' },
+  info: { color: 'bg-primary', label: '信息' },
 }
 
 export function StatusBadge({
@@ -41,7 +41,7 @@ export function StatusBadge({
   size = 'md',
   className,
 }: StatusBadgeProps) {
-  const config = statusConfig[status] || { color: 'bg-gray-500', label: status }
+  const config = statusConfig[status] || { color: 'bg-muted0', label: status }
   const label = customLabel || config.label
 
   const sizeStyles = {
@@ -77,14 +77,14 @@ export function StatusBadge({
         'rounded-full',
         // 背景色 - 浅色版本
         status === 'published' || status === 'approved' || status === 'success'
-          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+          ? 'bg-[var(--theme-success)]/10 text-[var(--theme-success)] dark:bg-[var(--theme-success)]/15/30 dark:text-green-300'
           : status === 'draft' || status === 'warning'
-          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
+          ? 'bg-[var(--theme-warning)]/10 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
           : status === 'rejected' || status === 'error' || status === 'spam'
-          ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+          ? 'bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive'
           : status === 'pending' || status === 'info'
-          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-          : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+          ? 'bg-[var(--theme-info-muted)] text-[var(--theme-fg)] dark:bg-blue-900/30 dark:text-blue-300'
+          : 'bg-secondary text-gray-800 dark:bg-background/30 dark:text-foreground',
         className
       )}
     >
@@ -113,7 +113,7 @@ export interface StatusDotProps {
 }
 
 export function StatusDot({ status, size = 'md', showLabel = false, className }: StatusDotProps) {
-  const config = statusConfig[status] || { color: 'bg-gray-500', label: status }
+  const config = statusConfig[status] || { color: 'bg-muted0', label: status }
 
   const sizeStyles = {
     sm: 'w-1.5 h-1.5',
@@ -131,7 +131,7 @@ export function StatusDot({ status, size = 'md', showLabel = false, className }:
         )}
       />
       {showLabel && (
-        <span className="text-admin-xs text-gray-600 dark:text-gray-400">
+        <span className="text-admin-xs text-muted-foreground dark:text-muted-foreground">
           {config.label}
         </span>
       )}
@@ -149,10 +149,10 @@ export interface RoleBadgeProps {
 
 const roleConfig: Record<string, { color: string; label: string; bgColor: string; textColor: string }> = {
   admin: {
-    color: 'bg-red-500',
+    color: 'bg-destructive/50',
     label: '管理员',
-    bgColor: 'bg-red-100 dark:bg-red-900/30',
-    textColor: 'text-red-800 dark:text-red-300',
+    bgColor: 'bg-destructive/10 dark:bg-destructive/20',
+    textColor: 'text-destructive dark:text-destructive',
   },
   moderator: {
     color: 'bg-purple-500',
@@ -161,10 +161,10 @@ const roleConfig: Record<string, { color: string; label: string; bgColor: string
     textColor: 'text-purple-800 dark:text-purple-300',
   },
   user: {
-    color: 'bg-gray-500',
+    color: 'bg-muted0',
     label: '用户',
-    bgColor: 'bg-gray-100 dark:bg-gray-800',
-    textColor: 'text-gray-800 dark:text-gray-300',
+    bgColor: 'bg-secondary dark:bg-card',
+    textColor: 'text-gray-800 dark:text-foreground',
   },
 }
 

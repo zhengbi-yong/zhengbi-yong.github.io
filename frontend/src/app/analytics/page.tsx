@@ -90,20 +90,20 @@ export default function AnalyticsPage() {
           <h1 className="mx-auto mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
             分析数据管理
           </h1>
-          <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
+          <p className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg dark:text-muted-foreground">
             管理和导出您的博客文章阅读分析数据
           </p>
         </div>
 
         {/* 数据统计 */}
         <div className="px-4 py-8 sm:px-6">
-        <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">数据概览</h2>
+        <h2 className="mb-6 text-2xl font-semibold text-foreground dark:text-foreground">数据概览</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+          <div className="rounded-lg border border-border bg-background p-6 dark:border-border dark:bg-background">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">总文章数</p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">总文章数</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground dark:text-foreground">
                   {stats.totalArticles}
                 </p>
               </div>
@@ -111,11 +111,11 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+          <div className="rounded-lg border border-border bg-background p-6 dark:border-border dark:bg-background">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">总浏览量</p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">总浏览量</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground dark:text-foreground">
                   {stats.totalViews}
                 </p>
               </div>
@@ -123,11 +123,11 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+          <div className="rounded-lg border border-border bg-background p-6 dark:border-border dark:bg-background">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">平均参与度</p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">平均参与度</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground dark:text-foreground">
                   {stats.avgEngagement}/100
                 </p>
               </div>
@@ -135,11 +135,11 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-gray-900">
+          <div className="rounded-lg border border-border bg-background p-6 dark:border-border dark:bg-background">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">存储大小</p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                <p className="text-sm text-muted-foreground dark:text-muted-foreground">存储大小</p>
+                <p className="mt-1 text-2xl font-semibold text-foreground dark:text-foreground">
                   {formatStorageSize(stats.storageSize)}
                 </p>
               </div>
@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
 
         {/* 数据操作 */}
         <div className="px-4 py-8 sm:px-6">
-          <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">数据操作</h2>
+          <h2 className="mb-6 text-2xl font-semibold text-foreground dark:text-foreground">数据操作</h2>
         <div className="flex flex-wrap gap-4">
           <Button
             onClick={exportData}
@@ -192,8 +192,8 @@ export default function AnalyticsPage() {
         </div>
 
         {importError && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-            <p className="text-sm text-red-800 dark:text-red-200">导入失败：{importError}</p>
+          <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 p-4 dark:border-destructive/20 dark:bg-destructive/15">
+            <p className="text-sm text-destructive dark:text-destructive">导入失败：{importError}</p>
           </div>
         )}
       </div>
@@ -201,27 +201,27 @@ export default function AnalyticsPage() {
         {/* 文章列表 */}
         {Object.keys(allData).length > 0 && (
           <div className="px-4 py-8 sm:px-6">
-            <h2 className="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="mb-6 text-2xl font-semibold text-foreground dark:text-foreground">
               文章分析详情
             </h2>
-          <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="overflow-hidden rounded-lg border border-border dark:border-border">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-gray-50 dark:bg-gray-800">
+                <thead className="bg-muted dark:bg-card">
                   <tr>
-                    <th className="px-6 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <th className="px-6 py-3 text-sm font-medium text-foreground dark:text-foreground">
                       文章 ID
                     </th>
-                    <th className="px-6 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <th className="px-6 py-3 text-sm font-medium text-foreground dark:text-foreground">
                       浏览量
                     </th>
-                    <th className="px-6 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <th className="px-6 py-3 text-sm font-medium text-foreground dark:text-foreground">
                       平均阅读时间
                     </th>
-                    <th className="px-6 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <th className="px-6 py-3 text-sm font-medium text-foreground dark:text-foreground">
                       滚动深度
                     </th>
-                    <th className="px-6 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <th className="px-6 py-3 text-sm font-medium text-foreground dark:text-foreground">
                       参与度分数
                     </th>
                   </tr>
@@ -230,30 +230,30 @@ export default function AnalyticsPage() {
                   {Object.entries(allData)
                     .sort(([, a], [, b]) => b.engagementScore - a.engagementScore)
                     .map(([articleId, data]) => (
-                      <tr key={articleId} className="bg-white dark:bg-gray-900">
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <tr key={articleId} className="bg-background dark:bg-background">
+                        <td className="px-6 py-4 text-sm font-medium text-foreground dark:text-foreground">
                           {articleId}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-muted-foreground dark:text-muted-foreground">
                           {data.viewCount || 0}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-muted-foreground dark:text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Clock size={14} />
                             {Math.round((data.averageReadingTime || 0) / 60)} 分钟
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
+                        <td className="px-6 py-4 text-sm text-muted-foreground dark:text-muted-foreground">
                           {Math.round((data.scrollDepth || 0) * 100)}%
                         </td>
                         <td className="px-6 py-4">
                           <span
                             className={`rounded-full px-2 py-1 text-xs font-medium ${
                               data.engagementScore >= 80
-                                ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                                ? 'bg-destructive/10 text-destructive dark:bg-destructive/15 dark:text-destructive'
                                 : data.engagementScore >= 60
                                   ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                                  : 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
+                                  : 'bg-secondary text-foreground dark:bg-background/20 dark:text-muted-foreground'
                             }`}
                           >
                             {data.engagementScore || 0}/100
@@ -270,9 +270,9 @@ export default function AnalyticsPage() {
 
         {/* 说明信息 */}
         <div className="px-4 py-8 sm:px-6">
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/20">
+          <div className="rounded-lg border border-[var(--theme-info)]/20 bg-[var(--theme-info-muted)] p-6 dark:border-blue-800 dark:bg-[var(--theme-info-muted)]">
             <h3 className="mb-2 text-lg font-semibold text-blue-900 dark:text-blue-100">说明</h3>
-          <ul className="list-inside list-disc space-y-1 text-sm text-blue-800 dark:text-blue-200">
+          <ul className="list-inside list-disc space-y-1 text-sm text-[var(--theme-fg)] dark:text-[var(--theme-fg)]">
             <li>所有分析数据都存储在您的浏览器本地存储中</li>
             <li>导出功能会将所有数据保存为 JSON 文件，方便备份和迁移</li>
             <li>导入功能可以合并数据，不会覆盖现有记录</li>

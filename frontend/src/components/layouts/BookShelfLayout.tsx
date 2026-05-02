@@ -34,7 +34,7 @@ export default function BookShelfLayout({ posts, title = '博客书架' }: BookS
         <h1 className="mx-auto mb-3 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-3xl leading-tight font-extrabold tracking-tight text-transparent sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
           {title}
         </h1>
-        <p className="mx-auto max-w-2xl text-sm text-gray-600 dark:text-gray-400">
+        <p className="mx-auto max-w-2xl text-sm text-muted-foreground dark:text-muted-foreground">
           按分类浏览文章，点击书籍展开查看章节和文章
         </p>
       </div>
@@ -101,7 +101,7 @@ export default function BookShelfLayout({ posts, title = '博客书架' }: BookS
       {/* 空状态 */}
       {bookShelfData.books.length === 0 && bookShelfData.uncategorized.length === 0 && (
         <div className="py-12 text-center">
-          <p className="text-gray-500 dark:text-gray-400">暂无文章</p>
+          <p className="text-muted-foreground dark:text-muted-foreground">暂无文章</p>
         </div>
       )}
     </div>

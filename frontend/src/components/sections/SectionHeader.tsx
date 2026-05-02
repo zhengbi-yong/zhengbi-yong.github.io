@@ -17,7 +17,7 @@ interface SectionHeaderProps {
 export default function SectionHeader({ title, description, className = '' }: SectionHeaderProps) {
   return (
     <div className={cn('relative z-20 mx-auto mt-12 mb-16 w-full text-center', className)}>
-      <h2 className="text-center text-4xl font-bold tracking-normal text-neutral-800 sm:text-5xl dark:text-neutral-100">
+      <h2 className="text-center text-4xl font-bold tracking-normal text-neutral-800 sm:text-5xl dark:text-foreground">
         <AnimatedText delay={0.2} stagger={0.08} content={title} />
       </h2>
 

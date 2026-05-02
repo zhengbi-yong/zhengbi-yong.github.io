@@ -147,7 +147,7 @@ export function MusicPlayer({ tracks, autoPlay = false, className = '' }: MusicP
 
         <button
           onClick={togglePlayPause}
-          className="rounded-full bg-blue-600 p-3 text-white transition-colors hover:bg-blue-700"
+          className="rounded-full bg-primary p-3 text-white transition-colors hover:bg-primary"
           aria-label={isPlaying ? '暂停' : '播放'}
         >
           {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="ml-1 h-6 w-6" />}
@@ -187,7 +187,7 @@ export function MusicPlayer({ tracks, autoPlay = false, className = '' }: MusicP
                 onClick={() => setCurrentTrackIndex(index)}
                 className={`w-full rounded-md px-3 py-2 text-left transition-colors ${
                   index === currentTrackIndex
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                    ? 'bg-[var(--theme-info-muted)] text-primary dark:bg-blue-900/30 dark:text-blue-300'
                     : 'text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]'
                 }`}
               >

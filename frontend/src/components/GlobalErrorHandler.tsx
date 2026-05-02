@@ -20,33 +20,33 @@ export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
         // 例如：显示全局通知、发送到分析服务等
       }}
       fallback={({ error: _error, retry, reset }) => (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-muted dark:bg-background">
           <div className="flex min-h-[400px] items-center justify-center p-4">
             <div className="w-full max-w-2xl">
               <ErrorBoundaryV2
                 fallback={({ error: _error, retry }) => (
-                  <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-                    <h1 className="mb-4 text-2xl font-bold text-red-600 dark:text-red-400">
+                  <div className="rounded-lg bg-background p-6 shadow-lg dark:bg-card">
+                    <h1 className="mb-4 text-2xl font-bold text-destructive dark:text-destructive">
                       Application Error
                     </h1>
-                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                    <p className="mb-6 text-muted-foreground dark:text-muted-foreground">
                       The application encountered a critical error. Please try refreshing the page.
                     </p>
                     <button
                       onClick={retry}
-                      className="rounded bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+                      className="rounded bg-primary px-4 py-2 text-white transition-colors hover:bg-primary"
                     >
                       Refresh Page
                     </button>
                   </div>
                 )}
               >
-                <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+                <div className="rounded-lg bg-background p-6 shadow-lg dark:bg-card">
                   <div className="mb-6 text-center">
-                    <h1 className="mb-2 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <h1 className="mb-2 text-2xl font-bold text-foreground dark:text-foreground">
                       Something went wrong
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-muted-foreground dark:text-muted-foreground">
                       We're sorry, but something unexpected happened. Our team has been notified.
                     </p>
                   </div>
@@ -54,26 +54,26 @@ export function GlobalErrorHandler({ children }: GlobalErrorHandlerProps) {
                   <div className="mb-6 flex justify-center gap-4">
                     <button
                       onClick={retry}
-                      className="flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+                      className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-white transition-colors hover:bg-primary"
                     >
                       Try Again
                     </button>
                     <button
                       onClick={reset}
-                      className="flex items-center gap-2 rounded bg-gray-200 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                      className="flex items-center gap-2 rounded bg-gray-200 px-4 py-2 text-foreground transition-colors hover:bg-gray-300 dark:bg-secondary dark:text-foreground dark:hover:bg-secondary"
                     >
                       Reset
                     </button>
                     <a
                       href="/"
-                      className="flex items-center gap-2 rounded bg-gray-200 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                      className="flex items-center gap-2 rounded bg-gray-200 px-4 py-2 text-foreground transition-colors hover:bg-gray-300 dark:bg-secondary dark:text-foreground dark:hover:bg-secondary"
                     >
                       Go Home
                     </a>
                   </div>
 
-                  <div className="border-t border-gray-200 pt-4 dark:border-gray-700">
-                    <p className="mb-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <div className="border-t border-border pt-4 dark:border-border">
+                    <p className="mb-2 text-center text-sm text-muted-foreground dark:text-muted-foreground">
                       Help us improve by reporting this issue
                     </p>
                     <div className="flex justify-center">

@@ -18,7 +18,7 @@ export default function Projects() {
               className={`group cursor-pointer ${index % 2 === 1 ? 'md:mt-24' : ''}`}
             >
               <Link href={project.href || '#'} className="block h-full">
-                <div className="h-full border border-zinc-200/70 bg-zinc-50/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-700/30 group-hover:bg-white dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-amber-500/20 dark:group-hover:bg-zinc-900/90 md:p-10">
+                <div className="h-full border border-border/70 bg-background/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-primary/30 group-hover:bg-background dark:border-border/80 dark:dark:bg-card/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-primary/20 dark:group-hover:dark:bg-card/90 md:p-10">
                   {project.imgSrc && (
                     <div className="relative mb-8 aspect-[4/5] overflow-hidden md:mb-10">
                       <Image
@@ -32,7 +32,7 @@ export default function Projects() {
                   )}
                   <div className="space-y-4">
                     {project.category && (
-                      <span className="block text-[10px] font-medium uppercase tracking-[0.2em] text-amber-700 dark:text-amber-500">
+                      <span className="block text-[10px] font-medium uppercase tracking-[0.2em] text-primary dark:text-primary">
                         {project.category}
                         {project.year && ` / ${project.year}`}
                       </span>
@@ -43,11 +43,11 @@ export default function Projects() {
                     >
                       {project.title}
                     </h2>
-                    <p className="max-w-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <p className="max-w-sm leading-relaxed text-muted-foreground dark:text-zinc-400">
                       {project.description}
                     </p>
                     <div className="pt-2">
-                      <span className="border-b border-zinc-300 pb-1 text-sm font-medium uppercase tracking-[0.14em] text-amber-700 transition-colors duration-300 group-hover:border-amber-700 dark:border-zinc-600 dark:text-amber-500 dark:group-hover:border-amber-500">
+                      <span className="border-b border-border pb-1 text-sm font-medium uppercase tracking-[0.14em] text-primary transition-colors duration-300 group-hover:border-primary dark:border-border dark:text-primary dark:group-hover:border-primary">
                         查看详情
                       </span>
                     </div>
@@ -60,7 +60,7 @@ export default function Projects() {
 
         {projectsData.length === 0 && (
           <div className="py-32 text-center">
-            <p className="text-zinc-400 dark:text-zinc-500">暂无项目</p>
+            <p className="text-zinc-400 dark:text-muted-foreground">暂无项目</p>
           </div>
         )}
       </PublicPageFrame>

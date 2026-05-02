@@ -168,15 +168,15 @@ export function CommandPalette() {
       {/* 命令面板 */}
       <div
         className={cn(
-          'relative w-full max-w-xl bg-white dark:bg-gray-800',
+          'relative w-full max-w-xl bg-background dark:bg-card',
           'rounded-lg shadow-2xl',
-          'border border-gray-200 dark:border-gray-700',
+          'border border-border dark:border-border',
           'overflow-hidden'
         )}
       >
         {/* 搜索输入框 */}
-        <div className="flex items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <Search className="w-4 h-4 text-gray-400 mr-3" />
+        <div className="flex items-center px-4 py-3 border-b border-border dark:border-border">
+          <Search className="w-4 h-4 text-muted-foreground mr-3" />
           <input
             ref={inputRef}
             type="text"
@@ -185,7 +185,7 @@ export function CommandPalette() {
             placeholder="搜索命令..."
             className={cn(
               'flex-1 bg-transparent border-none outline-none',
-              'text-admin-base text-gray-900 dark:text-white',
+              'text-admin-base text-foreground dark:text-white',
               'placeholder-gray-400'
             )}
           />
@@ -193,8 +193,8 @@ export function CommandPalette() {
             onClick={close}
             className={cn(
               'ml-2 p-1 rounded',
-              'hover:bg-gray-100 dark:hover:bg-gray-700',
-              'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
+              'hover:bg-secondary dark:hover:bg-secondary',
+              'text-muted-foreground hover:text-muted-foreground dark:hover:text-gray-300',
               'transition-colors'
             )}
           >
@@ -205,7 +205,7 @@ export function CommandPalette() {
         {/* 命令列表 */}
         <div className="max-h-[400px] overflow-y-auto py-2">
           {filteredCommands.length === 0 ? (
-            <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+            <div className="px-4 py-8 text-center text-muted-foreground dark:text-muted-foreground">
               没有找到匹配的命令
             </div>
           ) : (
@@ -222,19 +222,19 @@ export function CommandPalette() {
                     'text-left transition-colors',
                     'mb-1 last:mb-0',
                     index === selectedIndex
-                      ? 'bg-blue-50 dark:bg-blue-900/20'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-[var(--theme-info-muted)] dark:bg-[var(--theme-info-muted)]'
+                      : 'hover:bg-secondary dark:hover:bg-secondary'
                   )}
                 >
-                  <div className="flex-shrink-0 mt-0.5 text-gray-500 dark:text-gray-400">
+                  <div className="flex-shrink-0 mt-0.5 text-muted-foreground dark:text-muted-foreground">
                     {command.icon}
                   </div>
                   <div className="ml-3 flex-1 min-w-0">
-                    <div className="text-admin-sm font-medium text-gray-900 dark:text-white">
+                    <div className="text-admin-sm font-medium text-foreground dark:text-white">
                       {command.label}
                     </div>
                     {command.description && (
-                      <div className="text-admin-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      <div className="text-admin-xs text-muted-foreground dark:text-muted-foreground mt-0.5">
                         {command.description}
                       </div>
                     )}
@@ -248,9 +248,9 @@ export function CommandPalette() {
         {/* 底部提示 */}
         <div
           className={cn(
-            'px-4 py-2 border-t border-gray-200 dark:border-gray-700',
+            'px-4 py-2 border-t border-border dark:border-border',
             'flex items-center justify-between',
-            'text-admin-xs text-gray-500 dark:text-gray-400'
+            'text-admin-xs text-muted-foreground dark:text-muted-foreground'
           )}
         >
           <div className="flex items-center gap-4">
@@ -258,7 +258,7 @@ export function CommandPalette() {
               <kbd
                 className={cn(
                   'px-1.5 py-0.5 rounded',
-                  'bg-gray-100 dark:bg-gray-700',
+                  'bg-secondary dark:bg-secondary',
                   'font-mono text-xs'
                 )}
               >
@@ -270,7 +270,7 @@ export function CommandPalette() {
               <kbd
                 className={cn(
                   'px-1.5 py-0.5 rounded',
-                  'bg-gray-100 dark:bg-gray-700',
+                  'bg-secondary dark:bg-secondary',
                   'font-mono text-xs'
                 )}
               >
@@ -282,7 +282,7 @@ export function CommandPalette() {
               <kbd
                 className={cn(
                   'px-1.5 py-0.5 rounded',
-                  'bg-gray-100 dark:bg-gray-700',
+                  'bg-secondary dark:bg-secondary',
                   'font-mono text-xs'
                 )}
               >

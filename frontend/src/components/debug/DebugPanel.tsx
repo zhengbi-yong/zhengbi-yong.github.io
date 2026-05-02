@@ -136,7 +136,7 @@ export function DebugPanel() {
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="mb-2 flex items-center gap-2 border-yellow-300 bg-yellow-100 dark:border-yellow-700 dark:bg-yellow-900/30"
+        className="mb-2 flex items-center gap-2 border-yellow-300 bg-[var(--theme-warning)]/10 dark:border-yellow-700 dark:bg-yellow-900/30"
       >
         <Bug className="h-4 w-4" />
         Debug
@@ -145,9 +145,9 @@ export function DebugPanel() {
 
       {/* 调试面板 */}
       {isOpen && (
-        <div className="w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="w-80 rounded-lg border border-border bg-background p-4 shadow-lg dark:border-border dark:bg-card">
           {/* 标题栏 */}
-          <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-2 dark:border-gray-700">
+          <div className="mb-4 flex items-center justify-between border-b border-border pb-2 dark:border-border">
             <h3 className="font-semibold">Debug Panel</h3>
             <Button
               variant="ghost"
@@ -162,8 +162,8 @@ export function DebugPanel() {
           {/* 性能信息 */}
           <div className="space-y-3">
             <div>
-              <h4 className="mb-1 font-medium text-gray-900 dark:text-gray-100">Performance</h4>
-              <div className="space-y-1 text-gray-600 dark:text-gray-400">
+              <h4 className="mb-1 font-medium text-foreground dark:text-foreground">Performance</h4>
+              <div className="space-y-1 text-muted-foreground dark:text-muted-foreground">
                 <div className="flex justify-between">
                   <span>Load Time:</span>
                   <span>{debugInfo.performance.loadTime}ms</span>
@@ -181,8 +181,8 @@ export function DebugPanel() {
 
             {/* 内存信息 */}
             <div>
-              <h4 className="mb-1 font-medium text-gray-900 dark:text-gray-100">Memory</h4>
-              <div className="space-y-1 text-gray-600 dark:text-gray-400">
+              <h4 className="mb-1 font-medium text-foreground dark:text-foreground">Memory</h4>
+              <div className="space-y-1 text-muted-foreground dark:text-muted-foreground">
                 <div className="flex justify-between">
                   <span>Used:</span>
                   <span>{formatBytes(debugInfo.memory.used)}</span>
@@ -196,8 +196,8 @@ export function DebugPanel() {
 
             {/* 网络信息 */}
             <div>
-              <h4 className="mb-1 font-medium text-gray-900 dark:text-gray-100">Network</h4>
-              <div className="space-y-1 text-gray-600 dark:text-gray-400">
+              <h4 className="mb-1 font-medium text-foreground dark:text-foreground">Network</h4>
+              <div className="space-y-1 text-muted-foreground dark:text-muted-foreground">
                 <div className="flex justify-between">
                   <span>Pending:</span>
                   <span>{debugInfo.network.pendingRequests}</span>
@@ -214,7 +214,7 @@ export function DebugPanel() {
             </div>
 
             {/* 工具按钮 */}
-            <div className="space-y-2 border-t border-gray-200 pt-2 dark:border-gray-700">
+            <div className="space-y-2 border-t border-border pt-2 dark:border-border">
               <Button
                 variant="outline"
                 size="sm"
@@ -234,8 +234,8 @@ export function DebugPanel() {
             </div>
 
             {/* 环境信息 */}
-            <div className="border-t border-gray-200 pt-2 dark:border-gray-700">
-              <div className="space-y-1 text-gray-600 dark:text-gray-400">
+            <div className="border-t border-border pt-2 dark:border-border">
+              <div className="space-y-1 text-muted-foreground dark:text-muted-foreground">
                 <div className="flex justify-between">
                   <span>Environment:</span>
                   <span>{process.env.NODE_ENV}</span>

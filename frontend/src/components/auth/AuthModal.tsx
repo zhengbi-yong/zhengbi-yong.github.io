@@ -112,7 +112,7 @@ export function AuthModal({
         <form onSubmit={handleSubmit} className="mt-4 space-y-4" data-testid="auth-form">
           {error ? (
             <div
-              className="rounded-md border border-red-200 bg-red-100 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/30 dark:text-red-200"
+              className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive dark:border-destructive/20 dark:bg-destructive/20 dark:text-destructive"
               data-testid="auth-error-message"
             >
               {error}

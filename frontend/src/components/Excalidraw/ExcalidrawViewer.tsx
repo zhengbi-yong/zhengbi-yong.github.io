@@ -603,7 +603,7 @@ export function ExcalidrawViewer({
     >
       {/* 顶部工具栏 */}
       {(showToolbar || showBackButton) && (
-        <div className="flex items-center justify-between border-b border-gray-200 bg-white p-2 dark:border-gray-700 dark:bg-gray-900">
+        <div className="flex items-center justify-between border-b border-border bg-background p-2 dark:border-border dark:bg-background">
           <div className="flex gap-2">
             {/* 返回按钮 */}
             {showBackButton && (

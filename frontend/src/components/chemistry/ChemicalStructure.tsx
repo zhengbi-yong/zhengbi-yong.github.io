@@ -228,7 +228,7 @@ export default function SimpleChemicalStructure({
   if (snapshot && !isActive) {
     return (
       <div
-        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 ${className}`}
+        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-border bg-muted dark:border-border dark:bg-card ${className}`}
         style={{
           width,
           height: typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight,
@@ -247,7 +247,7 @@ export default function SimpleChemicalStructure({
   if (!isClient) {
     return (
       <div
-        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800 ${className}`}
+        className={`my-6 flex max-w-full items-center justify-center rounded-lg border border-dashed border-border bg-muted dark:border-border dark:bg-card ${className}`}
         style={{
           width,
           height: typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight,
@@ -255,8 +255,8 @@ export default function SimpleChemicalStructure({
         }}
       >
         <div className="flex flex-col items-center gap-3">
-          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-gray-300" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">正在加载3D结构查看器...</p>
+          <div className="border-t-primary-500 h-8 w-8 animate-spin rounded-full border-4 border-border" />
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载3D结构查看器...</p>
         </div>
       </div>
     )
@@ -265,14 +265,14 @@ export default function SimpleChemicalStructure({
   if (error) {
     return (
       <div
-        className={`my-6 max-w-full rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 ${className}`}
+        className={`my-6 max-w-full rounded-lg border border-destructive/20 bg-destructive/5 p-4 dark:border-destructive/20 dark:bg-destructive/15 ${className}`}
         style={{
           width,
           height: typeof resolvedHeight === 'number' ? `${resolvedHeight}px` : resolvedHeight,
           maxWidth: '100%',
         }}
       >
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-sm text-destructive dark:text-destructive">{error}</p>
       </div>
     )
   }

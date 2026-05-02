@@ -590,7 +590,7 @@ export default function MusicExperience() {
   }, [activeTrack])
 
   const accentColor = isDark ? 'text-purple-300' : 'text-purple-600'
-  const mutedColor = isDark ? 'text-gray-400' : 'text-gray-500'
+  const mutedColor = isDark ? 'text-muted-foreground' : 'text-muted-foreground'
   const textColor = isDark ? 'text-gray-100' : 'text-gray-800'
 
   return (
@@ -626,7 +626,7 @@ export default function MusicExperience() {
               className={`
                 rounded-3xl overflow-hidden
                 border ${isDark ? 'border-white/[0.06]' : 'border-black/[0.06]'}
-                ${isDark ? 'bg-[var(--theme-bg-secondary)]' : 'bg-gray-50'}
+                ${isDark ? 'bg-[var(--theme-bg-secondary)]' : 'bg-muted'}
                 min-h-[300px] sm:min-h-[400px]
               `}
             >
@@ -635,7 +635,7 @@ export default function MusicExperience() {
                 <div className="flex items-center justify-center h-[400px]">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-gray-400 text-sm">Loading score...</span>
+                    <span className="text-muted-foreground text-sm">Loading score...</span>
                   </div>
                 </div>
               )}
@@ -668,7 +668,7 @@ export default function MusicExperience() {
               className={`
                 rounded-3xl p-6 sm:p-8
                 border ${isDark ? 'border-white/[0.06]' : 'border-black/[0.06]'}
-                ${isDark ? 'bg-[var(--theme-bg-secondary)]' : 'bg-gray-50'}
+                ${isDark ? 'bg-[var(--theme-bg-secondary)]' : 'bg-muted'}
               `}
             >
               <span className={`text-xs tracking-[0.2em] uppercase ${accentColor} block mb-4`}>
@@ -686,12 +686,12 @@ export default function MusicExperience() {
 
               <div className="flex items-center gap-4 mt-6">
                 {track.instrument && (
-                  <span className={`text-xs px-3 py-1 rounded-full border ${isDark ? 'border-white/10 text-gray-400' : 'border-black/10 text-gray-500'}`}>
+                  <span className={`text-xs px-3 py-1 rounded-full border ${isDark ? 'border-white/10 text-muted-foreground' : 'border-black/10 text-muted-foreground'}`}>
                     {track.instrument}
                   </span>
                 )}
                 {track.difficulty && (
-                  <span className={`text-xs px-3 py-1 rounded-full border ${isDark ? 'border-amber-400/30 text-amber-300' : 'border-amber-500/30 text-amber-600'}`}>
+                  <span className={`text-xs px-3 py-1 rounded-full border ${isDark ? 'border-amber-400/30 text-amber-300' : 'border-amber-500/30 text-primary'}`}>
                     {track.difficulty}
                   </span>
                 )}
@@ -714,7 +714,7 @@ export default function MusicExperience() {
                       : 'border-purple-500/30 bg-purple-50'
                     : isDark
                       ? 'border-white/[0.06] hover:border-purple-400/20 bg-[var(--theme-bg-secondary)]'
-                      : 'border-black/[0.06] hover:border-purple-500/20 bg-gray-50'
+                      : 'border-black/[0.06] hover:border-purple-500/20 bg-muted'
                 }
               `}
             >
@@ -739,8 +739,8 @@ export default function MusicExperience() {
                         ? 'bg-purple-400/20 text-purple-300 border border-purple-400/30'
                         : 'bg-purple-100 text-purple-700 border border-purple-300'
                       : isDark
-                        ? 'bg-white/[0.03] text-gray-500 border border-white/[0.04] hover:border-white/[0.1]'
-                        : 'bg-gray-50 text-gray-500 border border-black/[0.04] hover:border-black/[0.1]'
+                        ? 'bg-background/[0.03] text-muted-foreground border border-white/[0.04] hover:border-white/[0.1]'
+                        : 'bg-muted text-muted-foreground border border-black/[0.04] hover:border-black/[0.1]'
                     }
                   `}
                 >

@@ -206,7 +206,7 @@ export default function HeroCard({
         viewBox="0 0 200 43"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="color-picker pointer-events-none absolute top-[45%] left-[-20px] z-30 max-w-[40%] overflow-hidden rounded-[10px] bg-white"
+        className="color-picker pointer-events-none absolute top-[45%] left-[-20px] z-30 max-w-[40%] overflow-hidden rounded-[10px] bg-background"
         style={{
           boxShadow: '-2px 4px 12px rgba(81, 74, 163, 0.1)',
         }}

@@ -31,7 +31,7 @@ export function AuthButton({ isDark = true }: AuthButtonProps) {
     await logout()
   }
 
-  const iconClass = isDark ? 'text-[#c6c7c6]' : 'text-gray-700'
+  const iconClass = isDark ? 'text-[#c6c7c6]' : 'text-foreground'
 
   if (!isMounted) {
     return (

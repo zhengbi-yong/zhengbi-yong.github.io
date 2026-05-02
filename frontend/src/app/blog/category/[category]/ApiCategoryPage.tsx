@@ -43,7 +43,7 @@ export default function ApiCategoryPage({ category }: ApiCategoryPageProps) {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-current border-r-transparent" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">正在加载分类内容...</p>
+          <p className="mt-4 text-muted-foreground dark:text-muted-foreground">正在加载分类内容...</p>
         </div>
       </div>
     )
@@ -53,8 +53,8 @@ export default function ApiCategoryPage({ category }: ApiCategoryPageProps) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="max-w-xl text-center">
-          <h2 className="mb-4 text-2xl font-bold text-red-600 dark:text-red-400">分类加载失败</h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h2 className="mb-4 text-2xl font-bold text-destructive dark:text-destructive">分类加载失败</h2>
+          <p className="text-muted-foreground dark:text-muted-foreground">
             {categoryError instanceof Error
               ? categoryError.message
               : postsError instanceof Error

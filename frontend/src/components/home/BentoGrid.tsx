@@ -24,8 +24,8 @@ export default function BentoGrid() {
 
   const posts = postsData?.posts || []
 
-  const accentColor = isDark ? 'text-indigo-300' : 'text-indigo-600'
-  const mutedColor = isDark ? 'text-gray-500' : 'text-gray-400'
+  const accentColor = isDark ? 'text-indigo-300' : 'text-primary'
+  const mutedColor = isDark ? 'text-muted-foreground' : 'text-muted-foreground'
   const textColor = isDark ? 'text-gray-200' : 'text-gray-800'
 
   return (
@@ -89,7 +89,7 @@ export default function BentoGrid() {
                   <h3 className={`font-visitor-serif text-lg ${textColor} mb-2 line-clamp-3 group-hover:translate-x-1 transition-transform duration-300`}>
                     {posts[1].title}
                   </h3>
-                  <div className={`w-0 group-hover:w-12 h-0.5 ${isDark ? 'bg-indigo-400' : 'bg-indigo-600'} transition-all duration-300`} />
+                  <div className={`w-0 group-hover:w-12 h-0.5 ${isDark ? 'bg-indigo-400' : 'bg-primary'} transition-all duration-300`} />
                 </div>
               </Link>
             </BentoCard>
@@ -106,7 +106,7 @@ export default function BentoGrid() {
                   <h3 className={`font-visitor-serif text-lg ${textColor} mb-2 line-clamp-3 group-hover:translate-x-1 transition-transform duration-300`}>
                     {posts[2].title}
                   </h3>
-                  <div className={`w-0 group-hover:w-12 h-0.5 ${isDark ? 'bg-indigo-400' : 'bg-indigo-600'} transition-all duration-300`} />
+                  <div className={`w-0 group-hover:w-12 h-0.5 ${isDark ? 'bg-indigo-400' : 'bg-primary'} transition-all duration-300`} />
                 </div>
               </Link>
             </BentoCard>

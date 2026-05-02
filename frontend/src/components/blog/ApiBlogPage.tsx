@@ -123,8 +123,8 @@ export default function ApiBlogPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-2 border-amber-700 border-r-transparent dark:border-amber-500" />
-          <p className="mt-6 text-sm text-zinc-500 dark:text-zinc-400">加载中...</p>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-2 border-primary border-r-transparent dark:border-amber-500" />
+          <p className="mt-6 text-sm text-muted-foreground dark:text-zinc-400">加载中...</p>
         </div>
       </div>
     )
@@ -134,8 +134,8 @@ export default function ApiBlogPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="text-center">
-          <h2 className="mb-4 text-3xl font-bold text-red-600 dark:text-red-400">加载失败</h2>
-          <p className="text-zinc-500 dark:text-zinc-400">
+          <h2 className="mb-4 text-3xl font-bold text-destructive dark:text-destructive">加载失败</h2>
+          <p className="text-muted-foreground dark:text-zinc-400">
             {postsError instanceof Error ? postsError.message : '无法加载文章列表，请稍后重试。'}
           </p>
         </div>
@@ -145,9 +145,9 @@ export default function ApiBlogPage() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-14">
-      <aside className="space-y-6 border border-zinc-200/70 bg-zinc-50/80 p-5 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.28)] dark:border-zinc-800/80 dark:bg-zinc-900/40 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.9)] lg:sticky lg:top-28 lg:self-start">
+      <aside className="space-y-6 border border-border/70 bg-zinc-50/80 p-5 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.28)] dark:border-border/80 dark:bg-zinc-900/40 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.9)] lg:sticky lg:top-28 lg:self-start">
           <div>
-            <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-amber-700 dark:text-amber-500">
+            <h2 className="text-sm font-medium uppercase tracking-[0.2em] text-primary dark:text-primary">
               分类
             </h2>
           </div>
@@ -158,7 +158,7 @@ export default function ApiBlogPage() {
               className={`flex w-full items-center gap-3 text-left text-xs font-medium uppercase tracking-[0.15rem] transition-all ${
                 selectedCategory === null
                   ? 'translate-x-1 text-zinc-900 dark:text-zinc-100'
-                  : 'text-zinc-500 hover:translate-x-1 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                  : 'text-muted-foreground hover:translate-x-1 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
               }`}
             >
               <BookOpen className="h-4 w-4" />
@@ -171,7 +171,7 @@ export default function ApiBlogPage() {
                 className={`flex w-full items-center gap-3 text-left text-xs font-medium uppercase tracking-[0.15rem] transition-all ${
                   selectedCategory === category.slug
                     ? 'translate-x-1 text-zinc-900 dark:text-zinc-100'
-                    : 'text-zinc-500 hover:translate-x-1 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    : 'text-muted-foreground hover:translate-x-1 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200'
                 }`}
               >
                 {getCategoryIcon(category.slug)}
@@ -181,7 +181,7 @@ export default function ApiBlogPage() {
           </nav>
 
           <div className="border-t border-zinc-200/80 pt-5 dark:border-zinc-700/60">
-            <div className="text-[10px] font-medium uppercase tracking-[0.15rem] text-zinc-500 dark:text-zinc-400">
+            <div className="text-[10px] font-medium uppercase tracking-[0.15rem] text-muted-foreground dark:text-zinc-400">
               共 {displayPosts.length} 篇文章
             </div>
           </div>
@@ -195,15 +195,15 @@ export default function ApiBlogPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="搜索文章..."
-                className="w-full border border-zinc-200/70 bg-zinc-50/90 px-4 py-3 pl-10 text-sm text-zinc-900 shadow-[0_20px_60px_-52px_rgba(15,23,42,0.3)] transition-all placeholder:text-zinc-400 focus:border-amber-700/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-amber-500/20 dark:focus:bg-zinc-900"
+                className="w-full border border-border/70 bg-background/90 px-4 py-3 pl-10 text-sm text-zinc-900 shadow-[0_20px_60px_-52px_rgba(15,23,42,0.3)] transition-all placeholder:text-zinc-400 focus:border-primary/30 focus:bg-background focus:outline-none focus:ring-2 focus:ring-amber-500/30 dark:border-border/80 dark:dark:bg-card/60 dark:text-zinc-100 dark:placeholder:text-muted-foreground dark:focus:border-primary/20 dark:focus:bg-zinc-900"
               />
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-muted-foreground" />
             </div>
           </div>
 
           {searchQuery && (
-            <div className="text-xs font-medium uppercase tracking-[0.15rem] text-zinc-500 dark:text-zinc-400">
-              找到 <span className="text-amber-700 dark:text-amber-500">{filteredPosts.length}</span>{' '}
+            <div className="text-xs font-medium uppercase tracking-[0.15rem] text-muted-foreground dark:text-zinc-400">
+              找到 <span className="text-primary dark:text-primary">{filteredPosts.length}</span>{' '}
               篇关于 “{searchQuery}” 的文章
             </div>
           )}
@@ -214,30 +214,30 @@ export default function ApiBlogPage() {
                 <Link
                   key={post.id}
                   href={`/blog/${post.slug}`}
-                  className="group relative block border border-zinc-200/70 bg-zinc-50/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 hover:-translate-y-1 hover:border-amber-700/30 hover:bg-white dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:hover:border-amber-500/20 dark:hover:bg-zinc-900/90"
+                  className="group relative block border border-border/70 bg-background/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 hover:-translate-y-1 hover:border-primary/30 hover:bg-background dark:border-border/80 dark:dark:bg-card/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:hover:border-primary/20 dark:hover:dark:bg-card/90"
                 >
                   {post.category_name && (
                     <div className="mb-3">
-                      <span className="text-[10px] font-medium uppercase tracking-[0.15rem] text-amber-700 dark:text-amber-500">
+                      <span className="text-[10px] font-medium uppercase tracking-[0.15rem] text-primary dark:text-primary">
                         {post.category_name}
                       </span>
                     </div>
                   )}
 
                   <h2
-                    className="text-xl font-semibold leading-tight text-zinc-900 transition-colors group-hover:text-amber-700 dark:text-zinc-100 dark:group-hover:text-amber-400"
+                    className="text-xl font-semibold leading-tight text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-100 dark:group-hover:text-amber-400"
                     style={{ fontFamily: 'var(--font-newsreader)' }}
                   >
                     {post.title}
                   </h2>
 
                   {post.summary && (
-                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted-foreground dark:text-zinc-400">
                       {post.summary}
                     </p>
                   )}
 
-                  <div className="mt-5 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.1rem] text-zinc-400 dark:text-zinc-500">
+                  <div className="mt-5 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.1rem] text-zinc-400 dark:text-muted-foreground">
                     <div className="flex items-center gap-4">
                       <span>
                         {post.published_at
@@ -260,7 +260,7 @@ export default function ApiBlogPage() {
           {displayPosts.length === 0 && (
             <div className="py-24 text-center">
               <p
-                className="text-2xl italic text-zinc-500 dark:text-zinc-400"
+                className="text-2xl italic text-muted-foreground dark:text-zinc-400"
                 style={{ fontFamily: 'var(--font-newsreader)' }}
               >
                 {searchQuery ? `没有找到关于 “${searchQuery}” 的文章` : '该分类下暂无文章'}
@@ -275,15 +275,15 @@ export default function ApiBlogPage() {
                 disabled={!hasPrevPage}
                 className={`flex items-center gap-2 border px-6 py-3 text-xs font-medium uppercase tracking-[0.2rem] transition-all ${
                   hasPrevPage
-                    ? 'border-zinc-300 bg-zinc-50/80 text-zinc-500 hover:border-amber-700 hover:bg-white hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:border-amber-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200'
-                    : 'cursor-not-allowed border-zinc-200 bg-zinc-100/70 text-zinc-300 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-600'
+                    ? 'border-border bg-zinc-50/80 text-muted-foreground hover:border-primary hover:bg-background hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:border-amber-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200'
+                    : 'cursor-not-allowed border-zinc-200 bg-zinc-100/70 text-zinc-300 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-muted-foreground'
                 }`}
               >
                 <ChevronLeft className="h-4 w-4" />
                 上一页
               </button>
 
-              <div className="text-xs font-medium uppercase tracking-[0.2rem] text-zinc-500 dark:text-zinc-400">
+              <div className="text-xs font-medium uppercase tracking-[0.2rem] text-muted-foreground dark:text-zinc-400">
                 <span className="text-zinc-900 dark:text-zinc-100">{page}</span>
                 <span className="mx-2">/</span>
                 <span>{totalPages}</span>
@@ -294,8 +294,8 @@ export default function ApiBlogPage() {
                 disabled={!hasNextPage}
                 className={`flex items-center gap-2 border px-6 py-3 text-xs font-medium uppercase tracking-[0.2rem] transition-all ${
                   hasNextPage
-                    ? 'border-zinc-300 bg-zinc-50/80 text-zinc-500 hover:border-amber-700 hover:bg-white hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:border-amber-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200'
-                    : 'cursor-not-allowed border-zinc-200 bg-zinc-100/70 text-zinc-300 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-600'
+                    ? 'border-border bg-zinc-50/80 text-muted-foreground hover:border-primary hover:bg-background hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-400 dark:hover:border-amber-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200'
+                    : 'cursor-not-allowed border-zinc-200 bg-zinc-100/70 text-zinc-300 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-muted-foreground'
                 }`}
               >
                 下一页

@@ -34,8 +34,8 @@ export default function ProjectGallery() {
   const handleMouseUp = () => setIsDragging(false)
   const handleMouseLeave = () => setIsDragging(false)
 
-  const accentColor = isDark ? 'text-amber-300' : 'text-amber-600'
-  const mutedColor = isDark ? 'text-gray-400' : 'text-gray-500'
+  const accentColor = isDark ? 'text-amber-300' : 'text-primary'
+  const mutedColor = isDark ? 'text-muted-foreground' : 'text-muted-foreground'
   const textColor = isDark ? 'text-gray-100' : 'text-gray-800'
 
   return (
@@ -102,7 +102,7 @@ export default function ProjectGallery() {
               href="/projects"
               className={`group flex flex-col items-center gap-4 p-8 rounded-3xl border transition-all duration-500 ${
                 isDark
-                  ? 'border-white/[0.06] hover:border-white/[0.15] hover:bg-white/[0.02]'
+                  ? 'border-white/[0.06] hover:border-white/[0.15] hover:bg-background/[0.02]'
                   : 'border-black/[0.06] hover:border-black/[0.12] hover:bg-black/[0.01]'
               }`}
             >

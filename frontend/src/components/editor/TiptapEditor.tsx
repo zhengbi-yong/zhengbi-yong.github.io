@@ -451,7 +451,7 @@ function InsertMathModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-[600px] max-w-[90vw]">
+      <div className="bg-background dark:bg-card rounded-lg shadow-xl p-6 w-[600px] max-w-[90vw]">
         <h3 className="text-lg font-semibold mb-4">插入数学公式</h3>
         <div className="space-y-4">
           <div>

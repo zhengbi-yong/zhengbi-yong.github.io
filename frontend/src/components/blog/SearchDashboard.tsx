@@ -250,24 +250,24 @@ export function SearchDashboard({
       {/* Search Header */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Search</h2>
+          <h2 className="text-2xl font-bold text-foreground dark:text-foreground">Search</h2>
 
           {/* Search Mode Toggle */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="text-sm text-muted-foreground dark:text-muted-foreground">
               {useMeili ? 'Meilisearch' : 'PostgreSQL FTS'}
             </span>
             <button
               onClick={toggleSearchMode}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 useMeili
-                  ? 'bg-purple-600 hover:bg-purple-700'
-                  : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600'
+                  ? 'bg-primary hover:bg-purple-700'
+                  : 'bg-gray-200 hover:bg-gray-300 dark:bg-secondary dark:hover:bg-secondary'
               }`}
               title={useMeili ? 'Switch to PostgreSQL FTS' : 'Switch to Meilisearch'}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-4 w-4 transform rounded-full bg-background transition-transform ${
                   useMeili ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
@@ -278,7 +278,7 @@ export function SearchDashboard({
         {/* Search Input */}
         <div className="relative">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="h-5 w-5 text-gray-400" />
+            <Search className="h-5 w-5 text-muted-foreground" />
           </div>
           <input
             ref={inputRef}
@@ -286,14 +286,14 @@ export function SearchDashboard({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholder}
-            className="block w-full rounded-lg border border-gray-300 bg-white py-3 pr-24 pl-10 leading-5 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:text-sm dark:border-gray-600 dark:bg-gray-800"
+            className="block w-full rounded-lg border border-border bg-background py-3 pr-24 pl-10 leading-5 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-primary focus:outline-none sm:text-sm dark:border-border dark:bg-card"
           />
           <div className="absolute inset-y-0 right-0 flex items-center gap-2 pr-3">
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
             {query && (
               <button
                 onClick={clearSearch}
-                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="p-1 text-muted-foreground hover:text-muted-foreground dark:hover:text-gray-300"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -307,21 +307,21 @@ export function SearchDashboard({
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-1 text-sm ${
               showFilters || categoryFilter || tagFilter
-                ? 'text-blue-600 dark:text-blue-400'
-                : 'text-gray-500 dark:text-gray-400'
+                ? 'text-primary dark:text-primary'
+                : 'text-muted-foreground dark:text-muted-foreground'
             }`}
           >
             <Filter className="h-4 w-4" />
             Filters
             {(categoryFilter || tagFilter) && (
-              <span className="ml-1 rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-600 dark:bg-blue-900 dark:text-blue-300">
+              <span className="ml-1 rounded bg-[var(--theme-info-muted)] px-1.5 py-0.5 text-xs text-primary dark:bg-blue-900 dark:text-blue-300">
                 {[categoryFilter, tagFilter].filter(Boolean).length}
               </span>
             )}
           </button>
 
           {tookMs !== null && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted-foreground">
               {tookMs < 1000 ? `${tookMs}ms` : `${(tookMs / 1000).toFixed(1)}s`}
             </span>
           )}
@@ -331,10 +331,10 @@ export function SearchDashboard({
 
         {/* Filters Panel */}
         {showFilters && (
-          <div className="space-y-4 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+          <div className="space-y-4 rounded-lg bg-muted p-4 dark:bg-card">
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-foreground dark:text-foreground">
                   <Database className="mr-1 inline h-4 w-4" />
                   Category
                 </label>
@@ -343,11 +343,11 @@ export function SearchDashboard({
                   value={categoryFilter || ''}
                   onChange={(e) => setCategoryFilter(e.target.value || null)}
                   placeholder="e.g., notes, robotics"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground dark:border-border dark:bg-secondary dark:text-foreground"
                 />
               </div>
               <div className="flex-1">
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="mb-1 block text-sm font-medium text-foreground dark:text-foreground">
                   <Tag className="mr-1 inline h-4 w-4" />
                   Tag
                 </label>
@@ -356,7 +356,7 @@ export function SearchDashboard({
                   value={tagFilter || ''}
                   onChange={(e) => setTagFilter(e.target.value || null)}
                   placeholder="e.g., rust, axum"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground dark:border-border dark:bg-secondary dark:text-foreground"
                 />
               </div>
             </div>
@@ -366,7 +366,7 @@ export function SearchDashboard({
                   setCategoryFilter(null)
                   setTagFilter(null)
                 }}
-                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                className="text-sm text-primary hover:text-primary dark:text-primary"
               >
                 Clear filters
               </button>
@@ -376,7 +376,7 @@ export function SearchDashboard({
       </div>
 
       {/* Search Mode Info */}
-      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex items-center gap-4 text-xs text-muted-foreground dark:text-muted-foreground">
         <div className="flex items-center gap-1">
           {useMeili ? (
             <>
@@ -396,7 +396,7 @@ export function SearchDashboard({
       {results.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            <h3 className="text-lg font-medium text-foreground dark:text-foreground">
               Search Results ({results.length})
             </h3>
           </div>
@@ -406,23 +406,23 @@ export function SearchDashboard({
               <button
                 key={result.slug}
                 onClick={() => handleResultClick(result.slug)}
-                className="w-full rounded-lg border border-gray-200 bg-white p-4 text-left transition-colors hover:border-blue-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
+                className="w-full rounded-lg border border-border bg-background p-4 text-left transition-colors hover:border-blue-300 dark:border-border dark:bg-card dark:hover:border-blue-600"
               >
                 <div className="space-y-2">
                   {/* Title with highlight */}
-                  <h4 className="text-base font-medium text-gray-900 dark:text-gray-100">
+                  <h4 className="text-base font-medium text-foreground dark:text-foreground">
                     {renderHighlight(result.title_highlight) || result.title}
                   </h4>
 
                   {/* Summary with highlight */}
                   {result.summary_highlight || result.summary ? (
-                    <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p className="line-clamp-2 text-sm text-muted-foreground dark:text-muted-foreground">
                       {renderHighlight(result.summary_highlight) || result.summary}
                     </p>
                   ) : null}
 
                   {/* Metadata */}
-                  <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground dark:text-muted-foreground">
                     {result.published_at && (
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
@@ -430,7 +430,7 @@ export function SearchDashboard({
                       </span>
                     )}
                     {result.category && (
-                      <span className="rounded bg-gray-100 px-2 py-0.5 dark:bg-gray-700">
+                      <span className="rounded bg-secondary px-2 py-0.5 dark:bg-secondary">
                         {result.category}
                       </span>
                     )}
@@ -439,7 +439,7 @@ export function SearchDashboard({
                         {result.tags.slice(0, 3).map((tag) => (
                           <span
                             key={tag}
-                            className="rounded bg-blue-50 px-2 py-0.5 text-blue-600 dark:bg-blue-900 dark:text-blue-300"
+                            className="rounded bg-[var(--theme-info-muted)] px-2 py-0.5 text-primary dark:bg-blue-900 dark:text-blue-300"
                           >
                             {tag}
                           </span>
@@ -460,7 +460,7 @@ export function SearchDashboard({
       {/* Trending Keywords */}
       {query.length === 0 && trending.length > 0 && showTrending && (
         <div className="space-y-4">
-          <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+          <h3 className="flex items-center gap-2 text-lg font-medium text-foreground dark:text-foreground">
             <Sparkles className="h-5 w-5 text-yellow-500" />
             Trending Searches
           </h3>
@@ -470,10 +470,10 @@ export function SearchDashboard({
               <button
                 key={index}
                 onClick={() => handleTrendingClick(keyword.keyword)}
-                className="rounded-full bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded-full bg-secondary px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-gray-200 dark:bg-card dark:text-foreground dark:hover:bg-secondary"
               >
                 {keyword.keyword}
-                <span className="ml-1 text-xs text-gray-400">{keyword.count}</span>
+                <span className="ml-1 text-xs text-muted-foreground">{keyword.count}</span>
               </button>
             ))}
           </div>
@@ -483,10 +483,10 @@ export function SearchDashboard({
       {/* No Results */}
       {query.length >= 2 && results.length === 0 && !isLoading && !error && (
         <div className="py-12 text-center">
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-muted-foreground dark:text-muted-foreground">
             No results found for &quot;{query}&quot;
           </p>
-          <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">
+          <p className="mt-2 text-sm text-muted-foreground dark:text-muted-foreground">
             Try adjusting your search or filters
           </p>
         </div>

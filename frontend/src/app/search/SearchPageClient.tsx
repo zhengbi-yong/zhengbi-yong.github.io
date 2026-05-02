@@ -131,16 +131,16 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
   return (
     <section className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-12 sm:px-8">
       <div className="overflow-hidden rounded-[2rem] border border-black/5 bg-[linear-gradient(135deg,#f7efe2_0%,#f5f7fb_45%,#edf4ef_100%)] p-8 shadow-[0_30px_80px_-45px_rgba(38,57,77,0.45)]">
-        <p className="text-sm font-semibold tracking-[0.28em] text-slate-500 uppercase">Search</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+        <p className="text-sm font-semibold tracking-[0.28em] text-muted-foreground uppercase">Search</p>
+        <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
           Search published posts
         </h1>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
+        <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
           Powered by the live backend search index, with PostgreSQL fallback when the index is not
           configured.
         </p>
 
-        <div className="mt-8 rounded-[1.5rem] border border-white/70 bg-white/80 p-3 shadow-sm backdrop-blur">
+        <div className="mt-8 rounded-[1.5rem] border border-white/70 bg-background/80 p-3 shadow-sm backdrop-blur">
           <label htmlFor="site-search" className="sr-only">
             Search posts
           </label>
@@ -167,7 +167,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="React, Rust, chemistry notes..."
-              className="w-full border-0 bg-transparent text-lg text-slate-900 outline-none placeholder:text-slate-400"
+              className="w-full border-0 bg-transparent text-lg text-foreground outline-none placeholder:text-muted-foreground"
             />
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
                 type="button"
                 data-testid="search-suggestion-chip"
                 onClick={() => setQuery(suggestion)}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+                className="rounded-full border border-slate-200 bg-background px-4 py-2 text-sm text-slate-700 transition hover:border-slate-900 hover:text-foreground"
               >
                 {suggestion}
               </button>
@@ -190,15 +190,15 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
       </div>
 
       {emptyState ? (
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="rounded-[2rem] border border-slate-200 bg-background p-8 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Trending queries</h2>
-              <p className="mt-2 text-sm text-slate-600">
+              <h2 className="text-xl font-semibold text-foreground">Trending queries</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
                 Popular search terms from recent reader activity.
               </p>
             </div>
-            <p className="text-sm text-slate-500">Type at least 2 characters to search.</p>
+            <p className="text-sm text-muted-foreground">Type at least 2 characters to search.</p>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -216,18 +216,18 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
                 </button>
               ))
             ) : (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 Trending keywords will appear after search traffic accumulates.
               </p>
             )}
           </div>
         </div>
       ) : (
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="rounded-[2rem] border border-slate-200 bg-background p-8 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Results</h2>
-              <p data-testid="search-status" className="mt-1 text-sm text-slate-600">
+              <h2 className="text-xl font-semibold text-foreground">Results</h2>
+              <p data-testid="search-status" className="mt-1 text-sm text-muted-foreground">
                 {isLoading ? 'Searching...' : `${total} matching posts for "${query.trim()}".`}
               </p>
             </div>
@@ -240,7 +240,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
 
           <div data-testid="search-results" className="mt-6 grid gap-4">
             {!isLoading && results.length === 0 && !error && (
-              <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-8 text-sm text-slate-500">
+              <div className="rounded-3xl border border-dashed border-slate-200 bg-muted p-8 text-sm text-muted-foreground">
                 No published posts matched this query.
               </div>
             )}
@@ -250,15 +250,15 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
                 key={result.id}
                 href={`/blog/${result.slug}`}
                 data-testid="search-result-card"
-                className="group block rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-5 transition hover:-translate-y-0.5 hover:border-slate-900 hover:bg-white hover:shadow-lg"
+                className="group block rounded-[1.5rem] border border-slate-200 bg-muted/70 p-5 transition hover:-translate-y-0.5 hover:border-slate-900 hover:bg-background hover:shadow-lg"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 group-hover:text-slate-950">
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-slate-950">
                       {result.title}
                     </h3>
                     {result.summary && (
-                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">
                         {result.summary}
                       </p>
                     )}
@@ -268,7 +268,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
                   </span>
                 </div>
                 {result.published_at && (
-                  <p className="mt-4 text-xs tracking-[0.18em] text-slate-400 uppercase">
+                  <p className="mt-4 text-xs tracking-[0.18em] text-muted-foreground uppercase">
                     {new Date(result.published_at).toLocaleDateString()}
                   </p>
                 )}

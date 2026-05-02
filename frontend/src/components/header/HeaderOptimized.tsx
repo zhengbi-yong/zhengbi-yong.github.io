@@ -120,15 +120,15 @@ export default function Header() {
           : 'border-zinc-900 text-zinc-950'
         : isDark
           ? 'border-transparent text-zinc-400 hover:border-white/20 hover:text-zinc-100'
-          : 'border-transparent text-zinc-500 hover:border-black/10 hover:text-zinc-900'
+          : 'border-transparent text-muted-foreground hover:border-black/10 hover:text-zinc-900'
     )
   }
 
   const actionButtonClass = cn(
     'inline-flex h-10 w-10 items-center justify-center rounded-full border text-current transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-[0.97]',
     isDark
-      ? 'border-white/10 bg-white/[0.04] hover:border-white/16 hover:bg-white/[0.08]'
-      : 'border-black/8 bg-white/75 hover:border-black/12 hover:bg-black/[0.04]'
+      ? 'border-white/10 bg-background/[0.04] hover:border-white/16 hover:bg-background/[0.08]'
+      : 'border-black/8 bg-background/75 hover:border-black/12 hover:bg-black/[0.04]'
   )
 
   const actionIconClass = 'h-[18px] w-[18px]'
@@ -156,7 +156,7 @@ export default function Header() {
             href="/"
             className={cn(
               'shrink-0 text-[15px] font-semibold tracking-[-0.02em] transition-colors duration-[var(--motion-fast)] md:text-base',
-              isDark ? 'text-zinc-100 hover:text-zinc-300' : 'text-zinc-950 hover:text-zinc-600'
+              isDark ? 'text-zinc-100 hover:text-zinc-300' : 'text-zinc-950 hover:text-muted-foreground'
             )}
           >
             {siteMetadata.author}
@@ -181,7 +181,7 @@ export default function Header() {
             <div
               className={cn(
                 'flex items-center gap-2.5 border-l pl-5',
-                isDark ? 'border-white/10 text-zinc-300' : 'border-zinc-200 text-zinc-600'
+                isDark ? 'border-white/10 text-zinc-300' : 'border-zinc-200 text-muted-foreground'
               )}
             >
               <Link
@@ -242,7 +242,7 @@ export default function Header() {
           <div
             className={cn(
               'flex items-center gap-3 md:hidden',
-              isDark ? 'text-zinc-300' : 'text-zinc-600'
+              isDark ? 'text-zinc-300' : 'text-muted-foreground'
             )}
           >
             <Link
@@ -305,11 +305,11 @@ export default function Header() {
                     'relative flex min-h-11 w-full items-center justify-center rounded-2xl px-5 py-3 text-center font-inter text-sm uppercase tracking-[0.18rem] transition-all duration-[var(--motion-fast)] ease-[var(--ease-standard)] active:scale-[0.98]',
                     isActive
                       ? isDark
-                        ? 'bg-white/10 text-zinc-100 opacity-100'
+                        ? 'bg-background/10 text-zinc-100 opacity-100'
                         : 'bg-black/5 text-zinc-900 opacity-100'
                       : isDark
-                        ? 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-100'
-                        : 'text-zinc-500 hover:bg-black/[0.03] hover:text-zinc-900'
+                        ? 'text-zinc-400 hover:bg-background/[0.04] hover:text-zinc-100'
+                        : 'text-muted-foreground hover:bg-black/[0.03] hover:text-zinc-900'
                   )}
                   onClick={closeMobileMenu}
                 >

@@ -63,11 +63,11 @@ export function SWUpdatePrompt() {
 
   return (
     <div className="fixed top-4 right-4 z-50 max-w-sm w-full animate-slide-down">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-green-200 dark:border-green-800 p-6">
+      <div className="bg-background dark:bg-card rounded-lg shadow-2xl border border-[var(--theme-success)]/20 dark:border-[var(--theme-success)]/20 p-6">
         {/* 关闭按钮 */}
         <button
           onClick={handleDismiss}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          className="absolute top-2 right-2 text-muted-foreground hover:text-muted-foreground dark:hover:text-gray-300"
           aria-label="关闭"
         >
           <X className="h-5 w-5" />
@@ -76,15 +76,15 @@ export function SWUpdatePrompt() {
         {/* 图标和标题 */}
         <div className="flex items-start space-x-4">
           <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-              <Download className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="w-12 h-12 bg-[var(--theme-success)]/10 dark:bg-[var(--theme-success)]/15 rounded-lg flex items-center justify-center">
+              <Download className="h-6 w-6 text-[var(--theme-success)] dark:text-[var(--theme-success)]" />
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className="text-lg font-semibold text-foreground dark:text-foreground mb-2">
               新版本可用
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground mb-4">
               版本 {newVersion} 已准备就绪，包含性能改进和新功能。
             </p>
 
@@ -93,7 +93,7 @@ export function SWUpdatePrompt() {
               <button
                 onClick={handleUpdate}
                 disabled={isUpdating}
-                className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[var(--theme-success)] hover:bg-[var(--theme-success)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--theme-success)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUpdating ? (
                   <>
@@ -110,7 +110,7 @@ export function SWUpdatePrompt() {
               <button
                 onClick={handleDismiss}
                 disabled={isUpdating}
-                className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 inline-flex justify-center items-center px-4 py-2 border border-border dark:border-border text-sm font-medium rounded-md text-foreground dark:text-foreground bg-background dark:bg-card hover:bg-muted dark:hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--theme-success)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 稍后提醒
               </button>

@@ -20,13 +20,13 @@ export default function BlogError({
   }, [error])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
-      <div className="w-full max-w-2xl rounded-lg border border-red-200 bg-white p-8 shadow-lg dark:border-red-800 dark:bg-gray-800">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-muted px-4 dark:bg-background">
+      <div className="w-full max-w-2xl rounded-lg border border-destructive/20 bg-background p-8 shadow-lg dark:border-destructive/20 dark:bg-card">
         {/* 错误图标 */}
         <div className="mb-6 flex justify-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10 dark:bg-destructive/20">
             <svg
-              className="h-10 w-10 text-red-600 dark:text-red-400"
+              className="h-10 w-10 text-destructive dark:text-destructive"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -43,25 +43,25 @@ export default function BlogError({
 
         {/* 错误标题和描述 */}
         <div className="mb-6 text-center">
-          <h1 className="mb-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="mb-3 text-2xl font-bold text-foreground dark:text-foreground">
             博客加载失败
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground dark:text-muted-foreground">
             我们无法加载博客列表。这可能是由于网络问题或服务器错误导致的。
           </p>
         </div>
 
         {/* 开发模式显示错误详情 */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mb-6 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-            <p className="mb-2 text-sm font-semibold text-red-800 dark:text-red-200">
+          <div className="mb-6 rounded-md bg-destructive/5 p-4 dark:bg-destructive/15">
+            <p className="mb-2 text-sm font-semibold text-destructive dark:text-destructive">
               错误详情：
             </p>
-            <p className="font-mono text-xs text-red-700 dark:text-red-300">
+            <p className="font-mono text-xs text-destructive dark:text-destructive">
               {error.message}
             </p>
             {error.digest && (
-              <p className="mt-2 font-mono text-xs text-red-600 dark:text-red-400">
+              <p className="mt-2 font-mono text-xs text-destructive dark:text-destructive">
                 Error ID: {error.digest}
               </p>
             )}
@@ -72,21 +72,21 @@ export default function BlogError({
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             onClick={reset}
-            className="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-500 dark:hover:bg-blue-600"
+            className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none dark:bg-primary dark:hover:bg-primary"
           >
             重试
           </button>
           <Link
             href="/"
-            className="rounded-md border border-gray-300 bg-white px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            className="rounded-md border border-border bg-background px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none dark:border-border dark:bg-secondary dark:text-foreground dark:hover:bg-secondary"
           >
             返回首页
           </Link>
         </div>
 
         {/* 建议操作 */}
-        <div className="mt-6 rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+        <div className="mt-6 rounded-md bg-[var(--theme-info-muted)] p-4 dark:bg-[var(--theme-info-muted)]">
+          <p className="text-sm text-[var(--theme-fg)] dark:text-[var(--theme-fg)]">
             <strong>提示：</strong> 如果问题持续存在，请尝试刷新页面或稍后再试。
             您也可以通过网站底部的联系方式向我们报告此问题。
           </p>

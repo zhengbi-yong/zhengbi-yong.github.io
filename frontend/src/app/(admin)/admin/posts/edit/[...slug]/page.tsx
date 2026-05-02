@@ -163,7 +163,7 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
                 postStatus === 'Published'
                   ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                   : postStatus === 'Draft'
-                    ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                    ? 'bg-primary/10 text-primary border-primary/20'
                     : 'bg-secondary text-secondary-foreground'
               )}
               variant="outline"

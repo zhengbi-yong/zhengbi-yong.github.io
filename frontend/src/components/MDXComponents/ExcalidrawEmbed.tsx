@@ -40,8 +40,8 @@ export function ExcalidrawEmbed({
     <>
       <div
         className={cn(
-          'flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 transition-colors hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500',
-          'cursor-pointer bg-gray-50 dark:bg-gray-800'
+          'flex items-center justify-center rounded-lg border-2 border-dashed border-border transition-colors hover:border-gray-400 dark:border-border dark:hover:border-gray-500',
+          'cursor-pointer bg-muted dark:bg-card'
         )}
         style={{ width, height }}
         role="button"
@@ -53,7 +53,7 @@ export function ExcalidrawEmbed({
         <div className="p-4 text-center">
           <div className="mb-2">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-600"
+              className="mx-auto h-12 w-12 text-muted-foreground dark:text-muted-foreground"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -66,7 +66,7 @@ export function ExcalidrawEmbed({
               />
             </svg>
           </div>
-          <p className="mb-2 text-gray-500 dark:text-gray-400">点击打开 Excalidraw 绘图</p>
+          <p className="mb-2 text-muted-foreground dark:text-muted-foreground">点击打开 Excalidraw 绘图</p>
           <Button onClick={handleOpenModal} size="sm">
             创建绘图
           </Button>

@@ -69,38 +69,38 @@ export default async function VisitorsPage() {
     <div className="container mx-auto px-4 py-8">
       <header className="mb-8">
         <h1 className="mb-2 text-4xl font-bold">访客地图</h1>
-        <p className="text-gray-600 dark:text-gray-400">查看访问网站的用户地理位置分布</p>
+        <p className="text-muted-foreground dark:text-muted-foreground">查看访问网站的用户地理位置分布</p>
       </header>
 
       {/* 统计信息 */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <h3 className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">总访客数</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{totalVisitors}</p>
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm dark:border-border dark:bg-card">
+          <h3 className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">总访客数</h3>
+          <p className="text-3xl font-bold text-foreground dark:text-foreground">{totalVisitors}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <h3 className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">国家/地区数</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{uniqueCountries}</p>
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm dark:border-border dark:bg-card">
+          <h3 className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">国家/地区数</h3>
+          <p className="text-3xl font-bold text-foreground dark:text-foreground">{uniqueCountries}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <h3 className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">总访问次数</h3>
-          <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{totalVisits}</p>
+        <div className="rounded-lg border border-border bg-background p-6 shadow-sm dark:border-border dark:bg-card">
+          <h3 className="mb-1 text-sm font-medium text-muted-foreground dark:text-muted-foreground">总访问次数</h3>
+          <p className="text-3xl font-bold text-foreground dark:text-foreground">{totalVisits}</p>
         </div>
       </div>
 
       {/* 地图 */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="rounded-lg border border-border bg-background p-6 shadow-sm dark:border-border dark:bg-card">
         <VisitorMapClient visitors={visitors} />
       </div>
 
       {/* 访客列表（可选） */}
       {visitors.length > 0 && (
-        <div className="mt-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="mt-8 rounded-lg border border-border bg-background p-6 shadow-sm dark:border-border dark:bg-card">
           <h2 className="mb-4 text-2xl font-bold">访客列表</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
+                <tr className="border-b border-border dark:border-border">
                   <th className="px-4 py-2 text-left font-semibold">IP地址</th>
                   <th className="px-4 py-2 text-left font-semibold">位置</th>
                   <th className="px-4 py-2 text-left font-semibold">首次访问</th>
@@ -112,16 +112,16 @@ export default async function VisitorsPage() {
                 {visitors.map((visitor, index) => (
                   <tr
                     key={`${visitor.ip}-${index}`}
-                    className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-700"
+                    className="border-b border-border hover:bg-muted dark:border-border dark:hover:bg-secondary"
                   >
                     <td className="px-4 py-2 font-mono text-xs">{visitor.ip}</td>
                     <td className="px-4 py-2">
                       {visitor.city}, {visitor.country}
                     </td>
-                    <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
+                    <td className="px-4 py-2 text-muted-foreground dark:text-muted-foreground">
                       {new Date(visitor.firstVisit).toLocaleString('zh-CN')}
                     </td>
-                    <td className="px-4 py-2 text-gray-600 dark:text-gray-400">
+                    <td className="px-4 py-2 text-muted-foreground dark:text-muted-foreground">
                       {new Date(visitor.lastVisit).toLocaleString('zh-CN')}
                     </td>
                     <td className="px-4 py-2">{visitor.visitCount}</td>

@@ -83,7 +83,7 @@ export function SMILESConverter({ molData, onSMILESGenerated }: SMILESConverterP
       <button
         onClick={handleConvert}
         disabled={isConverting}
-        className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:bg-gray-400"
+        className="rounded bg-[var(--theme-success)] px-4 py-2 text-white hover:bg-[var(--theme-success)] disabled:bg-gray-400"
       >
         {isConverting ? 'Converting...' : 'Convert MOL to SMILES'}
       </button>
@@ -96,7 +96,7 @@ export function SMILESConverter({ molData, onSMILESGenerated }: SMILESConverterP
         </div>
       )}
 
-      {error && <div className="rounded bg-red-50 p-2 text-sm text-red-700">{error}</div>}
+      {error && <div className="rounded bg-destructive/5 p-2 text-sm text-destructive">{error}</div>}
     </div>
   )
 }

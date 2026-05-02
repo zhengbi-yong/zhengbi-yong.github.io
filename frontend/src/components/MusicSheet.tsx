@@ -315,23 +315,23 @@ export default function MusicSheet({
   return (
     <div className={`my-6 ${className}`}>
       {isLoading && (
-        <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+        <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
           <div className="flex flex-col items-center gap-3">
             <Spinner size="lg" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">正在加载乐谱...</p>
+            <p className="text-sm text-muted-foreground dark:text-muted-foreground">正在加载乐谱...</p>
           </div>
         </div>
       )}
 
       {error && !isLoading && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 dark:border-destructive/20 dark:bg-destructive/15">
+          <p className="text-sm text-destructive dark:text-destructive">{error}</p>
         </div>
       )}
 
       <div
         ref={containerRef}
-        className={`overflow-x-auto rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/50 ${
+        className={`overflow-x-auto rounded-lg border border-border bg-background p-4 dark:border-border dark:bg-background/50 ${
           isLoading || error ? 'hidden' : ''
         }`}
       />

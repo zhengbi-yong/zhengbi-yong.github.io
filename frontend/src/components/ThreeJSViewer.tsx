@@ -307,22 +307,22 @@ export default function ThreeJSViewer({
       style={{ backgroundColor: '#f0f0f0' }}
     >
       {isLoading && !error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100/90 backdrop-blur-sm dark:bg-gray-800/90">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-secondary/90 backdrop-blur-sm dark:bg-card/90">
           <Spinner size="lg" className="mb-4" />
-          <p className="text-lg font-medium text-gray-600 dark:text-gray-400">加载 3D 模型中...</p>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">这可能需要几秒钟</p>
+          <p className="text-lg font-medium text-muted-foreground dark:text-muted-foreground">加载 3D 模型中...</p>
+          <p className="mt-2 text-sm text-muted-foreground dark:text-muted-foreground">这可能需要几秒钟</p>
         </div>
       )}
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100/80 dark:bg-gray-800/80">
-          <p className="mb-2 text-red-600 dark:text-red-400">{error}</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-secondary/80 dark:bg-card/80">
+          <p className="mb-2 text-destructive dark:text-destructive">{error}</p>
           <button
             onClick={() => {
               setError(null)
               setIsLoading(true)
               retryCountRef.current = 0
             }}
-            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+            className="rounded bg-primary px-4 py-2 text-white hover:bg-primary"
           >
             重试
           </button>

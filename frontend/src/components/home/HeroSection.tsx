@@ -38,7 +38,7 @@ const themeSlots = {
     music: 'text-sky-700/80',
     subtitle: 'text-[var(--text-secondary)]',
     scrollLabel: 'text-[var(--text-tertiary)]',
-    scrollBar: 'bg-gradient-to-b from-indigo-600 to-transparent',
+    scrollBar: 'bg-gradient-to-b from-primary to-transparent',
   },
 } as const
 

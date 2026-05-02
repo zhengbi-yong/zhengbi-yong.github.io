@@ -17,9 +17,9 @@ import {
 import { MoreHorizontal, Plus, Search } from 'lucide-react'
 
 const TEAM_ROLE_COLORS: Record<TeamRole, string> = {
-  advisor: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800',
-  lead: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800',
-  member: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800',
+  advisor: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-primary dark:border-amber-800',
+  lead: 'bg-[var(--theme-info-muted)] text-[var(--theme-fg)] border-[var(--theme-info)]/20 dark:bg-blue-900/30 dark:text-primary dark:border-blue-800',
+  member: 'bg-[var(--theme-success)]/10 text-[var(--theme-success)] border-[var(--theme-success)]/20 dark:bg-[var(--theme-success)]/15/30 dark:text-[var(--theme-success)] dark:border-[var(--theme-success)]/20',
 }
 
 const TEAM_ROLE_LABELS: Record<TeamRole, string> = {
@@ -161,7 +161,7 @@ export default function TeamManagementPage() {
                 <tr key={member.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-800 font-medium dark:bg-amber-900/30 dark:text-amber-400">
+                      <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-800 font-medium dark:bg-amber-900/30 dark:text-primary">
                         {member.name.charAt(0)}
                       </div>
                       <div>
@@ -189,7 +189,7 @@ export default function TeamManagementPage() {
                           编辑
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          className="text-red-600"
+                          className="text-destructive"
                           onClick={() => handleDelete(member.id, member.name)}
                           disabled={deleting.has(member.id)}
                         >

@@ -25,11 +25,11 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-center">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-4"></div>
+          <div className="h-8 bg-gray-200 dark:bg-secondary rounded w-3/4 mx-auto mb-4"></div>
           <div className="space-y-2">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6 mx-auto"></div>
+            <div className="h-4 bg-gray-200 dark:bg-secondary rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-secondary rounded"></div>
+            <div className="h-4 bg-gray-200 dark:bg-secondary rounded w-5/6 mx-auto"></div>
           </div>
         </div>
       </div>

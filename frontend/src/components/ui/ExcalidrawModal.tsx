@@ -24,9 +24,9 @@ export function ExcalidrawModal({
 
   return (
     <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-      <div className="m-4 flex h-[90vh] w-full max-w-7xl flex-col rounded-lg bg-white shadow-xl dark:bg-gray-900">
+      <div className="m-4 flex h-[90vh] w-full max-w-7xl flex-col rounded-lg bg-background shadow-xl dark:bg-background">
         {/* Header */}
-        <div className="flex flex-shrink-0 items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-border p-4 dark:border-border">
           <h2 className="text-xl font-semibold">{title}</h2>
           <Button onClick={onClose} size="sm" variant="ghost">
             关闭

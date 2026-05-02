@@ -29,7 +29,7 @@ export function ElegantLink({
     <>
       <span className="relative z-10">{children}</span>
       <motion.span
-        className="absolute bottom-0 left-0 h-0.5 bg-indigo-600 dark:bg-indigo-400"
+        className="absolute bottom-0 left-0 h-0.5 bg-primary dark:bg-indigo-400"
         initial={{ width: 0 }}
         whileHover={{ width: '100%' }}
         transition={{
@@ -42,8 +42,8 @@ export function ElegantLink({
 
   const classes = cn(
     'relative inline-block',
-    'text-gray-900 dark:text-gray-100',
-    'hover:text-indigo-600 dark:hover:text-indigo-400',
+    'text-foreground dark:text-foreground',
+    'hover:text-primary dark:hover:text-indigo-400',
     'transition-colors duration-200',
     className
   )

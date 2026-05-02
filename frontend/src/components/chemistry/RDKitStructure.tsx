@@ -137,13 +137,13 @@ export default function RDKitStructure({
   if (rdkitError) {
     return (
       <div
-        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-red-300 p-4 ${className}`}
+        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-destructive/30 p-4 ${className}`}
         style={{ width, height: resolvedHeight, backgroundColor, maxWidth: '100%' }}
       >
         <div className="text-center">
           <div className="mb-2 text-red-500">Chemistry Engine Error</div>
-          <div className="text-sm text-gray-600">{rdkitError}</div>
-          <div className="mt-1 text-xs text-gray-500">Please check your internet connection</div>
+          <div className="text-sm text-muted-foreground">{rdkitError}</div>
+          <div className="mt-1 text-xs text-muted-foreground">Please check your internet connection</div>
         </div>
       </div>
     )
@@ -152,12 +152,12 @@ export default function RDKitStructure({
   if (isLoading) {
     return (
       <div
-        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 ${className}`}
+        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-border ${className}`}
         style={{ width, height: resolvedHeight, backgroundColor, maxWidth: '100%' }}
       >
         <div className="text-center">
           <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"></div>
-          <div className="text-sm text-gray-600">Loading chemistry engine...</div>
+          <div className="text-sm text-muted-foreground">Loading chemistry engine...</div>
         </div>
       </div>
     )
@@ -166,7 +166,7 @@ export default function RDKitStructure({
   if (error) {
     return (
       <div
-        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-red-300 p-4 ${className}`}
+        className={`flex max-w-full items-center justify-center rounded-lg border-2 border-dashed border-destructive/30 p-4 ${className}`}
         style={{ width, height: resolvedHeight, backgroundColor, maxWidth: '100%' }}
       >
         <div className="text-center">RDKitError: {error}</div>
@@ -177,7 +177,7 @@ export default function RDKitStructure({
   return (
     <div className={`flex max-w-full flex-col items-center ${className}`}>
       <div
-        className="overflow-hidden rounded-lg border border-gray-200"
+        className="overflow-hidden rounded-lg border border-border"
         style={{
           width,
           height: resolvedHeight,

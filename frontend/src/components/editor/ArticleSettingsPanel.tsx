@@ -114,7 +114,7 @@ export function ArticleSettingsPanel({
           value={summary}
           onChange={(e) => onSummaryChange(e.target.value)}
           placeholder="文章摘要（可选）"
-          className="w-full min-h-[80px] rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+          className="w-full min-h-[80px] rounded-md border border-border bg-background px-3 py-2 text-sm dark:border-border dark:bg-background"
         />
       </div>
 
@@ -127,7 +127,7 @@ export function ArticleSettingsPanel({
           id="category"
           value={category}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm dark:border-border dark:bg-background"
         >
           <option value="">选择分类</option>
           {categories.map((cat) => (
@@ -147,7 +147,7 @@ export function ArticleSettingsPanel({
             return (
               <span
                 key={tagId}
-                className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                className="inline-flex items-center gap-1 rounded-full bg-[var(--theme-info-muted)] px-2 py-1 text-xs text-primary dark:bg-blue-900/30 dark:text-primary"
               >
                 {tag?.name || tagId}
                 <button
@@ -165,7 +165,7 @@ export function ArticleSettingsPanel({
           <select
             value={tagSelect}
             onChange={(e) => setTagSelect(e.target.value)}
-            className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+            className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm dark:border-border dark:bg-background"
           >
             <option value="">选择标签</option>
             {tagsList
@@ -191,7 +191,7 @@ export function ArticleSettingsPanel({
           id="layout"
           value={layout}
           onChange={(e) => onLayoutChange(e.target.value)}
-          className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm dark:border-border dark:bg-background"
         >
           <option value="PostLayoutMonograph">专著</option>
         </select>
@@ -208,7 +208,7 @@ export function ArticleSettingsPanel({
             id="showToc"
             checked={showToc}
             onChange={(e) => onShowTocChange(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-border"
           />
         </div>
 
@@ -221,7 +221,7 @@ export function ArticleSettingsPanel({
             id="isFeatured"
             checked={isFeatured}
             onChange={(e) => onIsFeaturedChange(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-4 w-4 rounded border-border"
           />
         </div>
       </div>
@@ -249,7 +249,7 @@ export function ArticleSettingsPanel({
           value={metaDescription}
           onChange={(e) => onMetaDescriptionChange(e.target.value)}
           placeholder="SEO 描述（可选）"
-          className="w-full min-h-[60px] rounded-md border border-gray-200 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+          className="w-full min-h-[60px] rounded-md border border-border bg-background px-3 py-2 text-sm dark:border-border dark:bg-background"
         />
       </div>
 

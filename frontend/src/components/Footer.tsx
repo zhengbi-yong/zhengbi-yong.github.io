@@ -176,7 +176,7 @@ const Footer = memo(() => {
 
   return (
     <footer
-      className={cn(styles.footerRoot, 'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12 bg-slate-50 dark:bg-[#05080F] text-slate-900 dark:text-slate-200')}
+      className={cn(styles.footerRoot, 'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12 bg-muted dark:bg-[#05080F] text-foreground dark:text-foreground')}
       suppressHydrationWarning
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-10">
@@ -187,22 +187,22 @@ const Footer = memo(() => {
             <div className="space-y-3">
               <Link
                 href="/"
-                className="inline-block text-2xl tracking-tight transition-colors duration-300 text-slate-900 dark:text-white dark:hover:text-slate-200 hover:text-slate-700"
+                className="inline-block text-2xl tracking-tight transition-colors duration-300 text-foreground dark:text-white dark:dark:hover:text-foreground hover:text-slate-700"
                 style={{ fontFamily: 'var(--font-great-vibes)' }}
               >
                 {siteMetadata.title}
               </Link>
-              <p className="max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
+              <p className="max-w-md text-sm leading-6 text-muted-foreground dark:text-muted-foreground">
                 Calm technical writing, research notes, and selected work by Zhengbi Yong.
               </p>
             </div>
-            <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
               © {currentYear} Zhengbi Yong. All rights reserved.
             </p>
           </section>
 
           <nav aria-label="Footer navigation" className="flex flex-col gap-4 text-center lg:text-left">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
               Navigate
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 lg:justify-start">
@@ -212,7 +212,7 @@ const Footer = memo(() => {
                   href={link.href}
                   className={cn(
                     styles.footerLink,
-                    'text-sm transition-colors duration-300 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    'text-sm transition-colors duration-300 text-muted-foreground dark:text-slate-300 hover:text-foreground dark:hover:text-white'
                   )}
                 >
                   {link.label}
@@ -222,7 +222,7 @@ const Footer = memo(() => {
           </nav>
 
           <section className="flex flex-col gap-4 text-center lg:text-left">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
               Connect
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
@@ -236,7 +236,7 @@ const Footer = memo(() => {
                     rel="noopener noreferrer"
                     className={cn(
                       styles.footerSocialButton,
-                      'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      'text-muted-foreground dark:text-slate-300 hover:text-foreground dark:hover:text-white'
                     )}
                     title={social.name}
                     aria-label={social.name}
@@ -255,7 +255,7 @@ const Footer = memo(() => {
         <div className={styles.footerDivider} />
 
         <div className="flex flex-col gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
-          <p className="text-xs tracking-[0.16em] uppercase text-slate-500 dark:text-slate-600">
+          <p className="text-xs tracking-[0.16em] uppercase text-muted-foreground dark:text-muted-foreground">
             Built with clarity across light and dark themes.
           </p>
           <Link
@@ -264,7 +264,7 @@ const Footer = memo(() => {
             rel="noopener noreferrer"
             className={cn(
               styles.footerLink,
-              'text-[10px] uppercase tracking-[0.18em] transition-colors duration-300 text-slate-500 hover:text-slate-800 dark:text-slate-500 dark:hover:text-slate-300'
+              'text-[10px] uppercase tracking-[0.18em] transition-colors duration-300 text-muted-foreground hover:text-slate-800 dark:text-muted-foreground dark:dark:hover:text-foreground'
             )}
           >
             京ICP备2025110798号-1

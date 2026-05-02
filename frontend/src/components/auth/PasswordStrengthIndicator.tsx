@@ -17,13 +17,13 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicato
     <div className="space-y-2">
       {/* Strength bar */}
       <div className="flex items-center gap-2">
-        <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="flex-1 h-2 bg-gray-200 dark:bg-secondary rounded-full overflow-hidden">
           <div
             className={`h-full transition-all duration-300 ${strength.color}`}
             style={{ width: `${(strength.score / 5) * 100}%` }}
           />
         </div>
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+        <span className="text-xs font-medium text-muted-foreground dark:text-muted-foreground">
           {strength.label}
         </span>
       </div>
@@ -68,11 +68,11 @@ function RequirementItem({ met, text }: RequirementItemProps) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
       ) : (
-        <svg className="w-4 h-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 text-gray-300 dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       )}
-      <span className={met ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}>
+      <span className={met ? 'text-[var(--theme-success)] dark:text-[var(--theme-success)]' : 'text-muted-foreground dark:text-muted-foreground'}>
         {text}
       </span>
     </div>

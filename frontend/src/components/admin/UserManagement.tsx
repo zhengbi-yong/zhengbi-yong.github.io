@@ -6,14 +6,14 @@ import type { UserListItem } from '@/lib/types/backend'
 import { cn } from '@/lib/utils'
 
 const emailVerificationClasses = {
-  verified: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  unverified: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  verified: 'bg-[var(--theme-success)]/10 text-[var(--theme-success)] dark:bg-[var(--theme-success)]/15 dark:text-[var(--theme-success)]',
+  unverified: 'bg-destructive/10 text-destructive dark:bg-destructive/10 dark:text-destructive',
 } as const
 
 const paginationButtonClasses = {
-  active: 'z-10 border-blue-500 bg-blue-50 text-blue-600 dark:border-blue-500 dark:bg-blue-900 dark:text-blue-200',
+  active: 'z-10 border-blue-500 bg-[var(--theme-info-muted)] text-primary dark:border-blue-500 dark:bg-blue-900 dark:text-[var(--theme-fg)]',
   inactive:
-    'border-gray-300 bg-white text-gray-500 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+    'border-border bg-background text-muted-foreground hover:bg-muted dark:border-border dark:bg-secondary dark:text-foreground dark:hover:bg-secondary',
 } as const
 
 export default function UserManagement() {
@@ -80,46 +80,46 @@ export default function UserManagement() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">用户管理</h2>
-        <div className="text-sm text-gray-500 dark:text-gray-400">共 {total} 位用户</div>
+        <h2 className="text-2xl font-bold text-foreground dark:text-white">用户管理</h2>
+        <div className="text-sm text-muted-foreground dark:text-muted-foreground">共 {total} 位用户</div>
       </div>
 
       {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-          <p className="text-red-600 dark:text-red-400">{error}</p>
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 dark:border-destructive/20 dark:bg-destructive/15">
+          <p className="text-destructive dark:text-destructive">{error}</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+        <div className="overflow-hidden rounded-lg bg-background shadow dark:bg-card">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
+              <thead className="bg-muted dark:bg-background">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase dark:text-muted-foreground">
                     用户名
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase dark:text-muted-foreground">
                     邮箱
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase dark:text-muted-foreground">
                     角色
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase dark:text-muted-foreground">
                     邮箱验证
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase dark:text-muted-foreground">
                     注册时间
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-muted-foreground uppercase dark:text-muted-foreground">
                     操作
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
+              <tbody className="divide-y divide-gray-200 bg-background dark:divide-gray-700 dark:bg-card">
                 {loading ? (
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                      className="px-6 py-4 text-center text-muted-foreground dark:text-muted-foreground"
                     >
                       加载中...
                     </td>
@@ -128,28 +128,28 @@ export default function UserManagement() {
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+                      className="px-6 py-4 text-center text-muted-foreground dark:text-muted-foreground"
                     >
                       暂无用户
                     </td>
                   </tr>
                 ) : (
                   users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr key={user.id} className="hover:bg-muted dark:hover:bg-secondary">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="text-sm font-medium text-foreground dark:text-white">
                           {user.username}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white">{user.email}</div>
+                        <div className="text-sm text-foreground dark:text-white">{user.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <select
                           value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
                           disabled={actionLoading === user.id}
-                          className="rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                          className="rounded-md border-border text-sm shadow-sm focus:border-blue-500 focus:ring-primary disabled:opacity-50 dark:border-border dark:bg-secondary dark:text-white"
                         >
                           <option value="user">普通用户</option>
                           <option value="moderator">版主</option>
@@ -168,14 +168,14 @@ export default function UserManagement() {
                           {user.email_verified ? '已验证' : '未验证'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-muted-foreground dark:text-muted-foreground">
                         {new Date(user.created_at).toLocaleDateString('zh-CN')}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <button
                           onClick={() => handleDeleteUser(user.id, user.username)}
                           disabled={actionLoading === user.id}
-                          className="text-red-600 hover:text-red-900 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
+                          className="text-destructive hover:text-red-900 disabled:opacity-50 dark:text-destructive dark:hover:text-red-300"
                         >
                           {actionLoading === user.id ? '删除中...' : '删除'}
                         </button>
@@ -189,27 +189,27 @@ export default function UserManagement() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:border-gray-700 dark:bg-gray-800">
+            <div className="border-t border-border bg-background px-4 py-3 sm:px-6 dark:border-border dark:bg-card">
               <div className="flex items-center justify-between">
                 <div className="flex flex-1 justify-between sm:hidden">
                   <button
                     onClick={() => loadUsers(page - 1)}
                     disabled={page === 1}
-                    className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    className="relative inline-flex items-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 dark:border-border dark:bg-secondary dark:text-foreground dark:hover:bg-secondary"
                   >
                     上一页
                   </button>
                   <button
                     onClick={() => loadUsers(page + 1)}
                     disabled={page === totalPages}
-                    className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    className="relative ml-3 inline-flex items-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 dark:border-border dark:bg-secondary dark:text-foreground dark:hover:bg-secondary"
                   >
                     下一页
                   </button>
                 </div>
                 <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <p className="text-sm text-foreground dark:text-foreground">
                       显示第 <span className="font-medium">{(page - 1) * pageSize + 1}</span> 到{' '}
                       <span className="font-medium">{Math.min(page * pageSize, total)}</span> 条，
                       共 <span className="font-medium">{total}</span> 条
@@ -220,7 +220,7 @@ export default function UserManagement() {
                       <button
                         onClick={() => loadUsers(page - 1)}
                         disabled={page === 1}
-                        className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        className="relative inline-flex items-center rounded-l-md border border-border bg-background px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 dark:border-border dark:bg-secondary dark:text-foreground dark:hover:bg-secondary"
                       >
                         上一页
                       </button>
@@ -241,7 +241,7 @@ export default function UserManagement() {
                       <button
                         onClick={() => loadUsers(page + 1)}
                         disabled={page === totalPages}
-                        className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                        className="relative inline-flex items-center rounded-r-md border border-border bg-background px-2 py-2 text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 dark:border-border dark:bg-secondary dark:text-foreground dark:hover:bg-secondary"
                       >
                         下一页
                       </button>

@@ -40,7 +40,7 @@ export default function RecommendedSection({
   }
 
   return (
-    <section className="border-t bg-gradient-to-r from-primary-50 via-white to-accent-50 py-12 dark:border-gray-700 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950">
+    <section className="border-t bg-gradient-to-r from-primary-50 via-white to-accent-50 py-12 dark:border-border dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* 标题区域 */}
         <motion.div
@@ -50,11 +50,11 @@ export default function RecommendedSection({
           transition={{ duration: 0.5 }}
           className="mb-8 text-center"
         >
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
+          <h2 className="text-3xl font-bold text-foreground dark:text-white sm:text-4xl">
             {title}
           </h2>
           {description && (
-            <p className="mt-3 text-lg text-gray-600 dark:text-gray-300">{description}</p>
+            <p className="mt-3 text-lg text-muted-foreground dark:text-foreground">{description}</p>
           )}
         </motion.div>
 
@@ -70,9 +70,9 @@ export default function RecommendedSection({
               className="flex-shrink-0 w-80"
             >
               <Link href={item.slug} className="block">
-                <div className="group relative overflow-hidden rounded-2xl border-2 bg-white shadow-md transition-all duration-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800">
+                <div className="group relative overflow-hidden rounded-2xl border-2 bg-background shadow-md transition-all duration-300 hover:shadow-xl dark:border-border dark:bg-card">
                   {/* 图片 */}
-                  <div className="relative aspect-[16/9] overflow-hidden bg-gray-100 dark:bg-gray-900">
+                  <div className="relative aspect-[16/9] overflow-hidden bg-secondary dark:bg-background">
                     <Image
                       src={item.image || DEFAULT_COVER_IMAGE}
                       alt={item.title}
@@ -101,27 +101,27 @@ export default function RecommendedSection({
                     )}
 
                     {/* 标题 */}
-                    <h3 className="mb-2 line-clamp-2 text-lg font-bold text-gray-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
+                    <h3 className="mb-2 line-clamp-2 text-lg font-bold text-foreground group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400">
                       {item.title}
                     </h3>
 
                     {/* 摘要 */}
                     {item.summary && (
-                      <p className="mb-4 line-clamp-2 text-sm text-gray-600 dark:text-gray-300">
+                      <p className="mb-4 line-clamp-2 text-sm text-muted-foreground dark:text-foreground">
                         {item.summary}
                       </p>
                     )}
 
                     {/* 日期 */}
                     {item.date && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground dark:text-muted-foreground">
                         {new Date(item.date).toLocaleDateString('zh-CN')}
                       </div>
                     )}
                   </div>
 
                   {/* 类型指示器 */}
-                  <div className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm dark:bg-gray-800/90">
+                  <div className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-background/90 backdrop-blur-sm dark:bg-card/90">
                     <span className="text-xs font-bold text-primary-600 dark:text-primary-400">
                       {item.type === 'book' ? '📚' : item.type === 'article' ? '📄' : '📖'}
                     </span>

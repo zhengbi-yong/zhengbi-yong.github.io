@@ -30,7 +30,7 @@ export function StatCard({ title, value, description, icon: Icon, trend, classNa
           {trend && (
             <span className={cn(
               'text-xs font-medium',
-              trend.positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+              trend.positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive dark:text-destructive'
             )}>
               {trend.value}
             </span>

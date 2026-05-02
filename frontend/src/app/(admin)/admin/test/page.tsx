@@ -70,12 +70,12 @@ export default function AdminTestPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-muted p-8">
       <div className="mx-auto max-w-4xl space-y-6">
         <h1 className="text-3xl font-bold">Admin Refine 测试页面</h1>
 
         {/* Refine Context 测试 */}
-        <div className="space-y-4 rounded-lg bg-blue-50 p-6 shadow">
+        <div className="space-y-4 rounded-lg bg-[var(--theme-info-muted)] p-6 shadow">
           <h2 className="text-xl font-semibold">Refine Context 测试</h2>
           <div className="space-y-2 font-mono text-sm">
             <p>
@@ -108,7 +108,7 @@ export default function AdminTestPage() {
         </div>
 
         {/* useList 测试 */}
-        <div className="space-y-4 rounded-lg bg-white p-6 shadow">
+        <div className="space-y-4 rounded-lg bg-background p-6 shadow">
           <h2 className="text-xl font-semibold">useList 状态</h2>
           <div className="space-y-2 font-mono text-sm">
             <p>
@@ -137,7 +137,7 @@ export default function AdminTestPage() {
               </>
             )}
             {error && (
-              <p className="text-red-600">
+              <p className="text-destructive">
                 error: <span className="font-bold">{String(error)}</span>
               </p>
             )}
@@ -145,7 +145,7 @@ export default function AdminTestPage() {
         </div>
 
         {data?.data && Array.isArray(data.data) && data.data.length > 0 ? (
-          <div className="rounded-lg bg-white p-6 shadow">
+          <div className="rounded-lg bg-background p-6 shadow">
             <h2 className="mb-4 text-xl font-semibold">前3篇文章 (useList)</h2>
             <pre className="overflow-auto text-xs">
               {JSON.stringify(data.data.slice(0, 3), null, 2)}
@@ -154,7 +154,7 @@ export default function AdminTestPage() {
         ) : null}
 
         {directApiData?.posts && directApiData.posts.length > 0 ? (
-          <div className="rounded-lg bg-white p-6 shadow">
+          <div className="rounded-lg bg-background p-6 shadow">
             <h2 className="mb-4 text-xl font-semibold">前3篇文章 (Direct API)</h2>
             <pre className="overflow-auto text-xs">
               {JSON.stringify(directApiData.posts.slice(0, 3), null, 2)}
@@ -162,10 +162,10 @@ export default function AdminTestPage() {
           </div>
         ) : null}
 
-        <div className="rounded-lg bg-white p-6 shadow">
+        <div className="rounded-lg bg-background p-6 shadow">
           <button
             onClick={() => logout()}
-            className="rounded bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+            className="rounded bg-destructive px-4 py-2 text-white hover:bg-red-700"
           >
             退出登录
           </button>

@@ -305,10 +305,10 @@ export function AIChatAssistant({
         <div
           className={`max-w-[80%] rounded-lg px-4 py-2 ${
             isUser
-              ? 'bg-blue-500 text-white'
+              ? 'bg-primary text-white'
               : isSystem
-              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-              : 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100'
+              ? 'bg-[var(--theme-warning)]/10 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+              : 'bg-secondary text-foreground dark:bg-card dark:text-foreground'
           }`}
         >
           {/* 消息内容 */}
@@ -333,7 +333,7 @@ export function AIChatAssistant({
     return (
       <button
         onClick={() => setIsExpanded(true)}
-        className="fixed bottom-4 right-4 z-50 rounded-full bg-blue-500 p-4 text-white shadow-lg transition-all hover:bg-blue-600 hover:shadow-xl"
+        className="fixed bottom-4 right-4 z-50 rounded-full bg-primary p-4 text-white shadow-lg transition-all hover:bg-primary hover:shadow-xl"
         aria-label="打开AI助手"
       >
         <svg
@@ -355,13 +355,13 @@ export function AIChatAssistant({
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-50 flex w-96 flex-col rounded-lg bg-white shadow-2xl dark:bg-gray-800 ${className}`}
+      className={`fixed bottom-4 right-4 z-50 flex w-96 flex-col rounded-lg bg-background shadow-2xl dark:bg-card ${className}`}
       style={{ height: '600px' }}
     >
       {/* 头部 */}
-      <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700">
+      <div className="flex items-center justify-between border-b border-border p-4 dark:border-border">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -371,7 +371,7 @@ export function AIChatAssistant({
               />
             </svg>
           </div>
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="font-semibold text-foreground dark:text-foreground">
             {t('ai.title') || 'AI助手'}
           </h3>
         </div>
@@ -380,7 +380,7 @@ export function AIChatAssistant({
           {messages.length > 0 && (
             <button
               onClick={handleClear}
-              className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              className="rounded p-1 text-muted-foreground hover:bg-secondary dark:text-muted-foreground dark:hover:bg-secondary"
               title={t('ai.clearHistory') || '清空历史'}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -397,7 +397,7 @@ export function AIChatAssistant({
           {collapsible && (
             <button
               onClick={() => setIsExpanded(false)}
-              className="rounded p-1 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              className="rounded p-1 text-muted-foreground hover:bg-secondary dark:text-muted-foreground dark:hover:bg-secondary"
               title={t('ai.close') || '关闭'}
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -416,7 +416,7 @@ export function AIChatAssistant({
       {/* 消息列表 */}
       <div className="flex-1 overflow-y-auto p-4">
         {messages.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+          <div className="flex h-full flex-col items-center justify-center text-muted-foreground dark:text-muted-foreground">
             <svg
               className="mb-4 h-16 w-16"
               fill="none"
@@ -437,14 +437,14 @@ export function AIChatAssistant({
             {/* 快捷问题 */}
             {quickQuestions.length > 0 && (
               <div className="mt-4 space-y-2">
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-muted-foreground">
                   {t('ai.quickQuestions') || '快捷问题：'}
                 </p>
                 {quickQuestions.map((question, index) => (
                   <button
                     key={index}
                     onClick={() => handleQuickQuestion(question)}
-                    className="block w-full rounded border border-gray-300 px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    className="block w-full rounded border border-border px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-muted dark:border-border dark:text-foreground dark:hover:bg-secondary"
                   >
                     {question}
                   </button>
@@ -459,12 +459,12 @@ export function AIChatAssistant({
         {/* 流式响应 */}
         {streamedContent && (
           <div className="mb-4 flex justify-start">
-            <div className="max-w-[80%] rounded-lg bg-gray-100 px-4 py-2 text-gray-900 dark:bg-gray-800 dark:text-gray-100">
+            <div className="max-w-[80%] rounded-lg bg-secondary px-4 py-2 text-foreground dark:bg-card dark:text-foreground">
               <div className="text-sm whitespace-pre-wrap">{streamedContent}</div>
               <div className="mt-1 flex items-center gap-1">
-                <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500" />
-                <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 delay-100" />
-                <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 delay-200" />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-primary delay-100" />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-primary delay-200" />
               </div>
             </div>
           </div>
@@ -473,11 +473,11 @@ export function AIChatAssistant({
         {/* 加载中 */}
         {isLoading && !streamedContent && (
           <div className="mb-4 flex justify-start">
-            <div className="rounded-lg bg-gray-100 px-4 py-2 dark:bg-gray-800">
+            <div className="rounded-lg bg-secondary px-4 py-2 dark:bg-card">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500" />
-                <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 delay-100" />
-                <div className="h-2 w-2 animate-bounce rounded-full bg-blue-500 delay-200" />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-primary delay-100" />
+                <div className="h-2 w-2 animate-bounce rounded-full bg-primary delay-200" />
               </div>
             </div>
           </div>
@@ -487,7 +487,7 @@ export function AIChatAssistant({
       </div>
 
       {/* 输入区域 */}
-      <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+      <div className="border-t border-border p-4 dark:border-border">
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
@@ -497,7 +497,7 @@ export function AIChatAssistant({
             placeholder={
               placeholder || (t('ai.placeholder') || '输入您的问题...')
             }
-            className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            className="flex-1 resize-none rounded-lg border border-border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-primary dark:border-border dark:bg-secondary dark:text-foreground"
             rows={2}
             disabled={isLoading}
           />
@@ -505,7 +505,7 @@ export function AIChatAssistant({
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:opacity-50 disabled:hover:bg-blue-500"
+            className="rounded-lg bg-primary p-2 text-white transition-colors hover:bg-primary disabled:opacity-50 disabled:hover:bg-primary"
             title={t('ai.send') || '发送'}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -210,8 +210,8 @@ export function PerformanceIndicator() {
   }, [])
 
   return (
-    <div className="fixed right-4 bottom-4 z-50 rounded-lg bg-white p-2 shadow-lg dark:bg-gray-800">
-      <div className="text-xs text-gray-600 dark:text-gray-400">Performance Score</div>
+    <div className="fixed right-4 bottom-4 z-50 rounded-lg bg-background p-2 shadow-lg dark:bg-card">
+      <div className="text-xs text-muted-foreground dark:text-muted-foreground">Performance Score</div>
       <div
         className={`text-2xl font-bold ${score >= 90 ? 'text-green-500' : score >= 70 ? 'text-yellow-500' : 'text-red-500'}`}
       >

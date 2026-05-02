@@ -80,14 +80,14 @@ export default function PopularArticlesPage() {
             <h1 className="mx-auto mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
               热门文章
             </h1>
-            <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
+            <p className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg dark:text-muted-foreground">
               基于读者参与度排序的最受欢迎文章
             </p>
           </div>
 
           {validArticles.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-muted-foreground dark:text-muted-foreground">
                 暂时没有热门文章数据。开始阅读一些文章来生成排行榜吧！
               </p>
             </div>
@@ -105,7 +105,7 @@ export default function PopularArticlesPage() {
                 if (analytics.engagementScore >= 80) {
                   return {
                     text: '🔥 爆款',
-                    className: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400',
+                    className: 'bg-destructive/10 text-destructive dark:bg-destructive/15 dark:text-destructive',
                   }
                 }
                 if (analytics.engagementScore >= 60) {
@@ -119,12 +119,12 @@ export default function PopularArticlesPage() {
                   return {
                     text: '👀 关注',
                     className:
-                      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400',
+                      'bg-[var(--theme-warning)]/10 text-[var(--theme-warning)] dark:bg-[var(--theme-warning)]/15 dark:text-[var(--theme-warning)]',
                   }
                 }
                 return {
                   text: '📝 新作',
-                  className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400',
+                  className: 'bg-secondary text-foreground dark:bg-background/20 dark:text-muted-foreground',
                 }
               }
 
@@ -133,7 +133,7 @@ export default function PopularArticlesPage() {
               return (
                 <article
                   key={articleId}
-                  className="group flex flex-col space-y-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600"
+                  className="group flex flex-col space-y-3 rounded-xl border border-border bg-background p-6 shadow-sm transition-all duration-200 hover:border-border hover:shadow-md dark:border-border dark:bg-background dark:hover:border-gray-600"
                 >
                   {/* 排名标记 */}
                   <div className="flex items-center justify-between">
@@ -141,12 +141,12 @@ export default function PopularArticlesPage() {
                       <span
                         className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
                           index === 0
-                            ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
+                            ? 'bg-[var(--theme-warning)]/10 text-[var(--theme-warning)] dark:bg-[var(--theme-warning)]/15 dark:text-[var(--theme-warning)]'
                             : index === 1
-                              ? 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
+                              ? 'bg-secondary text-foreground dark:bg-background/20 dark:text-muted-foreground'
                               : index === 2
                                 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
-                                : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                                : 'bg-[var(--theme-info-muted)] text-primary dark:bg-[var(--theme-info-muted)] dark:text-primary'
                         }`}
                       >
                         {index + 1}
@@ -157,14 +157,14 @@ export default function PopularArticlesPage() {
                         {badge.text}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">
                       {analytics.engagementScore}/100
                     </div>
                   </div>
 
                   {/* 文章标题 */}
                   <div>
-                    <h3 className="text-lg leading-6 font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg leading-6 font-semibold tracking-tight text-foreground dark:text-foreground">
                       {path ? (
                         <Link
                           href={`/${path}`}
@@ -173,11 +173,11 @@ export default function PopularArticlesPage() {
                           {title}
                         </Link>
                       ) : (
-                        <span className="text-gray-500 dark:text-gray-400">{title}</span>
+                        <span className="text-muted-foreground dark:text-muted-foreground">{title}</span>
                       )}
                     </h3>
                     {summary && (
-                      <p className="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground dark:text-muted-foreground">
                         {summary}
                       </p>
                     )}
@@ -190,7 +190,7 @@ export default function PopularArticlesPage() {
                         <Tag key={tag} text={tag} />
                       ))}
                       {tags.length > 3 && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-muted-foreground dark:text-muted-foreground">
                           +{tags.length - 3} 更多
                         </span>
                       )}
@@ -198,7 +198,7 @@ export default function PopularArticlesPage() {
                   )}
 
                   {/* 统计数据 */}
-                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground dark:text-muted-foreground">
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1">👁 {analytics.viewCount}</span>
                       <span className="flex items-center gap-1">
@@ -218,11 +218,11 @@ export default function PopularArticlesPage() {
       </div>
 
       {/* 提示信息 */}
-      <div className="mt-12 rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/20">
+      <div className="mt-12 rounded-lg border border-[var(--theme-info)]/20 bg-[var(--theme-info-muted)] p-6 dark:border-blue-800 dark:bg-[var(--theme-info-muted)]">
         <h3 className="mb-2 text-lg font-semibold text-blue-900 dark:text-blue-100">
           关于热门文章排行
         </h3>
-        <p className="text-sm text-blue-800 dark:text-blue-200">
+        <p className="text-sm text-[var(--theme-fg)] dark:text-[var(--theme-fg)]">
           热度分数综合考虑了浏览次数、阅读时间和滚动深度。分数范围从0到100，分数越高表示文章越受欢迎。
           热度数据仅存储在您的本地浏览器中，不会上传到服务器。
         </p>

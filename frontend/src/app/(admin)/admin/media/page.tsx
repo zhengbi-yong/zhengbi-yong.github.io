@@ -110,17 +110,17 @@ export default function AdminMediaPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-3xl font-bold text-foreground dark:text-foreground">
           {t('admin.media') || '媒体管理'}
         </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
           共 {total} 个文件，总大小 {formatFileSize(totalSize)}
           {unusedCount > 0 && `，其中 ${unusedCount} 个未使用`}
         </p>
       </div>
 
       {/* 筛选栏 */}
-      <div className="mb-6 rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+      <div className="mb-6 rounded-lg bg-background p-4 shadow dark:bg-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <label className="flex items-center gap-2">
             <input
@@ -130,21 +130,21 @@ export default function AdminMediaPage() {
                 setShowUnused(e.target.checked)
                 setPage(1)
               }}
-              className="rounded border-gray-300"
+              className="rounded border-border"
             />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-sm font-medium text-foreground dark:text-foreground">
               仅显示未使用的媒体
             </span>
           </label>
 
           {selectedMedia.size > 0 && (
             <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              <span className="text-sm font-medium text-primary dark:text-primary">
                 已选择 {selectedMedia.size} 个文件
               </span>
               <button
                 onClick={handleBatchDelete}
-                className="rounded bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+                className="rounded bg-destructive/50 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive"
               >
                 批量删除
               </button>
@@ -158,12 +158,12 @@ export default function AdminMediaPage() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
         </div>
       ) : media.length === 0 ? (
-        <div className="rounded-lg bg-white p-12 text-center shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-background p-12 text-center shadow dark:bg-card">
           <div className="mb-4 text-6xl">🖼️</div>
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="mb-2 text-2xl font-semibold text-foreground dark:text-foreground">
             {showUnused ? '没有未使用的媒体文件' : '没有媒体文件'}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground dark:text-muted-foreground">
             {showUnused ? '太好了！所有媒体文件都在使用中' : '上传第一个媒体文件开始使用'}
           </p>
         </div>
@@ -174,10 +174,10 @@ export default function AdminMediaPage() {
             {media.map((item) => (
               <div
                 key={item.id}
-                className={`group relative overflow-hidden rounded-lg border-2 bg-white shadow transition-all hover:shadow-lg dark:bg-gray-800 ${
+                className={`group relative overflow-hidden rounded-lg border-2 bg-background shadow transition-all hover:shadow-lg dark:bg-card ${
                   selectedMedia.has(item.id)
                     ? 'border-blue-500'
-                    : 'border-gray-200 dark:border-gray-700'
+                    : 'border-border dark:border-border'
                 } ${item.usage_count === 0 ? 'opacity-60' : ''}`}
               >
                 {/* 选择复选框 */}
@@ -194,7 +194,7 @@ export default function AdminMediaPage() {
                       }
                       setSelectedMedia(newSelected)
                     }}
-                    className="rounded border-gray-300"
+                    className="rounded border-border"
                   />
                 </div>
 
@@ -207,7 +207,7 @@ export default function AdminMediaPage() {
 
                 {/* 媒体预览 */}
                 <div
-                  className="aspect-square cursor-pointer overflow-hidden bg-gray-100"
+                  className="aspect-square cursor-pointer overflow-hidden bg-secondary"
                   onClick={() => handlePreview(item.id)}
                 >
                   {item.mime_type.startsWith('image/') ? (
@@ -225,14 +225,14 @@ export default function AdminMediaPage() {
 
                 {/* 文件信息 */}
                 <div className="p-3">
-                  <p className="truncate text-xs font-medium text-gray-900 dark:text-gray-100">
+                  <p className="truncate text-xs font-medium text-foreground dark:text-foreground">
                     {item.filename}
                   </p>
-                  <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                  <p className="mt-1 text-xs text-muted-foreground dark:text-muted-foreground">
                     {formatFileSize(item.size_bytes)}
                   </p>
                   {item.usage_count !== undefined && (
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                       使用 {item.usage_count} 次
                     </p>
                   )}
@@ -241,14 +241,14 @@ export default function AdminMediaPage() {
                   <div className="mt-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                     <button
                       onClick={() => handlePreview(item.id)}
-                      className="flex-1 rounded bg-blue-500 px-2 py-1 text-xs text-white transition-colors hover:bg-blue-600"
+                      className="flex-1 rounded bg-primary px-2 py-1 text-xs text-white transition-colors hover:bg-primary"
                     >
                       预览
                     </button>
                     <button
                       onClick={() => handleDelete(item.id, item.filename)}
                       disabled={deleting.has(item.id)}
-                      className="flex-1 rounded border border-red-300 px-2 py-1 text-xs text-red-700 transition-colors hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400"
+                      className="flex-1 rounded border border-destructive/30 px-2 py-1 text-xs text-destructive transition-colors hover:bg-destructive/5 disabled:opacity-50 dark:border-destructive/20 dark:text-destructive"
                     >
                       {deleting.has(item.id) ? '删除中' : '删除'}
                     </button>
@@ -264,17 +264,17 @@ export default function AdminMediaPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 dark:border-border dark:text-foreground dark:hover:bg-secondary"
               >
                 {t('previous') || '上一页'}
               </button>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-muted-foreground dark:text-muted-foreground">
                 第 {page} / {Math.ceil(total / pageSize)} 页
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
                 disabled={page >= Math.ceil(total / pageSize)}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50 dark:border-border dark:text-foreground dark:hover:bg-secondary"
               >
                 {t('next') || '下一页'}
               </button>
@@ -290,21 +290,21 @@ export default function AdminMediaPage() {
           onClick={() => setPreviewMedia(null)}
         >
           <div
-            className="max-w-4xl rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
+            className="max-w-4xl rounded-lg bg-background p-6 shadow-xl dark:bg-card"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="text-lg font-semibold text-foreground dark:text-foreground">
                   {previewMedia.filename}
                 </h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
                   {formatFileSize(previewMedia.size_bytes)} • {previewMedia.mime_type}
                 </p>
               </div>
               <button
                 onClick={() => setPreviewMedia(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-muted-foreground hover:text-muted-foreground dark:hover:text-gray-300"
               >
                 ✕
               </button>
@@ -320,14 +320,14 @@ export default function AdminMediaPage() {
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <p className="text-4xl">📄</p>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <p className="mt-2 text-sm text-muted-foreground dark:text-muted-foreground">
                     此文件类型不支持预览
                   </p>
                   <a
                     href={previewMedia.cdn_url || previewMedia.storage_path}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-block rounded bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600"
+                    className="mt-4 inline-block rounded bg-primary px-4 py-2 text-sm text-white transition-colors hover:bg-primary"
                   >
                     下载文件
                   </a>
@@ -336,9 +336,9 @@ export default function AdminMediaPage() {
             )}
 
             {previewMedia.alt_text && (
-              <div className="mt-4 rounded-lg bg-gray-50 p-3 dark:bg-gray-900">
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300">替代文本:</p>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <div className="mt-4 rounded-lg bg-muted p-3 dark:bg-background">
+                <p className="text-xs font-medium text-foreground dark:text-foreground">替代文本:</p>
+                <p className="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
                   {previewMedia.alt_text}
                 </p>
               </div>
@@ -347,13 +347,13 @@ export default function AdminMediaPage() {
             <div className="mt-6 flex justify-end gap-2">
               <button
                 onClick={() => handleDelete(previewMedia.id, previewMedia.filename)}
-                className="rounded bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+                className="rounded bg-destructive/50 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-destructive"
               >
                 删除此文件
               </button>
               <button
                 onClick={() => setPreviewMedia(null)}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted dark:border-border dark:text-foreground dark:hover:bg-secondary"
               >
                 关闭
               </button>

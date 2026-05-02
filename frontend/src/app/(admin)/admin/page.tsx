@@ -32,11 +32,11 @@ export default function AdminDashboard() {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-900/20">
-        <h3 className="mb-2 text-lg font-semibold text-red-800 dark:text-red-400">
+      <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 dark:border-destructive/20 dark:bg-destructive/15">
+        <h3 className="mb-2 text-lg font-semibold text-destructive dark:text-destructive">
           加载失败
         </h3>
-        <p className="text-sm text-red-600 dark:text-red-400">
+        <p className="text-sm text-destructive dark:text-destructive">
           {error instanceof Error ? error.message : '无法加载管理员数据，请检查您的权限'}
         </p>
       </div>

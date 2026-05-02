@@ -58,7 +58,7 @@ export default function MegaFooter() {
       className={cn(
         styles.footerRoot,
         'relative overflow-hidden',
-        isDark ? 'bg-[var(--theme-bg)] text-slate-200' : 'bg-slate-50 text-slate-900'
+        isDark ? 'bg-[var(--theme-bg)] text-slate-200' : 'bg-muted text-foreground'
       )}
       aria-label="Footer"
       suppressHydrationWarning
@@ -83,13 +83,13 @@ export default function MegaFooter() {
           <p
             className={cn(
               'mb-4 text-[10px] uppercase tracking-[0.32em]',
-              isDark ? 'text-slate-500' : 'text-slate-500'
+              isDark ? 'text-muted-foreground' : 'text-muted-foreground'
             )}
           >
             Closing Note
           </p>
           <h2
-            className={cn('max-w-5xl leading-[1.15] tracking-[0.08em]', isDark ? 'text-white' : 'text-slate-900')}
+            className={cn('max-w-5xl leading-[1.15] tracking-[0.08em]', isDark ? 'text-white' : 'text-foreground')}
             style={{
               fontSize: 'clamp(2.75rem, 7vw, 7rem)',
               fontFamily: "'STXingkai', '华文行楷', 'STKaiti', '华文楷体', 'KaiTi', cursive",
@@ -126,7 +126,7 @@ export default function MegaFooter() {
             transition={{ delay: 0.35, duration: 0.7 }}
             className="flex flex-col gap-4 text-center lg:text-left"
           >
-            <p className={cn('text-[10px] uppercase tracking-[0.3em]', isDark ? 'text-slate-500' : 'text-slate-500')}>
+            <p className={cn('text-[10px] uppercase tracking-[0.3em]', isDark ? 'text-muted-foreground' : 'text-muted-foreground')}>
               Brand
             </p>
             <div className="space-y-3">
@@ -134,13 +134,13 @@ export default function MegaFooter() {
                 href="/"
                 className={cn(
                   'inline-block text-2xl tracking-tight transition-colors duration-300',
-                  isDark ? 'text-white hover:text-slate-200' : 'text-slate-900 hover:text-slate-700'
+                  isDark ? 'text-white dark:hover:text-foreground' : 'text-foreground hover:text-slate-700'
                 )}
                 style={{ fontFamily: 'var(--font-great-vibes)' }}
               >
                 {siteMetadata.author}
               </Link>
-              <p className={cn('max-w-md text-sm leading-6', isDark ? 'text-slate-400' : 'text-slate-600')}>
+              <p className={cn('max-w-md text-sm leading-6', isDark ? 'text-muted-foreground' : 'text-muted-foreground')}>
                 Research, essays, and carefully composed digital work across engineering, music, and visual thought.
               </p>
             </div>
@@ -154,7 +154,7 @@ export default function MegaFooter() {
             transition={{ delay: 0.45, duration: 0.7 }}
             className="flex flex-col gap-4 text-center lg:text-left"
           >
-            <p className={cn('text-[10px] uppercase tracking-[0.3em]', isDark ? 'text-slate-500' : 'text-slate-500')}>
+            <p className={cn('text-[10px] uppercase tracking-[0.3em]', isDark ? 'text-muted-foreground' : 'text-muted-foreground')}>
               Navigate
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 lg:justify-start">
@@ -165,7 +165,7 @@ export default function MegaFooter() {
                   className={cn(
                     styles.footerLink,
                     'text-sm transition-colors duration-300',
-                    isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                    isDark ? 'text-slate-300 hover:text-white' : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
                   {link.label}
@@ -181,7 +181,7 @@ export default function MegaFooter() {
             transition={{ delay: 0.55, duration: 0.7 }}
             className="flex flex-col gap-4 text-center lg:text-left"
           >
-            <p className={cn('text-[10px] uppercase tracking-[0.3em]', isDark ? 'text-slate-500' : 'text-slate-500')}>
+            <p className={cn('text-[10px] uppercase tracking-[0.3em]', isDark ? 'text-muted-foreground' : 'text-muted-foreground')}>
               Connect
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
@@ -193,7 +193,7 @@ export default function MegaFooter() {
                   rel="noreferrer"
                   className={cn(
                     styles.footerSocialButton,
-                    isDark ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                    isDark ? 'text-slate-300 hover:text-white' : 'text-muted-foreground hover:text-foreground'
                   )}
                   aria-label={label}
                   title={label}
@@ -209,7 +209,7 @@ export default function MegaFooter() {
                 className={cn(
                   styles.footerLink,
                   'mt-2 inline-flex justify-center text-sm transition-colors duration-300 lg:justify-start',
-                  isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                  isDark ? 'text-muted-foreground hover:text-white' : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 {siteMetadata.email}
@@ -234,10 +234,10 @@ export default function MegaFooter() {
           transition={{ delay: 0.75, duration: 0.7 }}
         >
           <div className="flex flex-col gap-2">
-            <span className={cn('text-xs uppercase tracking-[0.18em]', isDark ? 'text-slate-500' : 'text-slate-500')}>
+            <span className={cn('text-xs uppercase tracking-[0.18em]', isDark ? 'text-muted-foreground' : 'text-muted-foreground')}>
               © {new Date().getFullYear()} Zhengbi Yong. All rights reserved.
             </span>
-            <span className={cn('text-xs', isDark ? 'text-slate-600' : 'text-slate-500')}>
+            <span className={cn('text-xs', isDark ? 'text-muted-foreground' : 'text-muted-foreground')}>
               Designed for a quieter, more deliberate reading experience.
             </span>
           </div>
@@ -248,7 +248,7 @@ export default function MegaFooter() {
             className={cn(
               styles.footerLink,
               'text-[10px] uppercase tracking-[0.18em] transition-colors duration-300',
-              isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-500 hover:text-slate-800'
+              isDark ? 'text-muted-foreground dark:hover:text-foreground' : 'text-muted-foreground hover:text-slate-800'
             )}
           >
             京ICP备2025110798号-1

@@ -40,7 +40,7 @@ export const TOCItem = memo(function TOCItem({
         className={cn(
           'toc-link',
           isActive && 'active',
-          !isActive && 'dark:hover:text-primary-400 dark:text-gray-400 dark:hover:bg-gray-800'
+          !isActive && 'dark:hover:text-primary-400 dark:text-muted-foreground dark:hover:bg-gray-800'
         )}
         style={
           isActive

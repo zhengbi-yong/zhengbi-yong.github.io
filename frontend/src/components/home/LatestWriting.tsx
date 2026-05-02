@@ -26,15 +26,15 @@ export default function LatestWriting() {
 
   const themeClasses = isDark
     ? {
-        muted: 'text-gray-500',
+        muted: 'text-muted-foreground',
         text: 'text-gray-100',
         accent: 'text-indigo-300',
         featuredCard: 'border-white/[0.06] hover:border-indigo-400/20 bg-gradient-to-br from-indigo-950/30 to-transparent',
       }
     : {
-        muted: 'text-gray-400',
+        muted: 'text-muted-foreground',
         text: 'text-gray-800',
-        accent: 'text-indigo-600',
+        accent: 'text-primary',
         featuredCard: 'border-black/[0.06] hover:border-indigo-400/20 bg-gradient-to-br from-indigo-50/50 to-transparent',
       }
 

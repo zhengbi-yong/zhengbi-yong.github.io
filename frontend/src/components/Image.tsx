@@ -39,8 +39,8 @@ const Image = memo(function Image({
 
   if (hasError) {
     return (
-      <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-        <p className="text-sm text-gray-500 dark:text-gray-400">图片加载失败</p>
+      <div className="flex items-center justify-center bg-secondary dark:bg-card">
+        <p className="text-sm text-muted-foreground dark:text-muted-foreground">图片加载失败</p>
       </div>
     )
   }

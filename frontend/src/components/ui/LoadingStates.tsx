@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react'
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('animate-pulse rounded-md bg-gray-200 dark:bg-gray-700', className)}
+      className={cn('animate-pulse rounded-md bg-gray-200 dark:bg-secondary', className)}
       {...props}
     />
   )
@@ -45,7 +45,7 @@ export function ArticleCardSkeleton() {
 // 列表项骨架屏
 export function ListItemSkeleton() {
   return (
-    <div className="border-b border-gray-200 py-4 dark:border-gray-700">
+    <div className="border-b border-border py-4 dark:border-border">
       <div className="space-y-2">
         <Skeleton className="h-5 w-2/3" />
         <Skeleton className="h-4 w-full" />
@@ -59,7 +59,7 @@ export function ListItemSkeleton() {
 export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; columns?: number }) {
   return (
     <div className="w-full">
-      <div className="mb-3 border-b border-gray-200 pb-3 dark:border-gray-700">
+      <div className="mb-3 border-b border-border pb-3 dark:border-border">
         <div className="grid" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
           {Array.from({ length: columns }).map((_, i) => (
             <Skeleton key={i} className="h-4 w-20" />
@@ -68,7 +68,7 @@ export function TableSkeleton({ rows = 5, columns = 4 }: { rows?: number; column
       </div>
 
       {Array.from({ length: rows }).map((_, rowIndex) => (
-        <div key={rowIndex} className="border-b border-gray-100 py-3 dark:border-gray-800">
+        <div key={rowIndex} className="border-b border-border py-3 dark:border-border">
           <div className="grid" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
             {Array.from({ length: columns }).map((_, colIndex) => (
               <Skeleton key={colIndex} className="h-4 w-16" />
@@ -99,8 +99,8 @@ export function PageLoader({
   return (
     <div className={cn('flex items-center justify-center p-8', className)}>
       <div className="flex flex-col items-center space-y-2">
-        <Loader2 className={cn('animate-spin text-blue-600', sizeClasses[size])} />
-        {text && <span className="text-sm text-gray-600 dark:text-gray-400">{text}</span>}
+        <Loader2 className={cn('animate-spin text-primary', sizeClasses[size])} />
+        {text && <span className="text-sm text-muted-foreground dark:text-muted-foreground">{text}</span>}
       </div>
     </div>
   )
@@ -139,21 +139,21 @@ export function ProgressBar({
   const percentage = Math.min((value / max) * 100, 100)
 
   const colorClasses = {
-    blue: 'bg-blue-600',
-    green: 'bg-green-600',
-    red: 'bg-red-600',
-    yellow: 'bg-yellow-600',
+    blue: 'bg-primary',
+    green: 'bg-[var(--theme-success)]',
+    red: 'bg-destructive',
+    yellow: 'bg-[var(--theme-warning)]',
   }
 
   return (
     <div className={cn('w-full', className)}>
       {showLabel && (
-        <div className="mb-1 flex justify-between text-sm text-gray-600 dark:text-gray-400">
+        <div className="mb-1 flex justify-between text-sm text-muted-foreground dark:text-muted-foreground">
           <span>Progress</span>
           <span>{Math.round(percentage)}%</span>
         </div>
       )}
-      <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+      <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-secondary">
         <div
           className={cn(
             'h-2 rounded-full transition-all duration-300 ease-out',
@@ -183,8 +183,8 @@ export function EmptyState({
   return (
     <div className={cn('py-12 text-center', className)}>
       {icon && <div className="mb-4 flex justify-center">{icon}</div>}
-      <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">{title}</h3>
-      <p className="mb-4 text-gray-600 dark:text-gray-400">{description}</p>
+      <h3 className="mb-2 text-lg font-medium text-foreground dark:text-foreground">{title}</h3>
+      <p className="mb-4 text-muted-foreground dark:text-muted-foreground">{description}</p>
       {action}
     </div>
   )
@@ -205,9 +205,9 @@ export function ErrorState({
   return (
     <EmptyState
       icon={
-        <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/30">
+        <div className="rounded-full bg-destructive/10 p-3 dark:bg-destructive/20">
           <svg
-            className="h-6 w-6 text-red-600 dark:text-red-400"
+            className="h-6 w-6 text-destructive dark:text-destructive"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

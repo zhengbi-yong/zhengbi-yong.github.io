@@ -74,14 +74,14 @@ export function NewsletterSignup({
   const themeClasses = {
     light: {
       container: 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900',
-      input: 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100',
-      button: 'bg-blue-600 hover:bg-blue-700 text-white',
-      text: 'text-gray-900 dark:text-gray-100',
+      input: 'bg-background dark:bg-secondary border-border dark:border-border text-foreground dark:text-foreground',
+      button: 'bg-primary hover:bg-primary text-white',
+      text: 'text-foreground dark:text-foreground',
     },
     dark: {
       container: 'bg-gradient-to-br from-gray-800 to-gray-900',
       input: 'bg-gray-700 border-gray-600 text-gray-100',
-      button: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+      button: 'bg-primary hover:bg-primary text-white',
       text: 'text-gray-100',
     },
   }
@@ -100,7 +100,7 @@ export function NewsletterSignup({
             disabled={status === 'loading' || status === 'success'}
             className={cn(
               currentTheme.input,
-              'flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'
+              'flex-1 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50'
             )}
             required
           />
@@ -134,7 +134,7 @@ export function NewsletterSignup({
           <p
             className={cn(
               'mt-2 text-xs',
-              status === 'error' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
+              status === 'error' ? 'text-destructive dark:text-destructive' : 'text-[var(--theme-success)] dark:text-[var(--theme-success)]'
             )}
           >
             {message}
@@ -149,7 +149,7 @@ export function NewsletterSignup({
       {showTitle && (
         <div className="mb-6">
           <div className="mb-2 flex items-center gap-2">
-            <svg className="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-6 w-6 text-primary dark:text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -179,7 +179,7 @@ export function NewsletterSignup({
             disabled={status === 'loading' || status === 'success'}
             className={cn(
               currentTheme.input,
-              'w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50'
+              'w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50'
             )}
             required
           />
@@ -227,8 +227,8 @@ export function NewsletterSignup({
             className={cn(
               'rounded-lg p-3',
               status === 'error'
-                ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
-                : 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                ? 'bg-destructive/10 text-destructive dark:bg-destructive/15 dark:text-destructive'
+                : 'bg-[var(--theme-success)]/10 text-[var(--theme-success)] dark:bg-[var(--theme-success)]/15/20 dark:text-[var(--theme-success)]'
             )}
           >
             <p className="text-sm">{message}</p>

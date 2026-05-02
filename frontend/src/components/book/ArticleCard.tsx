@@ -38,7 +38,7 @@ export default function ArticleCard({
 
   return (
     <motion.article
-      className="group/card relative h-full overflow-hidden rounded-xl border-2 border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+      className="group/card relative h-full overflow-hidden rounded-xl border-2 border-border bg-background dark:border-border dark:bg-background"
       initial={{ opacity: 0, y: disableComplexAnimations ? 0 : 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: disableComplexAnimations ? 0 : index * 0.05 }}
@@ -70,7 +70,7 @@ export default function ArticleCard({
         <div className="mb-2 flex items-center justify-between gap-2">
           <time
             dateTime={date}
-            className="flex-shrink-0 text-xs font-medium whitespace-nowrap text-gray-500 dark:text-gray-400"
+            className="flex-shrink-0 text-xs font-medium whitespace-nowrap text-muted-foreground dark:text-muted-foreground"
           >
             {formatDate(date, siteMetadata.locale)}
           </time>
@@ -90,14 +90,14 @@ export default function ArticleCard({
 
         {/* 标题 - 可点击链接 */}
         <Link href={`/${path}`} className="block">
-          <h3 className="group-hover/card:text-primary-600 dark:group-hover/card:text-primary-400 mb-2 line-clamp-2 cursor-pointer text-base leading-6 font-bold tracking-tight text-gray-900 transition-colors duration-200 dark:text-gray-100">
+          <h3 className="group-hover/card:text-primary-600 dark:group-hover/card:text-primary-400 mb-2 line-clamp-2 cursor-pointer text-base leading-6 font-bold tracking-tight text-foreground transition-colors duration-200 dark:text-foreground">
             {title}
           </h3>
         </Link>
 
         {/* 摘要 */}
         {summary && (
-          <p className="line-clamp-2 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground dark:text-foreground">
             {summary}
           </p>
         )}

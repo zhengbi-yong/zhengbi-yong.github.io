@@ -38,9 +38,9 @@ export function HeaderActions({ className, onSearchClick }: HeaderActionsProps) 
   if (!mounted) {
     return (
       <div className={cn('flex items-center space-x-4', className)}>
-        <div className="h-9 w-9 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-        <div className="h-9 w-9 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-        <div className="h-9 w-9 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+        <div className="h-9 w-9 animate-pulse rounded bg-gray-200 dark:bg-secondary" />
+        <div className="h-9 w-9 animate-pulse rounded bg-gray-200 dark:bg-secondary" />
+        <div className="h-9 w-9 animate-pulse rounded bg-gray-200 dark:bg-secondary" />
       </div>
     )
   }

@@ -43,7 +43,7 @@ export default function Home() {
 
             <AnimatedParagraph
               delay={0.3}
-              className="text-visitor-lg mx-auto mb-12 max-w-4xl text-gray-600 dark:text-gray-400"
+              className="text-visitor-lg mx-auto mb-12 max-w-4xl text-muted-foreground dark:text-muted-foreground"
             >
               探索技术、设计与艺术的交汇点
             </AnimatedParagraph>
@@ -53,13 +53,13 @@ export default function Home() {
                 href={siteMetadata.github || '#'}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center rounded-visitor-md bg-indigo-600 px-8 py-4 text-lg font-medium text-white shadow-visitor-soft transition-all duration-300 ease-visitor hover:bg-indigo-700 hover:shadow-visitor-glow focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="inline-flex items-center justify-center rounded-visitor-md bg-primary px-8 py-4 text-lg font-medium text-white shadow-visitor-soft transition-all duration-300 ease-visitor hover:bg-primary hover:shadow-visitor-glow focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 View GitHub
               </Link>
               <Link
                 href="/blog"
-                className="inline-flex items-center justify-center rounded-visitor-md bg-gray-100 px-8 py-4 text-lg font-medium text-gray-900 transition-all duration-300 ease-visitor hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
+                className="inline-flex items-center justify-center rounded-visitor-md bg-secondary px-8 py-4 text-lg font-medium text-foreground transition-all duration-300 ease-visitor hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:bg-card dark:text-foreground dark:hover:bg-secondary"
               >
                 Read Blog
               </Link>

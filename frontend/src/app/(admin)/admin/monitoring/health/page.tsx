@@ -41,26 +41,26 @@ export default function HealthCheckPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">系统健康检查</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">实时监控各服务的运行状态</p>
+          <h1 className="text-3xl font-bold text-foreground dark:text-white">系统健康检查</h1>
+          <p className="mt-2 text-muted-foreground dark:text-muted-foreground">实时监控各服务的运行状态</p>
         </div>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               autoRefresh
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                ? 'bg-[var(--theme-info-muted)] text-primary dark:bg-[var(--theme-info-muted)] dark:text-primary'
+                : 'bg-secondary text-foreground dark:bg-card dark:text-foreground'
             }`}
           >
             {autoRefresh ? '自动刷新：开' : '自动刷新：关'}
           </button>
           <button
             onClick={() => refetch()}
-            className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-lg p-2 transition-colors hover:bg-secondary dark:hover:bg-secondary"
             title="手动刷新"
           >
-            <RefreshCw className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <RefreshCw className="h-5 w-5 text-muted-foreground dark:text-muted-foreground" />
           </button>
         </div>
       </div>
@@ -69,15 +69,15 @@ export default function HealthCheckPage() {
       <div
         className={`rounded-lg border-2 p-6 ${
           overallStatus === 'healthy'
-            ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
-            : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
+            ? 'border-[var(--theme-success)]/20 bg-green-50 dark:border-[var(--theme-success)]/20 dark:bg-[var(--theme-success)]/15/20'
+            : 'border-destructive/20 bg-destructive/5 dark:border-destructive/20 dark:bg-destructive/15'
         }`}
       >
         <div className="flex items-center space-x-4">
           {overallStatus === 'healthy' ? (
-            <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
+            <CheckCircle2 className="h-12 w-12 text-[var(--theme-success)] dark:text-[var(--theme-success)]" />
           ) : (
-            <XCircle className="h-12 w-12 text-red-600 dark:text-red-400" />
+            <XCircle className="h-12 w-12 text-destructive dark:text-destructive" />
           )}
           <div>
             <h2
@@ -92,8 +92,8 @@ export default function HealthCheckPage() {
             <p
               className={`mt-1 ${
                 overallStatus === 'healthy'
-                  ? 'text-green-700 dark:text-green-300'
-                  : 'text-red-700 dark:text-red-300'
+                  ? 'text-[var(--theme-success)] dark:text-green-300'
+                  : 'text-destructive dark:text-destructive'
               }`}
             >
               {healthData?.timestamp
@@ -108,22 +108,22 @@ export default function HealthCheckPage() {
       {isLoading && (
         <div className="flex items-center justify-center p-12">
           <div className="flex flex-col items-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
-            <p className="text-gray-600 dark:text-gray-400">检查中...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-primary dark:text-primary" />
+            <p className="text-muted-foreground dark:text-muted-foreground">检查中...</p>
           </div>
         </div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6 dark:border-red-800 dark:bg-red-900/20">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 dark:border-destructive/20 dark:bg-destructive/15">
           <div className="flex items-center space-x-3">
-            <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+            <AlertCircle className="h-6 w-6 text-destructive dark:text-destructive" />
             <div>
-              <h3 className="text-lg font-semibold text-red-900 dark:text-red-400">
+              <h3 className="text-lg font-semibold text-red-900 dark:text-destructive">
                 无法获取健康状态
               </h3>
-              <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+              <p className="mt-1 text-sm text-destructive dark:text-destructive">
                 {error instanceof Error ? error.message : '请检查后端服务是否运行'}
               </p>
             </div>
@@ -162,18 +162,18 @@ function ServiceStatusCard({ name, service, icon }: ServiceStatusCardProps) {
 
   return (
     <div
-      className={`rounded-lg border-2 bg-white p-6 dark:bg-gray-800 ${
-        isHealthy ? 'border-green-200 dark:border-green-800' : 'border-red-200 dark:border-red-800'
+      className={`rounded-lg border-2 bg-background p-6 dark:bg-card ${
+        isHealthy ? 'border-[var(--theme-success)]/20 dark:border-[var(--theme-success)]/20' : 'border-destructive/20 dark:border-destructive/20'
       }`}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-center space-x-3">
           <span className="text-3xl">{icon}</span>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{name}</h3>
+            <h3 className="text-lg font-semibold text-foreground dark:text-white">{name}</h3>
             <p
               className={`mt-1 text-sm ${
-                isHealthy ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                isHealthy ? 'text-[var(--theme-success)] dark:text-[var(--theme-success)]' : 'text-destructive dark:text-destructive'
               }`}
             >
               {isHealthy ? '运行正常' : '服务异常'}
@@ -181,31 +181,31 @@ function ServiceStatusCard({ name, service, icon }: ServiceStatusCardProps) {
           </div>
         </div>
         {isHealthy ? (
-          <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+          <CheckCircle2 className="h-6 w-6 text-[var(--theme-success)] dark:text-[var(--theme-success)]" />
         ) : (
-          <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+          <XCircle className="h-6 w-6 text-destructive dark:text-destructive" />
         )}
       </div>
 
       {service.message && (
-        <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">{service.message}</p>
+        <p className="mt-3 text-sm text-muted-foreground dark:text-muted-foreground">{service.message}</p>
       )}
 
-      <div className="mt-4 border-t border-gray-200 pt-4 dark:border-gray-700">
-        <h4 className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">详细信息</h4>
+      <div className="mt-4 border-t border-border pt-4 dark:border-border">
+        <h4 className="mb-2 text-sm font-medium text-foreground dark:text-foreground">详细信息</h4>
         <dl className="space-y-2">
           {service.response_time_ms && (
             <div className="flex justify-between text-sm">
-              <dt className="text-gray-600 dark:text-gray-400">响应时间:</dt>
-              <dd className="font-medium text-gray-900 dark:text-white">
+              <dt className="text-muted-foreground dark:text-muted-foreground">响应时间:</dt>
+              <dd className="font-medium text-foreground dark:text-white">
                 {service.response_time_ms}ms
               </dd>
             </div>
           )}
           {service.last_check && (
             <div className="flex justify-between text-sm">
-              <dt className="text-gray-600 dark:text-gray-400">最后检查:</dt>
-              <dd className="font-medium text-gray-900 dark:text-white">
+              <dt className="text-muted-foreground dark:text-muted-foreground">最后检查:</dt>
+              <dd className="font-medium text-foreground dark:text-white">
                 {new Date(service.last_check).toLocaleTimeString('zh-CN')}
               </dd>
             </div>

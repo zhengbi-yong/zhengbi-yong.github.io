@@ -99,8 +99,8 @@ export function DataTableToolbar({
   return (
     <div className={cn(
       'admin-toolbar',
-      'border-b border-gray-200 dark:border-gray-700',
-      'bg-white dark:bg-gray-800',
+      'border-b border-border dark:border-border',
+      'bg-background dark:bg-card',
       className
     )}>
       <div className="flex items-center justify-between gap-4">
@@ -108,7 +108,7 @@ export function DataTableToolbar({
         <div className="flex items-center gap-2 flex-1">
           {/* 搜索框 */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               id="datatable-search-input"
               type="text"
@@ -118,19 +118,19 @@ export function DataTableToolbar({
               className={cn(
                 'w-full pl-8 pr-8 py-1.5',
                 'text-admin-sm',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-border dark:border-border',
                 'rounded-md',
-                'bg-white dark:bg-gray-700',
-                'text-gray-900 dark:text-gray-100',
+                'bg-background dark:bg-secondary',
+                'text-foreground dark:text-foreground',
                 'placeholder-gray-400',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent',
                 'transition-all duration-150'
               )}
             />
             {searchQuery && (
               <button
                 onClick={handleClearSearch}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground dark:hover:text-gray-300"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -144,13 +144,13 @@ export function DataTableToolbar({
               className={cn(
                 'px-3 py-1.5',
                 'text-admin-sm font-medium',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-border dark:border-border',
                 'rounded-md',
-                'text-gray-700 dark:text-gray-300',
-                'hover:bg-gray-50 dark:hover:bg-gray-700',
+                'text-foreground dark:text-foreground',
+                'hover:bg-muted dark:hover:bg-secondary',
                 'transition-colors duration-150',
                 'flex items-center gap-1.5',
-                showFilters && 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600'
+                showFilters && 'bg-[var(--theme-info-muted)] dark:bg-[var(--theme-info-muted)] border-blue-300 dark:border-blue-600'
               )}
             >
               <Filter className="w-3.5 h-3.5" />
@@ -167,14 +167,14 @@ export function DataTableToolbar({
         <div className="flex items-center gap-2">
           {/* 选中计数 */}
           {selectedCount !== undefined && selectedCount > 0 && (
-            <span className="text-admin-sm text-gray-600 dark:text-gray-400">
-              已选择 <span className="font-semibold text-blue-600 dark:text-blue-400">{selectedCount}</span> 项
+            <span className="text-admin-sm text-muted-foreground dark:text-muted-foreground">
+              已选择 <span className="font-semibold text-primary dark:text-primary">{selectedCount}</span> 项
             </span>
           )}
 
           {/* 总数显示 */}
           {totalCount !== undefined && (
-            <span className="text-admin-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
+            <span className="text-admin-xs text-muted-foreground dark:text-muted-foreground hidden sm:inline">
               共 {totalCount.toLocaleString()} 项
             </span>
           )}
@@ -186,8 +186,8 @@ export function DataTableToolbar({
               disabled={isLoading}
               className={cn(
                 'p-1.5',
-                'text-gray-500 dark:text-gray-400',
-                'hover:bg-gray-100 dark:hover:bg-gray-700',
+                'text-muted-foreground dark:text-muted-foreground',
+                'hover:bg-secondary dark:hover:bg-secondary',
                 'rounded-md',
                 'transition-colors duration-150',
                 isLoading && 'animate-spin'
@@ -205,10 +205,10 @@ export function DataTableToolbar({
               className={cn(
                 'px-3 py-1.5',
                 'text-admin-sm font-medium',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-border dark:border-border',
                 'rounded-md',
-                'text-gray-700 dark:text-gray-300',
-                'hover:bg-gray-50 dark:hover:bg-gray-700',
+                'text-foreground dark:text-foreground',
+                'hover:bg-muted dark:hover:bg-secondary',
                 'transition-colors duration-150',
                 'flex items-center gap-1.5'
               )}
@@ -223,8 +223,8 @@ export function DataTableToolbar({
           <button
             className={cn(
               'p-1.5',
-              'text-gray-500 dark:text-gray-400',
-              'hover:bg-gray-100 dark:hover:bg-gray-700',
+              'text-muted-foreground dark:text-muted-foreground',
+              'hover:bg-secondary dark:hover:bg-secondary',
               'rounded-md',
               'transition-colors duration-150'
             )}
@@ -237,10 +237,10 @@ export function DataTableToolbar({
 
       {/* 筛选面板（展开时显示） */}
       {showFilters && (
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-3 pt-3 border-t border-border dark:border-border">
           <div className="flex items-center gap-2 flex-wrap">
             {/* 这里可以添加具体的筛选控件 */}
-            <span className="text-admin-xs text-gray-500 dark:text-gray-400">
+            <span className="text-admin-xs text-muted-foreground dark:text-muted-foreground">
               筛选选项待实现...
             </span>
           </div>
@@ -310,13 +310,13 @@ export function DataTablePagination({
   return (
     <div className={cn(
       'admin-pagination',
-      'bg-white dark:bg-gray-800',
-      'border-t border-gray-200 dark:border-gray-700',
+      'bg-background dark:bg-card',
+      'border-t border-border dark:border-border',
       className
     )}>
       <div className="flex items-center justify-between">
         {/* 左侧：信息显示 */}
-        <div className="text-admin-sm text-gray-600 dark:text-gray-400">
+        <div className="text-admin-sm text-muted-foreground dark:text-muted-foreground">
           显示 {startIndex} - {endIndex} 项，共 {totalCount.toLocaleString()} 项
         </div>
 
@@ -330,11 +330,11 @@ export function DataTablePagination({
               className={cn(
                 'px-2 py-1',
                 'text-admin-sm',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-border dark:border-border',
                 'rounded-md',
-                'bg-white dark:bg-gray-700',
-                'text-gray-900 dark:text-gray-100',
-                'focus:outline-none focus:ring-2 focus:ring-blue-500'
+                'bg-background dark:bg-secondary',
+                'text-foreground dark:text-foreground',
+                'focus:outline-none focus:ring-2 focus:ring-primary'
               )}
             >
               <option value="20">20</option>
@@ -352,10 +352,10 @@ export function DataTablePagination({
               className={cn(
                 'px-2 py-1',
                 'text-admin-sm',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-border dark:border-border',
                 'rounded-md',
-                'text-gray-700 dark:text-gray-300',
-                'hover:bg-gray-50 dark:hover:bg-gray-700',
+                'text-foreground dark:text-foreground',
+                'hover:bg-muted dark:hover:bg-secondary',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
                 'transition-colors duration-150'
               )}
@@ -375,8 +375,8 @@ export function DataTablePagination({
                   'border rounded-md',
                   'transition-colors duration-150',
                   page === currentPage
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600',
+                    ? 'bg-primary text-white border-blue-600'
+                    : 'bg-background dark:bg-secondary text-foreground dark:text-foreground border-border dark:border-border hover:bg-muted dark:hover:bg-secondary',
                   page === '...' && 'cursor-default border-transparent'
                 )}
               >
@@ -391,10 +391,10 @@ export function DataTablePagination({
               className={cn(
                 'px-2 py-1',
                 'text-admin-sm',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-border dark:border-border',
                 'rounded-md',
-                'text-gray-700 dark:text-gray-300',
-                'hover:bg-gray-50 dark:hover:bg-gray-700',
+                'text-foreground dark:text-foreground',
+                'hover:bg-muted dark:hover:bg-secondary',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
                 'transition-colors duration-150'
               )}

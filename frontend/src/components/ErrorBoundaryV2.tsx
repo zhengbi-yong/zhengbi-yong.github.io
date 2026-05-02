@@ -160,21 +160,21 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
       // 默认错误 UI
       return (
         <div className="flex min-h-[400px] items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 text-center shadow-lg dark:bg-gray-800">
+          <div className="w-full max-w-md rounded-lg bg-background p-6 text-center shadow-lg dark:bg-card">
             {/* 错误图标 */}
             <div className="mb-4 flex justify-center">
-              <div className="rounded-full bg-red-100 p-3 dark:bg-red-900/30">
-                <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+              <div className="rounded-full bg-destructive/10 p-3 dark:bg-destructive/20">
+                <AlertTriangle className="h-8 w-8 text-destructive dark:text-destructive" />
               </div>
             </div>
 
             {/* 错误标题 */}
-            <h2 className="mb-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="mb-2 text-xl font-semibold text-foreground dark:text-foreground">
               Oops! Something went wrong
             </h2>
 
             {/* 错误消息 */}
-            <p className="mb-4 text-gray-600 dark:text-gray-400">
+            <p className="mb-4 text-muted-foreground dark:text-muted-foreground">
               {isolate
                 ? 'This component encountered an error, but the rest of the page is working normally.'
                 : 'An unexpected error occurred while rendering this page.'}
@@ -183,15 +183,15 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
             {/* 开发环境显示详细信息 */}
             {process.env.NODE_ENV === 'development' && (
               <details className="mb-4 text-left">
-                <summary className="mb-2 cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
+                <summary className="mb-2 cursor-pointer text-sm font-medium text-foreground dark:text-foreground">
                   Error Details (Development Only)
                 </summary>
-                <div className="mt-2 max-h-40 overflow-auto rounded bg-gray-100 p-3 font-mono text-xs dark:bg-gray-700">
-                  <p className="mb-1 text-red-600 dark:text-red-400">
+                <div className="mt-2 max-h-40 overflow-auto rounded bg-secondary p-3 font-mono text-xs dark:bg-secondary">
+                  <p className="mb-1 text-destructive dark:text-destructive">
                     {error.name}: {error.message}
                   </p>
                   {errorInfo?.componentStack && (
-                    <pre className="whitespace-pre-wrap text-gray-600 dark:text-gray-400">
+                    <pre className="whitespace-pre-wrap text-muted-foreground dark:text-muted-foreground">
                       {errorInfo.componentStack}
                     </pre>
                   )}
@@ -201,7 +201,7 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
 
             {/* 重试计数 */}
             {retryCount > 0 && (
-              <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mb-4 text-sm text-muted-foreground dark:text-muted-foreground">
                 Retry attempt: {retryCount}
               </p>
             )}
@@ -228,7 +228,7 @@ export class ErrorBoundaryV2 extends React.Component<ErrorBoundaryProps, ErrorBo
             </div>
 
             {/* 错误类型提示 */}
-            <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            <div className="mt-4 text-xs text-muted-foreground dark:text-muted-foreground">
               Error ID: {Date.now().toString(36)}
               {isolate && ' • Isolated Error'}
             </div>

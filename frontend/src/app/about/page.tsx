@@ -17,7 +17,7 @@ export default function Page() {
     <PublicLayout>
       <PublicPageFrame>
         <section className="mb-16 max-w-3xl space-y-5 md:mb-24">
-          <p className="text-xs font-medium uppercase tracking-[0.24em] text-amber-700 dark:text-amber-500">
+          <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary dark:text-primary">
             Biography · Research · Writing
           </p>
           <h1
@@ -26,7 +26,7 @@ export default function Page() {
           >
             About
           </h1>
-          <p className="max-w-2xl text-base leading-8 text-zinc-600 dark:text-zinc-400 md:text-lg">
+          <p className="max-w-2xl text-base leading-8 text-muted-foreground dark:text-zinc-400 md:text-lg">
             以更统一的公共页面框架呈现个人背景、研究方向与写作方法，同时保留原有 MDX 内容结构。
           </p>
         </section>

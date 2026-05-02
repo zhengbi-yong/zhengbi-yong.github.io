@@ -8,7 +8,7 @@
 
 /* Code title styles */
 .remark-code-title {
-  @apply rounded-xs bg-stone-200 px-5 py-3 font-mono text-sm font-bold text-stone-700 dark:bg-gray-800 dark:text-gray-200;
+  @apply rounded-xs bg-stone-200 px-5 py-3 font-mono text-sm font-bold text-stone-700 dark:bg-card dark:text-foreground;
 }
 
 .remark-code-title + div > pre {
@@ -112,20 +112,20 @@ pre code::-webkit-scrollbar {
 }
 
 .code-line.inserted {
-  @apply bg-green-500/20;
+  @apply bg-[var(--theme-success)]/20;
 }
 
 .code-line.deleted {
-  @apply bg-red-500/20;
+  @apply bg-destructive/20;
 }
 
 .highlight-line {
-  @apply -mx-4 border-l-4 bg-stone-200 dark:bg-gray-700/50;
+  @apply -mx-4 border-l-4 bg-stone-200 dark:bg-secondary/50;
   border-left-color: var(--color-primary-500, var(--color-primary));
 }
 
 .line-number::before {
-  @apply mr-4 -ml-2 inline-block w-4 text-right text-stone-400 dark:text-gray-400;
+  @apply mr-4 -ml-2 inline-block w-4 text-right text-muted-foreground dark:text-muted-foreground;
   content: attr(line);
 }
 
