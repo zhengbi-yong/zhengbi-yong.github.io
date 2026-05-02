@@ -916,7 +916,9 @@ pub async fn get_user_posts(
     }
 
     let posts: Vec<UserPostRow> = sqlx::query_as(
-        r#"SELECT p.id, p.title, p.slug, p.summary, p.cover_image, p.published_at, p.updated_at,
+        r#"SELECT p.id, p.title, p.slug, p.summary,
+        CAST(NULL AS text) as cover_image,
+        p.published_at, p.updated_at,
         p.view_count, p.like_count, p.comment_count,
         COALESCE(jsonb_array_length(p.content_json), 0) as reading_time
         FROM posts p 
