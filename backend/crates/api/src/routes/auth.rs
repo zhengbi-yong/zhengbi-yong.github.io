@@ -747,7 +747,7 @@ pub async fn upload_avatar(
     }
 
     let data = file_data.ok_or(AppError::BadRequest("未提供头像文件".into()))?;
-    let original_filename = filename
+    let _original_filename = filename
         .ok_or(AppError::BadRequest("未提供文件名".into()))?;
     let mime_type = content_type.unwrap_or_else(|| "image/png".into());
 
@@ -886,7 +886,7 @@ pub async fn get_user_posts(
     .await?;
 
     if !user_exists {
-        return Err(AppError::NotFound);
+        return Err(AppError::NotFound("用户不存在".into()));
     }
 
     let total = sqlx::query!(
@@ -900,7 +900,22 @@ pub async fn get_user_posts(
     .count
     .unwrap_or(0);
 
-    let posts = sqlx::query!(
+    #[derive(sqlx::FromRow)]
+    struct UserPostRow {
+        id: Uuid,
+        title: String,
+        slug: String,
+        summary: Option<String>,
+        cover_image: Option<String>,
+        published_at: Option<chrono::DateTime<chrono::Utc>>,
+        updated_at: Option<chrono::DateTime<chrono::Utc>>,
+        view_count: Option<i64>,
+        like_count: Option<i32>,
+        comment_count: Option<i32>,
+        reading_time: Option<i64>,
+    }
+
+    let posts: Vec<UserPostRow> = sqlx::query_as(
         r#"SELECT p.id, p.title, p.slug, p.summary, p.cover_image, p.published_at, p.updated_at,
         p.view_count, p.like_count, p.comment_count,
         COALESCE(jsonb_array_length(p.content_json), 0) as reading_time
@@ -909,14 +924,14 @@ pub async fn get_user_posts(
         WHERE u.username = $1 AND p.deleted_at IS NULL AND p.status::text = 'published'
         ORDER BY p.published_at DESC 
         LIMIT $2 OFFSET $3"#,
-        &username,
-        page_size as i64,
-        offset
     )
+    .bind(&username)
+    .bind(page_size as i64)
+    .bind(offset)
     .fetch_all(&state.db)
     .await?;
 
-    let post_list: Vec<serde_json::Value> = posts.iter().map(|p| {
+    let post_list: Vec<serde_json::Value> = posts.into_iter().map(|p| {
         json!({
             "id": p.id,
             "title": p.title,
