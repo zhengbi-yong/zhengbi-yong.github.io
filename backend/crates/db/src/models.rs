@@ -197,6 +197,30 @@ impl From<User> for UserInfo {
     }
 }
 
+// 更新用户资料请求
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
+pub struct UpdateProfileRequest {
+    pub bio: Option<String>,
+    pub location: Option<String>,
+    pub website: Option<String>,
+    pub twitter: Option<String>,
+    pub github: Option<String>,
+}
+
+// 公开用户资料（无需登录即可查看）
+#[derive(Debug, Serialize, utoipa::ToSchema)]
+pub struct UserPublicProfile {
+    pub username: String,
+    pub avatar_url: Option<String>,
+    pub bio: Option<String>,
+    pub location: Option<String>,
+    pub website: Option<String>,
+    pub twitter: Option<String>,
+    pub github: Option<String>,
+    pub role: String,
+    pub created_at: DateTime<Utc>,
+}
+
 // 创建评论请求
 #[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateCommentRequest {

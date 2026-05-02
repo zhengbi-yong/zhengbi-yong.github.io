@@ -298,6 +298,8 @@ fn v1_routes(state: AppState) -> Router<AppState> {
     // /auth/me 需要认证，单独定义并应用中间件
     let auth_me_route = Router::new()
         .route("/auth/me", get(blog_api::routes::auth::me))
+        .route("/auth/me", put(blog_api::routes::auth::update_profile))
+        .route("/auth/me/avatar", post(blog_api::routes::auth::upload_avatar))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             auth_middleware,
@@ -327,6 +329,8 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .merge(auth_me_route)
         // 团队成员公开路由
         .merge(team_members_routes())
+        // 用户公开主页路由
+        .merge(users_routes())
         // admin路由需要添加认证中间件
         .merge(
             admin_routes()
@@ -406,6 +410,14 @@ fn auth_routes() -> Router<AppState> {
             post(blog_api::routes::auth::reset_password),
         )
     // /auth/me 需要认证，在 v1_routes 中单独定义并应用中间件
+}
+
+// 用户公开路由
+fn users_routes() -> Router<AppState> {
+    use axum::routing::get;
+    Router::new()
+        .route("/users/{username}", get(blog_api::routes::auth::get_user_public))
+        .route("/users/{username}/posts", get(blog_api::routes::auth::get_user_posts))
 }
 
 // 文章路由

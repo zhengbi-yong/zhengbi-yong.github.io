@@ -47,6 +47,9 @@ import type {
   FinalizeMediaUploadRequest,
   UpdateMediaRequest,
   MediaDownloadUrlResponse,
+  UpdateProfileRequest,
+  UserPublicProfile,
+  UserPublicPostsResponse,
 } from '../types/backend'
 
 // Backend API base URL - adjust based on your environment
@@ -128,6 +131,45 @@ export const authService = {
 
       throw _err
     }
+  },
+
+  /** Update user profile (bio, location, website, etc.) */
+  async updateProfile(data: UpdateProfileRequest): Promise<UserInfo> {
+    const response = await api.put<UserInfo>(`${BACKEND_API_URL}/auth/me`, data, { cache: false })
+    return response.data
+  },
+
+  /** Upload avatar image */
+  async uploadAvatar(file: File): Promise<UserInfo> {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    const response = await api.post<UserInfo>(`${BACKEND_API_URL}/auth/me/avatar`, formData, {
+      cache: false,
+    })
+    return response.data
+  },
+
+  /** Get public user profile (no auth required) */
+  async getPublicProfile(username: string): Promise<UserPublicProfile> {
+    const response = await api.get<UserPublicProfile>(
+      `${BACKEND_API_URL}/users/${encodeURIComponent(username)}`,
+      { cache: 60 * 1000 }
+    )
+    return response.data
+  },
+
+  /** Get user's public posts */
+  async getUserPublicPosts(
+    username: string,
+    params?: { page?: number; page_size?: number }
+  ): Promise<UserPublicPostsResponse> {
+    const query = new URLSearchParams()
+    if (params?.page) query.set('page', String(params.page))
+    if (params?.page_size) query.set('page_size', String(params.page_size))
+    const qs = query.toString()
+    const url = `${BACKEND_API_URL}/users/${encodeURIComponent(username)}/posts${qs ? '?' + qs : ''}`
+    const response = await api.get<UserPublicPostsResponse>(url, { cache: 30 * 1000 })
+    return response.data
   },
 }
 
