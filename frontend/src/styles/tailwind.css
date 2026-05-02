@@ -14,25 +14,25 @@
     'Segoe UI', sans-serif;
   --font-mono: var(--font-jetbrains-mono), 'SFMono-Regular', ui-monospace, monospace;
 
-  --color-background: var(--geist-bg);
-  --color-foreground: var(--geist-fg);
-  --color-card: var(--geist-bg);
-  --color-card-foreground: var(--geist-fg);
-  --color-popover: var(--geist-bg);
-  --color-popover-foreground: var(--geist-fg);
-  --color-primary: var(--geist-fg);
-  --color-primary-foreground: var(--geist-bg);
-  --color-secondary: var(--geist-secondary);
-  --color-secondary-foreground: var(--geist-secondary-foreground);
-  --color-muted: var(--geist-muted);
-  --color-muted-foreground: var(--geist-muted-foreground);
-  --color-accent: var(--geist-accent);
-  --color-accent-foreground: var(--geist-accent-foreground);
-  --color-destructive: var(--geist-destructive);
-  --color-destructive-foreground: var(--geist-destructive-foreground);
-  --color-border: var(--geist-border);
-  --color-input: var(--geist-border);
-  --color-ring: var(--geist-ring);
+  --color-background: var(--theme-bg);
+  --color-foreground: var(--theme-fg);
+  --color-card: var(--theme-card-bg);
+  --color-card-foreground: var(--theme-fg);
+  --color-popover: var(--theme-bg);
+  --color-popover-foreground: var(--theme-fg);
+  --color-primary: var(--theme-accent);
+  --color-primary-foreground: var(--theme-accent-foreground);
+  --color-secondary: var(--theme-bg-secondary);
+  --color-secondary-foreground: var(--theme-fg);
+  --color-muted: var(--theme-muted);
+  --color-muted-foreground: var(--theme-muted-foreground);
+  --color-accent: var(--theme-bg-secondary);
+  --color-accent-foreground: var(--theme-fg);
+  --color-destructive: var(--theme-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--theme-border);
+  --color-input: var(--theme-border);
+  --color-ring: var(--theme-accent);
 
   --radius-sm: var(--geist-radius-sm);
   --radius-md: var(--geist-radius-md);
@@ -405,21 +405,21 @@ input:-webkit-autofill:focus {
 :root {
   /* 靛蓝紫配色方案 - 白天模式：纯白 + 靛蓝 */
   /* 背景主色：纯白色 #FFFFFF - 简洁现代 */
-  --site-bg: #FFFFFF;
-  --card-bg: #FAFAFA;
-  --text-primary: #1A1A2E; /* 深蓝灰，科技感 */
-  --text-secondary: #4A4A68; /* 中蓝灰 */
+  --site-bg: var(--theme-bg);
+  --card-bg: var(--theme-card-bg);
+  --text-primary: var(--theme-fg); /* 深蓝灰，科技感 */
+  --text-secondary: var(--theme-fg-secondary); /* 中蓝灰 */
   --brand-color: var(--theme-accent, #6366f1); /* 主题强调色 */
   --accent-color: var(--theme-accent-hover, #a855f7); /* 主题次要强调 */
   --transition-speed: 0.3s;
 
   /* 兼容现有变量系统 */
-  --background: #FFFFFF; /* 纯白背景 */
-  --foreground: #1A1A2E; /* 深蓝灰文字 */
-  --card: #FAFAFA; /* 浅灰卡片 */
-  --card-foreground: #1A1A2E;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A2E;
+  --background: var(--theme-bg); /* 纯白背景 */
+  --foreground: var(--theme-fg); /* 深蓝灰文字 */
+  --card: var(--theme-card-bg); /* 浅灰卡片 */
+  --card-foreground: var(--theme-fg);
+  --popover: var(--theme-bg);
+  --popover-foreground: var(--theme-fg);
   --primary: var(--theme-accent, #6366f1);
   --primary-foreground: var(--theme-accent-foreground, #FFFFFF);
   --secondary: oklch(0.97 0.01 264); /* 极浅靛蓝背景 */
@@ -430,8 +430,8 @@ input:-webkit-autofill:focus {
   --accent-foreground: #FFFFFF;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: #E5E7EB; /* 浅灰边框 */
-  --input: #FAFAFA; /* 浅灰输入框 */
+  --border: var(--theme-border); /* 浅灰边框 */
+  --input: var(--theme-bg-secondary); /* 浅灰输入框 */
   --ring: var(--theme-accent, #6366f1);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -439,13 +439,13 @@ input:-webkit-autofill:focus {
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.75rem;
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #1A1A2E;
+  --sidebar: var(--theme-bg);
+  --sidebar-foreground: var(--theme-fg);
   --sidebar-primary: var(--theme-accent, #6366f1);
   --sidebar-primary-foreground: var(--theme-accent-foreground, #FFFFFF);
   --sidebar-accent: oklch(0.97 0.01 264);
   --sidebar-accent-foreground: #1A1A2E;
-  --sidebar-border: #E5E7EB;
+  --sidebar-border: var(--theme-border);
   --sidebar-ring: var(--theme-accent, #6366f1);
 
   /* TOC Colors - 浅色模式 */
@@ -457,10 +457,10 @@ input:-webkit-autofill:focus {
   --toc-indicator-shadow: 0 1px 4px var(--theme-accent-muted, rgba(99, 102, 241, 0.25));
 
   /* 精致多层阴影 - 使用靛蓝调阴影 */
-  --shadow-tinted: rgba(26, 26, 46, 0.05);
-  --shadow-tinted-md: rgba(26, 26, 46, 0.08);
-  --shadow-tinted-lg: rgba(26, 26, 46, 0.12);
-  --shadow-tinted-xl: rgba(26, 26, 46, 0.16);
+  --shadow-tinted: var(--theme-shadow-color);
+  --shadow-tinted-md: var(--theme-shadow-color-md);
+  --shadow-tinted-lg: var(--theme-shadow-color-lg);
+  --shadow-tinted-xl: var(--theme-shadow-color-lg);
 
   /* Shared appearance aliases for batch-1 refresh */
   --shell-bg: color-mix(in oklab, var(--site-bg) 92%, white 8%);
@@ -509,10 +509,10 @@ input:-webkit-autofill:focus {
 .dark {
   /* 靛蓝紫配色方案 - 黑夜模式：深靛蓝 + 紫色 */
   /* 背景主色：深靛蓝 #0F0F23 - 深邃科技感 */
-  --site-bg: #0F0F23;
-  --card-bg: #1A1A3E; /* 深靛蓝卡片 */
-  --text-primary: #E8E8FF; /* 亮银白色文字 */
-  --text-secondary: #A8A8C8; /* 中亮银紫 */
+  --site-bg: var(--theme-bg);
+  --card-bg: var(--theme-card-bg); /* 深靛蓝卡片 */
+  --text-primary: var(--theme-fg); /* 亮银白色文字 */
+  --text-secondary: var(--theme-fg-secondary); /* 中亮银紫 */
   --brand-color: var(--theme-accent, #818cf8); /* 主题强调色 */
   --accent-color: var(--theme-accent-hover, #c084fc); /* 主题次要强调 */
   --transition-speed: 0.3s;
@@ -531,11 +531,11 @@ input:-webkit-autofill:focus {
   --color-primary-950: oklch(0.35 0.15 264);
 
   /* 兼容现有变量系统 */
-  --background: #0F0F23; /* 深靛蓝背景 */
-  --foreground: #E8E8FF; /* 亮银白文字 */
-  --card: #1A1A3E; /* 深靛蓝卡片 */
+  --background: var(--theme-bg); /* 深靛蓝背景 */
+  --foreground: var(--theme-fg); /* 亮银白文字 */
+  --card: var(--theme-card-bg); /* 深靛蓝卡片 */
   --card-foreground: #E8E8FF;
-  --popover: #1A1A3E;
+  --popover: var(--theme-bg-secondary);
   --popover-foreground: #E8E8FF;
   --primary: var(--theme-accent, #818cf8);
   --primary-foreground: var(--theme-accent-foreground, #0F0F23);
@@ -547,21 +547,21 @@ input:-webkit-autofill:focus {
   --accent-foreground: #0F0F23;
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: #2A2A5E; /* 靛蓝边框 */
-  --input: #1A1A3E;
+  --border: var(--theme-border); /* 靛蓝边框 */
+  --input: var(--theme-bg-secondary);
   --ring: var(--theme-accent, #818cf8);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 300.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #1A1A3E;
-  --sidebar-foreground: #E8E8FF;
+  --sidebar: var(--theme-bg-secondary);
+  --sidebar-foreground: var(--theme-fg);
   --sidebar-primary: var(--theme-accent, #818cf8);
   --sidebar-primary-foreground: var(--theme-accent-foreground, #0F0F23);
   --sidebar-accent: oklch(0.30 0.02 264);
   --sidebar-accent-foreground: #E8E8FF;
-  --sidebar-border: #2A2A5E;
+  --sidebar-border: var(--theme-border);
   --sidebar-ring: var(--theme-accent, #818cf8);
 
   /* TOC Colors - 深色模式 */

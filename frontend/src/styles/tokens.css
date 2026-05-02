@@ -11,18 +11,29 @@
  *       ↓                    ← Overridden by [data-theme="xxx"] in themes/
  *   themes/*.css            ← Named theme palettes (30+ curated themes)
  *
+ * Color derivation strategy:
+ *   Derived variables use color-mix() to blend from the 3 core layers
+ *   (--theme-bg, --theme-fg, --theme-accent), so themes only need to
+ *   define the ~12 core tokens. Everything else is computed automatically.
+ *
  * Dark mode is handled by the .dark class on <html> (managed by next-themes).
- * Each theme defines both light and dark values.
  */
 
 :root {
   /* ============================================
-   * Surface / Background
+   * Surface / Background (3-layer foundation)
    * ============================================ */
   --theme-bg: var(--geist-bg);
   --theme-bg-secondary: var(--geist-bg-secondary);
   --theme-bg-tertiary: var(--geist-bg-tertiary);
-  --theme-bg-elevated: var(--geist-bg);
+
+  /* Derived surfaces */
+  --theme-surface-raised: color-mix(in srgb, var(--theme-bg) 92%, var(--theme-accent) 8%);
+  --theme-surface-hover: color-mix(in srgb, var(--theme-bg) 96%, var(--theme-accent) 4%);
+  --theme-surface-overlay: color-mix(in srgb, var(--theme-bg) 80%, var(--theme-fg) 20%);
+  --theme-card-bg: color-mix(in srgb, var(--theme-bg) 94%, var(--theme-bg-secondary) 6%);
+  --theme-card-hover: color-mix(in srgb, var(--theme-bg-secondary) 60%, var(--theme-accent-muted) 40%);
+  --theme-tooltip-bg: color-mix(in srgb, var(--theme-fg) 15%, var(--theme-bg) 85%);
 
   /* ============================================
    * Text / Foreground
@@ -32,18 +43,23 @@
   --theme-fg-tertiary: var(--geist-fg-tertiary);
   --theme-fg-link: #3b82f6;
   --theme-fg-link-hover: #2563eb;
+  --theme-fg-inverse: var(--geist-bg);
 
-  /* Muted surface — subtle background for inactive/disables UI */
+  /* Muted surface */
   --theme-muted: var(--geist-muted);
   --theme-muted-foreground: var(--geist-muted-foreground);
 
   /* ============================================
    * Accent / Brand (theme-swappable!)
    * ============================================ */
-  --theme-accent: #6366f1;           /* indigo-500 */
-  --theme-accent-hover: #818cf8;     /* indigo-400 */
+  --theme-accent: #6366f1;
+  --theme-accent-hover: #818cf8;
   --theme-accent-muted: rgba(99, 102, 241, 0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Derivated accent tones */
+  --theme-accent-soft: color-mix(in srgb, var(--theme-accent) 15%, var(--theme-bg) 85%);
+  --theme-accent-glow: color-mix(in srgb, var(--theme-accent) 25%, transparent 75%);
 
   /* ============================================
    * Border
@@ -51,6 +67,11 @@
   --theme-border: var(--geist-border);
   --theme-border-strong: var(--geist-border-strong);
   --theme-border-focus: var(--geist-ring);
+
+  /* Derived borders */
+  --theme-divider: color-mix(in srgb, var(--theme-border) 60%, transparent 40%);
+  --theme-border-subtle: color-mix(in srgb, var(--theme-border) 40%, transparent 60%);
+  --theme-border-hover: color-mix(in srgb, var(--theme-border) 70%, var(--theme-accent) 30%);
 
   /* ============================================
    * Status Colors
@@ -65,11 +86,32 @@
   --theme-info-muted: rgba(59, 130, 246, 0.1);
 
   /* ============================================
+   * Code Blocks
+   * ============================================ */
+  --theme-code-bg: color-mix(in srgb, var(--theme-bg-secondary) 85%, var(--theme-accent) 15%);
+  --theme-code-fg: var(--theme-fg);
+  --theme-code-block: color-mix(in srgb, var(--theme-bg-tertiary) 70%, var(--theme-accent) 30%);
+  --theme-code-comment: #6a737d;
+  --theme-code-keyword: #d73a49;
+  --theme-code-string: #032f62;
+  --theme-code-function: #6f42c1;
+  --theme-code-number: #005cc5;
+  --theme-code-selector: #22863a;
+  --theme-code-class: #e36209;
+  --theme-code-variable: #005cc5;
+
+  /* ============================================
    * Shadow
    * ============================================ */
-  --theme-shadow: var(--geist-shadow);
-  --theme-shadow-md: var(--geist-shadow-md);
-  --theme-shadow-lg: var(--geist-shadow-lg);
+  --theme-shadow-color: color-mix(in srgb, var(--theme-fg) 8%, transparent 92%);
+  --theme-shadow-color-md: color-mix(in srgb, var(--theme-fg) 12%, transparent 88%);
+  --theme-shadow-color-lg: color-mix(in srgb, var(--theme-fg) 18%, transparent 82%);
+  --theme-shadow-sm: 0 2px 8px var(--theme-shadow-color);
+  --theme-shadow-md: 0 4px 16px var(--theme-shadow-color-md);
+  --theme-shadow-lg: 0 8px 32px var(--theme-shadow-color-lg);
+
+  /* Accent-tinted shadow for interactive elements */
+  --theme-shadow-accent: 0 4px 16px color-mix(in srgb, var(--theme-accent) 20%, transparent 80%);
 
   /* ============================================
    * Radius
@@ -86,11 +128,43 @@
   --theme-header-height: var(--geist-header-height);
 
   /* ============================================
+   * Footer
+   * ============================================ */
+  --theme-footer-bg: color-mix(in srgb, var(--theme-bg-secondary) 80%, var(--theme-accent) 20%);
+  --theme-footer-border: color-mix(in srgb, var(--theme-border) 80%, var(--theme-accent) 20%);
+
+  /* ============================================
    * Transition
    * ============================================ */
   --theme-transition: var(--geist-transition);
   --theme-transition-fast: var(--geist-transition-fast);
   --theme-transition-slow: var(--geist-transition-slow);
+
+  /* ============================================
+   * Tag / Chip
+   * ============================================ */
+  --theme-tag-bg: color-mix(in srgb, var(--theme-bg-secondary) 85%, var(--theme-accent) 15%);
+  --theme-tag-fg: var(--theme-fg-secondary);
+  --theme-tag-hover-bg: var(--theme-accent-muted);
+  --theme-tag-hover-fg: var(--theme-accent);
+
+  /* ============================================
+   * Selection / Highlight
+   * ============================================ */
+  --theme-selection-bg: var(--theme-accent-muted);
+  --theme-selection-fg: var(--theme-fg);
+
+  /* ============================================
+   * Scrollbar
+   * ============================================ */
+  --theme-scrollbar-track: transparent;
+  --theme-scrollbar-thumb: color-mix(in srgb, var(--theme-fg-tertiary) 30%, transparent 70%);
+  --theme-scrollbar-thumb-hover: color-mix(in srgb, var(--theme-fg-tertiary) 50%, transparent 50%);
+
+  /* ============================================
+   * Skeleton loading
+   * ============================================ */
+  --theme-skeleton: color-mix(in srgb, var(--theme-bg-secondary) 60%, var(--theme-accent-muted) 40%);
 }
 
 /* ============================================
@@ -101,4 +175,13 @@
   --theme-fg-link-hover: #93c5fd;
   --theme-info: #60a5fa;
   --theme-info-muted: rgba(96, 165, 250, 0.1);
+
+  --theme-code-comment: rgb(99, 119, 119);
+  --theme-code-keyword: rgb(127, 219, 202);
+  --theme-code-string: rgb(173, 219, 103);
+  --theme-code-function: rgb(130, 170, 255);
+  --theme-code-number: rgb(247, 140, 108);
+  --theme-code-selector: rgb(199, 146, 234);
+  --theme-code-class: rgb(255, 203, 139);
+  --theme-code-variable: rgb(214, 222, 235);
 }

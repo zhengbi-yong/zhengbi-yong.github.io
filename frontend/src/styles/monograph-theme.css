@@ -11,7 +11,7 @@
 :root {
   /* --- Color System --- */
   --mono-bg:           #FAFAF9;
-  --mono-surface:      #FFFFFF;
+  --mono-surface:      var(--theme-bg);
   --mono-text:         #1a1c1c;
   --mono-text-muted:   #5c5c5c;
   --mono-accent:       #8B2500;

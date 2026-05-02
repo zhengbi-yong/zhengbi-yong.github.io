@@ -13,16 +13,16 @@
 /* ---------- 代码块容器(亮色) ---------- */
 .bn-block-content[data-content-type="codeBlock"] {
   position: relative;
-  background-color: #f5f5f5 !important;
-  color: #1e1e1e !important;
+  background-color: var(--theme-bg-secondary) !important;
+  color: var(--theme-fg) !important;
   border-radius: 8px;
   margin: 16px 0;
 }
 
 /* ---------- 代码块容器(暗色) ---------- */
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"] {
-  background-color: #1e1e1e !important;
-  color: #d4d4d4 !important;
+  background-color: var(--theme-fg) !important;
+  color: var(--theme-fg-secondary) !important;
 }
 
 /* ---------- 代码块内的 pre 元素 ---------- */
@@ -63,9 +63,9 @@
   background-position: right 6px center !important;
   background-size: 12px !important;
 
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--theme-border);
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.05) !important;
+  background-color: var(--theme-surface-hover) !important;
 
   position: absolute;
   top: 8px;
@@ -75,7 +75,7 @@
 
   font-size: 0.75em;
   font-family: inherit;
-  color: #333 !important;
+  color: var(--theme-fg) !important;
 
   /* 始终半可见,hover 时更亮 */
   opacity: 0.7;
@@ -90,15 +90,15 @@
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"] > div > select {
   /* 暗色箭头 */
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ccc' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 6l4 4 4-4'/%3e%3c/svg%3e");
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #ccc !important;
+  background-color: var(--theme-surface-hover) !important;
+  border-color: var(--theme-border);
+  color: var(--theme-fg-secondary) !important;
 }
 
 /* ---------- 语言选择器 option 文字颜色 ---------- */
 .bn-block-content[data-content-type="codeBlock"] > div > select > option {
-  color: #333 !important;
-  background-color: #fff !important;
+  color: var(--theme-fg) !important;
+  background-color: var(--theme-bg) !important;
 }
 
 /* ---------- hover 和 focus 状态(亮色) ---------- */
@@ -106,15 +106,15 @@
 .bn-block-content[data-content-type="codeBlock"] > div > select:focus {
   opacity: 1;
   transition-delay: 0s;
-  background-color: rgba(0, 0, 0, 0.08) !important;
-  color: #222 !important;
+  background-color: var(--theme-surface-hover) !important;
+  color: var(--theme-fg) !important;
 }
 
 /* ---------- hover 和 focus 状态(暗色) ---------- */
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"]:hover > div > select,
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"] > div > select:focus {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  color: #e0e0e0 !important;
+  background-color: var(--theme-surface-hover) !important;
+  color: var(--theme-fg) !important;
 }
 
 /* ---------- 代码块内部文字编辑区域 ---------- */
@@ -134,7 +134,7 @@
 
 /* ---------- 聚焦指示器 ---------- */
 .bn-editor .bn-block-content[data-content-type="codeBlock"].ProseMirror-selectednode {
-  box-shadow: 0 0 0 2px #3b82f6;
+  box-shadow: 0 0 0 2px var(--theme-accent);
   border-radius: 8px;
 }
 
@@ -149,13 +149,13 @@
 .bn-container[data-color-scheme="dark"] .bn-add-file-button {
   background-color: var(--bn-colors-hovered-background, #161616) !important;
   color: var(--bn-colors-editor-text, #cfcfcf) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--theme-border);
 }
 
 /* ---------- 上传按钮 hover(暗色) ---------- */
 .bn-container[data-color-scheme="dark"] .bn-add-file-button:hover {
   background-color: var(--bn-colors-selected-background, #0f0f0f) !important;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--theme-border-strong);
 }
 
 /* ---------- 上传按钮图标(暗色) ---------- */
@@ -177,7 +177,7 @@
 /* ---------- 表格单元格(暗色) ---------- */
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="table"] td,
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="table"] th {
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: var(--theme-border) !important;
   background-color: var(--bn-colors-editor-background, #1f1f1f) !important;
   color: var(--bn-colors-editor-text, #cfcfcf) !important;
 }
@@ -195,11 +195,11 @@
 
 /* ---------- 引用块(暗色) ---------- */
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="quote"] {
-  border-left-color: rgba(255, 255, 255, 0.2) !important;
+  border-left-color: var(--theme-border) !important;
   color: var(--bn-colors-editor-text, #cfcfcf) !important;
 }
 
 /* ---------- 分割线(暗色) ---------- */
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="divider"] hr {
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: var(--theme-border) !important;
 }

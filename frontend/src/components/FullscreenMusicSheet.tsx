@@ -584,13 +584,13 @@ export default function FullscreenMusicSheet({
       <div
         className={cn(
           'fixed inset-0 z-[9999] flex flex-col h-screen overflow-hidden',
-          'bg-gradient-to-br from-[#fdfdfc] via-[#f8f7f4] to-[#f2f1ed] text-[#1a1a1a]'
+          'bg-[var(--theme-bg)] text-[var(--theme-fg)]'
         )}
       >
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
-            <div className="h-8 w-8 border-2 border-[#061542] border-t-transparent rounded-full animate-spin" />
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[#6b6b6b]/60">Loading...</p>
+            <div className="h-8 w-8 border-2 border-[var(--theme-accent)] border-t-transparent rounded-full animate-spin" />
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--theme-fg-secondary)]/60">Loading...</p>
           </div>
         </div>
       </div>
@@ -602,8 +602,8 @@ export default function FullscreenMusicSheet({
       className={cn(
         'fixed inset-0 z-[9999] flex flex-col h-screen overflow-hidden',
         isDark
-          ? 'bg-[#0a0c12] text-[#e0e2ed]'
-          : 'bg-gradient-to-br from-[#fdfdfc] via-[#f8f7f4] to-[#f2f1ed] text-[#1a1a1a]'
+          ? 'bg-[var(--theme-bg)] text-[var(--theme-fg)]'
+          : 'bg-[var(--theme-bg)] text-[var(--theme-fg)]'
       )}
     >
       {/* Header Bar - auto-hides after inactivity */}
@@ -619,7 +619,7 @@ export default function FullscreenMusicSheet({
             onClick={handleBack}
             className={cn(
               'text-[10px] uppercase tracking-[0.25em] font-medium transition-opacity opacity-50 hover:opacity-100',
-              isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+              isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]'
             )}
           >
             ← Back
@@ -627,7 +627,7 @@ export default function FullscreenMusicSheet({
 
           {/* First page / Last page navigation */}
           {pageCount > 1 && (
-            <div className={cn('flex items-center gap-1 text-[10px]', isDark ? 'text-slate-500' : 'text-[#6b6b6b]')}>
+            <div className={cn('flex items-center gap-1 text-[10px]', isDark ? 'text-slate-500' : 'text-[var(--theme-fg-secondary)]')}>
               <button
                 onClick={() => {
                   const osmd = osmdInstanceRef.current
@@ -642,7 +642,7 @@ export default function FullscreenMusicSheet({
                 }}
                 className={cn(
                   'px-1.5 py-0.5 rounded transition-opacity opacity-50 hover:opacity-100',
-                  isDark ? 'hover:text-slate-300' : 'hover:text-[#1a1a1a]'
+                  isDark ? 'hover:text-slate-300' : 'hover:text-[var(--theme-fg)]'
                 )}
                 title="First page"
               >«</button>
@@ -666,7 +666,7 @@ export default function FullscreenMusicSheet({
                 }}
                 className={cn(
                   'px-1.5 py-0.5 rounded transition-opacity opacity-50 hover:opacity-100',
-                  isDark ? 'hover:text-slate-300' : 'hover:text-[#1a1a1a]'
+                  isDark ? 'hover:text-slate-300' : 'hover:text-[var(--theme-fg)]'
                 )}
                 title="Last page"
               >»</button>
@@ -677,12 +677,12 @@ export default function FullscreenMusicSheet({
           <nav className="flex items-center gap-2 text-[9px] uppercase tracking-[0.2em] opacity-40">
             <Link href="/music" className={cn(
               'transition-opacity hover:opacity-100',
-              isDark ? 'text-slate-500 hover:text-slate-300' : 'text-[#6b6b6b] hover:text-[#1a1a1a]'
+              isDark ? 'text-slate-500 hover:text-slate-300' : 'text-[var(--theme-fg-secondary)] hover:text-[var(--theme-fg)]'
             )}>
               乐谱库
             </Link>
-            <span className={isDark ? 'text-slate-600' : 'text-[#6b6b6b]/40'}>/</span>
-            <span className={isDark ? 'text-slate-400' : 'text-[#6b6b6b]'}>
+            <span className={isDark ? 'text-slate-600' : 'text-[var(--theme-fg-secondary)]/40'}>/</span>
+            <span className={isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]'}>
               {title || 'Untitled'}
             </span>
           </nav>
@@ -725,7 +725,7 @@ export default function FullscreenMusicSheet({
               onClick={() => { stop(); resetControlsTimer() }}
               className={cn(
                 'w-7 h-7 flex items-center justify-center rounded transition-opacity opacity-50 hover:opacity-100',
-                isDark ? 'text-slate-400 hover:text-slate-200' : 'text-[#1a1a1a] hover:text-[#000]'
+                isDark ? 'text-slate-400 hover:text-slate-200' : 'text-[var(--theme-fg)] hover:text-[var(--theme-fg)]'
               )}
               title="Stop"
             >
@@ -738,7 +738,7 @@ export default function FullscreenMusicSheet({
             <div className="hidden lg:flex items-center gap-1.5">
               <span className={cn(
                 'text-[9px] uppercase tracking-wider opacity-40',
-                isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+                isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]'
               )}>BPM</span>
               <input
                 type="range"
@@ -760,7 +760,7 @@ export default function FullscreenMusicSheet({
               />
               <span className={cn(
                 'min-w-[32px] text-center text-[10px] font-medium',
-                isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+                isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]'
               )}>
                 {playbackState.tempo}
               </span>
@@ -772,7 +772,7 @@ export default function FullscreenMusicSheet({
               className={cn(
                 'w-7 h-7 flex items-center justify-center rounded transition-opacity opacity-50 hover:opacity-100',
                 playbackState.isLooping ? 'opacity-100 text-amber-600 dark:text-amber-400' : '',
-                isDark ? 'text-slate-400' : 'text-[#1a1a1a]'
+                isDark ? 'text-slate-400' : 'text-[var(--theme-fg)]'
               )}
               title={playbackState.isLooping ? 'Loop: ON (click to disable)' : 'Loop: OFF (click to enable)'}
             >
@@ -784,7 +784,7 @@ export default function FullscreenMusicSheet({
             {/* Measure indicator */}
             <span className={cn(
               'text-[10px] tabular-nums font-medium',
-              isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+              isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]'
             )}>
               {playbackState.currentMeasure + 1}/{parsedScore.measures}
             </span>
@@ -792,7 +792,7 @@ export default function FullscreenMusicSheet({
             {/* Page navigation */}
             <div className={cn(
               'flex items-center gap-1 text-[10px] tabular-nums',
-              isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+              isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]'
             )}>
               <button
                 onClick={() => {
@@ -807,7 +807,7 @@ export default function FullscreenMusicSheet({
                 }}
                 className={cn(
                   'w-5 h-5 flex items-center justify-center rounded transition-opacity opacity-50 hover:opacity-100',
-                  isDark ? 'hover:text-slate-200' : 'hover:text-[#1a1a1a]'
+                  isDark ? 'hover:text-slate-200' : 'hover:text-[var(--theme-fg)]'
                 )}
                 title="Previous measure (←)"
               >‹</button>
@@ -827,7 +827,7 @@ export default function FullscreenMusicSheet({
                 }}
                 className={cn(
                   'w-5 h-5 flex items-center justify-center rounded transition-opacity opacity-50 hover:opacity-100',
-                  isDark ? 'hover:text-slate-200' : 'hover:text-[#1a1a1a]'
+                  isDark ? 'hover:text-slate-200' : 'hover:text-[var(--theme-fg)]'
                 )}
                 title="Next measure (→)"
               >›</button>
@@ -842,7 +842,7 @@ export default function FullscreenMusicSheet({
               onClick={() => { handleZoomOut(); resetControlsTimer() }}
               className={cn(
                 'w-7 h-7 flex items-center justify-center text-sm transition-opacity opacity-50 hover:opacity-100',
-                isDark ? 'text-slate-300' : 'text-[#1a1a1a]'
+                isDark ? 'text-slate-300' : 'text-[var(--theme-fg)]'
               )}
               aria-label="Zoom out"
             >
@@ -875,7 +875,7 @@ export default function FullscreenMusicSheet({
               onClick={() => { handleZoomIn(); resetControlsTimer() }}
               className={cn(
                 'w-7 h-7 flex items-center justify-center text-sm transition-opacity opacity-50 hover:opacity-100',
-                isDark ? 'text-slate-300' : 'text-[#1a1a1a]'
+                isDark ? 'text-slate-300' : 'text-[var(--theme-fg)]'
               )}
               aria-label="Zoom in"
             >
@@ -884,7 +884,7 @@ export default function FullscreenMusicSheet({
             <span
               className={cn(
                 'min-w-[44px] text-center text-[10px] tracking-[0.1em] font-medium',
-                isDark ? 'text-slate-400' : 'text-[#6b6b6b]'
+                isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]'
               )}
             >
               {Math.round(currentZoom * 100)}%
@@ -896,7 +896,7 @@ export default function FullscreenMusicSheet({
             onClick={() => { handleFullscreen(); resetControlsTimer() }}
             className={cn(
               'w-8 h-8 flex items-center justify-center transition-opacity opacity-50 hover:opacity-100',
-              isDark ? 'text-slate-300' : 'text-[#1a1a1a]'
+              isDark ? 'text-slate-300' : 'text-[var(--theme-fg)]'
             )}
             title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
             aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
@@ -917,7 +917,7 @@ export default function FullscreenMusicSheet({
             onClick={() => { setShowKeyboardHint(prev => !prev); resetControlsTimer() }}
             className={cn(
               'w-8 h-8 flex items-center justify-center transition-opacity opacity-40 hover:opacity-100',
-              isDark ? 'text-slate-400' : 'text-[#1a1a1a]'
+              isDark ? 'text-slate-400' : 'text-[var(--theme-fg)]'
             )}
             title="Keyboard shortcuts (?)"
             aria-label="Show keyboard shortcuts"
@@ -946,7 +946,7 @@ export default function FullscreenMusicSheet({
             )}
             title="Zoom In (+)"
           >
-            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[var(--theme-fg)]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
             </svg>
           </button>
@@ -959,7 +959,7 @@ export default function FullscreenMusicSheet({
             )}
             title="Zoom Out (-)"
           >
-            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[var(--theme-fg)]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
             </svg>
           </button>
@@ -972,7 +972,7 @@ export default function FullscreenMusicSheet({
             )}
             title="Reset zoom (Ctrl+0)"
           >
-            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[var(--theme-fg)]')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
             </svg>
           </button>
@@ -988,11 +988,11 @@ export default function FullscreenMusicSheet({
             title={isFullscreen ? 'Exit fullscreen (F)' : 'Fullscreen (F)'}
           >
             {isFullscreen ? (
-              <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[var(--theme-fg)]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
               </svg>
             ) : (
-              <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+              <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[var(--theme-fg)]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
               </svg>
             )}
@@ -1006,7 +1006,7 @@ export default function FullscreenMusicSheet({
             )}
             title="Keyboard shortcuts (?)"
           >
-            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[#1a1a1a]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+            <svg className={cn('w-[18px] h-[18px]', isDark ? 'text-slate-400' : 'text-[var(--theme-fg)]')} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
             </svg>
           </button>
@@ -1040,7 +1040,7 @@ export default function FullscreenMusicSheet({
                 <span
                   className={cn(
                     'text-[10px] uppercase tracking-[0.2em] font-light',
-                    isDark ? 'text-slate-500' : 'text-[#6b6b6b]/60'
+                    isDark ? 'text-slate-500' : 'text-[var(--theme-fg-secondary)]/60'
                   )}
                 >
                   {composer}
@@ -1062,7 +1062,7 @@ export default function FullscreenMusicSheet({
               <p
                 className={cn(
                   'text-sm leading-relaxed max-w-xl',
-                  isDark ? 'text-slate-400' : 'text-[#6b6b6b]/70'
+                  isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]/70'
                 )}
               >
                 {description}
@@ -1094,7 +1094,7 @@ export default function FullscreenMusicSheet({
                     onClick={() => setShowKeyboardHint(false)}
                     className={cn(
                       'text-xs transition-opacity opacity-50 hover:opacity-100',
-                      isDark ? 'text-slate-500' : 'text-[#6b6b6b]'
+                      isDark ? 'text-slate-500' : 'text-[var(--theme-fg-secondary)]'
                     )}
                   >
                     ✕
@@ -1122,7 +1122,7 @@ export default function FullscreenMusicSheet({
                       >
                         {key}
                       </kbd>
-                      <span className={isDark ? 'text-slate-400' : 'text-[#6b6b6b]'}>
+                      <span className={isDark ? 'text-slate-400' : 'text-[var(--theme-fg-secondary)]'}>
                         {desc}
                       </span>
                     </div>
@@ -1151,13 +1151,13 @@ export default function FullscreenMusicSheet({
                         'h-8 w-8 border-2 rounded-full animate-spin',
                         isDark
                           ? 'border-slate-600 border-t-transparent'
-                          : 'border-[#061542] border-t-transparent'
+                          : 'border-[var(--theme-accent)] border-t-transparent'
                       )}
                     />
                     <p
                       className={cn(
                         'text-[10px] uppercase tracking-[0.2em]',
-                        isDark ? 'text-slate-500' : 'text-[#6b6b6b]/60'
+                        isDark ? 'text-slate-500' : 'text-[var(--theme-fg-secondary)]/60'
                       )}
                     >
                       Loading score...

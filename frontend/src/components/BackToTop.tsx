@@ -52,7 +52,7 @@ const BackToTop = memo(function BackToTop({ className = '', threshold = 300 }: B
       className={cn(
         styles.backToTop,
         isVisible && styles.visible,
-        'dark:bg-indigo-300 dark:text-gray-900 dark:shadow-[0_4px_12px_rgba(196,181,253,0.3)] dark:hover:bg-indigo-300 dark:hover:shadow-[0_8px_20px_rgba(196,181,253,0.4)]',
+        'dark:bg-[var(--theme-accent-soft)] dark:text-[var(--theme-fg)] dark:shadow-[0_4px_12px_var(--theme-shadow-accent)] dark:hover:shadow-[0_8px_20px_var(--theme-shadow-accent)]',
         className
       )}
       aria-label="Back to top"

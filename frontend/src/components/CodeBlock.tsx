@@ -59,7 +59,7 @@ export default function CodeBlock({ children, className }: CodeBlockProps) {
         </button>
       </div>
       {/* Code content - always dark */}
-      <div className="code-block-body bg-[#1e1e2e] dark:bg-[#0d0d14] p-4 overflow-x-auto">
+      <div className="code-block-body bg-[var(--theme-code-bg)] p-4 overflow-x-auto">
         <pre className="text-sm leading-relaxed">
           <code className="text-muted-foreground">{children}</code>
         </pre>

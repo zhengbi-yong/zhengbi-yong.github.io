@@ -56,7 +56,7 @@ export function EnhancedImage({
     canvas.width = width || 100
     canvas.height = height || 100
 
-    ctx.fillStyle = '#f3f4f6'
+    ctx.fillStyle = 'var(--theme-bg-secondary)'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     return canvas.toDataURL()

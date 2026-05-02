@@ -224,7 +224,7 @@
 .exploreItem2 .game:hover {
   transform: scale(1.1) !important;
   z-index: 100 !important;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 8px 16px var(--theme-shadow-color-md));
   transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 

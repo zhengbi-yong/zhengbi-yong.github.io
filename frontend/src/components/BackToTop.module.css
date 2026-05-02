@@ -17,35 +17,35 @@
   transform: translateY(1rem);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
-  box-shadow: 0 4px 12px rgba(124, 24, 35, 0.3);
+  box-shadow: 0 4px 12px var(--theme-shadow-accent);
 }
 
 .backToTop:hover {
   background: var(--color-primary-600);
   transform: translateY(0);
-  box-shadow: 0 8px 20px rgba(124, 24, 35, 0.4);
+  box-shadow: 0 8px 20px var(--theme-shadow-accent);
 }
 
 .dark .backToTop {
   background: var(--brand-color, #74b09b);
   color: var(--site-bg, #1E3A5F);
-  box-shadow: 0 4px 12px rgba(116, 176, 155, 0.3);
+  box-shadow: 0 4px 12px var(--theme-shadow-md);
 }
 
 .dark .backToTop:hover {
-  background: #B2F0D9;
-  box-shadow: 0 8px 20px rgba(116, 176, 155, 0.4);
+  background: var(--theme-accent-soft);
+  box-shadow: 0 8px 20px var(--theme-shadow-md);
 }
 
 .dark .backToTop {
   background: var(--brand-color, #E8E8E8);
   color: var(--site-bg, #1E3A5F);
-  box-shadow: 0 4px 12px rgba(232, 232, 232, 0.3);
+  box-shadow: 0 4px 12px var(--theme-shadow-sm);
 }
 
 .dark .backToTop:hover {
-  background: #F5F5F5;
-  box-shadow: 0 8px 20px rgba(232, 232, 232, 0.4);
+  background: var(--theme-bg-secondary);
+  box-shadow: 0 8px 20px var(--theme-shadow-md);
 }
 
 .backToTop:active {

@@ -10,12 +10,12 @@
 
 :root {
   /* 游客界面配色 - 艺术感优先 */
-  --visitor-bg-primary: #ffffff;
-  --visitor-bg-secondary: #fafafa;
-  --visitor-bg-tertiary: #f5f5f5;
+  --visitor-bg-primary: var(--theme-bg);
+  --visitor-bg-secondary: var(--theme-bg-secondary);
+  --visitor-bg-tertiary: var(--theme-bg-tertiary);
 
-  --visitor-text-primary: #1a1a2e;
-  --visitor-text-secondary: #4a4a68;
+  --visitor-text-primary: var(--theme-fg);
+  --visitor-text-secondary: var(--theme-fg-secondary);
   --visitor-text-muted: #9ca3af;
 
   /* 优雅的靛蓝紫色系 */
@@ -28,9 +28,9 @@
   --visitor-accent-dark: #9333ea;
 
   /* 中性灰 */
-  --visitor-gray-50: #fafafa;
-  --visitor-gray-100: #f5f5f5;
-  --visitor-gray-200: #e5e7eb;
+  --visitor-gray-50: var(--theme-bg-secondary);
+  --visitor-gray-100: var(--theme-bg-tertiary);
+  --visitor-gray-200: var(--theme-border);
   --visitor-gray-300: #d1d5db;
   --visitor-gray-400: #9ca3af;
   --visitor-gray-500: #6b7280;
@@ -41,10 +41,10 @@
 
   /* 暗色模式 */
   --visitor-dark-bg-primary: #0f0f1a;
-  --visitor-dark-bg-secondary: #1a1a2e;
+  --visitor-dark-bg-secondary: var(--theme-fg);
   --visitor-dark-bg-tertiary: #252542;
 
-  --visitor-dark-text-primary: #f5f5f5;
+  --visitor-dark-text-primary: var(--theme-bg-tertiary);
   --visitor-dark-text-secondary: #d1d5db;
   --visitor-dark-text-muted: #6b7280;
 
@@ -61,8 +61,8 @@
   --shadow-visitor-strong: 0 30px 60px rgba(26, 26, 46, 0.16);
 
   /* 光晕效果 */
-  --shadow-visitor-glow: 0 0 40px rgba(99, 102, 241, 0.15);
-  --shadow-visitor-glow-strong: 0 0 60px rgba(99, 102, 241, 0.25);
+  --shadow-visitor-glow: 0 0 40px var(--theme-accent-glow);
+  --shadow-visitor-glow-strong: 0 0 60px var(--theme-accent-glow);
 
   /* 大圆角 */
   --radius-visitor-sm: 0.75rem;    /* 12px */
@@ -243,7 +243,7 @@
   border: none;
   cursor: pointer;
   transition: all var(--duration-visitor-base) var(--ease-visitor);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 4px 12px var(--theme-accent-glow);
 }
 
 .visitor-button-primary {
@@ -253,7 +253,7 @@
 
 .visitor-button-primary:hover {
   background-color: var(--visitor-primary-dark);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 6px 20px var(--theme-accent-glow);
   transform: translateY(-2px);
 }
 

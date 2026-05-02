@@ -143,7 +143,7 @@ const handleModeToggle = () => {
             className="absolute inset-0 opacity-60 blur-3xl"
             style={{
               background:
-                'radial-gradient(circle at 20% 20%, rgba(59,130,246,0.35), transparent 55%)',
+                'radial-gradient(circle at 20% 20%, var(--theme-accent-glow), transparent 55%)',
             }}
           />
           <div className="from-primary-500/10 absolute inset-0 bg-gradient-to-tr to-transparent" />
