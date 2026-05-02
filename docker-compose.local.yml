@@ -72,7 +72,7 @@ services:
       SMTP_FROM: noreply@blog.local
       SMTP_ENCRYPTION: none
       FRONTEND_BLOG_DIR: /frontend/data/blog
-      CORS_ALLOWED_ORIGINS: "http://localhost:3001"
+      CORS_ALLOWED_ORIGINS: "http://localhost:3001,http://127.0.0.1:3001"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
