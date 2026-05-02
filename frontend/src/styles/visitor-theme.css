@@ -19,9 +19,9 @@
   --visitor-text-muted: #9ca3af;
 
   /* 优雅的靛蓝紫色系 */
-  --visitor-primary: #6366f1;      /* 靛蓝 */
-  --visitor-primary-light: #818cf8;
-  --visitor-primary-dark: #4f46e5;
+  --visitor-primary: var(--theme-accent, #6366f1);      /* 跟随主题 */
+  --visitor-primary-light: var(--theme-accent-hover, #818cf8);
+  --visitor-primary-dark: var(--theme-accent, #4f46e5);
 
   --visitor-accent: #a855f7;       /* 紫色 */
   --visitor-accent-light: #c084fc;
@@ -95,7 +95,6 @@
     --visitor-text-primary: var(--visitor-dark-text-primary);
     --visitor-text-secondary: var(--visitor-dark-text-secondary);
     --visitor-text-muted: var(--visitor-dark-text-muted);
-  }
 }
 
 /* 游客内容容器 - 最佳阅读宽度 */

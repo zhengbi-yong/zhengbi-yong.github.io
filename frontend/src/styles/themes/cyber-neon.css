@@ -1,19 +1,37 @@
 /**
  * Cyber Neon Theme
- *
- * Matrix-inspired green neon — for the hacker aesthetic.
  */
 
 [data-theme="cyber-neon"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #00ff88;
   --theme-accent-hover: #00ff88;
   --theme-accent-muted: rgba(0, 255, 136, 0.08);
   --theme-accent-foreground: #0a0a0a;
+
+  /* Surface Colors */
+  --theme-bg: #eff5f2;
+  --theme-bg-secondary: #e0eae5;
+  --theme-bg-tertiary: #d3ded9;
+
+  /* Text Colors */
+  --theme-fg: #122a1f;
+  --theme-fg-secondary: #4d7462;
+  --theme-fg-tertiary: #80978d;
 }
 
+/* Dark mode override */
 .dark[data-theme="cyber-neon"] {
   --theme-accent: #00ff88;
   --theme-accent-hover: #33ff99;
   --theme-accent-muted: rgba(0, 255, 136, 0.12);
   --theme-accent-foreground: #0a0a0a;
+
+  --theme-bg: #0c1c14;
+  --theme-bg-secondary: #152c21;
+  --theme-bg-tertiary: #203b2e;
+
+  --theme-fg: #ebefed;
+  --theme-fg-secondary: #a6b3ad;
+  --theme-fg-tertiary: #74807a;
 }

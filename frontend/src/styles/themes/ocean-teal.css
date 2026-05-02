@@ -1,19 +1,37 @@
 /**
  * Ocean Teal Theme
- *
- * Cool, calming teal palette — reminiscent of tropical waters.
  */
 
 [data-theme="ocean-teal"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #0d9488;
   --theme-accent-hover: #14b8a6;
   --theme-accent-muted: rgba(13, 148, 136, 0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #eff4f4;
+  --theme-bg-secondary: #e1e9e9;
+  --theme-bg-tertiary: #d3dddc;
+
+  /* Text Colors */
+  --theme-fg: #142827;
+  --theme-fg-secondary: #50716e;
+  --theme-fg-tertiary: #829594;
 }
 
+/* Dark mode override */
 .dark[data-theme="ocean-teal"] {
   --theme-accent: #2dd4bf;
   --theme-accent-hover: #5eead4;
   --theme-accent-muted: rgba(45, 212, 191, 0.15);
   --theme-accent-foreground: #0a0a0a;
+
+  --theme-bg: #0f1918;
+  --theme-bg-secondary: #192826;
+  --theme-bg-tertiary: #243634;
+
+  --theme-fg: #ebeeee;
+  --theme-fg-secondary: #a9b1b0;
+  --theme-fg-tertiary: #767e7d;
 }

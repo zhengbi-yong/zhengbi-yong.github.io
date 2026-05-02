@@ -1,19 +1,37 @@
 /**
  * Linear Dark Theme
- *
- * Linear Dark — subtle purple on deep black. Elite project management feel.
  */
 
 [data-theme="linear-dark"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #5e6ad2;
   --theme-accent-hover: #6b75d6;
   --theme-accent-muted: rgba(94,106,210,0.1);
   --theme-accent-foreground: #0d0d0d;
+
+  /* Surface Colors */
+  --theme-bg: #f0f0f4;
+  --theme-bg-secondary: #e2e3e8;
+  --theme-bg-tertiary: #d5d6db;
+
+  /* Text Colors */
+  --theme-fg: #171925;
+  --theme-fg-secondary: #55586b;
+  --theme-fg-tertiary: #858792;
 }
 
+/* Dark mode override */
 .dark[data-theme="linear-dark"] {
   --theme-accent: #5e6ad2;
   --theme-accent-hover: #6b75d6;
   --theme-accent-muted: rgba(94,106,210,0.15);
   --theme-accent-foreground: #e6e6e6;
+
+  --theme-bg: #0f1018;
+  --theme-bg-secondary: #1a1b27;
+  --theme-bg-tertiary: #262735;
+
+  --theme-fg: #ebecee;
+  --theme-fg-secondary: #a9aab1;
+  --theme-fg-tertiary: #76777d;
 }

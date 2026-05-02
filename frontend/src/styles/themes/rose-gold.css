@@ -1,19 +1,37 @@
 /**
  * Rose Gold Theme
- *
- * Elegant rose and gold tones — sophisticated and warm.
  */
 
 [data-theme="rose-gold"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #e11d48;
   --theme-accent-hover: #f43f5e;
   --theme-accent-muted: rgba(225, 29, 72, 0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #f4eff0;
+  --theme-bg-secondary: #e9e1e3;
+  --theme-bg-tertiary: #ddd4d6;
+
+  /* Text Colors */
+  --theme-fg: #281519;
+  --theme-fg-secondary: #6f5158;
+  --theme-fg-tertiary: #958387;
 }
 
+/* Dark mode override */
 .dark[data-theme="rose-gold"] {
   --theme-accent: #fb7185;
   --theme-accent-hover: #fda4af;
   --theme-accent-muted: rgba(251, 113, 133, 0.15);
   --theme-accent-foreground: #0a0a0a;
+
+  --theme-bg: #1c0c0e;
+  --theme-bg-secondary: #2c1619;
+  --theme-bg-tertiary: #3a2024;
+
+  --theme-fg: #efebeb;
+  --theme-fg-secondary: #b3a7a9;
+  --theme-fg-tertiary: #807476;
 }

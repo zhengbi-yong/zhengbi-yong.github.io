@@ -1,19 +1,37 @@
 /**
  * Matcha Latte Theme
- *
- * Matcha Latte — fresh green on cream. Japanese tea ceremony vibes.
  */
 
 [data-theme="matcha-latte"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #65a30d;
   --theme-accent-hover: #84cc16;
   --theme-accent-muted: rgba(101,163,13,0.1);
   --theme-accent-foreground: #f7fee7;
+
+  /* Surface Colors */
+  --theme-bg: #f2f4ef;
+  --theme-bg-secondary: #e6e9e1;
+  --theme-bg-tertiary: #d9ddd3;
+
+  /* Text Colors */
+  --theme-fg: #202914;
+  --theme-fg-secondary: #637150;
+  --theme-fg-tertiary: #8d9682;
 }
 
+/* Dark mode override */
 .dark[data-theme="matcha-latte"] {
   --theme-accent: #84cc16;
   --theme-accent-hover: #a3e635;
   --theme-accent-muted: rgba(132,204,22,0.15);
   --theme-accent-foreground: #1a1a2e;
+
+  --theme-bg: #151a0d;
+  --theme-bg-secondary: #232a17;
+  --theme-bg-tertiary: #303822;
+
+  --theme-fg: #edeeeb;
+  --theme-fg-secondary: #aeb2a8;
+  --theme-fg-tertiary: #7b7f75;
 }

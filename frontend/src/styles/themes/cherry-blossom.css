@@ -1,19 +1,37 @@
 /**
  * Cherry Blossom Theme
- *
- * Cherry Blossom — soft pink on blush white. Spring romance.
  */
 
 [data-theme="cherry-blossom"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #f472b6;
   --theme-accent-hover: #fb7185;
   --theme-accent-muted: rgba(244,114,182,0.1);
   --theme-accent-foreground: #fff1f2;
+
+  /* Surface Colors */
+  --theme-bg: #f4eff2;
+  --theme-bg-secondary: #e9e1e5;
+  --theme-bg-tertiary: #ddd3d8;
+
+  /* Text Colors */
+  --theme-fg: #29141f;
+  --theme-fg-secondary: #715061;
+  --theme-fg-tertiary: #96828c;
 }
 
+/* Dark mode override */
 .dark[data-theme="cherry-blossom"] {
   --theme-accent: #f472b6;
   --theme-accent-hover: #fb7185;
   --theme-accent-muted: rgba(244,114,182,0.15);
   --theme-accent-foreground: #1a1a2e;
+
+  --theme-bg: #1b0d14;
+  --theme-bg-secondary: #2b1721;
+  --theme-bg-tertiary: #39222e;
+
+  --theme-fg: #eeebed;
+  --theme-fg-secondary: #b2a7ad;
+  --theme-fg-tertiary: #7f757a;
 }

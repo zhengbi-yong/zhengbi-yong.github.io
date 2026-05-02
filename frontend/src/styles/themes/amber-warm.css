@@ -1,19 +1,37 @@
 /**
  * Amber Warm Theme
- *
- * Rich amber and gold — warm and inviting.
  */
 
 [data-theme="amber-warm"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #d97706;
   --theme-accent-hover: #f59e0b;
   --theme-accent-muted: rgba(217, 119, 6, 0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #f5f2ef;
+  --theme-bg-secondary: #eae5e0;
+  --theme-bg-tertiary: #ded9d3;
+
+  /* Text Colors */
+  --theme-fg: #2a1f13;
+  --theme-fg-secondary: #73624e;
+  --theme-fg-tertiary: #978d81;
 }
 
+/* Dark mode override */
 .dark[data-theme="amber-warm"] {
   --theme-accent: #fbbf24;
   --theme-accent-hover: #fcd34d;
   --theme-accent-muted: rgba(251, 191, 36, 0.15);
   --theme-accent-foreground: #1a1a2e;
+
+  --theme-bg: #1c170c;
+  --theme-bg-secondary: #2c2615;
+  --theme-bg-tertiary: #3b3320;
+
+  --theme-fg: #efeeeb;
+  --theme-fg-secondary: #b3b0a7;
+  --theme-fg-tertiary: #807d74;
 }

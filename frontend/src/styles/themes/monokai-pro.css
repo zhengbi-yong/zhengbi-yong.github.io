@@ -1,19 +1,37 @@
 /**
  * Monokai Pro Theme
- *
- * Monokai Pro — vivid pink on dark charcoal. Iconic code editor aesthetic.
  */
 
 [data-theme="monokai-pro"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #ff6188;
   --theme-accent-hover: #fc9867;
   --theme-accent-muted: rgba(255,97,136,0.1);
   --theme-accent-foreground: #2d2a2e;
+
+  /* Surface Colors */
+  --theme-bg: #f5eff0;
+  --theme-bg-secondary: #eae0e2;
+  --theme-bg-tertiary: #ded3d5;
+
+  /* Text Colors */
+  --theme-fg: #2a1218;
+  --theme-fg-secondary: #744d57;
+  --theme-fg-tertiary: #978086;
 }
 
+/* Dark mode override */
 .dark[data-theme="monokai-pro"] {
   --theme-accent: #ff6188;
   --theme-accent-hover: #fc9867;
   --theme-accent-muted: rgba(255,97,136,0.15);
   --theme-accent-foreground: #fcfcfa;
+
+  --theme-bg: #1c0c10;
+  --theme-bg-secondary: #2c151b;
+  --theme-bg-tertiary: #3b2026;
+
+  --theme-fg: #efebec;
+  --theme-fg-secondary: #b3a6aa;
+  --theme-fg-tertiary: #807477;
 }

@@ -1,19 +1,37 @@
 /**
  * Gruvbox Dark Theme
- *
- * Gruvbox Dark — warm yellow on rich brown-black. Retro terminal aesthetic.
  */
 
 [data-theme="gruvbox-dark"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #fabd2f;
   --theme-accent-hover: #fe8019;
   --theme-accent-muted: rgba(250,189,47,0.12);
   --theme-accent-foreground: #282828;
+
+  /* Surface Colors */
+  --theme-bg: #f5f3ef;
+  --theme-bg-secondary: #eae7e0;
+  --theme-bg-tertiary: #dedad3;
+
+  /* Text Colors */
+  --theme-fg: #2a2312;
+  --theme-fg-secondary: #73684e;
+  --theme-fg-tertiary: #979081;
 }
 
+/* Dark mode override */
 .dark[data-theme="gruvbox-dark"] {
   --theme-accent: #fabd2f;
   --theme-accent-hover: #fe8019;
   --theme-accent-muted: rgba(250,189,47,0.12);
   --theme-accent-foreground: #ebdbb2;
+
+  --theme-bg: #1c170c;
+  --theme-bg-secondary: #2c2516;
+  --theme-bg-tertiary: #3b3320;
+
+  --theme-fg: #efedeb;
+  --theme-fg-secondary: #b3afa7;
+  --theme-fg-tertiary: #807c74;
 }

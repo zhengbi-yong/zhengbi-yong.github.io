@@ -1,19 +1,37 @@
 /**
  * Terracotta Earth Theme
- *
- * Terracotta Earth — burnt orange on warm cream. Mediterranean pottery.
  */
 
 [data-theme="terracotta-earth"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #c2410c;
   --theme-accent-hover: #ea580c;
   --theme-accent-muted: rgba(194,65,12,0.1);
   --theme-accent-foreground: #fef2f2;
+
+  /* Surface Colors */
+  --theme-bg: #f5f1ef;
+  --theme-bg-secondary: #eae3e0;
+  --theme-bg-tertiary: #ddd6d3;
+
+  /* Text Colors */
+  --theme-fg: #291a13;
+  --theme-fg-secondary: #72594f;
+  --theme-fg-tertiary: #968882;
 }
 
+/* Dark mode override */
 .dark[data-theme="terracotta-earth"] {
   --theme-accent: #ea580c;
   --theme-accent-hover: #f97316;
   --theme-accent-muted: rgba(234,88,12,0.15);
   --theme-accent-foreground: #1a1a2e;
+
+  --theme-bg: #1b120d;
+  --theme-bg-secondary: #2b1d16;
+  --theme-bg-tertiary: #3a2921;
+
+  --theme-fg: #efeceb;
+  --theme-fg-secondary: #b3aba7;
+  --theme-fg-tertiary: #7f7874;
 }

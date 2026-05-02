@@ -409,8 +409,8 @@ input:-webkit-autofill:focus {
   --card-bg: #FAFAFA;
   --text-primary: #1A1A2E; /* 深蓝灰，科技感 */
   --text-secondary: #4A4A68; /* 中蓝灰 */
-  --brand-color: #6366f1; /* 靛蓝色 - 主要强调色 */
-  --accent-color: #a855f7; /* 紫色，用于次要强调 */
+  --brand-color: var(--theme-accent, #6366f1); /* 主题强调色 */
+  --accent-color: var(--theme-accent-hover, #a855f7); /* 主题次要强调 */
   --transition-speed: 0.3s;
 
   /* 兼容现有变量系统 */
@@ -420,8 +420,8 @@ input:-webkit-autofill:focus {
   --card-foreground: #1A1A2E;
   --popover: #FFFFFF;
   --popover-foreground: #1A1A2E;
-  --primary: #6366f1; /* 靛蓝色 */
-  --primary-foreground: #FFFFFF; /* 白色 */
+  --primary: var(--theme-accent, #6366f1);
+  --primary-foreground: var(--theme-accent-foreground, #FFFFFF);
   --secondary: oklch(0.97 0.01 264); /* 极浅靛蓝背景 */
   --secondary-foreground: #1A1A2E;
   --muted: oklch(0.96 0.01 264);
@@ -432,7 +432,7 @@ input:-webkit-autofill:focus {
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: #E5E7EB; /* 浅灰边框 */
   --input: #FAFAFA; /* 浅灰输入框 */
-  --ring: #6366f1; /* 靛蓝色焦点环 */
+  --ring: var(--theme-accent, #6366f1);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -441,20 +441,20 @@ input:-webkit-autofill:focus {
   --radius: 0.75rem;
   --sidebar: #FFFFFF;
   --sidebar-foreground: #1A1A2E;
-  --sidebar-primary: #6366f1;
-  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-primary: var(--theme-accent, #6366f1);
+  --sidebar-primary-foreground: var(--theme-accent-foreground, #FFFFFF);
   --sidebar-accent: oklch(0.97 0.01 264);
   --sidebar-accent-foreground: #1A1A2E;
   --sidebar-border: #E5E7EB;
-  --sidebar-ring: #6366f1;
+  --sidebar-ring: var(--theme-accent, #6366f1);
 
   /* TOC Colors - 浅色模式 */
-  --toc-active-text: #6366f1;
-  --toc-active-bg: rgba(99, 102, 241, 0.08);
-  --toc-active-indicator: #6366f1;
-  --toc-hover: rgba(99, 102, 241, 0.06);
-  --toc-shadow: 0 1px 3px rgba(99, 102, 241, 0.12);
-  --toc-indicator-shadow: 0 1px 4px rgba(99, 102, 241, 0.25);
+  --toc-active-text: var(--theme-accent, #6366f1);
+  --toc-active-bg: var(--theme-accent-muted, rgba(99, 102, 241, 0.08));
+  --toc-active-indicator: var(--theme-accent, #6366f1);
+  --toc-hover: var(--theme-accent-muted, rgba(99, 102, 241, 0.06));
+  --toc-shadow: 0 1px 3px var(--theme-accent-muted, rgba(99, 102, 241, 0.12));
+  --toc-indicator-shadow: 0 1px 4px var(--theme-accent-muted, rgba(99, 102, 241, 0.25));
 
   /* 精致多层阴影 - 使用靛蓝调阴影 */
   --shadow-tinted: rgba(26, 26, 46, 0.05);
@@ -513,8 +513,8 @@ input:-webkit-autofill:focus {
   --card-bg: #1A1A3E; /* 深靛蓝卡片 */
   --text-primary: #E8E8FF; /* 亮银白色文字 */
   --text-secondary: #A8A8C8; /* 中亮银紫 */
-  --brand-color: #818cf8; /* 亮靛蓝 - 主要强调色 */
-  --accent-color: #c084fc; /* 亮紫色，用于次要强调 */
+  --brand-color: var(--theme-accent, #818cf8); /* 主题强调色 */
+  --accent-color: var(--theme-accent-hover, #c084fc); /* 主题次要强调 */
   --transition-speed: 0.3s;
 
   /* 保持 primary 为靛蓝色 */
@@ -537,8 +537,8 @@ input:-webkit-autofill:focus {
   --card-foreground: #E8E8FF;
   --popover: #1A1A3E;
   --popover-foreground: #E8E8FF;
-  --primary: #818cf8; /* 亮靛蓝 */
-  --primary-foreground: #0F0F23;
+  --primary: var(--theme-accent, #818cf8);
+  --primary-foreground: var(--theme-accent-foreground, #0F0F23);
   --secondary: oklch(0.30 0.02 264); /* 深靛蓝 */
   --secondary-foreground: #E8E8FF;
   --muted: oklch(0.30 0.02 264);
@@ -549,7 +549,7 @@ input:-webkit-autofill:focus {
   --destructive-foreground: oklch(0.637 0.237 25.331);
   --border: #2A2A5E; /* 靛蓝边框 */
   --input: #1A1A3E;
-  --ring: #818cf8; /* 亮靛蓝焦点环 */
+  --ring: var(--theme-accent, #818cf8);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 300.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -557,20 +557,20 @@ input:-webkit-autofill:focus {
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #1A1A3E;
   --sidebar-foreground: #E8E8FF;
-  --sidebar-primary: #818cf8;
-  --sidebar-primary-foreground: #0F0F23;
+  --sidebar-primary: var(--theme-accent, #818cf8);
+  --sidebar-primary-foreground: var(--theme-accent-foreground, #0F0F23);
   --sidebar-accent: oklch(0.30 0.02 264);
   --sidebar-accent-foreground: #E8E8FF;
   --sidebar-border: #2A2A5E;
-  --sidebar-ring: #818cf8;
+  --sidebar-ring: var(--theme-accent, #818cf8);
 
   /* TOC Colors - 深色模式 */
-  --toc-active-text: #818cf8;
-  --toc-active-bg: rgba(129, 140, 248, 0.12);
-  --toc-active-indicator: #818cf8;
-  --toc-hover: rgba(129, 140, 248, 0.08);
-  --toc-shadow: 0 1px 3px rgba(129, 140, 248, 0.2);
-  --toc-indicator-shadow: 0 1px 4px rgba(129, 140, 248, 0.35);
+  --toc-active-text: var(--theme-accent, #818cf8);
+  --toc-active-bg: var(--theme-accent-muted, rgba(129, 140, 248, 0.12));
+  --toc-active-indicator: var(--theme-accent, #818cf8);
+  --toc-hover: var(--theme-accent-muted, rgba(129, 140, 248, 0.08));
+  --toc-shadow: 0 1px 3px var(--theme-accent-muted, rgba(129, 140, 248, 0.2));
+  --toc-indicator-shadow: 0 1px 4px var(--theme-accent-muted, rgba(129, 140, 248, 0.35));
 
   /* 暗夜模式阴影 - 使用边框描边和轻微阴影 */
   --shadow-tinted: rgba(0, 0, 0, 0.2);

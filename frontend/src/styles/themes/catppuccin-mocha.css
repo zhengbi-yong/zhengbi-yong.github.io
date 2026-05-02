@@ -1,19 +1,37 @@
 /**
  * Catppuccin Mocha Theme
- *
- * Catppuccin Mocha — warm pastel purple on dark base. Cozy coding vibe.
  */
 
 [data-theme="catppuccin-mocha"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #cba6f7;
   --theme-accent-hover: #f5c2e7;
   --theme-accent-muted: rgba(203,166,247,0.1);
   --theme-accent-foreground: #1e1e2e;
+
+  /* Surface Colors */
+  --theme-bg: #f2eff4;
+  --theme-bg-secondary: #e5e1e9;
+  --theme-bg-tertiary: #d8d3dd;
+
+  /* Text Colors */
+  --theme-fg: #1d1428;
+  --theme-fg-secondary: #5f5071;
+  --theme-fg-tertiary: #8b8295;
 }
 
+/* Dark mode override */
 .dark[data-theme="catppuccin-mocha"] {
   --theme-accent: #cba6f7;
   --theme-accent-hover: #f5c2e7;
   --theme-accent-muted: rgba(203,166,247,0.15);
   --theme-accent-foreground: #cdd6f4;
+
+  --theme-bg: #130d1b;
+  --theme-bg-secondary: #20172a;
+  --theme-bg-tertiary: #2c2239;
+
+  --theme-fg: #ecebee;
+  --theme-fg-secondary: #aca7b2;
+  --theme-fg-tertiary: #79757f;
 }
