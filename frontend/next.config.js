@@ -198,7 +198,10 @@ const generateSecurityHeaders = () => {
         'base-uri': "'self'",
         'form-action': "'self'",
         'frame-ancestors': "'none'",
-        'upgrade-insecure-requests': '',
+        // upgrade-insecure-requests 强制浏览器将所有HTTP升级为HTTPS。
+        // 本地开发只有HTTP端口，升级后因缺少SSL证书导致所有请求失败。
+        // 生产环境由CDN/nginx处理HTTPS，此指令仅在有HTTPS时启用。
+        ...(!process.env.DISABLE_HSTS ? { 'upgrade-insecure-requests': '' } : {}),
       }
     : {
         // 开发环境：允许 unsafe-inline 和 unsafe-eval 用于开发工具
