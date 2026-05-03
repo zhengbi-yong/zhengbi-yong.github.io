@@ -88,31 +88,34 @@ def make_bullet_list_item(text, styles=None):
 def make_ordered_list_item(text, styles=None):
     return make_block("numberedListItem", content=[make_text(text, styles)] if text else [])
 
+# NOTE: BlockNote 0.49.0 table hierarchy:
+# table → tableRow → tableCell/tableHeader → tableParagraph → text (inline)
+# tableCell.content = "tableContent+" where tableContent group = tableParagraph
+# tableParagraph.content = "inline*"
+
+
+def make_table_paragraph(text):
+    """Create a tableParagraph block wrapping inline text."""
+    return make_block("tableParagraph", content=[make_text(text)])
+
+
 def make_table(headers, rows):
-    """Create a BlockNote table block.
-    BlockNote 0.49.0 format:
-    {
-      type: "table",
-      content: [
-        {type: "tableRow", content: [
-          {type: "tableCell", content: [{type: "text", text: "header", styles: {}}]},
-          ...
-        ]},
-        ...
-      ]
-    }
-    """
+    """Create a BlockNote table block with correct 0.49.0 hierarchy."""
     table_content = []
-    # Header row
+    # Header row — use tableHeader for first row
     header_cells = []
     for h in headers:
-        header_cells.append(make_block("tableCell", content=[make_text(h)]))
+        header_cells.append(
+            make_block("tableHeader", content=[make_table_paragraph(h)])
+        )
     table_content.append(make_block("tableRow", content=header_cells))
-    # Data rows
+    # Data rows — use tableCell
     for row in rows:
         cells = []
         for cell in row:
-            cells.append(make_block("tableCell", content=[make_text(cell)]))
+            cells.append(
+                make_block("tableCell", content=[make_table_paragraph(cell)])
+            )
         table_content.append(make_block("tableRow", content=cells))
     return make_block("table", content=table_content)
 
@@ -189,7 +192,8 @@ def parse_mdx_to_blocks(mdx_text):
                 j = i + 2
                 while j < len(lines) and '|' in lines[j].strip():
                     row_cells = [c.strip() for c in lines[j].strip().split('|') if c.strip()]
-                    rows.append(row_cells)
+                    if row_cells:
+                        rows.append(row_cells)
                     j += 1
                 
                 # Normalize column count (pad or truncate)
@@ -197,14 +201,11 @@ def parse_mdx_to_blocks(mdx_text):
                 if rows:
                     max_cols = max(max_cols, max(len(r) for r in rows))
                 
-                # Pad headers
                 while len(header_cells) < max_cols:
                     header_cells.append('')
-                # Pad rows
                 for r in rows:
                     while len(r) < max_cols:
                         r.append('')
-                    # Truncate if longer
                     if len(r) > max_cols:
                         r[:] = r[:max_cols]
                 
