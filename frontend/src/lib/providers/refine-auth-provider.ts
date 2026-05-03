@@ -71,14 +71,16 @@ export const authProvider: AuthProvider = {
   },
 
   onError: async (error) => {
-    // If 401 error, don't call logout() here - that would clear state and trigger
-    // a cascade of issues. The auth state should only be cleared when the user
-    // explicitly logs out, or when the session is confirmed expired by the server.
-    // Let the components handle the redirect based on check() result instead.
+    // 401 error: the session expired (cookie invalid or timed out).
+    // Set local auth state to unauthenticated and let the AdminLayout
+    // show the login modal. Do NOT redirect to the same page — that
+    // creates a self-referencing redirect loop.
     if (error?.statusCode === 401) {
+      useAuthStore.getState().logout().catch(() => {})
       return {
-        logout: false, // Don't logout - just let the component show login
-        redirectTo: '/admin',
+        authenticated: false,
+        logout: true,
+        redirectTo: '/',
         error,
       }
     }
