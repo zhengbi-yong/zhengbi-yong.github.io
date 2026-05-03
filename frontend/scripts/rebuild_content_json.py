@@ -92,7 +92,7 @@ def make_codeblock(language, code_text):
         content.append(make_text(line))
     return make_block(
         "codeBlock",
-        props={"language": language} if language else {},
+        props={"language": language if language else "plaintext"},
         content=content,
     )
 
@@ -123,7 +123,11 @@ def make_toggle_list_item(inline_content):
 
 
 def make_blockquote(inline_content):
-    return make_block("blockquote", content=inline_content)
+    """BlockNote blockquote content is blockContainer+, 
+    so inline content must be wrapped in a paragraph block."""
+    return make_block("blockquote", content=[
+        make_block("paragraph", content=inline_content)
+    ])
 
 
 def make_divider():
@@ -139,7 +143,8 @@ def make_table_paragraph(text):
 
 
 def make_table(headers, rows):
-    """Create a BlockNote 0.49.0 table with correct tableParagraph wrapping."""
+    """Create a BlockNote 0.49.0 table with correct tableParagraph wrapping
+    and tableContent wrapper."""
     table_content = []
     # Header row → tableHeader
     header_cells = []
@@ -156,7 +161,10 @@ def make_table(headers, rows):
                 make_block("tableCell", content=[make_table_paragraph(cell)])
             )
         table_content.append(make_block("tableRow", content=cells))
-    return make_block("table", content=table_content)
+    return make_block("table", content={
+        "type": "tableContent",
+        "content": table_content,
+    })
 
 
 def make_image_block(src, alt="", caption=""):
