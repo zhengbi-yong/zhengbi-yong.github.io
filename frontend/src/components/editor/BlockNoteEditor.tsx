@@ -6,17 +6,7 @@ import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
 import '@blocknote/core/fonts/inter.css'
 import { Loader2 } from 'lucide-react'
-import { BlockNoteSchema, createCodeBlockSpec } from '@blocknote/core'
-import { codeBlockOptions } from '@blocknote/code-block'
 import './BlockNoteEditor.css'
-
-const codeBlock = createCodeBlockSpec(codeBlockOptions)
-
-const schema = BlockNoteSchema.create().extend({
-  blockSpecs: {
-    codeBlock,
-  },
-})
 
 /**
  * Strip legacy properties from content_json blocks.
@@ -51,7 +41,6 @@ function BlockNoteEditor({
   onChangeRef.current = onChange
 
   const editor = useCreateBlockNote({
-    schema,
     initialContent: (() => {
       if (!content) return undefined
       try {
