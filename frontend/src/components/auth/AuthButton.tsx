@@ -144,7 +144,7 @@ export function AuthButton({ isDark = true }: AuthButtonProps) {
           </Link>
 
           <Link
-            href={`/@/${encodeURIComponent(username || '')}`}
+            href={`/users/${encodeURIComponent(username || '')}`}
             onClick={() => setDropdownOpen(false)}
             className="flex items-center gap-2 px-4 py-2 text-sm text-foreground transition-colors hover:bg-secondary dark:hover:bg-gray-700"
           >

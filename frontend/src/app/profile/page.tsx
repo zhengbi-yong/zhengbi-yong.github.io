@@ -247,7 +247,7 @@ export default function ProfilePage() {
 
             <div className="space-y-2">
               <Link
-                href={`/@/${encodeURIComponent(activeProfile.username)}`}
+                href={`/users/${encodeURIComponent(activeProfile.username)}`}
                 className="flex items-center gap-2 rounded-lg px-4 py-2 text-foreground transition-colors hover:bg-secondary dark:hover:bg-secondary"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
