@@ -140,6 +140,7 @@ services:
         NEXT_IGNORE_BUILD_ERRORS: 1
         NEXT_IGNORE_ESLINT: 1
         NEXT_PUBLIC_BACKEND_URL: http://localhost:3000
+        DISABLE_HSTS: "1"
     restart: unless-stopped
     ports:
       - "127.0.0.1:3001:3001"
