@@ -1,19 +1,37 @@
 /**
  * Apple Slate Theme
- *
- * Apple Slate — signature blue on clean white. Cupertino minimalism.
  */
 
 [data-theme="apple-slate"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #0071e3;
   --theme-accent-hover: #2997ff;
   --theme-accent-muted: rgba(0,113,227,0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #eff2f5;
+  --theme-bg-secondary: #e0e5ea;
+  --theme-bg-tertiary: #d3d8de;
+
+  /* Text Colors */
+  --theme-fg: #121e2a;
+  --theme-fg-secondary: #4d6074;
+  --theme-fg-tertiary: #808c97;
 }
 
+/* Dark mode override */
 .dark[data-theme="apple-slate"] {
   --theme-accent: #2997ff;
   --theme-accent-hover: #40a9ff;
   --theme-accent-muted: rgba(41,151,255,0.15);
   --theme-accent-foreground: #f5f5f7;
+
+  --theme-bg: #0c141c;
+  --theme-bg-secondary: #15212c;
+  --theme-bg-tertiary: #202e3b;
+
+  --theme-fg: #ebedef;
+  --theme-fg-secondary: #a6adb3;
+  --theme-fg-tertiary: #747a80;
 }

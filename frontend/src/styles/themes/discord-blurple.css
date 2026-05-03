@@ -1,19 +1,37 @@
 /**
  * Discord Blurple Theme
- *
- * Discord Blurple — signature blurple. Community platform feel.
  */
 
 [data-theme="discord-blurple"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #5865f2;
   --theme-accent-hover: #4752c4;
   --theme-accent-muted: rgba(88,101,242,0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #efeff4;
+  --theme-bg-secondary: #e1e1e9;
+  --theme-bg-tertiary: #d3d4dd;
+
+  /* Text Colors */
+  --theme-fg: #141529;
+  --theme-fg-secondary: #505371;
+  --theme-fg-tertiary: #828496;
 }
 
+/* Dark mode override */
 .dark[data-theme="discord-blurple"] {
   --theme-accent: #5865f2;
   --theme-accent-hover: #7983f5;
   --theme-accent-muted: rgba(88,101,242,0.15);
   --theme-accent-foreground: #313338;
+
+  --theme-bg: #0d0e1b;
+  --theme-bg-secondary: #17182b;
+  --theme-bg-tertiary: #222439;
+
+  --theme-fg: #ebebee;
+  --theme-fg-secondary: #a7a8b2;
+  --theme-fg-tertiary: #75767f;
 }

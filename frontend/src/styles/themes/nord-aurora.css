@@ -1,19 +1,37 @@
 /**
  * Nord Aurora Theme
- *
- * Nord Aurora — purple on dark slate. Northern lights inspired.
  */
 
 [data-theme="nord-aurora"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #b48ead;
   --theme-accent-hover: #88c0d0;
   --theme-accent-muted: rgba(180,142,173,0.1);
   --theme-accent-foreground: #2e3440;
+
+  /* Surface Colors */
+  --theme-bg: #f3f0f3;
+  --theme-bg-secondary: #e7e3e6;
+  --theme-bg-tertiary: #dad6d9;
+
+  /* Text Colors */
+  --theme-fg: #231a21;
+  --theme-fg-secondary: #685965;
+  --theme-fg-tertiary: #8f888e;
 }
 
+/* Dark mode override */
 .dark[data-theme="nord-aurora"] {
   --theme-accent: #b48ead;
   --theme-accent-hover: #88c0d0;
   --theme-accent-muted: rgba(180,142,173,0.15);
   --theme-accent-foreground: #eceff4;
+
+  --theme-bg: #181016;
+  --theme-bg-secondary: #261c24;
+  --theme-bg-tertiary: #322930;
+
+  --theme-fg: #edeced;
+  --theme-fg-secondary: #afaaae;
+  --theme-fg-tertiary: #7c777b;
 }

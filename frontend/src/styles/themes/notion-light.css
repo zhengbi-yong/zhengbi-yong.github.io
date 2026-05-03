@@ -1,19 +1,37 @@
 /**
  * Notion Light Theme
- *
- * Notion Light — text-as-accent minimalism. Productivity tool aesthetic.
  */
 
 [data-theme="notion-light"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #37352f;
   --theme-accent-hover: #9b9a97;
   --theme-accent-muted: rgba(55,53,47,0.06);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #f3f3f0;
+  --theme-bg-secondary: #e7e6e3;
+  --theme-bg-tertiary: #dad9d6;
+
+  /* Text Colors */
+  --theme-fg: #23201a;
+  --theme-fg-secondary: #686459;
+  --theme-fg-tertiary: #8f8d88;
 }
 
+/* Dark mode override */
 .dark[data-theme="notion-light"] {
   --theme-accent: #37352f;
   --theme-accent-hover: #9b9a97;
   --theme-accent-muted: rgba(55,53,47,0.06);
   --theme-accent-foreground: #37352f;
+
+  --theme-bg: #181610;
+  --theme-bg-secondary: #26231c;
+  --theme-bg-tertiary: #323029;
+
+  --theme-fg: #ededec;
+  --theme-fg-secondary: #afaeaa;
+  --theme-fg-tertiary: #7c7b77;
 }

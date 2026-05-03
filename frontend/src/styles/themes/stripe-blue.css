@@ -1,19 +1,37 @@
 /**
  * Stripe Blue Theme
- *
- * Stripe Blue — electric indigo on white. Fintech precision.
  */
 
 [data-theme="stripe-blue"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #635bff;
   --theme-accent-hover: #7a73ff;
   --theme-accent-muted: rgba(99,91,255,0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #efeff5;
+  --theme-bg-secondary: #e0e0ea;
+  --theme-bg-tertiary: #d3d3de;
+
+  /* Text Colors */
+  --theme-fg: #13122a;
+  --theme-fg-secondary: #4f4d74;
+  --theme-fg-tertiary: #818097;
 }
 
+/* Dark mode override */
 .dark[data-theme="stripe-blue"] {
   --theme-accent: #7a73ff;
   --theme-accent-hover: #8f89ff;
   --theme-accent-muted: rgba(122,115,255,0.15);
   --theme-accent-foreground: #f6f9fc;
+
+  --theme-bg: #0d0c1c;
+  --theme-bg-secondary: #16152c;
+  --theme-bg-tertiary: #21203b;
+
+  --theme-fg: #ebebef;
+  --theme-fg-secondary: #a7a6b3;
+  --theme-fg-tertiary: #747480;
 }

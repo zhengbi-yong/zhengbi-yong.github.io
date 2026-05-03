@@ -1,19 +1,37 @@
 /**
  * Plum Noir Theme
- *
- * Plum Noir — deep purple on dark indigo. Regal, mysterious elegance.
  */
 
 [data-theme="plum-noir"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #7e22ce;
   --theme-accent-hover: #a855f7;
   --theme-accent-muted: rgba(126,34,206,0.1);
   --theme-accent-foreground: #0f0f1a;
+
+  /* Surface Colors */
+  --theme-bg: #f2eff4;
+  --theme-bg-secondary: #e5e1e9;
+  --theme-bg-tertiary: #d9d4dc;
+
+  /* Text Colors */
+  --theme-fg: #1f1527;
+  --theme-fg-secondary: #61536e;
+  --theme-fg-tertiary: #8c8494;
 }
 
+/* Dark mode override */
 .dark[data-theme="plum-noir"] {
   --theme-accent: #a855f7;
   --theme-accent-hover: #c084fc;
   --theme-accent-muted: rgba(168,85,247,0.15);
   --theme-accent-foreground: #e0d5f5;
+
+  --theme-bg: #140c1b;
+  --theme-bg-secondary: #21162b;
+  --theme-bg-tertiary: #2e213a;
+
+  --theme-fg: #edebef;
+  --theme-fg-secondary: #ada7b3;
+  --theme-fg-tertiary: #7a747f;
 }

@@ -6,23 +6,27 @@ BEGIN;
 
 -- 1. content_json: JSONB, Source of Truth for Tiptap AST
 ALTER TABLE posts
-  ADD COLUMN content_json JSONB;
+  ADD COLUMN IF NOT EXISTS content_json JSONB;
 COMMENT ON COLUMN posts.content_json IS 'Tiptap JSON AST — 协作编辑 Source of Truth';
 
 -- 2. content_mdx: TEXT, 预编译 MDX 文本, SSR 直读缓存
 ALTER TABLE posts
-  ADD COLUMN content_mdx TEXT;
+  ADD COLUMN IF NOT EXISTS content_mdx TEXT;
 COMMENT ON COLUMN posts.content_mdx IS '预编译 MDX 文本 — SSR 直读缓存';
 
 -- 3. GIN 索引加速 JSONB 查询
-CREATE INDEX idx_posts_content_json ON posts USING GIN (content_json);
+CREATE INDEX IF NOT EXISTS idx_posts_content_json ON posts USING GIN (content_json);
 
 -- 4. content_json 大小约束（100MB，防止 OOM）
+ALTER TABLE posts
+  DROP CONSTRAINT IF EXISTS posts_content_json_size_check;
 ALTER TABLE posts
   ADD CONSTRAINT posts_content_json_size_check
   CHECK (content_json IS NULL OR pg_column_size(content_json) < 104857600);
 
 -- 5. content_mdx 大小约束（10MB）
+ALTER TABLE posts
+  DROP CONSTRAINT IF EXISTS posts_content_mdx_size_check;
 ALTER TABLE posts
   ADD CONSTRAINT posts_content_mdx_size_check
   CHECK (content_mdx IS NULL OR char_length(content_mdx) < 10485760);

@@ -1,19 +1,37 @@
 /**
  * Tokyo Night Theme
- *
- * Tokyo Night — neon blue on deep dark. Urban cyberpunk feel.
  */
 
 [data-theme="tokyo-night"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #7aa2f7;
   --theme-accent-hover: #9ece6a;
   --theme-accent-muted: rgba(122,162,247,0.1);
   --theme-accent-foreground: #1a1b26;
+
+  /* Surface Colors */
+  --theme-bg: #eff1f5;
+  --theme-bg-secondary: #e0e3ea;
+  --theme-bg-tertiary: #d3d6dd;
+
+  /* Text Colors */
+  --theme-fg: #131a29;
+  --theme-fg-secondary: #4f5a72;
+  --theme-fg-tertiary: #828896;
 }
 
+/* Dark mode override */
 .dark[data-theme="tokyo-night"] {
   --theme-accent: #7aa2f7;
   --theme-accent-hover: #9ece6a;
   --theme-accent-muted: rgba(122,162,247,0.15);
   --theme-accent-foreground: #c0caf5;
+
+  --theme-bg: #0d111b;
+  --theme-bg-secondary: #161d2b;
+  --theme-bg-tertiary: #21293a;
+
+  --theme-fg: #ebecef;
+  --theme-fg-secondary: #a7abb3;
+  --theme-fg-tertiary: #74787f;
 }

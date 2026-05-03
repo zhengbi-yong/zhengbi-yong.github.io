@@ -1,19 +1,37 @@
 /**
  * Spotify Green Theme
- *
- * Spotify Green — iconic green on black. Music platform aesthetic.
  */
 
 [data-theme="spotify-green"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #1ed760;
   --theme-accent-hover: #1fdf64;
   --theme-accent-muted: rgba(30,215,96,0.1);
   --theme-accent-foreground: #121212;
+
+  /* Surface Colors */
+  --theme-bg: #eff4f1;
+  --theme-bg-secondary: #e1e9e4;
+  --theme-bg-tertiary: #d4ddd7;
+
+  /* Text Colors */
+  --theme-fg: #15271b;
+  --theme-fg-secondary: #526f5c;
+  --theme-fg-tertiary: #839489;
 }
 
+/* Dark mode override */
 .dark[data-theme="spotify-green"] {
   --theme-accent: #1ed760;
   --theme-accent-hover: #1fdf64;
   --theme-accent-muted: rgba(30,215,96,0.15);
   --theme-accent-foreground: #ffffff;
+
+  --theme-bg: #0e1a12;
+  --theme-bg-secondary: #18291e;
+  --theme-bg-tertiary: #23382a;
+
+  --theme-fg: #ebeeec;
+  --theme-fg-secondary: #a8b2ab;
+  --theme-fg-tertiary: #757f79;
 }

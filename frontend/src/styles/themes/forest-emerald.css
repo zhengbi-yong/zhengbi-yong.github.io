@@ -1,19 +1,37 @@
 /**
  * Forest Emerald Theme
- *
- * Natural green palette — calm and grounded, inspired by forests.
  */
 
 [data-theme="forest-emerald"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #059669;
   --theme-accent-hover: #10b981;
   --theme-accent-muted: rgba(5, 150, 105, 0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #eff5f3;
+  --theme-bg-secondary: #e0eae7;
+  --theme-bg-tertiary: #d3deda;
+
+  /* Text Colors */
+  --theme-fg: #132a22;
+  --theme-fg-secondary: #4e7367;
+  --theme-fg-tertiary: #819690;
 }
 
+/* Dark mode override */
 .dark[data-theme="forest-emerald"] {
   --theme-accent: #34d399;
   --theme-accent-hover: #6ee7b7;
   --theme-accent-muted: rgba(52, 211, 153, 0.15);
   --theme-accent-foreground: #0a0a0a;
+
+  --theme-bg: #0f1915;
+  --theme-bg-secondary: #192823;
+  --theme-bg-tertiary: #253630;
+
+  --theme-fg: #ebeeed;
+  --theme-fg-secondary: #a9b1ae;
+  --theme-fg-tertiary: #767e7b;
 }

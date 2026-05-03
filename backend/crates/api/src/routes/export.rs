@@ -9,7 +9,7 @@ use axum::{
     response::IntoResponse,
     body::Body,
 };
-use blog_core::blocknote_json_to_mdx;
+use blog_core::content_json_to_mdx;
 use blog_shared::AppError;
 use serde::{Deserialize, Serialize};
 use sqlx::Row;
@@ -151,13 +151,7 @@ pub async fn export_post_mdx(
     // ── 3. 获取 MDX 正文 ──────────────────────────────────────────────
     let body_mdx = match &content_json {
         Some(json) if !json.is_null() && !json.as_array().map(|a| a.is_empty()).unwrap_or(true) => {
-            if json.is_array() {
-                // BlockNote JSON 数组格式
-                blocknote_json_to_mdx(json)
-            } else {
-                // Legacy TipTap JSON 对象格式
-                blog_core::tiptap_json_to_mdx(json)
-            }
+            content_json_to_mdx(json)
         }
         _ => {
             // 没有 content_json 时降级使用 content_mdx

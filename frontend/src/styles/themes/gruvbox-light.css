@@ -1,19 +1,37 @@
 /**
  * Gruvbox Light Theme
- *
- * Gruvbox Light — warm amber on cream. Vintage paper feel.
  */
 
 [data-theme="gruvbox-light"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #b57614;
   --theme-accent-hover: #af3a03;
   --theme-accent-muted: rgba(181,118,20,0.1);
   --theme-accent-foreground: #fbf1c7;
+
+  /* Surface Colors */
+  --theme-bg: #f4f2ef;
+  --theme-bg-secondary: #e9e6e1;
+  --theme-bg-tertiary: #ddd9d4;
+
+  /* Text Colors */
+  --theme-fg: #282014;
+  --theme-fg-secondary: #706451;
+  --theme-fg-tertiary: #958e83;
 }
 
+/* Dark mode override */
 .dark[data-theme="gruvbox-light"] {
   --theme-accent: #b57614;
   --theme-accent-hover: #af3a03;
   --theme-accent-muted: rgba(181,118,20,0.1);
   --theme-accent-foreground: #3c3836;
+
+  --theme-bg: #1a150d;
+  --theme-bg-secondary: #2a2317;
+  --theme-bg-tertiary: #383022;
+
+  --theme-fg: #eeedeb;
+  --theme-fg-secondary: #b2aea8;
+  --theme-fg-tertiary: #7f7b75;
 }

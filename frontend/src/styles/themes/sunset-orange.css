@@ -1,20 +1,37 @@
 /**
  * Sunset Orange Theme
- *
- * Warm, energetic orange palette — great for creative portfolios.
- * Inspired by sunset gradients and autumn warmth.
  */
 
 [data-theme="sunset-orange"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #f97316;
   --theme-accent-hover: #fb923c;
   --theme-accent-muted: rgba(249, 115, 22, 0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #f5f1ef;
+  --theme-bg-secondary: #eae4e0;
+  --theme-bg-tertiary: #ded7d3;
+
+  /* Text Colors */
+  --theme-fg: #2a1c12;
+  --theme-fg-secondary: #735d4e;
+  --theme-fg-tertiary: #978a81;
 }
 
+/* Dark mode override */
 .dark[data-theme="sunset-orange"] {
   --theme-accent: #fb923c;
   --theme-accent-hover: #fdba74;
   --theme-accent-muted: rgba(251, 146, 60, 0.15);
   --theme-accent-foreground: #1a1a2e;
+
+  --theme-bg: #1c130c;
+  --theme-bg-secondary: #2c2016;
+  --theme-bg-tertiary: #3b2c20;
+
+  --theme-fg: #efeceb;
+  --theme-fg-secondary: #b3aca7;
+  --theme-fg-tertiary: #807974;
 }

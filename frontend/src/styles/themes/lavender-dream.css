@@ -1,19 +1,37 @@
 /**
  * Lavender Dream Theme
- *
- * Soft purple tones — dreamy and creative.
  */
 
 [data-theme="lavender-dream"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #a855f7;
   --theme-accent-hover: #c084fc;
   --theme-accent-muted: rgba(168, 85, 247, 0.1);
   --theme-accent-foreground: #ffffff;
+
+  /* Surface Colors */
+  --theme-bg: #f2eff5;
+  --theme-bg-secondary: #e5e0ea;
+  --theme-bg-tertiary: #d8d3dd;
+
+  /* Text Colors */
+  --theme-fg: #1e1329;
+  --theme-fg-secondary: #614f72;
+  --theme-fg-tertiary: #8c8196;
 }
 
+/* Dark mode override */
 .dark[data-theme="lavender-dream"] {
   --theme-accent: #c084fc;
   --theme-accent-hover: #d8b4fe;
   --theme-accent-muted: rgba(192, 132, 252, 0.15);
   --theme-accent-foreground: #0a0a0a;
+
+  --theme-bg: #140c1c;
+  --theme-bg-secondary: #21162c;
+  --theme-bg-tertiary: #2d203b;
+
+  --theme-fg: #edebef;
+  --theme-fg-secondary: #ada7b3;
+  --theme-fg-tertiary: #7a7480;
 }

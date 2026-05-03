@@ -5,6 +5,36 @@
 -- Includes: posts, categories, tags, post_tags, post_versions, media
 -- ============================================
 
+-- UUIDv7 generator (must be defined before tables that use it)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE OR REPLACE FUNCTION uuid_generate_v7()
+RETURNS UUID AS $$
+DECLARE
+    unix_ms BIGINT;
+    rand_a  BIGINT;
+    rand_b  BIGINT;
+    hex_text TEXT;
+BEGIN
+    unix_ms := (EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::BIGINT;
+    rand_a := floor(random() * 4096)::BIGINT;
+    rand_b := floor(random() * 1152921504606846976)::BIGINT;
+    hex_text := 
+        lpad(to_hex(unix_ms), 12, '0')
+        || '7'
+        || lpad(to_hex(rand_a), 3, '0')
+        || lpad(to_hex((floor(random() * 4)::INT) | 8), 1, '0')
+        || lpad(to_hex(rand_b), 15, '0');
+    RETURN (
+        substring(hex_text, 1, 8) || '-' ||
+        substring(hex_text, 9, 4) || '-' ||
+        substring(hex_text, 13, 4) || '-' ||
+        substring(hex_text, 17, 4) || '-' ||
+        substring(hex_text, 21, 12)
+    )::UUID;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create post_status enum type
 CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived', 'scheduled');
 

@@ -1,19 +1,37 @@
 /**
  * Everforest Theme
- *
- * Everforest — moss green on dark bark. Natural, calming woodland palette.
  */
 
 [data-theme="everforest"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #a7c080;
   --theme-accent-hover: #7fbbb3;
   --theme-accent-muted: rgba(167,192,128,0.1);
   --theme-accent-foreground: #2b3339;
+
+  /* Surface Colors */
+  --theme-bg: #f2f3f0;
+  --theme-bg-secondary: #e5e7e3;
+  --theme-bg-tertiary: #d9dad6;
+
+  /* Text Colors */
+  --theme-fg: #1f231a;
+  --theme-fg-secondary: #626859;
+  --theme-fg-tertiary: #8d9088;
 }
 
+/* Dark mode override */
 .dark[data-theme="everforest"] {
   --theme-accent: #a7c080;
   --theme-accent-hover: #7fbbb3;
   --theme-accent-muted: rgba(167,192,128,0.15);
   --theme-accent-foreground: #d3c6aa;
+
+  --theme-bg: #151810;
+  --theme-bg-secondary: #22261c;
+  --theme-bg-tertiary: #2e3229;
+
+  --theme-fg: #ededec;
+  --theme-fg-secondary: #adafaa;
+  --theme-fg-tertiary: #7a7c77;
 }

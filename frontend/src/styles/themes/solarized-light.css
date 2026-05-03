@@ -1,19 +1,37 @@
 /**
  * Solarized Light Theme
- *
- * Solarized Light — blue on warm paper. Reading-optimized palette.
  */
 
 [data-theme="solarized-light"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #268bd2;
   --theme-accent-hover: #2aa198;
   --theme-accent-muted: rgba(38,139,210,0.1);
   --theme-accent-foreground: #fdf6e3;
+
+  /* Surface Colors */
+  --theme-bg: #f0f2f4;
+  --theme-bg-secondary: #e1e6e9;
+  --theme-bg-tertiary: #d4d9dc;
+
+  /* Text Colors */
+  --theme-fg: #162027;
+  --theme-fg-secondary: #53636e;
+  --theme-fg-tertiary: #848d94;
 }
 
+/* Dark mode override */
 .dark[data-theme="solarized-light"] {
   --theme-accent: #268bd2;
   --theme-accent-hover: #2aa198;
   --theme-accent-muted: rgba(38,139,210,0.1);
   --theme-accent-foreground: #657b83;
+
+  --theme-bg: #0e151a;
+  --theme-bg-secondary: #192229;
+  --theme-bg-tertiary: #242f37;
+
+  --theme-fg: #ebedee;
+  --theme-fg-secondary: #a8aeb1;
+  --theme-fg-tertiary: #767b7e;
 }

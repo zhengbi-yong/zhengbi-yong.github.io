@@ -1,19 +1,37 @@
 /**
  * GitHub Dark Theme
- *
- * GitHub's iconic blue — familiar and developer-friendly.
  */
 
 [data-theme="github-dark"] {
+  /* Accent (Brand) Colors */
   --theme-accent: #58a6ff;
   --theme-accent-hover: #79c0ff;
   --theme-accent-muted: rgba(88, 166, 255, 0.1);
   --theme-accent-foreground: #0d1117;
+
+  /* Surface Colors */
+  --theme-bg: #eff2f5;
+  --theme-bg-secondary: #e0e5ea;
+  --theme-bg-tertiary: #d3d8de;
+
+  /* Text Colors */
+  --theme-fg: #121d2a;
+  --theme-fg-secondary: #4d5f74;
+  --theme-fg-tertiary: #808b97;
 }
 
+/* Dark mode override */
 .dark[data-theme="github-dark"] {
   --theme-accent: #58a6ff;
   --theme-accent-hover: #79c0ff;
   --theme-accent-muted: rgba(88, 166, 255, 0.15);
   --theme-accent-foreground: #ffffff;
+
+  --theme-bg: #0c131c;
+  --theme-bg-secondary: #15202c;
+  --theme-bg-tertiary: #202c3b;
+
+  --theme-fg: #ebedef;
+  --theme-fg-secondary: #a6acb3;
+  --theme-fg-tertiary: #747980;
 }
