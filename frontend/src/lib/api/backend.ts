@@ -201,7 +201,7 @@ export const postService = {
     const response = await api.get<PostDetail>(
       `${BACKEND_API_URL}/posts/by-slug?slug=${encodeURIComponent(slug)}`,
       {
-        cache: 5 * 60 * 1000, // 5 minute cache
+        cache: 0, // Must fetch fresh — content_json changes frequently during editing
       }
     )
     return response.data
