@@ -14,17 +14,17 @@ export default function PostSkeleton() {
         <header className="pt-6 xl:pb-8">
           <div className="space-y-4 text-center">
             {/* 日期骨架 */}
-            <div className="mb-6 h-6 w-64 animate-pulse rounded bg-gray-200 dark:bg-gray-700 mx-auto" />
+            <div className="mb-6 h-6 w-64 animate-pulse rounded bg-gray-200 mx-auto" />
 
             {/* 标题骨架 */}
             <div className="space-y-3">
-              <div className="h-10 w-3/4 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700 mx-auto sm:h-12 md:h-14" />
+              <div className="h-10 w-3/4 animate-pulse rounded-lg bg-gray-200 mx-auto sm:h-12 md:h-14" />
             </div>
 
             {/* 标签骨架 */}
             <div className="flex flex-wrap justify-center gap-2">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-6 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+                <div key={i} className="h-6 w-20 animate-pulse rounded-full bg-gray-200 " />
               ))}
             </div>
           </div>
@@ -35,12 +35,12 @@ export default function PostSkeleton() {
           {/* 左侧：最新文章骨架 - 在 xl 以下屏幕隐藏 */}
           <div className="hidden xl:flex xl:col-span-1 flex-shrink-0 flex-col">
             <div className="sticky top-20 flex flex-col h-full w-full">
-              <div className="mb-4 h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="mb-4 h-6 w-24 animate-pulse rounded bg-gray-200 " />
               <div className="space-y-3">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="space-y-2">
-                    <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-                    <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-4 w-full animate-pulse rounded bg-gray-200 " />
+                    <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200 " />
                   </div>
                 ))}
               </div>
@@ -57,12 +57,12 @@ export default function PostSkeleton() {
           {/* 右侧：TOC 骨架 */}
           <div className="hidden md:sticky md:top-20 md:col-span-1 md:block md:flex md:flex-col md:self-start">
             <div className="flex flex-col h-full w-full">
-              <div className="mb-4 h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="mb-4 h-6 w-24 animate-pulse rounded bg-gray-200 " />
               <div className="space-y-2">
                 {[...Array(6)].map((_, i) => (
                   <div
                     key={i}
-                    className="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+                    className="h-4 animate-pulse rounded bg-gray-200 "
                     style={{ width: `${80 - i * 10}%` }}
                   />
                 ))}
@@ -87,38 +87,38 @@ const PostContentSkeleton = memo(function PostContentSkeleton() {
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+            className="h-4 animate-pulse rounded bg-gray-200 "
             style={{ width: i === 2 ? '80%' : '100%' }}
           />
         ))}
       </div>
 
       {/* 二级标题骨架 */}
-      <div className="h-6 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+      <div className="h-6 w-2/3 animate-pulse rounded bg-gray-200 " />
 
       {/* 段落骨架 2 */}
       <div className="space-y-2">
         {[...Array(4)].map((_, i) => (
           <div
             key={i}
-            className="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+            className="h-4 animate-pulse rounded bg-gray-200 "
             style={{ width: i === 3 ? '70%' : '100%' }}
           />
         ))}
       </div>
 
       {/* 代码块骨架 */}
-      <div className="h-48 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
+      <div className="h-48 w-full animate-pulse rounded-lg bg-gray-200 " />
 
       {/* 三级标题骨架 */}
-      <div className="h-5 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+      <div className="h-5 w-1/2 animate-pulse rounded bg-gray-200 " />
 
       {/* 段落骨架 3 */}
       <div className="space-y-2">
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+            className="h-4 animate-pulse rounded bg-gray-200 "
             style={{ width: i === 2 ? '90%' : '100%' }}
           />
         ))}
@@ -128,8 +128,8 @@ const PostContentSkeleton = memo(function PostContentSkeleton() {
       <div className="space-y-2">
         {[...Array(3)].map((_, i) => (
           <div key={i} className="flex items-center gap-2">
-            <div className="h-4 w-4 flex-shrink-0 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
-            <div className="h-4 flex-1 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+            <div className="h-4 w-4 flex-shrink-0 animate-pulse rounded bg-gray-200 " />
+            <div className="h-4 flex-1 animate-pulse rounded bg-gray-200 " />
           </div>
         ))}
       </div>
@@ -139,7 +139,7 @@ const PostContentSkeleton = memo(function PostContentSkeleton() {
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+            className="h-4 animate-pulse rounded bg-gray-200 "
             style={{ width: i % 2 === 0 ? '100%' : '85%' }}
           />
         ))}

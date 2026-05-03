@@ -131,7 +131,7 @@ export function EnhancedImage({
       {/* Error state */}
       {hasError ? (
         <div
-          className="flex items-center justify-center bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400"
+          className="flex items-center justify-center bg-gray-200 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]"
           style={{ width, height }}
         >
           <span className="text-sm">Failed to load image</span>
@@ -168,10 +168,10 @@ export function EnhancedImage({
 
       {/* Loading placeholder */}
       {isLoading && !hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+        <div className="absolute inset-0 flex items-center justify-center bg-[var(--theme-bg-tertiary)]">
           <div className="animate-pulse">
             <div
-              className="rounded bg-gray-300 dark:bg-gray-600"
+              className="rounded bg-gray-300 "
               style={{ width: width || '100%', height: height || '100%' }}
             />
           </div>

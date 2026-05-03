@@ -38,16 +38,16 @@ export default function SkeletonProgress({
 
   return (
     <div
-      className={`w-full rounded-2xl border border-gray-200 p-4 dark:border-gray-800 ${className}`}
+      className={`w-full rounded-2xl border border-[var(--theme-border)] p-4 dark:border-gray-800 ${className}`}
     >
-      <p className="mb-3 text-sm font-medium text-gray-600 dark:text-gray-300">{label}</p>
+      <p className="mb-3 text-sm font-medium text-[var(--theme-fg-secondary)] ">{label}</p>
       <div className="mb-4 space-y-2">
         <Skeleton className="h-6 w-3/4 rounded-lg" />
         <Skeleton className="h-4 w-full rounded-lg" />
         <Skeleton className="h-4 w-2/3 rounded-lg" />
       </div>
       <Progress value={value} className="h-2" />
-      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">请稍候，精彩内容正在准备</p>
+      <p className="mt-2 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">请稍候，精彩内容正在准备</p>
     </div>
   )
 }

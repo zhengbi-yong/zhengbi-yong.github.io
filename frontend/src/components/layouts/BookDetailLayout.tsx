@@ -37,7 +37,7 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
       {/* 内容容器 */}
       <div className="relative z-10 min-h-screen">
         {/* 顶部导航栏 */}
-        <div className="sticky top-0 z-20 border-b border-gray-200/50 bg-white shadow-sm dark:border-gray-700/50 dark:bg-gray-900">
+        <div className="sticky top-0 z-20 border-b border-[var(--theme-border)]/50 bg-[var(--theme-bg)] shadow-sm dark:border-gray-700/50">
           <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
             <BackToShelfButton />
           </div>
@@ -123,7 +123,7 @@ export default function BookDetailLayout({ book }: BookDetailLayoutProps) {
           >
             {book.chapters.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-lg text-gray-500 dark:text-gray-400">暂无章节</p>
+                <p className="text-lg text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">暂无章节</p>
               </div>
             ) : (
               <div className="rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">

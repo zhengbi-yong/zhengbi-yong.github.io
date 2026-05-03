@@ -70,11 +70,11 @@ export default function ReadingHistoryPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800">
-          <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="rounded-lg bg-[var(--theme-bg)] p-8 text-center shadow">
+          <h1 className="mb-4 text-3xl font-bold text-[var(--theme-fg)]">
             {t('blog.loginRequired') || '请先登录'}
           </h1>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <p className="mb-6 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             {t('blog.loginToViewHistory') || '登录后即可查看您的阅读历史'}
           </p>
           <Link
@@ -91,10 +91,10 @@ export default function ReadingHistoryPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="mb-2 text-4xl font-bold text-[var(--theme-fg)]">
           {t('blog.readingHistory') || '阅读历史'}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
           {t('blog.readingHistoryDesc') || '查看您的阅读进度和历史记录'} ({totalCount})
         </p>
       </div>
@@ -104,12 +104,12 @@ export default function ReadingHistoryPage() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
         </div>
       ) : history.length === 0 ? (
-        <div className="rounded-lg bg-white p-12 text-center shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-[var(--theme-bg)] p-12 text-center shadow">
           <div className="mb-4 text-6xl">📖</div>
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="mb-2 text-2xl font-semibold text-[var(--theme-fg)]">
             {t('blog.noReadingHistory') || '暂无阅读历史'}
           </h2>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <p className="mb-6 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             {t('blog.startReading') || '开始阅读文章，您的进度将自动保存'}
           </p>
           <Link
@@ -125,7 +125,7 @@ export default function ReadingHistoryPage() {
             {history.map((item) => (
               <div
                 key={`${item.post_id}-${item.user_id}`}
-                className="rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
+                className="rounded-lg bg-[var(--theme-bg)] p-6 shadow transition-shadow hover:shadow-lg"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -136,7 +136,7 @@ export default function ReadingHistoryPage() {
                       {item.post_title}
                     </Link>
 
-                    <div className="mb-4 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="mb-4 flex items-center gap-4 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       <span>
                         {t('blog.lastRead') || '最后阅读'}:{' '}
                         {new Date(item.last_read_at).toLocaleString('zh-CN')}
@@ -151,12 +151,12 @@ export default function ReadingHistoryPage() {
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <div className="mb-1 flex items-center justify-between text-sm">
-                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                          <span className="font-medium text-[var(--theme-fg)]">
                             {t('blog.progress') || '进度'}
                           </span>
-                          <span className="text-gray-600 dark:text-gray-400">{item.progress}%</span>
+                          <span className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">{item.progress}%</span>
                         </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                        <div className="h-2 overflow-hidden rounded-full bg-gray-200 ">
                           <div
                             className={`h-full transition-all ${
                               item.progress === 100
@@ -181,7 +181,7 @@ export default function ReadingHistoryPage() {
                     </Link>
                     <button
                       onClick={() => handleResetProgress(item.post_slug, item.post_title)}
-                      className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                      className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       {t('blog.reset') || '重置'}
                     </button>
@@ -197,19 +197,19 @@ export default function ReadingHistoryPage() {
               <button
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 {t('previous') || '上一页'}
               </button>
 
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                 {t('page') || '第'} {currentPage} / {totalPages} {t('page') || '页'}
               </span>
 
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 {t('next') || '下一页'}
               </button>

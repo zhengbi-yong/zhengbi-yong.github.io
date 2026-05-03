@@ -55,12 +55,12 @@ export default function ErrorReportButton({ eventId }: { eventId?: string }) {
       {/* 模态框 */}
       {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+          <div className="w-full max-w-md rounded-lg bg-[var(--theme-bg)] p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">报告问题</h3>
+              <h3 className="text-lg font-semibold text-[var(--theme-fg)]">报告问题</h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-[var(--theme-fg-tertiary)] hover:text-[var(--theme-fg-secondary)] dark:hover:text-gray-300"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -83,14 +83,14 @@ export default function ErrorReportButton({ eventId }: { eventId?: string }) {
                     />
                   </svg>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300">感谢您的反馈！</p>
+                <p className="text-[var(--theme-fg)] ">感谢您的反馈！</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label
                     htmlFor="email"
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="mb-1 block text-sm font-medium text-[var(--theme-fg)] "
                   >
                     邮箱地址（可选）
                   </label>
@@ -99,7 +99,7 @@ export default function ErrorReportButton({ eventId }: { eventId?: string }) {
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    className="w-full rounded-md border border-[var(--theme-border)] px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 "
                     placeholder="your@email.com"
                   />
                 </div>
@@ -107,7 +107,7 @@ export default function ErrorReportButton({ eventId }: { eventId?: string }) {
                 <div>
                   <label
                     htmlFor="comment"
-                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    className="mb-1 block text-sm font-medium text-[var(--theme-fg)] "
                   >
                     问题描述
                   </label>
@@ -116,7 +116,7 @@ export default function ErrorReportButton({ eventId }: { eventId?: string }) {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={4}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    className="w-full rounded-md border border-[var(--theme-border)] px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 "
                     placeholder="请描述您遇到的问题..."
                     required
                   />

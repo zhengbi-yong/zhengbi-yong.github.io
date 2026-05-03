@@ -2,13 +2,14 @@ use crate::middleware::csrf::{generate_csrf_token, set_csrf_cookie};
 use crate::state::AppState;
 use crate::utils::ip_extractor::RealIp;
 use axum::{
-    extract::{Extension, Json, State},
+    extract::{Extension, Json, Multipart, State},
     http::{header, HeaderMap, HeaderValue},
     response::IntoResponse,
 };
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
-use blog_db::{AuthResponse, LoginRequest, RefreshToken, RegisterRequest, User, UserInfo};
+use blog_db::{AuthResponse, LoginRequest, RegisterRequest, RefreshToken, UpdateProfileRequest, User, UserInfo, UserPublicProfile};
 use blog_shared::{AppError, AuthUser, PasswordValidator};
+use chrono;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use time;
@@ -622,4 +623,337 @@ pub async fn reset_password(
     Ok(Json(AuthMessageResponse {
         message: "密码已成功重置".to_string(),
     }))
+}
+
+/// 更新当前用户资料（bio, location, website, twitter, github）
+#[utoipa::path(
+    put,
+    path = "/auth/me",
+    tag = "auth",
+    request_body = UpdateProfileRequest,
+    responses(
+        (status = 200, description = "资料更新成功", body = UserInfo),
+        (status = 401, description = "未认证")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn update_profile(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    Json(req): Json<UpdateProfileRequest>,
+) -> Result<Json<UserInfo>, AppError> {
+    let user_id = auth_user.id;
+
+    // Build JSONB merge object from non-None fields
+    let mut profile_update = serde_json::Map::new();
+    if let Some(bio) = &req.bio { profile_update.insert("bio".into(), json!(bio)); }
+    if let Some(loc) = &req.location { profile_update.insert("location".into(), json!(loc)); }
+    if let Some(site) = &req.website { profile_update.insert("website".into(), json!(site)); }
+    if let Some(tw) = &req.twitter { profile_update.insert("twitter".into(), json!(tw)); }
+    if let Some(gh) = &req.github { profile_update.insert("github".into(), json!(gh)); }
+
+    if profile_update.is_empty() {
+        // No fields to update — just return current user info
+        let user = sqlx::query!(
+            "SELECT id, email, username, profile, email_verified, role FROM users WHERE id = $1",
+            user_id
+        )
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::NotFound("用户不存在".into()))?;
+
+        return Ok(Json(UserInfo {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            profile: user.profile,
+            email_verified: user.email_verified,
+            role: user.role,
+        }));
+    }
+
+    let profile_value = serde_json::Value::Object(profile_update);
+
+    let user = sqlx::query!(
+        r#"UPDATE users SET 
+            profile = profile || $1::jsonb,
+            updated_at = NOW() 
+        WHERE id = $2
+        RETURNING id, email, username, profile, email_verified, role"#,
+        &profile_value,
+        user_id
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(UserInfo {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        profile: user.profile,
+        email_verified: user.email_verified,
+        role: user.role,
+    }))
+}
+
+/// 上传用户头像
+#[utoipa::path(
+    post,
+    path = "/auth/me/avatar",
+    tag = "auth",
+    responses(
+        (status = 200, description = "头像上传成功", body = UserInfo),
+        (status = 400, description = "无效文件"),
+        (status = 401, description = "未认证"),
+        (status = 413, description = "文件过大")
+    ),
+    security(
+        ("BearerAuth" = [])
+    )
+)]
+pub async fn upload_avatar(
+    State(state): State<AppState>,
+    Extension(auth_user): Extension<AuthUser>,
+    mut multipart: Multipart,
+) -> Result<Json<UserInfo>, AppError> {
+    let mut file_data: Option<Vec<u8>> = None;
+    let mut filename: Option<String> = None;
+    let mut content_type: Option<String> = None;
+
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| AppError::BadRequest(format!("读取上传文件失败: {}", e)))?
+    {
+        let name = field.name().unwrap_or("").to_string();
+        match name.as_str() {
+            "avatar" | "file" => {
+                filename = field.file_name().map(|s| s.to_string());
+                content_type = field.content_type().map(|s| s.to_string());
+                let data = field.bytes().await.map_err(|e| {
+                    AppError::BadRequest(format!("读取文件内容失败: {}", e))
+                })?;
+
+                if data.len() > 10 * 1024 * 1024 {
+                    // 头像限制 10MB
+                    return Err(AppError::BadRequest("头像文件过大 (最大 10MB)".into()));
+                }
+                file_data = Some(data.to_vec());
+            }
+            _ => {}
+        }
+    }
+
+    let data = file_data.ok_or(AppError::BadRequest("未提供头像文件".into()))?;
+    let _original_filename = filename
+        .ok_or(AppError::BadRequest("未提供文件名".into()))?;
+    let mime_type = content_type.unwrap_or_else(|| "image/png".into());
+
+    // Validate it's an image
+    if !mime_type.starts_with("image/") {
+        return Err(AppError::BadRequest("头像必须是图片格式".into()));
+    }
+
+    // Generate a unique object key: avatars/{user_id}/{timestamp}-{rand}{ext}
+    let ext = mime_to_ext(&mime_type);
+    let object_key = format!(
+        "avatars/{}/{}-{}{}",
+        auth_user.id,
+        chrono::Utc::now().timestamp_millis(),
+        Uuid::new_v4().simple().to_string().chars().take(8).collect::<String>(),
+        ext
+    );
+
+    // Store file via storage service
+    let stored_url = state.storage.store(&object_key, &data, &mime_type).await
+        .map_err(|e| {
+            tracing::error!("存储头像失败: {}", e);
+            AppError::InternalError
+        })?;
+
+    // Update user profile with avatar_url
+    let avatar_value = json!({"avatar_url": stored_url});
+    let user = sqlx::query!(
+        r#"UPDATE users SET 
+            profile = profile || $1::jsonb,
+            updated_at = NOW()
+        WHERE id = $2
+        RETURNING id, email, username, profile, email_verified, role"#,
+        &avatar_value,
+        auth_user.id
+    )
+    .fetch_one(&state.db)
+    .await?;
+
+    Ok(Json(UserInfo {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        profile: user.profile,
+        email_verified: user.email_verified,
+        role: user.role,
+    }))
+}
+
+fn mime_to_ext(mime: &str) -> &str {
+    match mime {
+        "image/jpeg" => ".jpg",
+        "image/png" => ".png",
+        "image/webp" => ".webp",
+        "image/gif" => ".gif",
+        "image/svg+xml" => ".svg",
+        _ => ".png",
+    }
+}
+
+/// 获取公开用户主页（无需登录）
+#[utoipa::path(
+    get,
+    path = "/users/{username}",
+    tag = "users",
+    responses(
+        (status = 200, description = "获取用户公开资料", body = UserPublicProfile),
+        (status = 404, description = "用户不存在")
+    )
+)]
+pub async fn get_user_public(
+    State(state): State<AppState>,
+    axum::extract::Path(username): axum::extract::Path<String>,
+) -> Result<Json<UserPublicProfile>, AppError> {
+    use chrono::DateTime;
+
+    let user = sqlx::query!(
+        "SELECT username, profile, role, created_at FROM users WHERE username = $1 AND deleted_at IS NULL",
+        &username
+    )
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or(AppError::NotFound("用户不存在".into()))?;
+
+    let profile = user.profile;
+    let avatar_url = profile
+        .get("avatar_url").and_then(|v| v.as_str()).map(String::from);
+    let bio = profile.get("bio").and_then(|v| v.as_str()).map(String::from);
+    let location = profile.get("location").and_then(|v| v.as_str()).map(String::from);
+    let website = profile.get("website").and_then(|v| v.as_str()).map(String::from);
+    let twitter = profile.get("twitter").and_then(|v| v.as_str()).map(String::from);
+    let github = profile.get("github").and_then(|v| v.as_str()).map(String::from);
+
+    Ok(Json(UserPublicProfile {
+        username: user.username,
+        avatar_url,
+        bio,
+        location,
+        website,
+        twitter,
+        github,
+        role: user.role,
+        created_at: user.created_at,
+    }))
+}
+
+/// 获取指定用户的文章列表（公开）
+#[utoipa::path(
+    get,
+    path = "/users/{username}/posts",
+    tag = "users",
+    params(
+        ("page" = Option<u32>, Query, description = "页码 (从1开始)"),
+        ("page_size" = Option<u32>, Query, description = "每页数量")
+    ),
+    responses(
+        (status = 200, description = "获取用户文章列表"),
+        (status = 404, description = "用户不存在")
+    )
+)]
+pub async fn get_user_posts(
+    State(state): State<AppState>,
+    axum::extract::Path(username): axum::extract::Path<String>,
+    axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let page: u32 = params.get("page").and_then(|v| v.parse().ok()).unwrap_or(1);
+    let page_size: u32 = params.get("page_size").and_then(|v| v.parse().ok()).unwrap_or(10);
+    let offset = ((page - 1) * page_size) as i64;
+
+    // Verify user exists
+    let user_exists = sqlx::query_scalar::<_, bool>(
+        "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1 AND deleted_at IS NULL)"
+    )
+    .bind(&username)
+    .fetch_one(&state.db)
+    .await?;
+
+    if !user_exists {
+        return Err(AppError::NotFound("用户不存在".into()));
+    }
+
+    let total = sqlx::query!(
+        r#"SELECT COUNT(*) as count FROM posts p 
+        JOIN users u ON p.author_id = u.id 
+        WHERE u.username = $1 AND p.deleted_at IS NULL AND p.status::text = 'published'"#,
+        &username
+    )
+    .fetch_one(&state.db)
+    .await?
+    .count
+    .unwrap_or(0);
+
+    #[derive(sqlx::FromRow)]
+    struct UserPostRow {
+        id: Uuid,
+        title: String,
+        slug: String,
+        summary: Option<String>,
+        cover_image: Option<String>,
+        published_at: Option<chrono::DateTime<chrono::Utc>>,
+        updated_at: Option<chrono::DateTime<chrono::Utc>>,
+        view_count: Option<i64>,
+        like_count: Option<i32>,
+        comment_count: Option<i32>,
+        reading_time: Option<i32>,
+    }
+
+    let posts: Vec<UserPostRow> = sqlx::query_as(
+        r#"SELECT p.id, p.title, p.slug, p.summary,
+        CAST(NULL AS text) as cover_image,
+        p.published_at, p.updated_at,
+        p.view_count, p.like_count, p.comment_count,
+        COALESCE(jsonb_array_length(p.content_json), 0) as reading_time
+        FROM posts p 
+        JOIN users u ON p.author_id = u.id 
+        WHERE u.username = $1 AND p.deleted_at IS NULL AND p.status::text = 'published'
+        ORDER BY p.published_at DESC 
+        LIMIT $2 OFFSET $3"#,
+    )
+    .bind(&username)
+    .bind(page_size as i64)
+    .bind(offset)
+    .fetch_all(&state.db)
+    .await?;
+
+    let post_list: Vec<serde_json::Value> = posts.into_iter().map(|p| {
+        json!({
+            "id": p.id,
+            "title": p.title,
+            "slug": p.slug,
+            "summary": p.summary,
+            "cover_image": p.cover_image,
+            "published_at": p.published_at,
+            "updated_at": p.updated_at,
+            "view_count": p.view_count.unwrap_or(0),
+            "like_count": p.like_count.unwrap_or(0),
+            "comment_count": p.comment_count.unwrap_or(0),
+            "reading_time": p.reading_time.map(|t| (t as u32 / 200).max(1)).unwrap_or(1),
+        })
+    }).collect();
+
+    Ok(Json(json!({
+        "posts": post_list,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": ((total as f64) / (page_size as f64)).ceil() as u32,
+    })))
 }

@@ -80,14 +80,14 @@ export default function PopularArticlesPage() {
             <h1 className="mx-auto mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-4xl leading-tight font-extrabold tracking-tight text-transparent sm:text-5xl sm:leading-tight md:text-6xl md:leading-tight lg:text-7xl lg:leading-tight dark:from-gray-100 dark:via-gray-200 dark:to-gray-100">
               热门文章
             </h1>
-            <p className="mx-auto max-w-2xl text-base text-gray-600 sm:text-lg dark:text-gray-400">
+            <p className="mx-auto max-w-2xl text-base text-[var(--theme-fg-secondary)] sm:text-lg dark:text-[var(--theme-fg-tertiary)]">
               基于读者参与度排序的最受欢迎文章
             </p>
           </div>
 
           {validArticles.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                 暂时没有热门文章数据。开始阅读一些文章来生成排行榜吧！
               </p>
             </div>
@@ -124,7 +124,7 @@ export default function PopularArticlesPage() {
                 }
                 return {
                   text: '📝 新作',
-                  className: 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400',
+                  className: 'bg-gray-100 text-gray-700/20 ',
                 }
               }
 
@@ -133,7 +133,7 @@ export default function PopularArticlesPage() {
               return (
                 <article
                   key={articleId}
-                  className="group flex flex-col space-y-3 rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600"
+                  className="group flex flex-col space-y-3 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] p-6 shadow-sm transition-all duration-200 hover:border-[var(--theme-border)] hover:shadow-md dark:border-gray-700 dark:hover:border-gray-600"
                 >
                   {/* 排名标记 */}
                   <div className="flex items-center justify-between">
@@ -143,7 +143,7 @@ export default function PopularArticlesPage() {
                           index === 0
                             ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400'
                             : index === 1
-                              ? 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400'
+                              ? 'bg-gray-100 text-gray-700/20 '
                               : index === 2
                                 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400'
                                 : 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
@@ -157,14 +157,14 @@ export default function PopularArticlesPage() {
                         {badge.text}
                       </span>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       {analytics.engagementScore}/100
                     </div>
                   </div>
 
                   {/* 文章标题 */}
                   <div>
-                    <h3 className="text-lg leading-6 font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg leading-6 font-semibold tracking-tight text-[var(--theme-fg)]">
                       {path ? (
                         <Link
                           href={`/${path}`}
@@ -173,11 +173,11 @@ export default function PopularArticlesPage() {
                           {title}
                         </Link>
                       ) : (
-                        <span className="text-gray-500 dark:text-gray-400">{title}</span>
+                        <span className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">{title}</span>
                       )}
                     </h3>
                     {summary && (
-                      <p className="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
+                      <p className="mt-2 line-clamp-2 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                         {summary}
                       </p>
                     )}
@@ -190,7 +190,7 @@ export default function PopularArticlesPage() {
                         <Tag key={tag} text={tag} />
                       ))}
                       {tags.length > 3 && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                           +{tags.length - 3} 更多
                         </span>
                       )}
@@ -198,7 +198,7 @@ export default function PopularArticlesPage() {
                   )}
 
                   {/* 统计数据 */}
-                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center justify-between text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1">👁 {analytics.viewCount}</span>
                       <span className="flex items-center gap-1">

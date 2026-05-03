@@ -177,12 +177,12 @@ const handleModeToggle = () => {
                 了解更多
               </Button>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-gray-200 backdrop-blur-lg">
+            <div className="rounded-2xl border border-white/10 bg-[var(--theme-bg)]/5 p-4 text-sm text-gray-200 backdrop-blur-lg">
               <div className="flex items-center justify-between">
                 <span>当前模式</span>
                 <span className="text-primary-200 font-semibold">{visualMode}</span>
               </div>
-              <div className="mt-2 text-xs text-gray-400" suppressHydrationWarning>
+              <div className="mt-2 text-xs text-[var(--theme-fg-tertiary)]" suppressHydrationWarning>
                 自动策略：{loadingStrategy} | 动画距离 {animationParams.distance}px
                 {prefersReducedMotion && ' · 已启用低动效模式'}
               </div>
@@ -202,7 +202,7 @@ const handleModeToggle = () => {
                 <ThreeJSViewer className="h-full w-full" qualityProfile={qualityProfile} />
               </Suspense>
             </div>
-            <div className="pointer-events-none absolute inset-x-6 bottom-6 flex justify-between text-xs tracking-[0.4em] text-gray-400 uppercase">
+            <div className="pointer-events-none absolute inset-x-6 bottom-6 flex justify-between text-xs tracking-[0.4em] text-[var(--theme-fg-tertiary)] uppercase">
               <span>Adaptive 3D</span>
               <span>Realtime</span>
             </div>

@@ -110,11 +110,11 @@ export default function SheetMusic({
       <div
         data-testid="sheet-music"
         data-state="loading"
-        className="my-6 rounded-lg border border-gray-200 bg-gray-50 p-8 dark:border-gray-700 dark:bg-gray-800"
+        className="my-6 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] p-8 dark:border-gray-700"
       >
         <div className="flex items-center justify-center">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-          <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">加载乐谱...</span>
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--theme-border)] border-t-gray-600" />
+          <span className="ml-3 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">加载乐谱...</span>
         </div>
       </div>
     )
@@ -129,13 +129,13 @@ export default function SheetMusic({
       {error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          <pre className="mt-2 overflow-auto text-xs text-gray-700 dark:text-gray-300">
+          <pre className="mt-2 overflow-auto text-xs text-[var(--theme-fg)] ">
             {abcnotation}
           </pre>
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900/50">
+          <div className="overflow-x-auto rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] p-4 dark:border-gray-700/50">
             <div ref={containerRef} data-testid="sheet-music-score" className="abcjs-sheet" />
           </div>
           {showPlayback && (

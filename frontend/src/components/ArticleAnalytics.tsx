@@ -21,8 +21,8 @@ interface ArticleAnalyticsProps {
 type EngagementTier = 'strong' | 'subtle'
 
 const engagementBadgeClasses: Record<EngagementTier, string> = {
-  strong: 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
-  subtle: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+  strong: 'bg-gray-200 text-gray-700 ',
+  subtle: 'bg-gray-100 text-gray-600 ',
 }
 
 const engagementBarClasses: Record<EngagementTier, string> = {
@@ -75,53 +75,53 @@ export default function ArticleAnalytics({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+      <div className="flex items-center gap-3 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
         <span className="flex items-center gap-1" suppressHydrationWarning>
           <Eye size={14} />
           {displayAnalytics.viewCount}
         </span>
         <span suppressHydrationWarning>{displayPopularityLabel}</span>
-        {displayIsPopular && <TrendingUp size={14} className="text-gray-400 dark:text-gray-500" />}
+        {displayIsPopular && <TrendingUp size={14} className="text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]" />}
       </div>
     )
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+    <div className="rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] p-4 dark:border-gray-700">
       {/* 热度标签 */}
       <div className="mb-3 flex items-center justify-between">
         <span
-          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="text-sm font-medium text-[var(--theme-fg)] "
           suppressHydrationWarning
         >
           {displayText('analytics.popularity')}
         </span>
         <div className="flex items-center gap-2">
           <span
-            className="text-sm font-bold text-gray-600 dark:text-gray-300"
+            className="text-sm font-bold text-[var(--theme-fg-secondary)] "
             suppressHydrationWarning
           >
             {displayPopularityLabel}
           </span>
-          {displayIsPopular && <TrendingUp size={16} className="text-gray-400 dark:text-gray-500" />}
-          {displayAnalytics.engagementScore >= 80 && <Award size={16} className="text-gray-400 dark:text-gray-500" />}
+          {displayIsPopular && <TrendingUp size={16} className="text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]" />}
+          {displayAnalytics.engagementScore >= 80 && <Award size={16} className="text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]" />}
         </div>
       </div>
 
       {/* 参与度分数 */}
       <div className="mb-4">
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+          <span className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" suppressHydrationWarning>
             {displayText('analytics.engagementScore')}
           </span>
           <span
-            className="text-xs font-medium text-gray-700 dark:text-gray-300"
+            className="text-xs font-medium text-[var(--theme-fg)] "
             suppressHydrationWarning
           >
             {displayAnalytics.engagementScore}/100
           </span>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 ">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-orange-500 transition-all duration-300"
             style={{ width: `${displayAnalytics.engagementScore}%` }}
@@ -134,12 +134,12 @@ export default function ArticleAnalytics({
         <div className="grid grid-cols-2 gap-4 text-sm">
           {/* 浏览次数 */}
           <div className="flex items-center gap-2">
-            <Eye size={16} className="text-gray-500 dark:text-gray-400" />
+            <Eye size={16} className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" />
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+              <p className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" suppressHydrationWarning>
                 {displayText('analytics.views')}
               </p>
-              <p className="font-medium text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+              <p className="font-medium text-[var(--theme-fg)]" suppressHydrationWarning>
                 {displayAnalytics.viewCount}
               </p>
             </div>
@@ -147,12 +147,12 @@ export default function ArticleAnalytics({
 
           {/* 平均阅读时间 */}
           <div className="flex items-center gap-2">
-            <Clock size={16} className="text-gray-500 dark:text-gray-400" />
+            <Clock size={16} className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" />
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+              <p className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" suppressHydrationWarning>
                 {displayText('analytics.avgReadingTime')}
               </p>
-              <p className="font-medium text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+              <p className="font-medium text-[var(--theme-fg)]" suppressHydrationWarning>
                 {isMounted ? formatTime(analytics.averageReadingTime) : '0秒'}
               </p>
             </div>
@@ -160,12 +160,12 @@ export default function ArticleAnalytics({
 
           {/* 滚动深度 */}
           <div className="flex items-center gap-2">
-            <BarChart3 size={16} className="text-gray-500 dark:text-gray-400" />
+            <BarChart3 size={16} className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" />
             <div>
-              <p className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+              <p className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" suppressHydrationWarning>
                 {displayText('analytics.scrollDepth')}
               </p>
-              <p className="font-medium text-gray-900 dark:text-gray-100" suppressHydrationWarning>
+              <p className="font-medium text-[var(--theme-fg)]" suppressHydrationWarning>
                 {isMounted ? formatPercentage(analytics.scrollDepth) : '0%'}
               </p>
             </div>
@@ -174,13 +174,13 @@ export default function ArticleAnalytics({
           {/* 最后访问时间 */}
           {isMounted && analytics.lastVisited && (
             <div className="flex items-center gap-2">
-              <TrendingUp size={16} className="text-gray-500 dark:text-gray-400" />
+              <TrendingUp size={16} className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" />
               <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400" suppressHydrationWarning>
+                <p className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]" suppressHydrationWarning>
                   {displayText('analytics.lastVisited')}
                 </p>
                 <p
-                  className="font-medium text-gray-900 dark:text-gray-100"
+                  className="font-medium text-[var(--theme-fg)]"
                   suppressHydrationWarning
                 >
                   {new Date(analytics.lastVisited).toLocaleDateString()}
@@ -249,13 +249,13 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
   }
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-gray-200/60 bg-[#F5F3F0] shadow-sm dark:border-gray-700 dark:bg-gray-900" style={{ height: '100%', maxHeight: '100%' }}>
-      <div className="flex-shrink-0 border-b border-gray-200/40 px-4 py-3 dark:border-gray-700">
+    <div className="flex h-full flex-col rounded-xl border border-[var(--theme-border)]/60 bg-[#F5F3F0] shadow-sm dark:border-gray-700" style={{ height: '100%', maxHeight: '100%' }}>
+      <div className="flex-shrink-0 border-b border-[var(--theme-border)]/40 px-4 py-3 dark:border-gray-700">
         <h3
-          className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300"
+          className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-[var(--theme-fg-secondary)] "
           suppressHydrationWarning
         >
-          <TrendingUp size={16} className="text-gray-400 dark:text-gray-500" />
+          <TrendingUp size={16} className="text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]" />
           {displayText('analytics.popularArticles')}
         </h3>
       </div>
@@ -270,22 +270,22 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
             <Link
               key={articleId}
               href={path ? `/${path}` : '#'}
-              className="group block px-4 py-2.5 transition-colors hover:bg-white/50 dark:hover:bg-gray-800/50"
+              className="group block px-4 py-2.5 transition-colors hover:bg-[var(--theme-bg)]/50 dark:hover:bg-gray-800/50"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   {/* 排名和标题 */}
                   <div className="flex items-start gap-2 mb-2">
-                    <span className="flex-shrink-0 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">
+                    <span className="flex-shrink-0 flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] bg-[var(--theme-bg-tertiary)]">
                       {index + 1}
                     </span>
-                    <h4 className="line-clamp-2 text-sm font-medium leading-snug text-gray-900 group-hover:text-primary-600 dark:text-gray-100 dark:group-hover:text-primary-400 transition-colors">
+                    <h4 className="line-clamp-2 text-sm font-medium leading-snug text-[var(--theme-fg)] group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                       {title}
                     </h4>
                   </div>
                   
                   {/* 统计数据 */}
-                  <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 ml-7">
+                  <div className="flex items-center gap-4 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] ml-7">
                     <span className="flex items-center gap-1" suppressHydrationWarning>
                       <Eye size={12} className="opacity-60" />
                       {analytics.viewCount}
@@ -310,7 +310,7 @@ export function PopularArticles({ limit = 5, excludeId }: PopularArticlesProps) 
                       {analytics.engagementScore}
                     </span>
                     {/* 进度条 */}
-                    <div className="w-12 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div className="w-12 h-1 overflow-hidden rounded-full bg-gray-200 ">
                       <div
                         className={cn(
                           'h-full transition-all duration-300',

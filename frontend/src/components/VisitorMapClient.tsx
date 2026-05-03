@@ -7,8 +7,8 @@ import type { VisitorData } from '@/lib/types/visitor'
 const VisitorMap = dynamic(() => import('@/components/VisitorMap'), {
   ssr: false,
   loading: () => (
-    <div className="flex h-96 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-      <p className="text-gray-500 dark:text-gray-400">加载地图中...</p>
+    <div className="flex h-96 items-center justify-center rounded-lg bg-[var(--theme-bg-tertiary)]">
+      <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">加载地图中...</p>
     </div>
   ),
 })

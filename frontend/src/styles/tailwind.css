@@ -14,41 +14,45 @@
     'Segoe UI', sans-serif;
   --font-mono: var(--font-jetbrains-mono), 'SFMono-Regular', ui-monospace, monospace;
 
-  --color-background: var(--geist-bg);
-  --color-foreground: var(--geist-fg);
-  --color-card: var(--geist-bg);
-  --color-card-foreground: var(--geist-fg);
-  --color-popover: var(--geist-bg);
-  --color-popover-foreground: var(--geist-fg);
-  --color-primary: var(--geist-fg);
-  --color-primary-foreground: var(--geist-bg);
-  --color-secondary: var(--geist-secondary);
-  --color-secondary-foreground: var(--geist-secondary-foreground);
-  --color-muted: var(--geist-muted);
-  --color-muted-foreground: var(--geist-muted-foreground);
-  --color-accent: var(--geist-accent);
-  --color-accent-foreground: var(--geist-accent-foreground);
-  --color-destructive: var(--geist-destructive);
-  --color-destructive-foreground: var(--geist-destructive-foreground);
-  --color-border: var(--geist-border);
-  --color-input: var(--geist-border);
-  --color-ring: var(--geist-ring);
+  --color-background: var(--theme-bg);
+  --color-foreground: var(--theme-fg);
+  --color-card: var(--theme-bg-secondary);
+  --color-card-foreground: var(--theme-fg);
+  --color-popover: var(--theme-bg);
+  --color-popover-foreground: var(--theme-fg);
+  --color-primary: var(--theme-accent);
+  --color-primary-foreground: var(--theme-accent-foreground);
+  --color-secondary: var(--theme-bg-secondary);
+  --color-secondary-foreground: var(--theme-fg);
+  --color-muted: var(--theme-muted);
+  --color-muted-foreground: var(--theme-muted-foreground);
+  --color-accent: var(--theme-bg-secondary);
+  --color-accent-foreground: var(--theme-fg);
+  --color-destructive: var(--theme-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--theme-border);
+  --color-input: var(--theme-border);
+  --color-ring: var(--theme-accent);
 
   --radius-sm: var(--geist-radius-sm);
   --radius-md: var(--geist-radius-md);
   --radius-lg: var(--geist-radius-lg);
 
-  --color-gray-50: oklch(0.985 0.002 247.839);
-  --color-gray-100: oklch(0.967 0.003 264.542);
-  --color-gray-200: oklch(0.928 0.006 264.531);
-  --color-gray-300: oklch(0.872 0.01 258.338);
-  --color-gray-400: oklch(0.707 0.022 261.325);
-  --color-gray-500: oklch(0.551 0.027 264.364);
-  --color-gray-600: oklch(0.446 0.03 256.802);
-  --color-gray-700: oklch(0.373 0.034 259.733);
-  --color-gray-800: oklch(0.278 0.033 256.848);
-  --color-gray-900: oklch(0.21 0.034 264.665);
-  --color-gray-950: oklch(0.13 0.028 261.692);
+  --color-gray-50: var(--theme-bg-secondary);
+  --color-gray-100: var(--theme-bg-tertiary);
+  --color-gray-200: var(--theme-border);
+  --color-gray-300: var(--theme-border-strong);
+  --color-gray-400: var(--theme-fg-tertiary);
+  --color-gray-500: var(--theme-fg-secondary);
+  --color-gray-600: var(--theme-fg-secondary);
+  --color-gray-700: var(--theme-fg);
+  --color-gray-800: var(--theme-fg);
+  --color-gray-900: var(--theme-fg);
+  --color-gray-950: var(--theme-fg);
+
+  /* Override built-in colors to follow theme */
+  --color-white: var(--theme-bg);
+  --color-black: var(--theme-fg);
 
   --line-height-11: 2.75rem;
   --line-height-12: 3rem;
@@ -79,13 +83,13 @@
 
   a,
   button {
-    outline-color: var(--geist-ring);
+    outline-color: var(--theme-accent);
   }
 
   html,
   body {
-    background: var(--geist-bg);
-    color: var(--geist-fg);
+    background: var(--theme-bg);
+    color: var(--theme-fg);
   }
 
   body {
@@ -96,7 +100,7 @@
   button:focus-visible {
     outline: 2px solid;
     border-radius: var(--geist-radius-sm);
-    outline-color: var(--geist-ring);
+    outline-color: var(--theme-accent);
   }
 }
 
@@ -1250,8 +1254,8 @@ html.cursor-hidden .case-go {
 
 /* ProseMirror / TipTap Editor Code Block */
 .tiptap pre {
-  background: var(--geist-bg-secondary);
-  border: 1px solid var(--geist-border);
+  background: var(--theme-bg-secondary);
+  border: 1px solid var(--theme-border);
   border-radius: 0.5rem;
   padding: 1rem 1.25rem;
   margin: 1.25em 0;
@@ -1265,7 +1269,7 @@ html.cursor-hidden .case-go {
 
 .tiptap pre code {
   display: block;
-  color: var(--geist-fg);
+  color: var(--theme-fg);
   background: none;
   font-size: inherit;
   padding: 0;
@@ -1280,7 +1284,7 @@ html.cursor-hidden .case-go {
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.05em;
-  color: var(--geist-fg-tertiary);
+  color: var(--theme-fg-tertiary);
   opacity: 0.6;
   pointer-events: none;
 }

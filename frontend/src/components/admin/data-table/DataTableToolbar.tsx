@@ -99,8 +99,8 @@ export function DataTableToolbar({
   return (
     <div className={cn(
       'admin-toolbar',
-      'border-b border-gray-200 dark:border-gray-700',
-      'bg-white dark:bg-gray-800',
+      'border-b border-[var(--theme-border)] dark:border-gray-700',
+      'bg-white',
       className
     )}>
       <div className="flex items-center justify-between gap-4">
@@ -108,7 +108,7 @@ export function DataTableToolbar({
         <div className="flex items-center gap-2 flex-1">
           {/* 搜索框 */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--theme-fg-tertiary)]" />
             <input
               id="datatable-search-input"
               type="text"
@@ -118,10 +118,10 @@ export function DataTableToolbar({
               className={cn(
                 'w-full pl-8 pr-8 py-1.5',
                 'text-admin-sm',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-[var(--theme-border)] dark:border-gray-600',
                 'rounded-md',
-                'bg-white dark:bg-gray-700',
-                'text-gray-900 dark:text-gray-100',
+                'bg-white ',
+                'text-gray-900',
                 'placeholder-gray-400',
                 'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
                 'transition-all duration-150'
@@ -130,7 +130,7 @@ export function DataTableToolbar({
             {searchQuery && (
               <button
                 onClick={handleClearSearch}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[var(--theme-fg-tertiary)] hover:text-[var(--theme-fg-secondary)] dark:hover:text-gray-300"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -144,9 +144,9 @@ export function DataTableToolbar({
               className={cn(
                 'px-3 py-1.5',
                 'text-admin-sm font-medium',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-[var(--theme-border)] dark:border-gray-600',
                 'rounded-md',
-                'text-gray-700 dark:text-gray-300',
+                'text-gray-700 ',
                 'hover:bg-gray-50 dark:hover:bg-gray-700',
                 'transition-colors duration-150',
                 'flex items-center gap-1.5',
@@ -167,14 +167,14 @@ export function DataTableToolbar({
         <div className="flex items-center gap-2">
           {/* 选中计数 */}
           {selectedCount !== undefined && selectedCount > 0 && (
-            <span className="text-admin-sm text-gray-600 dark:text-gray-400">
+            <span className="text-admin-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
               已选择 <span className="font-semibold text-blue-600 dark:text-blue-400">{selectedCount}</span> 项
             </span>
           )}
 
           {/* 总数显示 */}
           {totalCount !== undefined && (
-            <span className="text-admin-xs text-gray-500 dark:text-gray-400 hidden sm:inline">
+            <span className="text-admin-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] hidden sm:inline">
               共 {totalCount.toLocaleString()} 项
             </span>
           )}
@@ -186,7 +186,7 @@ export function DataTableToolbar({
               disabled={isLoading}
               className={cn(
                 'p-1.5',
-                'text-gray-500 dark:text-gray-400',
+                'text-gray-500 ',
                 'hover:bg-gray-100 dark:hover:bg-gray-700',
                 'rounded-md',
                 'transition-colors duration-150',
@@ -205,9 +205,9 @@ export function DataTableToolbar({
               className={cn(
                 'px-3 py-1.5',
                 'text-admin-sm font-medium',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-[var(--theme-border)] dark:border-gray-600',
                 'rounded-md',
-                'text-gray-700 dark:text-gray-300',
+                'text-gray-700 ',
                 'hover:bg-gray-50 dark:hover:bg-gray-700',
                 'transition-colors duration-150',
                 'flex items-center gap-1.5'
@@ -223,7 +223,7 @@ export function DataTableToolbar({
           <button
             className={cn(
               'p-1.5',
-              'text-gray-500 dark:text-gray-400',
+              'text-gray-500 ',
               'hover:bg-gray-100 dark:hover:bg-gray-700',
               'rounded-md',
               'transition-colors duration-150'
@@ -237,10 +237,10 @@ export function DataTableToolbar({
 
       {/* 筛选面板（展开时显示） */}
       {showFilters && (
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-3 pt-3 border-t border-[var(--theme-border)] dark:border-gray-700">
           <div className="flex items-center gap-2 flex-wrap">
             {/* 这里可以添加具体的筛选控件 */}
-            <span className="text-admin-xs text-gray-500 dark:text-gray-400">
+            <span className="text-admin-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
               筛选选项待实现...
             </span>
           </div>
@@ -310,13 +310,13 @@ export function DataTablePagination({
   return (
     <div className={cn(
       'admin-pagination',
-      'bg-white dark:bg-gray-800',
-      'border-t border-gray-200 dark:border-gray-700',
+      'bg-white',
+      'border-t border-[var(--theme-border)] dark:border-gray-700',
       className
     )}>
       <div className="flex items-center justify-between">
         {/* 左侧：信息显示 */}
-        <div className="text-admin-sm text-gray-600 dark:text-gray-400">
+        <div className="text-admin-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
           显示 {startIndex} - {endIndex} 项，共 {totalCount.toLocaleString()} 项
         </div>
 
@@ -330,10 +330,10 @@ export function DataTablePagination({
               className={cn(
                 'px-2 py-1',
                 'text-admin-sm',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-[var(--theme-border)] dark:border-gray-600',
                 'rounded-md',
-                'bg-white dark:bg-gray-700',
-                'text-gray-900 dark:text-gray-100',
+                'bg-white ',
+                'text-gray-900',
                 'focus:outline-none focus:ring-2 focus:ring-blue-500'
               )}
             >
@@ -352,9 +352,9 @@ export function DataTablePagination({
               className={cn(
                 'px-2 py-1',
                 'text-admin-sm',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-[var(--theme-border)] dark:border-gray-600',
                 'rounded-md',
-                'text-gray-700 dark:text-gray-300',
+                'text-gray-700 ',
                 'hover:bg-gray-50 dark:hover:bg-gray-700',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
                 'transition-colors duration-150'
@@ -376,7 +376,7 @@ export function DataTablePagination({
                   'transition-colors duration-150',
                   page === currentPage
                     ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600',
+                    : 'bg-white text-gray-700 border-[var(--theme-border)] dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600',
                   page === '...' && 'cursor-default border-transparent'
                 )}
               >
@@ -391,9 +391,9 @@ export function DataTablePagination({
               className={cn(
                 'px-2 py-1',
                 'text-admin-sm',
-                'border border-gray-300 dark:border-gray-600',
+                'border border-[var(--theme-border)] dark:border-gray-600',
                 'rounded-md',
-                'text-gray-700 dark:text-gray-300',
+                'text-gray-700 ',
                 'hover:bg-gray-50 dark:hover:bg-gray-700',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
                 'transition-colors duration-150'

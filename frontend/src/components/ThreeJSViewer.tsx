@@ -307,14 +307,14 @@ export default function ThreeJSViewer({
       style={{ backgroundColor: '#f0f0f0' }}
     >
       {isLoading && !error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100/90 backdrop-blur-sm dark:bg-gray-800/90">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--theme-bg-tertiary)]/90 backdrop-blur-sm/90">
           <Spinner size="lg" className="mb-4" />
-          <p className="text-lg font-medium text-gray-600 dark:text-gray-400">加载 3D 模型中...</p>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">这可能需要几秒钟</p>
+          <p className="text-lg font-medium text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">加载 3D 模型中...</p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-[var(--theme-fg-secondary)]">这可能需要几秒钟</p>
         </div>
       )}
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100/80 dark:bg-gray-800/80">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--theme-bg-tertiary)]/80/80">
           <p className="mb-2 text-red-600 dark:text-red-400">{error}</p>
           <button
             onClick={() => {

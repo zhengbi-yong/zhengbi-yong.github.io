@@ -36,8 +36,8 @@ export function ElegantButton({
     primary:
       'bg-indigo-600 text-white hover:bg-indigo-700 shadow-visitor-soft hover:shadow-visitor-glow',
     secondary:
-      'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
-    ghost: 'bg-transparent text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-800',
+      'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:hover:bg-gray-700',
+    ghost: 'bg-transparent text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800',
   }
 
   return (

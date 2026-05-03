@@ -83,12 +83,12 @@ export default function ReadingListPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-[var(--theme-bg)] p-8 text-center shadow">
           <div className="mb-4 text-6xl">📚</div>
-          <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="mb-4 text-3xl font-bold text-[var(--theme-fg)]">
             {t('bookmark.loginRequired') || '请先登录'}
           </h1>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <p className="mb-6 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             {t('bookmark.loginToViewList') || '登录后即可查看您的阅读列表'}
           </p>
           <Link
@@ -105,10 +105,10 @@ export default function ReadingListPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="mb-2 text-4xl font-bold text-[var(--theme-fg)]">
           {t('bookmark.readingList') || '阅读列表'}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
           {t('bookmark.readingListDesc') || '您收藏的文章，随时可以继续阅读'} ({totalCount})
         </p>
       </div>
@@ -120,7 +120,7 @@ export default function ReadingListPage() {
           placeholder={t('bookmark.searchPlaceholder') || '搜索收藏的文章...'}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-3 text-[var(--theme-fg)] placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400"
         />
       </div>
 
@@ -129,14 +129,14 @@ export default function ReadingListPage() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
         </div>
       ) : filteredBookmarks.length === 0 ? (
-        <div className="rounded-lg bg-white p-12 text-center shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-[var(--theme-bg)] p-12 text-center shadow">
           <div className="mb-4 text-6xl">📚</div>
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="mb-2 text-2xl font-semibold text-[var(--theme-fg)]">
             {searchQuery
               ? (t('bookmark.noSearchResults') || '没有找到匹配的文章')
               : (t('bookmark.noBookmarks') || '暂无收藏')}
           </h2>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <p className="mb-6 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             {searchQuery
               ? (t('bookmark.tryDifferentSearch') || '试试其他关键词')
               : (t('bookmark.startSaving') || '开始收藏您喜欢的文章')}
@@ -156,7 +156,7 @@ export default function ReadingListPage() {
             {filteredBookmarks.map((bookmark) => (
               <div
                 key={bookmark.id}
-                className="rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
+                className="rounded-lg bg-[var(--theme-bg)] p-6 shadow transition-shadow hover:shadow-lg"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -167,7 +167,7 @@ export default function ReadingListPage() {
                       {bookmark.post_title}
                     </Link>
 
-                    <div className="mb-4 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="mb-4 flex items-center gap-4 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       <span>
                         {t('bookmark.savedOn') || '收藏于'}:{' '}
                         {new Date(bookmark.created_at).toLocaleDateString('zh-CN')}
@@ -187,7 +187,7 @@ export default function ReadingListPage() {
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
                           placeholder={t('bookmark.addNote') || '添加笔记...'}
-                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                          className="w-full rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] px-3 py-2 text-[var(--theme-fg)] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 "
                           rows={3}
                         />
                         <div className="mt-2 flex gap-2">
@@ -202,7 +202,7 @@ export default function ReadingListPage() {
                               setEditingNote(null)
                               setNoteText('')
                             }}
-                            className="rounded border border-gray-300 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                            className="rounded border border-[var(--theme-border)] px-3 py-1.5 text-sm text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] dark:border-gray-600 dark:hover:bg-gray-700"
                           >
                             {t('cancel') || '取消'}
                           </button>
@@ -215,7 +215,7 @@ export default function ReadingListPage() {
                             <p className="mb-2 text-sm font-medium text-yellow-800 dark:text-yellow-200">
                               {t('bookmark.note') || '笔记'}
                             </p>
-                            <p className="text-sm text-gray-700 dark:text-gray-300">{bookmark.note}</p>
+                            <p className="text-sm text-[var(--theme-fg)] ">{bookmark.note}</p>
                           </div>
                         ) : null}
                       </div>
@@ -234,7 +234,7 @@ export default function ReadingListPage() {
                         setEditingNote(bookmark.id)
                         setNoteText(bookmark.note || '')
                       }}
-                      className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                      className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       {bookmark.note ? (t('bookmark.editNote') || '编辑笔记') : (t('bookmark.addNote') || '添加笔记')}
                     </button>
@@ -243,7 +243,7 @@ export default function ReadingListPage() {
                       postSlug={bookmark.post_slug}
                       postTitle={bookmark.post_title}
                       variant="icon"
-                      className="border border-gray-300 dark:border-gray-600"
+                      className="border border-[var(--theme-border)] dark:border-gray-600"
                     />
                   </div>
                 </div>
@@ -257,19 +257,19 @@ export default function ReadingListPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 {t('previous') || '上一页'}
               </button>
 
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                 {t('page') || '第'} {currentPage} / {totalPages} {t('page') || '页'}
               </span>
 
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 {t('next') || '下一页'}
               </button>

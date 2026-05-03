@@ -94,12 +94,12 @@ export default function NotificationsPage() {
   if (!user) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-[var(--theme-bg)] p-8 text-center shadow">
           <div className="mb-4 text-6xl">🔔</div>
-          <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="mb-4 text-3xl font-bold text-[var(--theme-fg)]">
             {t('notification.loginRequired') || '请先登录'}
           </h1>
-          <p className="mb-6 text-gray-600 dark:text-gray-400">
+          <p className="mb-6 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             {t('notification.loginToManage') || '登录后即可管理您的通知设置'}
           </p>
           <Link
@@ -117,23 +117,23 @@ export default function NotificationsPage() {
     <div className="mx-auto max-w-6xl px-4 py-8">
       {/* 页面标题 */}
       <div className="mb-8">
-        <h1 className="mb-2 text-4xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="mb-2 text-4xl font-bold text-[var(--theme-fg)]">
           {t('notification.title') || '通知设置'}
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
           {t('notification.subtitle') || '管理您的评论通知和订阅'}
         </p>
       </div>
 
       {/* 标签页 */}
-      <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="mb-6 border-b border-[var(--theme-border)] dark:border-gray-700">
         <nav className="flex gap-4">
           <button
             onClick={() => setActiveTab('push')}
             className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === 'push'
                 ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                : 'border-transparent text-gray-600 hover:border-[var(--theme-border)] hover:text-gray-900 dark:hover:text-gray-100'
             }`}
           >
             {t('notification.pushTab') || '推送通知'}
@@ -143,7 +143,7 @@ export default function NotificationsPage() {
             className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === 'subscriptions'
                 ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                : 'border-transparent text-gray-600 hover:border-[var(--theme-border)] hover:text-gray-900 dark:hover:text-gray-100'
             }`}
           >
             {t('notification.mySubscriptions') || '我的订阅'} ({subscriptions.length})
@@ -153,7 +153,7 @@ export default function NotificationsPage() {
             className={`border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === 'preferences'
                 ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+                : 'border-transparent text-gray-600 hover:border-[var(--theme-border)] hover:text-gray-900 dark:hover:text-gray-100'
             }`}
           >
             {t('notification.preferences') || '通知偏好'}
@@ -170,11 +170,11 @@ export default function NotificationsPage() {
           {/* PWA推送通知设置 */}
           {activeTab === 'push' && (
             <div className="space-y-6">
-              <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-                <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              <div className="rounded-lg bg-[var(--theme-bg)] p-6 shadow">
+                <h2 className="mb-4 text-2xl font-semibold text-[var(--theme-fg)]">
                   {t('notification.pushSettings') || 'PWA 推送通知'}
                 </h2>
-                <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mb-6 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                   {t('notification.pushSettingsDesc') || '启用推送通知，即使浏览器关闭也能收到新文章和重要更新的提醒'}
                 </p>
                 <NotificationSettings />
@@ -203,12 +203,12 @@ export default function NotificationsPage() {
           {activeTab === 'subscriptions' && (
             <div className="space-y-4">
               {subscriptions.length === 0 ? (
-                <div className="rounded-lg bg-white p-12 text-center shadow dark:bg-gray-800">
+                <div className="rounded-lg bg-[var(--theme-bg)] p-12 text-center shadow">
                   <div className="mb-4 text-6xl">📭</div>
-                  <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                  <h2 className="mb-2 text-2xl font-semibold text-[var(--theme-fg)]">
                     {t('notification.noSubscriptions') || '暂无订阅'}
                   </h2>
-                  <p className="mb-6 text-gray-600 dark:text-gray-400">
+                  <p className="mb-6 text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                     {t('notification.startSubscribing') || '订阅文章的评论通知，不错过任何回复'}
                   </p>
                 </div>
@@ -216,7 +216,7 @@ export default function NotificationsPage() {
                 subscriptions.map((sub) => (
                   <div
                     key={sub.id}
-                    className="rounded-lg bg-white p-6 shadow transition-shadow hover:shadow-lg dark:bg-gray-800"
+                    className="rounded-lg bg-[var(--theme-bg)] p-6 shadow transition-shadow hover:shadow-lg"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -226,14 +226,14 @@ export default function NotificationsPage() {
                         >
                           {sub.post_title}
                         </Link>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                           {t('notification.subscribedOn') || '订阅于'}:{' '}
                           {new Date(sub.subscribed_at).toLocaleDateString('zh-CN')}
                         </p>
                       </div>
                       <button
                         onClick={() => handleUnsubscribe(sub.post_id)}
-                        className="ml-4 rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="ml-4 rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] dark:border-gray-600 dark:hover:bg-gray-700"
                       >
                         {t('notification.unsubscribe') || '取消订阅'}
                       </button>
@@ -246,15 +246,15 @@ export default function NotificationsPage() {
 
           {/* 通知偏好 */}
           {activeTab === 'preferences' && preferences && (
-            <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+            <div className="rounded-lg bg-[var(--theme-bg)] p-6 shadow">
               <div className="space-y-6">
                 {/* 邮件通知开关 */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg font-medium text-[var(--theme-fg)]">
                       {t('notification.emailNotifications') || '邮件通知'}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       {t('notification.emailNotificationsDesc') || '接收评论通知的邮件'}
                     </p>
                   </div>
@@ -263,11 +263,11 @@ export default function NotificationsPage() {
                       setPreferences({ ...preferences, email_notifications: !preferences.email_notifications })
                     }
                     className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                        preferences.email_notifications ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+                        preferences.email_notifications ? 'bg-blue-600' : 'bg-gray-200 '
                       }`}
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      className={`inline-block h-5 w-5 transform rounded-full bg-[var(--theme-bg)] shadow ring-0 transition duration-200 ease-in-out ${
                         preferences.email_notifications ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
@@ -277,10 +277,10 @@ export default function NotificationsPage() {
                 {/* 回复通知开关 */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg font-medium text-[var(--theme-fg)]">
                       {t('notification.replyNotifications') || '回复通知'}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       {t('notification.replyNotificationsDesc') || '当有人回复您的评论时通知'}
                     </p>
                   </div>
@@ -289,11 +289,11 @@ export default function NotificationsPage() {
                       setPreferences({ ...preferences, reply_notifications: !preferences.reply_notifications })
                     }
                     className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                        preferences.reply_notifications ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+                        preferences.reply_notifications ? 'bg-blue-600' : 'bg-gray-200 '
                       }`}
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      className={`inline-block h-5 w-5 transform rounded-full bg-[var(--theme-bg)] shadow ring-0 transition duration-200 ease-in-out ${
                         preferences.reply_notifications ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
@@ -303,10 +303,10 @@ export default function NotificationsPage() {
                 {/* 提及通知开关 */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg font-medium text-[var(--theme-fg)]">
                       {t('notification.mentionNotifications') || '@提及通知'}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       {t('notification.mentionNotificationsDesc') || '当有人在评论中提及您时通知'}
                     </p>
                   </div>
@@ -318,11 +318,11 @@ export default function NotificationsPage() {
                       })
                     }
                     className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                        preferences.mention_notifications ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+                        preferences.mention_notifications ? 'bg-blue-600' : 'bg-gray-200 '
                       }`}
                   >
                     <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      className={`inline-block h-5 w-5 transform rounded-full bg-[var(--theme-bg)] shadow ring-0 transition duration-200 ease-in-out ${
                         preferences.mention_notifications ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
@@ -331,7 +331,7 @@ export default function NotificationsPage() {
 
                 {/* 摘要频率 */}
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <label className="mb-2 block text-sm font-medium text-[var(--theme-fg)]">
                     {t('notification.digestFrequency') || '摘要频率'}
                   </label>
                   <select
@@ -342,14 +342,14 @@ export default function NotificationsPage() {
                         digest_frequency: e.target.value as any,
                       })
                     }
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    className="w-full rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-2 text-[var(--theme-fg)] focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 "
                   >
                     <option value="immediate">{t('notification.immediate') || '立即'}</option>
                     <option value="hourly">{t('notification.hourly') || '每小时'}</option>
                     <option value="daily">{t('notification.daily') || '每天'}</option>
                     <option value="weekly">{t('notification.weekly') || '每周'}</option>
                   </select>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <p className="mt-1 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                     {t('notification.digestFrequencyDesc') || '选择接收通知摘要的频率'}
                   </p>
                 </div>

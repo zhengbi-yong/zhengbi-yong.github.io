@@ -51,7 +51,7 @@ export function HeaderNavigation({ className, navLinks = [] }: HeaderNavigationP
           <Link
             key={item.name}
             href={item.href}
-            className="rounded text-gray-600 transition-colors hover:text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:text-gray-300 dark:hover:text-gray-100"
+            className="rounded text-[var(--theme-fg-secondary)] transition-colors hover:text-[var(--theme-fg)] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:hover:text-gray-100"
           >
             {item.name}
           </Link>
@@ -74,13 +74,13 @@ export function HeaderNavigation({ className, navLinks = [] }: HeaderNavigationP
 
       {/* Mobile Navigation */}
       {mobileMenuOpen && (
-        <div className="absolute top-full right-0 left-0 z-50 border-t border-gray-200 bg-white md:hidden dark:border-gray-700 dark:bg-gray-800">
+        <div className="absolute top-full right-0 left-0 z-50 border-t border-[var(--theme-border)] bg-[var(--theme-bg)] md:hidden dark:border-gray-700">
           <div className="space-y-1 px-2 pt-2 pb-3">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="block rounded-md px-3 py-2 text-base font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100"
+                className="block rounded-md px-3 py-2 text-base font-medium text-[var(--theme-fg-secondary)] hover:bg-[var(--theme-bg-secondary)] hover:text-[var(--theme-fg)] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:hover:bg-gray-700 dark:hover:text-gray-100"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.name}

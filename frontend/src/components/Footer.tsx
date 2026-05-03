@@ -176,7 +176,7 @@ const Footer = memo(() => {
 
   return (
     <footer
-      className={cn(styles.footerRoot, 'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12 bg-slate-50 dark:bg-[#05080F] text-slate-900 dark:text-slate-200')}
+      className={cn(styles.footerRoot, 'w-full px-6 py-14 md:px-10 md:py-20 lg:px-12 bg-[var(--theme-bg-secondary)] dark:bg-[#05080F] text-slate-900 dark:text-slate-200')}
       suppressHydrationWarning
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-10">
@@ -192,17 +192,17 @@ const Footer = memo(() => {
               >
                 {siteMetadata.title}
               </Link>
-              <p className="max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
+              <p className="max-w-md text-sm leading-6 text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]">
                 Calm technical writing, research notes, and selected work by Zhengbi Yong.
               </p>
             </div>
-            <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--theme-fg-tertiary)]">
               © {currentYear} Zhengbi Yong. All rights reserved.
             </p>
           </section>
 
           <nav aria-label="Footer navigation" className="flex flex-col gap-4 text-center lg:text-left">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--theme-fg-tertiary)]">
               Navigate
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 lg:justify-start">
@@ -212,7 +212,7 @@ const Footer = memo(() => {
                   href={link.href}
                   className={cn(
                     styles.footerLink,
-                    'text-sm transition-colors duration-300 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                    'text-sm transition-colors duration-300 text-[var(--theme-fg-tertiary)] dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                   )}
                 >
                   {link.label}
@@ -222,7 +222,7 @@ const Footer = memo(() => {
           </nav>
 
           <section className="flex flex-col gap-4 text-center lg:text-left">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-500">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--theme-fg-tertiary)]">
               Connect
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
@@ -236,7 +236,7 @@ const Footer = memo(() => {
                     rel="noopener noreferrer"
                     className={cn(
                       styles.footerSocialButton,
-                      'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      'text-[var(--theme-fg-tertiary)] dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
                     )}
                     title={social.name}
                     aria-label={social.name}
@@ -255,7 +255,7 @@ const Footer = memo(() => {
         <div className={styles.footerDivider} />
 
         <div className="flex flex-col gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
-          <p className="text-xs tracking-[0.16em] uppercase text-slate-500 dark:text-slate-600">
+          <p className="text-xs tracking-[0.16em] uppercase text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-tertiary)]">
             Built with clarity across light and dark themes.
           </p>
           <Link
@@ -264,7 +264,7 @@ const Footer = memo(() => {
             rel="noopener noreferrer"
             className={cn(
               styles.footerLink,
-              'text-[10px] uppercase tracking-[0.18em] transition-colors duration-300 text-slate-500 hover:text-slate-800 dark:text-slate-500 dark:hover:text-slate-300'
+              'text-[10px] uppercase tracking-[0.18em] transition-colors duration-300 text-[var(--theme-fg-tertiary)] hover:text-slate-800 dark:text-[var(--theme-fg-tertiary)] dark:hover:text-slate-300'
             )}
           >
             京ICP备2025110798号-1

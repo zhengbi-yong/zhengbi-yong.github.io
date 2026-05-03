@@ -110,17 +110,17 @@ export default function AdminMediaPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+        <h1 className="text-3xl font-bold text-[var(--theme-fg)]">
           {t('admin.media') || '媒体管理'}
         </h1>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-1 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
           共 {total} 个文件，总大小 {formatFileSize(totalSize)}
           {unusedCount > 0 && `，其中 ${unusedCount} 个未使用`}
         </p>
       </div>
 
       {/* 筛选栏 */}
-      <div className="mb-6 rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+      <div className="mb-6 rounded-lg bg-[var(--theme-bg)] p-4 shadow">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <label className="flex items-center gap-2">
             <input
@@ -130,9 +130,9 @@ export default function AdminMediaPage() {
                 setShowUnused(e.target.checked)
                 setPage(1)
               }}
-              className="rounded border-gray-300"
+              className="rounded border-[var(--theme-border)]"
             />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-sm font-medium text-[var(--theme-fg)] ">
               仅显示未使用的媒体
             </span>
           </label>
@@ -158,12 +158,12 @@ export default function AdminMediaPage() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
         </div>
       ) : media.length === 0 ? (
-        <div className="rounded-lg bg-white p-12 text-center shadow dark:bg-gray-800">
+        <div className="rounded-lg bg-[var(--theme-bg)] p-12 text-center shadow">
           <div className="mb-4 text-6xl">🖼️</div>
-          <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="mb-2 text-2xl font-semibold text-[var(--theme-fg)]">
             {showUnused ? '没有未使用的媒体文件' : '没有媒体文件'}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             {showUnused ? '太好了！所有媒体文件都在使用中' : '上传第一个媒体文件开始使用'}
           </p>
         </div>
@@ -174,10 +174,10 @@ export default function AdminMediaPage() {
             {media.map((item) => (
               <div
                 key={item.id}
-                className={`group relative overflow-hidden rounded-lg border-2 bg-white shadow transition-all hover:shadow-lg dark:bg-gray-800 ${
+                className={`group relative overflow-hidden rounded-lg border-2 bg-[var(--theme-bg)] shadow transition-all hover:shadow-lg ${
                   selectedMedia.has(item.id)
                     ? 'border-blue-500'
-                    : 'border-gray-200 dark:border-gray-700'
+                    : 'border-[var(--theme-border)] dark:border-gray-700'
                 } ${item.usage_count === 0 ? 'opacity-60' : ''}`}
               >
                 {/* 选择复选框 */}
@@ -194,7 +194,7 @@ export default function AdminMediaPage() {
                       }
                       setSelectedMedia(newSelected)
                     }}
-                    className="rounded border-gray-300"
+                    className="rounded border-[var(--theme-border)]"
                   />
                 </div>
 
@@ -207,7 +207,7 @@ export default function AdminMediaPage() {
 
                 {/* 媒体预览 */}
                 <div
-                  className="aspect-square cursor-pointer overflow-hidden bg-gray-100"
+                  className="aspect-square cursor-pointer overflow-hidden bg-[var(--theme-bg-tertiary)]"
                   onClick={() => handlePreview(item.id)}
                 >
                   {item.mime_type.startsWith('image/') ? (
@@ -225,14 +225,14 @@ export default function AdminMediaPage() {
 
                 {/* 文件信息 */}
                 <div className="p-3">
-                  <p className="truncate text-xs font-medium text-gray-900 dark:text-gray-100">
+                  <p className="truncate text-xs font-medium text-[var(--theme-fg)]">
                     {item.filename}
                   </p>
-                  <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                  <p className="mt-1 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                     {formatFileSize(item.size_bytes)}
                   </p>
                   {item.usage_count !== undefined && (
-                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-[var(--theme-fg-secondary)]">
                       使用 {item.usage_count} 次
                     </p>
                   )}
@@ -264,17 +264,17 @@ export default function AdminMediaPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 {t('previous') || '上一页'}
               </button>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                 第 {page} / {Math.ceil(total / pageSize)} 页
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(Math.ceil(total / pageSize), p + 1))}
                 disabled={page >= Math.ceil(total / pageSize)}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 {t('next') || '下一页'}
               </button>
@@ -290,21 +290,21 @@ export default function AdminMediaPage() {
           onClick={() => setPreviewMedia(null)}
         >
           <div
-            className="max-w-4xl rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
+            className="max-w-4xl rounded-lg bg-[var(--theme-bg)] p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <h3 className="text-lg font-semibold text-[var(--theme-fg)]">
                   {previewMedia.filename}
                 </h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <p className="mt-1 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                   {formatFileSize(previewMedia.size_bytes)} • {previewMedia.mime_type}
                 </p>
               </div>
               <button
                 onClick={() => setPreviewMedia(null)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="text-[var(--theme-fg-tertiary)] hover:text-[var(--theme-fg-secondary)] dark:hover:text-gray-300"
               >
                 ✕
               </button>
@@ -320,7 +320,7 @@ export default function AdminMediaPage() {
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <p className="text-4xl">📄</p>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <p className="mt-2 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                     此文件类型不支持预览
                   </p>
                   <a
@@ -336,9 +336,9 @@ export default function AdminMediaPage() {
             )}
 
             {previewMedia.alt_text && (
-              <div className="mt-4 rounded-lg bg-gray-50 p-3 dark:bg-gray-900">
-                <p className="text-xs font-medium text-gray-700 dark:text-gray-300">替代文本:</p>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <div className="mt-4 rounded-lg bg-[var(--theme-bg-secondary)] p-3">
+                <p className="text-xs font-medium text-[var(--theme-fg)] ">替代文本:</p>
+                <p className="mt-1 text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                   {previewMedia.alt_text}
                 </p>
               </div>
@@ -353,7 +353,7 @@ export default function AdminMediaPage() {
               </button>
               <button
                 onClick={() => setPreviewMedia(null)}
-                className="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                className="rounded border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] dark:border-gray-600 dark:hover:bg-gray-700"
               >
                 关闭
               </button>

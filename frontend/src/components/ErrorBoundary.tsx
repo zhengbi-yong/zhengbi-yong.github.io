@@ -91,8 +91,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
       // 默认错误 UI
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 dark:bg-gray-900">
-          <div className="w-full max-w-md rounded-lg border border-red-200 bg-white p-6 shadow-lg dark:border-red-800 dark:bg-gray-800">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--theme-bg-secondary)] px-4">
+          <div className="w-full max-w-md rounded-lg border border-red-200 bg-[var(--theme-bg)] p-6 shadow-lg dark:border-red-800">
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
                 <svg
@@ -110,10 +110,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                <h2 className="text-xl font-semibold text-[var(--theme-fg)]">
                   出现了一些问题
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">应用程序遇到了意外错误</p>
+                <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">应用程序遇到了意外错误</p>
               </div>
             </div>
 
@@ -134,7 +134,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                className="flex-1 rounded-md border border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-2 text-sm font-medium text-[var(--theme-fg)] transition-colors hover:bg-[var(--theme-bg-secondary)] focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:hover:bg-gray-600"
               >
                 刷新页面
               </button>

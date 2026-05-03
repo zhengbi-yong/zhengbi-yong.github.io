@@ -58,7 +58,7 @@ export default function HeroSection({ featuredArticle, latestBooks }: HeroSectio
             className="flex flex-col justify-center"
           >
             <Link href={featuredArticle.slug} className="group">
-              <div className="relative overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-lg transition-all hover:shadow-2xl dark:border-gray-700 dark:bg-gray-800">
+              <div className="relative overflow-hidden rounded-2xl border-2 border-[var(--theme-border)] bg-[var(--theme-bg)] shadow-lg transition-all hover:shadow-2xl dark:border-gray-700">
                 {/* 特色文章图片 */}
                 <div className="relative h-48 w-full overflow-hidden sm:h-56">
                   <Image
@@ -87,17 +87,17 @@ export default function HeroSection({ featuredArticle, latestBooks }: HeroSectio
                   </div>
 
                   {/* 标题 */}
-                  <h2 className="mb-3 text-2xl font-bold leading-tight text-gray-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 sm:text-3xl">
+                  <h2 className="mb-3 text-2xl font-bold leading-tight text-[var(--theme-fg)] group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 sm:text-3xl">
                     {featuredArticle.title}
                   </h2>
 
                   {/* 摘要 */}
-                  <p className="mb-4 line-clamp-2 text-sm text-gray-600 dark:text-gray-300 sm:text-base">
+                  <p className="mb-4 line-clamp-2 text-sm text-[var(--theme-fg-secondary)] sm:text-base">
                     {featuredArticle.summary}
                   </p>
 
                   {/* 元信息 */}
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] sm:text-sm">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
                       <time>{featuredArticle.date}</time>
@@ -135,7 +135,7 @@ export default function HeroSection({ featuredArticle, latestBooks }: HeroSectio
                 >
                   <Link
                     href={book.href || '#'}
-                    className="group block overflow-hidden rounded-xl border-2 border-gray-200 bg-white shadow-md transition-all hover:shadow-lg hover:border-primary-300 dark:border-gray-700 dark:bg-gray-800 dark:hover:border-primary-600"
+                    className="group block overflow-hidden rounded-xl border-2 border-[var(--theme-border)] bg-[var(--theme-bg)] shadow-md transition-all hover:shadow-lg hover:border-primary-300 dark:border-gray-700 dark:hover:border-primary-600"
                   >
                     <div className="relative aspect-[3/4] overflow-hidden">
                       <Image
@@ -151,11 +151,11 @@ export default function HeroSection({ featuredArticle, latestBooks }: HeroSectio
 
                     {/* 书名 */}
                     <div className="p-3">
-                      <h3 className="line-clamp-2 text-xs font-bold text-gray-900 group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 sm:text-sm">
+                      <h3 className="line-clamp-2 text-xs font-bold text-[var(--theme-fg)] group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 sm:text-sm">
                         {book.name}
                       </h3>
                       {book.description && (
-                        <p className="mt-1 line-clamp-1 text-[10px] text-gray-600 dark:text-gray-400 sm:text-xs">
+                        <p className="mt-1 line-clamp-1 text-[10px] text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] sm:text-xs">
                           {book.description}
                         </p>
                       )}

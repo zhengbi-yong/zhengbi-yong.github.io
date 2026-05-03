@@ -54,11 +54,11 @@ export default function ExperimentModule({
   }, [defaultOpen, startLoading])
 
   return (
-    <section className="group hover:border-primary-300/50 dark:hover:border-primary-600/50 rounded-2xl border border-gray-200/50 bg-white/60 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/50 dark:border-gray-700/50 dark:bg-gray-900/60 dark:hover:shadow-gray-900/50">
+    <section className="group hover:border-primary-300/50 dark:hover:border-primary-600/50 rounded-2xl border border-[var(--theme-border)]/50 bg-[var(--theme-bg)]/60 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/50 dark:border-gray-700/50/60 dark:hover:shadow-gray-900/50">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex-1">
-          <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">{title}</h3>
-          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">{description}</p>
+          <h3 className="mb-2 text-xl font-bold text-[var(--theme-fg)]">{title}</h3>
+          <p className="text-sm leading-relaxed text-[var(--theme-fg-secondary)] ">{description}</p>
         </div>
         <div className="flex items-center gap-3">
           {disabled && (
@@ -82,12 +82,12 @@ export default function ExperimentModule({
       <div className="mt-6">
         {status === 'loading' && <SkeletonProgress label={`正在加载 ${title}`} />}
         {status === 'ready' && ModuleComponent && (
-          <div className="rounded-xl border border-dashed border-gray-200/50 bg-white/50 p-4 transition-all duration-300 dark:border-gray-700/50 dark:bg-gray-800/50">
+          <div className="rounded-xl border border-dashed border-[var(--theme-border)]/50 bg-[var(--theme-bg)]/50 p-4 transition-all duration-300 dark:border-gray-700/50/50">
             <ModuleComponent />
           </div>
         )}
         {status === 'collapsed' && (
-          <p className="text-xs text-gray-500 italic dark:text-gray-400">
+          <p className="text-xs text-[var(--theme-fg-secondary)] italic dark:text-[var(--theme-fg-tertiary)]">
             点击"展开实验"即可加载此模块，首次加载可能需要几秒钟。
           </p>
         )}

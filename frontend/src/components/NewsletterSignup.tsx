@@ -74,9 +74,9 @@ export function NewsletterSignup({
   const themeClasses = {
     light: {
       container: 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900',
-      input: 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100',
+      input: 'bg-white border-[var(--theme-border)] dark:border-gray-600 text-gray-900',
       button: 'bg-blue-600 hover:bg-blue-700 text-white',
-      text: 'text-gray-900 dark:text-gray-100',
+      text: 'text-gray-900',
     },
     dark: {
       container: 'bg-gradient-to-br from-gray-800 to-gray-900',

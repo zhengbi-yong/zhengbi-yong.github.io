@@ -17,12 +17,25 @@
 
 :root {
   /* ============================================
+   * Theme transition
+   * ============================================ */
+  --theme-transition-duration: 300ms;
+  --theme-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ============================================
    * Surface / Background
    * ============================================ */
   --theme-bg: var(--geist-bg);
   --theme-bg-secondary: var(--geist-bg-secondary);
   --theme-bg-tertiary: var(--geist-bg-tertiary);
-  --theme-bg-elevated: var(--geist-bg);
+  /* Derived surfaces — auto-generated from base layers */
+  --theme-surface-hover: color-mix(in srgb, var(--theme-bg) 96%, var(--theme-accent) 4%);
+  --theme-card-bg: var(--theme-bg-secondary);
+  --theme-card-hover: color-mix(in srgb, var(--theme-bg-secondary) 60%, var(--theme-accent-muted) 40%);
+
+  /* Derived borders */
+  --theme-border-hover: color-mix(in srgb, var(--theme-border) 70%, var(--theme-accent) 30%);
+  --theme-divider: color-mix(in srgb, var(--theme-border) 60%, transparent 40%);
 
   /* ============================================
    * Text / Foreground
@@ -101,4 +114,21 @@
   --theme-fg-link-hover: #93c5fd;
   --theme-info: #60a5fa;
   --theme-info-muted: rgba(96, 165, 250, 0.1);
+}
+
+/* ============================================
+ * Global theme transitions — smooth color shifts
+ * ============================================ */
+html {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-easing);
+}
+
+html[data-theme-transition-ready] *,
+html[data-theme-transition-ready] *::before,
+html[data-theme-transition-ready] *::after {
+  transition:
+    background-color var(--theme-transition-duration) var(--theme-transition-easing),
+    color var(--theme-transition-duration) var(--theme-transition-easing),
+    border-color var(--theme-transition-duration) var(--theme-transition-easing),
+    box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
 }

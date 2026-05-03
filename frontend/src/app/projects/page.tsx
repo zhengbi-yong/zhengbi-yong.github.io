@@ -18,7 +18,7 @@ export default function Projects() {
               className={`group cursor-pointer ${index % 2 === 1 ? 'md:mt-24' : ''}`}
             >
               <Link href={project.href || '#'} className="block h-full">
-                <div className="h-full border border-zinc-200/70 bg-zinc-50/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-700/30 group-hover:bg-white dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-amber-500/20 dark:group-hover:bg-zinc-900/90 md:p-10">
+                <div className="h-full border border-[var(--theme-border)]/70 bg-[var(--theme-bg-secondary)]/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-amber-700/30 group-hover:bg-[var(--theme-bg)] dark:border-zinc-800/80 /60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-amber-500/20 dark:group-hover:bg-zinc-900/90 md:p-10">
                   {project.imgSrc && (
                     <div className="relative mb-8 aspect-[4/5] overflow-hidden md:mb-10">
                       <Image
@@ -38,12 +38,12 @@ export default function Projects() {
                       </span>
                     )}
                     <h2
-                      className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 md:text-3xl"
+                      className="text-2xl font-semibold tracking-tight text-[var(--theme-fg)] md:text-3xl"
                       style={{ fontFamily: 'var(--font-newsreader)' }}
                     >
                       {project.title}
                     </h2>
-                    <p className="max-w-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <p className="max-w-sm leading-relaxed text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
                       {project.description}
                     </p>
                     <div className="pt-2">
@@ -60,7 +60,7 @@ export default function Projects() {
 
         {projectsData.length === 0 && (
           <div className="py-32 text-center">
-            <p className="text-zinc-400 dark:text-zinc-500">暂无项目</p>
+            <p className="text-[var(--theme-fg-tertiary)] dark:text-[var(--theme-fg-secondary)]">暂无项目</p>
           </div>
         )}
       </PublicPageFrame>

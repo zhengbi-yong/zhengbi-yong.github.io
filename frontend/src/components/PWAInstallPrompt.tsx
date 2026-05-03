@@ -135,11 +135,11 @@ export function PWAInstallPrompt() {
   // 其他浏览器的安装提示
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm w-full animate-slide-up">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-[var(--theme-bg)] rounded-lg shadow-2xl border border-[var(--theme-border)] dark:border-gray-700 p-6">
         {/* 关闭按钮 */}
         <button
           onClick={handleDismiss}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          className="absolute top-2 right-2 text-[var(--theme-fg-tertiary)] hover:text-[var(--theme-fg-secondary)] dark:hover:text-gray-300"
           aria-label="关闭"
         >
           <X className="h-5 w-5" />
@@ -153,15 +153,15 @@ export function PWAInstallPrompt() {
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className="text-lg font-semibold text-[var(--theme-fg)] mb-2">
               安装应用
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] mb-4">
               安装我们的应用到主屏幕，享受更快的访问速度和离线阅读体验！
             </p>
 
             {/* 特性列表 */}
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 mb-4">
+            <ul className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] space-y-1 mb-4">
               <li className="flex items-center">
                 <span className="text-green-500 mr-2">✓</span>
                 快速启动，就像原生应用
@@ -194,11 +194,11 @@ export function PWAInstallPrompt() {
 function IOSInstallPrompt({ onDismiss }: { onDismiss: () => void }) {
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm w-full animate-slide-up">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-[var(--theme-bg)] rounded-lg shadow-2xl border border-[var(--theme-border)] dark:border-gray-700 p-6">
         {/* 关闭按钮 */}
         <button
           onClick={onDismiss}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          className="absolute top-2 right-2 text-[var(--theme-fg-tertiary)] hover:text-[var(--theme-fg-secondary)] dark:hover:text-gray-300"
           aria-label="关闭"
         >
           <X className="h-5 w-5" />
@@ -212,23 +212,23 @@ function IOSInstallPrompt({ onDismiss }: { onDismiss: () => void }) {
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            <h3 className="text-lg font-semibold text-[var(--theme-fg)] mb-2">
               安装应用
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] mb-4">
               在 Safari 中安装此应用：
             </p>
 
             {/* 步骤说明 */}
-            <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-4 list-decimal list-inside">
+            <ol className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] space-y-2 mb-4 list-decimal list-inside">
               <li>点击底部的<span className="font-semibold"> 分享 </span>按钮</li>
               <li>向下滚动，点击<span className="font-semibold"> 添加到主屏幕 </span></li>
               <li>点击<span className="font-semibold"> 添加 </span>按钮</li>
             </ol>
 
             {/* 演示图 */}
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 mb-4 text-center">
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            <div className="bg-[var(--theme-bg-tertiary)] rounded-lg p-4 mb-4 text-center">
+              <div className="text-xs text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)] mb-2">
                 <Globe className="h-8 w-8 mx-auto mb-2" />
                 点击分享图标 → 添加到主屏幕
               </div>
@@ -237,7 +237,7 @@ function IOSInstallPrompt({ onDismiss }: { onDismiss: () => void }) {
             {/* 确认按钮 */}
             <button
               onClick={onDismiss}
-              className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="w-full inline-flex justify-center items-center px-4 py-2 border border-[var(--theme-border)] dark:border-gray-600 text-sm font-medium rounded-md text-[var(--theme-fg)] bg-[var(--theme-bg)] hover:bg-[var(--theme-bg-secondary)] dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
               知道了
             </button>

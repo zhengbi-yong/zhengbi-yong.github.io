@@ -96,15 +96,15 @@ export default function MoleculeFingerprint({
     return (
       <div className={`rounded-lg border border-red-300 p-4 ${className}`}>
         <div className="text-sm text-red-500">⚠️ Chemistry Engine Error</div>
-        <div className="mt-1 text-xs text-gray-600">{rdkitError}</div>
+        <div className="mt-1 text-xs text-[var(--theme-fg-secondary)]">{rdkitError}</div>
       </div>
     )
   }
 
   if (isLoading) {
     return (
-      <div className={`rounded-lg border border-gray-200 p-4 ${className}`}>
-        <div className="text-sm text-gray-600">Generating fingerprint...</div>
+      <div className={`rounded-lg border border-[var(--theme-border)] p-4 ${className}`}>
+        <div className="text-sm text-[var(--theme-fg-secondary)]">Generating fingerprint...</div>
       </div>
     )
   }
@@ -113,7 +113,7 @@ export default function MoleculeFingerprint({
     return (
       <div className={`rounded-lg border border-red-200 p-4 ${className}`}>
         <div className="text-sm text-red-500">❌ Fingerprint Error</div>
-        <div className="mt-1 text-xs text-gray-600">{error}</div>
+        <div className="mt-1 text-xs text-[var(--theme-fg-secondary)]">{error}</div>
       </div>
     )
   }
@@ -127,21 +127,21 @@ export default function MoleculeFingerprint({
   }
 
   return (
-    <div className={`rounded-lg border border-gray-200 p-4 ${className}`}>
+    <div className={`rounded-lg border border-[var(--theme-border)] p-4 ${className}`}>
       <div className="grid grid-cols-1 gap-4">
         {/* 基本信息 */}
         <div className="flex items-center justify-between">
           <div>
             <span className="font-semibold">Morgan Fingerprint</span>
-            <span className="ml-2 text-sm text-gray-500">
+            <span className="ml-2 text-sm text-[var(--theme-fg-secondary)]">
               (radius: {resolvedRadius}, bits: {resolvedBits})
             </span>
           </div>
-          <div className="text-sm text-gray-600">Bit Density: {getBitDensity()}%</div>
+          <div className="text-sm text-[var(--theme-fg-secondary)]">Bit Density: {getBitDensity()}%</div>
         </div>
 
         {/* 指纹可视化 */}
-        <div className="rounded bg-gray-50 p-3">
+        <div className="rounded bg-[var(--theme-bg-secondary)] p-3">
           <div className="font-mono text-xs leading-relaxed break-all">
             {fingerprint.split('').map((bit, index) => (
               <span
@@ -158,21 +158,21 @@ export default function MoleculeFingerprint({
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div className="text-center">
             <div className="font-semibold text-green-600">{bitCount}</div>
-            <div className="text-xs text-gray-500">Set Bits</div>
+            <div className="text-xs text-[var(--theme-fg-secondary)]">Set Bits</div>
           </div>
           <div className="text-center">
-            <div className="font-semibold text-gray-600">{fingerprint.length - bitCount}</div>
-            <div className="text-xs text-gray-500">Unset Bits</div>
+            <div className="font-semibold text-[var(--theme-fg-secondary)]">{fingerprint.length - bitCount}</div>
+            <div className="text-xs text-[var(--theme-fg-secondary)]">Unset Bits</div>
           </div>
           <div className="text-center">
             <div className="font-semibold">{fingerprint.length}</div>
-            <div className="text-xs text-gray-500">Total Bits</div>
+            <div className="text-xs text-[var(--theme-fg-secondary)]">Total Bits</div>
           </div>
         </div>
 
         {/* 位密度条 */}
         <div>
-          <div className="mb-1 flex justify-between text-xs text-gray-600">
+          <div className="mb-1 flex justify-between text-xs text-[var(--theme-fg-secondary)]">
             <span>Bit Density</span>
             <span>{getBitDensity()}%</span>
           </div>

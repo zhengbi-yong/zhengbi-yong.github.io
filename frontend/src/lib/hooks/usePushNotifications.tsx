@@ -350,23 +350,23 @@ export function NotificationSettings() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+      <div className="flex items-center justify-between rounded-lg bg-[var(--theme-bg-secondary)] p-4">
         <div>
-          <h3 className="font-medium text-gray-900 dark:text-gray-100">
+          <h3 className="font-medium text-[var(--theme-fg)]">
             {t('notification.pushNotifications') || '推送通知'}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-tertiary)]">
             {t('notification.pushNotificationsDesc') || '接收新文章和评论的推送通知'}
           </p>
         </div>
         <button
           onClick={handleToggleSubscription}
           className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            subscription ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'
+            subscription ? 'bg-blue-600' : 'bg-gray-200 '
           }`}
         >
           <span
-            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+            className={`inline-block h-5 w-5 transform rounded-full bg-[var(--theme-bg)] shadow ring-0 transition duration-200 ease-in-out ${
               subscription ? 'translate-x-5' : 'translate-x-0'
             }`}
           />
