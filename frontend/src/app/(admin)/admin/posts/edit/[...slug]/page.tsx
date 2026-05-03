@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils'
 import { postService, adminService } from '@/lib/api/backend'
 import { apiClient } from '@/lib/api/apiClient'
 import { useQueryClient } from '@tanstack/react-query'
-import { loadToEditor } from '@/lib/mdx/MDXContentBridge'
 import type { PostDetail } from '@/lib/types/backend'
 import { Button } from '@/components/shadcn/ui/button'
 import { Badge } from '@/components/shadcn/ui/badge'
@@ -53,12 +52,14 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
         setCategory(post.category_id || '')
         setTags(post.tags?.map((t) => t.id) || [])
         originalMdxRef.current = post.content || ''
-        // Always load from raw MDX content via loadToEditor.
-        // content_json is stored in BlockNote format which may be
-        // incompatible with the current BlockNote version.
-        // loadToEditor converts MDX → Tiptap-safe JSON.
-        const { content: editorContent } = loadToEditor(post.content || '')
-        setContent(editorContent)
+        // BlockNote stores data as JSON blocks array in content_json.
+        // Pass it directly to BlockNoteEditor — no conversion needed.
+        if (post.content_json) {
+          setContent(JSON.stringify(post.content_json))
+        } else {
+          // Fallback: create empty BlockNote document
+          setContent(JSON.stringify([{ type: 'paragraph', content: [] }]))
+        }
         setPostStatus(post.status)
       } catch (error) {
         console.error('Failed to load post:', error)

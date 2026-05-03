@@ -658,6 +658,7 @@ function RichTextEditorInner({
 //   }
 // )
 
+// BlockNote integration — TiptapEditor wrapper renders BlockNoteEditor
 import BlockNoteEditor from './BlockNoteEditor'
 
 export { RichTextEditorInner, BlockNoteEditor }
@@ -667,11 +668,18 @@ export default function TiptapEditor(props: {
   onChange?: (v: string) => void
   onDualChange?: (json: string, mdx: string) => void
 }) {
-  // Default: use the real Tiptap editor (RichTextEditorInner)
+  if (props.onDualChange) {
+    return (
+      <BlockNoteEditor
+        content={props.content}
+        onChange={props.onDualChange}
+      />
+    )
+  }
   return (
-    <RichTextEditorInner
-      content={props.content || ''}
-      onChange={(v) => props.onChange?.(v)}
+    <BlockNoteEditor
+      content={props.content}
+      onChange={(json: string, _mdx: string) => props.onChange?.(json)}
     />
   )
 }

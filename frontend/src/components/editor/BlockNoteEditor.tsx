@@ -9,22 +9,36 @@ import { Loader2 } from 'lucide-react'
 import './BlockNoteEditor.css'
 
 /**
- * Strip legacy properties from content_json blocks.
- * BlockNote 0.49.0 rejects old-format { styles: { bold: true } },
- * custom id/props/children fields, etc.
+ * Normalize legacy content_json blocks for BlockNote 0.49.0 compatibility.
+ * Only strips known-problematic old-style { styles: { bold: true } } marks;
+ * keeps all standard BlockNote properties (id, props, children, etc.) intact.
  */
 function deepNormalize(node: unknown): unknown {
   if (!node || typeof node !== 'object') return node
   if (Array.isArray(node)) return node.map(deepNormalize)
 
   const src = node as Record<string, unknown>
-  const out: Record<string, unknown> = {}
+  const out: Record<string, unknown> = { ...src }
 
-  if ('type' in src) out.type = src.type
-  if (typeof src.text === 'string') out.text = src.text
-  if (typeof src.href === 'string') out.href = src.href
-  if (Array.isArray(src.content)) {
-    out.content = src.content.map(deepNormalize)
+  // Fix legacy inline styles: old format uses { styles: { bold: true } }
+  // BlockNote 0.49.0 uses { type: 'text', styles: {} } with StyledText
+  // or marks array. Strip boolean-style styles that BlockNote rejects.
+  if (out.styles && typeof out.styles === 'object') {
+    const styles = out.styles as Record<string, unknown>
+    const cleaned: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(styles)) {
+      if (v === true) cleaned[k] = {}  // convert boolean to empty object
+      else cleaned[k] = v
+    }
+    out.styles = cleaned
+  }
+
+  // Recurse into children/content arrays
+  if (Array.isArray(out.content)) {
+    out.content = out.content.map(deepNormalize)
+  }
+  if (Array.isArray(out.children)) {
+    out.children = out.children.map(deepNormalize)
   }
 
   return out
