@@ -1,8 +1,8 @@
-//! MDX 转换路由：MDX 文本 ↔ TipTap JSON
+//! MDX 转换路由：MDX 文本 ↔ BlockNote JSON
 //!
 //! 提供三个端点：
-//! - POST /admin/mdx/convert — 单篇 MDX → TipTap JSON 转换
-//! - POST /admin/mdx/batch-convert — 批量 MDX → TipTap JSON 转换（可更新数据库）
+//! - POST /admin/mdx/convert — 单篇 MDX → BlockNote JSON 转换
+//! - POST /admin/mdx/batch-convert — 批量 MDX → BlockNote JSON 转换（可更新数据库）
 //! - POST /admin/mdx/migrate-all — 迁移数据库中所有 content_json 为空的文章
 
 use axum::{extract::State, response::IntoResponse, Json};
@@ -27,7 +27,7 @@ pub struct ConvertRequest {
 /// 单篇 MDX 转换响应
 #[derive(Debug, Serialize, ToSchema)]
 pub struct ConvertResponse {
-    /// TipTap JSON AST
+    /// BlockNote JSON blocks array
     pub content_json: serde_json::Value,
     /// 转换后的 MDX（roundtrip 验证）
     pub mdx_compiled: String,
@@ -117,8 +117,13 @@ pub async fn convert_mdx(
         return Err(AppError::BadRequest("MDX text is empty".to_string()));
     }
 
-    let (content_json, stats) = blog_core::mdx_to_tiptap_json_with_stats(&req.mdx_text);
-    let mdx_compiled = blog_core::tiptap_json_to_mdx(&content_json);
+    let (content_json, blocknote_stats) = blog_core::mdx_to_blocknote_json_with_stats(&req.mdx_text);
+    let mdx_compiled = blog_core::blocknote_json_to_mdx(&content_json);
+    let stats = blog_core::ConversionStats {
+        blocks: blocknote_stats.blocks,
+        text_nodes: blocknote_stats.text_nodes,
+        marks_used: blocknote_stats.styles_used,
+    };
 
     Ok(Json(ConvertResponse {
         content_json,
@@ -164,7 +169,7 @@ pub async fn batch_convert_mdx(
             continue;
         }
 
-        let content_json = blog_core::mdx_to_tiptap_json(&article.mdx_text);
+        let content_json = blog_core::mdx_to_blocknote_json(&article.mdx_text);
 
         if req.update_database {
             match update_article_content_json(&state.db, &article.slug, &content_json).await {
@@ -286,12 +291,12 @@ pub async fn migrate_all_content_json(
     let mut failed: Vec<String> = Vec::new();
 
     for (slug, content_mdx) in &rows {
-        let json = blog_core::mdx_to_tiptap_json(content_mdx);
+        let json = blog_core::mdx_to_blocknote_json(content_mdx);
         let json_str = serde_json::to_string(&json)
             .map_err(|e| AppError::BadRequest(format!("JSON serialization failed: {}", e)))?;
 
         // 同时生成 MDX（双轨更新）
-        let mdx_compiled = blog_core::tiptap_json_to_mdx(&json);
+        let mdx_compiled = blog_core::content_json_to_mdx(&json);
 
         match sqlx::query(
             r#"
@@ -386,7 +391,7 @@ async fn update_article_content_json(
 ) -> Result<(), AppError> {
     let json_str = serde_json::to_string(content_json)
         .map_err(|e| AppError::BadRequest(format!("JSON serialization failed: {}", e)))?;
-    let mdx = blog_core::tiptap_json_to_mdx(content_json);
+    let mdx = blog_core::content_json_to_mdx(content_json);
 
     sqlx::query(
         r#"

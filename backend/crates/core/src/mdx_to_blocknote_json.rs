@@ -1000,3 +1000,75 @@ mod tests {
         }
     }
 }
+
+/// MDX → BlockNote JSON 转换（带统计）
+pub fn mdx_to_blocknote_json_with_stats(mdx_text: &str) -> (Value, BlockNoteConversionStats) {
+    let json = mdx_to_blocknote_json(mdx_text);
+    let stats = collect_blocknote_stats(&json);
+    (json, stats)
+}
+
+/// BlockNote 格式的转换统计
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BlockNoteConversionStats {
+    pub blocks: usize,
+    pub text_nodes: usize,
+    pub styles_used: Vec<String>,
+}
+
+fn collect_blocknote_stats(json: &Value) -> BlockNoteConversionStats {
+    let mut stats = BlockNoteConversionStats {
+        blocks: 0,
+        text_nodes: 0,
+        styles_used: Vec::new(),
+    };
+    collect_blocknote_recursive(json, &mut stats);
+    stats.styles_used.sort();
+    stats.styles_used.dedup();
+    stats
+}
+
+fn collect_blocknote_recursive(node: &Value, stats: &mut BlockNoteConversionStats) {
+    match node {
+        Value::Array(arr) => {
+            for item in arr {
+                collect_blocknote_recursive(item, stats);
+            }
+        }
+        Value::Object(obj) => {
+            // BlockNote blocks have a "type" field
+            if obj.contains_key("type") {
+                let ty = obj["type"].as_str().unwrap_or("");
+                match ty {
+                    "text" => {
+                        stats.text_nodes += 1;
+                        // BlockNote uses "styles" (not "marks")
+                        if let Some(styles) = obj.get("styles").and_then(|v| v.as_object()) {
+                            for key in styles.keys() {
+                                if styles[key].as_bool().unwrap_or(false) {
+                                    stats.styles_used.push(key.clone());
+                                }
+                            }
+                        }
+                    }
+                    "divider" | "hardBreak" | "tableOfContents" | "file" => {
+                        // Leaf blocks, no further recursion
+                        return;
+                    }
+                    _ => {
+                        stats.blocks += 1;
+                    }
+                }
+                // Recurse into content
+                if let Some(content) = obj.get("content") {
+                    collect_blocknote_recursive(content, stats);
+                }
+                // Recurse into children (nested blocks)
+                if let Some(children) = obj.get("children") {
+                    collect_blocknote_recursive(children, stats);
+                }
+            }
+        }
+        _ => {}
+    }
+}
