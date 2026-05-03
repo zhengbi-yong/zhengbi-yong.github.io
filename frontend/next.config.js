@@ -256,8 +256,10 @@ const generateSecurityHeaders = () => {
       key: 'Permissions-Policy',
       value: 'camera=(), microphone=(), geolocation=()',
     },
-    // Strict-Transport-Security (仅生产环境)
-    ...(isProduction
+    // Strict-Transport-Security
+    // 仅在 HTTPS 且非本地开发环境启用。本地开发用 HTTP，HSTS 会
+    // 导致浏览器将所有后续请求升级为 HTTPS 而服务器只监听 HTTP 端口。
+    ...(isProduction && !process.env.DISABLE_HSTS
       ? [
           {
             key: 'Strict-Transport-Security',
