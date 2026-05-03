@@ -22,6 +22,32 @@ const schema = BlockNoteSchema.create().extend({
 })
 
 /**
+ * Normalize legacy content_json blocks to BlockNote 0.49.0 compatible format.
+ *
+ * Legscy blocks use `{ styles: { bold: true } }` on text nodes which is
+ * incompatible with BlockNote 0.49.0's ProseMirror schema validation.
+ * This transform strips all text styles, keeping only plain text content.
+ * Users can re-apply formatting in the editor after loading.
+ */
+function normalizeContentJson(blocks: any[]): any[] {
+  return blocks.map((block) => {
+    if (!block || typeof block !== 'object') return block
+    const normalized = { ...block }
+    if (Array.isArray(block.content)) {
+      normalized.content = block.content.map((node: any) => {
+        if (node && typeof node === 'object' && node.type === 'text') {
+          // Strip styles — BlockNote 0.49.0 rejects the old {bold:true} format
+          const { styles, ...rest } = node
+          return { ...rest, styles: {} }
+        }
+        return node
+      })
+    }
+    return normalized
+  })
+}
+
+/**
  * BlockNote 编辑器组件（客户端渲染）
  *
  * 使用 @blocknote/code-block 提供的 codeBlockOptions：
@@ -61,7 +87,7 @@ function BlockNoteEditor({
       try {
         const parsed = JSON.parse(content)
         if (Array.isArray(parsed)) {
-          return parsed as any
+          return normalizeContentJson(parsed) as any
         }
         return undefined
       } catch {
