@@ -307,8 +307,8 @@ fn v1_routes(state: AppState) -> Router<AppState> {
 
     auth_routes()
         .merge(post_routes())
-        .merge(category_routes())
-        .merge(tag_routes())
+        .merge(category_public_routes())
+        .merge(tag_public_routes())
         .merge(search_routes())
         .merge(comment_routes())
         // 评论操作需要认证（like/unlike）
@@ -331,6 +331,30 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .merge(team_members_routes())
         // 用户公开主页路由
         .merge(users_routes())
+        // 分类管理路由（需要认证）
+        .merge(
+            category_admin_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    csrf_middleware,
+                ))
+        )
+        // 标签管理路由（需要认证）
+        .merge(
+            tag_admin_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    csrf_middleware,
+                ))
+        )
         // admin路由需要添加认证中间件
         .merge(
             admin_routes()
@@ -416,8 +440,8 @@ fn auth_routes() -> Router<AppState> {
 fn users_routes() -> Router<AppState> {
     use axum::routing::get;
     Router::new()
-        .route("/users/{username}", get(blog_api::routes::auth::get_user_public))
-        .route("/users/{username}/posts", get(blog_api::routes::auth::get_user_posts))
+        .route("/users/{id}", get(blog_api::routes::auth::get_user_public))
+        .route("/users/{id}/posts", get(blog_api::routes::auth::get_user_posts))
 }
 
 // 文章路由
@@ -429,23 +453,23 @@ fn post_routes() -> Router<AppState> {
             "/posts/by-slug",
             get(blog_api::routes::posts::get_post_by_slug_query),
         )
-        .route("/posts/{slug}", get(blog_api::routes::posts::get_post))
+        .route("/posts/{id}", get(blog_api::routes::posts::get_post))
         .route(
-            "/posts/{slug}/stats",
+            "/posts/{id}/stats",
             get(blog_api::routes::posts::get_stats),
         )
-        .route("/posts/{slug}/view", post(blog_api::routes::posts::view))
+        .route("/posts/{id}/view", post(blog_api::routes::posts::view))
         .route(
-            "/posts/{slug}/comments",
+            "/posts/{id}/comments",
             get(blog_api::routes::comments::list_comments),
         )
         .route(
-            "/posts/{slug}/related",
+            "/posts/{id}/related",
             get(blog_api::routes::search::get_related_posts),
         )
-        .route("/posts/{slug}/likes", post(blog_api::routes::posts::like))
+        .route("/posts/{id}/likes", post(blog_api::routes::posts::like))
         .route(
-            "/posts/{slug}/likes",
+            "/posts/{id}/likes",
             delete(blog_api::routes::posts::unlike),
         )
 }
@@ -460,20 +484,20 @@ fn post_admin_routes() -> Router<AppState> {
         )
         .route("/admin/posts", post(blog_api::routes::posts::create_post))
         .route(
-            "/admin/posts/{postId}",
+            "/admin/posts/{id}",
             patch(blog_api::routes::posts::update_post),
         )
         .route(
-            "/admin/posts/{postId}",
+            "/admin/posts/{id}",
             delete(blog_api::routes::posts::delete_post),
         )
         // ── 导出路由 ────────────────────────────────────────────────
         .route(
-            "/admin/posts/{postId}/export/mdx",
+            "/admin/posts/{id}/export/mdx",
             get(blog_api::routes::export::export_post_mdx),
         )
         .route(
-            "/admin/posts/{postId}/export/md",
+            "/admin/posts/{id}/export/md",
             get(blog_api::routes::export::export_post_md),
         )
         .route(
@@ -495,9 +519,9 @@ fn post_admin_routes() -> Router<AppState> {
         )
 }
 
-// 分类路由
-fn category_routes() -> Router<AppState> {
-    use axum::routing::{delete, get, patch, post};
+// 分类公开路由
+fn category_public_routes() -> Router<AppState> {
+    use axum::routing::get;
     Router::new()
         .route(
             "/categories",
@@ -508,30 +532,36 @@ fn category_routes() -> Router<AppState> {
             get(blog_api::routes::categories::get_category_tree),
         )
         .route(
-            "/categories/{slug}",
+            "/categories/{id}",
             get(blog_api::routes::categories::get_category),
         )
         .route(
-            "/categories/{slug}/posts",
+            "/categories/{id}/posts",
             get(blog_api::routes::categories::get_category_posts),
         )
+}
+
+// 分类管理路由（需要认证）
+fn category_admin_routes() -> Router<AppState> {
+    use axum::routing::{delete, patch, post};
+    Router::new()
         .route(
             "/admin/categories",
             post(blog_api::routes::categories::create_category),
         )
         .route(
-            "/admin/categories/{slug}",
+            "/admin/categories/{id}",
             patch(blog_api::routes::categories::update_category),
         )
         .route(
-            "/admin/categories/{slug}",
+            "/admin/categories/{id}",
             delete(blog_api::routes::categories::delete_category),
         )
 }
 
-// 标签路由
-fn tag_routes() -> Router<AppState> {
-    use axum::routing::{delete, get, patch, post};
+// 标签公开路由
+fn tag_public_routes() -> Router<AppState> {
+    use axum::routing::get;
     Router::new()
         .route("/tags", get(blog_api::routes::tags::list_tags))
         .route(
@@ -542,18 +572,24 @@ fn tag_routes() -> Router<AppState> {
             "/tags/autocomplete",
             get(blog_api::routes::tags::autocomplete_tags),
         )
-        .route("/tags/{slug}", get(blog_api::routes::tags::get_tag))
+        .route("/tags/{id}", get(blog_api::routes::tags::get_tag))
         .route(
-            "/tags/{slug}/posts",
+            "/tags/{id}/posts",
             get(blog_api::routes::tags::get_tag_posts),
         )
+}
+
+// 标签管理路由（需要认证）
+fn tag_admin_routes() -> Router<AppState> {
+    use axum::routing::{delete, patch, post};
+    Router::new()
         .route("/admin/tags", post(blog_api::routes::tags::create_tag))
         .route(
-            "/admin/tags/{slug}",
+            "/admin/tags/{id}",
             patch(blog_api::routes::tags::update_tag),
         )
         .route(
-            "/admin/tags/{slug}",
+            "/admin/tags/{id}",
             delete(blog_api::routes::tags::delete_tag),
         )
 }
@@ -577,7 +613,7 @@ fn search_routes() -> Router<AppState> {
 fn comment_routes() -> Router<AppState> {
     use axum::routing::post;
     Router::new().route(
-        "/posts/{slug}/comments",
+        "/posts/{id}/comments",
         post(blog_api::routes::comments::create_comment),
     )
 }
@@ -619,15 +655,15 @@ fn reading_progress_routes() -> Router<AppState> {
     use axum::routing::{delete, get, post};
     Router::new()
         .route(
-            "/posts/{slug}/reading-progress",
+            "/posts/{id}/reading-progress",
             get(blog_api::routes::reading_progress::get_reading_progress_handler),
         )
         .route(
-            "/posts/{slug}/reading-progress",
+            "/posts/{id}/reading-progress",
             post(blog_api::routes::reading_progress::update_reading_progress_handler),
         )
         .route(
-            "/posts/{slug}/reading-progress",
+            "/posts/{id}/reading-progress",
             delete(blog_api::routes::reading_progress::delete_reading_progress_handler),
         )
         .route(
@@ -643,8 +679,8 @@ fn admin_routes() -> Router<AppState> {
         // 统计和用户管理
         .route("/admin/stats", get(blog_api::routes::admin::get_admin_stats))
         .route("/admin/users", get(blog_api::routes::admin::list_users).post(blog_api::routes::admin::create_user))
-        .route("/admin/users:batchUpdateRole", post(blog_api::routes::admin::batch_update_roles))
-        .route("/admin/users:batchDelete", post(blog_api::routes::admin::batch_delete_users))
+        .route("/admin/users/batch/role", post(blog_api::routes::admin::batch_update_roles))
+        .route("/admin/users/batch/delete", post(blog_api::routes::admin::batch_delete_users))
         .route("/admin/users/{id}", get(blog_api::routes::admin::get_user).put(blog_api::routes::admin::update_user).delete(blog_api::routes::admin::delete_user))
         .route("/admin/users/{id}/role", put(blog_api::routes::admin::update_user_role))
         .route("/admin/user-growth", get(blog_api::routes::admin::get_user_growth))
@@ -668,12 +704,12 @@ fn admin_routes() -> Router<AppState> {
         .route("/admin/media/{id}", patch(blog_api::routes::media::update_media))
         .route("/admin/media/{id}", delete(blog_api::routes::media::delete_media))
         // 版本控制
-        .route("/admin/posts/{post_id}/versions", post(blog_api::routes::versions::create_version))
-        .route("/admin/posts/{post_id}/versions", get(blog_api::routes::versions::list_versions))
-        .route("/admin/posts/{post_id}/versions/{version_number}", get(blog_api::routes::versions::get_version))
-        .route("/admin/posts/{post_id}/versions/{version_number}/restore", post(blog_api::routes::versions::restore_version))
-        .route("/admin/posts/{post_id}/versions/{version_number}", delete(blog_api::routes::versions::delete_version))
-        .route("/admin/posts/{post_id}/versions/compare", get(blog_api::routes::versions::compare_versions))
+        .route("/admin/posts/{id}/versions", post(blog_api::routes::versions::create_version))
+        .route("/admin/posts/{id}/versions", get(blog_api::routes::versions::list_versions))
+        .route("/admin/posts/{id}/versions/{number}", get(blog_api::routes::versions::get_version))
+        .route("/admin/posts/{id}/versions/{number}/restore", post(blog_api::routes::versions::restore_version))
+        .route("/admin/posts/{id}/versions/{number}", delete(blog_api::routes::versions::delete_version))
+        .route("/admin/posts/{id}/versions/compare", get(blog_api::routes::versions::compare_versions))
         // MDX同步
         .route("/admin/search/reindex", post(blog_api::routes::search::reindex_posts))
 }

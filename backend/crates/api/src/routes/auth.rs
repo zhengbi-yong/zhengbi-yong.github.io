@@ -861,7 +861,7 @@ pub async fn get_user_public(
     tag = "users",
     params(
         ("page" = Option<u32>, Query, description = "页码 (从1开始)"),
-        ("page_size" = Option<u32>, Query, description = "每页数量")
+        ("per_page" = Option<u32>, Query, description = "每页数量")
     ),
     responses(
         (status = 200, description = "获取用户文章列表"),
@@ -874,8 +874,8 @@ pub async fn get_user_posts(
     axum::extract::Query(params): axum::extract::Query<std::collections::HashMap<String, String>>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     let page: u32 = params.get("page").and_then(|v| v.parse().ok()).unwrap_or(1);
-    let page_size: u32 = params.get("page_size").and_then(|v| v.parse().ok()).unwrap_or(10);
-    let offset = ((page - 1) * page_size) as i64;
+    let per_page: u32 = params.get("per_page").and_then(|v| v.parse().ok()).unwrap_or(10);
+    let offset = ((page - 1) * per_page) as i64;
 
     // Verify user exists
     let user_exists = sqlx::query_scalar::<_, bool>(
@@ -928,7 +928,7 @@ pub async fn get_user_posts(
         LIMIT $2 OFFSET $3"#,
     )
     .bind(&username)
-    .bind(page_size as i64)
+    .bind(per_page as i64)
     .bind(offset)
     .fetch_all(&state.db)
     .await?;
@@ -953,7 +953,7 @@ pub async fn get_user_posts(
         "posts": post_list,
         "total": total,
         "page": page,
-        "page_size": page_size,
-        "total_pages": ((total as f64) / (page_size as f64)).ceil() as u32,
+        "per_page": per_page,
+        "total_pages": ((total as f64) / (per_page as f64)).ceil() as u32,
     })))
 }

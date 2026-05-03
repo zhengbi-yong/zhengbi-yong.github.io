@@ -76,13 +76,18 @@ fn is_kebab_case(segment: &str) -> bool {
     if segment.is_empty() { return true; }
     if (segment.starts_with('{') && segment.ends_with('}')) 
         || (segment.starts_with("[...") && segment.ends_with(']')) { return true; }
+    // RFC standard paths whitelist
+    if segment == ".well-known" { return true; }
     segment.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
 }
 
 fn contains_verb_in_path(path: &str) -> Option<String> {
     let forbidden = ["delete", "update", "create", "fetch", "remove", "add", "edit", "get", "set", "list"];
-    for seg in path.split('/') {
+    let segs: Vec<&str> = path.split('/').collect();
+    for (i, seg) in segs.iter().enumerate() {
         let clean = seg.trim_start_matches('{').trim_end_matches('}');
+        // batch/* sub-resources are standard (e.g. batch/delete replaces :batchDelete)
+        if i > 0 && segs[i - 1] == "batch" { continue; }
         if clean == "batch" { continue; }
         if forbidden.contains(&clean.to_lowercase().as_str()) {
             return Some(clean.to_string());
