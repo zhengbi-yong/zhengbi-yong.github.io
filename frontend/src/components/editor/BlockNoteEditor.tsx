@@ -9,71 +9,17 @@ import { Loader2 } from 'lucide-react'
 import './BlockNoteEditor.css'
 
 /**
- * Normalize legacy content_json blocks for BlockNote 0.49.0 compatibility.
- *
- * Two known issues from the migration script:
- * 1. Block-level nodes (paragraphs with id/props/children) wrongly nested
- *    inside inline content arrays — content[0].content[0].content[0].text
- *    instead of content[0].text. Flatten these.
- * 2. Old-style boolean styles { bold: true } which BlockNote rejects.
+ * Fix legacy boolean styles { bold: true } → { bold: {} }.
+ * BlockNote 0.49.0 rejects boolean-style styles on inline content nodes.
  */
-
-/** Recursively extract all leaf text nodes from a nested block tree */
-function extractTextNodes(node: unknown): Record<string, unknown>[] {
-  if (!node || typeof node !== 'object') return []
-  if (Array.isArray(node)) return node.flatMap(extractTextNodes)
-
-  const src = node as Record<string, unknown>
-  const result: Record<string, unknown>[] = []
-
-  // If this is a text node, collect it
-  if (src.type === 'text' && typeof src.text === 'string') {
-    const clean: Record<string, unknown> = { type: 'text', text: src.text }
-    if (src.styles && typeof src.styles === 'object') {
-      const styles = src.styles as Record<string, unknown>
-      const cleaned: Record<string, unknown> = {}
-      for (const [k, v] of Object.entries(styles)) {
-        cleaned[k] = v === true ? {} : v  // boolean → empty object
-      }
-      clean.styles = cleaned
-    }
-    result.push(clean)
-  }
-
-  // Recurse into content/children arrays
-  if (Array.isArray(src.content)) {
-    result.push(...src.content.flatMap(extractTextNodes))
-  }
-  if (Array.isArray(src.children)) {
-    result.push(...src.children.flatMap(extractTextNodes))
-  }
-
-  return result
-}
-
-/** Check if a node looks like a block-level node (has id/props/children) */
-function isBlockNode(node: Record<string, unknown>): boolean {
-  return ('id' in node || 'props' in node || 'children' in node)
-}
-
-function deepNormalize(node: unknown, isInline: boolean = false): unknown {
+function fixStyles(node: unknown): unknown {
   if (!node || typeof node !== 'object') return node
-  if (Array.isArray(node)) return node.map(n => deepNormalize(n, isInline))
+  if (Array.isArray(node)) return node.map(fixStyles)
 
   const src = node as Record<string, unknown>
-
-  // Inline context: if this is a block node masquerading as inline content,
-  // flatten it to extract actual text nodes
-  if (isInline && isBlockNode(src)) {
-    const texts = extractTextNodes(src)
-    if (texts.length > 0) return texts
-    // Empty block-wrapped node → skip it (return empty placeholder that gets filtered)
-    return []
-  }
-
   const out: Record<string, unknown> = { ...src }
 
-  // Fix legacy inline styles: boolean → empty object
+  // Fix boolean styles
   if (out.styles && typeof out.styles === 'object') {
     const styles = out.styles as Record<string, unknown>
     const cleaned: Record<string, unknown> = {}
@@ -83,20 +29,12 @@ function deepNormalize(node: unknown, isInline: boolean = false): unknown {
     out.styles = cleaned
   }
 
-  // Process content: each child is in inline context
+  // Recurse into content/children
   if (Array.isArray(out.content)) {
-    const processed = out.content.flatMap(n => {
-      const result = deepNormalize(n, true)
-      // deepNormalize may return an array (flattened inline nodes) or a single node
-      if (Array.isArray(result)) return result.filter(x => x && typeof x === 'object' && Object.keys(x as object).length > 0)
-      return result ? [result] : []
-    })
-    out.content = processed
+    out.content = out.content.map(fixStyles)
   }
-
-  // Process children: each child is a block, not inline
   if (Array.isArray(out.children)) {
-    out.children = out.children.map(n => deepNormalize(n, false))
+    out.children = out.children.map(fixStyles)
   }
 
   return out
@@ -118,7 +56,7 @@ function BlockNoteEditor({
       try {
         const parsed = JSON.parse(content)
         if (Array.isArray(parsed)) {
-          return deepNormalize(parsed) as any
+          return fixStyles(parsed) as any
         }
         return undefined
       } catch {
@@ -147,7 +85,7 @@ function BlockNoteEditor({
     }
   }, [editor])
 
-  // 修复 Prosemirror 拦截代码块语言选择器的点击事件
+  // Prevent ProseMirror from intercepting select element clicks in code block language picker
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement
