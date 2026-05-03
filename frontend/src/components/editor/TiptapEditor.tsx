@@ -578,8 +578,12 @@ function RichTextEditorInner({
 
     content: (() => {
       if (!content) return undefined
+      // Tiptap JSON format
       try { return JSON.parse(content) }
-      catch { return undefined }
+      catch {
+        // Not JSON — treat as HTML and let Tiptap parse it during editor init
+        return content
+      }
     })(),
 
     onUpdate: ({ editor: e }) => {
@@ -597,7 +601,7 @@ function RichTextEditorInner({
         editor.commands.setContent(incoming)
       }
     } catch {
-      // ignore malformed JSON
+      // HTML content — skip sync; editor already loaded it as initialContent
     }
   }, [editor, content])
 
