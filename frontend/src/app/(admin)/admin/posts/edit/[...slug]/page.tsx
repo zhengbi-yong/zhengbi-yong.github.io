@@ -3,7 +3,7 @@
 /**
  * 编辑文章页面
  *
- * 复用新建文章页面结构,支持加载已有文章数据并回显到编辑器中
+ * 复用新建文章页面结构，支持加载已有文章数据并回显到编辑器中
  */
 
 import { useState, useEffect, use, useRef } from 'react'
@@ -20,7 +20,7 @@ import { Button } from '@/components/shadcn/ui/button'
 import { Badge } from '@/components/shadcn/ui/badge'
 import { LoadingState } from '@/components/admin/empty-state'
 
-import BlockNoteEditor from '@/components/editor/BlockNoteEditor'
+import TiptapEditor from '@/components/editor/TiptapEditor'
 
 export default function EditPostPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug: slugArray } = use(params)
@@ -53,18 +53,18 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
         setCategory(post.category_id || '')
         setTags(post.tags?.map((t) => t.id) || [])
         originalMdxRef.current = post.content || ''
-        if (post.content_json) {
-          setContent(JSON.stringify(post.content_json))
-        } else {
-          const { content: editorContent } = loadToEditor(post.content || '')
-          setContent(editorContent)
-        }
+        // Always load from raw MDX content via loadToEditor.
+        // content_json is stored in BlockNote format which may be
+        // incompatible with the current BlockNote version.
+        // loadToEditor converts MDX → Tiptap-safe JSON.
+        const { content: editorContent } = loadToEditor(post.content || '')
+        setContent(editorContent)
         setPostStatus(post.status)
       } catch (error) {
         console.error('Failed to load post:', error)
         setSaveStatus({
           type: 'error',
-          message: '加载文章失败,请重新加载',
+          message: '加载文章失败，请重新加载',
         })
       } finally {
         setLoadingPost(false)
@@ -123,7 +123,7 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
       console.error('Failed to save post:', error)
       setSaveStatus({
         type: 'error',
-        message: error instanceof Error ? error.message : '保存失败,请重试',
+        message: error instanceof Error ? error.message : '保存失败，请重试',
       })
     } finally {
       setIsSaving(false)
@@ -217,7 +217,7 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
           <ArticleMetadata title={title} summary={summary} category={category} tags={tags} onTitleChange={setTitle} onSummaryChange={setSummary} onCategoryChange={setCategory} onTagsChange={setTags} />
         </div>
         <div className="bg-card rounded-lg shadow-sm border overflow-hidden">
-          <BlockNoteEditor content={content} onChange={(json: string, _mdx: string) => { setContent(json); setContentMdx('') }} />
+          <TiptapEditor content={content} onDualChange={(json: string, mdx: string) => { setContent(json); setContentMdx(mdx) }} />
         </div>
       </div>
     </div>
