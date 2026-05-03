@@ -39,7 +39,7 @@ import { ArticleMetadata } from '@/components/editor/ArticleMetadata'
 import { Loader2, Eye, FileText, Trash2, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDraft, Draft } from '@/lib/hooks/useDraft'
-import TiptapEditor from '@/components/editor/TiptapEditor'
+import BlockNoteEditor from '@/components/editor/BlockNoteEditor'
 import { api } from '@/lib/api/apiClient'
 import { Button } from '@/components/shadcn/ui/button'
 
@@ -379,9 +379,9 @@ export default function NewPostPage() {
 
           {/* 富文本编辑器 */}
           <div className="overflow-hidden bg-card rounded-lg border shadow-sm">
-            <TiptapEditor
+            <BlockNoteEditor
               content={content}
-              onDualChange={(json: string, mdx: string) => {
+              onChange={(json: string, mdx: string) => {
                 setContent(json)
                 setContentMdx(mdx)
               }}
