@@ -19,7 +19,7 @@ import { Button } from '@/components/shadcn/ui/button'
 import { Badge } from '@/components/shadcn/ui/badge'
 import { LoadingState } from '@/components/admin/empty-state'
 
-import TiptapEditor from '@/components/editor/TiptapEditor'
+import BlockNoteEditor from '@/components/editor/BlockNoteEditor'
 
 export default function EditPostPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug: slugArray } = use(params)
@@ -218,7 +218,7 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
           <ArticleMetadata title={title} summary={summary} category={category} tags={tags} onTitleChange={setTitle} onSummaryChange={setSummary} onCategoryChange={setCategory} onTagsChange={setTags} />
         </div>
         <div className="bg-card rounded-lg shadow-sm border overflow-hidden">
-          <TiptapEditor content={content} onDualChange={(json: string, mdx: string) => { setContent(json); setContentMdx(mdx) }} />
+          <BlockNoteEditor content={content} onChange={(json: string, mdx: string) => { setContent(json); setContentMdx(mdx) }} />
         </div>
       </div>
     </div>
