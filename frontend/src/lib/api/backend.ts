@@ -161,11 +161,11 @@ export const authService = {
   /** Get user's public posts */
   async getUserPublicPosts(
     username: string,
-    params?: { page?: number; page_size?: number }
+    params?: { page?: number; per_page?: number }
   ): Promise<UserPublicPostsResponse> {
     const query = new URLSearchParams()
     if (params?.page) query.set('page', String(params.page))
-    if (params?.page_size) query.set('page_size', String(params.page_size))
+    if (params?.per_page) query.set('per_page', String(params.per_page))
     const qs = query.toString()
     const url = `${BACKEND_API_URL}/users/${encodeURIComponent(username)}/posts${qs ? '?' + qs : ''}`
     const response = await api.get<UserPublicPostsResponse>(url, { cache: 30 * 1000 })
@@ -429,14 +429,14 @@ export const adminService = {
    */
   async getUsers(params?: {
     page?: number
-    page_size?: number
+    per_page?: number
     search?: string
     status?: string
     role?: string
   }): Promise<UserListResponse> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString())
     if (params?.search) queryParams.append('search', params.search)
     if (params?.status) queryParams.append('status', params.status)
     if (params?.role) queryParams.append('role', params.role)
@@ -545,7 +545,7 @@ export const adminService = {
   async getComments(page = 1, pageSize = 20, status?: string): Promise<CommentAdminListResponse> {
     const params = new URLSearchParams()
     params.append('page', page.toString())
-    params.append('page_size', pageSize.toString())
+    params.append('per_page', pageSize.toString())
     if (status) params.append('status', status)
 
     const response = await api.get<CommentAdminListResponse>(
@@ -574,13 +574,13 @@ export const adminService = {
    */
   async listAdminPosts(params?: {
     page?: number
-    page_size?: number
+    per_page?: number
     status?: string
     search?: string
   }): Promise<PostListResponse> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString())
     if (params?.status) queryParams.append('status', params.status)
     if (params?.search) queryParams.append('search', params.search)
 
@@ -816,7 +816,7 @@ export const adminService = {
    */
   async getTeamMembers(params?: {
     page?: number
-    page_size?: number
+    per_page?: number
     team_role?: string
     is_active?: boolean
     search?: string
@@ -824,11 +824,11 @@ export const adminService = {
     data: import('../types/backend').TeamMemberListItem[]
     total: number
     page: number
-    page_size: number
+    per_page: number
   }> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString())
     if (params?.team_role) queryParams.append('team_role', params.team_role)
     if (params?.is_active !== undefined) queryParams.append('is_active', String(params.is_active))
     if (params?.search) queryParams.append('search', params.search)
@@ -837,7 +837,7 @@ export const adminService = {
       data: import('../types/backend').TeamMemberListItem[]
       total: number
       page: number
-      page_size: number
+      per_page: number
     }>(`${BACKEND_API_URL}/admin/team-members?${queryParams.toString()}`, { cache: false })
     return response.data
   },
@@ -941,7 +941,7 @@ export const readingProgressService = {
   async getHistory(page = 1, pageSize = 20): Promise<ReadingHistoryResponse> {
     const params = new URLSearchParams()
     params.append('page', page.toString())
-    params.append('page_size', pageSize.toString())
+    params.append('per_page', pageSize.toString())
 
     const response = await api.get<ReadingHistoryResponse>(
       `${BACKEND_API_URL}/reading-progress/history?${params.toString()}`
@@ -990,7 +990,7 @@ export const bookmarkService = {
   async getBookmarks(page = 1, pageSize = 20): Promise<any> {
     const params = new URLSearchParams()
     params.append('page', page.toString())
-    params.append('page_size', pageSize.toString())
+    params.append('per_page', pageSize.toString())
 
     const response = await api.get(`${BACKEND_API_URL}/bookmarks?${params.toString()}`)
     return response.data

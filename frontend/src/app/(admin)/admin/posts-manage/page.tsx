@@ -99,7 +99,7 @@ export default function AdminPostsManagePage() {
     try {
       const data = await adminService.listAdminPosts({
         page,
-        page_size: pageSize,
+        per_page: pageSize,
         status: statusFilter !== 'all' ? statusFilter : undefined,
         search: debouncedSearch || undefined,
       })

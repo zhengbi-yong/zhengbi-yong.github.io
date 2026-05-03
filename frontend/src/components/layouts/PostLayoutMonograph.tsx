@@ -256,7 +256,7 @@ export default function PostLayoutMonograph({
                 {tags.map((tag) => (
                   <Link
                     key={tag}
-                    href={`/tags/${tag}`}
+                    href={`/blog/tag/${tag}`}
                     style={{
                       fontFamily: 'var(--mono-font-sans)',
                       fontSize: 'var(--font-size-xs)',

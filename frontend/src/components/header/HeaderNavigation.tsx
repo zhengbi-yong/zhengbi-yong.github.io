@@ -21,7 +21,7 @@ export function HeaderNavigation({ className, navLinks = [] }: HeaderNavigationP
     const defaultNav = [
       { name: t('nav.home'), href: '/' },
       { name: t('nav.blog'), href: '/blog' },
-      { name: t('nav.tags'), href: '/tags' },
+      { name: t('nav.tags'), href: '/blog/tag' },
       { name: t('nav.projects'), href: '/projects' },
       { name: t('nav.about'), href: '/about' },
     ]

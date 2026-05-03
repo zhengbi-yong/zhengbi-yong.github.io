@@ -26,7 +26,7 @@ export default function UserPublicPage() {
         setLoading(true)
         const [profileData, postsData] = await Promise.all([
           authService.getPublicProfile(username),
-          authService.getUserPublicPosts(username, { page: 1, page_size: 10 }),
+          authService.getUserPublicPosts(username, { page: 1, per_page: 10 }),
         ])
         setProfile(profileData)
         setPosts(postsData)

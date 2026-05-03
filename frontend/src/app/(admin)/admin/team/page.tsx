@@ -54,13 +54,13 @@ export default function TeamManagementPage() {
     try {
       const params: {
         page: number
-        page_size: number
+        per_page: number
         is_active?: boolean
         team_role?: string
         search?: string
       } = {
         page,
-        page_size: pageSize,
+        per_page: pageSize,
         is_active: true,
       }
       if (roleFilter !== 'all') params.team_role = roleFilter

@@ -111,7 +111,7 @@ export const dataProvider: DataProvider = {
 
     const params: Record<string, string | number> = {
       page: current,
-      page_size: pageSize,
+      per_page: pageSize,
     }
 
     // 处理筛选

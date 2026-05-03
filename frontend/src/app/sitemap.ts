@@ -20,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Get all unique tags
   const tags = [...new Set(allBlogs.flatMap((post) => post.tags || []))]
   const tagRoutes = tags.map((tag) => ({
-    url: `${siteUrl}/tags/${tag}`,
+    url: `${siteUrl}/blog/tag/${tag}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.5,
@@ -74,7 +74,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     },
     {
-      url: `${siteUrl}/experiment`,
+      url: `${siteUrl}/lab/experiment`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.5,
@@ -92,7 +92,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.4,
     },
     {
-      url: `${siteUrl}/excalidraw`,
+      url: `${siteUrl}/lab/excalidraw`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
@@ -120,7 +120,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const tagPages = Math.ceil(tagPosts.length / postsPerPage)
     for (let page = 2; page <= tagPages; page++) {
       allRoutes.push({
-        url: `${siteUrl}/tags/${tag}/page/${page}`,
+        url: `${siteUrl}/blog/tag/${tag}/page/${page}`,
         lastModified: new Date(),
         changeFrequency: 'weekly' as const,
         priority: 0.4,

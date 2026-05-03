@@ -233,12 +233,12 @@ export interface UserListResponse {
   users: UserListItem[]
   total: number
   page: number
-  page_size: number
+  per_page: number
 }
 
 export interface UserListParams {
   page?: number
-  page_size?: number
+  per_page?: number
   search?: string
   status?: UserStatus | ''
   role?: string | ''
@@ -287,7 +287,7 @@ export interface CommentAdminListResponse {
   comments: CommentAdminItem[]
   total: number
   page: number
-  page_size: number
+  per_page: number
 }
 
 export interface UpdateCommentStatusRequest {
@@ -701,7 +701,7 @@ export interface UserPublicPostsResponse {
   }>
   total: number
   page: number
-  page_size: number
+  per_page: number
   total_pages: number
 }
 
@@ -784,12 +784,12 @@ export interface TeamMemberListResponse {
   data: TeamMemberListItem[]
   total: number
   page: number
-  page_size: number
+  per_page: number
 }
 
 export interface TeamMemberListParams {
   page?: number
-  page_size?: number
+  per_page?: number
   team_role?: TeamRole
   is_active?: boolean
   search?: string

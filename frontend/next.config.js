@@ -274,6 +274,53 @@ const finalConfig = {
   ...nextConfig,
   // 解决外部包问题
   serverExternalPackages: ['@opentelemetry/api'],
+  // 路由重定向：保持向后兼容
+  async redirects() {
+    return [
+      // Tags → Blog tags
+      {
+        source: '/tags',
+        destination: '/blog/tag',
+        permanent: true,
+      },
+      {
+        source: '/tags/:tag',
+        destination: '/blog/tag/:tag',
+        permanent: true,
+      },
+      {
+        source: '/tags/:tag/page/:page',
+        destination: '/blog/tag/:tag/page/:page',
+        permanent: true,
+      },
+      // Lab — 实验页面
+      {
+        source: '/excalidraw',
+        destination: '/lab/excalidraw',
+        permanent: true,
+      },
+      {
+        source: '/experiment',
+        destination: '/lab/experiment',
+        permanent: true,
+      },
+      {
+        source: '/experiment/:path*',
+        destination: '/lab/experiment/:path*',
+        permanent: true,
+      },
+      {
+        source: '/music',
+        destination: '/lab/music',
+        permanent: true,
+      },
+      {
+        source: '/music/:path*',
+        destination: '/lab/music/:path*',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 // 只在非静态导出时添加 headers

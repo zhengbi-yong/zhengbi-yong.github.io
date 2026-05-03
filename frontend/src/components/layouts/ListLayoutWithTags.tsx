@@ -228,7 +228,7 @@ export default function ListLayoutWithTags({
               )}
               <ul className="mt-4 space-y-2.5">
                 {sortedTags.map((t) => {
-                  const isActive = decodeURI(pathname.split('/tags/')[1]!) === slug(t)
+                  const isActive = decodeURI(pathname.split('/blog/tag/')[1]!) === slug(t)
                   return (
                     <li key={t}>
                       {isActive ? (
@@ -237,7 +237,7 @@ export default function ListLayoutWithTags({
                         </span>
                       ) : (
                         <Link
-                          href={`/tags/${slug(t)}`}
+                          href={`/blog/tag/${slug(t)}`}
                           className="inline-flex rounded-full px-3 py-2 text-sm font-medium text-[var(--text-soft)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--brand-color)]"
                           aria-label={`View posts tagged ${t}`}
                         >
