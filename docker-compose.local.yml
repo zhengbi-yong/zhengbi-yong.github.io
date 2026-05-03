@@ -149,7 +149,7 @@ services:
       PORT: 3001
       HOSTNAME: 0.0.0.0
       BACKEND_INTERNAL_URL: http://api:3000
-      NEXT_PUBLIC_BACKEND_URL: http://localhost:3000
+      NEXT_PUBLIC_BACKEND_URL: ""
       NEXT_PUBLIC_API_URL: http://localhost:3000
       NEXT_PUBLIC_SITE_URL: http://localhost:3001
       DISABLE_HSTS: "1"
