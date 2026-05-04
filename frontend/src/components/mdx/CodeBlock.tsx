@@ -44,7 +44,9 @@ function extractTextContent(children: ReactNode): string {
  */
 function extractShikiContent(html: string): string {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
-  return match ? match[1]! : html
+  const inner = match ? match[1]! : html
+  // Strip trailing \n (creates blank line at bottom when combined with white-space:normal)
+  return inner.replace(/\n+$/, '')
 }
 
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
