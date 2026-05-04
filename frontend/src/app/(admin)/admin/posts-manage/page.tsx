@@ -228,7 +228,7 @@ export default function AdminPostsManagePage() {
   const handleExportMdx = async (postId: string) => {
     try {
       const resp = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin/posts/${postId}/export/mdx`,
+        `/api/v1/admin/posts/${postId}/export/mdx`,
         { credentials: 'include' }
       )
       if (!resp.ok) {

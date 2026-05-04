@@ -187,7 +187,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
           <div className="flex-1 overflow-x-auto">
             {highlightedHtml ? (
               <pre
-                className="code-block-content text-sm"
+                className="code-block-content m-0 font-mono text-sm"
                 style={{ padding: '1rem', lineHeight: '1.7' }}
                 dangerouslySetInnerHTML={{
                   __html: extractShikiContent(highlightedHtml),
