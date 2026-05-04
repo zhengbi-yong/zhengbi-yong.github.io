@@ -45,8 +45,13 @@ function extractTextContent(children: ReactNode): string {
 function extractShikiContent(html: string): string {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
   const inner = match ? match[1]! : html
-  // Strip trailing \n (creates blank line at bottom when combined with white-space:normal)
-  return inner.replace(/\n+$/, '')
+  // Shiki puts \n text nodes between </span> and <span class="line">, plus
+  // a trailing \n before </code>. Strip ALL whitespace text nodes:
+  // 1. Strip leading/trailing whitespace around the block
+  // 2. Collapse \n between </span> and <span class="line">
+  return inner
+    .trim()
+    .replace(/<\/span>\n<span class="line">/g, '</span><span class="line">')
 }
 
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
