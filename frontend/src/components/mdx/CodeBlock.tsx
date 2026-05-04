@@ -42,9 +42,30 @@ function extractTextContent(children: ReactNode): string {
  * CSS handles whitespace: container uses white-space:normal to collapse \n between
  * lines; .line { display:block; white-space:pre } preserves indentation within lines.
  */
-function extractShikiContent(html: string): string {
+function extractShikiContent(html: string, expectedLines: number): string {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
-  return match ? match[1]! : html
+  const inner = match ? match[1]! : html
+  
+  // Shiki sometimes generates extra trailing .line spans. Match the expected count.
+  const parts = inner.split(/(<span class="line">)/g)
+  // parts: ['\n', '<span class="line">', '...line1...</span>\n', '<span class="line">', '...line2...</span>\n', ...]
+  // Collect spans: each '<span class="line">' followed by content ending with '</span>'
+  const lines: string[] = []
+  let i = 0
+  while (i < parts.length && lines.length < expectedLines) {
+    if (parts[i] === '<span class="line">' && i + 1 < parts.length) {
+      const content = parts[i + 1]
+      // Find the matching </span> that closes this .line span
+      const closeIdx = content.lastIndexOf('</span>')
+      if (closeIdx >= 0) {
+        lines.push(content.substring(0, closeIdx))
+      }
+      i += 2
+    } else {
+      i++
+    }
+  }
+  return lines.map(l => `<span class="line">${l}</span>`).join('')
 }
 
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
@@ -204,7 +225,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
                 className="code-block-content font-mono"
                 style={{ padding: '1rem' }}
                 dangerouslySetInnerHTML={{
-                  __html: extractShikiContent(highlightedHtml),
+                  __html: extractShikiContent(highlightedHtml, trimmedCode.split('\n').length),
                 }}
               />
             ) : (
