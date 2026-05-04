@@ -3,22 +3,42 @@
  * Uses fine-grained imports (only required language grammars) to minimize bundle size.
  * Uses WASM-less JavaScript regex engine for faster cold-start.
  */
-import { createHighlighter, createJavaScriptRegexEngine, type Highlighter } from 'shiki'
+import { createHighlighter, createJavaScriptRegexEngine, type Highlighter, type ThemedToken } from 'shiki'
 
 // Languages required for a world-class technical blog
 // IDs must match shiki's registered language names exactly.
 // Use 'shellscript' (not 'bash'/'sh') — shiki maps the user's lang to its internals.
 const LANGUAGES = [
-  'typescript', 'javascript', 'python', 'rust', 'go',
-  'java', 'cpp', 'c', 'shellscript',
-  'json', 'yaml', 'toml',
-  'markdown', 'mdx',
-  'html', 'css', 'scss',
+  'typescript',
+  'javascript',
+  'python',
+  'rust',
+  'go',
+  'java',
+  'cpp',
+  'c',
+  'shellscript',
+  'json',
+  'yaml',
+  'toml',
+  'markdown',
+  'mdx',
+  'html',
+  'css',
+  'scss',
   'sql',
-  'php', 'ruby', 'swift', 'kotlin',
-  'r', 'scala', 'haskell', 'lua',
-  'docker', 'nginx',
-  'vim', 'latex',
+  'php',
+  'ruby',
+  'swift',
+  'kotlin',
+  'r',
+  'scala',
+  'haskell',
+  'lua',
+  'docker',
+  'nginx',
+  'vim',
+  'latex',
 ] as const
 
 const THEMES = [
@@ -31,8 +51,8 @@ const THEMES = [
   'vitesse-light',
 ] as const
 
-type SupportedLang = typeof LANGUAGES[number]
-type SupportedTheme = typeof THEMES[number]
+type SupportedLang = (typeof LANGUAGES)[number]
+type SupportedTheme = (typeof THEMES)[number]
 
 let highlighterPromise: Promise<Highlighter> | null = null
 
@@ -52,38 +72,81 @@ export function getHighlighter(): Promise<Highlighter> {
   return highlighterPromise
 }
 
+/** Result from token-level highlighting */
+export interface HighlightTokensResult {
+  /** 2D array: tokens[row][col] — each row is a code line */
+  tokens: ThemedToken[][]
+  /** Foreground color (default text color for the theme) */
+  fg: string
+  /** Background color */
+  bg: string
+  /** Theme name */
+  themeName: string
+}
+
 /**
- * Highlight a code string. Returns HTML string or null on failure.
- * Falls back to plain escaped text if language is unknown.
+ * Highlight a code string using Shiki's token API.
+ * Returns token-level data so CodeBlock.tsx can build its own HTML
+ * with exact control over line count — avoiding trailing-empty-line bugs.
+ *
+ * Falls back to null on failure (unknown language, etc.).
  */
-export async function highlightCode(
+export async function highlightCodeToTokens(
   code: string,
   lang: string,
   theme: SupportedTheme = 'github-dark'
-): Promise<string> {
+): Promise<HighlightTokensResult | null> {
   try {
     const h = await getHighlighter()
     const safeLang = (LANGUAGES as readonly string[]).includes(lang) ? lang : 'text'
-    return h.codeToHtml(code, { lang: safeLang, theme })
+    const result = h.codeToTokens(code, { lang: safeLang, theme })
+    return {
+      tokens: result.tokens as ThemedToken[][],
+      fg: result.fg,
+      bg: result.bg,
+      themeName: result.themeName,
+    }
   } catch {
-    // Language not supported — return plain escaped text
-    return `<pre><code>${escapeHtml(code)}</code></pre>`
+    return null
   }
 }
 
 /**
- * Highlight synchronously if already initialized, otherwise return plain HTML.
- * Use this when you need a sync result and can accept a fallback.
+ * Build HTML for a single line of code from token data.
+ * Preserves syntax highlighting colors from Shiki.
  */
-export function highlightCodeSync(
-  _code: string,
-  _lang: string,
-  _theme: SupportedTheme = 'github-dark'
+export function buildLineHtml(tokens: ThemedToken[]): string {
+  if (tokens.length === 0) {
+    // Empty line — no content, CSS min-height makes it visible
+    return ''
+  }
+  return tokens
+    .map(t => `<span style="color:${t.color}">${escapeHtml(t.content)}</span>`)
+    .join('')
+}
+
+/**
+ * Build complete inner HTML for a code block from token data.
+ * Limits to expectedLines to discard Shiki's trailing empty line.
+ *
+ * Empty .line spans rely on CSS min-height for visibility (no \u00a0
+ * hacks — clean copy/paste).
+
+ * Uses bgtoken spans with controlled font-size like Shiki's output.
+ */
+export function buildCodeBlockHtml(
+  tokens: ThemedToken[][],
+  expectedLines: number,
+  fg: string,
+  bg: string
 ): string {
-  // Synchronous path: highlighter may not be ready yet (WASM init is async)
-  // We always return the promise-based version for correctness
-  // The NodeView handles async rendering
-  return '' // caller must use async path
+  const limited = tokens.slice(0, expectedLines)
+  return limited
+    .map(lineTokens => {
+      const inner = buildLineHtml(lineTokens)
+      return `<span class="line">${inner}</span>`
+    })
+    .join('\n')
 }
 
 function escapeHtml(text: string): string {

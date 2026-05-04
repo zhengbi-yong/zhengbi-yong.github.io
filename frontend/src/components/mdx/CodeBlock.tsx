@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes'
 import { Check, Copy } from 'lucide-react'
 import { cn } from '@/components/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
-import { highlightCode } from '@/lib/shiki-highlighter'
+import { highlightCodeToTokens, buildCodeBlockHtml } from '@/lib/shiki-highlighter'
 
 interface CodeBlockProps {
   children: ReactNode
@@ -35,39 +35,6 @@ function extractTextContent(children: ReactNode): string {
   return ''
 }
 
-/**
- * Extract inner content from Shiki's HTML output.
- * Shiki: <pre><code>\n<span class="line">...</span>\n<span class="line">...</span>\n</code></pre>
- * Returns the raw content between <code> tags (no whitespace manipulation).
- * CSS handles whitespace: container uses white-space:normal to collapse \n between
- * lines; .line { display:block; white-space:pre } preserves indentation within lines.
- */
-function extractShikiContent(html: string, expectedLines: number): string {
-  const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
-  const inner = match ? match[1]! : html
-  
-  // Shiki sometimes generates extra trailing .line spans. Match the expected count.
-  const parts = inner.split(/(<span class="line">)/g)
-  // parts: ['\n', '<span class="line">', '...line1...</span>\n', '<span class="line">', '...line2...</span>\n', ...]
-  // Collect spans: each '<span class="line">' followed by content ending with '</span>'
-  const lines: string[] = []
-  let i = 0
-  while (i < parts.length && lines.length < expectedLines) {
-    if (parts[i] === '<span class="line">' && i + 1 < parts.length) {
-      const content = parts[i + 1]
-      // Find the matching </span> that closes this .line span
-      const closeIdx = content.lastIndexOf('</span>')
-      if (closeIdx >= 0) {
-        lines.push(content.substring(0, closeIdx))
-      }
-      i += 2
-    } else {
-      i++
-    }
-  }
-  return lines.map(l => `<span class="line">${l}</span>`).join('')
-}
-
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null)
@@ -75,11 +42,12 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   const { resolvedTheme } = useTheme()
   const language = extractLanguage(className)
   const codeText = extractTextContent(children)
-  // Trim trailing whitespace to prevent Shiki from generating an empty trailing .line span
+  // Trim trailing whitespace so Shiki doesn't generate an extra trailing empty line
   const trimmedCode = codeText.trimEnd()
+  const codeLines = trimmedCode.split('\n').length
   const shikiTheme = resolvedTheme === 'dark' ? 'github-dark' : 'github-light'
 
-  // E3: Async Shiki highlighting - yields to React's scheduler
+  // Async token-level highlighting — build our own HTML for full line-count control
   useEffect(() => {
     if (!language || !trimmedCode.trim()) {
       return undefined
@@ -87,15 +55,14 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
     let cancelled = false
     const timer = setTimeout(async () => {
       try {
-        const html = await highlightCode(trimmedCode, language, shikiTheme)
-        if (!cancelled) {
-          // Debug: log line counts to diagnose trailing empty line issue
-          const shikiLines = (html.match(/<span class="line">/g) || []).length
-          const codeLines = trimmedCode.split('\n').length
+        const result = await highlightCodeToTokens(trimmedCode, language, shikiTheme)
+        if (!cancelled && result) {
+          const html = buildCodeBlockHtml(result.tokens, codeLines, result.fg, result.bg)
+          // Debug: verify line count
+          const shikiLines = result.tokens.length
           if (shikiLines !== codeLines) {
             console.warn(
-              `[CodeBlock] Line mismatch: Shiki=${shikiLines} code=${codeLines} lang=${language}`,
-              'trimmedCode ends with:', JSON.stringify(trimmedCode.slice(-10))
+              `[CodeBlock] Shiki raw=${shikiLines} codeLines=${codeLines} lang=${language} — limited to ${codeLines}`
             )
           }
           setHighlightedHtml(html)
@@ -108,7 +75,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [language, trimmedCode, shikiTheme])
+  }, [language, trimmedCode, shikiTheme, codeLines])
 
   const handleCopy = useCallback(async () => {
     try {
@@ -140,12 +107,11 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   return (
     <div className="group/code relative my-6 overflow-hidden rounded-lg border border-[var(--theme-border)] dark:border-gray-700/50 bg-[var(--theme-bg)]/95">
       {/* CSS: font-size:0 on container collapses \n text nodes between .line spans.
-           .line:empty { display:none } hides Shiki's trailing empty spans.
-           .line spans restore font-size for normal code rendering. */}
+           .line spans restore font-size; min-height ensures empty lines are visible.
+           Line count is exact — built from tokens, limited to codeLines. */}
       <style>{`
         .code-block-content { font-size: 0; }
-        .code-block-content .line { display: block; font-size: 0.875rem; line-height: 1.7; white-space: pre; }
-        .code-block-content .line:empty { display: none; }
+        .code-block-content .line { display: block; font-size: 0.875rem; line-height: 1.7; white-space: pre; min-height: calc(0.875rem * 1.7); }
       `}</style>
       {/* Header bar */}
       <div className="flex items-center justify-between border-b border-[var(--theme-border)] dark:border-gray-700/50 px-4 py-2 bg-stone-200/80">
@@ -216,7 +182,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
           {/* Line numbers — hidden on very small screens */}
           <div className="hidden sm:flex flex-col flex-shrink-0 select-none border-r border-gray-700/30 px-3 py-4 text-right font-mono text-sm leading-[1.7] text-[var(--theme-fg-secondary)] dark:text-[var(--theme-fg-secondary)]">
             {trimmedCode.split('\n').map((_, i) => (
-              <div key={i}>{i + 1}</div>
+              <div key={i} className="min-h-[calc(0.875rem*1.7)]">{i + 1}</div>
             ))}
           </div>
           <div className="flex-1 overflow-x-auto">
@@ -224,9 +190,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
               <div
                 className="code-block-content font-mono"
                 style={{ padding: '1rem' }}
-                dangerouslySetInnerHTML={{
-                  __html: extractShikiContent(highlightedHtml, trimmedCode.split('\n').length),
-                }}
+                dangerouslySetInnerHTML={{ __html: highlightedHtml }}
               />
             ) : (
               <div className="p-4 text-sm font-mono leading-[1.7] text-[var(--theme-fg)] whitespace-pre-wrap">
