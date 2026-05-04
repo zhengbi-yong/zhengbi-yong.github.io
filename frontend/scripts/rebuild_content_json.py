@@ -80,16 +80,21 @@ def make_heading(level, inline_content):
 
 
 def make_codeblock(language, code_text):
-    """Create a codeBlock with inline text content (one text node per line)."""
+    """Create a codeBlock with inline text content (one text node per line).
+    
+    Each text node = one line. BlockNote internally handles line breaks.
+    No explicit '\\n' text nodes needed — they cause extra empty lines
+    and break line-number alignment.
+    """
     if not code_text.strip():
         return make_paragraph("")
     
     lines = code_text.split('\n')
-    content = []
-    for i, line in enumerate(lines):
-        if i > 0:
-            content.append(make_text('\n'))
-        content.append(make_text(line))
+    # Remove trailing empty line (from final \n in source)
+    if lines and lines[-1] == '':
+        lines.pop()
+    
+    content = [make_text(line) for line in lines]
     return make_block(
         "codeBlock",
         props={"language": language if language else "plaintext"},
