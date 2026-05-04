@@ -44,14 +44,7 @@ function extractTextContent(children: ReactNode): string {
  */
 function extractShikiContent(html: string): string {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
-  const inner = match ? match[1]! : html
-  // Shiki v4 generates extra empty <span class="line"> for each trailing \n in code.
-  // e.g. code "line1\nline2\n" → 3 spans (last one empty).
-  // Strip ALL trailing whitespace + empty spans to eliminate bottom blank lines.
-  return inner
-    .trim()
-    .replace(/<\/span>\n<span class="line">/g, '</span><span class="line">')
-    .replace(/(<span class="line">\s*<\/span>)+\s*$/, '')
+  return match ? match[1]! : html
 }
 
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
@@ -116,9 +109,14 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
 
   return (
     <div className="group/code relative my-6 overflow-hidden rounded-lg border border-[var(--theme-border)] dark:border-gray-700/50 bg-[var(--theme-bg)]/95">
-      {/* CSS: collapse whitespace between .line spans (no blank gaps),
-           but preserve indentation within each line via white-space:pre */}
-      <style>{`.code-block-content .line { display: block; white-space: pre; }`}</style>
+      {/* CSS: font-size:0 on container collapses \n text nodes between .line spans.
+           .line:empty { display:none } hides Shiki's trailing empty spans.
+           .line spans restore font-size for normal code rendering. */}
+      <style>{`
+        .code-block-content { font-size: 0; }
+        .code-block-content .line { display: block; font-size: 0.875rem; line-height: 1.7; white-space: pre; }
+        .code-block-content .line:empty { display: none; }
+      `}</style>
       {/* Header bar */}
       <div className="flex items-center justify-between border-b border-[var(--theme-border)] dark:border-gray-700/50 px-4 py-2 bg-stone-200/80">
         <div className="flex items-center gap-2">
@@ -194,8 +192,8 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
           <div className="flex-1 overflow-x-auto">
             {highlightedHtml ? (
               <div
-                className="code-block-content font-mono text-sm whitespace-normal"
-                style={{ padding: '1rem', lineHeight: '1.7' }}
+                className="code-block-content font-mono"
+                style={{ padding: '1rem' }}
                 dangerouslySetInnerHTML={{
                   __html: extractShikiContent(highlightedHtml),
                 }}
