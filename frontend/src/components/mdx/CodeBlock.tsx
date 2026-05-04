@@ -36,25 +36,24 @@ function extractTextContent(children: ReactNode): string {
 }
 
 /**
- * Extract just the inner code content from Shiki's full HTML output.
- * Shiki wraps in <pre><code>...</code></pre>; we need only the inner part.
- * Also removes the raw newline text nodes between <span class="line"> elements
- * that Shiki outputs — these cause blank lines when .line has display:block.
+ * Parse Shiki HTML output into individual line HTML strings, stripping all
+ * text-node whitespace that Shiki inserts between <span class="line"> elements.
+ *
+ * Shiki output: <pre><code>\n<span class="line"><span style="...">code</span></span>\n<span class="line">...</span>\n</code></pre>
+ *
+ * Each line is rendered as a <div className="line">, matching the line-number
+ * column's <div> elements exactly, guaranteeing perfect vertical alignment.
  */
-function extractShikiContent(html: string): string {
+function parseShikiLines(html: string): string[] {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
-  const inner = match ? match[1]! : html
-  // Shiki outputs \n text nodes between <span class="line"> elements.
-  // With .line { display: block } these become blank lines, causing extra
-  // whitespace at top/bottom of the code block and misaligning line numbers.
-  // Remove ALL whitespace-only text nodes between HTML tags inside the <code>.
-  // Strategy: strip leading/trailing whitespace, then collapse all \n between
-  // adjacent tags (handles \r\n, \n, and spaces between tags).
-  let cleaned = inner
-    .trim()                                          // strip leading/trailing \n
-    .replace(/>\s+</g, '><')                         // collapse whitespace between any adjacent tags
-    .replace(/<\/span>\n<span/g, '</span><span')      // handle escaped \n characters
-  return cleaned
+  const inner = (match ? match[1]! : html).trim()
+  // Strip leading <span class="line"> from first line and split on line boundaries
+  const cleaned = inner.replace(/^<span class="line">\s*/, '')
+  // Split: </span> + optional whitespace + <span class="line">
+  const rawLines = cleaned.split(/<\/span>\s*<span class="line">/g)
+  return rawLines
+    .map((line) => line.replace(/\s*<\/span>\s*$/, '').trim())
+    .filter((line) => line.length > 0)
 }
 
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
@@ -119,8 +118,8 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
 
   return (
     <div className="group/code relative my-6 overflow-hidden rounded-lg border border-[var(--theme-border)] dark:border-gray-700/50 bg-[var(--theme-bg)]/95">
-      {/* Force .line spans to block for proper line-height alignment with line numbers */}
-      <style>{`.code-block-content .line { display: block; }`}</style>
+      {/* Match line height with line numbers column */}
+      <style>{`.code-block-content .line { min-height: 0; }`}</style>
       {/* Header bar */}
       <div className="flex items-center justify-between border-b border-[var(--theme-border)] dark:border-gray-700/50 px-4 py-2 bg-stone-200/80">
         <div className="flex items-center gap-2">
@@ -195,13 +194,18 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
           </div>
           <div className="flex-1 overflow-x-auto">
             {highlightedHtml ? (
-              <pre
-                className="code-block-content m-0 font-mono text-sm"
+              <div
+                className="code-block-content font-mono text-sm"
                 style={{ padding: '1rem', lineHeight: '1.7' }}
-                dangerouslySetInnerHTML={{
-                  __html: extractShikiContent(highlightedHtml),
-                }}
-              />
+              >
+                {parseShikiLines(highlightedHtml).map((lineHtml, i) => (
+                  <div
+                    key={i}
+                    className="line"
+                    dangerouslySetInnerHTML={{ __html: lineHtml }}
+                  />
+                ))}
+              </div>
             ) : (
               <div className="p-4 text-sm font-mono leading-[1.7] text-[var(--theme-fg)] whitespace-pre-wrap">
                 {codeText}
