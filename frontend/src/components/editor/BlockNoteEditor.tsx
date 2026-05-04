@@ -90,6 +90,26 @@ function BlockNoteEditor({
       try {
         const parsed = JSON.parse(content)
         if (Array.isArray(parsed)) {
+          // Debug: log code block content on load
+          for (const block of parsed) {
+            if (block.type === 'codeBlock') {
+              const text = block.content?.[0]?.text || ''
+              const propsCode = block.props?.code || ''
+              const contentLen = block.content?.length || 0
+              console.log(
+                '[BlockNoteEditor] codeBlock loaded:',
+                `lang=${block.props?.language}`,
+                `contentLen=${contentLen}`,
+                `contentText_chars=${text.length}`,
+                `contentText_lines=${text.split('\n').length}`,
+                `propsCode_chars=${propsCode.length}`,
+                `propsCode_lines=${propsCode.split('\n').length}`,
+                `hasPropsCode=${!!block.props?.code}`,
+                `text_preview=${JSON.stringify(text.slice(0, 60))}`,
+                `code_preview=${JSON.stringify(propsCode.slice(0, 60))}`
+              )
+            }
+          }
           return fixStyles(parsed) as any
         }
         return undefined
@@ -105,7 +125,46 @@ function BlockNoteEditor({
       if (!cb) return
 
       try {
-        const blocksJson = JSON.stringify(editor.document)
+        // Deep-clone to avoid mutating editor.document
+        const doc = JSON.parse(JSON.stringify(editor.document))
+        
+        // Normalize code blocks: merge multiple text nodes into one with \n separators.
+        // BlockNote sometimes splits code block text at \n into separate text nodes;
+        // when loaded back, adjacent text nodes without \n get concatenated → single line.
+        // Also check props.code — @blocknote/code-block may store code there.
+        if (Array.isArray(doc)) {
+          for (const block of doc) {
+            if (block.type === 'codeBlock' && Array.isArray(block.content)) {
+              const firstText = block.content[0]?.text || ''
+              const propsCode = block.props?.code || ''
+              const nodeCount = block.content.length
+              console.log(
+                '[BlockNoteEditor] codeBlock saved:',
+                `lang=${block.props?.language}`,
+                `textNodes=${nodeCount}`,
+                `contentText_chars=${firstText.length}`,
+                `contentText_lines=${firstText.split('\n').length}`,
+                `propsCode_chars=${propsCode.length}`,
+                `propsCode_lines=${propsCode.split('\n').length}`,
+                `hasPropsCode=${!!block.props?.code}`,
+                `text_preview=${JSON.stringify(firstText.slice(0, 60))}`,
+                `code_preview=${JSON.stringify(propsCode.slice(0, 60))}`
+              )
+              
+              // Merge multiple text nodes into one (preserving \n between lines)
+              if (nodeCount > 1) {
+                const merged = block.content.map((n: any) => n.text || '').join('\n')
+                block.content = [{ type: 'text', text: merged, styles: {} }]
+                console.log(
+                  '[BlockNoteEditor] codeBlock merged:',
+                  `${nodeCount} → 1 text node, chars=${merged.length}`
+                )
+              }
+            }
+          }
+        }
+        
+        const blocksJson = JSON.stringify(doc)
         const markdown = editor.blocksToMarkdownLossy()
         cb(blocksJson, markdown)
       } catch (e) {

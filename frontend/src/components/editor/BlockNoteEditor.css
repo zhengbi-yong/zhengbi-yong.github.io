@@ -118,8 +118,9 @@
 }
 
 /* ---------- 代码块内部文字编辑区域 ---------- */
+/* 不设置 color — Shiki 内联 style="color:..." 自动覆盖继承颜色 */
+/* !important 会错误覆盖 Shiki 语法高亮的 inline 颜色 */
 .bn-block-content[data-content-type="codeBlock"] .bn-inline-content {
-  color: inherit !important;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
   font-size: 0.875em;
   line-height: 1.6;
