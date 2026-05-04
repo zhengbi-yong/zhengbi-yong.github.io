@@ -36,24 +36,15 @@ function extractTextContent(children: ReactNode): string {
 }
 
 /**
- * Parse Shiki HTML output into individual line HTML strings, stripping all
- * text-node whitespace that Shiki inserts between <span class="line"> elements.
- *
- * Shiki output: <pre><code>\n<span class="line"><span style="...">code</span></span>\n<span class="line">...</span>\n</code></pre>
- *
- * Each line is rendered as a <div className="line">, matching the line-number
- * column's <div> elements exactly, guaranteeing perfect vertical alignment.
+ * Extract inner content from Shiki's HTML output.
+ * Shiki: <pre><code>\n<span class="line">...</span>\n<span class="line">...</span>\n</code></pre>
+ * Returns the raw content between <code> tags (no whitespace manipulation).
+ * CSS handles whitespace: container uses white-space:normal to collapse \n between
+ * lines; .line { display:block; white-space:pre } preserves indentation within lines.
  */
-function parseShikiLines(html: string): string[] {
+function extractShikiContent(html: string): string {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
-  const inner = (match ? match[1]! : html).trim()
-  // Strip leading <span class="line"> from first line and split on line boundaries
-  const cleaned = inner.replace(/^<span class="line">\s*/, '')
-  // Split: </span> + optional whitespace + <span class="line">
-  const rawLines = cleaned.split(/<\/span>\s*<span class="line">/g)
-  return rawLines
-    .map((line) => line.replace(/\s*<\/span>\s*$/, '').trim())
-    .filter((line) => line.length > 0)
+  return match ? match[1]! : html
 }
 
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
@@ -118,8 +109,9 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
 
   return (
     <div className="group/code relative my-6 overflow-hidden rounded-lg border border-[var(--theme-border)] dark:border-gray-700/50 bg-[var(--theme-bg)]/95">
-      {/* Match line height with line numbers column */}
-      <style>{`.code-block-content .line { min-height: 0; }`}</style>
+      {/* CSS: collapse whitespace between .line spans (no blank gaps),
+           but preserve indentation within each line via white-space:pre */}
+      <style>{`.code-block-content .line { display: block; white-space: pre; }`}</style>
       {/* Header bar */}
       <div className="flex items-center justify-between border-b border-[var(--theme-border)] dark:border-gray-700/50 px-4 py-2 bg-stone-200/80">
         <div className="flex items-center gap-2">
@@ -195,17 +187,12 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
           <div className="flex-1 overflow-x-auto">
             {highlightedHtml ? (
               <div
-                className="code-block-content font-mono text-sm"
+                className="code-block-content font-mono text-sm whitespace-normal"
                 style={{ padding: '1rem', lineHeight: '1.7' }}
-              >
-                {parseShikiLines(highlightedHtml).map((lineHtml, i) => (
-                  <div
-                    key={i}
-                    className="line"
-                    dangerouslySetInnerHTML={{ __html: lineHtml }}
-                  />
-                ))}
-              </div>
+                dangerouslySetInnerHTML={{
+                  __html: extractShikiContent(highlightedHtml),
+                }}
+              />
             ) : (
               <div className="p-4 text-sm font-mono leading-[1.7] text-[var(--theme-fg)] whitespace-pre-wrap">
                 {codeText}
