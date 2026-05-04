@@ -68,6 +68,15 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       try {
         const html = await highlightCode(trimmedCode, language, shikiTheme)
         if (!cancelled) {
+          // Debug: log line counts to diagnose trailing empty line issue
+          const shikiLines = (html.match(/<span class="line">/g) || []).length
+          const codeLines = trimmedCode.split('\n').length
+          if (shikiLines !== codeLines) {
+            console.warn(
+              `[CodeBlock] Line mismatch: Shiki=${shikiLines} code=${codeLines} lang=${language}`,
+              'trimmedCode ends with:', JSON.stringify(trimmedCode.slice(-10))
+            )
+          }
           setHighlightedHtml(html)
         }
       } catch {
