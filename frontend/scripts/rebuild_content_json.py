@@ -143,16 +143,21 @@ def make_table_paragraph(text):
 
 
 def make_table(headers, rows):
-    """Create a BlockNote 0.49.0 table with correct tableParagraph wrapping
-    and tableContent wrapper."""
-    table_content = []
+    """Create a BlockNote 0.49.0 table with correct tableParagraph wrapping.
+    
+    Note: table.content is a direct array of tableRow blocks.
+    The {type: "tableContent", ...} wrapper is only used by BlockNote's 
+    internal slash-menu creation shortcut, NOT the serialized JSON format.
+    The ProseMirror schema for `table` is `content: "tableRow+"` — rows directly.
+    """
+    table_rows = []
     # Header row → tableHeader
     header_cells = []
     for h in headers:
         header_cells.append(
             make_block("tableHeader", content=[make_table_paragraph(h)])
         )
-    table_content.append(make_block("tableRow", content=header_cells))
+    table_rows.append(make_block("tableRow", content=header_cells))
     # Data rows → tableCell
     for row in rows:
         cells = []
@@ -160,11 +165,8 @@ def make_table(headers, rows):
             cells.append(
                 make_block("tableCell", content=[make_table_paragraph(cell)])
             )
-        table_content.append(make_block("tableRow", content=cells))
-    return make_block("table", content={
-        "type": "tableContent",
-        "content": table_content,
-    })
+        table_rows.append(make_block("tableRow", content=cells))
+    return make_block("table", content=table_rows)
 
 
 def make_image_block(src, alt="", caption=""):

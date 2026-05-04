@@ -703,7 +703,7 @@ document → blocks[]
   ├── video → content: none                   (props.url required)
   ├── audio → content: none
   ├── file → content: none
-  └── table → content: {type: "tableContent", content: tableRow[]}
+  └── table → content: tableRow[]
        └── tableRow → content: (tableHeader | tableCell)[]
             ├── tableHeader → content: tableParagraph[]
             └── tableCell → content: tableParagraph[]
@@ -763,7 +763,7 @@ link:  {type: "link", href: "url", content: [text...]}
 | 错误信息 | 根因 | 修复 |
 |----------|------|------|
 | `tableCell ... ONLY accepts tableParagraph, got 'text'` | tableCell 的 content 直接放了 text 节点 | 加 `tableParagraph` 包装层 |
-| `table missing content.type='tableContent'` | table content 是 rows 数组而非 `{type:"tableContent",...}` | `make_table()` 加 tableContent 包装 |
+
 | `codeBlock missing props.language` | 没有指定语言 | 设 `props.language = "plaintext"` |
 | `blockquote ... unknown block type 'text'` | blockquote content 直接放了 inline text | 用 paragraph 包裹 |
 | `style 'bold' must be object {}, got bool` | styles 用了 `{bold: true}` | 改为 `{bold: {}}` |

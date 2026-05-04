@@ -78,7 +78,7 @@
 ### 表格
 
 ```
-table → content: { type: "tableContent", content: tableRow[] }
+table → content: tableRow[]
   └── tableRow → content: (tableHeader | tableCell)[]
        ├── tableHeader → content: tableParagraph[]
        └── tableCell → content: tableParagraph[]
@@ -89,22 +89,19 @@ table → content: { type: "tableContent", content: tableRow[] }
 ```json
 {
   "type": "table",
-  "content": {
-    "type": "tableContent",
-    "content": [
-      {
-        "type": "tableRow",
-        "content": [
-          {
-            "type": "tableHeader",
-            "content": [
-              { "type": "tableParagraph", "content": [{ "type": "text", "text": "列A", "styles": {} }] }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+  "content": [
+    {
+      "type": "tableRow",
+      "content": [
+        {
+          "type": "tableHeader",
+          "content": [
+            { "type": "tableParagraph", "content": [{ "type": "text", "text": "列A", "styles": {} }] }
+          ]
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -177,7 +174,6 @@ python3 scripts/validate_content_json.py --json-file article.blocks.json
 | 错误 | 原因 | 修复 |
 |------|------|------|
 | `tableCell ... ONLY accepts tableParagraph, got 'text'` | tableCell 直接放 text | 加 `tableParagraph` 包装 |
-| `table missing content.type='tableContent'` | table content 是数组而非对象 | 用 `{type:"tableContent", content:[...]}` 包装 |
 | `codeBlock missing props.language` | 无 language | 设 `"plaintext"` |
 | `blockquote ... unknown block type 'text'` | blockquote 直接放 inline | 用 paragraph 包裹 |
 | `heading level 4 not in {1, 2, 3}` | 标题层级 > 3 | 截断到 3 |

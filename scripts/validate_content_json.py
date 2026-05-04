@@ -88,18 +88,18 @@ def _validate_block(block: dict, path: str, slug: str) -> list[str]:
     if block_type not in VALID_BLOCK_TYPES:
         errors.append(f"{path}: unknown block type '{block_type}'")
 
-    # ── Table validation (was the source of our bug) ──
+    # ── Table validation ──
+    # Serialized JSON format: table.content = [tableRow, ...] (direct array)
+    # ProseMirror schema: table.content = "tableRow+"
+    # The {type:"tableContent",...} wrapper is only for BlockNote's
+    # internal slash-menu creation, NOT the stored format.
     if block_type == "table":
-        content = block.get("content")
-        if not isinstance(content, dict) or content.get("type") != "tableContent":
-            errors.append(f"{path}: table missing content.type='tableContent'")
+        rows = block.get("content")
+        if not isinstance(rows, list):
+            errors.append(f"{path}: table content must be a list of rows, got {type(rows).__name__}")
         else:
-            rows = content.get("content", [])
-            if not isinstance(rows, list):
-                errors.append(f"{path}: table content must be list of rows")
-            else:
-                for ri, row in enumerate(rows):
-                    errors.extend(_validate_table_row(row, f"{path}.row[{ri}]"))
+            for ri, row in enumerate(rows):
+                errors.extend(_validate_table_row(row, f"{path}.row[{ri}]"))
 
     # ── Heading level ──
     elif block_type == "heading":
