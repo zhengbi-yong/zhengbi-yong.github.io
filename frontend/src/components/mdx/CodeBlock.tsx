@@ -38,6 +38,7 @@ function extractTextContent(children: ReactNode): string {
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null)
+  const [shikiColors, setShikiColors] = useState<{ fg: string; bg: string } | null>(null)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { resolvedTheme } = useTheme()
   const language = extractLanguage(className)
@@ -57,7 +58,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
       try {
         const result = await highlightCodeToTokens(trimmedCode, language, shikiTheme)
         if (!cancelled && result) {
-          const html = buildCodeBlockHtml(result.tokens, codeLines, result.fg, result.bg)
+          const { html, fg, bg } = buildCodeBlockHtml(result.tokens, codeLines, result.fg, result.bg)
           // Debug: verify line count
           const shikiLines = result.tokens.length
           if (shikiLines !== codeLines) {
@@ -66,6 +67,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
             )
           }
           setHighlightedHtml(html)
+          setShikiColors({ fg, bg })
         }
       } catch {
         // fallback to default rendering
@@ -105,7 +107,13 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
   }, [])
 
   return (
-    <div className="group/code relative my-6 overflow-hidden rounded-lg border border-[var(--theme-border)] dark:border-gray-700/50 bg-[var(--theme-bg)]/95">
+    <div
+      className="group/code relative my-6 overflow-hidden rounded-lg border border-[var(--theme-border)] dark:border-gray-700/50"
+      style={{
+        backgroundColor: shikiColors?.bg ?? undefined,
+        color: shikiColors?.fg ?? undefined,
+      }}
+    >
       {/* CSS: font-size:0 on container collapses \n text nodes between .line spans.
            .line spans restore font-size; min-height ensures empty lines are visible.
            Line count is exact — built from tokens, limited to codeLines. */}
@@ -114,7 +122,7 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
         .code-block-content .line { display: block; font-size: 0.875rem; line-height: 1.7; white-space: pre; min-height: calc(0.875rem * 1.7); }
       `}</style>
       {/* Header bar */}
-      <div className="flex items-center justify-between border-b border-[var(--theme-border)] dark:border-gray-700/50 px-4 py-2 bg-stone-200/80">
+      <div className="flex items-center justify-between border-b border-[var(--theme-border)] dark:border-gray-700/50 px-4 py-2 bg-[var(--theme-bg-secondary)] dark:bg-gray-800/90">
         <div className="flex items-center gap-2">
           {/* Traffic lights */}
           <div className="flex items-center gap-1.5">
@@ -193,7 +201,10 @@ export function CodeBlock({ children, className, title }: CodeBlockProps) {
                 dangerouslySetInnerHTML={{ __html: highlightedHtml }}
               />
             ) : (
-              <div className="p-4 text-sm font-mono leading-[1.7] text-[var(--theme-fg)] whitespace-pre-wrap">
+              <div
+                className="p-4 text-sm font-mono leading-[1.7] whitespace-pre-wrap"
+                style={{ color: shikiColors?.fg ?? undefined }}
+              >
                 {codeText}
               </div>
             )}

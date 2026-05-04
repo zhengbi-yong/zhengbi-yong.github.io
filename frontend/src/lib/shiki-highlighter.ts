@@ -131,22 +131,24 @@ export function buildLineHtml(tokens: ThemedToken[]): string {
  *
  * Empty .line spans rely on CSS min-height for visibility (no \u00a0
  * hacks — clean copy/paste).
-
- * Uses bgtoken spans with controlled font-size like Shiki's output.
+ *
+ * Returns { html, fg, bg } — the caller should use fg/bg as the
+ * code block container's color/background-color to match Shiki's theme.
  */
 export function buildCodeBlockHtml(
   tokens: ThemedToken[][],
   expectedLines: number,
   fg: string,
   bg: string
-): string {
+): { html: string; fg: string; bg: string } {
   const limited = tokens.slice(0, expectedLines)
-  return limited
+  const html = limited
     .map(lineTokens => {
       const inner = buildLineHtml(lineTokens)
       return `<span class="line">${inner}</span>`
     })
     .join('\n')
+  return { html, fg, bg }
 }
 
 function escapeHtml(text: string): string {
