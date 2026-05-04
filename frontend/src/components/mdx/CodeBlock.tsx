@@ -45,15 +45,13 @@ function extractTextContent(children: ReactNode): string {
 function extractShikiContent(html: string): string {
   const match = html.match(/<pre[^>]*><code[^>]*>([\s\S]*)<\/code><\/pre>/)
   const inner = match ? match[1]! : html
-  // Shiki outputs: \n<span class="line">...</span>\n<span class="line">...</span>\n
-  // 1. Strip all leading/trailing whitespace text nodes
-  // 2. Collapse \n between </span> and next <span class="line">
-  // 3. Remove any trailing empty .line span (Shiki sometimes adds one for trailing \n in code)
+  // Shiki v4 generates extra empty <span class="line"> for each trailing \n in code.
+  // e.g. code "line1\nline2\n" → 3 spans (last one empty).
+  // Strip ALL trailing whitespace + empty spans to eliminate bottom blank lines.
   return inner
     .trim()
     .replace(/<\/span>\n<span class="line">/g, '</span><span class="line">')
-    .replace(/<span class="line">\s*<\/span>\s*$/, '')
-    .trim()
+    .replace(/(<span class="line">\s*<\/span>)+\s*$/, '')
 }
 
 export function CodeBlock({ children, className, title }: CodeBlockProps) {
