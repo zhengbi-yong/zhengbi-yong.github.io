@@ -14,7 +14,7 @@
 .bn-block-content[data-content-type="codeBlock"] {
   position: relative;
   background-color: #f5f5f5 !important;
-  color: #1e1e1e !important;
+  /* 不设置 color — let Shiki inline styles control text colors */
   border-radius: 8px;
   margin: 16px 0;
 }
@@ -22,7 +22,7 @@
 /* ---------- 代码块容器(暗色) ---------- */
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"] {
   background-color: #1e1e1e !important;
-  color: #d4d4d4 !important;
+  /* 不设置 color — let Shiki inline styles control text colors */
 }
 
 /* ---------- 代码块内的 pre 元素 ---------- */

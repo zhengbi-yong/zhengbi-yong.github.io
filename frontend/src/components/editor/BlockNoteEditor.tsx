@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
@@ -11,16 +11,36 @@ import { codeBlockOptions } from '@blocknote/code-block'
 import { useTheme } from 'next-themes'
 import './BlockNoteEditor.css'
 
-// 带语法高亮和语言选择器的代码块 spec（使用 @blocknote/code-block 预配置）
-// 提供：Shiki 语法高亮 + 43 种编程语言支持 + Tab 缩进
-const codeBlock = createCodeBlockSpec(codeBlockOptions)
+// ── Theme-aware code block highlighter ────────────────────────────────────────
+//
+// prosemirror-highlight defaults to getLoadedThemes()[0] which is always
+// 'github-dark' (the first in BlockNote's codeBlockOptions themes array).
+// We intercept codeToTokens to inject the current next-themes theme instead.
+function useCodeBlockSpec() {
+  const { resolvedTheme } = useTheme()
+  const themeRef = useRef(resolvedTheme)
+  themeRef.current = resolvedTheme
 
-// 扩展默认 schema，仅覆盖 codeBlock（官方推荐方式）
-const schema = BlockNoteSchema.create().extend({
-  blockSpecs: {
-    codeBlock,
-  },
-})
+  return useMemo(() => {
+    return createCodeBlockSpec({
+      ...codeBlockOptions,
+      createHighlighter: async () => {
+        const highlighter = await codeBlockOptions.createHighlighter()
+        const originalCodeToTokens = highlighter.codeToTokens.bind(highlighter)
+        highlighter.codeToTokens = (code: string, options?: any) => {
+          const themeName = themeRef.current === 'dark' ? 'github-dark' : 'github-light'
+          return originalCodeToTokens(code, { ...options, theme: themeName })
+        }
+        return highlighter
+      },
+    })
+  }, [])
+}
+
+// ── Schema ────────────────────────────────────────────────────────────────────
+// We recreate schema whenever the codeBlockSpec changes (theme-aware spec).
+// useMemo with empty deps is safe — the createHighlighter closure captures
+// themeRef which is always updated before any highlight call.
 
 /**
  * Fix legacy boolean styles { bold: true } → { bold: {} }.
@@ -82,6 +102,18 @@ function BlockNoteEditor({
   // BlockNote 的 theme prop: "light" | "dark"
   // 未挂载前默认 light 避免 hydration mismatch
   const bnTheme = mounted && resolvedTheme === 'dark' ? 'dark' : 'light'
+
+  // ── 主题感知的代码块 spec（编辑器内 Shiki 高亮跟随主题） ──
+  const codeBlockSpec = useCodeBlockSpec()
+
+  // 扩展默认 schema，仅覆盖 codeBlock（官方推荐方式）
+  const schema = useMemo(
+    () =>
+      BlockNoteSchema.create().extend({
+        blockSpecs: { codeBlock: codeBlockSpec },
+      }),
+    [codeBlockSpec]
+  )
 
   const editor = useCreateBlockNote({
     schema,

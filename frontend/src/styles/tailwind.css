@@ -663,7 +663,6 @@ input:-webkit-autofill:focus {
     @apply bg-background text-foreground;
     background-color: var(--site-bg);
     color: var(--text-primary);
-    transition: background-color var(--transition-speed, 0.4s) ease, color var(--transition-speed, 0.4s) ease;
   }
 
   body::selection {
@@ -1235,6 +1234,22 @@ html.cursor-hidden .case-go {
 .code-block .token.regex,
 .code-block .token.important,
 .code-block .token.variable { color: #f38ba8; }
+
+/* Normalize Shiki pre/code inside MDX code blocks */
+.cb-code-body .shiki {
+  margin: 0 !important;
+  padding: 1rem !important;
+  border-radius: 0 !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.7 !important;
+  tab-size: 2;
+  background: transparent !important;
+}
+.cb-code-body .shiki code {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
 
 /* Inline code */
 .prose code:not(pre code) {

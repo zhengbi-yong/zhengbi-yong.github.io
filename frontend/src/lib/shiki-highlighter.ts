@@ -112,6 +112,27 @@ export async function highlightCodeToTokens(
 }
 
 /**
+ * Pre-highlight a code string in BOTH light and dark themes.
+ * Returns both variants so CodeBlock.tsx can switch between them
+ * instantly via CSS instead of re-running Shiki on every theme toggle.
+ */
+export interface DualHighlightResult {
+  dark: HighlightTokensResult | null
+  light: HighlightTokensResult | null
+}
+
+export async function highlightCodeBothThemes(
+  code: string,
+  lang: string
+): Promise<DualHighlightResult> {
+  const [dark, light] = await Promise.all([
+    highlightCodeToTokens(code, lang, 'github-dark'),
+    highlightCodeToTokens(code, lang, 'github-light'),
+  ])
+  return { dark, light }
+}
+
+/**
  * Build HTML for a single line of code from token data.
  * Preserves syntax highlighting colors from Shiki.
  */
