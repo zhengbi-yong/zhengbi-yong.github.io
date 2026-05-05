@@ -151,14 +151,6 @@ pub struct OutboxEvent {
 
 // 请求/响应 DTO
 
-// 注册请求
-#[derive(Debug, Deserialize, utoipa::ToSchema)]
-pub struct RegisterRequest {
-    pub email: String,
-    pub username: String,
-    pub password: String,
-}
-
 // 登录请求
 #[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct LoginRequest {
@@ -174,7 +166,7 @@ pub struct AuthResponse {
 }
 
 // 用户信息
-#[derive(Debug, Serialize, utoipa::ToSchema)]
+#[derive(Debug, Serialize, Default, utoipa::ToSchema)]
 pub struct UserInfo {
     pub id: Uuid,
     pub email: String,
@@ -182,6 +174,13 @@ pub struct UserInfo {
     pub profile: serde_json::Value,
     pub email_verified: bool,
     pub role: String,
+    pub display_name: Option<String>,
+    pub institution: Option<String>,
+    pub research_fields: Option<Vec<String>>,
+    pub orcid_id: Option<String>,
+    pub avatar_url: Option<String>,
+    pub website: Option<String>,
+    pub academic_bio: Option<String>,
 }
 
 impl From<User> for UserInfo {
@@ -193,6 +192,7 @@ impl From<User> for UserInfo {
             profile: user.profile,
             email_verified: user.email_verified,
             role: user.role.as_str().to_string(),
+            ..Default::default()
         }
     }
 }
@@ -207,18 +207,54 @@ pub struct UpdateProfileRequest {
     pub github: Option<String>,
 }
 
-// 公开用户资料（无需登录即可查看）
-#[derive(Debug, Serialize, utoipa::ToSchema)]
+// 公开用户资料（无需登录即可查看）- 学术社交名片
+#[derive(Debug, Serialize, Default, utoipa::ToSchema)]
 pub struct UserPublicProfile {
     pub username: String,
+    pub display_name: Option<String>,
     pub avatar_url: Option<String>,
     pub bio: Option<String>,
+    pub institution: Option<String>,
+    pub research_fields: Option<Vec<String>>,
+    pub orcid_id: Option<String>,
+    pub google_scholar: Option<String>,
     pub location: Option<String>,
     pub website: Option<String>,
     pub twitter: Option<String>,
     pub github: Option<String>,
+    pub academic_bio: Option<String>,
     pub role: String,
+    pub total_posts: i64,
+    pub total_likes: i64,
+    pub follower_count: i64,
+    pub following_count: i64,
     pub created_at: DateTime<Utc>,
+}
+
+// 更新学术资料请求
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
+pub struct UpdateAcademicProfileRequest {
+    pub display_name: Option<String>,
+    pub institution: Option<String>,
+    pub research_fields: Option<Vec<String>>,
+    pub orcid_id: Option<String>,
+    pub google_scholar: Option<String>,
+    pub academic_bio: Option<String>,
+    pub website: Option<String>,
+    pub location: Option<String>,
+    pub twitter: Option<String>,
+    pub github: Option<String>,
+}
+
+// 注册请求（扩展版：含学术信息）
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
+pub struct RegisterRequest {
+    pub email: String,
+    pub username: String,
+    pub password: String,
+    pub display_name: Option<String>,
+    pub institution: Option<String>,
+    pub research_fields: Option<Vec<String>>,
 }
 
 // 创建评论请求
@@ -428,4 +464,121 @@ pub struct TeamMemberGalleryImage {
     pub id: Uuid,
     pub media_id: Uuid,
     pub url: String,
+}
+
+// ============================================
+// Platform Transformation: Social Models
+// ============================================
+
+/// 关注关系
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct Follow {
+    pub id: Uuid,
+    pub follower_id: Uuid,
+    pub followed_id: Uuid,
+    pub created_at: DateTime<Utc>,
+}
+
+/// 关注列表项（带用户信息）
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct FollowWithUser {
+    pub id: Uuid,
+    pub username: String,
+    pub display_name: Option<String>,
+    pub avatar_url: Option<String>,
+    pub institution: Option<String>,
+    pub research_fields: Option<Vec<String>>,
+    pub created_at: DateTime<Utc>,
+}
+
+/// 关注列表响应
+#[derive(Debug, Serialize, ToSchema)]
+pub struct FollowListResponse {
+    pub users: Vec<FollowWithUser>,
+    pub total: i64,
+    pub page: u32,
+    pub limit: u32,
+}
+
+/// 关注/取关请求
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct FollowRequest {
+    pub username: String,
+}
+
+/// 通知类型
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, ToSchema)]
+#[sqlx(type_name = "notification_type", rename_all = "lowercase")]
+pub enum NotificationType {
+    #[sqlx(rename = "follow")]
+    Follow,
+    #[sqlx(rename = "comment")]
+    Comment,
+    #[sqlx(rename = "comment_reply")]
+    CommentReply,
+    #[sqlx(rename = "like")]
+    Like,
+    #[sqlx(rename = "comment_like")]
+    CommentLike,
+    #[sqlx(rename = "mention")]
+    Mention,
+    #[sqlx(rename = "review")]
+    Review,
+    #[sqlx(rename = "system")]
+    System,
+}
+
+impl From<String> for NotificationType {
+    fn from(s: String) -> Self {
+        match s.as_str() {
+            "follow" => Self::Follow,
+            "comment" => Self::Comment,
+            "comment_reply" => Self::CommentReply,
+            "like" => Self::Like,
+            "comment_like" => Self::CommentLike,
+            "mention" => Self::Mention,
+            "review" => Self::Review,
+            _ => Self::System,
+        }
+    }
+}
+
+/// 通知
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, ToSchema)]
+pub struct Notification {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    #[sqlx(rename = "type", try_from = "String")]
+    pub notification_type: NotificationType,
+    pub title: String,
+    pub body: Option<String>,
+    pub link: Option<String>,
+    pub is_read: bool,
+    pub actor_id: Option<Uuid>,
+    pub metadata: Option<serde_json::Value>,
+    pub created_at: DateTime<Utc>,
+}
+
+/// 通知列表响应
+#[derive(Debug, Serialize, ToSchema)]
+pub struct NotificationListResponse {
+    pub notifications: Vec<Notification>,
+    pub unread_count: i64,
+    pub total: i64,
+    pub page: u32,
+    pub limit: u32,
+}
+
+/// 未读通知数响应
+#[derive(Debug, Serialize, ToSchema)]
+pub struct UnreadCountResponse {
+    pub unread_count: i64,
+}
+
+/// 通知查询参数
+#[derive(Debug, Deserialize, utoipa::IntoParams, ToSchema)]
+pub struct NotificationListParams {
+    pub page: Option<u32>,
+    pub limit: Option<u32>,
+    pub unread_only: Option<bool>,
 }

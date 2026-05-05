@@ -7,9 +7,10 @@ use uuid::Uuid;
 
 // ===== 文章状态枚举 =====
 
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type, PartialEq, Eq, Default, ToSchema)]
 #[sqlx(type_name = "post_status", rename_all = "lowercase")]
 pub enum PostStatus {
+    #[default]
     Draft,
     Published,
     Archived,
@@ -78,10 +79,12 @@ pub struct Post {
     pub lastmod_at: Option<DateTime<Utc>>,
     pub deleted_at: Option<DateTime<Utc>>,
     pub reading_time: Option<i32>,
+    // Platform transformation
+    pub content_type: Option<String>,
 }
 
 // 文章详情（包含关联数据）
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, ToSchema)]
 pub struct PostDetail {
     pub id: Uuid,
     pub slug: String,
@@ -115,9 +118,13 @@ pub struct PostDetail {
     pub content_mdx: Option<String>,
     #[serde(default)]
     pub tags: Vec<TagBasic>,
+    // Platform transformation
+    pub content_type: Option<String>,
+    pub author_avatar_url: Option<String>,
+    pub author_institution: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, FromRow, ToSchema)]
+#[derive(Debug, Clone, Serialize, FromRow, Default, ToSchema)]
 pub struct PostListItem {
     pub id: Uuid,
     pub slug: String,
@@ -135,6 +142,7 @@ pub struct PostListItem {
     pub created_at: DateTime<Utc>,
     pub reading_time: Option<i32>,
     pub tag_count: i64,
+    pub content_type: Option<String>,
 }
 
 // For JSON deserialization (e.g., from API responses)
@@ -183,9 +191,9 @@ pub struct CreatePostRequest {
     pub content_json: Option<serde_json::Value>,
     /// 预编译 MDX 文本 — SSR 直读缓存
     pub content_mdx: Option<String>,
+    /// 内容类型：article / paper / project
+    pub content_type: Option<String>,
 }
-
-// 文章更新请求
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct UpdatePostRequest {
     pub title: Option<String>,
@@ -210,6 +218,8 @@ pub struct UpdatePostRequest {
     pub content_json: Option<serde_json::Value>,
     /// 预编译 MDX 文本 — SSR 直读缓存
     pub content_mdx: Option<String>,
+    /// 内容类型：article / paper / project
+    pub content_type: Option<String>,
 }
 
 // 文章列表查询参数

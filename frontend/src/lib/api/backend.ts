@@ -1063,6 +1063,96 @@ export const commentNotificationService = {
 }
 
 // Export all services
+export const socialService = {
+  /** Follow a user */
+  async followUser(username: string): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/users/${encodeURIComponent(username)}/follow`)
+  },
+  /** Unfollow a user */
+  async unfollowUser(username: string): Promise<void> {
+    await api.delete(`${BACKEND_API_URL}/users/${encodeURIComponent(username)}/follow`)
+  },
+  /** Check if following */
+  async getFollowStatus(username: string): Promise<{ following: boolean }> {
+    const r = await api.get<{ following: boolean }>(
+      `${BACKEND_API_URL}/users/${encodeURIComponent(username)}/follow-status`
+    )
+    return r.data
+  },
+  /** Get followers */
+  async getFollowers(username: string, page = 1, limit = 20) {
+    const r = await api.get<import('../types/backend').FollowListResponse>(
+      `${BACKEND_API_URL}/users/${encodeURIComponent(username)}/followers?page=${page}&limit=${limit}`
+    )
+    return r.data
+  },
+  /** Get following */
+  async getFollowing(username: string, page = 1, limit = 20) {
+    const r = await api.get<import('../types/backend').FollowListResponse>(
+      `${BACKEND_API_URL}/users/${encodeURIComponent(username)}/following?page=${page}&limit=${limit}`
+    )
+    return r.data
+  },
+}
+
+export const notificationService = {
+  /** Get notifications */
+  async getNotifications(page = 1, limit = 20, unreadOnly = false) {
+    const r = await api.get<import('../types/backend').NotificationListResponse>(
+      `${BACKEND_API_URL}/notifications?page=${page}&limit=${limit}&unread_only=${unreadOnly}`
+    )
+    return r.data
+  },
+  /** Get unread count */
+  async getUnreadCount() {
+    const r = await api.get<import('../types/backend').UnreadCountResponse>(
+      `${BACKEND_API_URL}/notifications/unread-count`
+    )
+    return r.data.unread_count
+  },
+  /** Mark one notification as read */
+  async markRead(id: string): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/notifications/${id}/read`)
+  },
+  /** Mark all notifications as read */
+  async markAllRead(): Promise<void> {
+    await api.post(`${BACKEND_API_URL}/notifications/read-all`)
+  },
+}
+
+export const userService = {
+  /** Get current user's full profile */
+  async getMe() {
+    const r = await api.get<import('../types/backend').UserInfo>(
+      `${BACKEND_API_URL}/users/me`
+    )
+    return r.data
+  },
+  /** Get scholar public profile */
+  async getPublicProfile(username: string) {
+    const r = await api.get<import('../types/backend').UserPublicProfile>(
+      `${BACKEND_API_URL}/users/${encodeURIComponent(username)}`
+    )
+    return r.data
+  },
+  /** Get user's posts */
+  async getUserPosts(username: string, page = 1, perPage = 10, search?: string) {
+    const searchParam = search ? `&search=${encodeURIComponent(search)}` : ''
+    const r = await api.get<import('../types/backend').UserPostsResponse>(
+      `${BACKEND_API_URL}/users/${encodeURIComponent(username)}/posts?page=${page}&per_page=${perPage}${searchParam}`
+    )
+    return r.data
+  },
+  /** Update academic profile */
+  async updateAcademicProfile(data: import('../types/backend').UpdateAcademicProfileRequest) {
+    const r = await api.patch<import('../types/backend').UserInfo>(
+      `${BACKEND_API_URL}/users/me/academic`,
+      data
+    )
+    return r.data
+  },
+}
+
 export const backendApi = {
   auth: authService,
   post: postService,
@@ -1074,4 +1164,7 @@ export const backendApi = {
   readingProgress: readingProgressService,
   bookmark: bookmarkService,
   commentNotification: commentNotificationService,
+  social: socialService,
+  notification: notificationService,
+  user: userService,
 }

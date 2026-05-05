@@ -152,6 +152,13 @@ export interface UserInfo {
   profile: Record<string, unknown> | null
   email_verified: boolean
   role?: 'user' | 'admin' | 'moderator'
+  display_name?: string | null
+  institution?: string | null
+  research_fields?: string[] | null
+  orcid_id?: string | null
+  avatar_url?: string | null
+  website?: string | null
+  academic_bio?: string | null
 }
 
 // ==================== Post Stats ====================
@@ -830,4 +837,123 @@ export interface UpdateTeamMemberRequest {
 
 export interface BatchDeleteTeamMembersRequest {
   member_ids: string[]
+}
+
+// ============================================
+// Platform Transformation: Academic & Social Types
+// ============================================
+
+// --- Extended User Types ---
+
+export interface UserPublicProfile {
+  username: string
+  display_name?: string | null
+  avatar_url?: string | null
+  bio?: string | null
+  institution?: string | null
+  research_fields?: string[] | null
+  orcid_id?: string | null
+  google_scholar?: string | null
+  location?: string | null
+  website?: string | null
+  twitter?: string | null
+  github?: string | null
+  academic_bio?: string | null
+  role: string
+  total_posts: number
+  total_likes: number
+  follower_count: number
+  following_count: number
+  created_at: string
+}
+
+export interface UserPostsResponse {
+  posts: PostListItem[]
+  total: number
+  page: number
+  per_page: number
+}
+
+export interface UpdateAcademicProfileRequest {
+  display_name?: string
+  institution?: string
+  research_fields?: string[]
+  orcid_id?: string
+  google_scholar?: string
+  academic_bio?: string
+  website?: string
+  location?: string
+  twitter?: string
+  github?: string
+}
+
+// --- Follow Types ---
+
+export interface FollowWithUser {
+  id: string
+  username: string
+  display_name?: string | null
+  avatar_url?: string | null
+  institution?: string | null
+  research_fields?: string[] | null
+  created_at: string
+}
+
+export interface FollowListResponse {
+  users: FollowWithUser[]
+  total: number
+  page: number
+  limit: number
+}
+
+export interface FollowStatus {
+  following: boolean
+}
+
+// --- Notification Types ---
+
+export type NotificationType =
+  | 'follow'
+  | 'comment'
+  | 'comment_reply'
+  | 'like'
+  | 'comment_like'
+  | 'mention'
+  | 'review'
+  | 'system'
+
+export interface Notification {
+  id: string
+  user_id: string
+  notification_type: NotificationType
+  title: string
+  body?: string | null
+  link?: string | null
+  is_read: boolean
+  actor_id?: string | null
+  metadata?: Record<string, unknown> | null
+  created_at: string
+}
+
+export interface NotificationListResponse {
+  notifications: Notification[]
+  unread_count: number
+  total: number
+  page: number
+  limit: number
+}
+
+export interface UnreadCountResponse {
+  unread_count: number
+}
+
+// --- Extended Register Request ---
+
+export interface RegisterRequest {
+  email: string
+  username: string
+  password: string
+  display_name?: string
+  institution?: string
+  research_fields?: string[]
 }

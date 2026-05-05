@@ -671,6 +671,7 @@ async fn get_post_response(
                 content_json: row.content_json,
                 content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
+                ..Default::default()
             };
             // 获取标签（使用读副本）
             let tags = sqlx::query_as!(
@@ -1130,6 +1131,7 @@ pub async fn list_posts(
             created_at: row.get("created_at"),
             reading_time: row.get::<Option<i32>, _>("reading_time"),
             tag_count: row.get("tag_count"),
+            ..Default::default()
         })
         .collect();
 

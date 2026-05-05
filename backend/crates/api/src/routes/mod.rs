@@ -2,13 +2,16 @@ pub mod admin;
 pub mod auth;
 pub mod comments;
 pub mod export;
+pub mod follows;
 pub mod import_mdx;
 pub mod mdx_convert;
 pub mod mdx_sync;
+pub mod notifications;
 pub mod openapi;
 pub mod posts;
-pub mod reading_progress; // MDX同步模块
+pub mod reading_progress;
 pub mod team_members;
+pub mod users;
 
 // CMS 路由模块
 pub mod categories;

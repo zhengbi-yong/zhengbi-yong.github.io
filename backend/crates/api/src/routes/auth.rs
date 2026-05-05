@@ -477,6 +477,7 @@ pub async fn me(
         profile: user.profile,
         email_verified: user.email_verified,
         role: user.role,
+        ..Default::default()
     }))
 }
 
@@ -671,7 +672,8 @@ pub async fn update_profile(
             profile: user.profile,
             email_verified: user.email_verified,
             role: user.role,
-        }));
+            ..Default::default()
+    }));
     }
 
     let profile_value = serde_json::Value::Object(profile_update);
@@ -695,6 +697,7 @@ pub async fn update_profile(
         profile: user.profile,
         email_verified: user.email_verified,
         role: user.role,
+        ..Default::default()
     }))
 }
 
@@ -794,6 +797,7 @@ pub async fn upload_avatar(
         profile: user.profile,
         email_verified: user.email_verified,
         role: user.role,
+        ..Default::default()
     }))
 }
 
@@ -851,6 +855,7 @@ pub async fn get_user_public(
         github,
         role: user.role,
         created_at: user.created_at,
+        ..Default::default()
     }))
 }
 

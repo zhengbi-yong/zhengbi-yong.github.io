@@ -1,11 +1,13 @@
 FROM node:22-alpine AS deps
+ARG http_proxy
+ARG https_proxy
+ENV http_proxy=${http_proxy}
+ENV https_proxy=${https_proxy}
+ENV NO_PROXY=registry.npmjs.org,cdn.jsdelivr.net,unpkg.com
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 ENV HUSKY=0
 ENV COREPACK_ENABLE_STRICT=0
-
-ARG http_proxy
-ARG https_proxy
 
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
@@ -22,6 +24,7 @@ ARG NEXT_IGNORE_BUILD_ERRORS=0
 ARG NEXT_IGNORE_ESLINT=0
 ARG NEXT_PUBLIC_BACKEND_URL
 ARG DISABLE_HSTS
+ARG BACKEND_INTERNAL_URL
 ARG http_proxy
 ARG https_proxy
 
@@ -32,6 +35,7 @@ ENV NEXT_IGNORE_BUILD_ERRORS=${NEXT_IGNORE_BUILD_ERRORS}
 ENV NEXT_IGNORE_ESLINT=${NEXT_IGNORE_ESLINT}
 ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
 ENV DISABLE_HSTS=${DISABLE_HSTS}
+ENV BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate

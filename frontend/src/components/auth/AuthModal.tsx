@@ -32,6 +32,8 @@ export function AuthModal({
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [institution, setInstitution] = useState('')
   const { login, register, isLoading, error, clearError, setError } = useAuthStore()
 
   useEffect(() => {
@@ -42,6 +44,8 @@ export function AuthModal({
     setEmail('')
     setUsername('')
     setPassword('')
+    setDisplayName('')
+    setInstitution('')
   }
 
   const handleClose = () => {
@@ -68,7 +72,7 @@ export function AuthModal({
       if (mode === 'login') {
         await login(email, password)
       } else {
-        await register(email, username, password)
+        await register(email, username, password, displayName || undefined, institution || undefined)
       }
 
       handleClose()
@@ -134,20 +138,26 @@ export function AuthModal({
           </div>
 
           {mode === 'register' ? (
-            <div className="space-y-2">
-              <Label htmlFor="auth-username">用户名</Label>
-              <Input
-                id="auth-username"
-                data-testid="auth-username-input"
-                type="text"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                required
-                minLength={3}
-                autoComplete="username"
-                placeholder="请输入用户名"
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="auth-username">用户名</Label>
+                <Input id="auth-username" data-testid="auth-username-input" type="text"
+                  value={username} onChange={(event) => setUsername(event.target.value)}
+                  required minLength={3} autoComplete="username" placeholder="请输入用户名" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="auth-display-name">显示名称 <span className="text-muted-foreground">(选填)</span></Label>
+                <Input id="auth-display-name" type="text"
+                  value={displayName} onChange={(event) => setDisplayName(event.target.value)}
+                  autoComplete="name" placeholder="真实姓名或学术署名" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="auth-institution">所属机构 <span className="text-muted-foreground">(选填)</span></Label>
+                <Input id="auth-institution" type="text"
+                  value={institution} onChange={(event) => setInstitution(event.target.value)}
+                  autoComplete="organization" placeholder="学校/研究所/公司" />
+              </div>
+            </>
           ) : null}
 
           <div className="space-y-2">

@@ -300,6 +300,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .route("/auth/me", get(blog_api::routes::auth::me))
         .route("/auth/me", put(blog_api::routes::auth::update_profile))
         .route("/auth/me/avatar", post(blog_api::routes::auth::upload_avatar))
+        .route("/users/me", get(blog_api::routes::users::get_me))
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             auth_middleware,
@@ -331,6 +332,27 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .merge(team_members_routes())
         // 用户公开主页路由
         .merge(users_routes())
+        // 社交路由（部分需要认证）
+        .merge(
+            social_routes()
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+        )
+        // 用户资料路由（需要认证）
+        .merge(
+            Router::new()
+                .route("/users/me/academic", axum::routing::patch(blog_api::routes::users::update_academic_profile))
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    auth_middleware,
+                ))
+                .layer(axum::middleware::from_fn_with_state(
+                    state.clone(),
+                    csrf_middleware,
+                ))
+        )
         // 分类管理路由（需要认证）
         .merge(
             category_admin_routes()
@@ -440,8 +462,27 @@ fn auth_routes() -> Router<AppState> {
 fn users_routes() -> Router<AppState> {
     use axum::routing::get;
     Router::new()
-        .route("/users/{id}", get(blog_api::routes::auth::get_user_public))
-        .route("/users/{id}/posts", get(blog_api::routes::auth::get_user_posts))
+        .route("/users/{username}", get(blog_api::routes::users::get_public_profile))
+        .route("/users/{username}/posts", get(blog_api::routes::users::get_user_posts))
+        .route("/users/{username}/followers", get(blog_api::routes::follows::get_followers))
+        .route("/users/{username}/following", get(blog_api::routes::follows::get_following))
+        // 保留旧路由兼容（by-id 格式）
+        .route("/by-id/{id}/posts", get(blog_api::routes::auth::get_user_posts))
+}
+
+// 社交路由（关注/取关/通知）
+fn social_routes() -> Router<AppState> {
+    use axum::routing::{delete, get, post};
+    Router::new()
+        // 关注
+        .route("/users/{username}/follow", post(blog_api::routes::follows::follow_user))
+        .route("/users/{username}/follow", delete(blog_api::routes::follows::unfollow_user))
+        .route("/users/{username}/follow-status", get(blog_api::routes::follows::get_follow_status))
+        // 通知
+        .route("/notifications", get(blog_api::routes::notifications::list_notifications))
+        .route("/notifications/unread-count", get(blog_api::routes::notifications::unread_count))
+        .route("/notifications/read-all", post(blog_api::routes::notifications::mark_all_read))
+        .route("/notifications/{id}/read", post(blog_api::routes::notifications::mark_read))
 }
 
 // 文章路由

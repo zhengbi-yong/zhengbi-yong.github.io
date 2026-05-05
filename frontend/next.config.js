@@ -279,6 +279,25 @@ const finalConfig = {
   ...nextConfig,
   // 解决外部包问题
   serverExternalPackages: ['@opentelemetry/api'],
+  // 代理 root 级后端端点（健康检查、Prometheus 指标等）
+  // 这些端点不在 /api/v1 下，需要通过 BFF 代理直连后端
+  async rewrites() {
+    const backendUrl = process.env.BACKEND_INTERNAL_URL || 'http://localhost:3000'
+    return [
+      {
+        source: '/health/:path*',
+        destination: `${backendUrl}/health/:path*`,
+      },
+      {
+        source: '/metrics',
+        destination: `${backendUrl}/metrics`,
+      },
+      {
+        source: '/.well-known/:path*',
+        destination: `${backendUrl}/.well-known/:path*`,
+      },
+    ]
+  },
   // 路由重定向：保持向后兼容
   async redirects() {
     return [
