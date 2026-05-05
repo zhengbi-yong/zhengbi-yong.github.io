@@ -247,7 +247,10 @@ function BlockNoteEditor({
     let changed = false
     state.doc.descendants((node, pos) => {
       if (node.type.name === 'codeBlock') {
-        tr.setNodeMarkup(pos, undefined, node.attrs)
+        // replaceWith creates an actual doc change (setNodeMarkup with same
+        // attrs is optimized away), forcing the highlight plugin to re-parse
+        tr.replaceWith(pos, pos + node.nodeSize,
+          node.type.create(node.attrs, node.content, node.marks))
         changed = true
       }
     })

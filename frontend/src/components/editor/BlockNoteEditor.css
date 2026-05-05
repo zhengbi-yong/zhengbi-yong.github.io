@@ -19,9 +19,9 @@
   margin: 16px 0;
 }
 
-/* ---------- 代码块容器(暗色) ---------- */
+/* ---------- 代码块容器(暗色) — 匹配 github-dark 主题背景 #0d1117 */
 .bn-container[data-color-scheme="dark"] .bn-block-content[data-content-type="codeBlock"] {
-  background-color: #1e1e1e !important;
+  background-color: #0d1117 !important;
   /* 不设置 color — let Shiki inline styles control text colors */
 }
 
