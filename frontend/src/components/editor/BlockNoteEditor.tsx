@@ -27,7 +27,17 @@ function useCodeBlockSpec() {
       createHighlighter: async () => {
         const highlighter = await codeBlockOptions.createHighlighter()
 
-        // 1. Reorder getLoadedThemes so [0] = current theme
+        // Eagerly load both themes (BlockNote uses dynamic imports — lazy by default).
+        // Without this, getLoadedThemes() returns [] and themes aren't available
+        // when prosemirror-highlight calls codeToTokens.
+        try {
+          await Promise.all([
+            highlighter.loadTheme('github-dark'),
+            highlighter.loadTheme('github-light'),
+          ])
+        } catch {} // loadTheme might not exist or themes already loaded
+
+        // Ensure getLoadedThemes()[0] always returns the CURRENT next-themes theme
         const originalGetLoadedThemes = highlighter.getLoadedThemes.bind(highlighter)
         highlighter.getLoadedThemes = () => {
           const isDark = themeRef.current === 'dark'
@@ -110,32 +120,6 @@ function BlockNoteEditor({
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
-
-  // 强制 ProseMirror 重新高亮代码块（主题切换后装饰器不会自动更新）
-  const prevThemeRef = useRef(resolvedTheme)
-  useEffect(() => {
-    if (!editor) return
-    const prev = prevThemeRef.current
-    prevThemeRef.current = resolvedTheme
-    if (prev === resolvedTheme || !prev) return // skip initial render
-
-    // Dispatch a minimal ProseMirror transaction that touches code blocks
-    // to force the highlight plugin to re-parse with the new theme.
-    const view = (editor as any)._tiptapEditor?.view
-    if (!view) return
-    const { state } = view
-    const tr = state.tr
-    let changed = false
-    state.doc.descendants((node, pos) => {
-      if (node.type.name === 'codeBlock') {
-        // Set node markup (same type+attrs) to mark the node as "changed"
-        // This triggers plugin state recomputation without altering content
-        tr.setNodeMarkup(pos, undefined, node.attrs)
-        changed = true
-      }
-    })
-    if (changed) view.dispatch(tr)
-  }, [resolvedTheme, editor])
 
   // BlockNote 的 theme prop: "light" | "dark"
   // 未挂载前默认 light 避免 hydration mismatch
@@ -247,6 +231,28 @@ function BlockNoteEditor({
       unsub()
     }
   }, [editor])
+
+  // 强制 ProseMirror 重新高亮代码块（主题切换后装饰器不会自动更新）
+  const prevThemeRef = useRef(resolvedTheme)
+  useEffect(() => {
+    if (!editor) return
+    const prev = prevThemeRef.current
+    prevThemeRef.current = resolvedTheme
+    if (prev === resolvedTheme || !prev) return
+
+    const view = (editor as any)._tiptapEditor?.view
+    if (!view) return
+    const { state } = view
+    const tr = state.tr
+    let changed = false
+    state.doc.descendants((node, pos) => {
+      if (node.type.name === 'codeBlock') {
+        tr.setNodeMarkup(pos, undefined, node.attrs)
+        changed = true
+      }
+    })
+    if (changed) view.dispatch(tr)
+  }, [resolvedTheme, editor])
 
   // 修复 ProseMirror 拦截代码块语言选择器的点击事件
   //
