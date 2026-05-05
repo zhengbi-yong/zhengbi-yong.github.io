@@ -7,11 +7,29 @@ Procedures for system maintenance, troubleshooting, and operational workflows.
 
 ```
 docs/operations/
+├── data-operations-manual.md   # ★ 数据操作完整手册 (8 scenarios + validation)
 ├── restart-guide.md            # Complete restart and testing procedures
 ├── RESTRUCTURE_GUIDE.md        # Codebase restructuring guide
 ├── TROUBLESHOOTING.md          # Common issues and solutions
 └── docker-local-build.md       # Docker local build & deploy pitfalls (China network)
 ```
+
+### data-operations-manual.md
+
+The authoritative reference for ALL content data operations. Covers:
+- 服务器间数据库迁移 (pg_dump → pg_restore → validate)
+- MDX 批量导入 (with dual validation gates)
+- 数据库备份与恢复
+- BlockNote 编辑器往返流程
+- 全新数据库初始化
+- 内容格式升级 (BlockNote version upgrades)
+- 单篇/部分文章导入导出
+- 回滚与灾难恢复
+- Appendix: BlockNote 0.49.0 Schema 速查
+- Appendix: 验证检查点详解
+- Appendix: 常见错误速查表
+
+**Every data mutation ends with `./scripts/validate_db.sh`.**
 
 ## Content Scope
 

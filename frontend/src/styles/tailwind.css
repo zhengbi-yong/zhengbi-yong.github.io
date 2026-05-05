@@ -38,17 +38,21 @@
   --radius-md: var(--geist-radius-md);
   --radius-lg: var(--geist-radius-lg);
 
-  --color-gray-50: oklch(0.985 0.002 247.839);
-  --color-gray-100: oklch(0.967 0.003 264.542);
-  --color-gray-200: oklch(0.928 0.006 264.531);
-  --color-gray-300: oklch(0.872 0.01 258.338);
-  --color-gray-400: oklch(0.707 0.022 261.325);
-  --color-gray-500: oklch(0.551 0.027 264.364);
-  --color-gray-600: oklch(0.446 0.03 256.802);
-  --color-gray-700: oklch(0.373 0.034 259.733);
-  --color-gray-800: oklch(0.278 0.033 256.848);
-  --color-gray-900: oklch(0.21 0.034 264.665);
-  --color-gray-950: oklch(0.13 0.028 261.692);
+  --color-gray-50: var(--theme-bg-secondary);
+  --color-gray-100: var(--theme-bg-tertiary);
+  --color-gray-200: var(--theme-border);
+  --color-gray-300: var(--theme-border-strong);
+  --color-gray-400: var(--theme-fg-tertiary);
+  --color-gray-500: var(--theme-fg-secondary);
+  --color-gray-600: var(--theme-fg-secondary);
+  --color-gray-700: var(--theme-fg);
+  --color-gray-800: var(--theme-fg);
+  --color-gray-900: var(--theme-fg);
+  --color-gray-950: var(--theme-fg);
+
+  /* Override built-in colors to follow theme */
+  --color-white: var(--theme-bg);
+  --color-black: var(--theme-fg);
 
   --line-height-11: 2.75rem;
   --line-height-12: 3rem;
@@ -79,13 +83,13 @@
 
   a,
   button {
-    outline-color: var(--geist-ring);
+    outline-color: var(--theme-accent);
   }
 
   html,
   body {
-    background: var(--geist-bg);
-    color: var(--geist-fg);
+    background: var(--theme-bg);
+    color: var(--theme-fg);
   }
 
   body {
@@ -96,7 +100,7 @@
   button:focus-visible {
     outline: 2px solid;
     border-radius: var(--geist-radius-sm);
-    outline-color: var(--geist-ring);
+    outline-color: var(--theme-accent);
   }
 }
 
@@ -659,7 +663,6 @@ input:-webkit-autofill:focus {
     @apply bg-background text-foreground;
     background-color: var(--site-bg);
     color: var(--text-primary);
-    transition: background-color var(--transition-speed, 0.4s) ease, color var(--transition-speed, 0.4s) ease;
   }
 
   body::selection {
@@ -1116,14 +1119,8 @@ html.cursor-hidden .case-go {
 }
 
 /* Content width constraint for optimal reading */
-/* Applied to blog article reading layout, NOT to the editor */
-.prose:not(:has(.tiptap)) {
+.prose {
   max-width: 680px;
-}
-
-/* Editor container: full width, no constraint */
-.prose:has(.tiptap) {
-  max-width: none;
 }
 
 /* Paragraph spacing */
@@ -1238,6 +1235,22 @@ html.cursor-hidden .case-go {
 .code-block .token.important,
 .code-block .token.variable { color: #f38ba8; }
 
+/* Normalize Shiki pre/code inside MDX code blocks */
+.cb-code-body .shiki {
+  margin: 0 !important;
+  padding: 1rem !important;
+  border-radius: 0 !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.7 !important;
+  tab-size: 2;
+  background: transparent !important;
+}
+.cb-code-body .shiki code {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
 /* Inline code */
 .prose code:not(pre code) {
   background: var(--muted);
@@ -1248,46 +1261,8 @@ html.cursor-hidden .case-go {
   color: var(--foreground);
 }
 
-/* ProseMirror / TipTap Editor Code Block */
-.tiptap pre {
-  background: var(--geist-bg-secondary);
-  border: 1px solid var(--geist-border);
-  border-radius: 0.5rem;
-  padding: 1rem 1.25rem;
-  margin: 1.25em 0;
-  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
-  font-size: 0.875rem;
-  line-height: 1.7;
-  tab-size: 2;
-  overflow-x: auto;
-  position: relative;
-}
-
-.tiptap pre code {
-  display: block;
-  color: var(--geist-fg);
-  background: none;
-  font-size: inherit;
-  padding: 0;
-}
-
-/* Code block label badge */
-.tiptap pre::after {
-  content: 'CODE';
-  position: absolute;
-  top: 0.375rem;
-  right: 0.75rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: var(--geist-fg-tertiary);
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/* Fallback for standalone .prose pre (frontend reading) */
-.prose > pre,
-.prose pre:not(.tiptap pre) {
+/* ProseMirror / BlockNote Editor Code Block — styled by BlockNoteEditor.css */
+.prose > pre {
   background: transparent;
   padding: 0;
   margin: 0;

@@ -4,7 +4,7 @@ use axum::{
     http::{header, StatusCode},
     response::{IntoResponse, Json},
 };
-use blog_core::tiptap_json_to_mdx;
+use blog_core::content_json_to_mdx;
 use blog_db::{cms::*, PostStatsResponse};
 use blog_shared::{middleware::AuthUser, AppError};
 use serde::Deserialize;
@@ -382,7 +382,7 @@ pub async fn create_post(
 
     // Phase 4: 如果提供了 content_json 但没有 content_mdx，自动派生 MDX
     let content_mdx = match (&req.content_json, &req.content_mdx) {
-        (Some(json), None) => Some(tiptap_json_to_mdx(json)),
+        (Some(json), None) => Some(content_json_to_mdx(json)),
         (_, mdx) => mdx.clone(),
     };
 
@@ -619,10 +619,10 @@ async fn get_post_response(
                     .clone()
                     .filter(|s| !s.is_empty())
                     .unwrap_or_else(|| {
-                        // fallback 1: content_json 有数据时用 TipTap 转换
+                        // fallback 1: content_json 有数据时自动检测格式转换
                         let json_str = serde_json::to_string(&row.content_json).unwrap_or_default();
                         if json_str != "{}" && json_str.len() > 2 {
-                            tiptap_json_to_mdx(&row.content_json)
+                            content_json_to_mdx(row.content_json.as_ref().unwrap_or(&serde_json::Value::Null))
                         } else {
                             // fallback 2: 直接从 content 字段读取（旧数据导入路径）
                             row.content.clone()
@@ -632,7 +632,7 @@ async fn get_post_response(
                 if trimmed.starts_with("{\"type\":") {
                     serde_json::from_str::<serde_json::Value>(&raw)
                         .ok()
-                        .map(|v| tiptap_json_to_mdx(&v))
+                        .map(|v| content_json_to_mdx(&v))
                         .unwrap_or_default()
                 } else {
                     raw
@@ -668,7 +668,7 @@ async fn get_post_response(
                 updated_at: row.updated_at,
                 lastmod_at: row.lastmod_at,
                 reading_time: row.reading_time,
-                content_json: Some(row.content_json),
+                content_json: row.content_json,
                 content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
             };
@@ -759,7 +759,7 @@ pub async fn update_post(
 
     // Phase 4: 自动派生 content_mdx（当 content_json 被更新但 content_mdx 未指定时）
     let derived_mdx: Option<String> = if req.content_json.is_some() && req.content_mdx.is_none() {
-        req.content_json.as_ref().map(tiptap_json_to_mdx)
+        req.content_json.as_ref().map(content_json_to_mdx)
     } else {
         None
     };

@@ -82,7 +82,7 @@ function MenuButton({ item }: { item: MenuItem }) {
   }, [open])
 
   if (item.separator) {
-    return <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
+    return <div className="w-px h-5 bg-gray-300 mx-1" />
   }
 
   if (item.submenu) {

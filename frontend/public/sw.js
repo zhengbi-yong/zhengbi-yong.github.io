@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1.1.0'
+const CACHE_VERSION = 'v1.3.0'
 const CACHE_NAME = `blog-cache-${CACHE_VERSION}`
 
 const CRITICAL_CACHE = [
@@ -62,17 +62,27 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
-  if (url.origin !== location.origin) {
-    return
-  }
+  // ── BYPASS RULES ──────────────────────────────────────────────
+  // Never intercept these — let the browser handle them natively.
+  if (url.origin !== location.origin) return
+  if (request.method !== 'GET') return
 
-  if (request.method !== 'GET') {
-    return
-  }
+  // API calls — must always go to live backend
+  if (url.pathname.startsWith('/api/')) return
 
-  if (url.pathname.startsWith('/chemistry/')) {
-    return
-  }
+  // Next.js RSC data requests (_rsc= query param)
+  // These are internal RSC payloads — caching them breaks SSR
+  if (url.searchParams.has('_rsc')) return
+
+  // Admin routes — rely on live RSC data, must not be cached
+  if (url.pathname.startsWith('/admin')) return
+
+  // Login / auth pages — must not be cached
+  if (url.pathname.startsWith('/login')) return
+
+  // Chemistry interactive pages — bypass
+  if (url.pathname.startsWith('/chemistry/')) return
+  // ── END BYPASS ────────────────────────────────────────────────
 
   if (CACHE_PATTERNS.html.test(url.pathname)) {
     if (url.pathname.startsWith('/blog/') && url.pathname !== '/blog') {

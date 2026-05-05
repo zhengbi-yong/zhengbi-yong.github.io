@@ -19,7 +19,15 @@ function encodeBase64Utf8(value: string) {
 function normalizeSegment(segment: string) {
   let normalized = segment
 
+  // Handle template-literals: data={`...`} → dataBase64="..."
   normalized = normalized.replace(/\bdata=\{`([\s\S]*?)`\}/g, (_, value: string) => {
+    return `dataBase64="${encodeBase64Utf8(value)}"`
+  })
+
+  // Handle BROKEN template-literals where backticks were lost in storage:
+  // data={3 Water...} → dataBase64="..."
+  // Matches data={ followed by content (no curly braces) up to the closing }
+  normalized = normalized.replace(/\bdata=\{([^}]+)\}/g, (_, value: string) => {
     return `dataBase64="${encodeBase64Utf8(value)}"`
   })
 
@@ -103,6 +111,45 @@ function convertMathFormulas(content: string): string {
   return content
 }
 
+/**
+ * Escape bare < and > characters that MDX would misinterpret as JSX tags.
+ *
+ * MDX treats `<http://...>` and `<...>` as JSX components, throwing:
+ *   "Unexpected character `/` (U+002F) before local name"
+ *
+ * This converts Markdown auto-link syntax to proper Markdown links,
+ * and escapes any remaining unbalanced angle brackets.
+ */
+function escapeMdxUnsafeContent(content: string): string {
+  // 1. Convert Markdown auto-links <https://...> to [url](url)
+  //    Standard Markdown auto-link syntax is NOT valid MDX.
+  content = content.replace(
+    /<((?:https?|ftp|mailto):\/\/[^\s>]+)>/g,
+    (_match: string, url: string) => `[${url}](${url})`
+  )
+
+  // 2. Protect known HTML tags and JSX components
+  const protectedTags: string[] = []
+  content = content.replace(
+    /<\/?\w[\w-]*(?:\s[^>]*)?\/?>/g,
+    (match: string) => {
+      protectedTags.push(match)
+      return `__PROTECTED_TAG_${protectedTags.length - 1}__`
+    }
+  )
+
+  // 3. Escape remaining bare < and > (stray angle brackets in text)
+  content = content.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  // 4. Restore protected tags
+  content = content.replace(
+    /__PROTECTED_TAG_(\d+)__/g,
+    (_match: string, index: string) => protectedTags[parseInt(index)] ?? ''
+  )
+
+  return content
+}
+
 export function normalizeRuntimeMdxContent(content: string) {
   // 先转换数学公式
   const processed = convertMathFormulas(content)
@@ -110,7 +157,10 @@ export function normalizeRuntimeMdxContent(content: string) {
   // 然后处理组件属性
   const segments = processed.split(/(```[\s\S]*?```)/g)
 
-  return segments
+  const normalized = segments
     .map((segment) => (segment.startsWith('```') ? segment : normalizeSegment(segment)))
     .join('')
+
+  // 最后转义 MDX 不兼容的角括号
+  return escapeMdxUnsafeContent(normalized)
 }

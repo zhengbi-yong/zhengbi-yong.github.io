@@ -1,16 +1,16 @@
 'use client';
 
-import TiptapEditor from './TiptapEditor';
+import BlockNoteEditor from './BlockNoteEditor';
 
 export default function CollaborationEditor({ 
   roomId,
   ...props 
 }: { 
   roomId: string;
-} & React.ComponentProps<typeof TiptapEditor>) {
+} & React.ComponentProps<typeof BlockNoteEditor>) {
   return (
     <div data-collab-room={roomId}>
-      <TiptapEditor 
+      <BlockNoteEditor 
         {...props}
       />
     </div>

@@ -42,7 +42,7 @@ export default function AdminTestPage() {
   useEffect(() => {
     const fetchDirect = async () => {
       try {
-        const result = await api.get(`${backendApiUrl}/admin/posts?page=1&page_size=20`)
+        const result = await api.get(`${backendApiUrl}/admin/posts?page=1&per_page=20`)
         logger.log('[Direct API] Result:', result)
         setDirectApiData(result.data)
       } catch (err) {

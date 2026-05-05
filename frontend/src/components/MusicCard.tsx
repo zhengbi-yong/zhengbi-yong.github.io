@@ -23,7 +23,7 @@ export default function MusicCard({
   className = '',
 }: MusicCardProps) {
   return (
-    <Link href={`/music/${id}`} className={cn('group block h-full', className)}>
+    <Link href={`/lab/music/${id}`} className={cn('group block h-full', className)}>
       <article className="h-full rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-6 shadow-[var(--shadow-soft)] backdrop-blur-sm transition-all duration-[var(--motion-base)] hover:-translate-y-1 hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-medium)]">
         {/* 标题区域 */}
         <div className="mb-4">

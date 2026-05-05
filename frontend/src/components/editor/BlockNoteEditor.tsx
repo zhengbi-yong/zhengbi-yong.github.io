@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useCreateBlockNote } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
@@ -11,29 +11,100 @@ import { codeBlockOptions } from '@blocknote/code-block'
 import { useTheme } from 'next-themes'
 import './BlockNoteEditor.css'
 
-// 带语法高亮和语言选择器的代码块 spec（使用 @blocknote/code-block 预配置）
-const codeBlock = createCodeBlockSpec(codeBlockOptions)
+// ── Theme-aware code block highlighter ────────────────────────────────────────
+//
+// prosemirror-highlight uses getLoadedThemes()[0] as the default theme.
+// We reorder themes so [0] is always the CURRENT next-themes theme.
+// Additionally wrap codeToTokens as belt-and-suspenders.
+function useCodeBlockSpec() {
+  const { resolvedTheme } = useTheme()
+  const themeRef = useRef(resolvedTheme)
+  themeRef.current = resolvedTheme
 
-// 扩展默认 schema，仅覆盖 codeBlock（官方推荐方式）
-const schema = BlockNoteSchema.create().extend({
-  blockSpecs: {
-    codeBlock,
-  },
-})
+  return useMemo(() => {
+    return createCodeBlockSpec({
+      ...codeBlockOptions,
+      createHighlighter: async () => {
+        const highlighter = await codeBlockOptions.createHighlighter()
+
+        // Eagerly load both themes (BlockNote uses dynamic imports — lazy by default).
+        // Without this, getLoadedThemes() returns [] and themes aren't available
+        // when prosemirror-highlight calls codeToTokens.
+        try {
+          await Promise.all([
+            highlighter.loadTheme('github-dark'),
+            highlighter.loadTheme('github-light'),
+          ])
+        } catch {} // loadTheme might not exist or themes already loaded
+
+        // Ensure getLoadedThemes()[0] always returns the CURRENT next-themes theme
+        const originalGetLoadedThemes = highlighter.getLoadedThemes.bind(highlighter)
+        highlighter.getLoadedThemes = () => {
+          const isDark = themeRef.current === 'dark'
+          return isDark
+            ? ['github-dark', 'github-light']
+            : ['github-light', 'github-dark']
+        }
+
+        // 2. Belt-and-suspenders: wrap codeToTokens to inject theme directly
+        const originalCodeToTokens = highlighter.codeToTokens.bind(highlighter)
+        highlighter.codeToTokens = (code: string, options?: any) => {
+          const themeName = themeRef.current === 'dark' ? 'github-dark' : 'github-light'
+          return originalCodeToTokens(code, { ...(options || {}), theme: themeName })
+        }
+
+        return highlighter
+      },
+    })
+  }, [])
+}
+
+// ── Schema ────────────────────────────────────────────────────────────────────
+// We recreate schema whenever the codeBlockSpec changes (theme-aware spec).
+// useMemo with empty deps is safe — the createHighlighter closure captures
+// themeRef which is always updated before any highlight call.
 
 /**
- * BlockNote 编辑器组件（客户端渲染）
+ * Fix legacy boolean styles { bold: true } → { bold: {} }.
+ * BlockNote 0.49.0 rejects boolean-style styles on inline content nodes.
+ * This runs at content load time to catch any DB-level cleanup misses.
+ */
+function fixStyles(node: unknown): unknown {
+  if (!node || typeof node !== 'object') return node
+  if (Array.isArray(node)) return node.map(fixStyles)
+
+  const src = node as Record<string, unknown>
+  const out: Record<string, unknown> = { ...src }
+
+  // Fix boolean styles
+  if (out.styles && typeof out.styles === 'object') {
+    const styles = out.styles as Record<string, unknown>
+    const cleaned: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(styles)) {
+      cleaned[k] = v === true ? {} : v
+    }
+    out.styles = cleaned
+  }
+
+  // Recurse into content/children
+  if (Array.isArray(out.content)) {
+    out.content = out.content.map(fixStyles)
+  }
+  if (Array.isArray(out.children)) {
+    out.children = out.children.map(fixStyles)
+  }
+
+  return out
+}
+
+/**
+ * BlockNote 编辑器组件
  *
- * 使用 @blocknote/code-block 提供的 codeBlockOptions：
- * - 43 种编程语言支持（含中文显示名）
- * - Shiki 语法高亮（默认 light/dark 主题）
- * - Tab 缩进支持
- *
- * 数据流（双轨输出）：
- *   onChange(json, mdx) → {
- *     json: blocks JSON → content_json（SSOT）
- *     mdx: Markdown → content_mdx（博客详情页渲染）
- *   }
+ * 功能：
+ * - Shiki 语法高亮（@blocknote/code-block）
+ * - 43 种编程语言选择器
+ * - 暗色/亮色主题自适应（next-themes）
+ * - 双轨输出：BlockNote JSON（SSOT） + Markdown（博客渲染）
  */
 function BlockNoteEditor({
   content,
@@ -54,6 +125,18 @@ function BlockNoteEditor({
   // 未挂载前默认 light 避免 hydration mismatch
   const bnTheme = mounted && resolvedTheme === 'dark' ? 'dark' : 'light'
 
+  // ── 主题感知的代码块 spec（编辑器内 Shiki 高亮跟随主题） ──
+  const codeBlockSpec = useCodeBlockSpec()
+
+  // 扩展默认 schema，仅覆盖 codeBlock（官方推荐方式）
+  const schema = useMemo(
+    () =>
+      BlockNoteSchema.create().extend({
+        blockSpecs: { codeBlock: codeBlockSpec },
+      }),
+    [codeBlockSpec]
+  )
+
   const editor = useCreateBlockNote({
     schema,
     initialContent: (() => {
@@ -61,7 +144,27 @@ function BlockNoteEditor({
       try {
         const parsed = JSON.parse(content)
         if (Array.isArray(parsed)) {
-          return parsed as any
+          // Debug: log code block content on load
+          for (const block of parsed) {
+            if (block.type === 'codeBlock') {
+              const text = block.content?.[0]?.text || ''
+              const propsCode = block.props?.code || ''
+              const contentLen = block.content?.length || 0
+              console.log(
+                '[BlockNoteEditor] codeBlock loaded:',
+                `lang=${block.props?.language}`,
+                `contentLen=${contentLen}`,
+                `contentText_chars=${text.length}`,
+                `contentText_lines=${text.split('\n').length}`,
+                `propsCode_chars=${propsCode.length}`,
+                `propsCode_lines=${propsCode.split('\n').length}`,
+                `hasPropsCode=${!!block.props?.code}`,
+                `text_preview=${JSON.stringify(text.slice(0, 60))}`,
+                `code_preview=${JSON.stringify(propsCode.slice(0, 60))}`
+              )
+            }
+          }
+          return fixStyles(parsed) as any
         }
         return undefined
       } catch {
@@ -76,7 +179,46 @@ function BlockNoteEditor({
       if (!cb) return
 
       try {
-        const blocksJson = JSON.stringify(editor.document)
+        // Deep-clone to avoid mutating editor.document
+        const doc = JSON.parse(JSON.stringify(editor.document))
+        
+        // Normalize code blocks: merge multiple text nodes into one with \n separators.
+        // BlockNote sometimes splits code block text at \n into separate text nodes;
+        // when loaded back, adjacent text nodes without \n get concatenated → single line.
+        // Also check props.code — @blocknote/code-block may store code there.
+        if (Array.isArray(doc)) {
+          for (const block of doc) {
+            if (block.type === 'codeBlock' && Array.isArray(block.content)) {
+              const firstText = block.content[0]?.text || ''
+              const propsCode = block.props?.code || ''
+              const nodeCount = block.content.length
+              console.log(
+                '[BlockNoteEditor] codeBlock saved:',
+                `lang=${block.props?.language}`,
+                `textNodes=${nodeCount}`,
+                `contentText_chars=${firstText.length}`,
+                `contentText_lines=${firstText.split('\n').length}`,
+                `propsCode_chars=${propsCode.length}`,
+                `propsCode_lines=${propsCode.split('\n').length}`,
+                `hasPropsCode=${!!block.props?.code}`,
+                `text_preview=${JSON.stringify(firstText.slice(0, 60))}`,
+                `code_preview=${JSON.stringify(propsCode.slice(0, 60))}`
+              )
+              
+              // Merge multiple text nodes into one (preserving \n between lines)
+              if (nodeCount > 1) {
+                const merged = block.content.map((n: any) => n.text || '').join('\n')
+                block.content = [{ type: 'text', text: merged, styles: {} }]
+                console.log(
+                  '[BlockNoteEditor] codeBlock merged:',
+                  `${nodeCount} → 1 text node, chars=${merged.length}`
+                )
+              }
+            }
+          }
+        }
+        
+        const blocksJson = JSON.stringify(doc)
         const markdown = editor.blocksToMarkdownLossy()
         cb(blocksJson, markdown)
       } catch (e) {
@@ -90,7 +232,32 @@ function BlockNoteEditor({
     }
   }, [editor])
 
-  // 修复 Prosemirror 拦截代码块语言选择器的点击事件
+  // 强制 ProseMirror 重新高亮代码块（主题切换后装饰器不会自动更新）
+  const prevThemeRef = useRef(resolvedTheme)
+  useEffect(() => {
+    if (!editor) return
+    const prev = prevThemeRef.current
+    prevThemeRef.current = resolvedTheme
+    if (prev === resolvedTheme || !prev) return
+
+    const view = (editor as any)._tiptapEditor?.view
+    if (!view) return
+    const { state } = view
+    const tr = state.tr
+    let changed = false
+    state.doc.descendants((node, pos) => {
+      if (node.type.name === 'codeBlock') {
+        // replaceWith creates an actual doc change (setNodeMarkup with same
+        // attrs is optimized away), forcing the highlight plugin to re-parse
+        tr.replaceWith(pos, pos + node.nodeSize,
+          node.type.create(node.attrs, node.content, node.marks))
+        changed = true
+      }
+    })
+    if (changed) view.dispatch(tr)
+  }, [resolvedTheme, editor])
+
+  // 修复 ProseMirror 拦截代码块语言选择器的点击事件
   //
   // 根因: ProseMirror 在 mousedown 冒泡阶段调用 preventDefault(),
   // 阻止了原生 <select> 获得焦点和打开下拉菜单.
@@ -131,6 +298,7 @@ function BlockNoteEditor({
   return (
     <div className="min-h-[400px]">
       <BlockNoteView
+        key={bnTheme}
         editor={editor}
         theme={bnTheme}
       />

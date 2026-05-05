@@ -48,6 +48,15 @@ The content system serves static authored content and dynamic runtime-rendered M
 - runtime MDX stays maintainable because the component surface is centralized
 - heavy client widgets are isolated behind dynamic import boundaries
 
+## Content format
+
+All articles are stored in the database as **BlockNote 0.49.0 JSON** in the `content_json` column.
+This is the single source of truth (SSOT).
+
+- **[BlockNote Schema Reference](../reference/blocknote-schema.md)** — Data format specification
+- **[Data Operations Manual](../operations/data-operations-manual.md)** — Import/export/migration procedures
+- Run `./scripts/validate_db.sh` to verify all articles conform to the format
+
 ## Known boundaries
 
 - MDX component typing is still loose in several places and uses `any`

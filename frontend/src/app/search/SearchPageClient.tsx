@@ -209,7 +209,7 @@ export default function SearchPageClient({ initialQuery }: { initialQuery: strin
                   type="button"
                   data-testid="search-trending-chip"
                   onClick={() => setQuery(item.keyword)}
-                  className="rounded-full bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-900 hover:text-white"
+                  className="rounded-full bg-[var(--theme-bg-tertiary)] px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-900 hover:text-white"
                 >
                   {item.keyword}
                   <span className="ml-2 text-xs opacity-70">{item.count}</span>

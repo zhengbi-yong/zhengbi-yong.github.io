@@ -610,7 +610,7 @@ export default function FullscreenMusicSheet({
       <header
         className={cn(
           'z-50 flex items-center justify-between px-6 md:px-10 py-3 md:py-4 transition-all duration-500',
-          isDark ? 'border-b border-white/5' : 'border-b border-black/5',
+          'border-b border-[var(--theme-border)]',
           showControls || !hasLoadedScore ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
         )}
       >
@@ -755,7 +755,7 @@ export default function FullscreenMusicSheet({
                 onMouseUp={resetControlsTimer}
                 className={cn(
                   'w-16 h-1 rounded-full appearance-none cursor-pointer',
-                  isDark ? 'bg-slate-700 accent-amber-400' : 'bg-zinc-300 accent-amber-600'
+                  'bg-[var(--theme-bg-tertiary)] accent-[var(--theme-warning)]'
                 )}
               />
               <span className={cn(
@@ -864,10 +864,7 @@ export default function FullscreenMusicSheet({
               }}
               onMouseUp={resetControlsTimer}
               className={cn(
-                'w-24 h-1 rounded-full appearance-none cursor-pointer',
-                isDark
-                  ? 'bg-slate-700 accent-slate-400'
-                  : 'bg-zinc-300 accent-zinc-600'
+                'w-24 h-1 rounded-full appearance-none cursor-pointer bg-[var(--theme-bg-tertiary)] accent-[var(--theme-accent)]'
               )}
               aria-label="Zoom level"
             />
@@ -935,7 +932,7 @@ export default function FullscreenMusicSheet({
         <aside
           className={cn(
             'hidden md:flex flex-col items-center py-10 z-40 w-14 gap-6',
-            isDark ? 'border-r border-white/5' : 'border-r border-black/5'
+            'border-r border-[var(--theme-border)]'
           )}
         >
           {/* Zoom In */}
@@ -1017,7 +1014,7 @@ export default function FullscreenMusicSheet({
           ref={mainRef}
           className={cn(
             'flex-1 ml-0 md:ml-14 overflow-y-auto overflow-x-hidden flex flex-col items-center relative group/canvas',
-            isDark ? 'bg-[#0a0c12]' : ''
+            'bg-[var(--theme-bg-tertiary)]'
           )}
           onMouseMove={resetControlsTimer}
           onTouchStart={resetControlsTimer}
@@ -1051,7 +1048,7 @@ export default function FullscreenMusicSheet({
             <h1
               className={cn(
                 'text-3xl md:text-5xl font-light leading-tight tracking-tight mb-6',
-                isDark ? 'text-[#e0e2ed]' : 'text-[#061542]'
+                'text-[var(--theme-fg)]'
               )}
               style={{ fontFamily: 'var(--font-newsreader)' }}
             >
@@ -1085,7 +1082,7 @@ export default function FullscreenMusicSheet({
                   <h3
                     className={cn(
                       'text-xs font-semibold uppercase tracking-widest',
-                      isDark ? 'text-slate-300' : 'text-[#061542]'
+                      'text-[var(--theme-fg)]'
                     )}
                   >
                     键盘快捷键

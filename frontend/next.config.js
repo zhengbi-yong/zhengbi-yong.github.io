@@ -198,7 +198,10 @@ const generateSecurityHeaders = () => {
         'base-uri': "'self'",
         'form-action': "'self'",
         'frame-ancestors': "'none'",
-        'upgrade-insecure-requests': '',
+        // upgrade-insecure-requests 强制浏览器将所有HTTP升级为HTTPS。
+        // 本地开发只有HTTP端口，升级后因缺少SSL证书导致所有请求失败。
+        // 生产环境由CDN/nginx处理HTTPS，此指令仅在有HTTPS时启用。
+        ...(!process.env.DISABLE_HSTS ? { 'upgrade-insecure-requests': '' } : {}),
       }
     : {
         // 开发环境：允许 unsafe-inline 和 unsafe-eval 用于开发工具
@@ -256,8 +259,10 @@ const generateSecurityHeaders = () => {
       key: 'Permissions-Policy',
       value: 'camera=(), microphone=(), geolocation=()',
     },
-    // Strict-Transport-Security (仅生产环境)
-    ...(isProduction
+    // Strict-Transport-Security
+    // 仅在 HTTPS 且非本地开发环境启用。本地开发用 HTTP，HSTS 会
+    // 导致浏览器将所有后续请求升级为 HTTPS 而服务器只监听 HTTP 端口。
+    ...(isProduction && !process.env.DISABLE_HSTS
       ? [
           {
             key: 'Strict-Transport-Security',
@@ -274,6 +279,53 @@ const finalConfig = {
   ...nextConfig,
   // 解决外部包问题
   serverExternalPackages: ['@opentelemetry/api'],
+  // 路由重定向：保持向后兼容
+  async redirects() {
+    return [
+      // Tags → Blog tags
+      {
+        source: '/tags',
+        destination: '/blog/tag',
+        permanent: true,
+      },
+      {
+        source: '/tags/:tag',
+        destination: '/blog/tag/:tag',
+        permanent: true,
+      },
+      {
+        source: '/tags/:tag/page/:page',
+        destination: '/blog/tag/:tag/page/:page',
+        permanent: true,
+      },
+      // Lab — 实验页面
+      {
+        source: '/excalidraw',
+        destination: '/lab/excalidraw',
+        permanent: true,
+      },
+      {
+        source: '/experiment',
+        destination: '/lab/experiment',
+        permanent: true,
+      },
+      {
+        source: '/experiment/:path*',
+        destination: '/lab/experiment/:path*',
+        permanent: true,
+      },
+      {
+        source: '/music',
+        destination: '/lab/music',
+        permanent: true,
+      },
+      {
+        source: '/music/:path*',
+        destination: '/lab/music/:path*',
+        permanent: true,
+      },
+    ]
+  },
 }
 
 // 只在非静态导出时添加 headers

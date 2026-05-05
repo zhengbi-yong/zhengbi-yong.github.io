@@ -21,7 +21,7 @@ export default function Page() {
             Biography · Research · Writing
           </p>
           <h1
-            className="text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 md:text-6xl"
+            className="text-4xl font-semibold tracking-tight text-[var(--theme-fg)] md:text-6xl"
             style={{ fontFamily: 'var(--font-newsreader)' }}
           >
             About

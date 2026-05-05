@@ -38,7 +38,7 @@ export default function Projects() {
                       </span>
                     )}
                     <h2
-                      className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 md:text-3xl"
+                      className="text-2xl font-semibold tracking-tight text-[var(--theme-fg)] md:text-3xl"
                       style={{ fontFamily: 'var(--font-newsreader)' }}
                     >
                       {project.title}

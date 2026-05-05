@@ -140,7 +140,7 @@ fn codeblock_to_mdx(block: &Value) -> String {
             arr.iter()
                 .map(|node| node["text"].as_str().unwrap_or(""))
                 .collect::<Vec<_>>()
-                .join("")
+                .join("\n")
         })
         .unwrap_or_default();
 
@@ -289,11 +289,7 @@ fn inline_node_to_mdx(node: &Value) -> String {
         }
         _ => {
             // 未知内联类型：尝试提取内容
-            inline_content_to_mdx(
-                &node
-                    .get("content")
-                    .unwrap_or(&Value::Null),
-            )
+            inline_content_to_mdx(&node.get("content").unwrap_or(&Value::Null))
         }
     }
 }
@@ -301,12 +297,28 @@ fn inline_node_to_mdx(node: &Value) -> String {
 /// 应用内联样式到文本
 ///
 /// 样式应用顺序注意嵌套：bold 在外层，code 在内层
-/// 示例：**`bold code`** 而非 `**bold code**`
+/// 示例：**`bold code`** 而非 `**bold code`**
+///
+/// BlockNote 0.49.0 使用 `{}` 对象表示样式存在（如 `{"bold": {}}`），
+/// 旧格式使用 `true`（如 `{"bold": true}`）。此函数兼容两种格式。
 fn apply_inline_styles(text: &str, styles: &Value) -> String {
-    let bold = styles.get("bold").and_then(|v| v.as_bool()).unwrap_or(false);
-    let italic = styles.get("italic").and_then(|v| v.as_bool()).unwrap_or(false);
-    let strike = styles.get("strike").and_then(|v| v.as_bool()).unwrap_or(false);
-    let code = styles.get("code").and_then(|v| v.as_bool()).unwrap_or(false);
+    // 检查样式是否激活（兼容 boolean true 和 object {} 两种格式）
+    let bold = match styles.get("bold") {
+        Some(v) => v.as_bool() == Some(true) || v.is_object(),
+        None => false,
+    };
+    let italic = match styles.get("italic") {
+        Some(v) => v.as_bool() == Some(true) || v.is_object(),
+        None => false,
+    };
+    let strike = match styles.get("strike") {
+        Some(v) => v.as_bool() == Some(true) || v.is_object(),
+        None => false,
+    };
+    let code = match styles.get("code") {
+        Some(v) => v.as_bool() == Some(true) || v.is_object(),
+        None => false,
+    };
 
     let mut result = text.to_string();
 

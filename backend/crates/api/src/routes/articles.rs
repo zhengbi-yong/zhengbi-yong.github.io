@@ -11,7 +11,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Json},
 };
-use blog_core::tiptap_json_to_mdx;
+use blog_core::content_json_to_mdx;
 use blog_db::cms::{
     Article, ArticleVersion, CreateArticleRequest, CreateArticleVersionRequest,
     UpdateArticleRequest,
@@ -125,7 +125,7 @@ pub async fn create_article(
     let content_mdx = req
         .content_mdx
         .clone()
-        .unwrap_or_else(|| tiptap_json_to_mdx(&req.content_json));
+        .unwrap_or_else(|| content_json_to_mdx(&req.content_json));
 
     let status = req.status.unwrap_or_else(|| "draft".to_string());
     let layout = req.layout.unwrap_or_else(|| "standard".to_string());
@@ -185,7 +185,7 @@ pub async fn update_article(
     // 双轨更新逻辑：content_mdx 从 content_json 派生或直接使用传入值
     let content_mdx: String = match (&req.content_json, &req.content_mdx) {
         (Some(_json), Some(mdx)) => mdx.clone(),
-        (Some(json), None) => tiptap_json_to_mdx(json),
+        (Some(json), None) => content_json_to_mdx(json),
         (None, Some(mdx)) => mdx.clone(),
         (None, None) => return Err(AppError::BadRequest("No content provided".to_string())),
     };

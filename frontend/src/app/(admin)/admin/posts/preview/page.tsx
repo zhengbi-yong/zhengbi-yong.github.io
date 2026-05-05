@@ -56,13 +56,13 @@ function SimpleMarkdownPreview({ content }: { content: string }) {
               )
             }
             return (
-              <code className="block bg-gray-900 dark:bg-gray-950 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono my-4">
+              <code className="block bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono my-4">
                 {children}
               </code>
             )
           },
           pre: ({ children }) => (
-            <pre className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
               {children}
             </pre>
           ),

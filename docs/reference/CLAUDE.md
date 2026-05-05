@@ -8,6 +8,7 @@ Technical specifications, API documentation, and design standards for the blog s
 ```
 docs/reference/
 ├── README.md                           # Reference documentation index
+├── blocknote-schema.md                 # ★ BlockNote 0.49.0 data structure reference
 ├── color-system.md                     # Design color specifications
 ├── ai-development.md                   # AI development guidelines
 └── Blog_API.postman_collection.json    # Postman API collection

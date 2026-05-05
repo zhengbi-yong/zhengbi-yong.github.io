@@ -8,7 +8,7 @@ interface TagProps {
 
 export default function Tag({ text }: TagProps) {
   return (
-    <Link href={`/tags/${slug(text)}`}>
+    <Link href={`/blog/tag/${slug(text)}`}>
       <Badge variant="secondary" className="mr-3 cursor-pointer hover:bg-primary/80 uppercase">
         {text.split(' ').join('-')}
       </Badge>

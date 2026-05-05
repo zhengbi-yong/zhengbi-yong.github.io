@@ -33,8 +33,12 @@ lint-backend:
 
 # 数据库检查（需要 DB 连接）
 lint-db:
+	@echo "🔍 Checking content_json against BlockNote schema..."
+	@DATABASE_URL="postgresql://blog_user:$(POSTGRES_PASSWORD)@127.0.0.1:5432/blog_db" \
+		python3 "$(PROJECT_ROOT)/scripts/validate_content_json.py" --db --quiet 2>&1 || true
+	@echo ""
 	@echo "🔍 Checking database schema compliance..."
-	@bash "$(SCRIPT)" --db-only 2>&1 | grep -E "§4\.|PASS|FAIL|ERROR"
+	@bash "$(SCRIPT)" --db-only 2>&1 | grep -E "§4\\.|PASS|FAIL|ERROR"
 	@echo "✅ Database checks passed"
 
 # 监视模式（文件变化时重新检查）

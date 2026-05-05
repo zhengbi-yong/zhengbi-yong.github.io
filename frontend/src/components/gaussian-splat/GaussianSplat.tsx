@@ -238,7 +238,7 @@ export default function GaussianSplat({
       <canvas ref={canvasRef} className="block w-full h-full" />
 
       {state === 'loading' && showLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-100/80 dark:bg-zinc-900/80">
+        <div className="absolute inset-0 flex items-center justify-center bg-[var(--theme-bg-tertiary)]/80 /80">
           <div className="flex flex-col items-center gap-3">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary-500" />
             <p className="text-sm text-muted-foreground">Loading 3D Gaussian Splat...</p>
@@ -247,11 +247,11 @@ export default function GaussianSplat({
       )}
 
       {state === 'error' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+        <div className="absolute inset-0 flex items-center justify-center bg-[var(--theme-bg-tertiary)] ">
           <div className="flex flex-col items-center gap-2 text-center px-4">
             <span className="text-3xl">⚠️</span>
             <p className="text-sm text-red-500 font-medium">Failed to load 3D model</p>
-            <p className="text-xs text-zinc-400 max-w-xs">{errorMsg || 'Unknown error'}</p>
+            <p className="text-xs text-[var(--theme-fg-tertiary)] max-w-xs">{errorMsg || 'Unknown error'}</p>
           </div>
         </div>
       )}

@@ -27,7 +27,7 @@ async fn is_admin(user_id: Uuid, state: &AppState) -> Result<bool, AppError> {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UserListQuery {
     pub page: Option<u32>,
-    pub page_size: Option<u32>,
+    pub per_page: Option<u32>,
     pub search: Option<String>,
     pub status: Option<String>,
     pub role: Option<String>,
@@ -38,7 +38,7 @@ pub struct UserListResponse {
     pub users: Vec<UserListItem>,
     pub total: i64,
     pub page: u32,
-    pub page_size: u32,
+    pub per_page: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
@@ -60,7 +60,7 @@ pub struct UpdateUserRoleRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CommentListQuery {
     pub page: Option<u32>,
-    pub page_size: Option<u32>,
+    pub per_page: Option<u32>,
     pub status: Option<String>,
 }
 
@@ -69,7 +69,7 @@ pub struct CommentListResponse {
     pub comments: Vec<CommentAdminItem>,
     pub total: i64,
     pub page: u32,
-    pub page_size: u32,
+    pub per_page: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
@@ -101,7 +101,7 @@ pub struct AdminStats {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct PostListQuery {
     pub page: Option<u32>,
-    pub page_size: Option<u32>,
+    pub per_page: Option<u32>,
     #[serde(default)]
     pub search: Option<String>,
     #[serde(default)]
@@ -113,7 +113,7 @@ pub struct PostListResponse {
     pub posts: Vec<PostAdminItem>,
     pub total: i64,
     pub page: u32,
-    pub page_size: u32,
+    pub per_page: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow, ToSchema)]
@@ -165,7 +165,7 @@ pub struct UserGrowthResponse {
     ),
     params(
         ("page" = Option<u32>, Query, description = "页码，从1开始", example = 1),
-        ("page_size" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
+        ("per_page" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
     ),
     responses(
         (status = 200, description = "成功获取用户列表", body = UserListResponse),
@@ -184,8 +184,8 @@ pub async fn list_users(
     }
 
     let page = query.page.unwrap_or(1).max(1);
-    let page_size = query.page_size.unwrap_or(20).min(100);
-    let offset = (page - 1) * page_size;
+    let per_page = query.per_page.unwrap_or(20).min(100);
+    let offset = (page - 1) * per_page;
 
     // 构建 WHERE 条件 - 值通过绑定参数传递防止 SQL 注入
     // 注意：列名是固定的（email, username, status, role），用户只能控制值
@@ -289,7 +289,7 @@ pub async fn list_users(
     let list_query = format!(
         "SELECT u.id, u.email, u.username, u.role, u.status, u.email_verified, u.created_at::text \
          FROM users u{} ORDER BY u.created_at DESC LIMIT {} OFFSET {}",
-        where_clause, page_size, offset
+        where_clause, per_page, offset
     );
     let users: Vec<UserListItem> = if let Some(ref search) = search_like {
         let status = status_filter.as_deref();
@@ -351,7 +351,7 @@ pub async fn list_users(
         users,
         total,
         page,
-        page_size,
+        per_page,
     }))
 }
 
@@ -792,7 +792,7 @@ pub async fn batch_delete_users(
     ),
     params(
         ("page" = Option<u32>, Query, description = "页码，从1开始", example = 1),
-        ("page_size" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
+        ("per_page" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
         ("status" = Option<String>, Query, description = "评论状态筛选：pending, approved, rejected, spam"),
     ),
     responses(
@@ -812,8 +812,8 @@ pub async fn list_comments_admin(
     }
 
     let page = query.page.unwrap_or(1).max(1);
-    let page_size = query.page_size.unwrap_or(20).min(100);
-    let offset = (page - 1) * page_size;
+    let per_page = query.per_page.unwrap_or(20).min(100);
+    let offset = (page - 1) * per_page;
 
     // 使用参数化查询防止 SQL 注入
     let (count_query, list_query, has_status_filter) = if let Some(ref _status) = query.status {
@@ -827,7 +827,7 @@ pub async fn list_comments_admin(
             WHERE c.status = $1
             ORDER BY c.created_at DESC LIMIT {} OFFSET {}
             "#,
-            page_size, offset
+            per_page, offset
         );
         (cq.to_string(), lq, true)
     } else {
@@ -840,7 +840,7 @@ pub async fn list_comments_admin(
             LEFT JOIN users u ON c.user_id = u.id
             ORDER BY c.created_at DESC LIMIT {} OFFSET {}
             "#,
-            page_size, offset
+            per_page, offset
         );
         (cq, lq, false)
     };
@@ -873,7 +873,7 @@ pub async fn list_comments_admin(
         comments,
         total,
         page,
-        page_size,
+        per_page,
     }))
 }
 
@@ -1022,7 +1022,7 @@ pub async fn get_admin_stats(
     ),
     params(
         ("page" = Option<u32>, Query, description = "页码，从1开始", example = 1),
-        ("page_size" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
+        ("per_page" = Option<u32>, Query, description = "每页数量，1-100", example = 20),
         ("search" = Option<String>, Query, description = "搜索关键词（标题和摘要）"),
         ("status" = Option<String>, Query, description = "文章状态筛选：Published/Draft/Archived"),
     ),
@@ -1043,8 +1043,8 @@ pub async fn list_posts_admin(
     }
 
     let page = query.page.unwrap_or(1).max(1);
-    let page_size = query.page_size.unwrap_or(20).min(100);
-    let offset = (page - 1) * page_size;
+    let per_page = query.per_page.unwrap_or(20).min(100);
+    let offset = (page - 1) * per_page;
 
     // Build dynamic WHERE clause
     use sqlx::QueryBuilder;
@@ -1102,7 +1102,7 @@ pub async fn list_posts_admin(
 
     // Execute list query
     list_builder.push(" ORDER BY p.updated_at DESC LIMIT ");
-    list_builder.push_bind(page_size as i64);
+    list_builder.push_bind(per_page as i64);
     list_builder.push(" OFFSET ");
     list_builder.push_bind(offset as i64);
 
@@ -1115,7 +1115,7 @@ pub async fn list_posts_admin(
         posts,
         total: total.0,
         page,
-        page_size,
+        per_page,
     }))
 }
 

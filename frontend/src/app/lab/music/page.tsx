@@ -18,7 +18,7 @@ export default function MusicPage() {
                 Sheet Music Collection
               </p>
               <h1
-                className="text-4xl font-light tracking-tight text-zinc-900 dark:text-zinc-50"
+                className="text-4xl font-light tracking-tight text-[var(--theme-fg)] "
                 style={{ fontFamily: 'var(--font-newsreader)' }}
               >
                 乐谱库
@@ -141,7 +141,7 @@ export default function MusicPage() {
 
                   <div className="px-5 pb-6 pt-4">
                     <h3
-                      className="mb-2 text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100"
+                      className="mb-2 text-lg font-semibold tracking-tight text-[var(--theme-fg)] "
                       style={{ fontFamily: 'var(--font-newsreader)' }}
                     >
                       {music.title}

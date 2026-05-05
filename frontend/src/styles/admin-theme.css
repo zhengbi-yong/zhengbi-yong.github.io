@@ -395,7 +395,7 @@
 }
 
 /* ===== highlight.js 代码语法高亮 ===== */
-/* reactjs-tiptap-editor/codeblock 使用 hljs 生成 <span class="hljs-keyword"> 类 */
+/* Code block syntax highlighting */
 .hljs {
   display: block;
   overflow-x: auto;

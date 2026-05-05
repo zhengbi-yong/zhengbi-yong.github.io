@@ -14,10 +14,10 @@ const DynamicPostPage = dynamic(
         <PublicPageFrame>
           <div className="flex min-h-[60vh] items-center justify-center">
             <div className="animate-pulse text-center">
-              <div className="mx-auto mb-4 h-8 w-48 rounded bg-zinc-200 dark:bg-zinc-800" />
+              <div className="mx-auto mb-4 h-8 w-48 rounded bg-zinc-200 " />
               <div className="space-y-2">
-                <div className="h-4 w-72 rounded bg-zinc-200 dark:bg-zinc-800" />
-                <div className="h-4 w-64 rounded bg-zinc-200 dark:bg-zinc-800" />
+                <div className="h-4 w-72 rounded bg-zinc-200 " />
+                <div className="h-4 w-64 rounded bg-zinc-200 " />
               </div>
             </div>
           </div>

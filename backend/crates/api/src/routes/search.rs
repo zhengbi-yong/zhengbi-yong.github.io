@@ -241,12 +241,13 @@ pub async fn search_suggest(
     // 搜索标题匹配的文章
     let suggestions: Vec<String> = sqlx::query_scalar(
         r#"
-        SELECT DISTINCT title
+        SELECT title
         FROM posts
         WHERE title ILIKE $1
             AND status = 'published'
             AND deleted_at IS NULL
-        ORDER BY view_count DESC
+        GROUP BY title
+        ORDER BY MAX(view_count) DESC
         LIMIT $2
         "#,
     )

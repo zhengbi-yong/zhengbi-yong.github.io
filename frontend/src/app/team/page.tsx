@@ -25,7 +25,7 @@ export default function TeamPage() {
                       <div className="border border-border/70 bg-background/90 p-8 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-primary/30 group-hover:bg-background dark:border-border/80 dark:dark:bg-card/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-primary/20 dark:group-hover:dark:bg-card/90 md:p-10">
                         <div className="flex gap-8">
                           {member.avatar ? (
-                            <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                            <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 ">
                               <Image
                                 alt={member.name}
                                 src={member.avatar}
@@ -46,7 +46,7 @@ export default function TeamPage() {
                           )}
                           <div className="min-w-0 flex-1">
                             <h3
-                              className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100"
+                              className="text-2xl font-semibold tracking-tight text-[var(--theme-fg)] "
                               style={{ fontFamily: 'var(--font-newsreader)' }}
                             >
                               {member.name}
@@ -122,7 +122,7 @@ export default function TeamPage() {
                       <div className="h-full border border-border/70 bg-background/90 p-6 shadow-[0_30px_80px_-60px_rgba(15,23,42,0.35)] transition-all duration-500 group-hover:-translate-y-1 group-hover:border-primary/30 group-hover:bg-background dark:border-border/80 dark:dark:bg-card/60 dark:shadow-[0_30px_80px_-60px_rgba(5,8,15,0.95)] dark:group-hover:border-primary/20 dark:group-hover:dark:bg-card/90 md:p-8">
                         <div className="flex items-center gap-5">
                           {member.avatar ? (
-                            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                            <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-zinc-200 ">
                               <Image
                                 alt={member.name}
                                 src={member.avatar}
@@ -143,7 +143,7 @@ export default function TeamPage() {
                           )}
                           <div className="min-w-0">
                             <h3
-                              className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100"
+                              className="text-lg font-semibold tracking-tight text-[var(--theme-fg)] "
                               style={{ fontFamily: 'var(--font-newsreader)' }}
                             >
                               {member.name}
@@ -179,7 +179,7 @@ export default function TeamPage() {
                         )}
 
                         {(member.email || member.github || member.website) && (
-                          <div className="mt-4 flex items-center gap-4 border-t border-zinc-200/60 pt-3 dark:border-zinc-700/40">
+                          <div className="mt-4 flex items-center gap-4 border-t border-[var(--theme-border)]/60 pt-3 dark:border-zinc-700/40">
                             {member.email && (
                               <a
                                 href={`mailto:${member.email}`}

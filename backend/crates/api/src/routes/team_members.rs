@@ -27,14 +27,14 @@ pub struct TeamMemberListResponse {
     pub data: Vec<TeamMemberListItem>,
     pub total: i64,
     pub page: usize,
-    pub page_size: usize,
+    pub per_page: usize,
 }
 
 /// Query params for admin list
 #[derive(Debug, Deserialize)]
 pub struct TeamMemberAdminListQuery {
     pub page: Option<usize>,
-    pub page_size: Option<usize>,
+    pub per_page: Option<usize>,
     pub team_role: Option<String>,
     pub is_active: Option<bool>,
     pub search: Option<String>,
@@ -120,7 +120,7 @@ pub async fn get_team_member(
     tag = "admin/team",
     params(
         ("page" = Option<usize>, Query, description = "Page number"),
-        ("page_size" = Option<usize>, Query, description = "Items per page"),
+        ("per_page" = Option<usize>, Query, description = "Items per page"),
         ("team_role" = Option<String>, Query, description = "Filter by role"),
         ("is_active" = Option<bool>, Query, description = "Filter by active status"),
         ("search" = Option<String>, Query, description = "Search by name")
@@ -136,8 +136,8 @@ pub async fn list_admin_team_members(
     Query(params): Query<TeamMemberAdminListQuery>,
 ) -> Result<impl IntoResponse, AppError> {
     let page = params.page.unwrap_or(1).max(1);
-    let page_size = params.page_size.unwrap_or(20).min(100);
-    let offset = (page - 1) * page_size;
+    let per_page = params.per_page.unwrap_or(20).min(100);
+    let offset = (page - 1) * per_page;
 
     // Build query conditions
     let role_filter = params.team_role.as_deref();
@@ -158,7 +158,7 @@ pub async fn list_admin_team_members(
     .bind(role_filter)
     .bind(active_filter)
     .bind(search_filter)
-    .bind(page_size as i64)
+    .bind(per_page as i64)
     .bind(offset as i64)
     .fetch_all(&state.db)
     .await?;
@@ -181,7 +181,7 @@ pub async fn list_admin_team_members(
         data: members,
         total: total.0,
         page,
-        page_size,
+        per_page,
     }))
 }
 

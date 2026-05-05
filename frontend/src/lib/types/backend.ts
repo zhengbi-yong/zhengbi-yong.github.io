@@ -233,12 +233,12 @@ export interface UserListResponse {
   users: UserListItem[]
   total: number
   page: number
-  page_size: number
+  per_page: number
 }
 
 export interface UserListParams {
   page?: number
-  page_size?: number
+  per_page?: number
   search?: string
   status?: UserStatus | ''
   role?: string | ''
@@ -287,7 +287,7 @@ export interface CommentAdminListResponse {
   comments: CommentAdminItem[]
   total: number
   page: number
-  page_size: number
+  per_page: number
 }
 
 export interface UpdateCommentStatusRequest {
@@ -673,6 +673,38 @@ export interface UserProfile extends UserInfo {
   reading_stats?: UserReadingStats
 }
 
+export interface UserPublicProfile {
+  username: string
+  avatar_url?: string | null
+  bio?: string | null
+  location?: string | null
+  website?: string | null
+  twitter?: string | null
+  github?: string | null
+  role: string
+  created_at: string
+}
+
+export interface UserPublicPostsResponse {
+  posts: Array<{
+    id: string
+    title: string
+    slug: string
+    summary?: string | null
+    cover_image?: string | null
+    published_at?: string | null
+    updated_at?: string | null
+    view_count: number
+    like_count: number
+    comment_count: number
+    reading_time: number
+  }>
+  total: number
+  page: number
+  per_page: number
+  total_pages: number
+}
+
 // ==================== Comment Notification Types ====================
 export interface CommentNotificationSubscription {
   id: string
@@ -752,12 +784,12 @@ export interface TeamMemberListResponse {
   data: TeamMemberListItem[]
   total: number
   page: number
-  page_size: number
+  per_page: number
 }
 
 export interface TeamMemberListParams {
   page?: number
-  page_size?: number
+  per_page?: number
   team_role?: TeamRole
   is_active?: boolean
   search?: string

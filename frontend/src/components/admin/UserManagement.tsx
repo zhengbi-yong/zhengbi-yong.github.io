@@ -29,7 +29,7 @@ export default function UserManagement() {
     try {
       setLoading(true)
       setError(null)
-      const response = await adminService.getUsers({ page: pageNum, page_size: pageSize })
+      const response = await adminService.getUsers({ page: pageNum, per_page: pageSize })
       setUsers(response.users)
       setTotal(response.total)
       setPage(pageNum)

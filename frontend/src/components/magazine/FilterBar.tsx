@@ -113,7 +113,7 @@ export default function FilterBar({ categories, onFilterChange, className = '' }
             </div>
 
             {/* 分隔线 */}
-            <div className="hidden h-6 w-px bg-gray-300 dark:bg-gray-600 md:block" />
+            <div className="hidden h-6 w-px bg-gray-300 md:block" />
 
             {/* 排序下拉菜单 */}
             <DropdownMenu>

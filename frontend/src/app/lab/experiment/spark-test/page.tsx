@@ -29,7 +29,7 @@ export default function SparkTestPage() {
         </p>
       </section>
 
-      <section className="mb-10 rounded-xl border border-zinc-200 bg-zinc-50 p-6 dark:border-zinc-700 dark:bg-zinc-800/50">
+      <section className="mb-10 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] p-6 dark:border-zinc-700 /50">
         <h3 className="mb-3 font-semibold">Component usage in MDX articles:</h3>
         <pre className="overflow-x-auto rounded-lg bg-zinc-900 p-4 text-sm text-green-400">
 {`<GaussianSplat
@@ -39,7 +39,7 @@ export default function SparkTestPage() {
   startPosition={[0, 0, -3]}
 />`}
         </pre>
-        <p className="mt-3 text-xs text-zinc-400">
+        <p className="mt-3 text-xs text-[var(--theme-fg-tertiary)]">
           Drop the component into any MDX blog post. The module loads lazily — zero impact on initial page load.
         </p>
       </section>
@@ -49,7 +49,7 @@ export default function SparkTestPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-700">
+              <tr className="border-b border-[var(--theme-border)] dark:border-zinc-700">
                 <th className="py-2 text-left font-medium">Prop</th>
                 <th className="py-2 text-left font-medium">Default</th>
                 <th className="py-2 text-left font-medium">Description</th>

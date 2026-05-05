@@ -124,6 +124,7 @@ services:
       - api
     networks:
       - blog-dev-network
+      - blog-network
 
   # =============================================
   # Frontend (Next.js)
@@ -139,17 +140,19 @@ services:
         NEXT_IGNORE_BUILD_ERRORS: 1
         NEXT_IGNORE_ESLINT: 1
         NEXT_PUBLIC_BACKEND_URL: http://localhost:3000
+        DISABLE_HSTS: "1"
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3001:3001"
+      - "0.0.0.0:3001:3001"
     environment:
       NODE_ENV: production
       PORT: 3001
       HOSTNAME: 0.0.0.0
       BACKEND_INTERNAL_URL: http://api:3000
-      NEXT_PUBLIC_BACKEND_URL: http://localhost:3000
+      NEXT_PUBLIC_BACKEND_URL: ""
       NEXT_PUBLIC_API_URL: http://localhost:3000
-      NEXT_PUBLIC_SITE_URL: http://localhost:3001
+      NEXT_PUBLIC_SITE_URL: ""
+      DISABLE_HSTS: "1"
     depends_on:
       api:
         condition: service_healthy
@@ -160,3 +163,6 @@ networks:
   blog-dev-network:
     external: true
     name: dev_blog-network
+  blog-network:
+    external: true
+    name: blog_blog-network

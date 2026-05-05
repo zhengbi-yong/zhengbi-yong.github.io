@@ -90,6 +90,14 @@ See [sqlx-checksum-troubleshooting.md](sqlx-checksum-troubleshooting.md) for:
 - `_sqlx_migrations` table management
 - Prevention: offline mode, `cargo sqlx prepare`, consistent line endings
 
+## Content Format Migration (BlockNote)
+
+For BlockNote content_json format operations (the current SSOT format), see:
+- **[docs/operations/data-operations-manual.md](../operations/data-operations-manual.md)** — Complete data operations reference
+- **[docs/reference/blocknote-schema.md](../reference/blocknote-schema.md)** — BlockNote 0.49.0 data structure reference
+- `scripts/validate_content_json.py` — Format validator
+- `./scripts/validate_db.sh` — One-command validation
+
 ## Related Modules
 - `frontend/payload.config.ts` - Payload configuration
 - `frontend/src/collections/` - Collection definitions

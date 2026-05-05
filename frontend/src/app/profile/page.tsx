@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { authService } from '@/lib/api/backend'
@@ -35,10 +35,22 @@ function toProfileViewModel(user: UserInfo): ProfileViewModel {
 export default function ProfilePage() {
   const { t } = useTranslation()
   const user = useAuthStore((state) => state.user)
+  const setUser = useAuthStore((state) => state.setUser)
 
   const [profile, setProfile] = useState<UserInfo | null>(null)
   const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState<{ type: 'info' | 'error'; text: string } | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Editable fields
+  const [bio, setBio] = useState('')
+  const [location, setLocation] = useState('')
+  const [website, setWebsite] = useState('')
+  const [twitter, setTwitter] = useState('')
+  const [github, setGithub] = useState('')
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!user) {
@@ -50,6 +62,12 @@ export default function ProfilePage() {
       try {
         const data = await authService.getCurrentUser()
         setProfile(data)
+        const vm = toProfileViewModel(data)
+        setBio(vm.bio)
+        setLocation(vm.location)
+        setWebsite(vm.website)
+        setTwitter(vm.twitter)
+        setGithub(vm.github)
       } catch (error) {
         console.error('Failed to load profile:', error)
         setMessage({
@@ -64,10 +82,66 @@ export default function ProfilePage() {
     void loadProfile()
   }, [t, user])
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      setMessage({ type: 'error', text: '头像文件过大 (最大 10MB)' })
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setMessage({ type: 'error', text: '请选择图片文件' })
+      return
+    }
+
+    try {
+      setUploadingAvatar(true)
+      setMessage(null)
+      const updatedUser = await authService.uploadAvatar(file)
+      // Update profile state
+      setProfile(updatedUser)
+      setUser(updatedUser)
+      setMessage({ type: 'success', text: '头像已更新' })
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err?.message || '头像上传失败' })
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true)
+      setMessage(null)
+      const updatedUser = await authService.updateProfile({
+        bio: bio || undefined,
+        location: location || undefined,
+        website: website || undefined,
+        twitter: twitter || undefined,
+        github: github || undefined,
+      })
+      setProfile(updatedUser)
+      setUser(updatedUser)
+      setMessage({ type: 'success', text: '个人资料已保存' })
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err?.message || '保存失败，请重试' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const profileView = useMemo(() => {
-    if (!profile) return null
-    return toProfileViewModel(profile)
+    return profile ? toProfileViewModel(profile) : null
   }, [profile])
+
+  // Clear message after 5 seconds
+  useEffect(() => {
+    if (!message) return
+    const timer = setTimeout(() => setMessage(null), 5000)
+    return () => clearTimeout(timer)
+  }, [message])
 
   if (!user) {
     return (
@@ -95,7 +169,7 @@ export default function ProfilePage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       </div>
     )
@@ -103,6 +177,7 @@ export default function ProfilePage() {
 
   const activeProfile = profile ?? user
   const activeProfileView = profileView ?? toProfileViewModel(activeProfile)
+  const initials = activeProfile.username.charAt(0).toUpperCase()
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -128,6 +203,7 @@ export default function ProfilePage() {
       )}
 
       <div className="grid gap-8 lg:grid-cols-3">
+        {/* Left sidebar — avatar + links */}
         <div className="lg:col-span-1">
           <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
             <div className="mb-6 text-center">
@@ -143,6 +219,9 @@ export default function ProfilePage() {
                     {activeProfile.username.charAt(0).toUpperCase()}
                   </span>
                 )}
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="text-xs font-medium text-white">更换头像</span>
+                </div>
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground">
                 {activeProfile.username}
@@ -154,6 +233,15 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-2">
+              <Link
+                href={`/users/${encodeURIComponent(activeProfile.username)}`}
+                className="flex items-center gap-2 rounded-lg px-4 py-2 text-foreground transition-colors hover:bg-secondary dark:hover:bg-secondary"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                我的公共主页
+              </Link>
               <Link
                 href="/reading-history"
                 className="flex items-center gap-2 rounded-lg px-4 py-2 text-foreground transition-colors hover:bg-secondary dark:text-foreground dark:hover:bg-secondary"
@@ -176,6 +264,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Right side — editable profile form */}
         <div className="lg:col-span-2">
           <div className="rounded-lg bg-background p-6 shadow dark:bg-card">
             <div className="mb-6">

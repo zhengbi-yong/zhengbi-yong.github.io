@@ -3,31 +3,17 @@ function runtimeBackendOrigin(configuredUrl?: string) {
     return configuredUrl
   }
 
-  // 优先使用环境变量中的后端地址（SSR 和客户端都适用）
-  const envUrl =
-    process.env.BACKEND_INTERNAL_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL
-
-  if (envUrl) {
-    return envUrl
+  // 服务端：使用 Docker 内部地址直连 backend
+  if (typeof window === 'undefined') {
+    const envUrl = process.env.BACKEND_INTERNAL_URL
+    if (envUrl) return envUrl
   }
 
-  // 仅在没有配置时才回退到浏览器 origin（开发环境 localhost）
-  if (typeof window !== 'undefined') {
-    // 开发环境下 frontend 和 backend 可能同端口（通过 docker-compose 端口映射）
-    const isLocalDev = window.location.hostname === 'localhost' ||
-                       window.location.hostname === '127.0.0.1'
-    if (isLocalDev) {
-      // 开发环境：frontend 3001，backend 3000
-      return window.location.protocol + '//' + window.location.hostname + ':3000'
-    }
-  }
-
-  return (
-    envUrl ||
-    'http://localhost:3000'
-  )
+  // 客户端：始终返回空字符串 → resolveBackendApiBaseUrl 返回 '/api/v1'
+  // 所有请求走 BFF 代理（同源），Cookie 自动携带。
+  // 如果直连 backend (不同端口)，Cookie 无法跨端口传递，
+  // 导致 middleware 检测不到会话 → 无限重定向循环。
+  return ''
 }
 
 export function resolveBackendApiBaseUrl(configuredUrl?: string) {

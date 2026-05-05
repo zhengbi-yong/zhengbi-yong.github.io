@@ -146,9 +146,7 @@ export default function Header() {
         className={cn(
           styles.header,
           'fixed inset-x-0 top-0 z-50 border-b backdrop-blur-xl',
-          isDark
-            ? 'border-[var(--border-subtle)] bg-[var(--shell-elevated)] text-zinc-100 shadow-[var(--shadow-soft)]'
-            : 'border-[var(--border-subtle)] bg-[var(--shell-elevated)] text-zinc-700 shadow-[var(--shadow-soft)]'
+          'border-[var(--theme-border)] bg-[var(--theme-header-bg)] text-[var(--theme-fg)] shadow-sm'
         )}
       >
         <div className="container-shell flex min-h-[var(--header-height)] items-center justify-between gap-6 py-3">
@@ -269,7 +267,7 @@ export default function Header() {
             tabIndex={0}
             className={cn(
               'fixed inset-0 z-20 h-screen w-screen backdrop-blur-sm md:hidden',
-              isDark ? 'bg-[var(--theme-bg)]/78' : 'bg-zinc-50/78'
+              'bg-[var(--theme-bg)]/78'
             )}
             onClick={closeMobileMenu}
             onKeyDown={(e) => handleKeyDown(e, closeMobileMenu)}
@@ -288,9 +286,7 @@ export default function Header() {
           <div
             className={cn(
               'absolute inset-0 top-0 right-0 block h-full w-full rounded-[var(--radius-panel)] border shadow-[var(--shadow-soft)] backdrop-blur-xl',
-              isDark
-                ? 'border-white/10 bg-[var(--surface-elevated)]'
-                : 'border-black/8 bg-[var(--surface-elevated)]'
+              'border-[var(--theme-border)] bg-[var(--theme-card-bg)]'
             )}
           />
 
@@ -318,7 +314,7 @@ export default function Header() {
               )
             })}
 
-            <div className="mt-4 flex items-center gap-4 border-t border-white/10 pt-4 dark:border-white/10">
+            <div className="mt-4 flex items-center gap-4 border-t border-[var(--theme-border)] pt-4">
               <button
                 onClick={toggleTheme}
                 className={actionButtonClass}
