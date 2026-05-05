@@ -13,9 +13,9 @@ import './BlockNoteEditor.css'
 
 // ── Theme-aware code block highlighter ────────────────────────────────────────
 //
-// prosemirror-highlight defaults to getLoadedThemes()[0] which is always
-// 'github-dark' (the first in BlockNote's codeBlockOptions themes array).
-// We intercept codeToTokens to inject the current next-themes theme instead.
+// prosemirror-highlight uses getLoadedThemes()[0] as the default theme.
+// We reorder the themes array so [0] is always the CURRENT next-themes theme.
+// Simple, direct, no codeToTokens interception needed.
 function useCodeBlockSpec() {
   const { resolvedTheme } = useTheme()
   const themeRef = useRef(resolvedTheme)
@@ -26,10 +26,13 @@ function useCodeBlockSpec() {
       ...codeBlockOptions,
       createHighlighter: async () => {
         const highlighter = await codeBlockOptions.createHighlighter()
-        const originalCodeToTokens = highlighter.codeToTokens.bind(highlighter)
-        highlighter.codeToTokens = (code: string, options?: any) => {
-          const themeName = themeRef.current === 'dark' ? 'github-dark' : 'github-light'
-          return originalCodeToTokens(code, { ...options, theme: themeName })
+        const originalGetLoadedThemes = highlighter.getLoadedThemes.bind(highlighter)
+        highlighter.getLoadedThemes = () => {
+          const themes = originalGetLoadedThemes()
+          const isDark = themeRef.current === 'dark'
+          const first = isDark ? 'github-dark' : 'github-light'
+          const second = isDark ? 'github-light' : 'github-dark'
+          return [first, second]
         }
         return highlighter
       },
@@ -251,6 +254,7 @@ function BlockNoteEditor({
   return (
     <div className="min-h-[400px]">
       <BlockNoteView
+        key={bnTheme}
         editor={editor}
         theme={bnTheme}
       />
