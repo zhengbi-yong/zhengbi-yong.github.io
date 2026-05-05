@@ -22,7 +22,7 @@ services:
     command: ["migrate"]
     restart: "no"
     environment:
-      DATABASE_URL: postgresql://blog_user:***@host.docker.internal:5432/blog_db?sslmode=disable
+      DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
       REDIS_URL: redis://host.docker.internal:6379
       JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
       PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=
@@ -60,7 +60,7 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
     environment:
-      DATABASE_URL: postgresql://blog_user:***@host.docker.internal:5432/blog_db?sslmode=disable
+      DATABASE_URL: postgresql://blog_user:blog_password@host.docker.internal:5432/blog_db
       REDIS_URL: redis://host.docker.internal:6379
       JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
       PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=
@@ -72,7 +72,7 @@ services:
       SMTP_FROM: noreply@blog.local
       SMTP_ENCRYPTION: none
       FRONTEND_BLOG_DIR: /frontend/data/blog
-      CORS_ALLOWED_ORIGINS: "http://localhost:3001,http://127.0.0.1:3001"
+      CORS_ALLOWED_ORIGINS: "http://localhost:3001,http://127.0.0.1:3001,http://124.88.174.125:3001"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -107,8 +107,8 @@ services:
     command: ["worker"]
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://blog_user:***@host.docker.internal:5432/blog_db?sslmode=disable
-      REDIS_URL: redis://host.docker.internal:6379
+      DATABASE_URL: postgresql://blog_user:blog_password@blog-postgres:5432/blog_db
+      REDIS_URL: redis://blog-redis:6379/0
       JWT_SECRET: vH4JcUlc03hOt4vOGjo6eO/3Iv/mQs42S3r93a9lbrQ=
       PASSWORD_PEPPER: QZlYevqR3wtUS/+0jN0nrqUvafJt5irCZs9ZwKF8YG8=
       SESSION_SECRET: dev-session-secret-key-for-testing
