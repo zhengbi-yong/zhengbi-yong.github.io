@@ -14,8 +14,8 @@ import './BlockNoteEditor.css'
 // ── Theme-aware code block highlighter ────────────────────────────────────────
 //
 // prosemirror-highlight uses getLoadedThemes()[0] as the default theme.
-// We reorder the themes array so [0] is always the CURRENT next-themes theme.
-// Simple, direct, no codeToTokens interception needed.
+// We reorder themes so [0] is always the CURRENT next-themes theme.
+// Additionally wrap codeToTokens as belt-and-suspenders.
 function useCodeBlockSpec() {
   const { resolvedTheme } = useTheme()
   const themeRef = useRef(resolvedTheme)
@@ -26,14 +26,23 @@ function useCodeBlockSpec() {
       ...codeBlockOptions,
       createHighlighter: async () => {
         const highlighter = await codeBlockOptions.createHighlighter()
+
+        // 1. Reorder getLoadedThemes so [0] = current theme
         const originalGetLoadedThemes = highlighter.getLoadedThemes.bind(highlighter)
         highlighter.getLoadedThemes = () => {
-          const themes = originalGetLoadedThemes()
           const isDark = themeRef.current === 'dark'
-          const first = isDark ? 'github-dark' : 'github-light'
-          const second = isDark ? 'github-light' : 'github-dark'
-          return [first, second]
+          return isDark
+            ? ['github-dark', 'github-light']
+            : ['github-light', 'github-dark']
         }
+
+        // 2. Belt-and-suspenders: wrap codeToTokens to inject theme directly
+        const originalCodeToTokens = highlighter.codeToTokens.bind(highlighter)
+        highlighter.codeToTokens = (code: string, options?: any) => {
+          const themeName = themeRef.current === 'dark' ? 'github-dark' : 'github-light'
+          return originalCodeToTokens(code, { ...(options || {}), theme: themeName })
+        }
+
         return highlighter
       },
     })
@@ -101,6 +110,32 @@ function BlockNoteEditor({
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
+
+  // 强制 ProseMirror 重新高亮代码块（主题切换后装饰器不会自动更新）
+  const prevThemeRef = useRef(resolvedTheme)
+  useEffect(() => {
+    if (!editor) return
+    const prev = prevThemeRef.current
+    prevThemeRef.current = resolvedTheme
+    if (prev === resolvedTheme || !prev) return // skip initial render
+
+    // Dispatch a minimal ProseMirror transaction that touches code blocks
+    // to force the highlight plugin to re-parse with the new theme.
+    const view = (editor as any)._tiptapEditor?.view
+    if (!view) return
+    const { state } = view
+    const tr = state.tr
+    let changed = false
+    state.doc.descendants((node, pos) => {
+      if (node.type.name === 'codeBlock') {
+        // Set node markup (same type+attrs) to mark the node as "changed"
+        // This triggers plugin state recomputation without altering content
+        tr.setNodeMarkup(pos, undefined, node.attrs)
+        changed = true
+      }
+    })
+    if (changed) view.dispatch(tr)
+  }, [resolvedTheme, editor])
 
   // BlockNote 的 theme prop: "light" | "dark"
   // 未挂载前默认 light 避免 hydration mismatch
