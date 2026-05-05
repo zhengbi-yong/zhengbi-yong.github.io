@@ -19,7 +19,15 @@ function encodeBase64Utf8(value: string) {
 function normalizeSegment(segment: string) {
   let normalized = segment
 
+  // Handle template-literals: data={`...`} → dataBase64="..."
   normalized = normalized.replace(/\bdata=\{`([\s\S]*?)`\}/g, (_, value: string) => {
+    return `dataBase64="${encodeBase64Utf8(value)}"`
+  })
+
+  // Handle BROKEN template-literals where backticks were lost in storage:
+  // data={3 Water...} → dataBase64="..."
+  // Matches data={ followed by content (no curly braces) up to the closing }
+  normalized = normalized.replace(/\bdata=\{([^}]+)\}/g, (_, value: string) => {
     return `dataBase64="${encodeBase64Utf8(value)}"`
   })
 
