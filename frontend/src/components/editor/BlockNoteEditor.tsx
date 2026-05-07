@@ -9,6 +9,8 @@ import { Loader2 } from 'lucide-react'
 import { BlockNoteSchema, createCodeBlockSpec } from '@blocknote/core'
 import { codeBlockOptions } from '@blocknote/code-block'
 import { useTheme } from 'next-themes'
+import { createCustomComponentBlockSpec } from './CustomComponentBlock'
+import { registerAllCustomEditors } from './custom'
 import './BlockNoteEditor.css'
 
 // ── Theme-aware code block highlighter ────────────────────────────────────────
@@ -27,17 +29,13 @@ function useCodeBlockSpec() {
       createHighlighter: async () => {
         const highlighter = await codeBlockOptions.createHighlighter()
 
-        // Eagerly load both themes (BlockNote uses dynamic imports — lazy by default).
-        // Without this, getLoadedThemes() returns [] and themes aren't available
-        // when prosemirror-highlight calls codeToTokens.
         try {
           await Promise.all([
             highlighter.loadTheme('github-dark'),
             highlighter.loadTheme('github-light'),
           ])
-        } catch {} // loadTheme might not exist or themes already loaded
+        } catch {}
 
-        // Ensure getLoadedThemes()[0] always returns the CURRENT next-themes theme
         const originalGetLoadedThemes = highlighter.getLoadedThemes.bind(highlighter)
         highlighter.getLoadedThemes = () => {
           const isDark = themeRef.current === 'dark'
@@ -46,7 +44,6 @@ function useCodeBlockSpec() {
             : ['github-light', 'github-dark']
         }
 
-        // 2. Belt-and-suspenders: wrap codeToTokens to inject theme directly
         const originalCodeToTokens = highlighter.codeToTokens.bind(highlighter)
         highlighter.codeToTokens = (code: string, options?: any) => {
           const themeName = themeRef.current === 'dark' ? 'github-dark' : 'github-light'
@@ -60,14 +57,10 @@ function useCodeBlockSpec() {
 }
 
 // ── Schema ────────────────────────────────────────────────────────────────────
-// We recreate schema whenever the codeBlockSpec changes (theme-aware spec).
-// useMemo with empty deps is safe — the createHighlighter closure captures
-// themeRef which is always updated before any highlight call.
 
 /**
  * Fix legacy boolean styles { bold: true } → { bold: {} }.
  * BlockNote 0.49.0 rejects boolean-style styles on inline content nodes.
- * This runs at content load time to catch any DB-level cleanup misses.
  */
 function fixStyles(node: unknown): unknown {
   if (!node || typeof node !== 'object') return node
@@ -76,7 +69,6 @@ function fixStyles(node: unknown): unknown {
   const src = node as Record<string, unknown>
   const out: Record<string, unknown> = { ...src }
 
-  // Fix boolean styles
   if (out.styles && typeof out.styles === 'object') {
     const styles = out.styles as Record<string, unknown>
     const cleaned: Record<string, unknown> = {}
@@ -86,7 +78,6 @@ function fixStyles(node: unknown): unknown {
     out.styles = cleaned
   }
 
-  // Recurse into content/children
   if (Array.isArray(out.content)) {
     out.content = out.content.map(fixStyles)
   }
@@ -98,86 +89,42 @@ function fixStyles(node: unknown): unknown {
 }
 
 /**
- * BlockNote 0.49 native block types (from default schema).
- * Any type NOT in this set causes "Cannot read properties of undefined (reading 'isInGroup')".
+ * BlockNote 0.49 native top-level block types.
+ * Used to detect blocks that need conversion before the custom component
+ * spec is registered (migration from old format).
  */
 const NATIVE_BLOCK_TYPES = new Set([
   'paragraph', 'heading', 'bulletListItem', 'numberedListItem',
   'checkListItem', 'codeBlock', 'table', 'file', 'image', 'video',
-  'audio', 'embed', 'thematicBreak', 'blockquote',
+  'audio', 'embed', 'thematicBreak', 'blockquote', 'customComponent',
 ])
 
 /**
- * Normalize content_json blocks before passing to BlockNote.
- * - Converts 'divider' → 'thematicBreak' (native)
- * - Replaces 'html' and 'customComponent' with placeholder paragraphs
- * - Stores original blocks for restoration on save
- *
- * Returns: { normalized: Block[], originalMap: Map<string, any> }
+ * One-time migration: convert legacy block types to current format.
+ * - 'divider' → 'thematicBreak'
+ * - 'html' → customComponent with componentName='HtmlBlock'
  */
-function normalizeBlocks(blocks: any[]): { normalized: any[], originalMap: Map<string, any> } {
-  const originalMap = new Map<string, any>()
-  const normalized: any[] = []
-
-  for (const block of blocks) {
-    if (!block.id) {
-      normalized.push(block)
-      continue
-    }
-
-    if (NATIVE_BLOCK_TYPES.has(block.type)) {
-      normalized.push(block)
-      continue
-    }
-
+function migrateLegacyBlocks(blocks: any[]): any[] {
+  return blocks.map((block) => {
     if (block.type === 'divider') {
-      // Convert to native thematicBreak
-      normalized.push({ ...block, type: 'thematicBreak' })
-      continue
+      console.log('[BlockNoteEditor] migrating divider → thematicBreak')
+      return { ...block, type: 'thematicBreak' }
     }
-
-    // html and customComponent blocks — replace with placeholder paragraph
-    const label = block.type === 'customComponent'
-      ? `📦 ${block.props?.componentName || 'Custom Component'}`
-      : `🔧 HTML Block`
-
-    originalMap.set(block.id, block)
-    normalized.push({
-      id: block.id,
-      type: 'paragraph',
-      props: {},
-      content: [{ type: 'text', text: label, styles: {} }],
-      children: [],
-    })
-  }
-
-  return { normalized, originalMap }
-}
-
-/**
- * Restore original non-native blocks in the saved document.
- * For any block whose ID exists in originalMap, replace it with the original
- * (preserving the block's current ID and children for reordering/deletion).
- */
-function restoreBlocks(doc: any[], originalMap: Map<string, any>): any[] {
-  // Track which originals were found in the doc
-  const found = new Set<string>()
-
-  const restored = doc.map((block) => {
-    if (block.id && originalMap.has(block.id)) {
-      found.add(block.id)
-      // Restore the original block data but preserve children (for reordering)
-      // and the block ID from the doc (allows BlockNote to maintain ordering)
-      const original = originalMap.get(block.id)!
-      return { ...original, id: block.id }
+    if (block.type === 'html') {
+      console.log('[BlockNoteEditor] migrating html → HtmlBlock customComponent')
+      return {
+        id: block.id,
+        type: 'customComponent',
+        props: {
+          componentName: 'HtmlBlock',
+          attributes: { html: block.props?.html || '' },
+          children: [],
+        },
+        content: [],
+      }
     }
     return block
   })
-
-  // Originals that were deleted by the user are NOT re-inserted.
-  // Originals that were NOT found in the doc (shouldn't happen normally) are lost.
-
-  return restored
 }
 
 /**
@@ -187,6 +134,7 @@ function restoreBlocks(doc: any[], originalMap: Map<string, any>): any[] {
  * - Shiki 语法高亮（@blocknote/code-block）
  * - 43 种编程语言选择器
  * - 暗色/亮色主题自适应（next-themes）
+ * - 自定义组件编辑（RDKit, ECharts, Nivo, AntV, 化学结构, 动画包裹器等）
  * - 双轨输出：BlockNote JSON（SSOT） + Markdown（博客渲染）
  */
 function BlockNoteEditor({
@@ -199,8 +147,10 @@ function BlockNoteEditor({
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
-  // ── Store original non-native blocks for restoration on save
-  const originalBlocksRef = useRef<Map<string, any>>(new Map())
+  // ── Register all custom component editors on mount ──
+  useEffect(() => {
+    registerAllCustomEditors()
+  }, [])
 
   // 跟随 next-themes 的主题设置
   const { resolvedTheme } = useTheme()
@@ -208,19 +158,24 @@ function BlockNoteEditor({
   useEffect(() => setMounted(true), [])
 
   // BlockNote 的 theme prop: "light" | "dark"
-  // 未挂载前默认 light 避免 hydration mismatch
   const bnTheme = mounted && resolvedTheme === 'dark' ? 'dark' : 'light'
 
-  // ── 主题感知的代码块 spec（编辑器内 Shiki 高亮跟随主题） ──
+  // ── 主题感知的代码块 spec ──
   const codeBlockSpec = useCodeBlockSpec()
 
-  // 扩展默认 schema，仅覆盖 codeBlock（官方推荐方式）
+  // ── 自定义组件 block spec ──
+  const customComponentSpec = useMemo(() => createCustomComponentBlockSpec(), [])
+
+  // ── 扩展 schema：codeBlock + customComponent ──
   const schema = useMemo(
     () =>
       BlockNoteSchema.create().extend({
-        blockSpecs: { codeBlock: codeBlockSpec },
+        blockSpecs: {
+          codeBlock: codeBlockSpec,
+          customComponent: customComponentSpec,
+        },
       }),
-    [codeBlockSpec]
+    [codeBlockSpec, customComponentSpec]
   )
 
   const editor = useCreateBlockNote({
@@ -230,44 +185,27 @@ function BlockNoteEditor({
       try {
         const parsed = JSON.parse(content)
         if (Array.isArray(parsed)) {
-          // Normalize unsupported blocks before passing to BlockNote
-          const { normalized, originalMap } = normalizeBlocks(parsed)
-          originalBlocksRef.current = originalMap
-
-          if (originalMap.size > 0) {
-            console.log(
-              '[BlockNoteEditor] normalized',
-              originalMap.size,
-              'non-native blocks:',
-              [...originalMap.values()].map((b: any) =>
-                b.type === 'customComponent'
-                  ? `customComponent(${b.props?.componentName})`
-                  : b.type
-              )
-            )
-          }
+          // Migrate any legacy block types
+          const migrated = migrateLegacyBlocks(parsed)
 
           // Debug: log code block content on load
-          for (const block of normalized) {
+          for (const block of migrated) {
             if (block.type === 'codeBlock') {
               const text = block.content?.[0]?.text || ''
-              const propsCode = block.props?.code || ''
-              const contentLen = block.content?.length || 0
               console.log(
                 '[BlockNoteEditor] codeBlock loaded:',
                 `lang=${block.props?.language}`,
-                `contentLen=${contentLen}`,
-                `contentText_chars=${text.length}`,
-                `contentText_lines=${text.split('\n').length}`,
-                `propsCode_chars=${propsCode.length}`,
-                `propsCode_lines=${propsCode.split('\n').length}`,
-                `hasPropsCode=${!!block.props?.code}`,
-                `text_preview=${JSON.stringify(text.slice(0, 60))}`,
-                `code_preview=${JSON.stringify(propsCode.slice(0, 60))}`
+                `text=${text.slice(0, 60)}`
+              )
+            }
+            if (block.type === 'customComponent') {
+              console.log(
+                '[BlockNoteEditor] customComponent loaded:',
+                block.props?.componentName
               )
             }
           }
-          return fixStyles(normalized) as any
+          return fixStyles(migrated) as any
         }
         return undefined
       } catch (e) {
@@ -285,47 +223,21 @@ function BlockNoteEditor({
       try {
         // Deep-clone to avoid mutating editor.document
         const doc = JSON.parse(JSON.stringify(editor.document))
-        
-        // Restore original non-native blocks
-        const restored = restoreBlocks(doc, originalBlocksRef.current)
-        
-        // Normalize code blocks: merge multiple text nodes into one with \n separators.
-        // BlockNote sometimes splits code block text at \n into separate text nodes;
-        // when loaded back, adjacent text nodes without \n get concatenated → single line.
-        // Also check props.code — @blocknote/code-block may store code there.
-        if (Array.isArray(restored)) {
-          for (const block of restored) {
+
+        // Normalize code blocks: merge multiple text nodes
+        if (Array.isArray(doc)) {
+          for (const block of doc) {
             if (block.type === 'codeBlock' && Array.isArray(block.content)) {
-              const firstText = block.content[0]?.text || ''
-              const propsCode = block.props?.code || ''
               const nodeCount = block.content.length
-              console.log(
-                '[BlockNoteEditor] codeBlock saved:',
-                `lang=${block.props?.language}`,
-                `textNodes=${nodeCount}`,
-                `contentText_chars=${firstText.length}`,
-                `contentText_lines=${firstText.split('\n').length}`,
-                `propsCode_chars=${propsCode.length}`,
-                `propsCode_lines=${propsCode.split('\n').length}`,
-                `hasPropsCode=${!!block.props?.code}`,
-                `text_preview=${JSON.stringify(firstText.slice(0, 60))}`,
-                `code_preview=${JSON.stringify(propsCode.slice(0, 60))}`
-              )
-              
-              // Merge multiple text nodes into one (preserving \n between lines)
               if (nodeCount > 1) {
                 const merged = block.content.map((n: any) => n.text || '').join('\n')
                 block.content = [{ type: 'text', text: merged, styles: {} }]
-                console.log(
-                  '[BlockNoteEditor] codeBlock merged:',
-                  `${nodeCount} → 1 text node, chars=${merged.length}`
-                )
               }
             }
           }
         }
-        
-        const blocksJson = JSON.stringify(restored)
+
+        const blocksJson = JSON.stringify(doc)
         const markdown = editor.blocksToMarkdownLossy()
         cb(blocksJson, markdown)
       } catch (e) {
@@ -354,8 +266,6 @@ function BlockNoteEditor({
     let changed = false
     state.doc.descendants((node, pos) => {
       if (node.type.name === 'codeBlock') {
-        // replaceWith creates an actual doc change (setNodeMarkup with same
-        // attrs is optimized away), forcing the highlight plugin to re-parse
         tr.replaceWith(pos, pos + node.nodeSize,
           node.type.create(node.attrs, node.content, node.marks))
         changed = true
@@ -365,14 +275,6 @@ function BlockNoteEditor({
   }, [resolvedTheme, editor])
 
   // 修复 ProseMirror 拦截代码块语言选择器的点击事件
-  //
-  // 根因: ProseMirror 在 mousedown 冒泡阶段调用 preventDefault(),
-  // 阻止了原生 <select> 获得焦点和打开下拉菜单.
-  //
-  // 方案: 在 document 级别 capture 阶段拦截 mousedown,
-  // 当目标是代码块内的 <select> 时:
-  //   - stopImmediatePropagation() 阻止事件到达 ProseMirror
-  //   - 不调用 preventDefault(),保留浏览器打开 select 的默认行为
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement
@@ -381,11 +283,9 @@ function BlockNoteEditor({
         target.closest('.bn-block-content')
       ) {
         e.stopImmediatePropagation()
-        // 不调用 preventDefault — 让浏览器自然打开 <select>
       }
     }
 
-    // document capture 阶段,比任何元素级 handler 都早
     document.addEventListener('mousedown', handler, true)
 
     return () => {
