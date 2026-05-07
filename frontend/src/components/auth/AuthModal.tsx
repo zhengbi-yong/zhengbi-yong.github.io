@@ -34,6 +34,7 @@ export function AuthModal({
   const [password, setPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [institution, setInstitution] = useState('')
+  const [showVerificationPrompt, setShowVerificationPrompt] = useState(false)
   const { login, register, isLoading, error, clearError, setError } = useAuthStore()
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export function AuthModal({
     setPassword('')
     setDisplayName('')
     setInstitution('')
+    setShowVerificationPrompt(false)
   }
 
   const handleClose = () => {
@@ -71,11 +73,13 @@ export function AuthModal({
     try {
       if (mode === 'login') {
         await login(email, password)
+        handleClose()
       } else {
         await register(email, username, password, displayName || undefined, institution || undefined)
+        setShowVerificationPrompt(true)
+        clearError()
+        resetForm()
       }
-
-      handleClose()
     } catch (submitError: unknown) {
       // Ignore AbortError — request was cancelled (e.g. component unmounted or duplicate submit).
       // The auth store already handles the error state, so no need to log it.
@@ -102,104 +106,132 @@ export function AuthModal({
       }}
     >
       <DialogContent className="sm:max-w-md" data-testid="auth-modal">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            {mode === 'login' ? '登录' : '注册'}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === 'login'
-              ? '登录以访问评论、点赞和更多交互功能。'
-              : '创建账号后即可开始参与互动。'}
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4" data-testid="auth-form">
-          {error ? (
-            <div
-              className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive dark:border-destructive/20 dark:bg-destructive/20 dark:text-destructive"
-              data-testid="auth-error-message"
-            >
-              {error}
+        {showVerificationPrompt ? (
+          <div className="flex flex-col items-center gap-4 py-6 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+              <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-          ) : null}
-
-          <div className="space-y-2">
-            <Label htmlFor="auth-email">邮箱</Label>
-            <Input
-              id="auth-email"
-              data-testid="auth-email-input"
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-              autoComplete="email"
-              placeholder="your@email.com"
-            />
-          </div>
-
-          {mode === 'register' ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="auth-username">用户名</Label>
-                <Input id="auth-username" data-testid="auth-username-input" type="text"
-                  value={username} onChange={(event) => setUsername(event.target.value)}
-                  required minLength={3} autoComplete="username" placeholder="请输入用户名" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="auth-display-name">显示名称 <span className="text-muted-foreground">(选填)</span></Label>
-                <Input id="auth-display-name" type="text"
-                  value={displayName} onChange={(event) => setDisplayName(event.target.value)}
-                  autoComplete="name" placeholder="真实姓名或学术署名" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="auth-institution">所属机构 <span className="text-muted-foreground">(选填)</span></Label>
-                <Input id="auth-institution" type="text"
-                  value={institution} onChange={(event) => setInstitution(event.target.value)}
-                  autoComplete="organization" placeholder="学校/研究所/公司" />
-              </div>
-            </>
-          ) : null}
-
-          <div className="space-y-2">
-            <Label htmlFor="auth-password">密码</Label>
-            <Input
-              id="auth-password"
-              data-testid="auth-password-input"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-              minLength={12}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              placeholder="至少 12 位，包含大小写、数字和特殊字符"
-            />
-
-            {mode === 'register' && password ? (
-              <PasswordStrengthIndicator password={password} />
-            ) : null}
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-            data-testid="auth-submit-button"
-          >
-            {isLoading ? '处理中...' : mode === 'login' ? '登录' : '注册'}
-          </Button>
-
-          <div className="text-center text-sm text-muted-foreground">
-            {mode === 'login' ? '还没有账号？' : '已经有账号了？'}{' '}
-            <button
-              type="button"
-              onClick={switchMode}
-              data-testid="auth-switch-mode-button"
-              className="text-primary hover:underline"
+            <div>
+              <h3 className="text-lg font-semibold">注册成功！</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                请查看邮箱完成验证，验证后即可登录使用。
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="mt-2"
+              onClick={() => {
+                setShowVerificationPrompt(false)
+                setMode('login')
+              }}
             >
-              {mode === 'login' ? '立即注册' : '返回登录'}
-            </button>
+              返回登录
+            </Button>
           </div>
-        </form>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">
+                {mode === 'login' ? '登录' : '注册'}
+              </DialogTitle>
+              <DialogDescription>
+                {mode === 'login'
+                  ? '登录以访问评论、点赞和更多交互功能。'
+                  : '创建账号后即可开始参与互动。'}
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4" data-testid="auth-form">
+              {error ? (
+                <div
+                  className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive dark:border-destructive/20 dark:bg-destructive/20 dark:text-destructive"
+                  data-testid="auth-error-message"
+                >
+                  {error}
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label htmlFor="auth-email">邮箱</Label>
+                <Input
+                  id="auth-email"
+                  data-testid="auth-email-input"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  autoComplete="email"
+                  placeholder="your@email.com"
+                />
+              </div>
+
+              {mode === 'register' ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="auth-username">用户名</Label>
+                    <Input id="auth-username" data-testid="auth-username-input" type="text"
+                      value={username} onChange={(event) => setUsername(event.target.value)}
+                      required minLength={3} autoComplete="username" placeholder="请输入用户名" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="auth-display-name">显示名称 <span className="text-muted-foreground">(选填)</span></Label>
+                    <Input id="auth-display-name" type="text"
+                      value={displayName} onChange={(event) => setDisplayName(event.target.value)}
+                      autoComplete="name" placeholder="真实姓名或学术署名" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="auth-institution">所属机构 <span className="text-muted-foreground">(选填)</span></Label>
+                    <Input id="auth-institution" type="text"
+                      value={institution} onChange={(event) => setInstitution(event.target.value)}
+                      autoComplete="organization" placeholder="学校/研究所/公司" />
+                  </div>
+                </>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label htmlFor="auth-password">密码</Label>
+                <Input
+                  id="auth-password"
+                  data-testid="auth-password-input"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  minLength={12}
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  placeholder="至少 12 位，包含大小写、数字和特殊字符"
+                />
+
+                {mode === 'register' && password ? (
+                  <PasswordStrengthIndicator password={password} />
+                ) : null}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading}
+                data-testid="auth-submit-button"
+              >
+                {isLoading ? '处理中...' : mode === 'login' ? '登录' : '注册'}
+              </Button>
+
+              <div className="text-center text-sm text-muted-foreground">
+                {mode === 'login' ? '还没有账号？' : '已经有账号了？'}{' '}
+                <button
+                  type="button"
+                  onClick={switchMode}
+                  data-testid="auth-switch-mode-button"
+                  className="text-primary hover:underline"
+                >
+                  {mode === 'login' ? '立即注册' : '返回登录'}
+                </button>
+              </div>
+            </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   )

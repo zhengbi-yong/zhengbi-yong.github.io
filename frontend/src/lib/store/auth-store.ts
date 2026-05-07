@@ -65,9 +65,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         institution,
         research_fields: researchFields,
       })
+      // 注册成功后不自动登录——需要邮箱验证
       set({
-        user: response.user,
-        isAuthenticated: true,
         isLoading: false,
         isInitialized: true,
       })

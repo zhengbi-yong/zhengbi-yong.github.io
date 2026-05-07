@@ -1,10 +1,13 @@
 'use client'
 
-import React from 'react'
-import { ResponsivePie } from '@nivo/pie'
+import React, { useRef, useEffect, useState } from 'react'
+import { Pie } from '@nivo/pie'
+
+import { resolveDataProp } from '../chemistry/runtimeProps'
 
 interface NivoPieChartProps {
-  data: any[]
+  data?: any[]
+  dataBase64?: string
   width?: number
   height?: number
   margin?: {
@@ -24,7 +27,8 @@ interface NivoPieChartProps {
 }
 
 export const NivoPieChart: React.FC<NivoPieChartProps> = ({
-  data,
+  data: rawData,
+  dataBase64,
   width,
   height = 400,
   margin = { top: 40, right: 80, bottom: 80, left: 80 },
@@ -37,9 +41,38 @@ export const NivoPieChart: React.FC<NivoPieChartProps> = ({
   enableArcLabels = true,
   enableArcLinkLabels = true,
 }) => {
+  // Resolve data from raw value or base64 (runtime MDX compatibility)
+  const data = (resolveDataProp(rawData, dataBase64) ?? []) as any[]
+
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [chartWidth, setChartWidth] = useState(width || 400)
+  const chartHeight = typeof height === 'number' ? height : 400
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const w = containerRef.current.clientWidth
+      if (w > 0) setChartWidth(w)
+    }
+  }, [height])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width
+        if (w > 0) setChartWidth(w)
+      }
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   return (
-    <div style={{ width: width || '100%', height }}>
-      <ResponsivePie
+    <div ref={containerRef} style={{ width: '100%', minHeight: chartHeight }}>
+      <Pie
+        width={chartWidth}
+        height={chartHeight}
         data={data}
         margin={margin}
         innerRadius={innerRadius}

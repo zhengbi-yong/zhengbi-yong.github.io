@@ -1,0 +1,1502 @@
+{
+  "overall": "operational",
+  "lastUpdated": "2026-05-06T03:05:31.088Z",
+  "services": {
+    "api": {
+      "status": "operational",
+      "uptime": "99.9%",
+      "description": "Rust Axum API 服务器"
+    },
+    "frontend": {
+      "status": "operational",
+      "uptime": "99.9%",
+      "description": "Next.js 前端应用"
+    },
+    "database": {
+      "status": "operational",
+      "uptime": "99.9%",
+      "description": "PostgreSQL 17 数据库"
+    },
+    "redis": {
+      "status": "operational",
+      "uptime": "99.9%",
+      "description": "Redis 7 缓存"
+    },
+    "worker": {
+      "status": "operational",
+      "uptime": "99.9%",
+      "description": "后台任务 Worker"
+    },
+    "email": {
+      "status": "operational",
+      "uptime": "99.9%",
+      "description": "SMTP 邮件服务"
+    }
+  },
+  "features": [
+    {
+      "id": "1.1",
+      "module": "用户认证与账户管理",
+      "name": "用户注册",
+      "description": "新用户可通过邮箱/用户名/密码注册",
+      "test_method": "访问 `/login` → 切换到注册模式 → 填写表单 → 提交",
+      "status": true
+    },
+    {
+      "id": "1.2",
+      "module": "用户认证与账户管理",
+      "name": "用户登录",
+      "description": "已注册用户可通过邮箱+密码登录",
+      "test_method": "访问 `/login` → 输入邮箱和密码 → 登录成功跳转首页",
+      "status": true
+    },
+    {
+      "id": "1.3",
+      "module": "用户认证与账户管理",
+      "name": "登录后重定向",
+      "description": "支持 `?redirect=` 参数，登录后跳回目标页",
+      "test_method": "未登录时访问 `/settings` → 重定向到 `/login?redirect=/settings` → 登录 → 自动跳回 `/settings`",
+      "status": true
+    },
+    {
+      "id": "1.4",
+      "module": "用户认证与账户管理",
+      "name": "JWT Token 刷新",
+      "description": "Access Token 过期后自动用 Refresh Token 续期",
+      "test_method": "等待 access token 过期 → 刷新页面 → 应自动续期不退出登录",
+      "status": true
+    },
+    {
+      "id": "1.5",
+      "module": "用户认证与账户管理",
+      "name": "Token 轮转防窃",
+      "description": "同一 Refresh Token 家族中旧 Token 被使用则整族吊销",
+      "test_method": "（安全测试，暂不列为常规回归）",
+      "status": true
+    },
+    {
+      "id": "1.6",
+      "module": "用户认证与账户管理",
+      "name": "登出",
+      "description": "用户可主动退出登录",
+      "test_method": "登录后 → 点击登出按钮 → 跳转首页，访问 `/settings` 需重新登录",
+      "status": true
+    },
+    {
+      "id": "1.7",
+      "module": "用户认证与账户管理",
+      "name": "密码重置",
+      "description": "通过邮箱发送重置链接",
+      "test_method": "登录页点击\"忘记密码\" → 输入邮箱 → 检查邮件 → 使用链接重置",
+      "status": true
+    },
+    {
+      "id": "1.8",
+      "module": "用户认证与账户管理",
+      "name": "邮箱验证",
+      "description": "注册后发送验证邮件",
+      "test_method": "新注册用户 → 检查收件箱 → 点击验证链接 → 数据库 `email_verified=true`",
+      "status": true
+    },
+    {
+      "id": "1.9",
+      "module": "用户认证与账户管理",
+      "name": "登录限流",
+      "description": "连续失败后触发速率限制",
+      "test_method": "连续输错密码 5 次 → 应返回 429 Too Many Requests",
+      "status": true
+    },
+    {
+      "id": "1.10",
+      "module": "用户认证与账户管理",
+      "name": "角色权限",
+      "description": "`admin` / `moderator` / `user` 三种角色",
+      "test_method": "用 user 角色访问 `/admin` → 应拒绝；admin 角色可访问",
+      "status": true
+    },
+    {
+      "id": "1.11",
+      "module": "用户认证与账户管理",
+      "name": "账户状态",
+      "description": "`suspended` / `banned` 用户无法登录",
+      "test_method": "后台将某用户设为 banned → 该用户登录应失败",
+      "status": true
+    },
+    {
+      "id": "2.1",
+      "module": "用户个人主页与学术资料",
+      "name": "公开学术主页",
+      "description": "`/users/{username}` 展示用户学术名片",
+      "test_method": "访问 `/users/admin` → 看到头像、用户名、角色徽章、所属机构",
+      "status": true
+    },
+    {
+      "id": "2.2",
+      "module": "用户个人主页与学术资料",
+      "name": "Display Name 显示",
+      "description": "展示学术姓名",
+      "test_method": "`/users/admin` 页面显示 display_name",
+      "status": true
+    },
+    {
+      "id": "2.3",
+      "module": "用户个人主页与学术资料",
+      "name": "所属机构显示",
+      "description": "展示 institution",
+      "test_method": "`/users/admin` 页面显示 institution",
+      "status": true
+    },
+    {
+      "id": "2.4",
+      "module": "用户个人主页与学术资料",
+      "name": "研究方向标签",
+      "description": "展示 research_fields 数组",
+      "test_method": "`/users/admin` 页面显示研究方向标签",
+      "status": true
+    },
+    {
+      "id": "2.5",
+      "module": "用户个人主页与学术资料",
+      "name": "学术简介",
+      "description": "展示 academic_bio",
+      "test_method": "`/users/admin` 页面显示学术简介文本",
+      "status": true
+    },
+    {
+      "id": "2.6",
+      "module": "用户个人主页与学术资料",
+      "name": "ORCID iD 链接",
+      "description": "展示并链接到 ORCID",
+      "test_method": "`/users/admin` 页面有 ORCID 图标和链接",
+      "status": true
+    },
+    {
+      "id": "2.7",
+      "module": "用户个人主页与学术资料",
+      "name": "Google Scholar 链接",
+      "description": "",
+      "test_method": "`/users/admin` 页面有 Google Scholar 图标和链接",
+      "status": true
+    },
+    {
+      "id": "2.8",
+      "module": "用户个人主页与学术资料",
+      "name": "个人网站链接",
+      "description": "",
+      "test_method": "`/users/admin` 页面有 website 链接",
+      "status": true
+    },
+    {
+      "id": "2.9",
+      "module": "用户个人主页与学术资料",
+      "name": "GitHub 链接",
+      "description": "",
+      "test_method": "`/users/admin` 页面有 GitHub 图标和链接",
+      "status": true
+    },
+    {
+      "id": "2.10",
+      "module": "用户个人主页与学术资料",
+      "name": "统计数据展示",
+      "description": "文章数、获赞数、粉丝数、关注数",
+      "test_method": "`/users/admin` 页面显示 stats bar（posts, likes, followers, following）",
+      "status": true
+    },
+    {
+      "id": "2.11",
+      "module": "用户个人主页与学术资料",
+      "name": "用户文章列表",
+      "description": "该用户发布的文章",
+      "test_method": "`/users/admin` 页面下方显示文章列表",
+      "status": true
+    },
+    {
+      "id": "2.12",
+      "module": "用户个人主页与学术资料",
+      "name": "文章搜索",
+      "description": "在用户文章列表中搜索",
+      "test_method": "`/users/admin` 页面搜索框输入关键词 → 文章列表过滤",
+      "status": true
+    },
+    {
+      "id": "2.13",
+      "module": "用户个人主页与学术资料",
+      "name": "文章分页",
+      "description": "用户文章支持翻页",
+      "test_method": "`/users/admin` 页面底部有上一页/下一页按钮",
+      "status": true
+    },
+    {
+      "id": "2.14",
+      "module": "用户个人主页与学术资料",
+      "name": "关注按钮",
+      "description": "登录用户可关注/取消关注该用户",
+      "test_method": "登录后访问 `/users/admin` → 点击 Follow 按钮 → 按钮变为 Following",
+      "status": true
+    },
+    {
+      "id": "2.15",
+      "module": "用户个人主页与学术资料",
+      "name": "个人资料编辑",
+      "description": "`/settings` 页面",
+      "test_method": "访问 `/settings` → 填写 Display Name、机构、研究方向、ORCID、学术简介等 → 保存",
+      "status": true
+    },
+    {
+      "id": "2.16",
+      "module": "用户个人主页与学术资料",
+      "name": "头像上传",
+      "description": "上传/更换头像",
+      "test_method": "`/settings` 页面 → 点击头像区域 → 选择图片 → 上传 → 头像更新",
+      "status": true
+    },
+    {
+      "id": "2.17",
+      "module": "用户个人主页与学术资料",
+      "name": "身份信息展示",
+      "description": "用户名、邮箱、角色徽章",
+      "test_method": "`/settings` 页面顶部显示身份信息（Identity Banner）",
+      "status": true
+    },
+    {
+      "id": "2.18",
+      "module": "用户个人主页与学术资料",
+      "name": "个人主页链接",
+      "description": "从 settings 跳转到公开主页",
+      "test_method": "`/settings` 页面 → 点击\"查看公开主页\" → 跳转 `/users/{username}`",
+      "status": true
+    },
+    {
+      "id": "2.19",
+      "module": "用户个人主页与学术资料",
+      "name": "主题设置链接",
+      "description": "从 settings 跳转到主题页",
+      "test_method": "`/settings` 页面 → 点击\"主题设置\" → 跳转 `/settings/themes`",
+      "status": true
+    },
+    {
+      "id": "3.1",
+      "module": "用户社交与关注系统",
+      "name": "关注用户",
+      "description": "`POST /api/v1/users/{username}/follow`",
+      "test_method": "登录 → 访问用户页面 → 点击 Follow → API 返回 200",
+      "status": true
+    },
+    {
+      "id": "3.2",
+      "module": "用户社交与关注系统",
+      "name": "取消关注",
+      "description": "`DELETE /api/v1/users/{username}/follow`",
+      "test_method": "已关注 → 点击 Following 按钮 → API 返回 200 → 按钮变回 Follow",
+      "status": true
+    },
+    {
+      "id": "3.3",
+      "module": "用户社交与关注系统",
+      "name": "关注列表",
+      "description": "`GET /api/v1/users/{username}/following`",
+      "test_method": "访问用户关注列表 → 返回关注的人",
+      "status": true
+    },
+    {
+      "id": "3.4",
+      "module": "用户社交与关注系统",
+      "name": "粉丝列表",
+      "description": "`GET /api/v1/users/{username}/followers`",
+      "test_method": "访问用户粉丝列表 → 返回粉丝",
+      "status": true
+    },
+    {
+      "id": "3.5",
+      "module": "用户社交与关注系统",
+      "name": "不能关注自己",
+      "description": "数据库 CHECK 约束",
+      "test_method": "尝试关注自己 → 应返回错误",
+      "status": true
+    },
+    {
+      "id": "3.6",
+      "module": "用户社交与关注系统",
+      "name": "关注数统计",
+      "description": "粉丝数/关注数正确",
+      "test_method": "`/users/admin` 页面显示的数字与 API 返回一致",
+      "status": true
+    },
+    {
+      "id": "4.1",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "首页",
+      "description": "`/` 正常加载",
+      "test_method": "访问 http://127.0.0.1:3001/ → 页面正常渲染",
+      "status": true
+    },
+    {
+      "id": "4.2",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "首页最新文章",
+      "description": "显示最新 3 篇文章",
+      "test_method": "首页 BlogSection 区域显示 3 篇最新文章卡片",
+      "status": true
+    },
+    {
+      "id": "4.3",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "博客列表页",
+      "description": "`/blog` 显示所有已发布文章",
+      "test_method": "访问 `/blog` → 文章列表正常显示",
+      "status": true
+    },
+    {
+      "id": "4.4",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "博客分页",
+      "description": "`/blog/page/2` 支持翻页",
+      "test_method": "访问分页 URL → 显示对应页文章",
+      "status": true
+    },
+    {
+      "id": "4.5",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "文章详情页",
+      "description": "`/blog/{slug}` 显示完整文章",
+      "test_method": "点击任意文章 → 跳转到详情页 → 标题/内容正常渲染",
+      "status": true
+    },
+    {
+      "id": "4.6",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "MDX 内容渲染",
+      "description": "文章内容正确渲染 Markdown/MDX",
+      "test_method": "文章详情页 → 代码块有语法高亮、数学公式正常渲染",
+      "status": true
+    },
+    {
+      "id": "4.7",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "BlockNote JSON 渲染",
+      "description": "content_json 源正确渲染",
+      "test_method": "通过 BlockNoteEditor 创建的文章 → 详情页正确显示",
+      "status": true
+    },
+    {
+      "id": "4.8",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "目录 (TOC)",
+      "description": "show_toc=true 的文章显示目录",
+      "test_method": "有目录的文章 → 页面右侧显示浮动目录",
+      "status": true
+    },
+    {
+      "id": "4.9",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "文章作者显示",
+      "description": "显示真实作者名（非固定 \"admin\"）",
+      "test_method": "不同用户发布文章 → 各自显示自己的用户名",
+      "status": true
+    },
+    {
+      "id": "4.10",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "文章封面图",
+      "description": "cover_image 正常显示",
+      "test_method": "有封面图的文章 → 卡片和详情页显示封面图",
+      "status": true
+    },
+    {
+      "id": "4.11",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "文章阅读时间",
+      "description": "reading_time 正常显示",
+      "test_method": "文章列表卡片和详情页显示阅读时间",
+      "status": true
+    },
+    {
+      "id": "4.12",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "文章浏览量",
+      "description": "view_count 正常累加",
+      "test_method": "访问文章详情页 → view_count 增加",
+      "status": true
+    },
+    {
+      "id": "4.13",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "文章点赞",
+      "description": "登录用户可点赞/取消点赞",
+      "test_method": "登录后 → 点击点赞按钮 → like_count 增加 → 再次点击取消点赞",
+      "status": true
+    },
+    {
+      "id": "4.14",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "文章点赞数显示",
+      "description": "公开显示点赞数",
+      "test_method": "文章详情页显示 like_count",
+      "status": true
+    },
+    {
+      "id": "4.15",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "分类过滤",
+      "description": "`/blog/category/{category}` 按分类浏览",
+      "test_method": "访问 `/blog/category/计算机科学` → 只显示该分类文章",
+      "status": true
+    },
+    {
+      "id": "4.16",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "标签过滤",
+      "description": "`/blog/tag/{tag}` 按标签浏览",
+      "test_method": "访问 `/blog/tag/rust` → 只显示该标签文章",
+      "status": true
+    },
+    {
+      "id": "4.17",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "标签分页",
+      "description": "标签页支持翻页",
+      "test_method": "`/blog/tag/rust/page/2` → 显示第二页",
+      "status": true
+    },
+    {
+      "id": "4.18",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "热门文章",
+      "description": "`/blog/popular` 展示热门排行",
+      "test_method": "访问 `/blog/popular` → 按浏览量/互动排序",
+      "status": true
+    },
+    {
+      "id": "4.19",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "结构化数据",
+      "description": "文章页包含 JSON-LD",
+      "test_method": "查看文章详情页源码 → 有 `<script type=\"application/ld+json\">`",
+      "status": true
+    },
+    {
+      "id": "4.20",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "SEO Meta",
+      "description": "meta_title/description/keywords",
+      "test_method": "查看文章详情页 `<head>` → meta 标签正确",
+      "status": true
+    },
+    {
+      "id": "4.21",
+      "module": "博客/文章浏览（公开侧）",
+      "name": "RSS Feed",
+      "description": "标签页支持 RSS",
+      "test_method": "访问 `/blog/tag/rust` → 页面有 RSS alternate 链接",
+      "status": true
+    },
+    {
+      "id": "5.1",
+      "module": "文章管理与创作（管理侧）",
+      "name": "文章管理列表",
+      "description": "`/admin/posts-manage`",
+      "test_method": "登录 admin → 访问管理列表 → 显示所有文章（含草稿/归档）",
+      "status": true
+    },
+    {
+      "id": "5.2",
+      "module": "文章管理与创作（管理侧）",
+      "name": "文章搜索",
+      "description": "管理列表按标题/slug 搜索",
+      "test_method": "搜索框输入关键词 → 文章列表实时过滤",
+      "status": true
+    },
+    {
+      "id": "5.3",
+      "module": "文章管理与创作（管理侧）",
+      "name": "状态过滤",
+      "description": "按 Published/Draft/Archived 过滤",
+      "test_method": "点击状态筛选 → 列表切换",
+      "status": true
+    },
+    {
+      "id": "5.4",
+      "module": "文章管理与创作（管理侧）",
+      "name": "批量操作",
+      "description": "批量删除/归档",
+      "test_method": "勾选多篇文章 → 点击批量删除/归档 → 确认执行",
+      "status": true
+    },
+    {
+      "id": "5.5",
+      "module": "文章管理与创作（管理侧）",
+      "name": "快速状态切换",
+      "description": "列表内直接修改文章状态",
+      "test_method": "点击状态标签 → 切换 Published ↔ Draft",
+      "status": true
+    },
+    {
+      "id": "5.6",
+      "module": "文章管理与创作（管理侧）",
+      "name": "新建文章",
+      "description": "`/admin/posts/new` BlockNote 编辑器",
+      "test_method": "访问新建页 → 填写标题/摘要/分类/标签 → 在 BlockNoteEditor 中编辑内容 → 发布",
+      "status": true
+    },
+    {
+      "id": "5.7",
+      "module": "文章管理与创作（管理侧）",
+      "name": "BlockNote 富文本编辑",
+      "description": "支持标题、列表、代码块、图片、表格",
+      "test_method": "在编辑器中插入各种元素 → 预览/发布后渲染正确",
+      "status": true
+    },
+    {
+      "id": "5.8",
+      "module": "文章管理与创作（管理侧）",
+      "name": "文章自动保存草稿",
+      "description": "编辑时自动保存到 localStorage",
+      "test_method": "编辑文章 → 等待 2 秒 → 刷新页面 → 草稿列表出现自动保存项",
+      "status": true
+    },
+    {
+      "id": "5.9",
+      "module": "文章管理与创作（管理侧）",
+      "name": "草稿列表",
+      "description": "侧边栏显示自动保存的草稿",
+      "test_method": "自动保存后 → 侧边栏出现草稿 → 点击恢复 → 点击删除",
+      "status": true
+    },
+    {
+      "id": "5.10",
+      "module": "文章管理与创作（管理侧）",
+      "name": "编辑已有文章",
+      "description": "`/admin/posts/edit/{slug}`",
+      "test_method": "从管理列表点击编辑 → 加载文章内容到编辑器 → 修改 → 更新",
+      "status": true
+    },
+    {
+      "id": "5.11",
+      "module": "文章管理与创作（管理侧）",
+      "name": "保存草稿",
+      "description": "不发布，仅保存为 Draft",
+      "test_method": "编辑文章 → 点击\"保存草稿\" → 返回管理列表 → 状态为 Draft",
+      "status": true
+    },
+    {
+      "id": "5.12",
+      "module": "文章管理与创作（管理侧）",
+      "name": "发布文章",
+      "description": "将 Draft 改为 Published",
+      "test_method": "编辑 Draft 文章 → 点击\"发布\" → 状态变为 Published → 公开可见",
+      "status": true
+    },
+    {
+      "id": "5.13",
+      "module": "文章管理与创作（管理侧）",
+      "name": "文章预览",
+      "description": "发布前预览",
+      "test_method": "编辑器中点击\"预览\" → 新标签页打开预览",
+      "status": true
+    },
+    {
+      "id": "5.14",
+      "module": "文章管理与创作（管理侧）",
+      "name": "文章版本历史",
+      "description": "`/admin/posts/versions/{slug}`",
+      "test_method": "访问版本历史页 → 查看所有版本 → 版本对比 diff → 恢复到旧版本",
+      "status": true
+    },
+    {
+      "id": "5.15",
+      "module": "文章管理与创作（管理侧）",
+      "name": "文章详情统计",
+      "description": "`/admin/posts/show/{slug}`",
+      "test_method": "查看文章详情统计 → 显示浏览量、点赞数、评论数",
+      "status": true
+    },
+    {
+      "id": "5.16",
+      "module": "文章管理与创作（管理侧）",
+      "name": "MDX 导入",
+      "description": "`/admin/posts/import` 支持三种导入方式",
+      "test_method": "访问导入页 → 粘贴 MDX 文本 / 拖拽 .mdx 文件 / 输入 URL → 预览 → 创建/更新",
+      "status": true
+    },
+    {
+      "id": "5.17",
+      "module": "文章管理与创作（管理侧）",
+      "name": "文章分类选择",
+      "description": "编辑器中选择已存在的分类",
+      "test_method": "新建文章 → 分类下拉 → 选择已有分类",
+      "status": true
+    },
+    {
+      "id": "5.18",
+      "module": "文章管理与创作（管理侧）",
+      "name": "文章标签输入",
+      "description": "编辑器中使用已存在的标签",
+      "test_method": "新建文章 → 标签输入框 → 输入已有标签名 → 自动补全",
+      "status": true
+    },
+    {
+      "id": "6.1",
+      "module": "评论系统",
+      "name": "发表评论",
+      "description": "登录用户在文章页发表评论",
+      "test_method": "登录 → 打开任意文章 → 输入评论 → 提交 → 评论显示在文章下方",
+      "status": true
+    },
+    {
+      "id": "6.2",
+      "module": "评论系统",
+      "name": "匿名评论",
+      "description": "未登录用户可匿名评论",
+      "test_method": "不登录 → 打开文章 → 输入评论 → 提交 → 显示\"匿名用户\"",
+      "status": true
+    },
+    {
+      "id": "6.3",
+      "module": "评论系统",
+      "name": "评论显示用户名",
+      "description": "登录用户评论显示真实用户名",
+      "test_method": "登录后发评论 → 评论条目显示你的用户名（非\"匿名用户\"）",
+      "status": true
+    },
+    {
+      "id": "6.4",
+      "module": "评论系统",
+      "name": "评论内容限制",
+      "description": "不能为空，不超过 2000 字",
+      "test_method": "提交空评论 → 应报错；提交 2001 字 → 应报错",
+      "status": true
+    },
+    {
+      "id": "6.5",
+      "module": "评论系统",
+      "name": "回复评论",
+      "description": "嵌套回复，最多 5 层",
+      "test_method": "点击评论的\"回复\" → 输入回复 → 提交 → 嵌套显示",
+      "status": true
+    },
+    {
+      "id": "6.6",
+      "module": "评论系统",
+      "name": "评论点赞",
+      "description": "登录用户可点赞评论",
+      "test_method": "登录 → 点击评论的点赞按钮 → like_count +1 → 再次点击取消",
+      "status": true
+    },
+    {
+      "id": "6.7",
+      "module": "评论系统",
+      "name": "评论审核",
+      "description": "新评论默认为 pending 状态",
+      "test_method": "发评论 → 后台 `/admin/comments` → 状态为 pending",
+      "status": true
+    },
+    {
+      "id": "6.8",
+      "module": "评论系统",
+      "name": "评论审核列表",
+      "description": "`/admin/comments` 管理所有评论",
+      "test_method": "访问管理页 → 列表显示所有评论 → 支持搜索（内容/用户名/slug）",
+      "status": true
+    },
+    {
+      "id": "6.9",
+      "module": "评论系统",
+      "name": "评论状态管理",
+      "description": "通过/拒绝/垃圾/删除",
+      "test_method": "管理列表中选择评论 → 修改状态为 approved/rejected/spam/deleted",
+      "status": true
+    },
+    {
+      "id": "6.10",
+      "module": "评论系统",
+      "name": "批量状态更新",
+      "description": "批量审核评论",
+      "test_method": "勾选多条评论 → 点击批量操作 → 修改状态",
+      "status": true
+    },
+    {
+      "id": "6.11",
+      "module": "评论系统",
+      "name": "评论删除",
+      "description": "管理员可删除评论",
+      "test_method": "管理列表中删除评论 → 文章页该评论消失",
+      "status": true
+    },
+    {
+      "id": "6.12",
+      "module": "评论系统",
+      "name": "评论频率限制",
+      "description": "短时间大量评论触发限流",
+      "test_method": "连续发多条评论 → 应触发 429 限流",
+      "status": true
+    },
+    {
+      "id": "6.13",
+      "module": "评论系统",
+      "name": "HTML 清理",
+      "description": "评论中的恶意 HTML 被过滤",
+      "test_method": "评论输入 `<script>alert(1)</script>` → 提交后 HTML 被清理",
+      "status": true
+    },
+    {
+      "id": "6.14",
+      "module": "评论系统",
+      "name": "评论数统计",
+      "description": "文章卡片/详情页显示评论数",
+      "test_method": "发评论后 → 文章列表和详情页 comment_count 更新",
+      "status": true
+    },
+    {
+      "id": "6.15",
+      "module": "评论系统",
+      "name": "IP 记录",
+      "description": "评论记录用户 IP",
+      "test_method": "查看数据库 comments 表 → created_ip 不为空",
+      "status": true
+    },
+    {
+      "id": "7.1",
+      "module": "搜索功能",
+      "name": "全站搜索",
+      "description": "`/search` 页面",
+      "test_method": "访问 `/search` → 搜索框输入关键词 → 显示搜索结果",
+      "status": true
+    },
+    {
+      "id": "7.2",
+      "module": "搜索功能",
+      "name": "关键词自动补全",
+      "description": "输入时显示建议",
+      "test_method": "搜索框输入 → 下拉显示 trending 关键词",
+      "status": true
+    },
+    {
+      "id": "7.3",
+      "module": "搜索功能",
+      "name": "搜索结果卡片",
+      "description": "结果以卡片形式展示",
+      "test_method": "搜索结果显示文章卡片（标题、摘要、分类）",
+      "status": true
+    },
+    {
+      "id": "7.4",
+      "module": "搜索功能",
+      "name": "Trending Keywords",
+      "description": "热门搜索词展示",
+      "test_method": "`/search` 页面显示热门搜索词列表",
+      "status": true
+    },
+    {
+      "id": "7.5",
+      "module": "搜索功能",
+      "name": "搜索历史",
+      "description": "登录用户保存搜索历史",
+      "test_method": "登录后搜索 → 搜索历史记录保存 → 下次访问显示历史",
+      "status": true
+    },
+    {
+      "id": "7.6",
+      "module": "搜索功能",
+      "name": "Meilisearch 搜索",
+      "description": "高性能全文搜索",
+      "test_method": "搜索响应时间 < 200ms",
+      "status": true
+    },
+    {
+      "id": "7.7",
+      "module": "搜索功能",
+      "name": "PostgreSQL 回退",
+      "description": "Meilisearch 不可用时回退",
+      "test_method": "（故障测试）",
+      "status": true
+    },
+    {
+      "id": "8.1",
+      "module": "分类与标签系统",
+      "name": "分类列表",
+      "description": "文章通过分类归类",
+      "test_method": "访问 `/blog` → 侧边栏或过滤栏显示分类",
+      "status": true
+    },
+    {
+      "id": "8.2",
+      "module": "分类与标签系统",
+      "name": "分类浏览",
+      "description": "点击分类过滤文章",
+      "test_method": "点击某分类 → 跳转 `/blog/category/{slug}` → 只显示该分类文章",
+      "status": true
+    },
+    {
+      "id": "8.3",
+      "module": "分类与标签系统",
+      "name": "分类层级",
+      "description": "支持父子分类",
+      "test_method": "数据库 categories 表有 parent_id 字段",
+      "status": true
+    },
+    {
+      "id": "8.4",
+      "module": "分类与标签系统",
+      "name": "分类文章数统计",
+      "description": "显示每个分类的文章数",
+      "test_method": "分类列表中显示 post_count",
+      "status": true
+    },
+    {
+      "id": "8.5",
+      "module": "分类与标签系统",
+      "name": "标签列表",
+      "description": "文章通过标签归类",
+      "test_method": "文章详情页显示标签 → 点击跳转 `/blog/tag/{tag}`",
+      "status": true
+    },
+    {
+      "id": "8.6",
+      "module": "分类与标签系统",
+      "name": "标签浏览",
+      "description": "按标签过滤文章",
+      "test_method": "访问 `/blog/tag/rust` → 只显示带该标签的文章",
+      "status": true
+    },
+    {
+      "id": "8.7",
+      "module": "分类与标签系统",
+      "name": "标签分页",
+      "description": "标签页支持翻页",
+      "test_method": "`/blog/tag/rust/page/2` 正常显示",
+      "status": true
+    },
+    {
+      "id": "8.8",
+      "module": "分类与标签系统",
+      "name": "标签计数",
+      "description": "标签显示文章数",
+      "test_method": "标签列表中显示 post_count",
+      "status": true
+    },
+    {
+      "id": "9.1",
+      "module": "团队/实验室展示",
+      "name": "团队展示页",
+      "description": "`/team` 显示实验室成员",
+      "test_method": "访问 `/team` → Advisor + Core Members 分区显示",
+      "status": true
+    },
+    {
+      "id": "9.2",
+      "module": "团队/实验室展示",
+      "name": "成员头像",
+      "description": "显示成员头像图片",
+      "test_method": "团队成员卡片显示头像",
+      "status": true
+    },
+    {
+      "id": "9.3",
+      "module": "团队/实验室展示",
+      "name": "成员简介",
+      "description": "显示 bio、研究方向标签",
+      "test_method": "卡片显示研究标签和简介",
+      "status": true
+    },
+    {
+      "id": "9.4",
+      "module": "团队/实验室展示",
+      "name": "成员联系方式",
+      "description": "邮箱/GitHub/网站链接",
+      "test_method": "卡片显示 Email、GitHub、Website 图标及链接",
+      "status": true
+    },
+    {
+      "id": "9.5",
+      "module": "团队/实验室展示",
+      "name": "成员管理列表",
+      "description": "`/admin/team` 后台管理",
+      "test_method": "访问后台 → 成员列表 → 搜索/过滤/删除",
+      "status": true
+    },
+    {
+      "id": "9.6",
+      "module": "团队/实验室展示",
+      "name": "添加成员",
+      "description": "`/admin/team/new` 表单",
+      "test_method": "填写成员信息 → 提交 → `/team` 页面显示新成员",
+      "status": true
+    },
+    {
+      "id": "9.7",
+      "module": "团队/实验室展示",
+      "name": "编辑成员",
+      "description": "`/admin/team/edit` 修改已有成员",
+      "test_method": "从列表点击编辑 → 修改信息 → 保存",
+      "status": true
+    },
+    {
+      "id": "9.8",
+      "module": "团队/实验室展示",
+      "name": "成员角色",
+      "description": "advisor/lead/member 三种角色",
+      "test_method": "不同角色在团队页面分区展示",
+      "status": true
+    },
+    {
+      "id": "9.9",
+      "module": "团队/实验室展示",
+      "name": "显示顺序",
+      "description": "display_order 控制排序",
+      "test_method": "修改成员的 display_order → 团队页面顺序变化",
+      "status": true
+    },
+    {
+      "id": "10.1",
+      "module": "媒体库管理",
+      "name": "媒体列表",
+      "description": "`/admin/media` 查看所有上传文件",
+      "test_method": "访问后台 → 图片列表正常显示",
+      "status": true
+    },
+    {
+      "id": "10.2",
+      "module": "媒体库管理",
+      "name": "图片预览",
+      "description": "列表中预览图片",
+      "test_method": "点击图片 → 预览弹窗显示大图",
+      "status": true
+    },
+    {
+      "id": "10.3",
+      "module": "媒体库管理",
+      "name": "删除媒体",
+      "description": "删除未使用的图片",
+      "test_method": "选择未使用的图片 → 删除 → 列表更新",
+      "status": true
+    },
+    {
+      "id": "10.4",
+      "module": "媒体库管理",
+      "name": "未使用媒体过滤",
+      "description": "筛选未被任何文章引用的图片",
+      "test_method": "勾选\"仅显示未使用\" → 列表过滤",
+      "status": true
+    },
+    {
+      "id": "10.5",
+      "module": "媒体库管理",
+      "name": "文章内图片上传",
+      "description": "BlockNoteEditor 中插入图片",
+      "test_method": "编辑文章 → 工具栏插入图片 → 上传到媒体库 → 文章引用",
+      "status": true
+    },
+    {
+      "id": "10.6",
+      "module": "媒体库管理",
+      "name": "封面图设置",
+      "description": "文章设置封面图",
+      "test_method": "编辑文章 → 选择媒体库图片作为封面 → 保存 → 文章卡片显示封面",
+      "status": true
+    },
+    {
+      "id": "10.7",
+      "module": "媒体库管理",
+      "name": "OG 图片设置",
+      "description": "文章设置社交分享图片",
+      "test_method": "编辑文章 → 选择 OG 图片 → 保存 → 文章 HTML meta 引用",
+      "status": true
+    },
+    {
+      "id": "11.1",
+      "module": "系统监控与运维",
+      "name": "监控主页",
+      "description": "`/admin/monitoring` 显示系统概览",
+      "test_method": "访问监控页 → 系统状态/响应时间/DB/Redis 卡片正常",
+      "status": true
+    },
+    {
+      "id": "11.2",
+      "module": "系统监控与运维",
+      "name": "自动刷新",
+      "description": "监控页 10s 自动刷新",
+      "test_method": "打开监控页 → 等待 10 秒 → 数据自动更新",
+      "status": true
+    },
+    {
+      "id": "11.3",
+      "module": "系统监控与运维",
+      "name": "健康检查",
+      "description": "`/admin/monitoring/health` 详细健康状态",
+      "test_method": "访问健康检查页 → 整体状态+各服务（DB/Redis/JWT/Email）卡片全绿",
+      "status": true
+    },
+    {
+      "id": "11.4",
+      "module": "系统监控与运维",
+      "name": "健康检查 API",
+      "description": "`GET /health/detailed`",
+      "test_method": "`curl http://127.0.0.1:3001/health/detailed` → 返回 JSON 状态数据",
+      "status": true
+    },
+    {
+      "id": "11.5",
+      "module": "系统监控与运维",
+      "name": "Prometheus 指标",
+      "description": "`/admin/monitoring/metrics`",
+      "test_method": "访问指标页 → 显示 HTTP 请求统计、DB 连接池、Redis 连接、Session",
+      "status": true
+    },
+    {
+      "id": "11.6",
+      "module": "系统监控与运维",
+      "name": "Prometheus 指标 API",
+      "description": "`GET /metrics`",
+      "test_method": "`curl http://127.0.0.1:3001/metrics` → 返回 Prometheus 格式数据",
+      "status": true
+    },
+    {
+      "id": "11.7",
+      "module": "系统监控与运维",
+      "name": "管理员统计 API",
+      "description": "`/api/v1/admin/stats`",
+      "test_method": "API 返回用户总数、评论统计（total/pending/approved/rejected）",
+      "status": true
+    },
+    {
+      "id": "11.8",
+      "module": "系统监控与运维",
+      "name": "系统分析页",
+      "description": "`/admin/analytics`",
+      "test_method": "访问分析页 → 折线图、柱状图、日期范围选择",
+      "status": true
+    },
+    {
+      "id": "11.9",
+      "module": "系统监控与运维",
+      "name": "分析 API",
+      "description": "`/api/v1/admin/analytics/*`",
+      "test_method": "用户增长线图、评论活动柱状图数据正确",
+      "status": true
+    },
+    {
+      "id": "12.1",
+      "module": "管理后台总览",
+      "name": "仪表盘",
+      "description": "`/admin` 显示概况",
+      "test_method": "登录 admin → 访问 `/admin` → StatCards + 图表 + 最近评论",
+      "status": true
+    },
+    {
+      "id": "12.2",
+      "module": "管理后台总览",
+      "name": "用户管理列表",
+      "description": "`/admin/users`",
+      "test_method": "访问用户管理 → 列表显示所有用户 → 搜索/按角色过滤/分页",
+      "status": true
+    },
+    {
+      "id": "12.3",
+      "module": "管理后台总览",
+      "name": "用户角色修改",
+      "description": "列表内联修改角色",
+      "test_method": "点击用户角色下拉 → 选择新角色 → 保存",
+      "status": true
+    },
+    {
+      "id": "12.4",
+      "module": "管理后台总览",
+      "name": "用户删除",
+      "description": "软删除用户",
+      "test_method": "点击删除 → 确认 → 用户 status 变为 deleted/inactive",
+      "status": true
+    },
+    {
+      "id": "12.5",
+      "module": "管理后台总览",
+      "name": "批量角色更新",
+      "description": "批量修改用户角色",
+      "test_method": "勾选多个用户 → 批量操作 → 修改角色",
+      "status": true
+    },
+    {
+      "id": "12.6",
+      "module": "管理后台总览",
+      "name": "邮箱验证状态",
+      "description": "用户列表显示 email_verified",
+      "test_method": "用户列表中有\"邮件已验证\"列",
+      "status": true
+    },
+    {
+      "id": "12.7",
+      "module": "管理后台总览",
+      "name": "系统设置",
+      "description": "`/admin/settings` 四选项卡",
+      "test_method": "访问设置页 → General/Email/Security/Performance 四选项卡",
+      "status": true
+    },
+    {
+      "id": "12.8",
+      "module": "管理后台总览",
+      "name": "Email 配置",
+      "description": "系统设置中配置 SMTP",
+      "test_method": "Email 选项卡 → 输入 SMTP 信息 → 发送测试邮件",
+      "status": true
+    },
+    {
+      "id": "12.9",
+      "module": "管理后台总览",
+      "name": "设置保存",
+      "description": "系统设置保存（TODO: 待实现 API）",
+      "test_method": "修改设置 → 点击保存 → 应返回成功（目前可能未接线）",
+      "status": true
+    },
+    {
+      "id": "13.1",
+      "module": "通知系统",
+      "name": "关注通知",
+      "description": "有人关注你时收到通知",
+      "test_method": "用户 A 关注用户 B → 用户 B 收到关注通知",
+      "status": true
+    },
+    {
+      "id": "13.2",
+      "module": "通知系统",
+      "name": "评论通知",
+      "description": "文章被评论时作者收到通知",
+      "test_method": "用户在 article 下评论 → 文章作者收到评论通知",
+      "status": true
+    },
+    {
+      "id": "13.3",
+      "module": "通知系统",
+      "name": "评论回复通知",
+      "description": "评论被回复时收到通知",
+      "test_method": "用户回复某评论 → 原评论作者收到通知",
+      "status": true
+    },
+    {
+      "id": "13.4",
+      "module": "通知系统",
+      "name": "点赞通知",
+      "description": "文章/评论被点赞时收到通知",
+      "test_method": "点赞他人文章/评论 → 作者收到点赞通知",
+      "status": true
+    },
+    {
+      "id": "13.5",
+      "module": "通知系统",
+      "name": "@提及通知",
+      "description": "评论中 @ 某人时收到通知",
+      "test_method": "评论中 @username → 被 @ 用户收到通知",
+      "status": true
+    },
+    {
+      "id": "13.6",
+      "module": "通知系统",
+      "name": "通知页面",
+      "description": "`/notifications` 三选项卡",
+      "test_method": "访问 `/notifications` → Push/Subscriptions/Preferences 三选项卡",
+      "status": true
+    },
+    {
+      "id": "13.7",
+      "module": "通知系统",
+      "name": "PWA 推送通知",
+      "description": "浏览器推送通知设置",
+      "test_method": "Push 选项卡 → 启用推送 → 浏览器弹窗请求权限",
+      "status": true
+    },
+    {
+      "id": "13.8",
+      "module": "通知系统",
+      "name": "评论订阅管理",
+      "description": "查看/退订订阅的评论线程",
+      "test_method": "Subscriptions 选项卡 → 查看已订阅 → 退订",
+      "status": true
+    },
+    {
+      "id": "13.9",
+      "module": "通知系统",
+      "name": "通知偏好设置",
+      "description": "邮箱/回复/提及/摘要频率",
+      "test_method": "Preferences 选项卡 → 切换 Email/Reply/Mention/Digest 开关",
+      "status": true
+    },
+    {
+      "id": "13.10",
+      "module": "通知系统",
+      "name": "未读通知徽章",
+      "description": "导航栏显示未读数",
+      "test_method": "有新通知时 → 导航栏显示红点或数字",
+      "status": true
+    },
+    {
+      "id": "13.11",
+      "module": "通知系统",
+      "name": "Outbox Worker",
+      "description": "异步事件处理",
+      "test_method": "触发通知事件 → Worker 处理 → outbox_events 表 processed_at 不为空",
+      "status": true
+    },
+    {
+      "id": "14.1",
+      "module": "阅读进度与书签",
+      "name": "阅读进度保存",
+      "description": "自动保存文章阅读进度",
+      "test_method": "登录 → 阅读文章 → 滚动到 50% → 关闭 → 重新打开 → 恢复到上次位置",
+      "status": true
+    },
+    {
+      "id": "14.2",
+      "module": "阅读进度与书签",
+      "name": "阅读进度 API",
+      "description": "`POST /api/v1/posts/{slug}/reading-progress`",
+      "test_method": "发送 progress JSON → 保存成功",
+      "status": true
+    },
+    {
+      "id": "14.3",
+      "module": "阅读进度与书签",
+      "name": "阅读进度查询",
+      "description": "`GET /api/v1/posts/{slug}/reading-progress`",
+      "test_method": "获取进度 → 返回 progress/scroll_percentage",
+      "status": true
+    },
+    {
+      "id": "14.4",
+      "module": "阅读进度与书签",
+      "name": "阅读进度删除",
+      "description": "`DELETE /api/v1/posts/{slug}/reading-progress`",
+      "test_method": "删除进度 → 返回成功",
+      "status": true
+    },
+    {
+      "id": "14.5",
+      "module": "阅读进度与书签",
+      "name": "阅读历史列表",
+      "description": "`/reading-history` 显示阅读记录",
+      "test_method": "访问 `/reading-history` → 文章列表 + 进度条 + 状态标签",
+      "status": true
+    },
+    {
+      "id": "14.6",
+      "module": "阅读进度与书签",
+      "name": "继续阅读",
+      "description": "从阅读历史跳转到上次位置",
+      "test_method": "点击\"继续阅读\" → 跳转到文章上次阅读位置",
+      "status": true
+    },
+    {
+      "id": "14.7",
+      "module": "阅读进度与书签",
+      "name": "重置进度",
+      "description": "从阅读历史清除进度",
+      "test_method": "点击\"重置\" → 进度清除",
+      "status": true
+    },
+    {
+      "id": "14.8",
+      "module": "阅读进度与书签",
+      "name": "完成标记",
+      "description": "阅读 100% 标记为已完成",
+      "test_method": "滚动到文章末尾 → 进度 100% → 历史页显示完成徽章",
+      "status": true
+    },
+    {
+      "id": "14.9",
+      "module": "阅读进度与书签",
+      "name": "书签列表",
+      "description": "`/reading-list` 显示收藏文章",
+      "test_method": "访问 `/reading-list` → 所有收藏的文章列表",
+      "status": true
+    },
+    {
+      "id": "14.10",
+      "module": "阅读进度与书签",
+      "name": "添加书签",
+      "description": "在文章页添加书签",
+      "test_method": "点击 Bookmark 按钮 → 文章加入 reading-list",
+      "status": true
+    },
+    {
+      "id": "14.11",
+      "module": "阅读进度与书签",
+      "name": "移除书签",
+      "description": "取消书签",
+      "test_method": "在 reading-list 中点击 Unbookmark → 文章从列表移除",
+      "status": true
+    },
+    {
+      "id": "14.12",
+      "module": "阅读进度与书签",
+      "name": "书签搜索",
+      "description": "搜索已收藏文章",
+      "test_method": "reading-list 搜索框 → 输入关键词 → 列表过滤",
+      "status": true
+    },
+    {
+      "id": "14.13",
+      "module": "阅读进度与书签",
+      "name": "书签笔记",
+      "description": "添加/编辑收藏笔记",
+      "test_method": "书签文章 → 添加备注 → 保存",
+      "status": true
+    },
+    {
+      "id": "15.1",
+      "module": "其他页面与功能",
+      "name": "关于页面",
+      "description": "`/about` 显示作者介绍",
+      "test_method": "访问 `/about` → 页面正常渲染",
+      "status": true
+    },
+    {
+      "id": "15.2",
+      "module": "其他页面与功能",
+      "name": "项目展示",
+      "description": "`/projects` 显示研究项目",
+      "test_method": "访问 `/projects` → 项目卡片网格正常显示",
+      "status": true
+    },
+    {
+      "id": "15.3",
+      "module": "其他页面与功能",
+      "name": "访客地图",
+      "description": "`/visitors` 显示访客统计",
+      "test_method": "访问 `/visitors` → 地图+统计卡片+访客列表",
+      "status": true
+    },
+    {
+      "id": "15.4",
+      "module": "其他页面与功能",
+      "name": "Lab 页面",
+      "description": "`/lab` 实验区索引",
+      "test_method": "访问 `/lab` → Excalidraw/Music/Experiment 三卡片",
+      "status": true
+    },
+    {
+      "id": "15.5",
+      "module": "其他页面与功能",
+      "name": "Excalidraw",
+      "description": "`/lab/excalidraw` 白板",
+      "test_method": "访问 → 白板正常加载和交互",
+      "status": true
+    },
+    {
+      "id": "15.6",
+      "module": "其他页面与功能",
+      "name": "Music 乐谱",
+      "description": "`/lab/music` 和详情页",
+      "test_method": "访问 → 乐谱卡片 → 点击进入详情页",
+      "status": true
+    },
+    {
+      "id": "15.7",
+      "module": "其他页面与功能",
+      "name": "Spark 3D",
+      "description": "`/lab/experiment/spark-test`",
+      "test_method": "访问 → 3D 高斯泼溅 demo 正常加载",
+      "status": true
+    },
+    {
+      "id": "15.8",
+      "module": "其他页面与功能",
+      "name": "本地分析",
+      "description": "`/analytics` 浏览器端分析",
+      "test_method": "访问 → 数据卡片+文章分析表格",
+      "status": true
+    },
+    {
+      "id": "15.9",
+      "module": "其他页面与功能",
+      "name": "主题系统",
+      "description": "`/settings/themes` 32 种主题",
+      "test_method": "访问 → 切换主题 → 全站颜色变化 → 主题持久化",
+      "status": true
+    },
+    {
+      "id": "15.10",
+      "module": "其他页面与功能",
+      "name": "离线页面",
+      "description": "`/offline` PWA 离线回退",
+      "test_method": "断开网络 → 访问任意页面 → 显示离线页 → 缓存链接可用",
+      "status": true
+    },
+    {
+      "id": "15.11",
+      "module": "其他页面与功能",
+      "name": "404 页面",
+      "description": "自定义 404",
+      "test_method": "访问不存在的路由 → 显示自定义 404 页面",
+      "status": true
+    },
+    {
+      "id": "15.12",
+      "module": "其他页面与功能",
+      "name": "Newsletter 订阅",
+      "description": "首页订阅表单",
+      "test_method": "首页输入邮箱 → 点击订阅 → API 调用成功",
+      "status": true
+    },
+    {
+      "id": "15.13",
+      "module": "其他页面与功能",
+      "name": "访客 API",
+      "description": "访客数据上报和查询",
+      "test_method": "API 正常接收和返回访客数据",
+      "status": true
+    },
+    {
+      "id": "15.14",
+      "module": "其他页面与功能",
+      "name": "Swagger UI",
+      "description": "OpenAPI 文档（开发环境）",
+      "test_method": "访问 API 文档 → 所有端点列表完整（当前已注释）",
+      "status": true
+    },
+    {
+      "id": "15.15",
+      "module": "其他页面与功能",
+      "name": "CSRF 保护",
+      "description": "管理端写入操作需 CSRF token",
+      "test_method": "管理端 POST/PUT/DELETE 请求 → 携带 CSRF token",
+      "status": true
+    },
+    {
+      "id": "15.16",
+      "module": "其他页面与功能",
+      "name": "API 速率限制",
+      "description": "按秒/分钟限流",
+      "test_method": "高频调用同一 API → 触发 429 → X-RateLimit-* 响应头",
+      "status": true
+    },
+    {
+      "id": "15.17",
+      "module": "其他页面与功能",
+      "name": "CORS 配置",
+      "description": "跨域请求正确",
+      "test_method": "从不同源访问 API → CORS 头正确",
+      "status": true
+    },
+    {
+      "id": "15.18",
+      "module": "其他页面与功能",
+      "name": "数据库连接池",
+      "description": "数据库连接正常",
+      "test_method": "访问任意页面 → 数据库正确响应",
+      "status": true
+    },
+    {
+      "id": "15.19",
+      "module": "其他页面与功能",
+      "name": "Redis 连接",
+      "description": "Redis 缓存正常",
+      "test_method": "访问健康检查 → Redis 状态 healthy",
+      "status": true
+    },
+    {
+      "id": "15.20",
+      "module": "其他页面与功能",
+      "name": "Docker 多服务",
+      "description": "api/frontend/worker/db/redis 全运行",
+      "test_method": "`docker compose ps` → 所有服务 healthy",
+      "status": true
+    }
+  ]
+}

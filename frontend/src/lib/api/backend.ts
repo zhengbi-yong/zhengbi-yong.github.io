@@ -120,6 +120,15 @@ export const authService = {
     )
   },
 
+  /**
+   * Verify email with token
+   */
+  async verifyEmail(token: string): Promise<void> {
+    await api.get(`${BACKEND_API_URL}/auth/verify-email?token=${encodeURIComponent(token)}`, {
+      cache: false,
+    })
+  },
+
   async initAuth(): Promise<{ user: UserInfo | null }> {
     try {
       const user = await this.getCurrentUser()

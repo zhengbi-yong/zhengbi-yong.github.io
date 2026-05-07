@@ -9,8 +9,8 @@ import {
   MessageSquare,
   FileText,
   BarChart3,
-  Activity,
   Settings,
+  ToggleLeft,
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react'
@@ -22,7 +22,7 @@ const navItems = [
   { id: 'comments', label: '评论审核', icon: MessageSquare, href: '/admin/comments' },
   { id: 'posts', label: '文章管理', icon: FileText, href: '/admin/posts-manage', matchAlso: '/admin/posts' },
   { id: 'analytics', label: '数据分析', icon: BarChart3, href: '/admin/analytics' },
-  { id: 'monitoring', label: '系统监控', icon: Activity, href: '/admin/monitoring' },
+  { id: 'status', label: '状态管理', icon: ToggleLeft, href: '/admin/status' },
   { id: 'settings', label: '系统设置', icon: Settings, href: '/admin/settings' },
 ]
 

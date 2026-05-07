@@ -23,7 +23,7 @@ export default function ScaleIn({
   duration = 0.5,
   scale = 0.8,
   className = '',
-  whileInView = false,
+  whileInView = true,
 }: ScaleInProps) {
   // 移动设备优化：缩短动画时长
   const { duration: optimizedDuration } = getMobileOptimizedAnimationParams(0, duration)

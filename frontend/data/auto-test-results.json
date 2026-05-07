@@ -1,0 +1,222 @@
+{
+  "results": [
+    {
+      "feature_id": "infra.1",
+      "feature_name": "API 存活检测",
+      "module": "基础设施",
+      "status": true,
+      "response_time_ms": 5,
+      "tested_at": "2026-05-07T03:35:47.854Z"
+    },
+    {
+      "feature_id": "infra.2",
+      "feature_name": "健康检查详细",
+      "module": "基础设施",
+      "status": true,
+      "response_time_ms": 7,
+      "tested_at": "2026-05-07T03:35:47.862Z"
+    },
+    {
+      "feature_id": "infra.3",
+      "feature_name": "Prometheus 指标",
+      "module": "基础设施",
+      "status": true,
+      "response_time_ms": 2,
+      "tested_at": "2026-05-07T03:35:47.865Z"
+    },
+    {
+      "feature_id": "infra.4",
+      "feature_name": "数据库连接",
+      "module": "基础设施",
+      "status": true,
+      "response_time_ms": 7,
+      "tested_at": "2026-05-07T03:35:47.865Z"
+    },
+    {
+      "feature_id": "infra.5",
+      "feature_name": "Redis 连接",
+      "module": "基础设施",
+      "status": true,
+      "response_time_ms": 7,
+      "tested_at": "2026-05-07T03:35:47.865Z"
+    },
+    {
+      "feature_id": "1.2",
+      "feature_name": "用户登录",
+      "module": "用户认证",
+      "status": true,
+      "response_time_ms": 169,
+      "tested_at": "2026-05-07T03:35:48.034Z"
+    },
+    {
+      "feature_id": "auth.1",
+      "feature_name": "获取当前用户",
+      "module": "用户认证",
+      "status": true,
+      "response_time_ms": 3,
+      "tested_at": "2026-05-07T03:35:48.038Z"
+    },
+    {
+      "feature_id": "1.6",
+      "feature_name": "用户登出",
+      "module": "用户认证",
+      "status": true,
+      "response_time_ms": 4,
+      "tested_at": "2026-05-07T03:35:48.042Z"
+    },
+    {
+      "feature_id": "15.16",
+      "feature_name": "API 速率限制",
+      "module": "其他功能",
+      "status": true,
+      "response_time_ms": 0,
+      "error_message": "速率限制检查通过（未触发）",
+      "tested_at": "2026-05-07T03:35:48.046Z"
+    },
+    {
+      "feature_id": "15.17",
+      "feature_name": "CORS 配置",
+      "module": "其他功能",
+      "status": true,
+      "response_time_ms": 1,
+      "tested_at": "2026-05-07T03:35:48.047Z"
+    },
+    {
+      "feature_id": "4.1",
+      "feature_name": "博客列表 API",
+      "module": "博客浏览",
+      "status": true,
+      "response_time_ms": 8,
+      "tested_at": "2026-05-07T03:35:48.055Z"
+    },
+    {
+      "feature_id": "7.1",
+      "feature_name": "搜索 API",
+      "module": "搜索功能",
+      "status": true,
+      "response_time_ms": 66,
+      "tested_at": "2026-05-07T03:35:48.124Z"
+    },
+    {
+      "feature_id": "11.7",
+      "feature_name": "管理员统计 API",
+      "module": "系统监控",
+      "status": true,
+      "response_time_ms": 8,
+      "tested_at": "2026-05-07T03:35:48.132Z"
+    },
+    {
+      "feature_id": "11.9",
+      "feature_name": "分析 API",
+      "module": "系统监控",
+      "status": true,
+      "response_time_ms": 1,
+      "tested_at": "2026-05-07T03:35:48.134Z"
+    },
+    {
+      "feature_id": "5.1",
+      "feature_name": "文章管理列表",
+      "module": "文章管理",
+      "status": true,
+      "response_time_ms": 8,
+      "tested_at": "2026-05-07T03:35:48.143Z"
+    },
+    {
+      "feature_id": "8.1",
+      "feature_name": "分类列表",
+      "module": "分类标签",
+      "status": true,
+      "response_time_ms": 3,
+      "tested_at": "2026-05-07T03:35:48.146Z"
+    },
+    {
+      "feature_id": "8.5",
+      "feature_name": "标签列表",
+      "module": "分类标签",
+      "status": true,
+      "response_time_ms": 4,
+      "tested_at": "2026-05-07T03:35:48.151Z"
+    },
+    {
+      "feature_id": "6.1",
+      "feature_name": "评论列表 API",
+      "module": "评论系统",
+      "status": false,
+      "response_time_ms": 1,
+      "tested_at": "2026-05-07T03:35:48.162Z"
+    },
+    {
+      "feature_id": "6.2",
+      "feature_name": "匿名评论",
+      "module": "评论系统",
+      "status": false,
+      "response_time_ms": 2,
+      "error_message": "HTTP 404",
+      "tested_at": "2026-05-07T03:35:48.164Z"
+    },
+    {
+      "feature_id": "6.5",
+      "feature_name": "评论审核列表",
+      "module": "评论系统",
+      "status": true,
+      "response_time_ms": 4,
+      "tested_at": "2026-05-07T03:35:48.169Z"
+    },
+    {
+      "feature_id": "3.3",
+      "feature_name": "关注列表",
+      "module": "社交关注",
+      "status": true,
+      "response_time_ms": 4,
+      "tested_at": "2026-05-07T03:35:48.173Z"
+    },
+    {
+      "feature_id": "3.4",
+      "feature_name": "粉丝列表",
+      "module": "社交关注",
+      "status": true,
+      "response_time_ms": 4,
+      "tested_at": "2026-05-07T03:35:48.177Z"
+    },
+    {
+      "feature_id": "14.1",
+      "feature_name": "阅读进度查询",
+      "module": "阅读进度",
+      "status": true,
+      "response_time_ms": 3,
+      "error_message": "暂无阅读进度（首次访问正常）",
+      "tested_at": "2026-05-07T03:35:48.180Z"
+    },
+    {
+      "feature_id": "2.1",
+      "feature_name": "用户公开主页 API",
+      "module": "用户资料",
+      "status": true,
+      "response_time_ms": 4,
+      "tested_at": "2026-05-07T03:35:48.184Z"
+    },
+    {
+      "feature_id": "1.8",
+      "feature_name": "邮件服务",
+      "module": "用户认证",
+      "status": true,
+      "response_time_ms": 7,
+      "tested_at": "2026-05-07T03:35:48.184Z"
+    },
+    {
+      "feature_id": "15.15",
+      "feature_name": "CSRF Token",
+      "module": "其他功能",
+      "status": true,
+      "response_time_ms": 1,
+      "error_message": "CSRF 端点未实现",
+      "tested_at": "2026-05-07T03:35:48.185Z"
+    }
+  ],
+  "lastRun": "2026-05-07T03:35:48.185Z",
+  "summary": {
+    "total": 26,
+    "passed": 24,
+    "failed": 2
+  }
+}

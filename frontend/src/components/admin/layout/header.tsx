@@ -21,7 +21,7 @@ const pathLabels: Record<string, string> = {
   'users': '用户管理',
   'comments': '评论审核',
   'analytics': '数据分析',
-  'monitoring': '系统监控',
+  'status': '状态管理',
   'settings': '系统设置',
   'edit': '编辑',
   'create': '创建',

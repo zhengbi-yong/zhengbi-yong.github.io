@@ -23,12 +23,17 @@ impl EmailService {
 
         let from = Mailbox::new(None, from_addr);
 
-        // 创建凭据
-        let creds = Credentials::new(config.username.clone(), config.password.clone());
+        // 创建凭据（仅当用户名密码都非空时）
+        let has_auth = !config.username.is_empty() && !config.password.is_empty();
+        let creds = if has_auth {
+            Some(Credentials::new(config.username.clone(), config.password.clone()))
+        } else {
+            None
+        };
 
         // 构建 SMTP 传输
         let mailer = if config.tls {
-            SmtpTransport::relay(&config.host)
+            let mut builder = SmtpTransport::relay(&config.host)
                 .map_err(|e| {
                     tracing::error!(
                         "Failed to create SMTP transport with TLS for host '{}': {}",
@@ -37,15 +42,19 @@ impl EmailService {
                     );
                     AppError::InternalError
                 })?
-                .port(config.port)
-                .credentials(creds)
-                .build()
+                .port(config.port);
+            if let Some(c) = creds {
+                builder = builder.credentials(c);
+            }
+            builder.build()
         } else {
             // 使用 builder_dangerous 用于开发环境（不验证证书）
-            SmtpTransport::builder_dangerous(&config.host)
-                .port(config.port)
-                .credentials(creds)
-                .build()
+            let mut builder = SmtpTransport::builder_dangerous(&config.host)
+                .port(config.port);
+            if let Some(c) = creds {
+                builder = builder.credentials(c);
+            }
+            builder.build()
         };
 
         tracing::info!(
@@ -59,14 +68,8 @@ impl EmailService {
     }
 
     /// 发送邮箱验证邮件
-    pub async fn send_verification_email(&self, to: &str, user_id: &Uuid) -> Result<(), AppError> {
-        let verification_token = self.generate_verification_token(user_id);
-        let verification_url = format!(
-            "https://yourdomain.com/verify-email?token={}",
-            verification_token
-        );
-
-        let email_body = self.render_verification_email_template(&verification_url)?;
+    pub async fn send_verification_email(&self, to: &str, verification_url: &str) -> Result<(), AppError> {
+        let email_body = self.render_verification_email_template(verification_url)?;
 
         let email = Message::builder()
             .from(self.from.clone())
@@ -80,7 +83,7 @@ impl EmailService {
                     .singlepart(
                         SinglePart::builder()
                             .header(ContentType::TEXT_PLAIN)
-                            .body(self.render_verification_email_text(&verification_url)),
+                            .body(self.render_verification_email_text(verification_url)),
                     )
                     .singlepart(
                         SinglePart::builder()

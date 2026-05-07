@@ -33,7 +33,7 @@ export const CSP_CONFIG = {
       'https://analytics.umami.is',
       'https://o1046881.ingest.sentry.io',
     ],
-    'frame-src': ['giscus.app'],
+    'frame-src': ['giscus.app', 'excalidraw.com', 'player.bilibili.com', 'www.youtube.com'],
     'worker-src': ["'self'", 'blob:'],
     'media-src': ["'self'"],
     'object-src': ["'none'"],

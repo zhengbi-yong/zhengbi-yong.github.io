@@ -1,11 +1,15 @@
 'use client'
 
-import React from 'react'
-import { ResponsiveBar } from '@nivo/bar'
+import React, { useRef, useEffect, useState } from 'react'
+import { Bar } from '@nivo/bar'
+
+import { resolveDataProp } from '../chemistry/runtimeProps'
 
 interface NivoBarChartProps {
-  data: any[]
-  keys: string[]
+  data?: any[]
+  dataBase64?: string
+  keys?: string[]
+  keysBase64?: string
   indexBy: string
   width?: number
   height?: number
@@ -21,8 +25,10 @@ interface NivoBarChartProps {
 }
 
 export const NivoBarChart: React.FC<NivoBarChartProps> = ({
-  data,
-  keys,
+  data: rawData,
+  dataBase64,
+  keys: rawKeys,
+  keysBase64,
   indexBy,
   width,
   height = 400,
@@ -31,9 +37,41 @@ export const NivoBarChart: React.FC<NivoBarChartProps> = ({
   theme,
   animate = true,
 }) => {
+  // Resolve data from raw value or base64 (runtime MDX compatibility)
+  const data = (resolveDataProp(rawData, dataBase64) ?? []) as any[]
+  const keys = (resolveDataProp(rawKeys, keysBase64) ?? []) as string[]
+
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [chartWidth, setChartWidth] = useState(width || 600)
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const w = containerRef.current.clientWidth
+      if (w > 0) setChartWidth(w)
+    }
+  }, [height])
+
+  // 用 ResizeObserver 跟踪容器宽度变化
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width
+        if (w > 0) setChartWidth(w)
+      }
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const chartHeight = typeof height === 'number' ? height : 400
+
   return (
-    <div style={{ width: width || '100%', height }}>
-      <ResponsiveBar
+    <div ref={containerRef} style={{ width: '100%', minHeight: chartHeight }}>
+      <Bar
+        width={chartWidth}
+        height={chartHeight}
         data={data}
         keys={keys}
         indexBy={indexBy}

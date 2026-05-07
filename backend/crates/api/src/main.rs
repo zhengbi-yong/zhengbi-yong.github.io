@@ -188,6 +188,9 @@ async fn run_server() -> anyhow::Result<()> {
     let db_pool = state.db.clone();
     let db_read_pool = state.db_read.clone();
 
+    // 启动内置看门狗：每分钟自动运行全量 API 健康测试
+    blog_api::watchdog::spawn_watchdog(state.db.clone());
+
     // 提取服务器地址（在移动 state 之前）
     let addr = format!(
         "{}:{}",
@@ -311,7 +314,12 @@ fn v1_routes(state: AppState) -> Router<AppState> {
         .merge(category_public_routes())
         .merge(tag_public_routes())
         .merge(search_routes())
-        .merge(comment_routes())
+        .merge(status_routes())
+        .merge(comment_routes()
+            .layer(axum::middleware::from_fn_with_state(
+                state.clone(),
+                blog_api::middleware::optional_auth_middleware,
+            )))
         // 评论操作需要认证（like/unlike）
         .merge(
             comment_auth_routes()
@@ -441,7 +449,7 @@ fn v1_routes(state: AppState) -> Router<AppState> {
 
 // 认证路由
 fn auth_routes() -> Router<AppState> {
-    use axum::routing::post;
+    use axum::routing::{get, post};
     Router::new()
         .route("/auth/register", post(blog_api::routes::auth::register))
         .route("/auth/login", post(blog_api::routes::auth::login))
@@ -454,6 +462,10 @@ fn auth_routes() -> Router<AppState> {
         .route(
             "/auth/reset-password",
             post(blog_api::routes::auth::reset_password),
+        )
+        .route(
+            "/auth/verify-email",
+            get(blog_api::routes::auth::verify_email),
         )
     // /auth/me 需要认证，在 v1_routes 中单独定义并应用中间件
 }
@@ -647,6 +659,24 @@ fn search_routes() -> Router<AppState> {
         .route(
             "/search/trending",
             get(blog_api::routes::search::get_trending_keywords),
+        )
+}
+
+// 状态监控路由（公开 - 测试历史存储和查询）
+fn status_routes() -> Router<AppState> {
+    use axum::routing::{get, post};
+    Router::new()
+        .route(
+            "/status/test-results",
+            post(blog_api::routes::status::store_test_results),
+        )
+        .route(
+            "/status/test-history",
+            get(blog_api::routes::status::get_test_history),
+        )
+        .route(
+            "/status/test-history/aggregated",
+            get(blog_api::routes::status::get_aggregated_history),
         )
 }
 

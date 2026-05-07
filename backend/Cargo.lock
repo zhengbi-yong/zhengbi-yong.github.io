@@ -973,6 +973,7 @@ dependencies = [
  "dotenv",
  "futures",
  "futures-util",
+ "hex",
  "hmac 0.12.1",
  "http 1.4.0",
  "http-body 1.0.1",

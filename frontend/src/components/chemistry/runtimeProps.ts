@@ -1,8 +1,16 @@
-function decodeBase64Utf8(value: string) {
+export function decodeBase64Utf8(value: string): string {
+  if (typeof value !== 'string' || value.length === 0) {
+    return value
+  }
+
   if (typeof window !== 'undefined' && typeof window.atob === 'function') {
-    const binary = window.atob(value)
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
-    return new TextDecoder().decode(bytes)
+    try {
+      const binary = window.atob(value)
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0))
+      return new TextDecoder().decode(bytes)
+    } catch {
+      return value
+    }
   }
 
   return value
@@ -51,4 +59,49 @@ export function resolveBooleanProp(value: boolean | string | undefined, fallback
   }
 
   return fallback
+}
+
+/**
+ * Resolve data from either a raw JS value or a base64-encoded string.
+ *
+ * In static MDX (build-time), complex JSX props like data={[...]} are parsed
+ * by the bundler and arrive as real JS objects. In runtime MDX (next-mdx-remote),
+ * these are converted to base64 string attributes by the normalizer so the MDX
+ * parser doesn't choke on nested braces.
+ *
+ * Priority: raw value > base64 decode > undefined
+ */
+export function resolveDataProp(data?: unknown, dataBase64?: string): unknown {
+  if (data !== undefined && data !== null) {
+    return data
+  }
+
+  if (typeof dataBase64 === 'string' && dataBase64.length > 0) {
+    let decoded: string | undefined
+    try {
+      decoded = decodeBase64Utf8(dataBase64)
+      return JSON.parse(decoded)
+    } catch {
+      // JSON.parse failed — the decoded string might be a JS object literal
+      // (unquoted keys, single-quoted strings, trailing commas from MDX expressions)
+      // Try evaluating as a JavaScript expression
+      if (typeof decoded === 'string' && decoded.trim()) {
+        try {
+          // eslint-disable-next-line no-new-func
+          const result = new Function('return (' + decoded + ')')()
+          return result
+        } catch {
+          console.warn(
+            '[resolveDataProp] Both JSON.parse and eval failed. Raw decoded:',
+            decoded.slice(0, 200)
+          )
+          return decoded
+        }
+      }
+      console.warn('[resolveDataProp] decodeBase64Utf8 failed for:', dataBase64?.slice(0, 50))
+      return undefined
+    }
+  }
+
+  return undefined
 }

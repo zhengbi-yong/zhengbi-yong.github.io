@@ -75,13 +75,6 @@ const nextConfig = {
       'lodash',
       'date-fns',
       'react-icons',
-      'echarts',
-      '@nivo/core',
-      '@nivo/bar',
-      '@nivo/line',
-      '@nivo/pie',
-      '@nivo/radar',
-      '@nivo/scatterplot',
       'three',
       'leaflet',
       'framer-motion',
@@ -191,7 +184,7 @@ const generateSecurityHeaders = () => {
         'font-src': "'self' data: blob: https://fonts.gstatic.com https:",
         'connect-src':
           "'self' https: http://localhost:3000 http://10.24.23.53:3000 http://192.168.0.161:3000 https://api.github.com https://github.com https://avatars.githubusercontent.com https://analytics.umami.is https://cloud.umami.is https://o1046881.ingest.sentry.io",
-        'frame-src': 'giscus.app excalidraw.com',
+        'frame-src': 'giscus.app excalidraw.com https://player.bilibili.com https://*.bilibili.com https://www.youtube.com https://*.youtube.com',
         'worker-src': "'self' blob:",
         'media-src': "'self'",
         'object-src': "'none'",
@@ -220,7 +213,7 @@ const generateSecurityHeaders = () => {
         'worker-src': "'self' blob:",
         'connect-src':
           "'self' data: https: http://localhost:3000 http://10.24.23.53:3000 http://192.168.0.161:3000 ws://localhost:3000 ws://localhost:3001 ws://10.24.23.53:3001 ws://192.168.0.161:3001 https://api.github.com https://github.com https://avatars.githubusercontent.com https://cloud.umami.is",
-        'frame-src': 'giscus.app excalidraw.com',
+        'frame-src': 'giscus.app excalidraw.com https://player.bilibili.com https://*.bilibili.com https://www.youtube.com https://*.youtube.com',
       }
 
   // 将 CSP 对象转换为字符串
@@ -284,6 +277,11 @@ const finalConfig = {
   async rewrites() {
     const backendUrl = process.env.BACKEND_INTERNAL_URL || 'http://localhost:3000'
     return [
+      // API v1 proxy — 前端通过 BFF 代理后端所有 API 请求
+      {
+        source: '/api/v1/:path*',
+        destination: `${backendUrl}/api/v1/:path*`,
+      },
       {
         source: '/health/:path*',
         destination: `${backendUrl}/health/:path*`,
@@ -295,6 +293,19 @@ const finalConfig = {
       {
         source: '/.well-known/:path*',
         destination: `${backendUrl}/.well-known/:path*`,
+      },
+    ]
+  },
+  // 自定义响应头：状态页禁用缓存确保始终获取最新数据
+  async headers() {
+    return [
+      {
+        source: '/status',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
       },
     ]
   },

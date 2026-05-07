@@ -29,10 +29,10 @@ export const ECharts3DTest: React.FC<ECharts3DTestProps> = ({ className = '' }) 
       }
 
       chart.setOption(testOption)
-      console.log('✅ ECharts 3D组件加载成功')
+      // ECharts 3D loaded
       chart.dispose()
     } catch (error) {
-      console.error('❌ ECharts 3D组件加载失败:', error)
+      console.error('ECharts 3D load failed:', error)
       chart.dispose()
     }
   }, [])

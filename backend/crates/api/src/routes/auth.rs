@@ -2,7 +2,7 @@ use crate::middleware::csrf::{generate_csrf_token, set_csrf_cookie};
 use crate::state::AppState;
 use crate::utils::ip_extractor::RealIp;
 use axum::{
-    extract::{Extension, Json, Multipart, State},
+    extract::{Extension, Json, Multipart, Query, State},
     http::{header, HeaderMap, HeaderValue},
     response::IntoResponse,
 };
@@ -12,6 +12,8 @@ use blog_shared::{AppError, AuthUser, PasswordValidator};
 use chrono;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sha2::{Digest, Sha256};
+use sqlx::Row;
 use time;
 use uuid::Uuid;
 
@@ -40,7 +42,7 @@ fn cookie_to_header_value(cookie_str: &str) -> HeaderValue {
 )]
 pub async fn register(
     State(state): State<AppState>,
-    RealIp(client_ip): RealIp,
+    RealIp(_client_ip): RealIp,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     // 验证输入 - 邮箱和用户名
@@ -104,81 +106,45 @@ pub async fn register(
         updated_at: row.updated_at,
     };
 
-    // 创建 refresh token
-    let (refresh_token, family_id) = state.jwt.create_refresh_token(&user.id)?;
-    let token_hash = state.jwt.hash_token(&refresh_token);
+    // 生成验证令牌并存储哈希
+    let verification_token = Uuid::new_v4().simple().to_string();
+    let token_hash = {
+        let mut hasher = Sha256::new();
+        hasher.update(verification_token.as_bytes());
+        hex::encode(hasher.finalize())
+    };
 
-    // 保存 refresh token 到数据库
+    // 保存令牌哈希到 email_verification_tokens 表（24小时过期）
     sqlx::query(
-        r#"
-        INSERT INTO refresh_tokens (user_id, token_hash, family_id, expires_at, created_ip)
-        VALUES ($1, $2, $3, NOW() + INTERVAL '7 days', $4::inet)
-        "#,
+        "INSERT INTO email_verification_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, NOW() + INTERVAL '24 hours')"
     )
     .bind(user.id)
     .bind(&token_hash)
-    .bind(family_id)
-    .bind(client_ip.to_string())
     .execute(&mut *tx)
     .await?;
 
     tx.commit().await?;
 
-    // 生成 JWT
-    let access_token = state
-        .jwt
-        .create_access_token(&user.id, &user.email, &user.username)?;
-
-    // 设置 refresh token cookie
-    // GOLDEN_RULES 1.1: secure=true 仅在生产环境启用
-    let is_production = std::env::var("ENVIRONMENT").unwrap_or_default() == "production";
-
-    let refresh_cookie = Cookie::build(("refresh_token", refresh_token))
-        .path("/")
-        .http_only(true)
-        .secure(is_production)
-        .same_site(SameSite::Lax)
-        .max_age(time::Duration::days(7))
-        .build();
-
-    // GOLDEN_RULES 1.1: 同时设置 access_token cookie
-    // 前端使用 credentials: 'include' 自动发送，无需手动设置 Authorization header
-    let access_cookie = Cookie::build(("access_token", access_token.clone()))
-        .path("/")
-        .http_only(true)
-        .secure(is_production)
-        .same_site(SameSite::Lax)
-        .max_age(time::Duration::minutes(15)) // Access token 15分钟有效期
-        .build();
-
-    // 使用 HeaderMap 设置多个 Set-Cookie 头
-    let mut headers = HeaderMap::new();
-    headers.append(
-        header::SET_COOKIE,
-        cookie_to_header_value(&refresh_cookie.to_string()),
+    // 构建验证链接
+    let verification_url = format!(
+        "{}/verify-email?token={}",
+        state.settings.frontend_url, verification_token
     );
-    headers.append(
-        header::SET_COOKIE,
-        cookie_to_header_value(&access_cookie.to_string()),
-    );
+    tracing::info!("Verification URL for {}: {}", &payload.email, verification_url);
 
-    // 生成 CSRF token 并设置 XSRF-TOKEN cookie（HttpOnly=false，前端可读）
-    let csrf_token = generate_csrf_token(&state).await.map_err(|e| {
-        tracing::error!("Failed to generate CSRF token: {}", e);
-        AppError::InternalError
-    })?;
-    let (csrf_cookie, xsrf_cookie) = set_csrf_cookie(&csrf_token.token);
-    headers.append(header::SET_COOKIE, cookie_to_header_value(&csrf_cookie));
-    headers.append(header::SET_COOKIE, cookie_to_header_value(&xsrf_cookie));
+    // 发送验证邮件
+    if let Err(e) = state.email_service.send_verification_email(&payload.email, &verification_url).await {
+        tracing::error!("Failed to send verification email to {}: {:?}", &payload.email, e);
+        // 不阻止注册流程——即使邮件发送失败，用户仍可稍后重试
+    } else {
+        tracing::info!("Verification email sent to {}", &payload.email);
+    }
 
-    Ok((
-        headers,
-        Json(AuthResponse {
-            access_token,
-            user: user.into(),
-        }),
-    )
-        .into_response())
+    // 返回成功响应
+    Ok(Json(json!({
+        "success": true,
+        "message": "注册成功！请查看您的邮箱并点击验证链接完成注册。若未收到邮件，请检查垃圾箱。"
+    })))
 }
 
 /// 用户登录
@@ -960,5 +926,66 @@ pub async fn get_user_posts(
         "page": page,
         "per_page": per_page,
         "total_pages": ((total as f64) / (per_page as f64)).ceil() as u32,
+    })))
+}
+
+/// 验证邮箱
+#[utoipa::path(
+    get,
+    path = "/auth/verify-email",
+    tag = "auth",
+    params(
+        ("token" = String, Query, description = "邮箱验证令牌")
+    ),
+    responses(
+        (status = 200, description = "邮箱验证成功"),
+        (status = 404, description = "无效或已过期的验证链接")
+    )
+)]
+pub async fn verify_email(
+    State(state): State<AppState>,
+    Query(params): Query<std::collections::HashMap<String, String>>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let token = params
+        .get("token")
+        .ok_or_else(|| AppError::BadRequest("缺少验证令牌".to_string()))?;
+
+    // 哈希令牌
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    let token_hash = hex::encode(hasher.finalize());
+
+    // 查询有效的验证令牌
+    let row = sqlx::query(
+        "SELECT id, user_id FROM email_verification_tokens WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW()",
+    )
+    .bind(&token_hash)
+    .fetch_optional(&state.db)
+    .await?
+    .ok_or_else(|| AppError::NotFound("无效或已过期的验证链接".to_string()))?;
+
+    let token_id: Uuid = row.get(0);
+    let user_id: Uuid = row.get(1);
+
+    // 使用事务确保原子性
+    let mut tx = state.db.begin().await?;
+
+    // 更新用户邮箱验证状态
+    sqlx::query("UPDATE users SET email_verified = true WHERE id = $1")
+        .bind(user_id)
+        .execute(&mut *tx)
+        .await?;
+
+    // 标记验证令牌为已使用
+    sqlx::query("UPDATE email_verification_tokens SET used_at = NOW() WHERE id = $1")
+        .bind(token_id)
+        .execute(&mut *tx)
+        .await?;
+
+    tx.commit().await?;
+
+    Ok(Json(json!({
+        "success": true,
+        "message": "邮箱验证成功！您现在可以登录了。"
     })))
 }

@@ -18,6 +18,7 @@ pub mod categories;
 pub mod media;
 pub mod search;
 pub mod search_optimized;
+pub mod status;
 pub mod tags;
 pub mod versions; // 优化后的搜索模块
 

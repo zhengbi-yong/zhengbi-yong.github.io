@@ -19,26 +19,32 @@ import { AnimationErrorBoundary } from './AnimationErrorBoundary'
 import { ExcalidrawEmbed } from './MDXComponents/ExcalidrawEmbed'
 import SheetMusic, { ABCCodeBlock } from './SheetMusic'
 import { CodeBlock } from './mdx/CodeBlock'
+import BilibiliVideo from './BilibiliVideo'
 
 // 动态导入动画组件，减少初始 bundle 大小
 // 注意：在 Server Component 中不能使用 ssr: false，但这些组件本身已经是 Client Components
 const FadeIn = dynamic(() => import('./animations/FadeIn').then((mod) => mod.default), {
+  ssr: false,
   loading: () => <AnimationSkeleton />,
 })
 
 const SlideIn = dynamic(() => import('./animations/SlideIn').then((mod) => mod.default), {
+  ssr: false,
   loading: () => <AnimationSkeleton />,
 })
 
 const ScaleIn = dynamic(() => import('./animations/ScaleIn').then((mod) => mod.default), {
+  ssr: false,
   loading: () => <AnimationSkeleton />,
 })
 
 const RotateIn = dynamic(() => import('./animations/RotateIn').then((mod) => mod.default), {
+  ssr: false,
   loading: () => <AnimationSkeleton />,
 })
 
 const BounceIn = dynamic(() => import('./animations/BounceIn').then((mod) => mod.default), {
+  ssr: false,
   loading: () => <AnimationSkeleton />,
 })
 
@@ -65,6 +71,7 @@ const MusicSheet = dynamic(() => import('./MusicSheet').then((mod) => mod.defaul
 const ChemicalStructure = dynamic(
   () => import('./chemistry/ChemicalStructure').then((mod) => mod.default),
   {
+    ssr: false,
     loading: () => (
       <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
         <div className="flex flex-col items-center gap-3">
@@ -79,6 +86,7 @@ const ChemicalStructure = dynamic(
 const SimpleChemicalStructure = dynamic(
   () => import('./chemistry/SimpleChemicalStructure').then((mod) => mod.default),
   {
+    ssr: false,
     loading: () => (
       <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
         <div className="flex flex-col items-center gap-3">
@@ -94,6 +102,7 @@ const SimpleChemicalStructure = dynamic(
 const RDKitStructure = dynamic(
   () => import('./chemistry/RDKitStructure').then((mod) => mod.default),
   {
+    ssr: false,
     loading: () => (
       <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
         <div className="flex flex-col items-center gap-3">
@@ -108,6 +117,7 @@ const RDKitStructure = dynamic(
 const MoleculeFingerprint = dynamic(
   () => import('./chemistry/MoleculeFingerprint').then((mod) => mod.default),
   {
+    ssr: false,
     loading: () => (
       <div className="my-6 items-center justify-center rounded-lg border border-dashed border-border p-4 dark:border-border">
         <div className="flex flex-col items-center gap-3">
@@ -123,6 +133,7 @@ const MoleculeFingerprint = dynamic(
 const GaussianSplat = dynamic(
   () => import('./gaussian-splat/GaussianSplat').then((mod) => mod.default),
   {
+    ssr: false,
     loading: () => (
       <div className="my-6 flex h-96 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
         <div className="flex flex-col items-center gap-3">
@@ -136,6 +147,7 @@ const GaussianSplat = dynamic(
 
 // 动态导入图表组件
 const EChartsComponent = dynamic(() => import('./charts').then((mod) => mod.EChartsComponent), {
+  ssr: false,
   loading: () => (
     <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
@@ -147,6 +159,7 @@ const EChartsComponent = dynamic(() => import('./charts').then((mod) => mod.ECha
 })
 
 const NivoBarChart = dynamic(() => import('./charts').then((mod) => mod.NivoBarChart), {
+  ssr: false,
   loading: () => (
     <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
@@ -158,6 +171,7 @@ const NivoBarChart = dynamic(() => import('./charts').then((mod) => mod.NivoBarC
 })
 
 const NivoLineChart = dynamic(() => import('./charts').then((mod) => mod.NivoLineChart), {
+  ssr: false,
   loading: () => (
     <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
@@ -169,6 +183,7 @@ const NivoLineChart = dynamic(() => import('./charts').then((mod) => mod.NivoLin
 })
 
 const NivoPieChart = dynamic(() => import('./charts').then((mod) => mod.NivoPieChart), {
+  ssr: false,
   loading: () => (
     <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
@@ -180,6 +195,7 @@ const NivoPieChart = dynamic(() => import('./charts').then((mod) => mod.NivoPieC
 })
 
 const AntVChart = dynamic(() => import('./charts').then((mod) => mod.AntVChart), {
+  ssr: false,
   loading: () => (
     <div className="my-6 flex h-64 items-center justify-center rounded-lg border border-dashed border-border dark:border-border">
       <div className="flex flex-col items-center gap-3">
@@ -243,16 +259,24 @@ const WrappedConfettiOnView = (props: any) => (
 // 包装图表组件，使其可以在MDX中安全使用
 const WrappedEChartsComponent = (props: any) => {
   // 提取formatter函数，其他props传递给组件
-  const { option, ...restProps } = props
+  // Note: option is resolved inside EChartsComponent via resolveDataProp
+  const { option, optionBase64, ...restProps } = props
   const formatters: { [key: string]: (...args: unknown[]) => unknown } = {}
 
-  // 从option中提取函数配置
-  const safeOption = JSON.parse(JSON.stringify(option || {}))
+  // 从option中提取函数配置 (only if option is a real object)
+  const safeOption = option && typeof option === 'object'
+    ? JSON.parse(JSON.stringify(option))
+    : (optionBase64 ? undefined : {})
 
   return (
     <AnimationErrorBoundary>
       <Suspense fallback={<AnimationSkeleton />}>
-        <EChartsComponent option={safeOption} formatters={formatters} {...restProps} />
+        <EChartsComponent
+          option={safeOption}
+          optionBase64={optionBase64}
+          formatters={formatters}
+          {...restProps}
+        />
       </Suspense>
     </AnimationErrorBoundary>
   )
@@ -372,6 +396,7 @@ export const components = {
   NivoLineChart: WrappedNivoLineChart,
   NivoPieChart: WrappedNivoPieChart,
   AntVChart: WrappedAntVChart,
+  BilibiliVideo,
   // Excalidraw 绘图组件
   excalidraw: ExcalidrawEmbed,
   // Gaussian Splatting 3D 渲染组件 (Spark 2.0, World Labs)

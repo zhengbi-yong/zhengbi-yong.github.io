@@ -14,6 +14,7 @@ pub mod search_index;
 pub mod state;
 pub mod storage;
 pub mod utils;
+pub mod watchdog;
 
 // 重新导出常用类型
 pub use metrics::*;

@@ -21,7 +21,7 @@ export default function BounceIn({
   delay = 0,
   duration = 0.6,
   className = '',
-  whileInView = false,
+  whileInView = true,
 }: BounceInProps) {
   // 移动设备优化：缩短动画时长
   const { duration: optimizedDuration } = getMobileOptimizedAnimationParams(0, duration)

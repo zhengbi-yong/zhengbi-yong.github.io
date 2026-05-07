@@ -228,8 +228,8 @@ export function detectChemicalFormat(data: string): 'smiles' | 'mol' | 'sdf' | '
   if (
     !trimmedData.includes('\n') &&
     trimmedData.length > 1 &&
-    trimmedData.length < 200 &&
-    /^[BCNOSPFIPClBr[\]()@=+\-#\\/%0-9.]+$/.test(trimmedData)
+    trimmedData.length < 500 &&
+    /^[BCNOSPFIHClBr[\]()@=+\-#\\/%0-9.]+$/.test(trimmedData)
   ) {
     return 'smiles'
   }

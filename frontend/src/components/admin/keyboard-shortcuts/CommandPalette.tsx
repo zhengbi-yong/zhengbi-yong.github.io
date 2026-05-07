@@ -84,11 +84,11 @@ export function CommandPalette() {
       category: 'navigation',
     },
     {
-      id: 'nav-monitoring',
-      label: '系统监控',
-      description: '查看系统健康状态和性能',
+      id: 'nav-status',
+      label: '状态管理',
+      description: '系统状态、自动化测试与手动验证',
       icon: <Activity className="w-4 h-4" />,
-      action: () => router.push('/admin/monitoring'),
+      action: () => router.push('/admin/status'),
       category: 'navigation',
     },
     {

@@ -21,7 +21,7 @@ export default function FadeIn({
   delay = 0,
   duration = 0.5,
   className = '',
-  whileInView = false,
+  whileInView = true,
 }: FadeInProps) {
   // 移动设备优化：缩短动画时长
   const { duration: optimizedDuration } = getMobileOptimizedAnimationParams(0, duration)

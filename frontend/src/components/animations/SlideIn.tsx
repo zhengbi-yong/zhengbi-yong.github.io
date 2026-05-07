@@ -25,7 +25,7 @@ export default function SlideIn({
   duration = 0.5,
   distance = 20,
   className = '',
-  whileInView = false,
+  whileInView = true,
 }: SlideInProps) {
   // 使用 useState 确保服务器端和客户端初始值一致
   const [optimizedDistance, setOptimizedDistance] = useState(distance)

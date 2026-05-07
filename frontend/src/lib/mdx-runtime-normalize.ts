@@ -16,8 +16,106 @@ function encodeBase64Utf8(value: string) {
   throw new Error('Base64 encoding is unavailable in the current runtime')
 }
 
+/**
+ * Extract a balanced brace/bracket expression starting at `startPos`.
+ * Handles nested braces ({}) and brackets ([]).  Returns the extracted
+ * substring INCLUSIVE of the closing delimiter, or null if unbalanced.
+ */
+function extractBalancedExpression(text: string, startPos: number): string | null {
+  const openChar = text[startPos]
+  const closeChar = openChar === '{' ? '}' : openChar === '[' ? ']' : null
+  if (closeChar === null) return null
+
+  let depth = 1
+  let i = startPos + 1
+
+  for (; i < text.length; i++) {
+    if (text[i] === openChar) depth++
+    else if (text[i] === closeChar) {
+      depth--
+      if (depth === 0) return text.slice(startPos, i + 1)
+    }
+  }
+
+  return null // unbalanced
+}
+
+/**
+ * Convert complex JSX expression props (objects and arrays) to base64
+ * string attributes so next-mdx-remote can parse them.
+ *
+ * Handles:
+ *   option={{...}}  → optionBase64="<base64>"
+ *   data={[...]}    → dataBase64="<base64>"
+ *   keys={[...]}    → keysBase64="<base64>"
+ *
+ * Works by scanning for prop={[ prefix and using balanced-brace matching
+ * to extract the full expression, then replacing the whole thing.
+ */
+function normalizeChartProps(segment: string): string {
+  const COMPLEX_PROPS: Array<{ prop: string; target: string }> = [
+    { prop: 'option', target: 'optionBase64' },
+    { prop: 'data', target: 'dataBase64' },
+    { prop: 'keys', target: 'keysBase64' },
+  ]
+
+  let result = segment
+
+  for (const { prop, target } of COMPLEX_PROPS) {
+    // Pattern: `prop={` followed by `{` (object) or `[` (array)
+    // We look for: prop={ {  or  prop={ [
+    const prefix = `${prop}={`
+
+    let searchFrom = 0
+    while (true) {
+      const startIdx = result.indexOf(prefix, searchFrom)
+      if (startIdx === -1) break
+
+      // Find the first brace after `prop={`
+      const exprOpenIdx = startIdx + prefix.length
+      if (exprOpenIdx >= result.length) break
+
+      const exprOpenChar = result[exprOpenIdx]
+      if (exprOpenChar !== '{' && exprOpenChar !== '[') {
+        searchFrom = startIdx + 1
+        continue
+      }
+
+      // Extract the balanced expression (the JS object or array)
+      const jsBlock = extractBalancedExpression(result, exprOpenIdx)
+      if (!jsBlock) {
+        searchFrom = startIdx + 1
+        continue
+      }
+
+      // Now find the closing } for the JSX expression container
+      // It's right after the jsBlock
+      const jSXCloseIdx = exprOpenIdx + jsBlock.length
+      if (jSXCloseIdx >= result.length || result[jSXCloseIdx] !== '}') {
+        searchFrom = startIdx + 1
+        continue
+      }
+
+      // The full matched span: `prop={ { ... } }` or `prop={ [ ... ] }`
+      const fullMatch = result.slice(startIdx, jSXCloseIdx + 1)
+
+      // Encode the JS block (without the outer JSX {}) as base64
+      const encoded = encodeBase64Utf8(jsBlock)
+
+      // Replace: `prop={ { ... } }` → `target="<base64>"`
+      const replacement = `${target}="${encoded}"`
+      result = result.slice(0, startIdx) + replacement + result.slice(jSXCloseIdx + 1)
+
+      // Continue from after the replacement
+      searchFrom = startIdx + replacement.length
+    }
+  }
+
+  return result
+}
+
 function normalizeSegment(segment: string) {
-  let normalized = segment
+  let normalized = normalizeChartProps(segment)
 
   // Handle template-literals: data={`...`} → dataBase64="..."
   normalized = normalized.replace(/\bdata=\{`([\s\S]*?)`\}/g, (_, value: string) => {

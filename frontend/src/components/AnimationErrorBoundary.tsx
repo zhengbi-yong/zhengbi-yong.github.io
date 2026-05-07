@@ -10,6 +10,7 @@ interface AnimationErrorBoundaryProps {
 
 interface AnimationErrorBoundaryState {
   hasError: boolean
+  error: Error | null
 }
 
 /**
@@ -22,20 +23,33 @@ export class AnimationErrorBoundary extends Component<
 > {
   constructor(props: AnimationErrorBoundaryProps) {
     super(props)
-    this.state = { hasError: false }
+    this.state = { hasError: false, error: null }
   }
 
-  static getDerivedStateFromError(): AnimationErrorBoundaryState {
-    return { hasError: true }
+  static getDerivedStateFromError(error: Error): AnimationErrorBoundaryState {
+    return { hasError: true, error }
   }
 
   override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     logger.error('Animation component error:', error, errorInfo)
+    this.setState({ error })
   }
 
   override render() {
     if (this.state.hasError) {
-      return this.props.fallback || <div className="opacity-50">动画加载失败</div>
+      return (
+        this.props.fallback || (
+          <div className="my-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive dark:border-destructive/15 dark:text-destructive">
+            <strong>动画加载失败</strong>
+            <details className="mt-1">
+              <summary className="cursor-pointer">查看错误详情</summary>
+              <pre className="mt-1 text-xs opacity-70">
+                {this.state.error?.message || 'Unknown error'}
+              </pre>
+            </details>
+          </div>
+        )
+      )
     }
     return this.props.children
   }

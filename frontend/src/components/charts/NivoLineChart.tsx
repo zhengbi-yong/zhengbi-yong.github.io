@@ -3,8 +3,11 @@
 import React from 'react'
 import { ResponsiveLine } from '@nivo/line'
 
+import { resolveDataProp } from '../chemistry/runtimeProps'
+
 interface NivoLineChartProps {
-  data: any[]
+  data?: any[]
+  dataBase64?: string
   width?: number
   height?: number
   margin?: {
@@ -25,7 +28,8 @@ interface NivoLineChartProps {
 }
 
 export const NivoLineChart: React.FC<NivoLineChartProps> = ({
-  data,
+  data: rawData,
+  dataBase64,
   width,
   height = 400,
   margin = { top: 50, right: 130, bottom: 50, left: 60 },
@@ -45,6 +49,9 @@ export const NivoLineChart: React.FC<NivoLineChartProps> = ({
   enableGridX = true,
   enableGridY = true,
 }) => {
+  // Resolve data from raw value or base64 (runtime MDX compatibility)
+  const data = (resolveDataProp(rawData, dataBase64) ?? []) as any[]
+
   return (
     <div style={{ width: width || '100%', height }}>
       <ResponsiveLine

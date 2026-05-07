@@ -18,6 +18,7 @@ pub struct Settings {
     pub cors: CorsConfig,
     pub rate_limit: RateLimitConfig,
     pub meilisearch: Option<MeilisearchConfig>,
+    pub frontend_url: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -327,6 +328,8 @@ impl Settings {
                 }),
                 Ok(_) | Err(_) => None,
             },
+            frontend_url: env::var("FRONTEND_URL")
+                .unwrap_or_else(|_| "http://localhost:3001".to_string()),
         };
 
         // 验证 CORS 配置
