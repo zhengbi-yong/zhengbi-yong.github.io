@@ -10,7 +10,8 @@ export const BilibiliVideoEditor: React.FC<CustomComponentEditorProps> = ({
   block,
   updateAttr,
 }) => {
-  const bvid = block.props?.attributes?.bvid || ''
+  let bvid = ''
+  try { bvid = JSON.parse((block.props as any)?.attributesJson || '{}').bvid || '' } catch {}
 
   return (
     <div

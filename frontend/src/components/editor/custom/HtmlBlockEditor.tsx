@@ -11,7 +11,8 @@ export const HtmlBlockEditor: React.FC<CustomComponentEditorProps> = ({
   block,
   updateAttr,
 }) => {
-  const html = block.props?.attributes?.html || ''
+  let html = ''
+  try { html = JSON.parse((block.props as any)?.attributesJson || '{}').html || '' } catch {}
 
   return (
     <div

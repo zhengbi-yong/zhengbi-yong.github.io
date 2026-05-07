@@ -11,7 +11,8 @@ export const SmilesEditor: React.FC<CustomComponentEditorProps> = ({
   updateAttr,
 }) => {
   const name = block.props?.componentName || 'Chemistry'
-  const attrs = block.props?.attributes || {}
+  let attrs: Record<string, string> = {}
+  try { attrs = JSON.parse((block.props as any)?.attributesJson || '{}') } catch {}
   const smiles = attrs.data || ''
   const width = attrs.width || '400'
   const height = attrs.height || (name === 'MoleculeFingerprint' ? '80' : '300')

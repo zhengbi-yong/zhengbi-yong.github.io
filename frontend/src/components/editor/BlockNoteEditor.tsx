@@ -107,20 +107,29 @@ const NATIVE_BLOCK_TYPES = new Set([
 function migrateLegacyBlocks(blocks: any[]): any[] {
   return blocks.map((block) => {
     if (block.type === 'divider') {
-      console.log('[BlockNoteEditor] migrating divider → thematicBreak')
       return { ...block, type: 'thematicBreak' }
     }
     if (block.type === 'html') {
-      console.log('[BlockNoteEditor] migrating html → HtmlBlock customComponent')
       return {
         id: block.id,
         type: 'customComponent',
         props: {
           componentName: 'HtmlBlock',
-          attributes: { html: block.props?.html || '' },
-          children: [],
+          attributesJson: JSON.stringify({ html: block.props?.html || '' }),
+          childrenJson: '[]',
         },
         content: [],
+      }
+    }
+    if (block.type === 'customComponent') {
+      const props = block.props || {}
+      return {
+        ...block,
+        props: {
+          componentName: props.componentName || '',
+          attributesJson: JSON.stringify(props.attributes || {}),
+          childrenJson: JSON.stringify(props.children || []),
+        },
       }
     }
     return block
@@ -147,10 +156,12 @@ function BlockNoteEditor({
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
-  // ── Register all custom component editors on mount ──
-  useEffect(() => {
+  // ── Register custom editors synchronously (must happen before useCreateBlockNote) ──
+  // Called at module scope to avoid timing issues
+  if (typeof window !== 'undefined' && !(window as any).__customEditorsRegistered) {
+    (window as any).__customEditorsRegistered = true
     registerAllCustomEditors()
-  }, [])
+  }
 
   // 跟随 next-themes 的主题设置
   const { resolvedTheme } = useTheme()
@@ -164,7 +175,10 @@ function BlockNoteEditor({
   const codeBlockSpec = useCodeBlockSpec()
 
   // ── 自定义组件 block spec ──
-  const customComponentSpec = useMemo(() => createCustomComponentBlockSpec(), [])
+  const customComponentSpec = useMemo(() => {
+    const factory = createCustomComponentBlockSpec()
+    return factory() // invoke the factory to get the actual BlockSpec
+  }, [])
 
   // ── 扩展 schema：codeBlock + customComponent ──
   const schema = useMemo(
@@ -223,6 +237,27 @@ function BlockNoteEditor({
       try {
         // Deep-clone to avoid mutating editor.document
         const doc = JSON.parse(JSON.stringify(editor.document))
+
+        // Reverse migration: convert attributesJson/childrenJson back to attributes/children
+        if (Array.isArray(doc)) {
+          for (const block of doc) {
+            if (block.type === 'customComponent') {
+              const props = block.props || {}
+              if (props.attributesJson) {
+                try {
+                  props.attributes = JSON.parse(props.attributesJson)
+                } catch { props.attributes = {} }
+                delete props.attributesJson
+              }
+              if (props.childrenJson) {
+                try {
+                  props.children = JSON.parse(props.childrenJson)
+                } catch { props.children = [] }
+                delete props.childrenJson
+              }
+            }
+          }
+        }
 
         // Normalize code blocks: merge multiple text nodes
         if (Array.isArray(doc)) {

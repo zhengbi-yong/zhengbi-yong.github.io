@@ -12,8 +12,10 @@ export const AnimationWrapperEditor: React.FC<CustomComponentEditorProps> = ({
   updateAttr,
 }) => {
   const name = block.props?.componentName || 'Animation'
-  const attrs = block.props?.attributes || {}
-  const children = block.props?.children || []
+  let attrs: Record<string, string> = {}
+  try { attrs = JSON.parse((block.props as any)?.attributesJson || '{}') } catch {}
+  let children: any[] = []
+  try { children = JSON.parse((block.props as any)?.childrenJson || '[]') } catch {}
   const direction = attrs.direction || ''
 
   const emojiMap: Record<string, string> = {

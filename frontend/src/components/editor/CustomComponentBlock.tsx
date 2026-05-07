@@ -7,10 +7,13 @@ import type { BlockNoteEditor, BlockNoDefaults } from '@blocknote/core'
 import type { ReactCustomBlockRenderProps } from '@blocknote/react'
 
 // ── Prop schema for all customComponent blocks ────────────────────────────────
+// To preserve attributes and children through BlockNote's prop system,
+// store them as JSON strings. The migration step in migrateLegacyBlocks
+// handles conversion. Editor components parse them back as needed.
 export const customComponentPropSchema = {
   componentName: { default: '' },
-  attributes: { default: {} as Record<string, string> },
-  children: { default: [] as any[] },
+  attributesJson: { default: '{}' },
+  childrenJson: { default: '[]' },
 } as const
 
 export type CustomComponentBlock = BlockNoDefaults<
@@ -55,7 +58,11 @@ export function getCustomEditor(
 // ── Default fallback editor ──────────────────────────────────────────────────
 const DefaultCustomEditor: CustomComponentEditor = ({ block, updateAttr }) => {
   const name = block.props?.componentName || 'Unknown'
-  const attrs = block.props?.attributes || {}
+  // Parse attributes from JSON string (migrated format)
+  let attrs: Record<string, string> = {}
+  try {
+    attrs = JSON.parse((block.props as any)?.attributesJson || '{}')
+  } catch { /* keep empty */ }
   const attrKeys = Object.keys(attrs)
 
   return (
@@ -136,13 +143,12 @@ export function createCustomComponentBlockSpec() {
         const EditorComponent = getCustomEditor(componentName) || DefaultCustomEditor
 
         const updateAttr = (key: string, value: string) => {
+          const currentAttrs = JSON.parse((block.props as any)?.attributesJson || '{}')
+          currentAttrs[key] = value
           editor.updateBlock(block, {
             props: {
               ...block.props,
-              attributes: {
-                ...block.props.attributes,
-                [key]: value,
-              },
+              attributesJson: JSON.stringify(currentAttrs),
             },
           } as any)
         }
@@ -151,7 +157,7 @@ export function createCustomComponentBlockSpec() {
           editor.updateBlock(block, {
             props: {
               ...block.props,
-              attributes: attrs,
+              attributesJson: JSON.stringify(attrs),
             },
           } as any)
         }

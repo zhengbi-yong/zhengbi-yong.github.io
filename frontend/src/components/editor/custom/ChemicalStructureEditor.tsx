@@ -10,7 +10,8 @@ export const ChemicalStructureEditor: React.FC<CustomComponentEditorProps> = ({
   block,
   updateAttr,
 }) => {
-  const attrs = block.props?.attributes || {}
+  let attrs: Record<string, string> = {}
+  try { attrs = JSON.parse((block.props as any)?.attributesJson || '{}') } catch {}
   const data = attrs.data || ''
   const style = attrs.style || 'stick'
   const format = attrs.format || 'xyz'

@@ -12,7 +12,8 @@ export const JsonDataEditor: React.FC<CustomComponentEditorProps> = ({
   updateAttr,
 }) => {
   const name = block.props?.componentName || 'Chart'
-  const attrs = block.props?.attributes || {}
+  let attrs: Record<string, string> = {}
+  try { attrs = JSON.parse((block.props as any)?.attributesJson || '{}') } catch {}
 
   const iconMap: Record<string, string> = {
     EChartsComponent: '📊',
