@@ -188,12 +188,77 @@ def make_image_block(src, alt="", caption=""):
     return make_block("image", props=props)
 
 
+def make_custom_component(component_name, attributes=None, children_blocks=None):
+    """Create a customComponent block for MDX React components.
+    
+    Stores React component usage as structured BlockNote blocks
+    rather than raw text paragraphs. The frontend renderer
+    maps componentName back to the actual React component.
+    """
+    return make_block(
+        "customComponent",
+        props={
+            "componentName": component_name,
+            "attributes": attributes or {},
+            "children": children_blocks or [],
+        },
+        content=[],
+    )
+
+
+def make_html_block(html_text):
+    """Create an html block for raw HTML content."""
+    return make_block(
+        "html",
+        props={"html": html_text},
+        content=[],
+    )
+
+
 def make_video_block(src, title=""):
     """Create a video block."""
     return make_block("video", props={
         "url": src,
         "name": title or os.path.basename(src),
     })
+
+
+# ============================================================
+# JSX attribute parser
+# ============================================================
+
+def _parse_jsx_attrs(attrs_str):
+    """Parse JSX attribute string into a dict.
+    
+    Handles: bvid="xxx", width={400}, height={300}, 
+             option={{...}} , data={`...`}, className="..."
+    """
+    if not attrs_str:
+        return {}
+    
+    attrs = {}
+    # Match key="value" or key={value} patterns
+    # For complex values like {{...}} or {`...`}, capture the raw expression
+    pattern = re.compile(
+        r'(\w+)\s*=\s*(?:'
+        r'"([^"]*)"'                    # "string"
+        r'|'                             
+        r'\{([^}]*(?:\{[^}]*\}[^}]*)*)\}'  # {expression} (handles {{}})
+        r')',
+        re.DOTALL
+    )
+    
+    for match in pattern.finditer(attrs_str):
+        key = match.group(1)
+        str_val = match.group(2)
+        expr_val = match.group(3)
+        
+        if str_val is not None:
+            attrs[key] = str_val
+        elif expr_val is not None:
+            attrs[key] = expr_val.strip()
+    
+    return attrs
 
 
 def make_file_block(url, name=""):
@@ -521,12 +586,97 @@ def parse_mdx_to_blocks(mdx_text):
                     blocks.append(make_block("paragraph", content=_parse_inline_styles(cl)))
             continue
         
+        # ===== JSX custom components (<ComponentName ...props />) =====
+        # Self-closing: <BilibiliVideo bvid="xxx" />
+        # No-attribute: <FadeIn> or <FadeIn/>
+        # Paired: <FadeIn> ...children... </FadeIn>
+        # Raw HTML with JSX syntax: <div className="...">...</div>
+        # Multi-line components (ECharts, SimpleChemicalStructure) stay as-is for now
+        jsx_tag = re.match(r'^<([A-Z][a-zA-Z0-9]*|div|details|summary|kbd|mark|abbr|img)\b', stripped)
+        
+        if jsx_tag:
+            tag_name = jsx_tag.group(1)
+            
+            # Check if it's a closing tag
+            if stripped == f'</{tag_name}>':
+                i += 1
+                continue
+            
+            # Only handle single-line tags for now
+            # Multi-line (ECharts, SimpleChemicalStructure) fall through to paragraph
+            if not (stripped.endswith('/>') or stripped.endswith('>')):
+                i += 1
+                continue
+            
+            # Self-closing: <Component ... />
+            if '/>' in stripped:
+                inner = stripped[len('<'+tag_name):-2].strip()
+                attrs = _parse_jsx_attrs(inner)
+                blocks.append(make_custom_component(tag_name, attrs))
+                i += 1
+                continue
+            
+            # Opening tag: <Component ...> or <Component>
+            rest = stripped[len('<'+tag_name):-1] if stripped.endswith('>') else stripped[len('<'+tag_name):]
+            attrs_str = rest.strip()
+            
+            if tag_name[0].isupper():
+                # Custom React component: find matching close tag
+                attrs = _parse_jsx_attrs(attrs_str)
+                close_tag = f'</{tag_name}>'
+                k = i + 1
+                child_text_lines = []
+                depth = 1
+                while k < len(lines) and depth > 0:
+                    s = lines[k].strip()
+                    if s.startswith(f'<{tag_name}') and not s.startswith(f'</{tag_name}>'):
+                        depth += 1
+                    elif s == close_tag:
+                        depth -= 1
+                        if depth == 0:
+                            break
+                    else:
+                        child_text_lines.append(s)
+                    k += 1
+                
+                child_blocks = []
+                if child_text_lines:
+                    child_text = '\n'.join(child_text_lines)
+                    try:
+                        child_blocks = parse_mdx_to_blocks(child_text)
+                    except:
+                        child_blocks = [make_paragraph_with_inline(_parse_inline_styles(child_text))]
+                
+                blocks.append(make_custom_component(tag_name, attrs, child_blocks))
+                i = k + 1
+            else:
+                # Raw HTML tag: store as html block
+                html_lines = [stripped]
+                k = i + 1
+                close_tag = f'</{tag_name}>'
+                while k < len(lines):
+                    s = lines[k].strip()
+                    html_lines.append(s)
+                    if s == close_tag:
+                        break
+                    k += 1
+                blocks.append(make_html_block(' '.join(html_lines)))
+                i = k + 1
+            continue
+        
+        # Catch closing tags for robustness
+        jsx_close = re.match(r'^</([A-Z][a-zA-Z0-9]*|div|details|summary|p)>$', stripped)
+        if jsx_close:
+            i += 1
+            continue
+        
         # ===== Paragraph (default) =====
         para_lines = []
         while i < len(lines) and lines[i].strip():
             s = lines[i].strip()
             # Stop at any special block starter
             if (s.startswith('```') or s.startswith('#') or
+                s.startswith('<') or  # JSX / HTML tags
                 re.match(r'^[\-\*\+]\s+', s) or
                 re.match(r'^\d+[\.\)]\s+', s) or
                 re.match(r'^[\-\*\_]{3,}\s*$', s) or
@@ -584,6 +734,8 @@ def main():
             videos = sum(1 for b in blocks if b['type'] == 'video')
             quotes = sum(1 for b in blocks if b['type'] == 'blockquote')
             dividers = sum(1 for b in blocks if b['type'] == 'divider')
+            custom_comps = sum(1 for b in blocks if b['type'] == 'customComponent')
+            html_blocks = sum(1 for b in blocks if b['type'] == 'html')
             
             output[post['id']] = json.dumps(blocks, ensure_ascii=False)
             updated += 1
@@ -600,6 +752,8 @@ def main():
             if videos > 0: parts.append(f"vid×{videos}")
             if quotes > 0: parts.append(f"quote×{quotes}")
             if dividers > 0: parts.append(f"hr×{dividers}")
+            if custom_comps > 0: parts.append(f"comp×{custom_comps}")
+            if html_blocks > 0: parts.append(f"html×{html_blocks}")
             
             slug = post['slug'][:45]
             print(f"✅ {slug:<47} {', '.join(parts)}")
