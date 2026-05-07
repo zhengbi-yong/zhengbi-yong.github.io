@@ -137,7 +137,7 @@ def make_blockquote(inline_content):
 
 
 def make_divider():
-    return make_block("divider")
+    return make_block("thematicBreak")
 
 
 def make_table_paragraph(text):
@@ -207,10 +207,18 @@ def make_custom_component(component_name, attributes=None, children_blocks=None)
 
 
 def make_html_block(html_text):
-    """Create an html block for raw HTML content."""
+    """Create an HtmlBlock custom component for raw HTML content.
+    
+    Uses customComponent type so BlockNote can preserve the data
+    without needing a native 'html' block type.
+    """
     return make_block(
-        "html",
-        props={"html": html_text},
+        "customComponent",
+        props={
+            "componentName": "HtmlBlock",
+            "attributes": {"html": html_text},
+            "children": [],
+        },
         content=[],
     )
 
@@ -232,31 +240,86 @@ def _parse_jsx_attrs(attrs_str):
     
     Handles: bvid="xxx", width={400}, height={300}, 
              option={{...}} , data={`...`}, className="..."
+    Uses manual brace/quote counting for accurate nested value extraction.
     """
     if not attrs_str:
         return {}
     
     attrs = {}
-    # Match key="value" or key={value} patterns
-    # For complex values like {{...}} or {`...`}, capture the raw expression
-    pattern = re.compile(
-        r'(\w+)\s*=\s*(?:'
-        r'"([^"]*)"'                    # "string"
-        r'|'                             
-        r'\{([^}]*(?:\{[^}]*\}[^}]*)*)\}'  # {expression} (handles {{}})
-        r')',
-        re.DOTALL
-    )
+    i = 0
+    n = len(attrs_str)
     
-    for match in pattern.finditer(attrs_str):
-        key = match.group(1)
-        str_val = match.group(2)
-        expr_val = match.group(3)
+    while i < n:
+        # Skip whitespace
+        while i < n and attrs_str[i] in ' \t\n\r':
+            i += 1
+        if i >= n:
+            break
         
-        if str_val is not None:
-            attrs[key] = str_val
-        elif expr_val is not None:
-            attrs[key] = expr_val.strip()
+        # Find key name
+        key_start = i
+        while i < n and (attrs_str[i].isalnum() or attrs_str[i] in '_-'):
+            i += 1
+        key = attrs_str[key_start:i]
+        if not key:
+            break
+        
+        # Skip whitespace and =
+        while i < n and attrs_str[i] in ' \t\n\r':
+            i += 1
+        if i >= n or attrs_str[i] != '=':
+            break
+        i += 1  # skip =
+        while i < n and attrs_str[i] in ' \t\n\r':
+            i += 1
+        
+        if i >= n:
+            break
+        
+        # Parse value
+        if attrs_str[i] == '"':
+            # String value
+            i += 1  # skip opening "
+            val_start = i
+            while i < n and attrs_str[i] != '"':
+                if attrs_str[i] == '\\':
+                    i += 1  # skip escaped char
+                i += 1
+            attrs[key] = attrs_str[val_start:i]
+            i += 1  # skip closing "
+        elif attrs_str[i] == '{':
+            # JSX expression: count braces to find matching }
+            i += 1  # skip opening {
+            depth = 1
+            val_start = i
+            while i < n and depth > 0:
+                if attrs_str[i] == '{':
+                    depth += 1
+                elif attrs_str[i] == '}':
+                    depth -= 1
+                    if depth == 0:
+                        break
+                elif attrs_str[i] in '\'"`':
+                    # Skip over string/template literals
+                    quote = attrs_str[i]
+                    i += 1
+                    while i < n and attrs_str[i] != quote:
+                        if attrs_str[i] == '\\':
+                            i += 1
+                        i += 1
+                i += 1
+            attrs[key] = attrs_str[val_start:i].strip()
+            i += 1  # skip closing }
+        elif attrs_str[i] == '`':
+            # Template literal
+            i += 1  # skip opening `
+            val_start = i
+            while i < n and attrs_str[i] != '`':
+                if attrs_str[i] == '\\':
+                    i += 1
+                i += 1
+            attrs[key] = attrs_str[val_start:i]
+            i += 1  # skip closing `
     
     return attrs
 
@@ -602,11 +665,101 @@ def parse_mdx_to_blocks(mdx_text):
                 i += 1
                 continue
             
-            # Only handle single-line tags for now
-            # Multi-line (ECharts, SimpleChemicalStructure) fall through to paragraph
-            if not (stripped.endswith('/>') or stripped.endswith('>')):
+            # Handle both single-line and multi-line components
+            # Single-line: <Component ... /> or <Component ...> or <Component>
+            # Multi-line: <Component\n  ...props...\n/> or <Component>\n...children...\n</Component>
+            is_single_line = stripped.endswith('/>') or (stripped.endswith('>') and stripped != f'<{tag_name}>' and not stripped.startswith(f'<{tag_name} '))
+            
+            # If the closing tag is on the same line, treat as inline paragraph (not a component)
+            close_tag = f'</{tag_name}>'
+            if not is_single_line and close_tag in stripped:
                 i += 1
-                continue
+                continue  # Fall through to paragraph handling
+            
+            # Multi-line: buffer subsequent lines until the tag is complete
+            if not is_single_line and not stripped.endswith('/>'):
+                # Collect all lines of this multi-line component
+                combined_lines = [lines[i]]
+                k = i + 1
+                close_tag = f'</{tag_name}>'
+                depth = 1
+                while k < len(lines) and depth > 0:
+                    combined_lines.append(lines[k])
+                    s = lines[k].strip()
+                    # Track nesting: opening same tag increases depth
+                    if s.startswith(f'<{tag_name}') and not s.startswith(close_tag):
+                        if not s.endswith('/>'):  # Self-closing doesn't increase depth
+                            depth += 1
+                    elif s == close_tag:
+                        depth -= 1
+                        if depth == 0:
+                            break  # Matched closing tag
+                    elif depth == 1 and s.endswith('/>') and s.startswith(f'<{tag_name}'):
+                        # Self-closing of the SAME tag at depth 1 terminates the component
+                        break
+                    elif depth == 1 and s == '/>':
+                        # Standalone /> (or line ending with />) at depth 1 closes multi-line component
+                        break
+                    k += 1
+                
+                # Reconstruct the full component string
+                full_component = '\n'.join(combined_lines)
+                full_stripped = full_component.strip()
+                
+                if close_tag in full_stripped:
+                    # Multi-line paired tag: <tag>...children...</tag>
+                    opening_end = full_stripped.find('>')
+                    attrs_str = full_stripped[len('<'+tag_name):opening_end].strip()
+                    attrs = _parse_jsx_attrs(attrs_str)
+                    children_start = opening_end + 1
+                    children_end = full_stripped.rfind(close_tag)
+                    child_text = full_stripped[children_start:children_end].strip()
+                    child_blocks = []
+                    if child_text:
+                        try:
+                            child_blocks = parse_mdx_to_blocks(child_text)
+                        except:
+                            child_blocks = [make_paragraph_with_inline(_parse_inline_styles(child_text))]
+                    if tag_name[0].isupper():
+                        blocks.append(make_custom_component(tag_name, attrs, child_blocks))
+                    else:
+                        blocks.append(make_html_block(full_stripped))
+                    i = k + 1
+                    continue
+                elif '/>' in full_stripped:
+                    # Multi-line self-closing: <Component\n  ...\n/>
+                    inner = full_stripped[len('<'+tag_name):full_stripped.rfind('/>')].strip()
+                    attrs = _parse_jsx_attrs(inner)
+                    blocks.append(make_custom_component(tag_name, attrs))
+                    i = k + 1
+                    continue
+                elif tag_name[0].isupper():
+                    # Multi-line paired: <Component\n  ...\n>\n...children...\n</Component>
+                    # Extract attributes from the opening tag
+                    opening_end = full_stripped.find('>')
+                    attrs_str = full_stripped[len('<'+tag_name):opening_end].strip()
+                    attrs = _parse_jsx_attrs(attrs_str)
+                    # Extract children between > and </tag_name>
+                    children_start = opening_end + 1
+                    children_end = full_stripped.rfind(close_tag)
+                    child_text = full_stripped[children_start:children_end].strip()
+                    child_blocks = []
+                    if child_text:
+                        try:
+                            child_blocks = parse_mdx_to_blocks(child_text)
+                        except:
+                            child_blocks = [make_paragraph_with_inline(_parse_inline_styles(child_text))]
+                    blocks.append(make_custom_component(tag_name, attrs, child_blocks))
+                    i = k + 1
+                    continue
+                else:
+                    # Multi-line HTML tag
+                    html_str = full_stripped
+                    blocks.append(make_html_block(html_str))
+                    i = k + 1
+                    continue
+            
+            # Single-line handling below
             
             # Self-closing: <Component ... />
             if '/>' in stripped:

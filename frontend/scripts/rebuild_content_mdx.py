@@ -32,15 +32,17 @@ def block_to_mdx(block: dict) -> str:
             if item['type'] == 'text':
                 text = item['text']
                 styles = item.get('styles', {})
-                if styles.get('bold') and styles.get('italic'):
+                has_bold = 'bold' in styles
+                has_italic = 'italic' in styles
+                if has_bold and has_italic:
                     text = f'***{text}***'
-                elif styles.get('bold'):
+                elif has_bold:
                     text = f'**{text}**'
-                elif styles.get('italic'):
+                elif has_italic:
                     text = f'*{text}*'
-                elif styles.get('strike'):
+                elif 'strike' in styles:
                     text = f'~~{text}~~'
-                elif styles.get('code'):
+                elif 'code' in styles:
                     text = f'`{text}`'
                 parts.append(text)
             elif item['type'] == 'link':
@@ -95,7 +97,11 @@ def block_to_mdx(block: dict) -> str:
         inner = '\n'.join(block_to_mdx(child) for child in content)
         return '\n'.join(f'> {line}' for line in inner.split('\n'))
 
+    elif block_type == 'thematicBreak':
+        return '---'
+
     elif block_type == 'divider':
+        # Legacy support — all new content uses thematicBreak
         return '---'
 
     elif block_type == 'image':
@@ -117,13 +123,18 @@ def block_to_mdx(block: dict) -> str:
     elif block_type == 'customComponent':
         # Convert customComponent back to JSX
         component_name = props.get('componentName', '')
+        
+        # HtmlBlock: output raw HTML directly
+        if component_name == 'HtmlBlock':
+            return props.get('attributes', {}).get('html', '')
+        
         attrs = props.get('attributes', {})
         child_blocks = props.get('children', [])
 
         attr_parts = []
         for k, v in attrs.items():
             # Determine if value looks like JSX expression or string
-            if v.startswith('{') or v.startswith('[') or v.isdigit() or v in ('true', 'false', 'null'):
+            if v.startswith('{') or v.startswith('[') or v.startswith('`') or v.isdigit() or v in ('true', 'false', 'null'):
                 attr_parts.append(f'{k}={{{v}}}')
             else:
                 attr_parts.append(f'{k}="{v}"')
@@ -139,6 +150,7 @@ def block_to_mdx(block: dict) -> str:
             return f'<{component_name}{attrs_str} />'
 
     elif block_type == 'html':
+        # Legacy html blocks — now migrated to HtmlBlock customComponent
         return props.get('html', '')
 
     elif block_type == 'file':
@@ -159,7 +171,7 @@ def parse_blocks_to_mdx(blocks: list) -> str:
             # Add blank line before headings, code blocks, tables, custom components, dividers
             block_type = block['type']
             if i > 0 and block_type in ('heading', 'codeBlock', 'table', 'customComponent', 
-                                         'divider', 'image', 'video', 'blockquote', 'html'):
+                                         'thematicBreak', 'divider', 'image', 'video', 'blockquote', 'html'):
                 lines.append('')
             lines.append(mdx)
     return '\n'.join(lines)

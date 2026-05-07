@@ -67,10 +67,10 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
       <PostLayoutMonograph
         content={post as any}
         authorDetails={[]}
-        toc={extractTocFromContent(post.content || '')}
+        toc={extractTocFromContent(post.content_mdx || '')}
         showTOC={showTOC}
       >
-        <DynamicPostRenderer content={post.content} slug={slug} />
+        <DynamicPostRenderer content={post.content_mdx || ''} slug={slug} />
       </PostLayoutMonograph>
     </>
   )

@@ -380,11 +380,12 @@ pub async fn create_post(
         return Err(AppError::Conflict("Slug already exists".to_string()));
     }
 
-    // Phase 4: 如果提供了 content_json 但没有 content_mdx，自动派生 MDX
-    let content_mdx = match (&req.content_json, &req.content_mdx) {
-        (Some(json), None) => Some(content_json_to_mdx(json)),
-        (_, mdx) => mdx.clone(),
-    };
+    // Phase 4: content_mdx 优先级：显式传入 > content_json 派生 > req.content（legacy）
+    let content_mdx_value = req
+        .content_mdx
+        .clone()
+        .or_else(|| req.content_json.as_ref().map(|j| content_json_to_mdx(j)))
+        .unwrap_or_else(|| req.content.clone());
 
     // 计算阅读时间
     let reading_time_obj = ReadingTime::from_content(&req.content);
@@ -394,25 +395,25 @@ pub async fn create_post(
     let post_id = sqlx::query_scalar!(
         r#"
         INSERT INTO posts (
-            slug, title, content, summary, cover_image_id,
+            slug, title, content_mdx, summary, cover_image_id,
             status, published_at, scheduled_at,
             meta_title, meta_description, canonical_url,
             category_id, author_id, show_toc, layout,
             is_featured, content_format, reading_time,
-            content_json, content_mdx
+            content_json
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8,
             $9, $10, $11,
             $12, $13, $14, $15,
             $16, $17, $18,
-            $19, $20
+            $19
         )
         RETURNING id
         "#,
         created_slug,
         req.title,
-        req.content,
+        content_mdx_value,
         req.summary,
         req.cover_image_id,
         req.status as PostStatus,
@@ -429,7 +430,6 @@ pub async fn create_post(
         req.content_format,
         reading_time as i32,
         req.content_json,
-        content_mdx,
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -584,7 +584,7 @@ async fn get_post_response(
     let post_row = sqlx::query!(
         r#"
         SELECT
-            p.id, p.slug, p.title, p.content, p.content_html, p.summary,
+            p.id, p.slug, p.title, p.content_mdx, p.content_html, p.summary,
             m.cdn_url as "cover_image_url?",
             p.status as "status!: blog_db::cms::PostStatus",
             p.published_at, p.scheduled_at,
@@ -595,7 +595,7 @@ async fn get_post_response(
             p.view_count, p.like_count, p.comment_count,
             p.created_at, p.updated_at, p.lastmod_at,
             p.reading_time as "reading_time?: i32",
-            p.content_json, p.content_mdx
+            p.content_json
         FROM posts p
         LEFT JOIN media m ON p.cover_image_id = m.id
         LEFT JOIN categories c ON p.category_id = c.id
@@ -610,7 +610,7 @@ async fn get_post_response(
     match post_row {
         Some(row) => {
             // 解析 content：处理三种情况
-            // 1. content_mdx 为 NULL 或空 → 从 content_json 或 content 字段降级
+            // 1. content_mdx 为 NULL 或空 → 从 content_json 字段降级
             // 2. content_mdx 是 TipTap JSON 格式（脏数据）→ 实时转换
             // 3. content_mdx 是真正 MDX → 直接使用
             let content = {
@@ -619,13 +619,12 @@ async fn get_post_response(
                     .clone()
                     .filter(|s| !s.is_empty())
                     .unwrap_or_else(|| {
-                        // fallback 1: content_json 有数据时自动检测格式转换
+                        // fallback: content_json 有数据时自动检测格式转换
                         let json_str = serde_json::to_string(&row.content_json).unwrap_or_default();
                         if json_str != "{}" && json_str.len() > 2 {
                             content_json_to_mdx(row.content_json.as_ref().unwrap_or(&serde_json::Value::Null))
                         } else {
-                            // fallback 2: 直接从 content 字段读取（旧数据导入路径）
-                            row.content.clone()
+                            String::new()
                         }
                     });
                 let trimmed = raw.trim_start();
@@ -644,7 +643,7 @@ async fn get_post_response(
                 id: row.id,
                 slug: row.slug,
                 title: row.title,
-                content,
+                content_mdx: content,
                 content_html: row.content_html,
                 summary: row.summary,
                 cover_image_url: row.cover_image_url,
@@ -669,7 +668,6 @@ async fn get_post_response(
                 lastmod_at: row.lastmod_at,
                 reading_time: row.reading_time,
                 content_json: row.content_json,
-                content_mdx: row.content_mdx,
                 tags: Vec::new(), // 将在下面填充
                 ..Default::default()
             };
@@ -769,7 +767,7 @@ pub async fn update_post(
         update_fields.push(format!("title = ${}", update_fields.len() + 2));
     }
     if req.content.is_some() {
-        update_fields.push(format!("content = ${}", update_fields.len() + 2));
+        update_fields.push(format!("content_mdx = ${}", update_fields.len() + 2));
     }
     if req.content_html.is_some() {
         update_fields.push(format!("content_html = ${}", update_fields.len() + 2));

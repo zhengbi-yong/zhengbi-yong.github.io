@@ -216,7 +216,7 @@ pub async fn restore_version(
     sqlx::query!(
         r#"
         UPDATE posts
-        SET title = $1, content = $2, summary = $3, updated_at = NOW()
+        SET title = $1, content_mdx = $2, summary = $3, updated_at = NOW()
         WHERE id = $4
         "#,
         version.title,

@@ -57,7 +57,7 @@ pub struct Post {
     pub id: Uuid,
     pub slug: String,
     pub title: String,
-    pub content: String,
+    pub content_mdx: String,
     pub content_html: Option<String>,
     pub summary: Option<String>,
     pub cover_image_id: Option<Uuid>,
@@ -89,7 +89,7 @@ pub struct PostDetail {
     pub id: Uuid,
     pub slug: String,
     pub title: String,
-    pub content: String,
+    pub content_mdx: String,
     pub content_html: Option<String>,
     pub summary: Option<String>,
     pub cover_image_url: Option<String>,
@@ -113,9 +113,8 @@ pub struct PostDetail {
     pub updated_at: DateTime<Utc>,
     pub lastmod_at: Option<DateTime<Utc>>,
     pub reading_time: Option<i32>,
-    // Phase 3: 双轨存储
+    // Phase 3: 双轨存储 — content_json 为 SSOT，content_mdx 自动派生
     pub content_json: Option<serde_json::Value>,
-    pub content_mdx: Option<String>,
     #[serde(default)]
     pub tags: Vec<TagBasic>,
     // Platform transformation

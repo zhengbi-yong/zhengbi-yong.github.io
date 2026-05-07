@@ -243,22 +243,20 @@ async fn process_mdx_file(
                 r#"
                 UPDATE posts
                 SET title = $1,
-                    content = $2,
-                    content_json = $3,
-                    content_mdx = $4,
-                    summary = $5,
-                    status = $6::post_status,
-                    published_at = $7,
-                    category_id = $8,
-                    show_toc = $9,
-                    layout = $10,
+                    content_json = $2,
+                    content_mdx = $3,
+                    summary = $4,
+                    status = $5::post_status,
+                    published_at = $6,
+                    category_id = $7,
+                    show_toc = $8,
+                    layout = $9,
                     deleted_at = NULL,
                     updated_at = NOW()
-                WHERE id = $11
+                WHERE id = $10
                 "#,
             )
             .bind(&frontmatter.title)
-            .bind(&body)
             .bind(&content_json)
             .bind(content_mdx)
             .bind(&frontmatter.summary)
@@ -292,16 +290,15 @@ async fn process_mdx_file(
             sqlx::query(
                 r#"
                 INSERT INTO posts (
-                    id, slug, title, content, content_json, content_mdx, summary, status,
+                    id, slug, title, content_json, content_mdx, summary, status,
                     published_at, category_id, show_toc, layout,
                     reading_time
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::post_status, $9, $10, $11, $12, $13)
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7::post_status, $8, $9, $10, $11, $12)
                 "#,
             )
             .bind(post_id)
             .bind(&frontmatter.slug)
             .bind(&frontmatter.title)
-            .bind(&body)
             .bind(&content_json)
             .bind(content_mdx)
             .bind(&frontmatter.summary)
@@ -858,14 +855,14 @@ pub async fn backfill_blocknote_json(state: &AppState) -> Result<(usize, usize),
     #[derive(sqlx::FromRow)]
     struct PostRow {
         id: Uuid,
-        content: String,
+        content_mdx: String,
     }
 
     let rows: Vec<PostRow> = sqlx::query_as(
-        r#"SELECT id, content FROM posts
+        r#"SELECT id, content_mdx FROM posts
            WHERE (content_json IS NULL OR content_json = '{}'::jsonb
                   OR jsonb_array_length(content_json) = 0)
-             AND content IS NOT NULL AND content != ''"#
+             AND content_mdx IS NOT NULL AND content_mdx != ''"#
     )
     .fetch_all(&state.db)
     .await?;
@@ -874,7 +871,7 @@ pub async fn backfill_blocknote_json(state: &AppState) -> Result<(usize, usize),
     let mut updated = 0_usize;
 
     for row in rows {
-        let bn_json = mdx_to_blocknote_json(&row.content);
+        let bn_json = mdx_to_blocknote_json(&row.content_mdx);
         if bn_json.as_array().map_or(true, |a| a.is_empty()) {
             continue;
         }
@@ -886,7 +883,7 @@ pub async fn backfill_blocknote_json(state: &AppState) -> Result<(usize, usize),
         )
         .bind(row.id)
         .bind(&bn_json)
-        .bind(&row.content)
+        .bind(&row.content_mdx)
         .execute(&state.db)
         .await?;
 

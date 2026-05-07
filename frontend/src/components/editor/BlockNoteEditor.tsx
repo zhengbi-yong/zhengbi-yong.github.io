@@ -98,6 +98,89 @@ function fixStyles(node: unknown): unknown {
 }
 
 /**
+ * BlockNote 0.49 native block types (from default schema).
+ * Any type NOT in this set causes "Cannot read properties of undefined (reading 'isInGroup')".
+ */
+const NATIVE_BLOCK_TYPES = new Set([
+  'paragraph', 'heading', 'bulletListItem', 'numberedListItem',
+  'checkListItem', 'codeBlock', 'table', 'file', 'image', 'video',
+  'audio', 'embed', 'thematicBreak', 'blockquote',
+])
+
+/**
+ * Normalize content_json blocks before passing to BlockNote.
+ * - Converts 'divider' → 'thematicBreak' (native)
+ * - Replaces 'html' and 'customComponent' with placeholder paragraphs
+ * - Stores original blocks for restoration on save
+ *
+ * Returns: { normalized: Block[], originalMap: Map<string, any> }
+ */
+function normalizeBlocks(blocks: any[]): { normalized: any[], originalMap: Map<string, any> } {
+  const originalMap = new Map<string, any>()
+  const normalized: any[] = []
+
+  for (const block of blocks) {
+    if (!block.id) {
+      normalized.push(block)
+      continue
+    }
+
+    if (NATIVE_BLOCK_TYPES.has(block.type)) {
+      normalized.push(block)
+      continue
+    }
+
+    if (block.type === 'divider') {
+      // Convert to native thematicBreak
+      normalized.push({ ...block, type: 'thematicBreak' })
+      continue
+    }
+
+    // html and customComponent blocks — replace with placeholder paragraph
+    const label = block.type === 'customComponent'
+      ? `📦 ${block.props?.componentName || 'Custom Component'}`
+      : `🔧 HTML Block`
+
+    originalMap.set(block.id, block)
+    normalized.push({
+      id: block.id,
+      type: 'paragraph',
+      props: {},
+      content: [{ type: 'text', text: label, styles: {} }],
+      children: [],
+    })
+  }
+
+  return { normalized, originalMap }
+}
+
+/**
+ * Restore original non-native blocks in the saved document.
+ * For any block whose ID exists in originalMap, replace it with the original
+ * (preserving the block's current ID and children for reordering/deletion).
+ */
+function restoreBlocks(doc: any[], originalMap: Map<string, any>): any[] {
+  // Track which originals were found in the doc
+  const found = new Set<string>()
+
+  const restored = doc.map((block) => {
+    if (block.id && originalMap.has(block.id)) {
+      found.add(block.id)
+      // Restore the original block data but preserve children (for reordering)
+      // and the block ID from the doc (allows BlockNote to maintain ordering)
+      const original = originalMap.get(block.id)!
+      return { ...original, id: block.id }
+    }
+    return block
+  })
+
+  // Originals that were deleted by the user are NOT re-inserted.
+  // Originals that were NOT found in the doc (shouldn't happen normally) are lost.
+
+  return restored
+}
+
+/**
  * BlockNote 编辑器组件
  *
  * 功能：
@@ -115,6 +198,9 @@ function BlockNoteEditor({
 }) {
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+
+  // ── Store original non-native blocks for restoration on save
+  const originalBlocksRef = useRef<Map<string, any>>(new Map())
 
   // 跟随 next-themes 的主题设置
   const { resolvedTheme } = useTheme()
@@ -144,8 +230,25 @@ function BlockNoteEditor({
       try {
         const parsed = JSON.parse(content)
         if (Array.isArray(parsed)) {
+          // Normalize unsupported blocks before passing to BlockNote
+          const { normalized, originalMap } = normalizeBlocks(parsed)
+          originalBlocksRef.current = originalMap
+
+          if (originalMap.size > 0) {
+            console.log(
+              '[BlockNoteEditor] normalized',
+              originalMap.size,
+              'non-native blocks:',
+              [...originalMap.values()].map((b: any) =>
+                b.type === 'customComponent'
+                  ? `customComponent(${b.props?.componentName})`
+                  : b.type
+              )
+            )
+          }
+
           // Debug: log code block content on load
-          for (const block of parsed) {
+          for (const block of normalized) {
             if (block.type === 'codeBlock') {
               const text = block.content?.[0]?.text || ''
               const propsCode = block.props?.code || ''
@@ -164,10 +267,11 @@ function BlockNoteEditor({
               )
             }
           }
-          return fixStyles(parsed) as any
+          return fixStyles(normalized) as any
         }
         return undefined
-      } catch {
+      } catch (e) {
+        console.error('[BlockNoteEditor] parse error:', e)
         return undefined
       }
     })(),
@@ -182,12 +286,15 @@ function BlockNoteEditor({
         // Deep-clone to avoid mutating editor.document
         const doc = JSON.parse(JSON.stringify(editor.document))
         
+        // Restore original non-native blocks
+        const restored = restoreBlocks(doc, originalBlocksRef.current)
+        
         // Normalize code blocks: merge multiple text nodes into one with \n separators.
         // BlockNote sometimes splits code block text at \n into separate text nodes;
         // when loaded back, adjacent text nodes without \n get concatenated → single line.
         // Also check props.code — @blocknote/code-block may store code there.
-        if (Array.isArray(doc)) {
-          for (const block of doc) {
+        if (Array.isArray(restored)) {
+          for (const block of restored) {
             if (block.type === 'codeBlock' && Array.isArray(block.content)) {
               const firstText = block.content[0]?.text || ''
               const propsCode = block.props?.code || ''
@@ -218,7 +325,7 @@ function BlockNoteEditor({
           }
         }
         
-        const blocksJson = JSON.stringify(doc)
+        const blocksJson = JSON.stringify(restored)
         const markdown = editor.blocksToMarkdownLossy()
         cb(blocksJson, markdown)
       } catch (e) {

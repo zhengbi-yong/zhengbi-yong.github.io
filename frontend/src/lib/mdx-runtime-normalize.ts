@@ -236,8 +236,10 @@ function escapeMdxUnsafeContent(content: string): string {
     }
   )
 
-  // 3. Escape remaining bare < and > (stray angle brackets in text)
-  content = content.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // 3. Escape remaining bare < (angle brackets in text)
+  //    DO NOT escape > — Markdown blockquote syntax ("> ") and
+  //    other legitimate uses of > break if escaped to &gt;
+  content = content.replace(/</g, '&lt;')
 
   // 4. Restore protected tags
   content = content.replace(
