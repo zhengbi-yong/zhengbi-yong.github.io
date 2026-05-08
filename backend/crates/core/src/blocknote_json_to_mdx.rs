@@ -110,6 +110,7 @@ fn block_to_mdx(block: &Value) -> String {
                 format!("![{}]({})", caption, src)
             }
         }
+        "customComponent" => custom_component_to_mdx(block),
         // 未知类型回退为 paragraph
         _ => {
             let text = inline_content_to_mdx(&block["content"]);
@@ -169,6 +170,37 @@ fn quote_to_mdx(block: &Value) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+fn custom_component_to_mdx(block: &Value) -> String {
+    let component_name = block["props"]["componentName"]
+        .as_str()
+        .unwrap_or("unknown");
+    
+    // attributesJson is a JSON string, attributes may be a JSON object or string
+    let attrs_str = if let Some(s) = block["props"]["attributesJson"].as_str() {
+        s.to_string()
+    } else if let Some(s) = block["props"]["attributes"].as_str() {
+        s.to_string()
+    } else {
+        serde_json::to_string(&block["props"]["attributes"]).unwrap_or_else(|_| "{}".to_string())
+    };
+    
+    let attrs: Value = serde_json::from_str(&attrs_str).unwrap_or(Value::Null);
+    
+    let mut lines = Vec::new();
+    lines.push(format!("<!-- {} -->", component_name));
+    
+    // Always output attributes as fenced JSON if they have content
+    let pretty = serde_json::to_string_pretty(&attrs).unwrap_or_default();
+    if pretty.len() > 2 && pretty != "{}" && pretty != "null" {
+        lines.push(String::new());
+        lines.push("```json".to_string());
+        lines.push(pretty);
+        lines.push("```".to_string());
+    }
+    
+    lines.join("\n")
 }
 
 fn table_to_mdx(block: &Value) -> String {

@@ -756,9 +756,13 @@ pub async fn update_post(
     // 构建更新查询（动态）
     let mut update_fields = Vec::new();
 
-    // Phase 4: 自动派生 content_mdx（当 content_json 被更新但 content_mdx 未指定时）
-    let derived_mdx: Option<String> = if req.content_json.is_some() && req.content_mdx.is_none() {
+    // Phase 4: content_json 是 SSOT（单一事实来源）
+    // 始终从 content_json 派生 content_mdx，忽略前端传入的 content_mdx
+    // 这样确保 content_mdx 始终与 content_json 一致
+    let derived_mdx: Option<String> = if req.content_json.is_some() {
         req.content_json.as_ref().map(content_json_to_mdx)
+    } else if req.content.is_some() {
+        req.content.clone()
     } else {
         None
     };
@@ -766,7 +770,7 @@ pub async fn update_post(
     if req.title.is_some() {
         update_fields.push(format!("title = ${}", update_fields.len() + 2));
     }
-    if req.content.is_some() {
+    if derived_mdx.is_some() {
         update_fields.push(format!("content_mdx = ${}", update_fields.len() + 2));
     }
     if req.content_html.is_some() {
@@ -814,12 +818,6 @@ pub async fn update_post(
     if req.content_json.is_some() {
         update_fields.push(format!("content_json = ${}", update_fields.len() + 2));
     }
-    if req.content_mdx.is_some() {
-        update_fields.push(format!("content_mdx = ${}", update_fields.len() + 2));
-    } else if derived_mdx.is_some() {
-        // Phase 4: 自动派生的 content_mdx
-        update_fields.push(format!("content_mdx = ${}", update_fields.len() + 2));
-    }
 
     if update_fields.is_empty() {
         tx.rollback().await?;
@@ -839,8 +837,8 @@ pub async fn update_post(
     if let Some(title) = req.title {
         query_builder = query_builder.bind(title);
     }
-    if let Some(ref content) = req.content {
-        query_builder = query_builder.bind(content);
+    if let Some(ref mdx) = derived_mdx {
+        query_builder = query_builder.bind(mdx);
     }
     if let Some(content_html) = req.content_html {
         query_builder = query_builder.bind(content_html);
@@ -887,9 +885,7 @@ pub async fn update_post(
     if let Some(content_json) = req.content_json {
         query_builder = query_builder.bind(content_json);
     }
-    if let Some(content_mdx) = req.content_mdx {
-        query_builder = query_builder.bind(content_mdx);
-    } else if let Some(ref derived) = derived_mdx {
+    if let Some(ref derived) = derived_mdx {
         query_builder = query_builder.bind(derived.clone());
     }
 

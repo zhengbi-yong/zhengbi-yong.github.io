@@ -104,7 +104,6 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
       }
       await adminService.updatePost(originalPost.id, {
         title,
-        content: contentMdx || content,
         content_json: jsonPayload,
         content_mdx: mdxPayload,
         content_format: 'mdx',
