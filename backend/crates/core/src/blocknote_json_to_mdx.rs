@@ -188,12 +188,28 @@ fn custom_component_to_mdx(block: &Value) -> String {
     
     let attrs: Value = serde_json::from_str(&attrs_str).unwrap_or(Value::Null);
     
+    // ── Components with NO meaningful attributes → output JSX directly ──
+    // Animation wrappers (FadeIn, SlideIn, etc.) and other empty-props
+    // components must render as proper JSX tags so MDX compiles them as
+    // React components.  HTML comments (`<!-- ... -->`) are never picked
+    // up by the MDX component map.
+    let is_empty = attrs.is_null()
+        || attrs.as_object().map(|o| o.is_empty()).unwrap_or(false);
+    
+    if is_empty {
+        return format!("<{} />", component_name);
+    }
+    
+    // ── Components WITH attributes → comment + fenced JSON ──
+    // Complex attributes (ECharts options, Nivo data, etc.) are embedded
+    // as fenced JSON blocks to avoid MDX parsing issues with raw JS objects.
+    // The frontend normalizeRuntimeMdxContent step interprets these and
+    // passes props to the actual React components.
     let mut lines = Vec::new();
     lines.push(format!("<!-- {} -->", component_name));
     
-    // Always output attributes as fenced JSON if they have content
     let pretty = serde_json::to_string_pretty(&attrs).unwrap_or_default();
-    if pretty.len() > 2 && pretty != "{}" && pretty != "null" {
+    if pretty.len() > 2 && pretty != "null" {
         lines.push(String::new());
         lines.push("```json".to_string());
         lines.push(pretty);

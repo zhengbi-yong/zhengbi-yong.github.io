@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
-import { useCreateBlockNote } from '@blocknote/react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { useCreateBlockNote, SuggestionMenuController, getDefaultReactSlashMenuItems } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
 import '@blocknote/core/fonts/inter.css'
 import { Loader2 } from 'lucide-react'
 import { BlockNoteSchema, createCodeBlockSpec, defaultBlockSpecs } from '@blocknote/core'
 import { codeBlockOptions } from '@blocknote/code-block'
+import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from '@blocknote/core/extensions'
 import { useTheme } from 'next-themes'
 import { createCustomComponentBlockSpec } from './CustomComponentBlock'
 import { registerAllCustomEditors } from './custom'
@@ -181,6 +182,82 @@ function migrateLegacyBlocks(blocks: any[]): any[] {
   })
 }
 
+// ── Custom Component Slash Menu Items ──────────────────────────────────────────
+// Each custom component gets a dedicated slash menu entry so users can
+// insert them with a single click instead of editing componentName manually.
+
+interface CustomComponentMenuItem {
+  title: string
+  icon: string  // emoji icon
+  componentName: string
+  defaultAttrs: Record<string, string>
+  aliases?: string[]
+  group: string
+}
+
+const CUSTOM_COMPONENT_ITEMS: CustomComponentMenuItem[] = [
+  // Charts
+  { title: 'ECharts 图表', icon: '📊', componentName: 'EChartsComponent', defaultAttrs: { option: '{}' }, aliases: ['echart', 'chart', '图表'], group: '图表' },
+  { title: 'Nivo 柱状图', icon: '📊', componentName: 'NivoBarChart', defaultAttrs: { data: '[]' }, aliases: ['nivo', 'bar', '柱状图'], group: '图表' },
+  { title: 'Nivo 饼图', icon: '🥧', componentName: 'NivoPieChart', defaultAttrs: { data: '[]' }, aliases: ['pie', 'nivo', '饼图'], group: '图表' },
+  { title: 'Nivo 折线图', icon: '📈', componentName: 'NivoLineChart', defaultAttrs: { data: '[]' }, aliases: ['line', 'nivo', '折线图'], group: '图表' },
+  { title: 'AntV 图表', icon: '📊', componentName: 'AntVChart', defaultAttrs: { option: '{}' }, aliases: ['antv', 'chart'], group: '图表' },
+  // Chemistry
+  { title: 'RDKit 分子结构', icon: '🧪', componentName: 'RDKitStructure', defaultAttrs: { smiles: '' }, aliases: ['rdkit', '分子', 'chemistry'], group: '化学' },
+  { title: '分子指纹', icon: '🧬', componentName: 'MoleculeFingerprint', defaultAttrs: { smiles: '' }, aliases: ['fingerprint', '指纹'], group: '化学' },
+  { title: '3D 化学结构', icon: '⚗️', componentName: 'SimpleChemicalStructure', defaultAttrs: { smiles: '' }, aliases: ['3dmol', '3d', '化学结构'], group: '化学' },
+  // Media
+  { title: 'Bilibili 视频', icon: '📺', componentName: 'BilibiliVideo', defaultAttrs: { bvid: '' }, aliases: ['bilibili', 'b站', 'video'], group: '媒体' },
+  // Animation
+  { title: '淡入动画', icon: '✨', componentName: 'FadeIn', defaultAttrs: {}, aliases: ['fade', '淡入'], group: '动画' },
+  { title: '滑入动画', icon: '🎬', componentName: 'SlideIn', defaultAttrs: {}, aliases: ['slide', '滑入'], group: '动画' },
+  { title: '缩放动画', icon: '🔍', componentName: 'ScaleIn', defaultAttrs: {}, aliases: ['scale', '缩放'], group: '动画' },
+  { title: '弹跳动画', icon: '🎾', componentName: 'BounceIn', defaultAttrs: {}, aliases: ['bounce', '弹跳'], group: '动画' },
+  // HTML
+  { title: 'HTML 块', icon: '🌐', componentName: 'HtmlBlock', defaultAttrs: { html: '' }, aliases: ['html', 'embed'], group: '嵌入' },
+]
+
+/**
+ * Returns slash menu items: default BlockNote items + custom component items.
+ * Custom items are only shown when their query matches (or query is short).
+ */
+function getCustomSlashMenuItems(editor: any, query: string) {
+  const defaultItems = getDefaultReactSlashMenuItems(editor)
+  const filteredDefaults = filterSuggestionItems(defaultItems, query)
+
+  // Build custom items
+  const customItems = CUSTOM_COMPONENT_ITEMS
+    .filter((item) => {
+      if (!query) return true // show all custom items when menu first opens
+      const q = query.toLowerCase()
+      return (
+        item.title.toLowerCase().includes(q) ||
+        (item.aliases?.some((a) => a.toLowerCase().includes(q)) ?? false) ||
+        item.group.toLowerCase().includes(q) ||
+        item.componentName.toLowerCase().includes(q)
+      )
+    })
+    .map((item) => ({
+      title: `${item.icon} ${item.title}`,
+      key: `custom_${item.componentName}` as any,
+      group: item.group,
+      subtext: item.aliases?.join(' / '),
+      onItemClick: () => {
+        insertOrUpdateBlockForSlashMenu(editor, {
+          type: 'customComponent',
+          props: {
+            componentName: item.componentName,
+            attributesJson: JSON.stringify(item.defaultAttrs),
+            childrenJson: '[]',
+          },
+        })
+      },
+    }))
+
+  // Combine: custom items first (within their groups), then defaults
+  return [...customItems, ...filteredDefaults]
+}
+
 /**
  * BlockNote 编辑器组件
  *
@@ -189,6 +266,7 @@ function migrateLegacyBlocks(blocks: any[]): any[] {
  * - 43 种编程语言选择器
  * - 暗色/亮色主题自适应（next-themes）
  * - 自定义组件编辑（RDKit, ECharts, Nivo, AntV, 化学结构, 动画包裹器等）
+ * - 自定义斜杠菜单：所有组件一键插入
  * - 双轨输出：BlockNote JSON（SSOT） + Markdown（博客渲染）
  */
 function BlockNoteEditor({
@@ -379,6 +457,12 @@ function BlockNoteEditor({
     }
   }, [])
 
+  // ── Custom slash menu getItems with editor bound ──
+  const slashMenuGetItems = useCallback(
+    async (query: string) => getCustomSlashMenuItems(editor, query),
+    [editor]
+  )
+
   if (!editor) {
     return (
       <div className="flex items-center justify-center h-[400px] text-muted-foreground border rounded-lg">
@@ -394,7 +478,13 @@ function BlockNoteEditor({
         key={bnTheme}
         editor={editor}
         theme={bnTheme}
-      />
+        slashMenu={false}
+      >
+        <SuggestionMenuController
+          triggerCharacter="/"
+          getItems={slashMenuGetItems}
+        />
+      </BlockNoteView>
     </div>
   )
 }

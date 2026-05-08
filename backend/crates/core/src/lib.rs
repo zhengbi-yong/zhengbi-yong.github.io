@@ -33,12 +33,27 @@ pub use blocknote_json_to_mdx::blocknote_json_to_mdx;
 ///
 /// 此函数消除了所有调用方需要自行判断格式的负担。
 pub fn content_json_to_mdx(json: &serde_json::Value) -> String {
-    match json {
+    // Handle JSON strings that wrap a JSON array/object
+    // (e.g. when content_json is stored as a JSONB-encoded string "[{...}]")
+    let parsed: &serde_json::Value;
+    let owned: serde_json::Value;
+    if let serde_json::Value::String(s) = json {
+        if let Ok(v) = serde_json::from_str::<serde_json::Value>(s) {
+            owned = v;
+            parsed = &owned;
+        } else {
+            return String::new();
+        }
+    } else {
+        parsed = json;
+    }
+
+    match parsed {
         serde_json::Value::Array(_) => {
-            blocknote_json_to_mdx(json)
+            blocknote_json_to_mdx(parsed)
         }
         serde_json::Value::Object(obj) if obj.contains_key("content") => {
-            tiptap_json_to_mdx(json)
+            tiptap_json_to_mdx(parsed)
         }
         _ => {
             String::new()
