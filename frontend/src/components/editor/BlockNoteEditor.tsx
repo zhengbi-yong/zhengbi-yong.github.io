@@ -6,7 +6,7 @@ import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
 import '@blocknote/core/fonts/inter.css'
 import { Loader2 } from 'lucide-react'
-import { BlockNoteSchema, createCodeBlockSpec } from '@blocknote/core'
+import { BlockNoteSchema, createCodeBlockSpec, defaultBlockSpecs } from '@blocknote/core'
 import { codeBlockOptions } from '@blocknote/code-block'
 import { useTheme } from 'next-themes'
 import { createCustomComponentBlockSpec } from './CustomComponentBlock'
@@ -96,18 +96,54 @@ function fixStyles(node: unknown): unknown {
 const NATIVE_BLOCK_TYPES = new Set([
   'paragraph', 'heading', 'bulletListItem', 'numberedListItem',
   'checkListItem', 'codeBlock', 'table', 'file', 'image', 'video',
-  'audio', 'embed', 'thematicBreak', 'blockquote', 'customComponent',
+  'audio', 'divider', 'quote', 'toggleListItem', 'customComponent',
 ])
 
 /**
  * One-time migration: convert legacy block types to current format.
- * - 'divider' → 'thematicBreak'
+ * BlockNote 0.49 renames:
+ * - 'thematicBreak' → 'divider'
+ * - 'blockquote' → 'quote'
  * - 'html' → customComponent with componentName='HtmlBlock'
+ * - Strip empty content/children from blocks that don't support them
  */
 function migrateLegacyBlocks(blocks: any[]): any[] {
+  // Block types that MUST NOT have content/children (content: 'none')
+  const NO_CONTENT_TYPES = new Set([
+    'divider', 'image', 'video', 'audio', 'file',
+    'customComponent',
+  ])
+
   return blocks.map((block) => {
-    if (block.type === 'divider') {
-      return { ...block, type: 'thematicBreak' }
+    // BlockNote 0.49 renamed thematicBreak → divider
+    if (block.type === 'thematicBreak') {
+      return { ...block, type: 'divider' }
+    }
+    // BlockNote 0.49 renamed blockquote → quote (content type changed from block to inline)
+    if (block.type === 'blockquote') {
+      // Extract all text from nested blocks and flatten to inline content
+      const inlineContent: any[] = []
+      function extractText(nodes: any[]) {
+        for (const node of nodes) {
+          if (node.type === 'text') {
+            inlineContent.push({ type: 'text', text: node.text, styles: node.styles || {} })
+          } else if (Array.isArray(node.content)) {
+            extractText(node.content)
+          }
+        }
+      }
+      extractText(block.content || [])
+      return {
+        id: block.id,
+        type: 'quote',
+        props: block.props || {},
+        content: inlineContent.length > 0 ? inlineContent : [{ type: 'text', text: '', styles: {} }],
+        children: [],
+      }
+    }
+    // Legacy embed type → file
+    if (block.type === 'embed') {
+      return { ...block, type: 'file' }
     }
     if (block.type === 'html') {
       return {
@@ -123,8 +159,10 @@ function migrateLegacyBlocks(blocks: any[]): any[] {
     }
     if (block.type === 'customComponent') {
       const props = block.props || {}
+      // Remove content/children — customComponent has content: 'none'
+      const { content: _c, children: _ch, ...rest } = block
       return {
-        ...block,
+        ...rest,
         props: {
           componentName: props.componentName || '',
           attributesJson: JSON.stringify(props.attributes || {}),
@@ -132,6 +170,13 @@ function migrateLegacyBlocks(blocks: any[]): any[] {
         },
       }
     }
+
+    // Clean up blocks that must not have content/children
+    if (NO_CONTENT_TYPES.has(block.type)) {
+      const { content: _c, children: _ch, ...rest } = block
+      return rest
+    }
+
     return block
   })
 }
@@ -180,12 +225,18 @@ function BlockNoteEditor({
     return factory() // invoke the factory to get the actual BlockSpec
   }, [])
 
-  // ── 扩展 schema：codeBlock + customComponent ──
+  // ── 完整 schema：所有默认块 + codeBlock(Shiki高亮) + customComponent ──
+  // BlockNoteSchema.create() 不带参数时使用 defaultBlockSpecs，
+  // 传入 blockSpecs 时会完全替换。extend() 同样替换 blockSpecs。
+  // 因此必须一次性传入所有需要的块规格，包括默认块。
   const schema = useMemo(
     () =>
-      BlockNoteSchema.create().extend({
+      BlockNoteSchema.create({
         blockSpecs: {
+          ...defaultBlockSpecs,
+          // 用 Shiki 高亮版覆盖默认 codeBlock
           codeBlock: codeBlockSpec,
+          // 自定义组件块
           customComponent: customComponentSpec,
         },
       }),
