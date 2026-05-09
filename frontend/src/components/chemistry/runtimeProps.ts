@@ -29,8 +29,13 @@ export function resolveChemicalTextProp(value?: string, valueBase64?: string) {
   // XYZ/SDF/PDB data is sometimes stored with leading/trailing
   // backticks (from template-literal wrapping in older editor versions).
   // 3Dmol.js requires clean format headers; `12 → 12 breaks parsing.
+  // Handles both bare (`) and escaped (\`) backtick forms.
   if (resolved.length >= 2 && resolved.startsWith('`') && resolved.endsWith('`')) {
     resolved = resolved.slice(1, -1)
+  } else if (resolved.length >= 3 &&
+    resolved.startsWith('\\`') && resolved.endsWith('`')) {
+    // Escaped backtick from template literal unescaping
+    resolved = resolved.slice(2, -1)
   }
 
   return resolved
