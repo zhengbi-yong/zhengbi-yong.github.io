@@ -253,9 +253,25 @@ fn value_to_jsx_attributes(attrs: &Value) -> String {
                         }
                     }
                 }
-                // Escape double quotes inside the string
-                let escaped = s.replace('"', "&quot;");
-                parts.push(format!("{}=\"{}\"", key, escaped));
+                // ── Multi-line / special-char strings → template literal ──
+                // JSX string attributes can NOT span multiple lines.
+                // Strings containing newlines, backticks, or very long strings
+                // use the `key={`value`}` form (template literal).
+                // The frontend normalizeRuntimeMdxContent pipeline converts
+                // these to base64 props for safe MDX parsing.
+                let needs_template_literal = s.contains('\n')
+                    || s.contains('`')
+                    || s.len() > 200;
+                if needs_template_literal {
+                    let escaped = s
+                        .replace('\\', "\\\\")
+                        .replace('`', "\\`")
+                        .replace("${", "\\${");
+                    parts.push(format!("{}={{`{}`}}", key, escaped));
+                } else {
+                    let escaped = s.replace('"', "&quot;");
+                    parts.push(format!("{}=\"{}\"", key, escaped));
+                }
             }
             Value::Number(n) => {
                 parts.push(format!("{}={{{}}}", key, n));

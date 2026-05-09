@@ -97,16 +97,26 @@ function normalizeChartProps(segment: string): string {
     result = result.slice(0, r.start) + r.replacement + result.slice(r.end)
   }
 
-  // ── Phase 2: Template-literal handler ──
-  // data={`...`} → dataBase64="..."
-  result = result.replace(/\bdata=\{`([\s\S]*?)`\}/g, (_, value: string) => {
-    return `dataBase64="${encodeBase64Utf8(value)}"`
-  })
+  // ── Phase 2: Template-literal handler (generic) ──
+  // prop={`value`} → propBase64="<base64>"
+  // Handles multi-line strings, XYZ structures, and any other
+  // prop whose value needs template-literal wrapping.
+  const templateLiteralPattern = /(\w+)={`([\s\S]*?)`}/g
+  let tlMatch: RegExpExecArray | null
+  while ((tlMatch = templateLiteralPattern.exec(result)) !== null) {
+    const prop = tlMatch[1]
+    const value = tlMatch[2]
+    const encoded = encodeBase64Utf8(value)
+    result = result.slice(0, tlMatch.index) +
+      `${prop}Base64="${encoded}"` +
+      result.slice(tlMatch.index + tlMatch[0].length)
+    templateLiteralPattern.lastIndex = tlMatch.index + prop.length + 11 + encoded.length
+  }
 
   // Handle BROKEN template-literals where backticks were lost in storage:
-  // data={3 Water...} → dataBase64="..."
-  result = result.replace(/\bdata=\{([^}]+)\}/g, (_, value: string) => {
-    return `dataBase64="${encodeBase64Utf8(value)}"`
+  // prop={3 Water...} → propBase64="..."
+  result = result.replace(/(\w+)={([^}]+)}/g, (_, prop: string, value: string) => {
+    return `${prop}Base64="${encodeBase64Utf8(value)}"`
   })
 
   // ── Phase 3: String-encoded JSON objects ──
@@ -147,18 +157,6 @@ function normalizeChartProps(segment: string): string {
 
 function normalizeSegment(segment: string) {
   let normalized = normalizeChartProps(segment)
-
-  // Handle template-literals: data={`...`} → dataBase64="..."
-  normalized = normalized.replace(/\bdata=\{`([\s\S]*?)`\}/g, (_, value: string) => {
-    return `dataBase64="${encodeBase64Utf8(value)}"`
-  })
-
-  // Handle BROKEN template-literals where backticks were lost in storage:
-  // data={3 Water...} → dataBase64="..."
-  // Matches data={ followed by content (no curly braces) up to the closing }
-  normalized = normalized.replace(/\bdata=\{([^}]+)\}/g, (_, value: string) => {
-    return `dataBase64="${encodeBase64Utf8(value)}"`
-  })
 
   for (const prop of NUMERIC_PROPS) {
     const expressionPattern = new RegExp(`\\b${prop}=\\{(-?\\d+(?:\\.\\d+)?)\\}`, 'g')
