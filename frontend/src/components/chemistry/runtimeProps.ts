@@ -17,15 +17,23 @@ export function decodeBase64Utf8(value: string): string {
 }
 
 export function resolveChemicalTextProp(value?: string, valueBase64?: string) {
+  let resolved = ''
+
   if (typeof value === 'string' && value.trim()) {
-    return value
+    resolved = value
+  } else if (typeof valueBase64 === 'string' && valueBase64.length > 0) {
+    resolved = decodeBase64Utf8(valueBase64)
   }
 
-  if (typeof valueBase64 === 'string' && valueBase64.length > 0) {
-    return decodeBase64Utf8(valueBase64)
+  // ── Strip backtick delimiters ──
+  // XYZ/SDF/PDB data is sometimes stored with leading/trailing
+  // backticks (from template-literal wrapping in older editor versions).
+  // 3Dmol.js requires clean format headers; `12 → 12 breaks parsing.
+  if (resolved.length >= 2 && resolved.startsWith('`') && resolved.endsWith('`')) {
+    resolved = resolved.slice(1, -1)
   }
 
-  return ''
+  return resolved
 }
 
 export function resolveNumberProp(value: number | string | undefined, fallback: number) {
