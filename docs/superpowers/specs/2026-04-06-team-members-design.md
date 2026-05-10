@@ -1,3 +1,7 @@
+---
+title: Team Members Data Management & Admin Panel
+---
+
 # Team Members Data Management & Admin Panel
 
 **Date**: 2026-04-06

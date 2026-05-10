@@ -1,0 +1,18 @@
+{
+  "title": "Testing",
+  "pages": [
+    "CI_QUALITY_GATES",
+    "CLAUDE",
+    "admin-test-report",
+    "checklist",
+    "e2e-test-checklist",
+    "frontend-testing-report",
+    "payload-cms-final-test-report-2026-01-02",
+    "payload-cms-test-execution-report-2026-01-02",
+    "payload-cms-testing-guide",
+    "phase1-completion-report",
+    "playwright-e2e-enhancement-plan",
+    "testing-completion-guide",
+    "testing-progress-report"
+  ]
+}

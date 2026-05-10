@@ -1,3 +1,7 @@
+---
+title: 技术指南 / Technical Guides
+---
+
 # 技术指南 / Technical Guides
 
 本目录包含技术实现指南，涵盖高级功能配置和集成。

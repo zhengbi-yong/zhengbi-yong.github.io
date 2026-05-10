@@ -1,3 +1,7 @@
+---
+title: "P2: XSS Sanitization — Defense in Depth"
+---
+
 # P2: XSS Sanitization — Defense in Depth
 
 ## Threat Model

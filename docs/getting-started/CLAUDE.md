@@ -1,3 +1,7 @@
+---
+title: Getting Started Documentation
+---
+
 # Getting Started Documentation
 
 ## Module Overview

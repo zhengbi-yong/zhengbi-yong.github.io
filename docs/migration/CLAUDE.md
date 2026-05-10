@@ -1,3 +1,7 @@
+---
+title: Migration Documentation
+---
+
 # Migration Documentation
 
 ## Purpose

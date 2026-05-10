@@ -1,3 +1,7 @@
+---
+title: Slidev 部署路径配置说明（GitHub Pages）
+---
+
 # Slidev 部署路径配置说明（GitHub Pages）
 
 本仓库的 Slidev 演示文稿通过脚本构建后发布到 GitHub Pages。当前希望所有幻灯片访问路径为：

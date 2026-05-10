@@ -1,3 +1,7 @@
+---
+title: 平台版功能清单 (Feature Checklist)
+---
+
 # 平台版功能清单 (Feature Checklist)
 
 > **版本**: platform-transformation  

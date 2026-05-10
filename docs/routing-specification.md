@@ -1,3 +1,7 @@
+---
+title: Route Specification v1.0
+---
+
 # Route Specification v1.0
 
 > **参考标准**: Stripe API, Google AIP, GitHub API, JSON:API, Microsoft REST Guidelines  

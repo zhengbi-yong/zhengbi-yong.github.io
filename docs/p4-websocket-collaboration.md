@@ -1,3 +1,7 @@
+---
+title: WebSocket Collaboration Architecture (Phase 4)
+---
+
 # WebSocket Collaboration Architecture (Phase 4)
 
 ## Overview

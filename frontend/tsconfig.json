@@ -96,6 +96,9 @@
       ],
       "three/examples/jsm/*": [
         "node_modules/three/examples/jsm/*"
+      ],
+      "collections/*": [
+        "./.source/*"
       ]
     },
     "plugins": [

@@ -1,3 +1,7 @@
+---
+title: 文档归档 / Documentation Archive
+---
+
 # 文档归档 / Documentation Archive
 
 本目录包含历史文档和过程记录，已不再作为活跃的用户文档使用。

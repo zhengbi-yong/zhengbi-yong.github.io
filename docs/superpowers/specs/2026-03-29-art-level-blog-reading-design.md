@@ -1,3 +1,7 @@
+---
+title: "Phase 1: Art-Level Blog Reading Experience — Design Spec"
+---
+
 # Phase 1: Art-Level Blog Reading Experience — Design Spec
 
 > **Status**: Approved for implementation

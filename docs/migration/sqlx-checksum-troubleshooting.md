@@ -1,3 +1,7 @@
+---
+title: SQLx 迁移 Checksum 故障排查
+---
+
 # SQLx 迁移 Checksum 故障排查
 
 记录 SQLx 数据库迁移过程中遇到的 checksum 不匹配问题及解决方案。

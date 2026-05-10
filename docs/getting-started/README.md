@@ -1,3 +1,7 @@
+---
+title: Getting Started
+---
+
 # Getting Started
 
 Use this section when you are new to the repository and need the fastest path to

@@ -1,3 +1,7 @@
+---
+title: Payload CMS 3.0 集成测试指南 / Payload CMS 3.0 Integration Testing Guide
+---
+
 # Payload CMS 3.0 集成测试指南 / Payload CMS 3.0 Integration Testing Guide
 
 **执行日期 / Execution Date**: 2026-01-02

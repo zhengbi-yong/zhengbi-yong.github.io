@@ -1,3 +1,7 @@
+---
+title: Archive Documentation
+---
+
 # Archive Documentation
 
 ## Module Overview

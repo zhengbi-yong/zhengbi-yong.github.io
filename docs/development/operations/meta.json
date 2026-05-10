@@ -1,0 +1,8 @@
+{
+  "title": "Development / Operations",
+  "pages": [
+    "performance-monitoring",
+    "security-guide",
+    "troubleshooting"
+  ]
+}

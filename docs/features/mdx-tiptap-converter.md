@@ -1,3 +1,7 @@
+---
+title: MDX ↔ TipTap JSON 双向转换器
+---
+
 # MDX ↔ TipTap JSON 双向转换器
 
 > **状态**: 设计中

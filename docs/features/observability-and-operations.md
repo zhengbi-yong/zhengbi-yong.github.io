@@ -1,3 +1,7 @@
+---
+title: Observability and Operations
+---
+
 # Observability and Operations
 
 ## Purpose

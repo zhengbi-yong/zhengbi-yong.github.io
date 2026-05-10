@@ -1,0 +1,16 @@
+{
+  "title": "Getting Started",
+  "pages": [
+    "CLAUDE",
+    "README",
+    "README_DEV",
+    "docker-quick-start",
+    "environment-setup",
+    "installation",
+    "local-development-linux",
+    "local-development-macos",
+    "local-development-windows",
+    "quick-start",
+    "troubleshooting"
+  ]
+}

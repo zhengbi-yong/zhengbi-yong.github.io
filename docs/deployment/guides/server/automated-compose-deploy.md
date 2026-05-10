@@ -1,3 +1,7 @@
+---
+title: Automated Compose Deploy
+---
+
 # Automated Compose Deploy
 
 This is the canonical lowest-friction path for a fresh single-host deployment.

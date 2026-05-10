@@ -1,0 +1,11 @@
+{
+  "title": "Operations",
+  "pages": [
+    "CLAUDE",
+    "RESTRUCTURE_GUIDE",
+    "TROUBLESHOOTING",
+    "data-operations-manual",
+    "docker-local-build",
+    "restart-guide"
+  ]
+}

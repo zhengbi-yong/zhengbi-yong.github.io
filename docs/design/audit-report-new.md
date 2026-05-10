@@ -1,3 +1,7 @@
+---
+title: Design Doc vs. Code Audit Report
+---
+
 # Design Doc vs. Code Audit Report
 
 **Date**: 2026-04-29

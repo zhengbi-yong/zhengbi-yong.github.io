@@ -1,3 +1,7 @@
+---
+title: Ports and Networking / 端口和网络
+---
+
 # Ports and Networking / 端口和网络
 
 Understanding network topology, port mappings, and firewall configuration.

@@ -1,3 +1,7 @@
+---
+title: Performance Monitoring Guide
+---
+
 # Performance Monitoring Guide
 
 本文档说明如何监控前端和后端的性能指标，确保系统在生产环境中保持高性能。

@@ -1,3 +1,7 @@
+---
+title: Content and MDX
+---
+
 # Content and MDX
 
 ## Purpose

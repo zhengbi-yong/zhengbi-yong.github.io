@@ -1,3 +1,7 @@
+---
+title: Documentation Index
+---
+
 # Documentation Index
 
 Use [docs/README.md](../../../../docs/README.md) as the canonical documentation hub.

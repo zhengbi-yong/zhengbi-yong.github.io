@@ -1,3 +1,7 @@
+---
+title: Commands Reference / 命令参考
+---
+
 # Commands Reference / 命令参考
 
 Essential commands for deployment, management, and troubleshooting.

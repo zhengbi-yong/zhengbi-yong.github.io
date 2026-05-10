@@ -1,3 +1,7 @@
+---
+title: Route Extension Rules v1.0
+---
+
 # Route Extension Rules v1.0
 
 > 参照: Stripe API · Google AIP · GitHub API · JSON:API · Microsoft REST Guidelines  

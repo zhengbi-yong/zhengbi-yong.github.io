@@ -2,6 +2,7 @@
 // Contentlayer removed - migrated to velite for content processing
 // const { withContentlayer } = require('next-contentlayer2')
 const { withSentryConfig } = require('@sentry/nextjs')
+const { createMDX } = require('fumadocs-mdx/next')
 
 const ignoreBuildErrors = process.env.NEXT_IGNORE_BUILD_ERRORS === '1'
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
@@ -370,4 +371,4 @@ if (process.env.EXPORT !== '1') {
   }
 }
 
-module.exports = withSentryConfig(finalConfig, sentryBuildOptions)
+module.exports = withSentryConfig(createMDX()(finalConfig), sentryBuildOptions)

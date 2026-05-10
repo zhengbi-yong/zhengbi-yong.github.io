@@ -1,3 +1,7 @@
+---
+title: Compose Production Stack
+---
+
 # Compose Production Stack
 
 This is the canonical deployment path for one host and small fleets.

@@ -1,3 +1,7 @@
+---
+title: CI Quality Gates
+---
+
 # CI Quality Gates
 
 **Last updated**: 2026-05-01

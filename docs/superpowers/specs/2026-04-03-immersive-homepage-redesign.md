@@ -1,3 +1,7 @@
+---
+title: Immersive Homepage Redesign Design Spec
+---
+
 # Immersive Homepage Redesign Design Spec
 
 **Date**: 2026-04-03

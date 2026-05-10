@@ -1,3 +1,7 @@
+---
+title: Configuration Documentation
+---
+
 # Configuration Documentation
 
 ## Module Overview

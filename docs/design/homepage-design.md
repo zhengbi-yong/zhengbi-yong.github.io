@@ -1,3 +1,7 @@
+---
+title: 首页沉浸式体验设计
+---
+
 # 首页沉浸式体验设计
 
 > 来源：superpowers/specs/2026-04-03-immersive-homepage-redesign.md（部分已实施）

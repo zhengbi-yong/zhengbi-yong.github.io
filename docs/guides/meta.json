@@ -1,0 +1,12 @@
+{
+  "title": "Guides",
+  "pages": [
+    "CLAUDE",
+    "README",
+    "admin-panel",
+    "content-management",
+    "frontend-backend-guide",
+    "quick-reference",
+    "writing-guide"
+  ]
+}

@@ -1,3 +1,7 @@
+---
+title: Argo CD GitOps
+---
+
 # Argo CD GitOps
 
 Use this when you want cluster upgrades to follow committed release bundles instead of manual `kubectl apply`.

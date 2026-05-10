@@ -27,6 +27,9 @@ frontend/out/
 frontend/public/sitemap.xml
 .vercel
 
+# Fumadocs MDX generated output
+frontend/.source
+
 # production
 /build
 dist/release-assets/

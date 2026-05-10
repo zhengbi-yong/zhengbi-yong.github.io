@@ -1,3 +1,7 @@
+---
+title: Kubernetes Base
+---
+
 # Kubernetes Base
 
 The canonical multi-node deployment base and overlays live in [deployments/kubernetes/README.md](../../../../../../../deployments/kubernetes/README.md).

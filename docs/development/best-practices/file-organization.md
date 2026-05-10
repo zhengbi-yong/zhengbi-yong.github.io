@@ -1,3 +1,7 @@
+---
+title: 文件组织原则指南 (File Organization Principles Guide)
+---
+
 # 文件组织原则指南 (File Organization Principles Guide)
 
 ## 概述 (Overview)

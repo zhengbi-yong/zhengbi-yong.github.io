@@ -1,3 +1,7 @@
+---
+title: Auth and Engagement
+---
+
 # Auth and Engagement
 
 ## Purpose

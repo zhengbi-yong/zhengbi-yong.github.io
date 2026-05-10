@@ -1,3 +1,7 @@
+---
+title: 文件重组验证报告 (File Reorganization Verification Report)
+---
+
 # 文件重组验证报告 (File Reorganization Verification Report)
 
 **执行日期 / Execution Date**: 2026-01-01

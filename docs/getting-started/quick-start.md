@@ -1,3 +1,7 @@
+---
+title: 快速开始 / Quick Start
+---
+
 # 快速开始 / Quick Start
 
 **⚠️ 重要更新 / Important Update**: 快速开始指南已更新并移至根目录。

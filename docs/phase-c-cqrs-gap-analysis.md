@@ -1,3 +1,7 @@
+---
+title: Phase C 差距分析：双轨制存储（CQRS）
+---
+
 # Phase C 差距分析：双轨制存储（CQRS）
 
 ## 现状总览

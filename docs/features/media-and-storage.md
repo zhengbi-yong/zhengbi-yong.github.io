@@ -1,3 +1,7 @@
+---
+title: Media and Storage
+---
+
 # Media and Storage
 
 ## Purpose

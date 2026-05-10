@@ -1,3 +1,7 @@
+---
+title: Documentation Hub
+---
+
 # Documentation Hub
 
 This file is the canonical documentation entrypoint for the repository.

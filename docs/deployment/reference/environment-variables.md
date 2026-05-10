@@ -1,3 +1,7 @@
+---
+title: Environment Variables Reference / 环境变量参考
+---
+
 # Environment Variables Reference / 环境变量参考
 
 Complete reference of all environment variables used in the blog platform.

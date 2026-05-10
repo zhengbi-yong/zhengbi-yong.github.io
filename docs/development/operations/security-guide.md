@@ -1,3 +1,7 @@
+---
+title: Security Guide
+---
+
 # Security Guide
 
 本文档说明项目中的安全措施和最佳实践，确保系统在生产环境中保持安全。

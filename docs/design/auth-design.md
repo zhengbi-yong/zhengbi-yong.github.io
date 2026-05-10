@@ -1,3 +1,7 @@
+---
+title: 认证与授权设计
+---
+
 # 认证与授权设计
 
 > 当前实现：JWT 双令牌（access_token + refresh_token），HttpOnly Cookie 为主，Authorization Header 为辅。

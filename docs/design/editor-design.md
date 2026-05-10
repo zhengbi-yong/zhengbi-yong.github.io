@@ -1,3 +1,7 @@
+---
+title: 编辑器设计原则
+---
+
 # 编辑器设计原则
 
 > 来源：ultradesign_appendix.md、前端实践

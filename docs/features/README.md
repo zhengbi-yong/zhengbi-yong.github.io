@@ -1,3 +1,7 @@
+---
+title: Feature Index
+---
+
 # Feature Index
 
 This directory is the canonical product and platform feature map.

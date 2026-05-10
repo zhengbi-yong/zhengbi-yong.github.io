@@ -1,3 +1,7 @@
+---
+title: 博客阅读体验设计
+---
+
 # 博客阅读体验设计
 
 > 来源：superpowers/specs/2026-03-29-art-level-blog-reading-design.md（已实施）

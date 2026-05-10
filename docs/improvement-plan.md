@@ -1,3 +1,7 @@
+---
+title: 文章编辑器改进计划
+---
+
 # 文章编辑器改进计划
 
 > **目标：** 改进 `frontend/src/app/admin/posts/new/page.tsx` 的 Tiptap 编辑器

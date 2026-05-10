@@ -1,3 +1,7 @@
+---
+title: 开发者黄金标准 (Golden Rules)
+---
+
 # 开发者黄金标准 (Golden Rules)
 
 > 版本: 3.0.0
@@ -161,7 +165,7 @@ const authStore = createStore()({
 })
 ```
 
-### 2.3 <Activity>组件的Effects销毁语义
+### 2.3 `<Activity>`组件的Effects销毁语义
 
 > React 19.2明确: 当Activity隐藏时, React会display:none并销毁Effects (执行cleanup)
 > 恢复可见时重建Effects

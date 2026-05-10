@@ -1,3 +1,7 @@
+---
+title: Frontend Testing Guide
+---
+
 # Frontend Testing Guide
 
 本文档说明前端测试的完整策略，包括单元测试、集成测试、可访问性测试和错误处理测试。

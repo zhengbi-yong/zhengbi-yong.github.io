@@ -1,3 +1,7 @@
+---
+title: Appendix Documentation
+---
+
 # Appendix Documentation
 
 ## Module Overview

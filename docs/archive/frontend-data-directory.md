@@ -1,3 +1,7 @@
+---
+title: Frontend Data Directory
+---
+
 # Frontend Data Directory
 
 ## Purpose

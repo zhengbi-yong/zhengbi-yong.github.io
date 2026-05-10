@@ -1,3 +1,7 @@
+---
+title: Color Theme System
+---
+
 # Color Theme System
 
 ## Purpose

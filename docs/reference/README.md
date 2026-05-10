@@ -1,3 +1,7 @@
+---
+title: 参考文档 / Reference Documentation
+---
+
 # 参考文档 / Reference Documentation
 
 本目录包含技术参考文档，提供详细的技术规范和配置信息。

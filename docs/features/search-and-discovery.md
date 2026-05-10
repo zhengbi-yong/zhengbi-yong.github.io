@@ -1,3 +1,7 @@
+---
+title: Search and Discovery
+---
+
 # Search and Discovery
 
 ## Purpose

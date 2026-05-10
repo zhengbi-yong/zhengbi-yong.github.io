@@ -1,3 +1,7 @@
+---
+title: Troubleshooting Guide
+---
+
 # Troubleshooting Guide
 
 本文档提供常见问题的诊断和解决方案，帮助快速定位和修复系统问题。

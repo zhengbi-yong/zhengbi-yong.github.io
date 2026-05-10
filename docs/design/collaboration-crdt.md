@@ -1,3 +1,7 @@
+---
+title: 实时协作与 CRDT 同步（部分实施）
+---
+
 # 实时协作与 CRDT 同步（部分实施）
 
 > 来源：EDITOR_SYSTEM_DESIGN.md P7 — 扩展阶段，**部分实施**（Hocuspocus 服务器脚本已就绪，前端集成尚未完成）

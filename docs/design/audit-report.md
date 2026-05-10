@@ -1,3 +1,7 @@
+---
+title: Design Doc Audit Report
+---
+
 # Design Doc Audit Report
 
 Generated: 2026-04-29

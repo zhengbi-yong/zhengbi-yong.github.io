@@ -1,3 +1,7 @@
+---
+title: Development Best Practices
+---
+
 # Development Best Practices
 
 本文档说明项目开发的最佳实践，帮助团队保持代码质量和一致性。

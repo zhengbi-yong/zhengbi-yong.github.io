@@ -1,3 +1,7 @@
+---
+title: Admin and Moderation
+---
+
 # Admin and Moderation
 
 ## Purpose

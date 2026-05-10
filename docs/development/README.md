@@ -1,3 +1,7 @@
+---
+title: Developer Guide
+---
+
 # Developer Guide
 
 This is the maintained entrypoint for engineering documentation.

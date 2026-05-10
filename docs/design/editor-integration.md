@@ -1,3 +1,7 @@
+---
+title: 前端编辑器集成
+---
+
 # 前端编辑器集成
 
 > 来源：EDITOR_SYSTEM_DESIGN.md P2
