@@ -13,15 +13,14 @@ interface FumadocsTOCProps {
 /**
  * Fumadocs 风格的博客文章 TOC
  *
- * 使用 fumadocs-core 的 AnchorProvider + TOCItem 实现：
+ * 直接使用 fumadocs-core 的 AnchorProvider + TOCItem：
  * - sticky 定位在右侧 sidebar
- * - 嵌套缩进显示标题层级
- * - active heading 自动高亮（fumadocs 原生 IntersectionObserver 机制）
- * - 点击平滑滚动到目标标题
+ * - 嵌套缩进 / data-[active=true] 高亮 / 点击跳转
+ * - 左侧 border 线 + fumadocs 官方样式
  *
- * 与 fumadocs DocsPage 的 TOC 视觉风格一致：
- * - 左侧 border 线 + 缩进
- * - text-fd-muted-foreground / text-fd-primary 颜色系统
+ * TOC 数据来自 MDX 编译管线的 remarkHeading（与 heading ID 同源）。
+ * 父组件在 onCompiled 回调中传入 TOC，此时内容已在 DOM 中，
+ * AnchorProvider 的 IntersectionObserver 可直接追踪 heading 元素。
  */
 export function FumadocsTOC({ toc }: FumadocsTOCProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -37,7 +36,7 @@ export function FumadocsTOC({ toc }: FumadocsTOCProps) {
           className="sticky top-24 flex flex-col gap-2 pt-8"
           ref={containerRef}
         >
-          {/* TOC 标题 — 与 fumadocs DocsPage TOC header 一致 */}
+          {/* TOC 标题 */}
           <div className="flex items-center gap-2 mb-2">
             <List size={14} className="text-fd-muted-foreground shrink-0" />
             <span className="text-sm font-medium text-fd-muted-foreground">
@@ -45,7 +44,7 @@ export function FumadocsTOC({ toc }: FumadocsTOCProps) {
             </span>
           </div>
 
-          {/* TOC 条目 — 完全复用 fumadocs 原生样式 */}
+          {/* TOC 条目 — fumadocs 官方样式 */}
           <nav className="flex flex-col border-s border-fd-foreground/10">
             {toc.map((item) => (
               <TOCItem
@@ -54,7 +53,7 @@ export function FumadocsTOC({ toc }: FumadocsTOCProps) {
                 className={cn(
                   'prose py-1.5 text-sm text-fd-muted-foreground scroll-m-4 transition-colors wrap-anywhere',
                   'first:pt-0 last:pb-0',
-                  'data-[active=true]:text-fd-primary',
+                  'data-[active=true]:text-[var(--theme-accent)] data-[active=true]:font-semibold data-[active=true]:border-l-[3px] data-[active=true]:border-[var(--theme-accent)] data-[active=true]:-ms-px',
                   'hover:text-fd-accent-foreground',
                   item.depth <= 2 && 'ps-3',
                   item.depth === 3 && 'ps-6',

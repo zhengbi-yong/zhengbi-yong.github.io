@@ -1,12 +1,17 @@
 /**
  * TOC (Table of Contents) 类型定义
- * 匹配 pliny/mdx-plugins 中 extractTocHeadings 返回的数据结构
+ * Aligned with fumadocs-core TOCItemType for native AnchorProvider compatibility.
  */
 
+import type { ReactNode } from 'react'
+
 export interface TOCItem {
-  value: string // 标题文本
-  url: string // 锚点链接（如 #heading-1）
-  depth: number // 标题层级（1-6）
+  /** 标题文本（支持 ReactNode — fumadocs 可含 inline code、bold 等） */
+  title: ReactNode
+  /** 锚点链接（如 #heading-1） */
+  url: string
+  /** 标题层级（1-6） */
+  depth: number
 }
 
 export type TOC = TOCItem[]

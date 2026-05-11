@@ -52,6 +52,9 @@ importers:
       '@headlessui/react':
         specifier: 2.2.9
         version: 2.2.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@mdx-js/mdx':
+        specifier: ^3.1.1
+        version: 3.1.1
       '@mdx-js/react':
         specifier: ^3.1.1
         version: 3.1.1(@types/react@19.2.14)(react@19.2.4)
@@ -427,6 +430,9 @@ importers:
       velite:
         specifier: 0.3.1
         version: 0.3.1
+      vfile:
+        specifier: ^6.0.3
+        version: 6.0.3
       zustand:
         specifier: ^5.0.11
         version: 5.0.11(@types/react@19.2.14)(immer@11.1.4)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))

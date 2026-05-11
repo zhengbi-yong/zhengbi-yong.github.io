@@ -7,12 +7,14 @@
 
 'use client'
 
+import { useState } from 'react'
 import { usePost } from '@/lib/hooks/useBlogData'
 import { DynamicPostRenderer } from '@/components/DynamicPostRenderer'
 import { notFound } from 'next/navigation'
 import PostLayoutMonograph from '@/components/layouts/PostLayoutMonograph'
 import { RDKitLoader } from '@/components/RDKitLoader'
-import { extractTocFromContent } from '@/lib/utils/extract-toc'
+import type { MDXCompileResult } from '@/lib/mdx-runtime'
+import type { TOC } from '@/lib/types/toc'
 
 interface DynamicPostPageProps {
   slug: string
@@ -20,6 +22,8 @@ interface DynamicPostPageProps {
 
 export function DynamicPostPage({ slug }: DynamicPostPageProps) {
   const { data: post, isLoading, error } = usePost(slug)
+  // Fumadocs 方式：TOC 来自 MDX 编译管线的 onCompiled 回调（保证与 heading ID 同源）
+  const [toc, setToc] = useState<TOC>([])
 
   if (isLoading) {
     return (
@@ -68,10 +72,18 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
       <PostLayoutMonograph
         content={post as any}
         authorDetails={[]}
-        toc={extractTocFromContent(postContent)}
+        toc={toc}
         showTOC={showTOC}
       >
-        <DynamicPostRenderer content={postContent} slug={slug} />
+        <DynamicPostRenderer
+          content={postContent}
+          slug={slug}
+          onCompiled={(result: MDXCompileResult) => {
+            // Fumadocs 方式：TOC 与 heading ID 在同一编译管线中提取
+            // 此时 MDX 内容已渲染到 DOM，AnchorProvider 可直接 observe 到 heading 元素
+            setToc(result.toc.filter((item) => item.depth <= 2))
+          }}
+        />
       </PostLayoutMonograph>
     </>
   )

@@ -1,44 +1,24 @@
 /**
- * Extract Table of Contents from MDX/Markdown content
+ * Extract Table of Contents from markdown/MDX content
+ * Uses Fumadocs' remark-heading pipeline for proper heading parsing,
+ * github-slugger for ID generation, and MDX-aware AST traversal.
  */
 
+import { getTableOfContents } from 'fumadocs-core/content/toc'
 import type { TOC } from '@/lib/types/toc'
 
 /**
- * Convert heading text to URL-safe anchor ID
- */
-function headingToId(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s\u4e00-\u9fff-]/g, '') // Keep Chinese chars, alphanumeric, spaces, hyphens
-    .replace(/\s+/g, '-') // Spaces to hyphens
-    .replace(/-+/g, '-') // Multiple hyphens to single
-    .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
-}
-
-/**
- * Extract TOC items from markdown/MDX content
- * Only includes h1 (depth 1) and h2 (depth 2) headings
+ * Extract TOC items from markdown/MDX content using Fumadocs' remark pipeline.
+ * Uses github-slugger for heading ID generation — handles Chinese, emoji,
+ * and special characters correctly (matching Fumadocs DocsPage TOC).
+ *
+ * Only includes h1 (depth 1) and h2 (depth 2) headings.
  */
 export function extractTocFromContent(content: string): TOC {
-  const headingRegex = /^(#{1,6})\s+(.+)$/gm
-  const toc: TOC = []
-  let match
+  if (!content) return []
 
-  while ((match = headingRegex.exec(content)) !== null) {
-    const depth = match[1].length
-    // Only include h1 (depth 1) and h2 (depth 2) headings
-    if (depth > 2) continue
+  const allItems = getTableOfContents(content)
 
-    const text = match[2].trim()
-    const url = `#${headingToId(text)}`
-
-    toc.push({
-      value: text,
-      url,
-      depth,
-    })
-  }
-
-  return toc
+  // Filter to only h1 and h2 (matching Fumadocs docs TOC convention)
+  return allItems.filter((item) => item.depth <= 2)
 }

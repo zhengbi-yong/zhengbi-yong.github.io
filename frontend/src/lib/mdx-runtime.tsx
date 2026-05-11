@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { serialize } from 'next-mdx-remote/serialize'
+import { compile } from '@mdx-js/mdx'
+import { VFile } from 'vfile'
 import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote'
 import dynamic from 'next/dynamic'
 import { components as mdxComponents } from '@/components/MDXComponents'
@@ -11,9 +12,10 @@ import { normalizeRuntimeMdxContent } from './mdx-runtime-normalize'
 import { KatexRenderer } from '@/components/KatexRenderer'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
-import rehypeSlug from 'rehype-slug'
+import { remarkHeading } from 'fumadocs-core/mdx-plugins/remark-heading'
 import rehypeKatex from 'rehype-katex'
 import rehypeMhchem from './rehype-mhchem'
+import type { TOCItemType } from 'fumadocs-core/toc'
 
 // Import KaTeX CSS
 import 'katex/dist/katex.min.css'
@@ -117,12 +119,24 @@ const components = {
   KatexRenderer: KatexRenderer, // 数学公式渲染组件
 }
 
+/**
+ * MDX 编译结果
+ * - source: 可传给 MDXRemote 的编译结果
+ * - toc: remarkHeading 在同一次编译中提取的 TOC（与 heading ID 同源，保证一致）
+ */
+export interface MDXCompileResult {
+  compiledSource: string
+  toc: TOCItemType[]
+}
+
 export type MDXRuntimeProps = {
   content: string
+  /** Fumadocs 方式：编译完成后回调，传递 TOC（与 heading ID 同一管线提取） */
+  onCompiled?: (result: MDXCompileResult) => void
 } & Partial<Omit<MDXRemoteProps, 'source'>>
 
-export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
-  const [mdxSource, setMdxSource] = useState<any>(null)
+export function MDXRuntime({ content, onCompiled, ...props }: MDXRuntimeProps) {
+  const [mdxSource, setMdxSource] = useState<{ compiledSource: string; frontmatter?: Record<string, unknown> } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
@@ -133,15 +147,30 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
       try {
         setIsLoading(true)
         setError(null)
-        const source = await serialize(normalizeRuntimeMdxContent(content), {
-          mdxOptions: {
-            remarkPlugins: [remarkGfm, remarkMath],
-            rehypePlugins: [rehypeSlug, rehypeMhchem, rehypeKatex],
-            format: 'mdx',
-          },
+
+        const normalized = normalizeRuntimeMdxContent(content)
+
+        // Fumadocs 方式：用 @mdx-js/mdx 的 compile() 代替 next-mdx-remote 的 serialize()
+        // remarkHeading 在编译时将 TOC 写入 vfile.data.toc，保证与 heading ID 完全一致
+        const vfile = new VFile(normalized)
+
+        const compiled = await compile(vfile, {
+          remarkPlugins: [remarkGfm, remarkMath, remarkHeading],
+          rehypePlugins: [rehypeMhchem, rehypeKatex],
+          outputFormat: 'function-body',
+          providerImportSource: '@mdx-js/react',
+          development: false,
         })
+
+        // remarkHeading 把 TOC 存在 vfile.data.toc
+        const toc = (vfile.data.toc as TOCItemType[]) || []
+
+        if (onCompiled) {
+          onCompiled({ compiledSource: String(compiled), toc })
+        }
+
         if (!cancelled) {
-          setMdxSource(source)
+          setMdxSource({ compiledSource: String(compiled) })
         }
       } catch (err) {
         if (!cancelled) {
@@ -159,7 +188,7 @@ export function MDXRuntime({ content, ...props }: MDXRuntimeProps) {
     return () => {
       cancelled = true
     }
-  }, [content])
+  }, [content]) // onCompiled intentionally excluded — stable callback
 
   if (isLoading) {
     return <MDXLoadingSkeleton />
