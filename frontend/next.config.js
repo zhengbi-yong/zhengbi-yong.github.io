@@ -38,10 +38,8 @@ const sentryBuildOptions = {
 const nextConfig = {
   // 允许局域网其他机器访问开发服务器
   allowedDevOrigins: ['10.24.23.53', '192.168.0.161', '192.168.0.100'],
-  // 解决 workspace 多个 lockfile 的警告 — 注释掉以强制使用 Webpack（Turbopack 对 reactjs-tiptap-editor 有 bug）
-  // turbopack: {
-  //   root: __dirname,
-  // },
+  // 强制使用 Webpack（Turbopack 不兼容 fumadocs-mdx webpack 插件）
+  webpack: (config) => config,
   // 输出模式：standalone用于Docker，export用于静态导出
   output: process.env.EXPORT === '1' ? 'export' : 'standalone',
   // 静态导出时的基础路径

@@ -1,4 +1,4 @@
-import { DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/page';
+import { DocsPage, DocsBody, DocsDescription, DocsTitle } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import { source } from '@/lib/docs-source';
 
@@ -16,13 +16,13 @@ export default async function Page({
   const MDX = page.data.body;
 
   return (
-    <>
+    <DocsPage toc={page.data.toc}>
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
         <MDX />
       </DocsBody>
-    </>
+    </DocsPage>
   );
 }
 
