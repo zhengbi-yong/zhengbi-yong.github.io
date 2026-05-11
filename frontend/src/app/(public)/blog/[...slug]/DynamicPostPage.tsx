@@ -40,6 +40,8 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
     return notFound()
   }
 
+  const postContent = post.content_mdx || post.content_json || ''
+
   return (
     <>
       {/* RDKit initialization script */}
@@ -65,9 +67,9 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
       <PostLayoutMonograph
         content={post as any}
         authorDetails={[]}
-        toc={extractTocFromContent(post.content || '')}
+        toc={extractTocFromContent(postContent)}
       >
-        <DynamicPostRenderer content={post.content} slug={slug} />
+        <DynamicPostRenderer content={postContent} slug={slug} />
       </PostLayoutMonograph>
     </>
   )
