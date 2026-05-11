@@ -11,7 +11,7 @@ import { BackendComments } from '@/components/post/BackendComments'
 import type { TOC } from '@/lib/types/toc'
 import { resolvePostLayoutContent, type PostLayoutContent } from './postLayoutContent'
 import { usePosts } from '@/lib/hooks/useBlogData'
-import { TableOfContents } from '@/components/navigation/TableOfContents'
+import { FumadocsTOC } from '@/components/navigation/FumadocsTOC'
 import SectionContainer from '@/components/SectionContainer'
 import { useReadingProgressWithApi } from '@/components/hooks/useReadingProgressWithApi'
 import { SummaryRenderer } from '@/components/SummaryRenderer'
@@ -441,7 +441,7 @@ export default function PostLayoutMonograph({
           {/* Sidenote column: TOC (desktop) + floating FAB (mobile/tablet) */}
           {showTOC !== false && toc.length > 0 && (
             <aside className="monograph-toc-aside">
-              <TableOfContents toc={toc} />
+              <FumadocsTOC toc={toc} />
             </aside>
           )}
         </div>
