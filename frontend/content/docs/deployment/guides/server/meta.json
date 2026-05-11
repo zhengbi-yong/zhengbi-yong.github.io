@@ -1,0 +1,9 @@
+{
+  "title": "Deployment / Guides / Server",
+  "pages": [
+    "README",
+    "automated-compose-deploy",
+    "quick-deployment",
+    "system-nginx-cutover"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "CLAUDE",
+    "EDIT-POST-500-BUG",
+    "FEATURE_CHECKLIST",
+    "INDEX",
+    "README",
+    "design-convergence-plan",
+    "improvement-plan",
+    "p2-xss-sanitization",
+    "p4-websocket-collaboration",
+    "phase-c-cqrs-gap-analysis",
+    "quick-start",
+    "routing-extension-rules",
+    "routing-specification"
+  ]
+}

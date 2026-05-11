@@ -1,0 +1,24 @@
+{
+  "title": "Design",
+  "pages": [
+    "README",
+    "ast-conversion",
+    "audit-report-new",
+    "audit-report",
+    "auth-design",
+    "backend-api-design",
+    "collaboration-crdt",
+    "database-schema",
+    "deployment-security",
+    "editor-design",
+    "editor-integration",
+    "frontend-architecture",
+    "frontend-components",
+    "homepage-design",
+    "media-handling",
+    "privacy-compliance",
+    "reading-experience",
+    "roadmap",
+    "testing-strategy"
+  ]
+}

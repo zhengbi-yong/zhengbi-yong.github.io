@@ -1,0 +1,15 @@
+{
+  "title": "Features",
+  "pages": [
+    "README",
+    "admin-and-moderation",
+    "auth-and-engagement",
+    "content-and-mdx",
+    "mdx-tiptap-converter",
+    "media-and-storage",
+    "observability-and-operations",
+    "runtime-and-scaling",
+    "search-and-discovery",
+    "theme-system"
+  ]
+}

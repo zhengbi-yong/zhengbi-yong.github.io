@@ -1,0 +1,10 @@
+{
+  "title": "Development / Best Practices",
+  "pages": [
+    "code-style",
+    "file-organization",
+    "naming-conventions",
+    "overview",
+    "security-practices"
+  ]
+}

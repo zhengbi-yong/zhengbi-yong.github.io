@@ -1,0 +1,10 @@
+{
+  "title": "Deployment / Archive",
+  "pages": [
+    "CROSS_PLATFORM_SUMMARY",
+    "DOCKER_BUILD_SUMMARY",
+    "DOCKER_UPGRADE_SUMMARY",
+    "LOCAL_DEPLOYMENT_SUCCESS",
+    "README"
+  ]
+}
