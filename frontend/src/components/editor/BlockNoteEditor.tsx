@@ -108,6 +108,45 @@ const NATIVE_BLOCK_TYPES = new Set([
  * - 'html' → customComponent with componentName='HtmlBlock'
  * - Strip empty content/children from blocks that don't support them
  */
+
+/**
+ * Fix table blocks using legacy tableContent wrapper format.
+ * BlockNote 0.49.0 expects table.content as a direct rows array with
+ * type:"tableRow" on each row. The legacy format wraps rows in
+ * {type:"tableContent", rows:[...]} and rows may lack type:"tableRow".
+ * This causes "Cannot read properties of undefined (reading 'isInGroup')".
+ */
+function fixTableContent(blocks: any[]): any[] {
+  return blocks.map((block: any) => {
+    if (!block || typeof block !== 'object') return block
+    // Fix 1: unwrap legacy {type:"tableContent", rows:[...]} wrapper
+    if (block.type === 'table' && block.content && typeof block.content === 'object' && !Array.isArray(block.content)) {
+      const wrapper = block.content as Record<string, unknown>
+      if (wrapper.type === 'tableContent' && Array.isArray(wrapper.rows)) {
+        return {
+          ...block,
+          content: wrapper.rows.map((row: any) =>
+            row.type ? row : { ...row, type: 'tableRow' }
+          ),
+        }
+      }
+    }
+    // Fix 2: rows already unwrapped but missing type:"tableRow"
+    if (block.type === 'table' && Array.isArray(block.content)) {
+      const hasMissingType = block.content.some((row: any) => row && typeof row === 'object' && !row.type)
+      if (hasMissingType) {
+        return {
+          ...block,
+          content: block.content.map((row: any) =>
+            row && typeof row === 'object' && !row.type ? { ...row, type: 'tableRow' } : row
+          ),
+        }
+      }
+    }
+    return block
+  })
+}
+
 function migrateLegacyBlocks(blocks: any[]): any[] {
   // Block types that MUST NOT have content/children (content: 'none')
   const NO_CONTENT_TYPES = new Set([
@@ -328,8 +367,10 @@ function BlockNoteEditor({
       try {
         const parsed = JSON.parse(content)
         if (Array.isArray(parsed)) {
-          // Migrate any legacy block types
-          const migrated = migrateLegacyBlocks(parsed)
+          // Fix legacy tableContent wrapper + add missing tableRow type
+          const fixed = fixTableContent(parsed)
+          // Migrate any legacy block types (thematicBreak→divider, blockquote→quote, etc.)
+          const migrated = migrateLegacyBlocks(fixed)
 
           // Debug: log code block content on load
           for (const block of migrated) {
