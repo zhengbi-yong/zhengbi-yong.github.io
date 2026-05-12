@@ -110,6 +110,7 @@ fn block_to_mdx(block: &Value) -> String {
                 format!("![{}]({})", caption, src)
             }
         }
+        "customComponent" => custom_component_to_mdx(block),
         // 未知类型回退为 paragraph
         _ => {
             let text = inline_content_to_mdx(&block["content"]);
@@ -169,6 +170,124 @@ fn quote_to_mdx(block: &Value) -> String {
         })
         .collect::<Vec<_>>()
         .join("\n")
+}
+
+fn custom_component_to_mdx(block: &Value) -> String {
+    let component_name = block["props"]["componentName"]
+        .as_str()
+        .unwrap_or("unknown");
+
+    // attributesJson is a JSON string, attributes may be a JSON object or string
+    let attrs_str = if let Some(s) = block["props"]["attributesJson"].as_str() {
+        s.to_string()
+    } else if let Some(s) = block["props"]["attributes"].as_str() {
+        s.to_string()
+    } else {
+        serde_json::to_string(&block["props"]["attributes"]).unwrap_or_else(|_| "{}".to_string())
+    };
+
+    let attrs: Value = serde_json::from_str(&attrs_str).unwrap_or(Value::Null);
+
+    // ── HtmlBlock: output raw HTML directly, no component wrapper ──
+    if component_name == "HtmlBlock" {
+        if let Some(html) = attrs["html"].as_str() {
+            if !html.trim().is_empty() {
+                return html.to_string();
+            }
+        }
+        return String::new();
+    }
+
+    // ── Build JSX attributes string ──
+    let jsx_attrs = value_to_jsx_attributes(&attrs);
+
+    if jsx_attrs.is_empty() {
+        format!("<{} />", component_name)
+    } else {
+        format!("<{} {} />", component_name, jsx_attrs)
+    }
+}
+
+/// Serialise a JSON Value (object) as JSX attribute string.
+///
+/// - null      → skipped
+/// - String    → escaped and double-quoted:  smiles="CCO"
+/// - Number    → JSX expression:             height={400}
+/// - Boolean   → JSX expression:             autoRotate={true}
+/// - Object    → JSX object expression:      option={{...}}
+/// - Array     → JSX array expression:       data={[...]}
+///
+/// Complex objects/arrays are emitted as JSX expression literals
+/// (e.g. `option={{}}`).  The frontend `normalizeRuntimeMdxContent`
+/// pipeline converts those to base64 string props for safe MDX parsing.
+fn value_to_jsx_attributes(attrs: &Value) -> String {
+    let obj = match attrs.as_object() {
+        Some(o) => o,
+        None => return String::new(),
+    };
+
+    let mut parts: Vec<String> = Vec::new();
+
+    for (key, value) in obj {
+        if value.is_null() {
+            continue;
+        }
+
+        match value {
+            Value::String(s) => {
+                // ── Detect JSON-encoded complex props ──
+                // BlockNote stores nested objects/arrays as JSON strings
+                // inside the attributes JSON (e.g. option: "{\"title\":...}").
+                // Try to parse; if it produces an Object/Array treat it as
+                // a complex JSX expression so normalizeRuntimeMdxContent can
+                // convert it to base64.
+                let trimmed = s.trim();
+                let is_json_like = (trimmed.starts_with('{') && trimmed.ends_with('}'))
+                    || (trimmed.starts_with('[') && trimmed.ends_with(']'));
+                if is_json_like {
+                    if let Ok(parsed) = serde_json::from_str::<Value>(s) {
+                        if parsed.is_object() || parsed.is_array() {
+                            let json = serde_json::to_string(&parsed).unwrap_or_default();
+                            parts.push(format!("{}={{{}}}", key, json));
+                            continue;
+                        }
+                    }
+                }
+                // ── Multi-line / special-char strings → template literal ──
+                // JSX string attributes can NOT span multiple lines.
+                // Strings containing newlines, backticks, or very long strings
+                // use the `key={`value`}` form (template literal).
+                // The frontend normalizeRuntimeMdxContent pipeline converts
+                // these to base64 props for safe MDX parsing.
+                let needs_template_literal = s.contains('\n')
+                    || s.contains('`')
+                    || s.len() > 200;
+                if needs_template_literal {
+                    let escaped = s
+                        .replace('\\', "\\\\")
+                        .replace('`', "\\`")
+                        .replace("${", "\\${");
+                    parts.push(format!("{}={{`{}`}}", key, escaped));
+                } else {
+                    let escaped = s.replace('"', "&quot;");
+                    parts.push(format!("{}=\"{}\"", key, escaped));
+                }
+            }
+            Value::Number(n) => {
+                parts.push(format!("{}={{{}}}", key, n));
+            }
+            Value::Bool(b) => {
+                parts.push(format!("{}={{{}}}", key, b));
+            }
+            Value::Object(_) | Value::Array(_) => {
+                let json = serde_json::to_string(value).unwrap_or_default();
+                parts.push(format!("{}={{{}}}", key, json));
+            }
+            _ => continue,
+        }
+    }
+
+    parts.join(" ")
 }
 
 fn table_to_mdx(block: &Value) -> String {

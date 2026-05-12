@@ -1,14 +1,17 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
-import { useCreateBlockNote } from '@blocknote/react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { useCreateBlockNote, SuggestionMenuController, getDefaultReactSlashMenuItems } from '@blocknote/react'
 import { BlockNoteView } from '@blocknote/mantine'
 import '@blocknote/mantine/style.css'
 import '@blocknote/core/fonts/inter.css'
 import { Loader2 } from 'lucide-react'
-import { BlockNoteSchema, createCodeBlockSpec } from '@blocknote/core'
+import { BlockNoteSchema, createCodeBlockSpec, defaultBlockSpecs } from '@blocknote/core'
 import { codeBlockOptions } from '@blocknote/code-block'
+import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from '@blocknote/core/extensions'
 import { useTheme } from 'next-themes'
+import { createCustomComponentBlockSpec } from './CustomComponentBlock'
+import { registerAllCustomEditors } from './custom'
 import './BlockNoteEditor.css'
 
 // ── Theme-aware code block highlighter ────────────────────────────────────────
@@ -27,17 +30,13 @@ function useCodeBlockSpec() {
       createHighlighter: async () => {
         const highlighter = await codeBlockOptions.createHighlighter()
 
-        // Eagerly load both themes (BlockNote uses dynamic imports — lazy by default).
-        // Without this, getLoadedThemes() returns [] and themes aren't available
-        // when prosemirror-highlight calls codeToTokens.
         try {
           await Promise.all([
             highlighter.loadTheme('github-dark'),
             highlighter.loadTheme('github-light'),
           ])
-        } catch {} // loadTheme might not exist or themes already loaded
+        } catch {}
 
-        // Ensure getLoadedThemes()[0] always returns the CURRENT next-themes theme
         const originalGetLoadedThemes = highlighter.getLoadedThemes.bind(highlighter)
         highlighter.getLoadedThemes = () => {
           const isDark = themeRef.current === 'dark'
@@ -46,7 +45,6 @@ function useCodeBlockSpec() {
             : ['github-light', 'github-dark']
         }
 
-        // 2. Belt-and-suspenders: wrap codeToTokens to inject theme directly
         const originalCodeToTokens = highlighter.codeToTokens.bind(highlighter)
         highlighter.codeToTokens = (code: string, options?: any) => {
           const themeName = themeRef.current === 'dark' ? 'github-dark' : 'github-light'
@@ -60,14 +58,10 @@ function useCodeBlockSpec() {
 }
 
 // ── Schema ────────────────────────────────────────────────────────────────────
-// We recreate schema whenever the codeBlockSpec changes (theme-aware spec).
-// useMemo with empty deps is safe — the createHighlighter closure captures
-// themeRef which is always updated before any highlight call.
 
 /**
  * Fix legacy boolean styles { bold: true } → { bold: {} }.
  * BlockNote 0.49.0 rejects boolean-style styles on inline content nodes.
- * This runs at content load time to catch any DB-level cleanup misses.
  */
 function fixStyles(node: unknown): unknown {
   if (!node || typeof node !== 'object') return node
@@ -76,7 +70,6 @@ function fixStyles(node: unknown): unknown {
   const src = node as Record<string, unknown>
   const out: Record<string, unknown> = { ...src }
 
-  // Fix boolean styles
   if (out.styles && typeof out.styles === 'object') {
     const styles = out.styles as Record<string, unknown>
     const cleaned: Record<string, unknown> = {}
@@ -86,7 +79,6 @@ function fixStyles(node: unknown): unknown {
     out.styles = cleaned
   }
 
-  // Recurse into content/children
   if (Array.isArray(out.content)) {
     out.content = out.content.map(fixStyles)
   }
@@ -98,43 +90,172 @@ function fixStyles(node: unknown): unknown {
 }
 
 /**
- * Fix table blocks using legacy tableContent wrapper format.
- * BlockNote 0.49.0 expects table.content as a direct rows array:
- *   [{type:"tableRow",...}, ...]
- * NOT the slash-menu internal wrapper:
- *   {type:"tableContent", rows: [...], ...}
- * The wrapper causes "Cannot read properties of undefined (reading 'isInGroup')".
+ * BlockNote 0.49 native top-level block types.
+ * Used to detect blocks that need conversion before the custom component
+ * spec is registered (migration from old format).
  */
-function fixTableContent(blocks: unknown[]): unknown[] {
-  return blocks.map((block: any) => {
-    if (!block || typeof block !== 'object') return block
-    // Fix 1: unwrap legacy {type:"tableContent", rows:[...]} wrapper
-    if (block.type === 'table' && block.content && typeof block.content === 'object' && !Array.isArray(block.content)) {
-      const wrapper = block.content as Record<string, unknown>
-      if (wrapper.type === 'tableContent' && Array.isArray(wrapper.rows)) {
-        return {
-          ...block,
-          content: (wrapper.rows as any[]).map((row: any) =>
-            // Fix 2: rows missing "type":"tableRow" (legacy tableContent format lacks it)
-            row.type ? row : { ...row, type: 'tableRow' }
-          ),
+const NATIVE_BLOCK_TYPES = new Set([
+  'paragraph', 'heading', 'bulletListItem', 'numberedListItem',
+  'checkListItem', 'codeBlock', 'table', 'file', 'image', 'video',
+  'audio', 'divider', 'quote', 'toggleListItem', 'customComponent',
+])
+
+/**
+ * One-time migration: convert legacy block types to current format.
+ * BlockNote 0.49 renames:
+ * - 'thematicBreak' → 'divider'
+ * - 'blockquote' → 'quote'
+ * - 'html' → customComponent with componentName='HtmlBlock'
+ * - Strip empty content/children from blocks that don't support them
+ */
+function migrateLegacyBlocks(blocks: any[]): any[] {
+  // Block types that MUST NOT have content/children (content: 'none')
+  const NO_CONTENT_TYPES = new Set([
+    'divider', 'image', 'video', 'audio', 'file',
+    'customComponent',
+  ])
+
+  return blocks.map((block) => {
+    // BlockNote 0.49 renamed thematicBreak → divider
+    if (block.type === 'thematicBreak') {
+      return { ...block, type: 'divider' }
+    }
+    // BlockNote 0.49 renamed blockquote → quote (content type changed from block to inline)
+    if (block.type === 'blockquote') {
+      // Extract all text from nested blocks and flatten to inline content
+      const inlineContent: any[] = []
+      function extractText(nodes: any[]) {
+        for (const node of nodes) {
+          if (node.type === 'text') {
+            inlineContent.push({ type: 'text', text: node.text, styles: node.styles || {} })
+          } else if (Array.isArray(node.content)) {
+            extractText(node.content)
+          }
         }
       }
-    }
-    // Fix 3: rows already unwrapped but missing "type":"tableRow"
-    if (block.type === 'table' && Array.isArray(block.content)) {
-      const hasMissingType = block.content.some((row: any) => row && typeof row === 'object' && !row.type)
-      if (hasMissingType) {
-        return {
-          ...block,
-          content: block.content.map((row: any) =>
-            row && typeof row === 'object' && !row.type ? { ...row, type: 'tableRow' } : row
-          ),
-        }
+      extractText(block.content || [])
+      return {
+        id: block.id,
+        type: 'quote',
+        props: block.props || {},
+        content: inlineContent.length > 0 ? inlineContent : [{ type: 'text', text: '', styles: {} }],
+        children: [],
       }
     }
+    // Legacy embed type → file
+    if (block.type === 'embed') {
+      return { ...block, type: 'file' }
+    }
+    if (block.type === 'html') {
+      return {
+        id: block.id,
+        type: 'customComponent',
+        props: {
+          componentName: 'HtmlBlock',
+          attributesJson: JSON.stringify({ html: block.props?.html || '' }),
+          childrenJson: '[]',
+        },
+        content: [],
+      }
+    }
+    if (block.type === 'customComponent') {
+      const props = block.props || {}
+      // Remove content/children — customComponent has content: 'none'
+      const { content: _c, children: _ch, ...rest } = block
+      return {
+        ...rest,
+        props: {
+          componentName: props.componentName || '',
+          attributesJson: JSON.stringify(props.attributes || {}),
+          childrenJson: JSON.stringify(props.children || []),
+        },
+      }
+    }
+
+    // Clean up blocks that must not have content/children
+    if (NO_CONTENT_TYPES.has(block.type)) {
+      const { content: _c, children: _ch, ...rest } = block
+      return rest
+    }
+
     return block
   })
+}
+
+// ── Custom Component Slash Menu Items ──────────────────────────────────────────
+// Each custom component gets a dedicated slash menu entry so users can
+// insert them with a single click instead of editing componentName manually.
+
+interface CustomComponentMenuItem {
+  title: string
+  icon: string  // emoji icon
+  componentName: string
+  defaultAttrs: Record<string, string>
+  aliases?: string[]
+  group: string
+}
+
+const CUSTOM_COMPONENT_ITEMS: CustomComponentMenuItem[] = [
+  // Charts
+  { title: 'ECharts 图表', icon: '📊', componentName: 'EChartsComponent', defaultAttrs: { option: '{}' }, aliases: ['echart', 'chart', '图表'], group: '图表' },
+  { title: 'Nivo 柱状图', icon: '📊', componentName: 'NivoBarChart', defaultAttrs: { data: '[]' }, aliases: ['nivo', 'bar', '柱状图'], group: '图表' },
+  { title: 'Nivo 饼图', icon: '🥧', componentName: 'NivoPieChart', defaultAttrs: { data: '[]' }, aliases: ['pie', 'nivo', '饼图'], group: '图表' },
+  { title: 'Nivo 折线图', icon: '📈', componentName: 'NivoLineChart', defaultAttrs: { data: '[]' }, aliases: ['line', 'nivo', '折线图'], group: '图表' },
+  { title: 'AntV 图表', icon: '📊', componentName: 'AntVChart', defaultAttrs: { option: '{}' }, aliases: ['antv', 'chart'], group: '图表' },
+  // Chemistry
+  { title: 'RDKit 分子结构', icon: '🧪', componentName: 'RDKitStructure', defaultAttrs: { smiles: '' }, aliases: ['rdkit', '分子', 'chemistry'], group: '化学' },
+  { title: '分子指纹', icon: '🧬', componentName: 'MoleculeFingerprint', defaultAttrs: { smiles: '' }, aliases: ['fingerprint', '指纹'], group: '化学' },
+  { title: '3D 化学结构', icon: '⚗️', componentName: 'SimpleChemicalStructure', defaultAttrs: { smiles: '' }, aliases: ['3dmol', '3d', '化学结构'], group: '化学' },
+  // Media
+  { title: 'Bilibili 视频', icon: '📺', componentName: 'BilibiliVideo', defaultAttrs: { bvid: '' }, aliases: ['bilibili', 'b站', 'video'], group: '媒体' },
+  // Animation
+  { title: '淡入动画', icon: '✨', componentName: 'FadeIn', defaultAttrs: {}, aliases: ['fade', '淡入'], group: '动画' },
+  { title: '滑入动画', icon: '🎬', componentName: 'SlideIn', defaultAttrs: {}, aliases: ['slide', '滑入'], group: '动画' },
+  { title: '缩放动画', icon: '🔍', componentName: 'ScaleIn', defaultAttrs: {}, aliases: ['scale', '缩放'], group: '动画' },
+  { title: '弹跳动画', icon: '🎾', componentName: 'BounceIn', defaultAttrs: {}, aliases: ['bounce', '弹跳'], group: '动画' },
+  // HTML
+  { title: 'HTML 块', icon: '🌐', componentName: 'HtmlBlock', defaultAttrs: { html: '' }, aliases: ['html', 'embed'], group: '嵌入' },
+]
+
+/**
+ * Returns slash menu items: default BlockNote items + custom component items.
+ * Custom items are only shown when their query matches (or query is short).
+ */
+function getCustomSlashMenuItems(editor: any, query: string) {
+  const defaultItems = getDefaultReactSlashMenuItems(editor)
+  const filteredDefaults = filterSuggestionItems(defaultItems, query)
+
+  // Build custom items
+  const customItems = CUSTOM_COMPONENT_ITEMS
+    .filter((item) => {
+      if (!query) return true // show all custom items when menu first opens
+      const q = query.toLowerCase()
+      return (
+        item.title.toLowerCase().includes(q) ||
+        (item.aliases?.some((a) => a.toLowerCase().includes(q)) ?? false) ||
+        item.group.toLowerCase().includes(q) ||
+        item.componentName.toLowerCase().includes(q)
+      )
+    })
+    .map((item) => ({
+      title: `${item.icon} ${item.title}`,
+      key: `custom_${item.componentName}` as any,
+      group: item.group,
+      subtext: item.aliases?.join(' / '),
+      onItemClick: () => {
+        insertOrUpdateBlockForSlashMenu(editor, {
+          type: 'customComponent',
+          props: {
+            componentName: item.componentName,
+            attributesJson: JSON.stringify(item.defaultAttrs),
+            childrenJson: '[]',
+          },
+        })
+      },
+    }))
+
+  // Combine: custom items first (within their groups), then defaults
+  return [...customItems, ...filteredDefaults]
 }
 
 /**
@@ -144,6 +265,8 @@ function fixTableContent(blocks: unknown[]): unknown[] {
  * - Shiki 语法高亮（@blocknote/code-block）
  * - 43 种编程语言选择器
  * - 暗色/亮色主题自适应（next-themes）
+ * - 自定义组件编辑（RDKit, ECharts, Nivo, AntV, 化学结构, 动画包裹器等）
+ * - 自定义斜杠菜单：所有组件一键插入
  * - 双轨输出：BlockNote JSON（SSOT） + Markdown（博客渲染）
  */
 function BlockNoteEditor({
@@ -156,25 +279,46 @@ function BlockNoteEditor({
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
 
+  // ── Register custom editors synchronously (must happen before useCreateBlockNote) ──
+  // Called at module scope to avoid timing issues
+  if (typeof window !== 'undefined' && !(window as any).__customEditorsRegistered) {
+    (window as any).__customEditorsRegistered = true
+    registerAllCustomEditors()
+  }
+
   // 跟随 next-themes 的主题设置
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
   // BlockNote 的 theme prop: "light" | "dark"
-  // 未挂载前默认 light 避免 hydration mismatch
   const bnTheme = mounted && resolvedTheme === 'dark' ? 'dark' : 'light'
 
-  // ── 主题感知的代码块 spec（编辑器内 Shiki 高亮跟随主题） ──
+  // ── 主题感知的代码块 spec ──
   const codeBlockSpec = useCodeBlockSpec()
 
-  // 扩展默认 schema，仅覆盖 codeBlock（官方推荐方式）
+  // ── 自定义组件 block spec ──
+  const customComponentSpec = useMemo(() => {
+    const factory = createCustomComponentBlockSpec()
+    return factory() // invoke the factory to get the actual BlockSpec
+  }, [])
+
+  // ── 完整 schema：所有默认块 + codeBlock(Shiki高亮) + customComponent ──
+  // BlockNoteSchema.create() 不带参数时使用 defaultBlockSpecs，
+  // 传入 blockSpecs 时会完全替换。extend() 同样替换 blockSpecs。
+  // 因此必须一次性传入所有需要的块规格，包括默认块。
   const schema = useMemo(
     () =>
-      BlockNoteSchema.create().extend({
-        blockSpecs: { codeBlock: codeBlockSpec },
+      BlockNoteSchema.create({
+        blockSpecs: {
+          ...defaultBlockSpecs,
+          // 用 Shiki 高亮版覆盖默认 codeBlock
+          codeBlock: codeBlockSpec,
+          // 自定义组件块
+          customComponent: customComponentSpec,
+        },
       }),
-    [codeBlockSpec]
+    [codeBlockSpec, customComponentSpec]
   )
 
   const editor = useCreateBlockNote({
@@ -184,56 +328,31 @@ function BlockNoteEditor({
       try {
         const parsed = JSON.parse(content)
         if (Array.isArray(parsed)) {
+          // Migrate any legacy block types
+          const migrated = migrateLegacyBlocks(parsed)
+
           // Debug: log code block content on load
-          for (const block of parsed) {
+          for (const block of migrated) {
             if (block.type === 'codeBlock') {
               const text = block.content?.[0]?.text || ''
-              const propsCode = block.props?.code || ''
-              const contentLen = block.content?.length || 0
               console.log(
                 '[BlockNoteEditor] codeBlock loaded:',
                 `lang=${block.props?.language}`,
-                `contentLen=${contentLen}`,
-                `contentText_chars=${text.length}`,
-                `contentText_lines=${text.split('\n').length}`,
-                `propsCode_chars=${propsCode.length}`,
-                `propsCode_lines=${propsCode.split('\n').length}`,
-                `hasPropsCode=${!!block.props?.code}`,
-                `text_preview=${JSON.stringify(text.slice(0, 60))}`,
-                `code_preview=${JSON.stringify(propsCode.slice(0, 60))}`
+                `text=${text.slice(0, 60)}`
+              )
+            }
+            if (block.type === 'customComponent') {
+              console.log(
+                '[BlockNoteEditor] customComponent loaded:',
+                block.props?.componentName
               )
             }
           }
-          return fixStyles(fixTableContent(parsed)) as any
+          return fixStyles(migrated) as any
         }
         return undefined
       } catch (e) {
-        // Debug: which block causes the error?
-        console.error('[BlockNoteEditor] initialContent parse/validate failed:', e)
-        try {
-          const blocks = JSON.parse(content)
-          if (Array.isArray(blocks)) {
-            // Binary search to find the problematic block
-            console.log(`[BlockNoteEditor] testing ${blocks.length} blocks individually...`)
-            for (let i = 0; i < blocks.length; i++) {
-              try {
-                // Test a single block
-                const test = fixStyles(fixTableContent([blocks[i]])) as any[]
-                // Don't actually use, just validate
-              } catch (blockErr: any) {
-                console.error(`[BlockNoteEditor] Block [${i}] type=${blocks[i]?.type} causes:`, blockErr.message || blockErr)
-                if (blocks[i]?.type === 'table' && Array.isArray(blocks[i]?.content)) {
-                  for (let j = 0; j < blocks[i].content.length; j++) {
-                    try {
-                      const row = blocks[i].content[j]
-                      console.log(`  Row [${j}]: type=${row?.type}, has_cells=${!!row?.cells}`)
-                    } catch {}
-                  }
-                }
-              }
-            }
-          }
-        } catch {}
+        console.error('[BlockNoteEditor] parse error:', e)
         return undefined
       }
     })(),
@@ -247,43 +366,41 @@ function BlockNoteEditor({
       try {
         // Deep-clone to avoid mutating editor.document
         const doc = JSON.parse(JSON.stringify(editor.document))
-        
-        // Normalize code blocks: merge multiple text nodes into one with \n separators.
-        // BlockNote sometimes splits code block text at \n into separate text nodes;
-        // when loaded back, adjacent text nodes without \n get concatenated → single line.
-        // Also check props.code — @blocknote/code-block may store code there.
+
+        // Reverse migration: convert attributesJson/childrenJson back to attributes/children
         if (Array.isArray(doc)) {
           for (const block of doc) {
-            if (block.type === 'codeBlock' && Array.isArray(block.content)) {
-              const firstText = block.content[0]?.text || ''
-              const propsCode = block.props?.code || ''
-              const nodeCount = block.content.length
-              console.log(
-                '[BlockNoteEditor] codeBlock saved:',
-                `lang=${block.props?.language}`,
-                `textNodes=${nodeCount}`,
-                `contentText_chars=${firstText.length}`,
-                `contentText_lines=${firstText.split('\n').length}`,
-                `propsCode_chars=${propsCode.length}`,
-                `propsCode_lines=${propsCode.split('\n').length}`,
-                `hasPropsCode=${!!block.props?.code}`,
-                `text_preview=${JSON.stringify(firstText.slice(0, 60))}`,
-                `code_preview=${JSON.stringify(propsCode.slice(0, 60))}`
-              )
-              
-              // Merge multiple text nodes into one (preserving \n between lines)
-              if (nodeCount > 1) {
-                const merged = block.content.map((n: any) => n.text || '').join('\n')
-                block.content = [{ type: 'text', text: merged, styles: {} }]
-                console.log(
-                  '[BlockNoteEditor] codeBlock merged:',
-                  `${nodeCount} → 1 text node, chars=${merged.length}`
-                )
+            if (block.type === 'customComponent') {
+              const props = block.props || {}
+              if (props.attributesJson) {
+                try {
+                  props.attributes = JSON.parse(props.attributesJson)
+                } catch { props.attributes = {} }
+                delete props.attributesJson
+              }
+              if (props.childrenJson) {
+                try {
+                  props.children = JSON.parse(props.childrenJson)
+                } catch { props.children = [] }
+                delete props.childrenJson
               }
             }
           }
         }
-        
+
+        // Normalize code blocks: merge multiple text nodes
+        if (Array.isArray(doc)) {
+          for (const block of doc) {
+            if (block.type === 'codeBlock' && Array.isArray(block.content)) {
+              const nodeCount = block.content.length
+              if (nodeCount > 1) {
+                const merged = block.content.map((n: any) => n.text || '').join('\n')
+                block.content = [{ type: 'text', text: merged, styles: {} }]
+              }
+            }
+          }
+        }
+
         const blocksJson = JSON.stringify(doc)
         const markdown = editor.blocksToMarkdownLossy()
         cb(blocksJson, markdown)
@@ -313,8 +430,6 @@ function BlockNoteEditor({
     let changed = false
     state.doc.descendants((node, pos) => {
       if (node.type.name === 'codeBlock') {
-        // replaceWith creates an actual doc change (setNodeMarkup with same
-        // attrs is optimized away), forcing the highlight plugin to re-parse
         tr.replaceWith(pos, pos + node.nodeSize,
           node.type.create(node.attrs, node.content, node.marks))
         changed = true
@@ -324,14 +439,6 @@ function BlockNoteEditor({
   }, [resolvedTheme, editor])
 
   // 修复 ProseMirror 拦截代码块语言选择器的点击事件
-  //
-  // 根因: ProseMirror 在 mousedown 冒泡阶段调用 preventDefault(),
-  // 阻止了原生 <select> 获得焦点和打开下拉菜单.
-  //
-  // 方案: 在 document 级别 capture 阶段拦截 mousedown,
-  // 当目标是代码块内的 <select> 时:
-  //   - stopImmediatePropagation() 阻止事件到达 ProseMirror
-  //   - 不调用 preventDefault(),保留浏览器打开 select 的默认行为
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement
@@ -340,17 +447,21 @@ function BlockNoteEditor({
         target.closest('.bn-block-content')
       ) {
         e.stopImmediatePropagation()
-        // 不调用 preventDefault — 让浏览器自然打开 <select>
       }
     }
 
-    // document capture 阶段,比任何元素级 handler 都早
     document.addEventListener('mousedown', handler, true)
 
     return () => {
       document.removeEventListener('mousedown', handler, true)
     }
   }, [])
+
+  // ── Custom slash menu getItems with editor bound ──
+  const slashMenuGetItems = useCallback(
+    async (query: string) => getCustomSlashMenuItems(editor, query),
+    [editor]
+  )
 
   if (!editor) {
     return (
@@ -367,7 +478,13 @@ function BlockNoteEditor({
         key={bnTheme}
         editor={editor}
         theme={bnTheme}
-      />
+        slashMenu={false}
+      >
+        <SuggestionMenuController
+          triggerCharacter="/"
+          getItems={slashMenuGetItems}
+        />
+      </BlockNoteView>
     </div>
   )
 }

@@ -418,21 +418,20 @@ async fn insert_post(
 
     sqlx::query(
         r#"INSERT INTO posts (
-            id, slug, title, content, summary, cover_image_id,
+            id, slug, title, summary, cover_image_id,
             status, published_at, category_id, author_id,
             show_toc, layout, is_featured, content_format,
             reading_time, content_json, content_mdx
         ) VALUES (
-            $1, $2, $3, $4, $5, NULL,
-            $6::post_status, $7, $8, $9,
-            $10, $11, false, 'mdx',
-            $12, $13, $14
+            $1, $2, $3, $4, NULL,
+            $5::post_status, $6, $7, $8,
+            $9, $10, false, 'mdx',
+            $11, $12, $13
         )"#,
     )
     .bind(post_id)
     .bind(slug)
     .bind(title)
-    .bind(body)
     .bind(&fm.summary)
     .bind(status)
     .bind(published_at)
@@ -499,15 +498,14 @@ async fn update_post(
 
     sqlx::query(
         r#"UPDATE posts SET
-            title = $1, content = $2, summary = $3,
-            status = $4::post_status, published_at = $5,
-            category_id = $6, show_toc = $7, layout = $8,
-            reading_time = $9, content_json = $10, content_mdx = $11,
+            title = $1, summary = $2,
+            status = $3::post_status, published_at = $4,
+            category_id = $5, show_toc = $6, layout = $7,
+            reading_time = $8, content_json = $9, content_mdx = $10,
             updated_at = NOW()
-           WHERE id = $12"#,
+           WHERE id = $11"#,
     )
     .bind(title)
-    .bind(body)
     .bind(&fm.summary)
     .bind(status)
     .bind(published_at)

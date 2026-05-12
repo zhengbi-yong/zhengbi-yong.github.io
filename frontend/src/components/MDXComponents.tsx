@@ -206,47 +206,97 @@ const AntVChart = dynamic(() => import('./charts').then((mod) => mod.AntVChart),
   ),
 })
 
+// ── Placeholder for animation wrappers that have no children ──
+// When an animation component like <FadeIn /> is rendered without
+// wrapping any content, show a visible placeholder so the component
+// isn't invisible.  Users can wrap content inside the animation by
+// placing paragraphs between a pair of animation markers in the editor.
+
+const ANIMATION_COLORS: Record<string, { border: string; bg: string; text: string; subtext: string }> = {
+  blue:    { border: 'border-blue-300 dark:border-blue-700', bg: 'bg-blue-50/50 dark:bg-blue-900/10', text: 'text-blue-600 dark:text-blue-400', subtext: 'text-blue-400 dark:text-blue-500' },
+  green:   { border: 'border-green-300 dark:border-green-700', bg: 'bg-green-50/50 dark:bg-green-900/10', text: 'text-green-600 dark:text-green-400', subtext: 'text-green-400 dark:text-green-500' },
+  purple:  { border: 'border-purple-300 dark:border-purple-700', bg: 'bg-purple-50/50 dark:bg-purple-900/10', text: 'text-purple-600 dark:text-purple-400', subtext: 'text-purple-400 dark:text-purple-500' },
+  orange:  { border: 'border-orange-300 dark:border-orange-700', bg: 'bg-orange-50/50 dark:bg-orange-900/10', text: 'text-orange-600 dark:text-orange-400', subtext: 'text-orange-400 dark:text-orange-500' },
+  pink:    { border: 'border-pink-300 dark:border-pink-700', bg: 'bg-pink-50/50 dark:bg-pink-900/10', text: 'text-pink-600 dark:text-pink-400', subtext: 'text-pink-400 dark:text-pink-500' },
+}
+
+function AnimationPlaceholder({ name, color }: { name: string; color: string }) {
+  const c = ANIMATION_COLORS[color] || ANIMATION_COLORS.blue
+  return (
+    <div className={`my-4 rounded-lg border-2 border-dashed px-4 py-6 text-center ${c.border} ${c.bg}`}>
+      <div className="text-2xl mb-2">✨</div>
+      <div className={`text-sm font-mono ${c.text}`}>{name} 动画容器</div>
+      <div className={`text-xs mt-1 ${c.subtext}`}>将内容放在此动画之间以应用效果</div>
+    </div>
+  )
+}
+
 // 包装动画组件，添加错误边界和 Suspense
 // 注意：不使用 memo，因为 MDX 组件每次渲染都会创建新的 props 对象
-const WrappedFadeIn = (props: any) => (
-  <AnimationErrorBoundary>
-    <Suspense fallback={<AnimationSkeleton />}>
-      <FadeIn {...props} />
-    </Suspense>
-  </AnimationErrorBoundary>
-)
+const WrappedFadeIn = (props: any) => {
+  if (!props.children) {
+    return <AnimationPlaceholder name="FadeIn 淡入" color="blue" />
+  }
+  return (
+    <AnimationErrorBoundary>
+      <Suspense fallback={<AnimationSkeleton />}>
+        <FadeIn {...props} />
+      </Suspense>
+    </AnimationErrorBoundary>
+  )
+}
 
-const WrappedSlideIn = (props: any) => (
-  <AnimationErrorBoundary>
-    <Suspense fallback={<AnimationSkeleton />}>
-      <SlideIn {...props} />
-    </Suspense>
-  </AnimationErrorBoundary>
-)
+const WrappedSlideIn = (props: any) => {
+  if (!props.children) {
+    return <AnimationPlaceholder name="SlideIn 滑入" color="green" />
+  }
+  return (
+    <AnimationErrorBoundary>
+      <Suspense fallback={<AnimationSkeleton />}>
+        <SlideIn {...props} />
+      </Suspense>
+    </AnimationErrorBoundary>
+  )
+}
 
-const WrappedScaleIn = (props: any) => (
-  <AnimationErrorBoundary>
-    <Suspense fallback={<AnimationSkeleton />}>
-      <ScaleIn {...props} />
-    </Suspense>
-  </AnimationErrorBoundary>
-)
+const WrappedScaleIn = (props: any) => {
+  if (!props.children) {
+    return <AnimationPlaceholder name="ScaleIn 缩放" color="purple" />
+  }
+  return (
+    <AnimationErrorBoundary>
+      <Suspense fallback={<AnimationSkeleton />}>
+        <ScaleIn {...props} />
+      </Suspense>
+    </AnimationErrorBoundary>
+  )
+}
 
-const WrappedRotateIn = (props: any) => (
-  <AnimationErrorBoundary>
-    <Suspense fallback={<AnimationSkeleton />}>
-      <RotateIn {...props} />
-    </Suspense>
-  </AnimationErrorBoundary>
-)
+const WrappedRotateIn = (props: any) => {
+  if (!props.children) {
+    return <AnimationPlaceholder name="RotateIn 旋转" color="orange" />
+  }
+  return (
+    <AnimationErrorBoundary>
+      <Suspense fallback={<AnimationSkeleton />}>
+        <RotateIn {...props} />
+      </Suspense>
+    </AnimationErrorBoundary>
+  )
+}
 
-const WrappedBounceIn = (props: any) => (
-  <AnimationErrorBoundary>
-    <Suspense fallback={<AnimationSkeleton />}>
-      <BounceIn {...props} />
-    </Suspense>
-  </AnimationErrorBoundary>
-)
+const WrappedBounceIn = (props: any) => {
+  if (!props.children) {
+    return <AnimationPlaceholder name="BounceIn 弹跳" color="pink" />
+  }
+  return (
+    <AnimationErrorBoundary>
+      <Suspense fallback={<AnimationSkeleton />}>
+        <BounceIn {...props} />
+      </Suspense>
+    </AnimationErrorBoundary>
+  )
+}
 
 const WrappedConfettiOnView = (props: any) => (
   <AnimationErrorBoundary>

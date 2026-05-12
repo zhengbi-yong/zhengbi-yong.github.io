@@ -44,70 +44,111 @@ function extractBalancedExpression(text: string, startPos: number): string | nul
  * Convert complex JSX expression props (objects and arrays) to base64
  * string attributes so next-mdx-remote can parse them.
  *
- * Handles:
- *   option={{...}}  → optionBase64="<base64>"
- *   data={[...]}    → dataBase64="<base64>"
- *   keys={[...]}    → keysBase64="<base64>"
+ * Matches ANY prop with `={{` or `={[` prefix (generic, not just
+ * option/data/keys) and converts to base64:
+ *
+ *   anyProp={{...}}  → anyPropBase64="<base64>"
+ *   anyProp={[...]}  → anyPropBase64="<base64>"
+ *
+ * Also handles the legacy template-literal format:
+ *   data={`...`}     → dataBase64="<base64>"
  *
  * Works by scanning for prop={[ prefix and using balanced-brace matching
  * to extract the full expression, then replacing the whole thing.
  */
 function normalizeChartProps(segment: string): string {
-  const COMPLEX_PROPS: Array<{ prop: string; target: string }> = [
-    { prop: 'option', target: 'optionBase64' },
-    { prop: 'data', target: 'dataBase64' },
-    { prop: 'keys', target: 'keysBase64' },
-  ]
-
   let result = segment
 
-  for (const { prop, target } of COMPLEX_PROPS) {
-    // Pattern: `prop={` followed by `{` (object) or `[` (array)
-    // We look for: prop={ {  or  prop={ [
-    const prefix = `${prop}={`
+  // ── Phase 1: Generic complex prop handler (any prop with ={{ or ={[) ──
+  // Match: wordChar+={ immediately followed by { or [
+  const complexPattern = /(\w+)=\{(?=[\{[])/g
+  let match: RegExpExecArray | null
 
-    let searchFrom = 0
-    while (true) {
-      const startIdx = result.indexOf(prefix, searchFrom)
-      if (startIdx === -1) break
+  // Collect replacement candidates first to avoid index-shifting issues
+  const replacements: Array<{ start: number; end: number; replacement: string }> = []
 
-      // Find the first brace after `prop={`
-      const exprOpenIdx = startIdx + prefix.length
-      if (exprOpenIdx >= result.length) break
+  while ((match = complexPattern.exec(result)) !== null) {
+    const prop = match[1]
+    const exprStartIdx = match.index + prop.length + 2 // position of { or [
 
-      const exprOpenChar = result[exprOpenIdx]
-      if (exprOpenChar !== '{' && exprOpenChar !== '[') {
-        searchFrom = startIdx + 1
-        continue
-      }
+    if (exprStartIdx >= result.length) continue
 
-      // Extract the balanced expression (the JS object or array)
-      const jsBlock = extractBalancedExpression(result, exprOpenIdx)
-      if (!jsBlock) {
-        searchFrom = startIdx + 1
-        continue
-      }
+    // Extract the balanced expression (the JS object or array)
+    const jsBlock = extractBalancedExpression(result, exprStartIdx)
+    if (!jsBlock) continue
 
-      // Now find the closing } for the JSX expression container
-      // It's right after the jsBlock
-      const jSXCloseIdx = exprOpenIdx + jsBlock.length
-      if (jSXCloseIdx >= result.length || result[jSXCloseIdx] !== '}') {
-        searchFrom = startIdx + 1
-        continue
-      }
+    // Find the closing } for the JSX expression container
+    const jSXCloseIdx = exprStartIdx + jsBlock.length
+    if (jSXCloseIdx >= result.length || result[jSXCloseIdx] !== '}') continue
 
-      // The full matched span: `prop={ { ... } }` or `prop={ [ ... ] }`
-      const fullMatch = result.slice(startIdx, jSXCloseIdx + 1)
+    // Encode the JS block (without the outer JSX {}) as base64
+    const encoded = encodeBase64Utf8(jsBlock)
+    const replacement = `${prop}Base64="${encoded}"`
 
-      // Encode the JS block (without the outer JSX {}) as base64
-      const encoded = encodeBase64Utf8(jsBlock)
+    replacements.push({
+      start: match.index,
+      end: jSXCloseIdx + 1,
+      replacement,
+    })
+  }
 
-      // Replace: `prop={ { ... } }` → `target="<base64>"`
-      const replacement = `${target}="${encoded}"`
-      result = result.slice(0, startIdx) + replacement + result.slice(jSXCloseIdx + 1)
+  // Apply replacements in reverse order to preserve indices
+  for (const r of replacements.reverse()) {
+    result = result.slice(0, r.start) + r.replacement + result.slice(r.end)
+  }
 
-      // Continue from after the replacement
-      searchFrom = startIdx + replacement.length
+  // ── Phase 2: Template-literal handler (generic) ──
+  // prop={`value`} → propBase64="<base64>"
+  // Handles multi-line strings, XYZ structures, and any other
+  // prop whose value needs template-literal wrapping.
+  const templateLiteralPattern = /(\w+)={`([\s\S]*?)`}/g
+  let tlMatch: RegExpExecArray | null
+  while ((tlMatch = templateLiteralPattern.exec(result)) !== null) {
+    const prop = tlMatch[1]
+    const value = tlMatch[2]
+    const encoded = encodeBase64Utf8(value)
+    result = result.slice(0, tlMatch.index) +
+      `${prop}Base64="${encoded}"` +
+      result.slice(tlMatch.index + tlMatch[0].length)
+    templateLiteralPattern.lastIndex = tlMatch.index + prop.length + 11 + encoded.length
+  }
+
+  // Handle BROKEN template-literals where backticks were lost in storage:
+  // prop={3 Water...} → propBase64="..."
+  result = result.replace(/(\w+)={([^}]+)}/g, (_, prop: string, value: string) => {
+    return `${prop}Base64="${encodeBase64Utf8(value)}"`
+  })
+
+  // ── Phase 3: String-encoded JSON objects ──
+  // option="{\"title\":...}"  →  optionBase64="<base64>"
+  // Handles the case where complex props are stored as JSON-encoded
+  // strings inside JSX string attributes.
+  const stringJsonPattern = /(\w+)="(\{[\s\S]*?\})"/g
+  let stringMatch: RegExpExecArray | null
+  while ((stringMatch = stringJsonPattern.exec(result)) !== null) {
+    const prop = stringMatch[1]
+    const jsonStr = stringMatch[2]
+    // Skip if already handled by Phase 1 or contains nested tags
+    try {
+      // Try parsing as JSON first — if it succeeds, encode the parsed
+      // data so the component can decode it reliably.
+      const parsed = JSON.parse(jsonStr)
+      const encoded = encodeBase64Utf8(JSON.stringify(parsed))
+      result = result.slice(0, stringMatch.index) +
+        `${prop}Base64="${encoded}"` +
+        result.slice(stringMatch.index + stringMatch[0].length)
+      // Reset regex since we modified the string
+      stringJsonPattern.lastIndex = stringMatch.index + prop.length + 11 + encoded.length
+    } catch {
+      // Not valid JSON — try encoding the raw object literal.
+      // Components like resolveDataProp will attempt JSON.parse(atob(...))
+      // which will fail; but this at least preserves the data.
+      // TODO: fix data at source (BlockNote editor serialization)
+      const encoded = encodeBase64Utf8(jsonStr)
+      result = result.slice(0, stringMatch.index) +
+        `${prop}Base64="${encoded}"` +
+        result.slice(stringMatch.index + stringMatch[0].length)
+      stringJsonPattern.lastIndex = stringMatch.index + prop.length + 11 + encoded.length
     }
   }
 
@@ -116,18 +157,6 @@ function normalizeChartProps(segment: string): string {
 
 function normalizeSegment(segment: string) {
   let normalized = normalizeChartProps(segment)
-
-  // Handle template-literals: data={`...`} → dataBase64="..."
-  normalized = normalized.replace(/\bdata=\{`([\s\S]*?)`\}/g, (_, value: string) => {
-    return `dataBase64="${encodeBase64Utf8(value)}"`
-  })
-
-  // Handle BROKEN template-literals where backticks were lost in storage:
-  // data={3 Water...} → dataBase64="..."
-  // Matches data={ followed by content (no curly braces) up to the closing }
-  normalized = normalized.replace(/\bdata=\{([^}]+)\}/g, (_, value: string) => {
-    return `dataBase64="${encodeBase64Utf8(value)}"`
-  })
 
   for (const prop of NUMERIC_PROPS) {
     const expressionPattern = new RegExp(`\\b${prop}=\\{(-?\\d+(?:\\.\\d+)?)\\}`, 'g')
@@ -236,8 +265,10 @@ function escapeMdxUnsafeContent(content: string): string {
     }
   )
 
-  // 3. Escape remaining bare < and > (stray angle brackets in text)
-  content = content.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // 3. Escape remaining bare < (angle brackets in text)
+  //    DO NOT escape > — Markdown blockquote syntax ("> ") and
+  //    other legitimate uses of > break if escaped to &gt;
+  content = content.replace(/</g, '&lt;')
 
   // 4. Restore protected tags
   content = content.replace(

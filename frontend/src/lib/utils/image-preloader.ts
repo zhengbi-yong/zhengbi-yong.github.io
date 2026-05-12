@@ -83,7 +83,7 @@ class ImagePreloader {
     }
 
     // 从 content 中提取图片 URL（HTML img 标签或 markdown 图片语法）
-    const content = (post as any).content || (post as any).body?.code || ''
+    const content = (post as any).content_mdx || (post as any).body?.code || ''
     if (content) {
       // Match HTML img tags: <img src="..." or <img src='...'
       const imgRegex = /<img[^>]+src=["']([^"']+)["']/g

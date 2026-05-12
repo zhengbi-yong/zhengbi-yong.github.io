@@ -51,7 +51,7 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
         setSummary(post.summary || '')
         setCategory(post.category_id || '')
         setTags(post.tags?.map((t) => t.id) || [])
-        originalMdxRef.current = post.content || ''
+        originalMdxRef.current = post.content_mdx || ''
         // BlockNote stores data as JSON blocks array in content_json.
         // Pass it directly to BlockNoteEditor — no conversion needed.
         if (post.content_json) {
@@ -104,7 +104,6 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
       }
       await adminService.updatePost(originalPost.id, {
         title,
-        content: contentMdx || content,
         content_json: jsonPayload,
         content_mdx: mdxPayload,
         content_format: 'mdx',

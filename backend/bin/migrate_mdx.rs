@@ -137,7 +137,7 @@ async fn migrate_file(pool: &PgPool, mdx_path: &Path) -> Result<(), String> {
     sqlx::query(
         r#"
         INSERT INTO posts (
-            slug, title, summary, content, status,
+            slug, title, summary, content_mdx, status,
             published_at, category_id, view_count, like_count, comment_count
         ) VALUES ($1, $2, $3, $4, 'published', $5, $6, 0, 0, 0)
         "#
