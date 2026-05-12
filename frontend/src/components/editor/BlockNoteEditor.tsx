@@ -98,6 +98,46 @@ function fixStyles(node: unknown): unknown {
 }
 
 /**
+ * Fix table blocks using legacy tableContent wrapper format.
+ * BlockNote 0.49.0 expects table.content as a direct rows array:
+ *   [{type:"tableRow",...}, ...]
+ * NOT the slash-menu internal wrapper:
+ *   {type:"tableContent", rows: [...], ...}
+ * The wrapper causes "Cannot read properties of undefined (reading 'isInGroup')".
+ */
+function fixTableContent(blocks: unknown[]): unknown[] {
+  return blocks.map((block: any) => {
+    if (!block || typeof block !== 'object') return block
+    // Fix 1: unwrap legacy {type:"tableContent", rows:[...]} wrapper
+    if (block.type === 'table' && block.content && typeof block.content === 'object' && !Array.isArray(block.content)) {
+      const wrapper = block.content as Record<string, unknown>
+      if (wrapper.type === 'tableContent' && Array.isArray(wrapper.rows)) {
+        return {
+          ...block,
+          content: (wrapper.rows as any[]).map((row: any) =>
+            // Fix 2: rows missing "type":"tableRow" (legacy tableContent format lacks it)
+            row.type ? row : { ...row, type: 'tableRow' }
+          ),
+        }
+      }
+    }
+    // Fix 3: rows already unwrapped but missing "type":"tableRow"
+    if (block.type === 'table' && Array.isArray(block.content)) {
+      const hasMissingType = block.content.some((row: any) => row && typeof row === 'object' && !row.type)
+      if (hasMissingType) {
+        return {
+          ...block,
+          content: block.content.map((row: any) =>
+            row && typeof row === 'object' && !row.type ? { ...row, type: 'tableRow' } : row
+          ),
+        }
+      }
+    }
+    return block
+  })
+}
+
+/**
  * BlockNote 编辑器组件
  *
  * 功能：
@@ -164,10 +204,36 @@ function BlockNoteEditor({
               )
             }
           }
-          return fixStyles(parsed) as any
+          return fixStyles(fixTableContent(parsed)) as any
         }
         return undefined
-      } catch {
+      } catch (e) {
+        // Debug: which block causes the error?
+        console.error('[BlockNoteEditor] initialContent parse/validate failed:', e)
+        try {
+          const blocks = JSON.parse(content)
+          if (Array.isArray(blocks)) {
+            // Binary search to find the problematic block
+            console.log(`[BlockNoteEditor] testing ${blocks.length} blocks individually...`)
+            for (let i = 0; i < blocks.length; i++) {
+              try {
+                // Test a single block
+                const test = fixStyles(fixTableContent([blocks[i]])) as any[]
+                // Don't actually use, just validate
+              } catch (blockErr: any) {
+                console.error(`[BlockNoteEditor] Block [${i}] type=${blocks[i]?.type} causes:`, blockErr.message || blockErr)
+                if (blocks[i]?.type === 'table' && Array.isArray(blocks[i]?.content)) {
+                  for (let j = 0; j < blocks[i].content.length; j++) {
+                    try {
+                      const row = blocks[i].content[j]
+                      console.log(`  Row [${j}]: type=${row?.type}, has_cells=${!!row?.cells}`)
+                    } catch {}
+                  }
+                }
+              }
+            }
+          }
+        } catch {}
         return undefined
       }
     })(),
