@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
   const hasSession = request.cookies.get('access_token') || csrfToken
 
   if (!hasSession) {
-    const loginUrl = new URL('/admin/login', request.url)
+    const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)
   }
@@ -41,9 +41,5 @@ export function middleware(request: NextRequest) {
  * API 调用走 /api/v1/* 到后端 BFF，由后端独立鉴权。
  */
 export const config = {
-  matcher: [
-    '/admin/:path*',
-    // 排除 Next.js 内部路径和静态资源
-    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
-  ],
+  matcher: ['/admin/:path*'],
 }

@@ -48,7 +48,7 @@ export const TOCItem = memo(function TOCItem({
                 color: 'var(--toc-active-text)',
                 backgroundColor: 'var(--toc-active-bg)',
                 fontWeight: 600,
-                boxShadow: 'var(--toc-shadow)',
+                boxShadow: 'inset 0 0 0 1px var(--toc-active-text, var(--theme-accent))',
               } as React.CSSProperties)
             : undefined
         }
@@ -64,14 +64,13 @@ export const TOCItem = memo(function TOCItem({
                 transform: 'translateY(-50%)',
                 width: '3px',
                 height: '70%',
-                background: 'var(--toc-active-indicator)',
+                background: 'var(--toc-active-text, var(--theme-accent, #8B2500))',
                 borderRadius: '0 2px 2px 0',
-                boxShadow: 'var(--toc-indicator-shadow)',
               } as React.CSSProperties
             }
           />
         )}
-        {node.value}
+        {node.title}
       </a>
       {node.children.length > 0 && (
         <ul>

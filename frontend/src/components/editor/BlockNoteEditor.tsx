@@ -117,33 +117,127 @@ const NATIVE_BLOCK_TYPES = new Set([
  * This causes "Cannot read properties of undefined (reading 'isInGroup')".
  */
 function fixTableContent(blocks: any[]): any[] {
+  // UUID fallback (some strict CSPs block crypto.randomUUID)
+  const uid = () => {
+    try { return crypto.randomUUID() } catch { return 'x' + Math.random().toString(36).slice(2, 10) }
+  }
   return blocks.map((block: any) => {
-    if (!block || typeof block !== 'object') return block
+    if (!block || typeof block !== 'object' || block.type !== 'table') return block
+    let fixed = { ...block }
+
     // Fix 1: unwrap legacy {type:"tableContent", rows:[...]} wrapper
-    if (block.type === 'table' && block.content && typeof block.content === 'object' && !Array.isArray(block.content)) {
-      const wrapper = block.content as Record<string, unknown>
+    if (fixed.content && typeof fixed.content === 'object' && !Array.isArray(fixed.content)) {
+      const wrapper = fixed.content as Record<string, unknown>
       if (wrapper.type === 'tableContent' && Array.isArray(wrapper.rows)) {
-        return {
-          ...block,
+        fixed = {
+          ...fixed,
           content: wrapper.rows.map((row: any) =>
             row.type ? row : { ...row, type: 'tableRow' }
           ),
         }
       }
     }
-    // Fix 2: rows already unwrapped but missing type:"tableRow"
-    if (block.type === 'table' && Array.isArray(block.content)) {
-      const hasMissingType = block.content.some((row: any) => row && typeof row === 'object' && !row.type)
-      if (hasMissingType) {
-        return {
-          ...block,
-          content: block.content.map((row: any) =>
-            row && typeof row === 'object' && !row.type ? { ...row, type: 'tableRow' } : row
+
+    // Fix 2: rows missing type:"tableRow"
+    if (Array.isArray(fixed.content)) {
+      const rows = fixed.content as any[]
+      if (rows.some((r: any) => r && typeof r === 'object' && !r.type)) {
+        fixed = {
+          ...fixed,
+          content: rows.map((r: any) =>
+            r && typeof r === 'object' && !r.type ? { ...r, type: 'tableRow' } : r
           ),
         }
       }
     }
-    return block
+
+    // Fix 3: tableRow uses legacy "cells" prop instead of "content"
+    if (Array.isArray(fixed.content)) {
+      const rows = fixed.content as any[]
+      if (rows.some((r: any) => r && typeof r === 'object' && r.type === 'tableRow' && Array.isArray(r.cells) && !Array.isArray(r.content))) {
+        fixed = {
+          ...fixed,
+          content: rows.map((r: any) => {
+            if (r && typeof r === 'object' && r.type === 'tableRow' && Array.isArray(r.cells)) {
+              const { cells, ...rest } = r
+              return { ...rest, content: cells }
+            }
+            return r
+          }),
+        }
+      }
+    }
+
+    // Fix 4: ensure tableRow/tableCell have required fields (id, children, props)
+    if (Array.isArray(fixed.content)) {
+      const rows = fixed.content as any[]
+      if (rows.some((r: any) => r && typeof r === 'object' && r.type === 'tableRow' && (!r.id || !r.children || !r.props))) {
+        fixed = {
+          ...fixed,
+          content: rows.map((row: any) => {
+            if (!row || typeof row !== 'object' || row.type !== 'tableRow') return row
+            return {
+              ...row,
+              id: row.id || uid(),
+              props: row.props || { backgroundColor: 'default' },
+              children: Array.isArray(row.children) ? row.children : [],
+              content: Array.isArray(row.content) ? row.content.map((cell: any) => {
+                if (!cell || typeof cell !== 'object') return cell
+                return {
+                  ...cell,
+                  id: cell.id || uid(),
+                  props: cell.props || { backgroundColor: 'default', textColor: 'default', textAlignment: 'left', colspan: 1, rowspan: 1 },
+                  children: Array.isArray(cell.children) ? cell.children : [],
+                }
+              }) : row.content,
+            }
+          }),
+        }
+      }
+    }
+
+    // Fix 5: wrap tableCell inline content in paragraph nodes
+    // BlockNote 0.49 tableCell content model requires block-level children,
+    // not raw inline text nodes. Legacy data has [{type:"text",...}] directly.
+    if (Array.isArray(fixed.content)) {
+      const rows = fixed.content as any[]
+      if (rows.some((r: any) =>
+        r && typeof r === 'object' && r.type === 'tableRow' &&
+        Array.isArray(r.content) && r.content.some((c: any) =>
+          c && typeof c === 'object' && c.type === 'tableCell' &&
+          Array.isArray(c.content) && c.content.length > 0 &&
+          c.content[0] && typeof c.content[0] === 'object' && c.content[0].type !== 'tableParagraph'
+        )
+      )) {
+        fixed = {
+          ...fixed,
+          content: rows.map((row: any) => {
+            if (!row || typeof row !== 'object' || row.type !== 'tableRow') return row
+            return {
+              ...row,
+              content: Array.isArray(row.content) ? row.content.map((cell: any) => {
+                if (!cell || typeof cell !== 'object' || cell.type !== 'tableCell') return cell
+                if (!Array.isArray(cell.content) || cell.content.length === 0) return cell
+                const first = cell.content[0]
+                if (first && typeof first === 'object' && first.type === 'tableParagraph') return cell
+                return {
+                  ...cell,
+                  content: [{
+                    id: uid(),
+                    type: 'tableParagraph',
+                    props: { textColor: 'default', textAlignment: 'left', backgroundColor: 'default' },
+                    content: cell.content,
+                    children: [],
+                  }],
+                }
+              }) : row.content,
+            }
+          }),
+        }
+      }
+    }
+
+    return fixed
   })
 }
 
@@ -394,6 +488,7 @@ function BlockNoteEditor({
         return undefined
       } catch (e) {
         console.error('[BlockNoteEditor] parse error:', e)
+        console.error('[BlockNoteEditor] content preview:', content?.slice(0, 100))
         return undefined
       }
     })(),

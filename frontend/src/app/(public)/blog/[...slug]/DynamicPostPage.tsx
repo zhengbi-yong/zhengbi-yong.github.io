@@ -7,13 +7,13 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { usePost } from '@/lib/hooks/useBlogData'
 import { DynamicPostRenderer } from '@/components/DynamicPostRenderer'
 import { notFound } from 'next/navigation'
 import PostLayoutMonograph from '@/components/layouts/PostLayoutMonograph'
 import { RDKitLoader } from '@/components/RDKitLoader'
-import type { MDXCompileResult } from '@/lib/mdx-runtime'
+import { extractTocFromContent } from '@/lib/utils/extract-toc'
 import type { TOC } from '@/lib/types/toc'
 
 interface DynamicPostPageProps {
@@ -22,8 +22,10 @@ interface DynamicPostPageProps {
 
 export function DynamicPostPage({ slug }: DynamicPostPageProps) {
   const { data: post, isLoading, error } = usePost(slug)
-  // Fumadocs 方式：TOC 来自 MDX 编译管线的 onCompiled 回调（保证与 heading ID 同源）
-  const [toc, setToc] = useState<TOC>([])
+
+  // TOC key: forces FumadocsTOC remount after MDX content renders,
+  // ensuring IntersectionObserver can find heading elements in the DOM
+  const [tocKey, setTocKey] = useState(0)
 
   if (isLoading) {
     return (
@@ -46,6 +48,28 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
 
   const showTOC = post.show_toc === true
   const postContent = post.content_mdx || post.content_json || ''
+
+  // Extract TOC from MDX content using github-slugger (same as rehype-slug)
+  // Works on both server and client, IDs guaranteed to match rendered headings
+  const toc: TOC = useMemo(() => extractTocFromContent(postContent), [postContent])
+
+  // Wait for MDXRemote to render headings into DOM, then remount FumadocsTOC
+  // so AnchorProvider's IntersectionObserver can find them
+  useEffect(() => {
+    if (!postContent) return
+
+    const observer = new MutationObserver(() => {
+      const headings = document.querySelectorAll('h1[id], h2[id], h3[id]')
+      if (headings.length > 0) {
+        setTocKey((k) => k + 1)
+        observer.disconnect()
+      }
+    })
+
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    return () => observer.disconnect()
+  }, [postContent])
 
   return (
     <>
@@ -74,15 +98,11 @@ export function DynamicPostPage({ slug }: DynamicPostPageProps) {
         authorDetails={[]}
         toc={toc}
         showTOC={showTOC}
+        tocKey={tocKey}
       >
         <DynamicPostRenderer
           content={postContent}
           slug={slug}
-          onCompiled={(result: MDXCompileResult) => {
-            // Fumadocs 方式：TOC 与 heading ID 在同一编译管线中提取
-            // 此时 MDX 内容已渲染到 DOM，AnchorProvider 可直接 observe 到 heading 元素
-            setToc(result.toc.filter((item) => item.depth <= 2))
-          }}
         />
       </PostLayoutMonograph>
     </>

@@ -55,7 +55,33 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
         // BlockNote stores data as JSON blocks array in content_json.
         // Pass it directly to BlockNoteEditor — no conversion needed.
         if (post.content_json) {
-          setContent(JSON.stringify(post.content_json))
+          // Pre-process: wrap raw text nodes in table cells with paragraph nodes
+          // BlockNote 0.49 requires tableCell content to be block-level (paragraph), not inline text
+          const fixed = Array.isArray(post.content_json) ? post.content_json.map((b: any) => {
+            if (b?.type !== 'table' || !Array.isArray(b.content)) return b
+            return {
+              ...b,
+              content: b.content.map((row: any) => {
+                if (row?.type !== 'tableRow' || !Array.isArray(row.content)) return row
+                return {
+                  ...row,
+                  content: row.content.map((cell: any) => {
+                    if (cell?.type !== 'tableCell' || !Array.isArray(cell.content) || cell.content.length === 0) return cell
+                    const first = cell.content[0]
+                    if (first?.type === 'tableParagraph') return cell // already fixed
+                    return {
+                      ...cell,
+                        content: [{
+                        type: 'tableParagraph',
+                        content: cell.content,
+                      }],
+                    }
+                  }),
+                }
+              }),
+            }
+          }) : post.content_json
+          setContent(JSON.stringify(fixed))
         } else {
           // Fallback: create empty BlockNote document
           setContent(JSON.stringify([{ type: 'paragraph', content: [] }]))
@@ -217,6 +243,7 @@ export default function EditPostPage({ params }: { params: Promise<{ slug: strin
           <ArticleMetadata title={title} summary={summary} category={category} tags={tags} onTitleChange={setTitle} onSummaryChange={setSummary} onCategoryChange={setCategory} onTagsChange={setTags} />
         </div>
         <div className="bg-card rounded-lg shadow-sm border overflow-hidden">
+          <div className="p-4 text-sm text-muted-foreground border-b">编辑器区域（如看不到编辑器内容，说明 BlockNote 初始化失败）</div>
           <BlockNoteEditor content={content} onChange={(json: string, mdx: string) => { setContent(json); setContentMdx(mdx) }} />
         </div>
       </div>

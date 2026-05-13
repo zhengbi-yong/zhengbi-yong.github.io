@@ -9,13 +9,11 @@
 'use client'
 
 import { Suspense } from 'react'
-import { MDXRuntime, type MDXCompileResult } from '@/lib/mdx-runtime'
+import { MDXRuntime } from '@/lib/mdx-runtime'
 
 interface DynamicPostRendererProps {
   content: string
   slug?: string
-  /** Fumadocs 方式：MDX 编译完成后回调，传递 TOC（与 heading ID 同一管线） */
-  onCompiled?: (result: MDXCompileResult) => void
 }
 
 /**
@@ -25,10 +23,10 @@ interface DynamicPostRendererProps {
  *
  * @param props - 包含content（MDX源代码）和可选的slug
  */
-export function DynamicPostRenderer({ content, onCompiled }: DynamicPostRendererProps) {
+export function DynamicPostRenderer({ content }: DynamicPostRendererProps) {
   return (
     <Suspense fallback={<PostContentSkeleton />}>
-      <MDXContent content={content} onCompiled={onCompiled} />
+      <MDXContent content={content} />
     </Suspense>
   )
 }
@@ -36,8 +34,8 @@ export function DynamicPostRenderer({ content, onCompiled }: DynamicPostRenderer
 /**
  * MDX内容组件（内部使用）
  */
-function MDXContent({ content, onCompiled }: { content: string; onCompiled?: (result: MDXCompileResult) => void }) {
-  return <MDXRuntime content={content} onCompiled={onCompiled} />
+function MDXContent({ content }: { content: string }) {
+  return <MDXRuntime content={content} />
 }
 
 /**
